@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -11,7 +11,6 @@ import { useAuthStore } from '@/shared/store/auth';
 type TokenStatus = 'loading' | 'success' | 'error';
 
 function TokenVerify({ token }: { token: string }) {
-  const navigate = useNavigate();
   const storeLogin = useAuthStore(s => s.login);
   const [status, setStatus] = useState<TokenStatus>('loading');
   const called = useRef(false);
@@ -24,7 +23,8 @@ function TokenVerify({ token }: { token: string }) {
       .then(({ access_token, user }) => {
         storeLogin(access_token, user);
         setStatus('success');
-        navigate('/welcome', { replace: true });
+        // Navigation is handled by RequireGuest — it detects the token
+        // and renders <Navigate to="/welcome" replace /> declaratively.
       })
       .catch(() => setStatus('error'));
   }, []);
@@ -71,7 +71,6 @@ function TokenVerify({ token }: { token: string }) {
 // ─── OTP mode (code from email, after registration) ───────────────────────────
 
 function OtpVerify({ email }: { email: string }) {
-  const navigate = useNavigate();
   const storeLogin = useAuthStore(s => s.login);
 
   const [code, setCode] = useState('');
@@ -93,7 +92,8 @@ function OtpVerify({ email }: { email: string }) {
     try {
       const { access_token, user } = await authApi.verifyEmailByCode(email, code.trim());
       storeLogin(access_token, user);
-      navigate('/welcome', { replace: true });
+      // Navigation is handled by RequireGuest — it detects the token
+      // and renders <Navigate to="/welcome" replace /> declaratively.
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
