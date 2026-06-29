@@ -23,6 +23,7 @@ export default function AssessmentPage() {
     showNextButton,
     questionProgress,
     overallProgress,
+    isRetakeMode,
     handleBack,
     handleOptionSelect,
     handleNextBlock,
@@ -34,10 +35,13 @@ export default function AssessmentPage() {
   const blockEmoji = currentBlockKey ? BLOCK_EMOJIS[currentBlockKey] : '';
   const blockDesc = currentBlockKey ? BLOCK_DESCRIPTIONS[currentBlockKey] : '';
 
-  const headerTitle =
-    phase === 'question' && questions.length > 0
-      ? `${blockName} · ${questionIndex + 1} / ${questions.length}`
-      : blockName;
+  const headerTitle = isRetakeMode
+    ? phase === 'question' && questions.length > 0
+      ? `Перепрохождение · ${questionIndex + 1} / ${questions.length}`
+      : `Перепрохождение: ${blockName}`
+    : phase === 'question' && questions.length > 0
+    ? `${blockName} · ${questionIndex + 1} / ${questions.length}`
+    : blockName;
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -77,7 +81,7 @@ export default function AssessmentPage() {
             className="text-tiny text-muted"
             style={{ fontSize: 'var(--text-tiny)' }}
           >
-            Блок {currentBlock + 1} из {totalBlocks}
+            {isRetakeMode ? 'Перепрохождение блока' : `Блок ${currentBlock + 1} из ${totalBlocks}`}
           </span>
           <span
             className="text-tiny text-muted"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { resultApi } from '@/shared/api/result';
@@ -14,6 +14,9 @@ const MESSAGES = [
 
 export default function ResultLoadingPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isRetake = searchParams.get('retake') === '1';
+
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const completeAssessment = useAssessmentStore(s => s.completeAssessment);
@@ -42,8 +45,8 @@ export default function ResultLoadingPage() {
       return;
     }
 
-    // Result already generated — just fetch and forward
-    if (hasCompletedAssessment) {
+    // Result already generated — just fetch and forward (skip on retake: must regenerate)
+    if (!isRetake && hasCompletedAssessment) {
       resultApi.get(assessmentId).then(result => {
         setReport(result);
         navigate('/results', { replace: true });

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
@@ -11,6 +11,7 @@ export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
 export function useAssessment() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const goal = useAssessmentStore(s => s.goal);
@@ -20,9 +21,17 @@ export function useAssessment() {
   const markBlockCompleted = useAssessmentStore(s => s.markBlockCompleted);
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
 
+  // Retake mode: /assessment?retake=<blockIndex>
+  const retakeParam = searchParams.get('retake');
+  const isRetakeMode = retakeParam !== null;
+  const retakeIndex = isRetakeMode ? Number(retakeParam) : null;
+
   const activeBlocks = getAssessmentBlocks(ageGroup, goal);
   const totalBlocks = activeBlocks.length;
-  const currentBlockKey = activeBlocks[currentBlock] as AssessmentBlock | undefined;
+
+  // In retake mode use the retake block, otherwise use the store's currentBlock
+  const effectiveBlock = isRetakeMode ? retakeIndex! : currentBlock;
+  const currentBlockKey = activeBlocks[effectiveBlock] as AssessmentBlock | undefined;
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -41,10 +50,13 @@ export function useAssessment() {
       navigate('/assessment/goal', { replace: true });
       return;
     }
-    if (currentBlock >= totalBlocks) {
+
+    // Normal mode: redirect to loading if all blocks done
+    if (!isRetakeMode && currentBlock >= totalBlocks) {
       navigate('/assessment/loading', { replace: true });
       return;
     }
+
     if (!currentBlockKey) return;
 
     let cancelled = false;
@@ -80,8 +92,9 @@ export function useAssessment() {
         introTimerRef.current = null;
       }
     };
+    // effectiveBlock captures both currentBlock (normal) and retakeIndex (retake)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentBlock, retryCount]);
+  }, [effectiveBlock, retryCount]);
 
   function handleBack() {
     if (questionIndex === 0 || transitioning) return;
@@ -134,6 +147,21 @@ export function useAssessment() {
         answers: blockAnswers,
       });
       markBlockCompleted(currentBlockKey);
+
+      if (isRetakeMode) {
+        // Retake: only one block — go straight to result regeneration
+        navigate('/assessment/praise', {
+          state: {
+            title: 'Готово!',
+            subtitle: `Блок «${BLOCK_NAMES[currentBlockKey]}» обновлён`,
+            nextPath: '/assessment/loading?retake=1',
+            completedCount: totalBlocks,
+            totalBlocks,
+          },
+        });
+        return;
+      }
+
       const nextIndex = currentBlock + 1;
       const isLast = nextIndex >= totalBlocks;
       advanceBlock();
@@ -166,7 +194,7 @@ export function useAssessment() {
   const showNextButton = isLastQuestion && selectedIndex !== null;
   const questionProgress =
     questions.length > 0 ? ((questionIndex + 1) / questions.length) * 100 : 0;
-  const overallProgress = totalBlocks > 0 ? (currentBlock / totalBlocks) * 100 : 0;
+  const overallProgress = totalBlocks > 0 ? (effectiveBlock / totalBlocks) * 100 : 0;
 
   return {
     phase,
@@ -176,7 +204,7 @@ export function useAssessment() {
     transitioning,
     saving,
     error,
-    currentBlock,
+    currentBlock: effectiveBlock,
     currentBlockKey,
     totalBlocks,
     activeBlocks,
@@ -187,6 +215,7 @@ export function useAssessment() {
     showNextButton,
     questionProgress,
     overallProgress,
+    isRetakeMode,
     handleBack,
     handleOptionSelect,
     handleNextBlock,
