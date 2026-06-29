@@ -1,6 +1,8 @@
 # Profy Frontend
 
-Веб-интерфейс платформы управления коворкинг-пространством **Profy** (NewLevelHub). SPA на Vite + React 18 + TypeScript, взаимодействующий с [Profy Backend](https://profy.newlevelhub.kz).
+Веб-интерфейс платформы карьерной ориентации **Profy** (NewLevelHub). SPA на Vite + React 18 + TypeScript, взаимодействующий с [Profy Backend](https://profy.newlevelhub.kz).
+
+> **Референс по экранам:** [profi-mobile](../profi-mobile) (React Native / Expo) — источник истины по структуре страниц и фичам.
 
 ## Стек
 
@@ -11,7 +13,7 @@
 | TypeScript | ~6.0 (strict) | Строгая типизация |
 | React Router | 7.13.0 | Клиентская маршрутизация |
 | TanStack React Query | 5.96.1 | Серверное состояние |
-| Zustand | 5.0.12 | Клиентское состояние (auth) |
+| Zustand | 5.0.12 | Клиентское состояние (auth, assessment) |
 | Tailwind CSS | 4.1.12 | Утилитарные стили (через @tailwindcss/vite) |
 | Axios | 1.14.0 | HTTP-клиент |
 | Lucide React | 0.487.0 | Иконки |
@@ -25,14 +27,13 @@
 
 ```bash
 # 1. Клонировать репозиторий
-git clone <url> && cd Profy-Frontend
+git clone https://github.com/NewLevelHub/Profy-Frontend.git && cd Profy-Frontend
 
 # 2. Установить зависимости
 npm install
 
 # 3. Создать .env
 cp .env.example .env
-# Отредактировать .env при необходимости
 
 # 4. Запустить в режиме разработки
 npm run dev
@@ -59,17 +60,6 @@ Dev-сервер проксирует `/api/*` на `http://localhost:8000` — 
 
 Доступ к переменным — только через `src/shared/config/env.ts`.
 
-## Роли пользователей
-
-| Роль | Описание |
-|---|---|
-| `superadmin` | Полный доступ: компании, здания, ресурсы, все пользователи |
-| `company_admin` | Управление своей компанией: сотрудники, бронирования, аналитика |
-| `employee` | Бронирования, заявки, CRM, файлы |
-| `guest` | Ограниченный доступ: бронирования и пропуска |
-
-Роли определены в `src/shared/config/constants.ts` → `USER_ROLES`. Всегда использовать константы.
-
 ## Структура проекта
 
 ```
@@ -78,46 +68,64 @@ src/
   app/
     App.tsx          # QueryClient + RouterProvider
     router.tsx       # Маршруты (React Router v7)
-  pages/             # Страницы по фичам
+  pages/             # Страницы, зеркалящие экраны profi-mobile
+    auth/            # Login, Register, VerifyEmail, ForgotPassword, ResetPassword
+    onboarding/      # Welcome, ProfileSetup, ArtifactsSetup
+    assessment/      # GoalSelection, Assessment, Praise, ResultLoading
+    home/            # Home
+    results/         # Results, DirectionDetail, UniversityList, ProgramDetail, GapAnalysis
+    roadmap/         # Roadmap
+    profile/         # Profile
+    errors/          # NotFound
   shared/
     api/
-      client.ts      # Axios, JWT interceptor, refresh
-      endpoints.ts   # API-пути: const API = { ... }
+      client.ts      # Axios, JWT interceptor, 401 → logout
+      endpoints.ts   # API-пути: const API = { auth, profile, assessment, result, roadmap, universities }
     config/
-      constants.ts   # USER_ROLES, статусы
+      constants.ts   # ASSESSMENT_GOALS, BLOCK_NAMES, AGE_GROUPS и др.
       env.ts         # Типизированные VITE_* переменные
-    guards/          # RequireAuth, RequireGuest, RequireRole
+    guards/          # RequireAuth, RequireGuest
     hooks/
-      useAuth.ts     # useAuth(), useUser()
+      useAuth.ts     # useAuth(), useUser(), useIsAuthenticated()
     lib/
       cn.ts          # clsx + tailwind-merge
       queryClient.ts # Singleton QueryClient
-      storage.ts     # tokenStorage + sessionHint
+      storage.ts     # Утилиты localStorage
     store/
-      auth.ts        # Zustand auth store
+      auth.ts        # Zustand + persist (token, user, _hasHydrated)
+      assessment.ts  # Zustand + persist (assessmentId, goal, completedBlocks)
+      profile.ts     # Zustand in-memory (ProfileResponse)
+      result.ts      # Zustand in-memory (AnalysisResultResponse)
     types/
-      index.ts       # User, Booking, Company и др.
+      index.ts       # User, Assessment, Question, DirectionResult, Roadmap и др.
     ui/
-      layouts/       # AppLayout, AuthLayout
-      navigation/    # Header, Sidebar, sidebar-config
+      layouts/       # AppLayout (Header + Outlet), AuthLayout (центрированная карточка)
+      navigation/    # Header (горизонтальный nav, мобильный dropdown)
       PageStub.tsx   # Заглушка для страниц в разработке
   styles/
-    index.css        # Входная точка
-    tailwind.css     # Tailwind
-    fonts.css        # Google Fonts
-    theme.css        # CSS custom properties
+    index.css        # Входная точка стилей
+    tailwind.css     # Tailwind + @variant dark
+    fonts.css        # Nunito (Google Fonts)
+    theme.css        # CSS custom properties (фиолетовая палитра по themes.ts из profi-mobile)
 ```
+
+## Навигация
+
+Веб-аналог мобильных табов:
+
+| Путь | Экран (profi-mobile) |
+|---|---|
+| `/home` | HomeScreen |
+| `/results` | ResultScreen |
+| `/roadmap` | RoadmapScreen |
+| `/profile` | ProfileScreen |
 
 ## Ключевые соглашения
 
 - Импорты — только через алиас `@/`
 - API-пути — только через `API` из `@/shared/api/endpoints.ts`
-- Роли — только из `USER_ROLES` в `@/shared/config/constants.ts`
 - Типы — только из `@/shared/types/index.ts`
 - CSS-классы — через `cn()` из `@/shared/lib/cn.ts`
 - Серверное состояние — TanStack React Query
-- Auth — через `useAuth()` хук
-
-## Референс по экранам
-
-**Profy-Mobile** (React Native / Expo) — источник истины по feature-scope на каждую роль.
+- Auth — через `useAuth()` хук; токен хранится в Zustand persist (`profy-auth`)
+- Дизайн-токены — CSS custom properties в `theme.css`, палитра и радиусы соответствуют `profi-mobile/src/constants/themes/themes.ts`
