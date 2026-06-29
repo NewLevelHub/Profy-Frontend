@@ -40,7 +40,7 @@ export default function LoginPage() {
     try {
       const { access_token, user } = await authApi.login(email.trim(), password);
       storeLogin(access_token, user);
-      const from = (location.state as { from?: string })?.from ?? '/home';
+      const from = (location.state as { from?: string })?.from ?? '/welcome';
       navigate(from, { replace: true });
     } catch (err) {
       if (axios.isAxiosError(err)) {
