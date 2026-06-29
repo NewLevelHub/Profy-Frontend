@@ -31,11 +31,12 @@
   --text-placeholder: #9CA3AF;
   --text-on-brand:  #FFFFFF;
 
-  /* Brand — violet/indigo (mobile: colors.primary, primaryDeep, primarySoft) */
+  /* Brand — violet/indigo (mobile: colors.primary, primaryDeep, primarySoft, primaryDisabled) */
   --brand:          #7C3AED;
   --brand-hover:    #5B21B6;
   --brand-subtle:   #EDE9FE;
   --brand-text:     #5B21B6;
+  --brand-disabled: #A78BFA;
 
   /* Accent — orange (mobile: colors.accent, accentSoft) */
   --accent:         #EA580C;
@@ -62,16 +63,59 @@
   --nav-hover-bg:      #F0ECFF;
 
   /* Radius (mobile: radii.sm=10, radii.md=16, radii.lg=22, radii.pill=999) */
-  --radius-sm: 10px;
-  --radius:    16px;
-  --radius-lg: 22px;
+  --radius-sm:  10px;
+  --radius:     16px;
+  --radius-lg:  22px;
+  --radius-pill: 9999px;
 
   /* Shadows */
-  --shadow-card: 0 6px 18px rgba(30, 27, 75, 0.06);
-  --shadow-pop:  0 12px 32px rgba(124, 58, 237, 0.14), 0 0 0 1px var(--border);
+  --shadow-card:   0 6px 18px rgba(30, 27, 75, 0.06);
+  --shadow-pop:    0 12px 32px rgba(124, 58, 237, 0.14), 0 0 0 1px var(--border);
+  --shadow-button: 0 8px 14px rgba(124, 58, 237, 0.28);
 
   /* Layout */
   --header-h: 56px;
+
+  /* Typography scale — named aliases exact from mobile fontSize.* */
+  --text-display:  1.875rem;   /* 30px — mobile: fontSize.display */
+  --text-h1:       1.6875rem;  /* 27px — mobile: fontSize.h1 */
+  --text-title:    1.375rem;   /* 22px — mobile: fontSize.title */
+  --text-subtitle: 1.1875rem;  /* 19px — mobile: fontSize.subtitle */
+  --text-body:     1rem;       /* 16px — mobile: fontSize.body */
+  --text-label:    0.9375rem;  /* 15px — mobile: fontSize.label */
+  --text-caption:  0.8125rem;  /* 13px — mobile: fontSize.caption */
+  --text-small:    0.75rem;    /* 12px — mobile: fontSize.small */
+  --text-tiny:     0.6875rem;  /* 11px — mobile: fontSize.tiny */
+
+  /* Standard web scale (Tailwind-compatible aliases) */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+
+  /* Leading (line-height) — mirrors mobile lineHeight / fontSize ratios */
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.45;
+  --leading-relaxed: 1.6;
+
+  /* Font weights — mirrors mobile fontFamily.* */
+  --font-normal:    400;
+  --font-medium:    500;
+  --font-semibold:  600;
+  --font-bold:      700;
+  --font-extrabold: 800;
+  --font-black:     900;
+
+  /* Canonical aliases matching Profy-Mobile token names */
+  --color-primary: var(--brand);
+  --color-accent:  var(--accent);
+  --color-bg:      var(--bg-page);
+  --color-surface: var(--bg-surface);
 }
 
 .dark {
@@ -190,4 +234,43 @@
 
   .focus\:border-brand:focus { border-color: var(--brand); }
   .focus\:ring-brand:focus   { --tw-ring-color: color-mix(in srgb, var(--brand) 30%, transparent); }
+
+  /* Status backgrounds (solid) */
+  .bg-success { background-color: var(--success); }
+  .bg-warning { background-color: var(--warning); }
+  .bg-danger  { background-color: var(--danger); }
+
+  /* Border helpers */
+  .border-brand  { border-color: var(--brand); }
+  .border-danger { border-color: var(--danger); }
+
+  /* Shadow helpers */
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-pop  { box-shadow: var(--shadow-pop); }
+
+  /* Focus ring — combines border-color + subtle outer ring in one class */
+  .ring-brand {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent);
+  }
+
+  /* Shadow helpers */
+  .shadow-button { box-shadow: var(--shadow-button); }
+
+  /* Disabled brand color (mobile: colors.primaryDisabled) */
+  .bg-brand-disabled { background-color: var(--brand-disabled); }
+  .text-brand-disabled { color: var(--brand-disabled); }
+
+  /* Pill radius */
+  .rounded-pill { border-radius: var(--radius-pill); }
+
+  /* Named typography utilities — match mobile typography.* names */
+  .text-display  { font-size: var(--text-display);  line-height: var(--leading-tight); }
+  .text-h1       { font-size: var(--text-h1);       line-height: var(--leading-tight); }
+  .text-title    { font-size: var(--text-title);    line-height: var(--leading-snug);  }
+  .text-subtitle { font-size: var(--text-subtitle); line-height: var(--leading-snug);  }
+  .text-body     { font-size: var(--text-body);     line-height: var(--leading-normal); }
+  .text-label    { font-size: var(--text-label);    line-height: var(--leading-normal); }
+  .text-caption  { font-size: var(--text-caption);  line-height: var(--leading-relaxed); }
+  .text-small    { font-size: var(--text-small);    line-height: var(--leading-relaxed); }
+  .text-tiny     { font-size: var(--text-tiny);     line-height: var(--leading-relaxed); }
 }
