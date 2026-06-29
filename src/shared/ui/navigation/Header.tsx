@@ -1,20 +1,25 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { cn } from '@/shared/lib/cn';
+import { env } from '@/shared/config/env';
 
 const NAV_ITEMS = [
   { label: 'Главная', path: '/home' },
   { label: 'Результаты', path: '/results' },
-  { label: 'Роадмап', path: '/roadmap' },
   { label: 'Профиль', path: '/profile' },
 ];
-import { cn } from '@/shared/lib/cn';
-import { env } from '@/shared/config/env';
 
 export function Header() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
 
   const initial = user?.name?.trim()?.[0]?.toUpperCase() ?? 'P';
 
@@ -54,7 +59,7 @@ export function Header() {
           {/* Logout */}
           <button
             type="button"
-            onClick={() => logout()}
+            onClick={handleLogout}
             className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-secondary hover:bg-hover transition-colors"
             title="Выйти"
           >
@@ -96,7 +101,7 @@ export function Header() {
           ))}
           <button
             type="button"
-            onClick={() => logout()}
+            onClick={handleLogout}
             className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-secondary hover:bg-hover"
           >
             Выйти
