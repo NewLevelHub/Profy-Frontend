@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
+import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 
@@ -39,7 +40,7 @@ import RoadmapPage from '@/pages/roadmap/RoadmapPage';
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
-  // Root redirect
+  // Root redirect — RequireProfile will handle the profile check at /home
   { path: '/', element: <Navigate to="/home" replace /> },
 
   // ── Guest-only: AuthLayout (mobile: AuthNavigator) ─────────────────────────
@@ -74,28 +75,33 @@ export const router = createBrowserRouter([
       { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
 
-      // Main app — header nav (mobile: MainTabNavigator: Home | Result | Profile)
+      // Main app — guarded by profile; redirects to /welcome if profile not yet created
       {
-        element: <AppLayout />,
+        element: <RequireProfile />,
         children: [
-          { path: '/home', element: <HomePage /> },
-          { path: '/results', element: <ResultsPage /> },
-          { path: '/profile', element: <ProfilePage /> },
-          { path: '/roadmap', element: <RoadmapPage /> },
-
-          // Detail screens (mobile: App stack over tabs)
-          { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
-          { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
           {
-            path: '/results/directions/:slug/universities/:programId',
-            element: <ProgramDetailPage />,
-          },
-          {
-            path: '/results/directions/:slug/universities/:programId/gap',
-            element: <GapAnalysisPage />,
-          },
+            element: <AppLayout />,
+            children: [
+              { path: '/home', element: <HomePage /> },
+              { path: '/results', element: <ResultsPage /> },
+              { path: '/profile', element: <ProfilePage /> },
+              { path: '/roadmap', element: <RoadmapPage /> },
 
-          { path: '*', element: <NotFoundPage /> },
+              // Detail screens (mobile: App stack over tabs)
+              { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
+              { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
+              {
+                path: '/results/directions/:slug/universities/:programId',
+                element: <ProgramDetailPage />,
+              },
+              {
+                path: '/results/directions/:slug/universities/:programId/gap',
+                element: <GapAnalysisPage />,
+              },
+
+              { path: '*', element: <NotFoundPage /> },
+            ],
+          },
         ],
       },
     ],

@@ -1,6 +1,12 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
-import type { AssessmentGoal, AssessmentResponse } from '@/shared/types';
+import type {
+  AssessmentGoal,
+  AssessmentResponse,
+  Question,
+  SaveAnswersPayload,
+  SaveAnswersResponse,
+} from '@/shared/types';
 
 export const assessmentApi = {
   start: (goal: AssessmentGoal) =>
@@ -8,4 +14,14 @@ export const assessmentApi = {
 
   current: () =>
     apiClient.get<AssessmentResponse>(API.assessment.current).then(r => r.data),
+
+  getQuestions: (assessmentId: string, block: string) =>
+    apiClient
+      .get<Question[]>(API.assessment.questions(assessmentId, block))
+      .then(r => r.data),
+
+  saveAnswers: (assessmentId: string, payload: SaveAnswersPayload) =>
+    apiClient
+      .post<SaveAnswersResponse>(API.assessment.answers(assessmentId), payload)
+      .then(r => r.data),
 };

@@ -34,6 +34,17 @@ export const BLOCK_NAMES: Record<string, string> = {
   university: 'Университет',
 };
 
+export const BLOCK_DESCRIPTIONS: Record<string, string> = {
+  interests: 'Расскажи, что тебе нравится делать и чем ты увлекаешься',
+  thinking: 'Узнаем, как ты подходишь к решению задач и принятию решений',
+  personality: 'Разберёмся в твоих чертах характера и способе общения',
+  motivation: 'Поймём, что тебя вдохновляет и движет вперёд',
+  academic: 'Оценим твои академические сильные стороны',
+  directions: 'Определим профессиональные направления, которые тебе подходят',
+  goal_clarification: 'Уточним твои цели и ожидания от будущей карьеры',
+  university: 'Узнаем твои предпочтения при выборе университета',
+};
+
 export const BLOCK_EMOJIS: Record<string, string> = {
   interests: '🎯',
   thinking: '🧠',
