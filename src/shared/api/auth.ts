@@ -1,11 +1,6 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
-import type { User } from '@/shared/types';
-
-export interface AuthResponse {
-  access_token: string;
-  user: User;
-}
+import type { TokenResponse, User } from '@/shared/types';
 
 export const authApi = {
   me: () =>
@@ -15,13 +10,13 @@ export const authApi = {
     apiClient.post<{ message: string }>(API.auth.register, { email, password }),
 
   login: (email: string, password: string) =>
-    apiClient.post<AuthResponse>(API.auth.login, { email, password }).then(r => r.data),
+    apiClient.post<TokenResponse>(API.auth.login, { email, password }).then(r => r.data),
 
   verifyEmailByCode: (email: string, code: string) =>
-    apiClient.post<AuthResponse>(API.auth.verifyEmail, { email, code }).then(r => r.data),
+    apiClient.post<TokenResponse>(API.auth.verifyEmail, { email, code }).then(r => r.data),
 
   verifyEmailByToken: (token: string) =>
-    apiClient.post<AuthResponse>(API.auth.verifyEmail, { token }).then(r => r.data),
+    apiClient.post<TokenResponse>(API.auth.verifyEmail, { token }).then(r => r.data),
 
   resendVerification: (email: string) =>
     apiClient.post(API.auth.resendVerification, { email }),
