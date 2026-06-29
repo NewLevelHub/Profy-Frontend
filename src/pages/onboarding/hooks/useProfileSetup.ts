@@ -16,25 +16,28 @@ function toggle(list: string[], item: string): string[] {
 export function useProfileSetup() {
   const navigate = useNavigate();
   const setProfile = useProfileStore(s => s.setProfile);
+  const existing = useProfileStore(s => s.profile);
+  const isEditMode = existing !== null;
 
   const [step, setStep] = useState(1);
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [grade, setGrade] = useState('');
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('');
-  const [language, setLanguage] = useState('');
-  const [subjectsLike, setSubjectsLike] = useState<string[]>([]);
-  const [subjectsDislike, setSubjectsDislike] = useState<string[]>([]);
-  const [subjectsEasy, setSubjectsEasy] = useState<string[]>([]);
-  const [subjectsHard, setSubjectsHard] = useState<string[]>([]);
+  const [name, setName] = useState(existing?.name ?? '');
+  const [age, setAge] = useState(existing?.age ? String(existing.age) : '');
+  const [grade, setGrade] = useState(existing?.grade ? String(existing.grade) : '');
+  const [city, setCity] = useState(existing?.city ?? '');
+  const [country, setCountry] = useState(existing?.country ?? '');
+  const [language, setLanguage] = useState(existing?.language ?? '');
+  const [subjectsLike, setSubjectsLike] = useState<string[]>(existing?.subjects_like ?? []);
+  const [subjectsDislike, setSubjectsDislike] = useState<string[]>(existing?.subjects_dislike ?? []);
+  const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? []);
+  const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? []);
   const [errors, setErrors] = useState<FieldErrors>({});
 
   const mutation = useMutation({
-    mutationFn: (payload: ProfilePayload) => profileApi.create(payload),
+    mutationFn: (payload: ProfilePayload) =>
+      isEditMode ? profileApi.update(payload) : profileApi.create(payload),
     onSuccess: (profile) => {
       setProfile(profile);
-      navigate('/onboarding/artifacts', { replace: true });
+      navigate(isEditMode ? '/profile' : '/onboarding/artifacts', { replace: true });
     },
   });
 
