@@ -14,7 +14,7 @@ export function RequireGuest() {
   }
 
   if (token) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/welcome" replace />;
   }
 
   return <Outlet />;
