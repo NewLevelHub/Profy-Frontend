@@ -1,0 +1,15 @@
+services:
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    pull_policy: always
+    container_name: profy_frontend_prod
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - profi_network
+
+networks:
+  profi_network:
+    external: true
+    name: ${PROFI_NETWORK_NAME:-profi-backend_profi_network}

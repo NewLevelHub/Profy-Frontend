@@ -1,0 +1,12 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+        VITE_APP_NAME: ${VITE_APP_NAME:-Profy}
+    container_name: profy_frontend_local
+    ports:
+      - "3000:80"
+    restart: unless-stopped
