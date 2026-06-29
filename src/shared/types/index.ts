@@ -8,7 +8,7 @@ export interface User {
 
 export interface TokenResponse {
   access_token: string;
-  user_id: string;
+  user: User;
 }
 
 // ─── Profile ───────────────────────────────────────────────────────────────────
