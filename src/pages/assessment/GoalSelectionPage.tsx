@@ -151,7 +151,7 @@ function RestartDialog({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GoalSelectionPage() {
-  const { syncDone, shouldRedirect } = useGoalGuard();
+  const { shouldRedirect } = useGoalGuard();
   const {
     ageGroup,
     isLoading,
@@ -165,14 +165,6 @@ export default function GoalSelectionPage() {
     handleViewResults,
     handleConfirmRestart,
   } = useGoalSelection();
-
-  if (!syncDone) {
-    return (
-      <div className="min-h-screen bg-page flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
 
   if (shouldRedirect) {
     return <Navigate to="/home" replace />;

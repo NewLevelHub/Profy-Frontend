@@ -3,8 +3,41 @@ export function formatCost(cost: number | null): string {
   return `${cost.toLocaleString()} $/год`;
 }
 
+const KEY_LABELS: Record<string, string> = {
+  // Requirements
+  exams: 'Вступительные экзамены',
+  min_gpa: 'Минимальный GPA',
+  min_sat: 'Минимальный балл SAT',
+  min_ielts: 'Минимальный балл IELTS',
+  min_toefl: 'Минимальный балл TOEFL',
+  min_ent: 'Минимальный балл ЕНТ',
+  needs_essay: 'Эссе',
+  needs_interview: 'Собеседование',
+  needs_portfolio: 'Портфолио',
+  needs_recommendation: 'Рекомендательные письма',
+  language_certificate: 'Языковой сертификат',
+  // Deadlines
+  application: 'Подача заявки',
+  application_open: 'Открытие приёма',
+  application_close: 'Закрытие приёма',
+  decision_date: 'Дата решения',
+  exam_deadline: 'Срок сдачи экзаменов',
+  documents: 'Документы',
+  early_decision: 'Ранняя подача',
+  regular: 'Основной срок',
+  rolling: 'Скользящий срок',
+  spring: 'Весенний набор',
+  fall: 'Осенний набор',
+};
+
+export function localizeKey(key: string): string {
+  const normalized = key.replace(/\s+/g, '_');
+  return KEY_LABELS[key] ?? KEY_LABELS[normalized] ?? key.replace(/_/g, ' ');
+}
+
 export function toDisplayString(value: unknown): string {
   if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Да' : 'Нет';
   if (typeof value !== 'object') return String(value);
   if (Array.isArray(value)) return value.map(toDisplayString).join(', ');
   const obj = value as Record<string, unknown>;

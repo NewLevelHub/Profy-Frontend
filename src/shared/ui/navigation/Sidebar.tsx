@@ -21,7 +21,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 flex-none border-r border-default bg-sidebar sticky top-0 h-screen overflow-y-auto z-30">
+    <aside className="hidden lg:flex flex-col w-60 flex-none border-r border-default bg-sidebar h-full overflow-y-auto z-30">
       {/* Logo */}
       <div className="px-5 h-14 flex items-center gap-2 border-b border-default flex-shrink-0">
         <span className="font-black text-lg tracking-tight text-primary">{env.APP_NAME}</span>

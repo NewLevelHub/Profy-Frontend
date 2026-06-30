@@ -41,7 +41,7 @@ export function useProfile() {
     resetAssessment();
     clearReport();
     setConfirmRestart(false);
-    navigate('/assessment/goal');
+    navigate('/assessment/goal', { state: { fromRestart: true } });
   }
 
   function handleRestartCancel() {

@@ -4,7 +4,7 @@ import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Skeleton } from '@/shared/ui/Skeleton';
-import { toDisplayString, formatCost } from '@/pages/results/utils/programUtils';
+import { toDisplayString, formatCost, localizeKey } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ function KVTable({ data }: { data: Record<string, unknown> }) {
     <Card className="!p-0 overflow-hidden divide-y divide-default">
       {entries.map(([key, value]) => (
         <div key={key} className="flex items-start justify-between gap-4 px-4 py-3">
-          <span className="text-caption text-secondary capitalize flex-1">{key}</span>
+          <span className="text-caption text-secondary flex-1">{localizeKey(key)}</span>
           <span className="text-caption text-primary text-right flex-1">{toDisplayString(value)}</span>
         </div>
       ))}
@@ -167,7 +167,10 @@ export default function ProgramDetailPage() {
           )}
 
           {/* CTA */}
-          <div className="pt-2">
+          {/* ЗАКОМЕНТИРОВАНО ПЕРЕД ДЕПЛОЕМ НЕДОСТУПНО
+            НУЖНО БУДЕТ В БУДУЩЕМ ВОЗОБНОВИТЬ
+          /*}
+          {/* <div className="pt-2">
             <Button
               size="lg"
               variant="primary"
@@ -183,7 +186,7 @@ export default function ProgramDetailPage() {
                 Пройди диагностику, чтобы проверить свои шансы
               </p>
             )}
-          </div>
+          </div> */}
         </div>
       )}
     </div>

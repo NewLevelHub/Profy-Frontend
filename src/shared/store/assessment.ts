@@ -48,7 +48,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           currentBlock: 0,
           completedBlocks: [],
           hasCompletedAssessment: false,
-          syncDone: false,
+          syncDone: true,
         }),
       syncFromServer: (data, userId) =>
         set({

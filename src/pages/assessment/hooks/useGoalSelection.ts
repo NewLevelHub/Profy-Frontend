@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -18,6 +18,8 @@ export function useGoalGuard() {
 
 export function useGoalSelection() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRestart = !!(location.state as { fromRestart?: boolean } | null)?.fromRestart;
   const setAssessment = useAssessmentStore(s => s.setAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
@@ -39,9 +41,9 @@ export function useGoalSelection() {
   useEffect(() => {
     if (!isCheckingCurrent) {
       if (current?.status === 'in_progress') setResumeOpen(true);
-      else if (current?.status === 'completed') setRestartOpen(true);
+      else if (current?.status === 'completed' && !fromRestart) setRestartOpen(true);
     }
-  }, [isCheckingCurrent, current]);
+  }, [isCheckingCurrent, current, fromRestart]);
 
   const startMutation = useMutation({
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),

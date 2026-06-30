@@ -11,10 +11,10 @@ export function AppLayout() {
   const syncDone = useAssessmentStore(s => s.syncDone);
 
   return (
-    <div className="min-h-screen bg-page text-primary flex">
+    <div className="h-screen bg-page text-primary flex overflow-hidden">
       <ScrollToTop />
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
           {syncDone ? <Outlet /> : (
