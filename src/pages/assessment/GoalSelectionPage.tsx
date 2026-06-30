@@ -1,6 +1,7 @@
+import { Navigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
-import { useGoalSelection } from './hooks/useGoalSelection';
+import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
 import type { AssessmentGoal } from '@/shared/types';
 
 interface GoalCard {
@@ -93,19 +94,81 @@ function ResumeDialog({
   );
 }
 
+// ── Restart confirmation dialog ───────────────────────────────────────────────
+
+function RestartDialog({
+  open, onViewResults, onStartNew,
+}: {
+  open: boolean;
+  onViewResults: () => void;
+  onStartNew: () => void;
+}) {
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="restart-dialog-title"
+    >
+      <div className={cn(
+        'w-full max-w-sm bg-surface rounded-[var(--radius-lg)] shadow-pop p-6',
+        'flex flex-col gap-5',
+      )}>
+        <div className="flex flex-col gap-2">
+          <span className="text-3xl" role="img" aria-label="результаты">🎉</span>
+          <h2 id="restart-dialog-title" className="text-title font-black text-primary">
+            У тебя уже есть результаты
+          </h2>
+          <p className="text-body text-secondary">
+            Ты уже прошёл диагностику. Посмотреть результаты или пройти заново?
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Button
+            size="lg"
+            className="w-full h-12 rounded-pill font-extrabold shadow-button"
+            onClick={onViewResults}
+          >
+            Посмотреть результаты
+          </Button>
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-full h-12 rounded-pill"
+            onClick={onStartNew}
+          >
+            Пройти заново
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GoalSelectionPage() {
+  const { shouldRedirect } = useGoalGuard();
   const {
     ageGroup,
     isLoading,
     isCheckingCurrent,
     error,
     resumeOpen,
+    restartOpen,
     handleGoalSelect,
     handleResume,
     handleStartNew,
+    handleViewResults,
+    handleConfirmRestart,
   } = useGoalSelection();
+
+  if (shouldRedirect) {
+    return <Navigate to="/home" replace />;
+  }
 
   const visibleCards = GOAL_CARDS.filter(
     card => !card.seniorOnly || ageGroup === 'senior',
@@ -117,6 +180,11 @@ export default function GoalSelectionPage() {
         open={resumeOpen}
         onResume={handleResume}
         onStartNew={handleStartNew}
+      />
+      <RestartDialog
+        open={restartOpen}
+        onViewResults={handleViewResults}
+        onStartNew={handleConfirmRestart}
       />
 
       <div className="min-h-screen bg-page flex flex-col">
@@ -132,7 +200,7 @@ export default function GoalSelectionPage() {
               </p>
             </div>
 
-            {isCheckingCurrent ? (
+            {isCheckingCurrent || restartOpen ? (
               <div className="flex justify-center py-8">
                 <Spinner size="lg" />
               </div>

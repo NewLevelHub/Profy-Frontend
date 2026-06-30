@@ -146,7 +146,7 @@ const DirectionCard = memo(function DirectionCard({
 
 function ResultsSkeleton() {
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-10">
+    <div className="max-w-4xl mx-auto py-8 flex flex-col gap-10">
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="flex flex-col gap-4">
           <Skeleton className="h-7 w-40" />
@@ -211,7 +211,7 @@ export default function ResultsPage() {
     : null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-10">
+    <div className="max-w-4xl mx-auto py-8 flex flex-col gap-10">
       <div>
         <h1 className="text-h1 font-extrabold text-primary mb-1">Твои результаты</h1>
         <p className="text-body text-secondary">Посмотри, что мы узнали о тебе</p>
@@ -228,11 +228,11 @@ export default function ResultsPage() {
       {/* 2 — Сильные стороны */}
       <section aria-label="Сильные стороны">
         <SectionHeader emoji="💪" title="Сильные стороны" />
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory">
+        <div className="flex flex-wrap gap-3">
           {(report.strengths ?? []).map((s, i) => (
             <div
               key={i}
-              className="min-w-[130px] flex-shrink-0 snap-start bg-surface border border-default rounded-[var(--radius)] p-4 flex flex-col items-center gap-2 shadow-card"
+              className="w-[130px] flex-shrink-0 bg-surface border border-default rounded-[var(--radius)] p-4 flex flex-col items-center gap-2 shadow-card"
             >
               <span className="text-2xl select-none" aria-hidden="true">
                 {getIconForText(s, STRENGTH_ICON_PAIRS)}
@@ -287,11 +287,11 @@ export default function ResultsPage() {
         {thinkingDesc && (
           <p className="text-body text-secondary mb-3">{thinkingDesc}</p>
         )}
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {topThinking.map(([cat, score]) => (
             <div
               key={cat}
-              className="min-w-[100px] flex-shrink-0 snap-start bg-surface border border-default rounded-[var(--radius)] p-3 flex flex-col items-center gap-1 shadow-card"
+              className="bg-surface border border-default rounded-[var(--radius)] p-3 flex flex-col items-center gap-1 shadow-card"
             >
               <span className="text-xl select-none" aria-hidden="true">
                 {THINKING_EMOJIS[cat] ?? '🔷'}
