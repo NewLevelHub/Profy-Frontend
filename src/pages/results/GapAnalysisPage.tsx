@@ -16,9 +16,9 @@ function readinessLevel(score: number): 'success' | 'warning' | 'danger' {
 }
 
 const READINESS_CAPTIONS: Record<string, string> = {
-  success: 'Отличный результат! Ты готов(а) к поступлению.',
-  warning: 'Есть прогресс, но нужно ещё поработать.',
-  danger: 'Пока не хватает нескольких важных требований.',
+  success: 'Отличный результат — всё складывается в твою пользу!',
+  warning: 'Хороший задел! Ещё немного работы — и всё получится.',
+  danger: 'Пока есть что подтянуть — с правильным планом всё получится.',
 };
 
 function ReadinessCircle({ score }: { score: number }) {

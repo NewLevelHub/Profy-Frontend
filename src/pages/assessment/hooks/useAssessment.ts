@@ -23,8 +23,8 @@ export function useAssessment() {
 
   // Retake mode: /assessment?retake=<blockIndex>
   const retakeParam = searchParams.get('retake');
-  const isRetakeMode = retakeParam !== null;
-  const retakeIndex = isRetakeMode ? Number(retakeParam) : null;
+  const retakeIndex = retakeParam !== null ? parseInt(retakeParam, 10) : null;
+  const isRetakeMode = retakeIndex !== null && !isNaN(retakeIndex) && retakeIndex >= 0;
 
   const activeBlocks = getAssessmentBlocks(ageGroup, goal);
   const totalBlocks = activeBlocks.length;
@@ -42,6 +42,7 @@ export function useAssessment() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -67,6 +68,7 @@ export function useAssessment() {
       try {
         const data = await assessmentApi.getQuestions(assessmentId!, currentBlockKey!);
         if (cancelled) return;
+        if (data.length === 0) throw new Error('empty_questions');
         setQuestions(data);
         setQuestionIndex(0);
         setSelectedIndex(null);
@@ -93,8 +95,9 @@ export function useAssessment() {
       }
     };
     // effectiveBlock captures both currentBlock (normal) and retakeIndex (retake)
+    // assessmentId ensures fresh fetch when a new assessment is started at the same block index
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveBlock, retryCount]);
+  }, [effectiveBlock, retryCount, assessmentId]);
 
   function handleBack() {
     if (questionIndex === 0 || transitioning) return;
@@ -184,9 +187,16 @@ export function useAssessment() {
   }
 
   function handleExit() {
-    if (window.confirm('Выйти из теста? Прогресс сохранён, продолжишь позже')) {
-      navigate('/home');
-    }
+    setExitConfirmOpen(true);
+  }
+
+  function confirmExit() {
+    setExitConfirmOpen(false);
+    navigate('/home');
+  }
+
+  function cancelExit() {
+    setExitConfirmOpen(false);
   }
 
   const currentQuestion = questions[questionIndex];
@@ -216,10 +226,13 @@ export function useAssessment() {
     questionProgress,
     overallProgress,
     isRetakeMode,
+    exitConfirmOpen,
     handleBack,
     handleOptionSelect,
     handleNextBlock,
     handleExit,
+    confirmExit,
+    cancelExit,
     retry: () => setRetryCount(c => c + 1),
   };
 }

@@ -31,7 +31,7 @@ export function useUniversityList() {
   });
 
   function handleProgramClick(programId: string) {
-    navigate(`/results/directions/${slug}/universities/${programId}`);
+    navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
   }
 
   return {

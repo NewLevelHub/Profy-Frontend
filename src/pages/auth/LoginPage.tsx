@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +44,7 @@ export default function LoginPage() {
       const from = (location.state as { from?: string })?.from ?? '/welcome';
       navigate(from, { replace: true });
     } catch (err) {
+      setPassword('');
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
         if (status === 401) {
@@ -55,6 +57,7 @@ export default function LoginPage() {
       } else {
         setFormError('Ошибка. Попробуйте позже');
       }
+      setTimeout(() => passwordRef.current?.focus(), 0);
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +87,7 @@ export default function LoginPage() {
         <div>
           <div className="relative">
             <input
+              ref={passwordRef}
               className={cn(
                 'w-full h-12 px-4 pr-12 rounded-[10px] bg-page border text-primary text-body font-semibold placeholder:text-placeholder focus:outline-none focus:border-brand ring-brand transition-colors',
                 passwordError ? 'border-danger' : 'border-default',

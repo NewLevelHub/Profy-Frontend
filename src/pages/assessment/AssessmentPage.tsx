@@ -24,10 +24,13 @@ export default function AssessmentPage() {
     questionProgress,
     overallProgress,
     isRetakeMode,
+    exitConfirmOpen,
     handleBack,
     handleOptionSelect,
     handleNextBlock,
     handleExit,
+    confirmExit,
+    cancelExit,
     retry,
   } = useAssessment();
 
@@ -45,6 +48,44 @@ export default function AssessmentPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
+
+      {/* ── Exit confirmation modal ─────────────────────────────────── */}
+      {exitConfirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="exit-dialog-title"
+        >
+          <div className="w-full max-w-sm bg-surface rounded-[var(--radius-lg)] shadow-pop p-6 flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <h2 id="exit-dialog-title" className="text-title font-black text-primary">
+                Выйти из теста?
+              </h2>
+              <p className="text-body text-secondary">
+                Прогресс сохранён, продолжишь позже
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                size="lg"
+                className="w-full rounded-pill"
+                onClick={confirmExit}
+              >
+                Выйти
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="w-full rounded-pill"
+                onClick={cancelExit}
+              >
+                Остаться
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Header ─────────────────────────────────────────────────── */}
       <header className="flex items-center gap-3 px-4 py-3 bg-page sticky top-0 z-10">
