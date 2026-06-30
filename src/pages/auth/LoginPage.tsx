@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 import { useAuthStore } from '@/shared/store/auth';
@@ -26,6 +26,9 @@ export default function LoginPage() {
   const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendDone, setResendDone] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -37,6 +40,8 @@ export default function LoginPage() {
     if (eErr || pErr) return;
 
     setFormError('');
+    setNeedsVerification(false);
+    setResendDone(false);
     setIsLoading(true);
     try {
       const { access_token, user } = await authApi.login(email.trim(), password);
@@ -49,17 +54,31 @@ export default function LoginPage() {
         const status = err.response?.status;
         if (status === 401) {
           setFormError('Неверный email или пароль');
+          setTimeout(() => passwordRef.current?.focus(), 0);
         } else if (status === 403) {
-          setFormError('Email не подтверждён. Проверьте почту');
+          setNeedsVerification(true);
         } else {
           setFormError('Ошибка. Попробуйте позже');
+          setTimeout(() => passwordRef.current?.focus(), 0);
         }
       } else {
         setFormError('Ошибка. Попробуйте позже');
+        setTimeout(() => passwordRef.current?.focus(), 0);
       }
-      setTimeout(() => passwordRef.current?.focus(), 0);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    setResendLoading(true);
+    try {
+      await authApi.resendVerification(email.trim());
+      navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+    } catch {
+      setResendDone(true);
+    } finally {
+      setResendLoading(false);
     }
   }
 
@@ -111,6 +130,36 @@ export default function LoginPage() {
         </div>
 
         {formError && <p className="text-caption text-danger text-center">{formError}</p>}
+
+        {needsVerification && (
+          <div className="rounded-xl border border-default bg-raised p-4 flex flex-col gap-3">
+            <div className="flex items-start gap-3">
+              <Mail size={18} className="text-brand flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-caption font-semibold text-primary">Email не подтверждён</p>
+                <p className="text-small text-secondary mt-0.5">
+                  Отправим код подтверждения на{' '}
+                  <span className="font-semibold text-primary">{email}</span>
+                </p>
+              </div>
+            </div>
+            {resendDone ? (
+              <p className="text-small text-danger text-center">Не удалось отправить код. Попробуйте позже</p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendLoading}
+                className={cn(
+                  'w-full h-10 bg-brand text-on-brand font-semibold text-caption rounded-[10px] transition-opacity',
+                  resendLoading && 'opacity-60 cursor-not-allowed',
+                )}
+              >
+                {resendLoading ? 'Отправляем...' : 'Выслать код подтверждения'}
+              </button>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"
