@@ -3,9 +3,18 @@ import { useNavigate } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import type { AssessmentGoal } from '@/shared/types';
 import type { AxiosError } from 'axios';
+
+export function useGoalGuard() {
+  const syncDone = useAssessmentStore(s => s.syncDone);
+  const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
+  // Redirect to home if user already has completed assessment (guard fires from store)
+  const shouldRedirect = syncDone && hasCompletedAssessment;
+  return { syncDone, shouldRedirect };
+}
 
 export function useGoalSelection() {
   const navigate = useNavigate();
@@ -14,6 +23,7 @@ export function useGoalSelection() {
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
 
   const [resumeOpen, setResumeOpen] = useState(false);
+  const [restartOpen, setRestartOpen] = useState(false);
 
   const { data: current, isLoading: isCheckingCurrent } = useQuery({
     queryKey: ['assessment', 'current'],
@@ -27,8 +37,9 @@ export function useGoalSelection() {
   });
 
   useEffect(() => {
-    if (!isCheckingCurrent && current?.status === 'in_progress') {
-      setResumeOpen(true);
+    if (!isCheckingCurrent) {
+      if (current?.status === 'in_progress') setResumeOpen(true);
+      else if (current?.status === 'completed') setRestartOpen(true);
     }
   }, [isCheckingCurrent, current]);
 
@@ -47,6 +58,9 @@ export function useGoalSelection() {
 
   function handleResume() {
     if (current) {
+      // Sync full assessment data into the store before entering the assessment flow.
+      const userId = useAuthStore.getState().user?.id;
+      if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
       setAssessment(current.id, current.goal, current.current_block);
       navigate('/assessment');
     }
@@ -56,15 +70,32 @@ export function useGoalSelection() {
     setResumeOpen(false);
   }
 
+  function handleViewResults() {
+    // Sync store before navigating so ResultsPage (inside AppLayout) has the correct
+    // hasCompletedAssessment flag even before useAssessmentSync's async call completes.
+    if (current) {
+      const userId = useAuthStore.getState().user?.id;
+      if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
+    }
+    navigate('/results');
+  }
+
+  function handleConfirmRestart() {
+    setRestartOpen(false);
+  }
+
   return {
     ageGroup,
     isLoading: startMutation.isPending,
     isCheckingCurrent,
     error: startMutation.isError ? 'Не удалось начать тест. Попробуй ещё раз.' : null,
     resumeOpen,
+    restartOpen,
     currentGoal: current?.goal ?? null,
     handleGoalSelect,
     handleResume,
     handleStartNew,
+    handleViewResults,
+    handleConfirmRestart,
   };
 }
