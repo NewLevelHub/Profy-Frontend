@@ -178,7 +178,7 @@ export default function ResultsPage() {
         <span className="text-5xl select-none" aria-hidden="true">📋</span>
         <h2 className="text-h1 font-extrabold text-primary">Результатов пока нет</h2>
         <p className="text-body text-secondary max-w-xs">
-          Сначала требуется пройти тестирование, чтобы увидеть результаты
+          Сначала пройди диагностику, чтобы увидеть свои результаты
         </p>
         <Button onClick={() => navigate('/home')}>Перейти на главную</Button>
       </div>
@@ -191,7 +191,7 @@ export default function ResultsPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
         <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
-        <h2 className="text-h1 font-extrabold text-primary">Ошибка загрузки</h2>
+        <h2 className="text-h1 font-extrabold text-primary">Что-то пошло не так</h2>
         <p className="text-body text-secondary">{error ?? 'Не удалось загрузить результаты.'}</p>
         <Button onClick={() => refetch()}>Повторить</Button>
       </div>
@@ -199,11 +199,11 @@ export default function ResultsPage() {
   }
 
   function handleDirectionDetail(direction: DirectionResult) {
-    navigate(`/results/directions/${direction.slug}`);
+    navigate(`/results/directions/${encodeURIComponent(direction.slug)}`);
   }
 
   function handleUniversity(direction: DirectionResult) {
-    navigate(`/results/directions/${direction.slug}/universities`);
+    navigate(`/results/directions/${encodeURIComponent(direction.slug)}/universities`);
   }
 
   const thinkingDesc = topThinking.length > 0

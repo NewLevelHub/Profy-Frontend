@@ -10,6 +10,7 @@ import type { AxiosError } from 'axios';
 export function useGoalSelection() {
   const navigate = useNavigate();
   const setAssessment = useAssessmentStore(s => s.setAssessment);
+  const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
 
   const [resumeOpen, setResumeOpen] = useState(false);
@@ -34,6 +35,7 @@ export function useGoalSelection() {
   const startMutation = useMutation({
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),
     onSuccess: (assessment) => {
+      resetAssessment();
       setAssessment(assessment.id, assessment.goal, assessment.current_block);
       navigate('/assessment');
     },

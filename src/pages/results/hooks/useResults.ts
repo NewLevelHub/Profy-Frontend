@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -8,8 +9,10 @@ import { useProfileStore } from '@/shared/store/profile';
 export function useResults() {
   const report = useResultStore(s => s.report);
   const setReport = useResultStore(s => s.setReport);
+  const clearReport = useResultStore(s => s.clearReport);
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
+  const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
 
@@ -17,11 +20,24 @@ export function useResults() {
     queryKey: ['result', assessmentId] as const,
     queryFn: () => resultApi.get(assessmentId!),
     enabled: hasCompletedAssessment && !report && !!assessmentId,
+    retry: (failureCount, err) => {
+      if ((err as AxiosError)?.response?.status === 403) return false;
+      return failureCount < 2;
+    },
   });
 
   useEffect(() => {
     if (data && !report) setReport(data);
   }, [data, report, setReport]);
+
+  // Stale assessmentId from a previous user's session — clear it
+  const is403 = (error as AxiosError | null)?.response?.status === 403;
+  useEffect(() => {
+    if (is403) {
+      resetAssessment();
+      clearReport();
+    }
+  }, [is403, resetAssessment, clearReport]);
 
   const effectiveReport = report ?? data ?? null;
 
@@ -36,7 +52,7 @@ export function useResults() {
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
-    error: error ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
+    error: (!is403 && error) ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
     hasCompletedAssessment,
     goal,
     ageGroup,

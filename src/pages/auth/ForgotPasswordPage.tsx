@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
-import { MailCheck } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 
@@ -10,11 +9,11 @@ function validateEmail(email: string): string {
 }
 
 export default function ForgotPasswordPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +25,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     try {
       await authApi.forgotPassword(email.trim());
-      setSuccess(true);
+      navigate(`/reset-password?email=${encodeURIComponent(email.trim())}`);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setFormError('Слишком много запросов. Попробуйте позже');
@@ -38,33 +37,11 @@ export default function ForgotPasswordPage() {
     }
   }
 
-  if (success) {
-    return (
-      <div className="flex flex-col items-center text-center gap-4 py-4">
-        <div className="w-16 h-16 rounded-full bg-brand-subtle flex items-center justify-center">
-          <MailCheck size={32} className="text-brand" />
-        </div>
-        <h1 className="text-h1 font-black text-primary">Письмо отправлено</h1>
-        <p className="text-body text-secondary leading-relaxed">
-          Мы отправили ссылку для сброса пароля на{' '}
-          <span className="text-brand font-semibold">{email}</span>.
-          {' '}Перейдите по ссылке в письме.
-        </p>
-        <Link
-          to="/login"
-          className="text-caption text-muted hover:text-secondary transition-colors mt-2"
-        >
-          ← Вернуться ко входу
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <>
       <h1 className="text-h1 font-black text-primary mb-2">Сброс пароля</h1>
       <p className="text-caption text-secondary mb-6">
-        Введите почту — мы отправим ссылку для создания нового пароля
+        Введите почту — мы отправим 6-значный код для создания нового пароля
       </p>
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -95,7 +72,7 @@ export default function ForgotPasswordPage() {
             isLoading && 'opacity-60 cursor-not-allowed',
           )}
         >
-          {isLoading ? 'Отправляем...' : 'Отправить ссылку'}
+          {isLoading ? 'Отправляем...' : 'Отправить код'}
         </button>
       </form>
 

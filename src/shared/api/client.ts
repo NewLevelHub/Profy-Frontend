@@ -29,7 +29,9 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only force-logout on 401 if the user had an active session.
+    // A 401 on the login endpoint itself must reach the form's catch block.
+    if (error.response?.status === 401 && getToken()) {
       localStorage.removeItem('profy-auth');
       window.location.replace('/login');
     }

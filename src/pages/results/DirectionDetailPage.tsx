@@ -143,7 +143,7 @@ export default function DirectionDetailPage() {
               variant="ghost"
               size="lg"
               className="flex-1 gap-2"
-              onClick={() => navigate(`/results/directions/${slug}/universities`)}
+              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities`)}
             >
               <GraduationCap className="w-5 h-5" />
               Найти университеты

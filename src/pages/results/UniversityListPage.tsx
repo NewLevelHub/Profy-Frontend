@@ -87,7 +87,7 @@ export default function UniversityListPage() {
         <span className="text-5xl select-none" aria-hidden="true">🔒</span>
         <h2 className="text-h1 font-extrabold text-primary">Раздел недоступен</h2>
         <p className="text-body text-secondary max-w-sm">
-          Список университетов доступен только для старшеклассников с целью поступления в вуз.
+          Этот раздел открыт для учеников старшей школы, планирующих поступление в вуз.
         </p>
         <Button onClick={() => navigate('/results')}>Назад к результатам</Button>
       </div>
