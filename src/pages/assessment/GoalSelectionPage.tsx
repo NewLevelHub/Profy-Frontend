@@ -188,14 +188,17 @@ export default function GoalSelectionPage() {
       />
 
       <div className="min-h-screen bg-page flex flex-col">
-        <div className="flex-1 overflow-y-auto px-5 py-12">
-          <div className="max-w-sm mx-auto flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto px-6 py-[70px]">
+          <div className="max-w-[620px] mx-auto flex flex-col">
 
-            <div>
-              <h1 className="text-display font-black text-primary tracking-tight mb-2">
+            <div className="mb-[30px]">
+              <div className="inline-flex items-center gap-[7px] bg-brand-subtle text-brand-text font-extrabold rounded-pill px-[14px] py-[6px] mb-[18px]" style={{ fontSize: 13 }}>
+                ✨ Шаг 1 · Знакомство
+              </div>
+              <h1 className="font-black text-primary tracking-[-0.01em] mb-2" style={{ fontSize: 38 }}>
                 Что ты хочешь узнать?
               </h1>
-              <p className="text-body text-secondary">
+              <p className="text-secondary font-semibold" style={{ fontSize: 17 }}>
                 Выбери то, что тебе сейчас важнее всего
               </p>
             </div>
@@ -205,28 +208,33 @@ export default function GoalSelectionPage() {
                 <Spinner size="lg" />
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
-                {visibleCards.map(card => (
+              <div className="flex flex-col gap-[14px]">
+                {visibleCards.map((card, i) => (
                   <button
                     key={card.title}
                     type="button"
                     onClick={() => handleGoalSelect(card.goal)}
                     disabled={isLoading}
                     className={cn(
-                      'flex items-center gap-4 px-4 py-4 rounded-[var(--radius)] text-left',
-                      'bg-surface border border-default shadow-card',
-                      'transition-colors hover:border-brand hover:bg-hover',
+                      'flex items-center gap-[18px] px-[22px] py-5 text-left border-[1.5px] transition-all duration-[180ms]',
                       'disabled:opacity-50 disabled:cursor-not-allowed',
+                      i === 0
+                        ? 'border-[#C4B5FD] bg-brand-subtle hover:border-[#A78BFA] hover:-translate-y-0.5'
+                        : 'border-default bg-surface hover:border-[#C4B5FD] hover:bg-hover hover:-translate-y-0.5',
                     )}
+                    style={{ borderRadius: 20, boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}
                   >
-                    <div className="w-12 h-12 rounded-[var(--radius-sm)] bg-brand-subtle flex items-center justify-center shrink-0">
-                      <span className="text-2xl leading-none" role="img">{card.emoji}</span>
+                    <div
+                      className="w-[54px] h-[54px] flex items-center justify-center shrink-0"
+                      style={{ borderRadius: 15, background: i === 0 ? '#fff' : 'var(--bg-active)' }}
+                    >
+                      <span className="text-[26px] leading-none" role="img">{card.emoji}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-label font-extrabold text-primary">{card.title}</p>
-                      <p className="text-small text-secondary mt-0.5">{card.subtitle}</p>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 19 }}>{card.title}</p>
+                      <p className="text-secondary font-semibold" style={{ fontSize: 14 }}>{card.subtitle}</p>
                     </div>
-                    <span className="text-2xl text-muted shrink-0" aria-hidden="true">›</span>
+                    <span className="text-[22px] text-[#A78BFA] font-black shrink-0" aria-hidden="true">›</span>
                   </button>
                 ))}
               </div>

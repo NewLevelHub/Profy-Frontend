@@ -17,17 +17,6 @@
   100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 }
 
-@keyframes pf-float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-7px); }
-}
-
-@keyframes pf-pop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.35); }
-  100% { transform: scale(1); }
-}
-
 @layer base {
   html,
   body,

@@ -1,0 +1,276 @@
+/* ─── Design Tokens ─── */
+/* Palette mirrors profi-mobile/src/constants/themes/themes.ts  */
+/* Primary: violet/indigo (#7C3AED)  |  Accent: orange (#EA580C) */
+:root {
+  --font-size: 16px;
+  --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Page background — warm lavender (mobile: colors.bg) */
+  --bg-page:        #F5F3FF;
+  /* Card / panel surfaces (mobile: colors.surface) */
+  --bg-surface:     #FFFFFF;
+  /* Slightly elevated surface */
+  --bg-raised:      #EFECFF;
+  /* Hover overlay */
+  --bg-hover:       #E9E5FF;
+  /* Active / selected state (mobile: colors.primarySoft) */
+  --bg-active:      #EDE9FE;
+  /* Sidebar */
+  --bg-sidebar:     #F0ECFF;
+
+  /* Borders (mobile: colors.border, colors.track) */
+  --border:         #EDE9FE;
+  --border-strong:  #DDD6FE;
+  --border-faint:   #F5F3FF;
+
+  /* Text (mobile: colors.text, textSecondary, textMuted) */
+  --text-primary:   #1E1B4B;
+  --text-secondary: #4B5563;
+  --text-muted:     #9CA3AF;
+  --text-subtle:    #C4C0DC;
+  --text-placeholder: #9CA3AF;
+  --text-on-brand:  #FFFFFF;
+
+  /* Brand — violet/indigo (mobile: colors.primary, primaryDeep, primarySoft, primaryDisabled) */
+  --brand:          #7C3AED;
+  --brand-hover:    #5B21B6;
+  --brand-subtle:   #EDE9FE;
+  --brand-text:     #5B21B6;
+  --brand-disabled: #A78BFA;
+
+  /* Accent — orange (mobile: colors.accent, accentSoft) */
+  --accent:         #EA580C;
+  --accent-soft:    #FFF7ED;
+  --accent-text:    #C2410C;
+
+  /* Status (mobile: colors.ok, colors.danger) */
+  --success:        #22C55E;
+  --success-bg:     #F0FDF4;
+  --success-text:   #166534;
+  --warning:        #D97706;
+  --warning-bg:     #FFFBEB;
+  --warning-text:   #92400E;
+  --danger:         #EF4444;
+  --danger-bg:      #FEF2F2;
+  --danger-text:    #B91C1C;
+  --info:           #0369A1;
+
+  /* Nav */
+  --nav-active-bg:     #EDE9FE;
+  --nav-active-text:   #1E1B4B;
+  --nav-active-border: #7C3AED;
+  --nav-text:          #4B5563;
+  --nav-hover-bg:      #F0ECFF;
+
+  /* Radius (mobile: radii.sm=10, radii.md=16, radii.lg=22, radii.pill=999) */
+  --radius-sm:  10px;
+  --radius:     16px;
+  --radius-lg:  22px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-card:   0 6px 18px rgba(30, 27, 75, 0.06);
+  --shadow-pop:    0 12px 32px rgba(124, 58, 237, 0.14), 0 0 0 1px var(--border);
+  --shadow-button: 0 8px 14px rgba(124, 58, 237, 0.28);
+
+  /* Layout */
+  --header-h: 56px;
+
+  /* Typography scale — named aliases exact from mobile fontSize.* */
+  --text-display:  1.875rem;   /* 30px — mobile: fontSize.display */
+  --text-h1:       1.6875rem;  /* 27px — mobile: fontSize.h1 */
+  --text-title:    1.375rem;   /* 22px — mobile: fontSize.title */
+  --text-subtitle: 1.1875rem;  /* 19px — mobile: fontSize.subtitle */
+  --text-body:     1rem;       /* 16px — mobile: fontSize.body */
+  --text-label:    0.9375rem;  /* 15px — mobile: fontSize.label */
+  --text-caption:  0.8125rem;  /* 13px — mobile: fontSize.caption */
+  --text-small:    0.75rem;    /* 12px — mobile: fontSize.small */
+  --text-tiny:     0.6875rem;  /* 11px — mobile: fontSize.tiny */
+
+  /* Standard web scale (Tailwind-compatible aliases) */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+
+  /* Leading (line-height) — mirrors mobile lineHeight / fontSize ratios */
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.45;
+  --leading-relaxed: 1.6;
+
+  /* Font weights — mirrors mobile fontFamily.* */
+  --font-normal:    400;
+  --font-medium:    500;
+  --font-semibold:  600;
+  --font-bold:      700;
+  --font-extrabold: 800;
+  --font-black:     900;
+
+  /* Canonical aliases matching Profy-Mobile token names */
+  --color-primary: var(--brand);
+  --color-accent:  var(--accent);
+  --color-bg:      var(--bg-page);
+  --color-surface: var(--bg-surface);
+}
+
+.dark {
+  --bg-page:        #0D0B1A;
+  --bg-surface:     #13102A;
+  --bg-raised:      #1A163A;
+  --bg-hover:       #221D4A;
+  --bg-active:      #1E1850;
+  --bg-sidebar:     #100D22;
+
+  --border:         #2A2460;
+  --border-strong:  #3D3580;
+  --border-faint:   #1A163A;
+
+  --text-primary:   #EAE8FF;
+  --text-secondary: #ABA8D0;
+  --text-muted:     #6B6890;
+  --text-subtle:    #4A4868;
+  --text-placeholder: #4A4868;
+  --text-on-brand:  #0D0B1A;
+
+  --brand:          #9B59F0;
+  --brand-hover:    #A970F5;
+  --brand-subtle:   #2D1A70;
+  --brand-text:     #C4A8FF;
+
+  --accent:         #F97316;
+  --accent-soft:    #2A1500;
+  --accent-text:    #FED7AA;
+
+  --success:        #4ADE80;
+  --success-bg:     #052E16;
+  --success-text:   #86EFAC;
+  --warning:        #FBBF24;
+  --warning-bg:     #1C1200;
+  --warning-text:   #FDE68A;
+  --danger:         #F87171;
+  --danger-bg:      #1C0000;
+  --danger-text:    #FCA5A5;
+  --info:           #60A5FA;
+
+  --nav-active-bg:     #2D1A70;
+  --nav-active-text:   #EAE8FF;
+  --nav-active-border: #9B59F0;
+  --nav-text:          #ABA8D0;
+  --nav-hover-bg:      #1A163A;
+
+  --shadow-card: 0 0 0 1px var(--border);
+  --shadow-pop:  0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border);
+}
+
+/* ─── Base Styles ─── */
+@layer base {
+  * { border-color: var(--border); }
+
+  html {
+    font-size: var(--font-size);
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ─── Semantic Utilities ─── */
+@layer utilities {
+  .bg-page          { background-color: var(--bg-page); }
+  .bg-surface       { background-color: var(--bg-surface); }
+  .bg-raised        { background-color: var(--bg-raised); }
+  .bg-hover         { background-color: var(--bg-hover); }
+  .bg-active-tint   { background-color: var(--bg-active); }
+  .bg-sidebar       { background-color: var(--bg-sidebar); }
+  .bg-brand         { background-color: var(--brand); }
+  .bg-brand-subtle  { background-color: var(--brand-subtle); }
+  .bg-brand-hover   { background-color: var(--brand-hover); }
+  .bg-accent        { background-color: var(--accent); }
+  .bg-accent-soft   { background-color: var(--accent-soft); }
+  .bg-success-subtle  { background-color: var(--success-bg); }
+  .bg-warning-subtle  { background-color: var(--warning-bg); }
+  .bg-danger-subtle   { background-color: var(--danger-bg); }
+
+  .border-default { border-color: var(--border); }
+  .border-strong  { border-color: var(--border-strong); }
+
+  .text-primary     { color: var(--text-primary); }
+  .text-secondary   { color: var(--text-secondary); }
+  .text-muted       { color: var(--text-muted); }
+  .text-subtle      { color: var(--text-subtle); }
+  .text-placeholder { color: var(--text-placeholder); }
+  .text-brand       { color: var(--brand-text); }
+  .text-white       { color: #ffffff; }
+  .text-on-brand    { color: var(--text-on-brand); }
+  .text-accent      { color: var(--accent-text); }
+  .text-success     { color: var(--success); }
+  .text-warning     { color: var(--warning); }
+  .text-danger      { color: var(--danger); }
+  .text-nav         { color: var(--nav-text); }
+  .text-nav-active  { color: var(--nav-active-text); }
+
+  .hover\:bg-hover:hover       { background-color: var(--bg-hover); }
+  .hover\:bg-surface:hover     { background-color: var(--bg-surface); }
+  .hover\:bg-raised:hover      { background-color: var(--bg-raised); }
+  .hover\:bg-brand-hover:hover { background-color: var(--brand-hover); }
+  .hover\:text-primary:hover   { color: var(--text-primary); }
+  .hover\:text-brand:hover     { color: var(--brand-text); }
+  .hover\:border-strong:hover  { border-color: var(--border-strong); }
+
+  .bg-nav-active  { background-color: var(--nav-active-bg); }
+  .bg-nav-hover   { background-color: var(--nav-hover-bg); }
+
+  .focus\:border-brand:focus { border-color: var(--brand); }
+  .focus\:ring-brand:focus   { --tw-ring-color: color-mix(in srgb, var(--brand) 30%, transparent); }
+
+  /* Status backgrounds (solid) */
+  .bg-success { background-color: var(--success); }
+  .bg-warning { background-color: var(--warning); }
+  .bg-danger  { background-color: var(--danger); }
+
+  /* Border helpers */
+  .border-brand  { border-color: var(--brand); }
+  .border-danger { border-color: var(--danger); }
+
+  /* Shadow helpers */
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-pop  { box-shadow: var(--shadow-pop); }
+
+  /* Focus ring — combines border-color + subtle outer ring in one class */
+  .ring-brand {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent);
+  }
+
+  /* Shadow helpers */
+  .shadow-button { box-shadow: var(--shadow-button); }
+
+  /* Disabled brand color (mobile: colors.primaryDisabled) */
+  .bg-brand-disabled { background-color: var(--brand-disabled); }
+  .text-brand-disabled { color: var(--brand-disabled); }
+
+  /* Pill radius */
+  .rounded-pill { border-radius: var(--radius-pill); }
+
+  /* Named typography utilities — match mobile typography.* names */
+  .text-display  { font-size: var(--text-display);  line-height: var(--leading-tight); }
+  .text-h1       { font-size: var(--text-h1);       line-height: var(--leading-tight); }
+  .text-title    { font-size: var(--text-title);    line-height: var(--leading-snug);  }
+  .text-subtitle { font-size: var(--text-subtitle); line-height: var(--leading-snug);  }
+  .text-body     { font-size: var(--text-body);     line-height: var(--leading-normal); }
+  .text-label    { font-size: var(--text-label);    line-height: var(--leading-normal); }
+  .text-caption  { font-size: var(--text-caption);  line-height: var(--leading-relaxed); }
+  .text-small    { font-size: var(--text-small);    line-height: var(--leading-relaxed); }
+  .text-tiny     { font-size: var(--text-tiny);     line-height: var(--leading-relaxed); }
+}

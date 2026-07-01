@@ -1,9 +1,8 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router';
-import { ChevronRight, GraduationCap } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Card } from '@/shared/ui/Card';
-import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import type { DirectionResult } from '@/shared/types';
@@ -100,15 +99,27 @@ const DirectionCard = memo(function DirectionCard({
   onUniversity,
 }: DirectionCardProps) {
   return (
-    <Card className="flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="text-subtitle font-bold text-primary flex-1">{direction.name}</h3>
-        <Badge variant="brand">{`${direction.match_score}%`}</Badge>
+    <button
+      type="button"
+      onClick={() => onDetail(direction)}
+      className="bg-surface border border-default rounded-[18px] p-[18px_20px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD] flex flex-col gap-3"
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[24px]">🚀</span>
+        <span
+          className="font-extrabold rounded-pill px-[10px] py-[3px]"
+          style={{ fontSize: 13, background: 'var(--success-bg)', color: 'var(--success-text)' }}
+        >
+          {direction.match_score}%
+        </span>
       </div>
-      <p className="text-body text-secondary leading-relaxed">{direction.why_it_fits}</p>
+      <div>
+        <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 17 }}>{direction.name}</p>
+        <p className="text-muted font-semibold leading-snug" style={{ fontSize: 13 }}>{direction.why_it_fits}</p>
+      </div>
       {(direction.professions ?? []).length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {direction.professions.slice(0, 4).map((prof, i) => (
+          {direction.professions.slice(0, 3).map((prof, i) => (
             <span
               key={i}
               className="px-2.5 py-0.5 rounded-pill text-caption text-secondary bg-raised border border-default"
@@ -118,29 +129,17 @@ const DirectionCard = memo(function DirectionCard({
           ))}
         </div>
       )}
-      <div className={cn('flex gap-2 mt-1', showUniversityBtn && 'flex-col sm:flex-row')}>
-        <Button
-          variant="primary"
-          size="sm"
-          className="flex-1 justify-between"
-          onClick={() => onDetail(direction)}
+      {showUniversityBtn && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onUniversity(direction); }}
+          className="mt-1 flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
         >
-          Подробнее
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-        {showUniversityBtn && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-1 gap-1.5"
-            onClick={() => onUniversity(direction)}
-          >
-            <GraduationCap className="w-4 h-4" />
-            Найти университеты
-          </Button>
-        )}
-      </div>
-    </Card>
+          <GraduationCap className="w-3.5 h-3.5" />
+          Найти университеты
+        </button>
+      )}
+    </button>
   );
 });
 
@@ -210,12 +209,56 @@ export default function ResultsPage() {
     ? `У тебя хорошо развиты: ${topThinking.slice(0, 2).map(([cat]) => (THINKING_LABELS[cat] ?? cat).toLowerCase()).join(' и ')}.`
     : null;
 
+  const topDirection = report.directions?.[0];
+
   return (
     <div className="max-w-4xl mx-auto py-8 flex flex-col gap-10">
       <div>
-        <h1 className="text-h1 font-extrabold text-primary mb-1">Твои результаты</h1>
-        <p className="text-body text-secondary">Посмотри, что мы узнали о тебе</p>
+        <div className="inline-flex items-center gap-[7px] font-extrabold rounded-pill px-[14px] py-[6px] mb-[14px]" style={{ background: 'var(--success-bg)', color: 'var(--success-text)', fontSize: 13 }}>
+          ✅ Диагностика завершена
+        </div>
+        <h1 className="font-black text-primary mb-1.5 tracking-[-0.01em]" style={{ fontSize: 34 }}>Что мы узнали о тебе</h1>
+        <p className="text-secondary font-semibold" style={{ fontSize: 16 }}>Твой профиль склонностей и рекомендованное направление</p>
       </div>
+
+      {/* ── Top match card ─────────────────────────────────────── */}
+      {topDirection && (
+        <div
+          className="relative overflow-hidden rounded-[24px] p-[30px_32px] text-on-brand"
+          style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', boxShadow: '0 14px 32px rgba(124,58,237,.26)' }}
+        >
+          <div className="absolute bottom-[-60px] right-[-30px] w-[220px] h-[220px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
+          <div className="relative">
+            <div className="font-extrabold tracking-[.06em] uppercase mb-2 opacity-85" style={{ fontSize: 13 }}>
+              🎯 Лучшее совпадение · {topDirection.match_score}%
+            </div>
+            <h2 className="font-black mb-2 tracking-[-0.01em]" style={{ fontSize: 32 }}>{topDirection.name}</h2>
+            <p className="font-semibold opacity-90 mb-5 leading-relaxed" style={{ fontSize: 16, maxWidth: 520 }}>
+              {topDirection.why_it_fits}
+            </p>
+            <div className="flex gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => handleDirectionDetail(topDirection)}
+                className="h-[50px] px-7 rounded-pill font-extrabold transition-transform hover:scale-[1.03] active:scale-[0.98]"
+                style={{ background: '#fff', color: '#5B21B6', fontSize: 15, border: 'none' }}
+              >
+                Подробнее →
+              </button>
+              {showUniversityBtn && (
+                <button
+                  type="button"
+                  onClick={() => handleUniversity(topDirection)}
+                  className="h-[50px] px-[26px] rounded-pill font-extrabold transition-colors"
+                  style={{ border: '1.5px solid rgba(255,255,255,.55)', background: 'rgba(255,255,255,.12)', color: '#fff', fontSize: 15 }}
+                >
+                  🎓 Посмотреть университеты
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 1 — Резюме */}
       <section aria-label="Резюме">
@@ -245,19 +288,16 @@ export default function ResultsPage() {
 
       {/* 3 — Карта интересов */}
       <section aria-label="Карта интересов">
-        <SectionHeader emoji="🗺️" title="Карта интересов" />
+        <SectionHeader emoji="📊" title="Твои сильные стороны" />
         <Card className="flex flex-col gap-4">
           {topInterests.length > 0 ? (
             topInterests.map(([cat, score]) => {
-              const level = getInterestLevel(score);
               const label = INTEREST_LABELS[cat] ?? cat;
               return (
-                <div key={cat} className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-caption font-semibold text-primary">{label}</span>
-                    <span className={cn('text-small font-semibold', level.textClass)}>
-                      {level.label}
-                    </span>
+                <div key={cat}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-extrabold text-primary" style={{ fontSize: 15 }}>{label}</span>
+                    <span className="font-extrabold text-brand" style={{ fontSize: 14 }}>{Math.round(score)}%</span>
                   </div>
                   <div
                     role="progressbar"
@@ -265,11 +305,11 @@ export default function ResultsPage() {
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-label={label}
-                    className="h-2 w-full rounded-full bg-raised overflow-hidden"
+                    className="h-3 w-full rounded-full bg-brand-subtle overflow-hidden"
                   >
                     <div
-                      className={cn('h-full rounded-full transition-[width] duration-300 ease-out', level.barClass)}
-                      style={{ width: `${Math.round(score)}%` }}
+                      className="h-full rounded-full transition-[width] duration-300 ease-out"
+                      style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#7C3AED,#A855F7)' }}
                     />
                   </div>
                 </div>
@@ -322,7 +362,7 @@ export default function ResultsPage() {
 
       {/* 6 — Подходящие направления */}
       <section aria-label="Подходящие направления">
-        <SectionHeader emoji="🚀" title="Подходящие направления" />
+        <SectionHeader emoji="🧑‍💼" title="Подходящие профессии" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {(report.directions ?? []).map(direction => (
             <DirectionCard
