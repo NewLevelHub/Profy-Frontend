@@ -12,8 +12,8 @@ export function AuthLayout() {
     <div className="min-h-screen text-primary lg:grid" style={{ gridTemplateColumns: '1.15fr .85fr' }}>
       {/* ── Left brand panel (desktop only) ───────────────── */}
       <div
-        className="hidden lg:flex flex-col relative overflow-hidden select-none p-[46px_60px]"
-        style={{ background: 'linear-gradient(155deg,#7C3AED 0%,#6D28D9 55%,#5B21B6 100%)' }}
+        className="hidden lg:flex flex-col relative overflow-hidden select-none p-[46px_60px] text-white"
+        style={{ background: 'linear-gradient(155deg,#7C3AED 0%,#6D28D9 55%,#5B21B6 100%)', color: '#FFFFFF' }}
       >
         {/* Decorative blobs */}
         <div className="absolute top-[-120px] left-[-90px] w-[420px] h-[420px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.12)' }} />
@@ -22,16 +22,16 @@ export function AuthLayout() {
 
         <div className="relative z-10 flex flex-col h-full">
           {/* Logo */}
-          <span className="font-black text-[26px] tracking-tight text-on-brand">
+          <span className="font-black text-[26px] tracking-tight">
             {env.APP_NAME}
           </span>
 
           {/* Hero */}
           <div className="flex-1 flex flex-col justify-center max-w-[460px]">
-            <h1 className="font-black text-on-brand mb-[18px] tracking-[-0.02em]" style={{ fontSize: 54, lineHeight: 1.05 }}>
+            <h1 className="font-black mb-[18px] tracking-[-0.02em]" style={{ fontSize: 54, lineHeight: 1.05 }}>
               Найди свой путь<br />в профессию
             </h1>
-            <p className="text-on-brand/86 mb-8 font-medium" style={{ fontSize: 18, lineHeight: 1.5 }}>
+            <p className="mb-8 font-medium" style={{ fontSize: 18, lineHeight: 1.5, color: 'rgba(255,255,255,0.9)' }}>
               Пройди диагностику и получи персональную карту профессий, подходящих именно тебе.
             </p>
 
@@ -43,7 +43,7 @@ export function AuthLayout() {
                   style={{ background: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.16)', backdropFilter: 'blur(4px)' }}
                 >
                   <span className="text-[22px]" aria-hidden="true">{emoji}</span>
-                  <span className="text-on-brand font-bold" style={{ fontSize: 16 }}>{text}</span>
+                  <span className="font-bold" style={{ fontSize: 16 }}>{text}</span>
                 </div>
               ))}
             </div>

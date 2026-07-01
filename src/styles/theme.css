@@ -214,6 +214,9 @@
   .text-brand       { color: var(--brand-text); }
   .text-white       { color: #ffffff; }
   .text-on-brand    { color: var(--text-on-brand); }
+
+  /* Brand buttons/links always use white label text (not theme-dependent). */
+  .bg-brand:is(button, a) { color: #ffffff; }
   .text-accent      { color: var(--accent-text); }
   .text-success     { color: var(--success); }
   .text-warning     { color: var(--warning); }

@@ -113,9 +113,10 @@ export default function RegisterPage() {
           type="submit"
           disabled={isLoading}
           className={cn(
-            'w-full h-12 bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button transition-opacity mt-1',
+            'w-full h-12 bg-brand font-extrabold text-label rounded-pill shadow-button transition-opacity mt-1',
             isLoading && 'opacity-60 cursor-not-allowed',
           )}
+          style={{ color: '#FFFFFF' }}
         >
           {isLoading ? 'Регистрируемся...' : 'Зарегистрироваться'}
         </button>

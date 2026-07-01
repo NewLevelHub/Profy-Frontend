@@ -86,9 +86,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex-1 min-w-[220px]">
-            <h2 className="font-black text-on-brand mb-1" style={{ fontSize: 24 }}>Твой путь</h2>
-            <p className="text-on-brand/85 font-semibold" style={{ fontSize: 15 }}>{heroSubtitle}</p>
+          <div className="flex-1 min-w-[220px] text-white">
+            <h2 className="font-black mb-1" style={{ fontSize: 24 }}>Твой путь</h2>
+            <p className="font-semibold" style={{ fontSize: 15, color: 'rgba(255,255,255,0.9)' }}>{heroSubtitle}</p>
           </div>
 
           <button
