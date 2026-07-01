@@ -10,7 +10,10 @@ function validateEmail(email: string): string {
 }
 
 function validatePassword(password: string): string {
-  return password.length >= 6 ? '' : 'Минимум 6 символов';
+  if (password.length < 8) return 'Минимум 8 символов';
+  if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву';
+  if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру';
+  return '';
 }
 
 export default function RegisterPage() {

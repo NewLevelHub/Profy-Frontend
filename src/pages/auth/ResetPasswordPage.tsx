@@ -31,8 +31,14 @@ export default function ResetPasswordPage() {
     } else {
       setCodeError('');
     }
-    if (password.length < 6) {
-      setPasswordError('Минимум 6 символов');
+    const pwdErr = (() => {
+      if (password.length < 8) return 'Минимум 8 символов';
+      if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву';
+      if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру';
+      return '';
+    })();
+    if (pwdErr) {
+      setPasswordError(pwdErr);
       valid = false;
     } else {
       setPasswordError('');
