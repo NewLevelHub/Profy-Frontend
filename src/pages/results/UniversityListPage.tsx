@@ -1,10 +1,6 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
-import { cn } from '@/shared/lib/cn';
-import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import type { ProgramBrief } from '@/shared/types';
 import { formatCost } from '@/pages/results/utils/programUtils';
@@ -14,16 +10,20 @@ import { COUNTRY_FILTERS, useUniversityList } from '@/pages/results/hooks/useUni
 
 function ProgramCardSkeleton() {
   return (
-    <Card className="flex flex-col gap-3">
-      <Skeleton className="h-5 w-3/4" />
+    <div style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 22, padding: '26px 26px 22px', boxShadow: '0 6px 18px rgba(30,27,75,.06)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14 }}>
+        <Skeleton className="h-6 w-2/3" />
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </div>
       <Skeleton className="h-4 w-1/2" />
       <Skeleton className="h-4 w-full" />
-      <div className="flex gap-3 mt-1">
-        <Skeleton className="h-4 w-20" />
+      <Skeleton className="h-4 w-5/6" />
+      <div style={{ display: 'flex', gap: 18 }}>
         <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-28" />
       </div>
-      <Skeleton className="h-9 w-full mt-1" />
-    </Card>
+      <Skeleton className="h-[52px] w-full rounded-[16px]" />
+    </div>
   );
 }
 
@@ -36,33 +36,39 @@ interface ProgramCardProps {
 
 const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCardProps) {
   return (
-    <Card className="flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <p className="text-label font-bold text-primary leading-snug">{program.name}</p>
-          <p className="text-caption text-secondary">{program.university.name}</p>
-        </div>
-        <Badge variant="brand" className="flex-shrink-0">{program.university.country}</Badge>
+    <div style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 22, padding: '26px 26px 22px', boxShadow: '0 6px 18px rgba(30,27,75,.06)', display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {/* Title + country badge */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, marginBottom: 4 }}>
+        <h3 style={{ fontSize: 21, fontWeight: 900, margin: 0, lineHeight: 1.2, color: '#1E1B4B' }}>{program.name}</h3>
+        <span style={{ flexShrink: 0, background: '#EDE9FE', color: '#5B21B6', fontSize: 12, fontWeight: 800, padding: '5px 12px', borderRadius: 9999, whiteSpace: 'nowrap' }}>
+          {program.university.country}
+        </span>
       </div>
 
+      {/* University name */}
+      <div style={{ fontSize: 16, fontWeight: 600, color: '#9CA3AF', marginBottom: 14 }}>{program.university.name}</div>
+
+      {/* Description */}
       {program.description && program.description.length > 0 && (
-        <p className="text-caption text-secondary line-clamp-2">{program.description}</p>
+        <p style={{ fontSize: 15, fontWeight: 600, color: '#4B5563', lineHeight: 1.55, margin: '0 0 16px' }}>
+          {program.description.length > 120 ? program.description.slice(0, 120) + '...' : program.description}
+        </p>
       )}
 
-      <div className="flex flex-wrap gap-3 text-caption text-secondary">
-        <span>🌐 {program.language}</span>
-        <span>💰 {formatCost(program.cost_per_year)}</span>
+      {/* Meta */}
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 18, fontSize: 15, fontWeight: 700, color: '#4B5563' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>🌐 {program.language}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>💰 {formatCost(program.cost_per_year)}</span>
       </div>
 
-      <Button
-        size="sm"
-        variant="ghost"
-        className="w-full mt-auto"
+      {/* CTA */}
+      <button
         onClick={() => onSelect(program.id)}
+        style={{ width: '100%', height: 52, border: '1.5px solid #DDD6FE', borderRadius: 16, background: '#fff', color: '#7C3AED', fontSize: 16, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}
       >
         Посмотреть требования
-      </Button>
-    </Card>
+      </button>
+    </div>
   );
 });
 
@@ -95,65 +101,77 @@ export default function UniversityListPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      {/* Nav */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
-          onClick={() => navigate(-1)}
-          aria-label="Назад"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Назад
-        </button>
-        <h1 className="text-h1 font-extrabold text-primary">Университеты</h1>
-      </div>
+    <div style={{ minHeight: '100vh', padding: '44px 24px 80px', animation: 'pf-fade-up .5s ease both' }}>
+      <div style={{ maxWidth: 1040, margin: '0 auto' }}>
 
-      {/* Country filter chips */}
-      <div className="flex flex-wrap gap-2 mb-6" role="group" aria-label="Фильтр по стране">
-        {COUNTRY_FILTERS.map(filter => (
+        {/* Nav + title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 26 }}>
           <button
-            key={filter.label}
-            onClick={() => setActiveCountry(filter.value)}
-            className={cn(
-              'px-4 py-1.5 rounded-pill text-caption font-semibold border transition-colors',
-              activeCountry === filter.value
-                ? 'bg-brand text-on-brand border-brand'
-                : 'bg-surface text-secondary border-default hover:border-strong',
-            )}
-            aria-pressed={activeCountry === filter.value}
+            onClick={() => navigate(-1)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', background: 'none', color: '#7C3AED', fontSize: 16, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', padding: 0, flexShrink: 0 }}
           >
-            {filter.label}
+            ← Назад
           </button>
-        ))}
-      </div>
+          <h1 style={{ fontSize: 38, fontWeight: 900, margin: 0, letterSpacing: '-.01em', color: '#1E1B4B' }}>Университеты</h1>
+        </div>
 
-      {/* Content */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {Array.from({ length: 6 }, (_, i) => <ProgramCardSkeleton key={i} />)}
+        {/* Country filter chips */}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 22 }} role="group" aria-label="Фильтр по стране">
+          {COUNTRY_FILTERS.map(filter => (
+            <button
+              key={filter.label}
+              onClick={() => setActiveCountry(filter.value)}
+              aria-pressed={activeCountry === filter.value}
+              style={{
+                padding: '8px 20px',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 700,
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                border: activeCountry === filter.value ? 'none' : '1.5px solid #DDD6FE',
+                background: activeCountry === filter.value ? '#7C3AED' : '#fff',
+                color: activeCountry === filter.value ? '#fff' : '#4B5563',
+                transition: 'all .15s',
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
-      ) : error !== null ? (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <p className="text-body text-danger">{error}</p>
-          <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
-        </div>
-      ) : programs.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <span className="text-5xl select-none" aria-hidden="true">🎓</span>
-          <p className="text-label font-bold text-primary">Программы не найдены</p>
-          <p className="text-body text-secondary">Попробуй выбрать другую страну</p>
-        </div>
-      ) : (
-        <>
-          <p className="text-caption text-muted mb-4">{programs.length} программ</p>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {programs.map(program => (
-              <ProgramCard key={program.id} program={program} onSelect={handleProgramClick} />
-            ))}
+
+        {/* Content */}
+        {isLoading ? (
+          <>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#9CA3AF', marginBottom: 18 }}>Загрузка...</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+              {Array.from({ length: 6 }, (_, i) => <ProgramCardSkeleton key={i} />)}
+            </div>
+          </>
+        ) : error !== null ? (
+          <div className="flex flex-col items-center gap-4 py-16 text-center">
+            <p className="text-body text-danger">{error}</p>
+            <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
           </div>
-        </>
-      )}
+        ) : programs.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <span className="text-5xl select-none" aria-hidden="true">🎓</span>
+            <p className="text-label font-bold text-primary">Программы не найдены</p>
+            <p className="text-body text-secondary">Попробуй выбрать другую страну</p>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#9CA3AF', marginBottom: 18 }}>
+              {programs.length} программ
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+              {programs.map(program => (
+                <ProgramCard key={program.id} program={program} onSelect={handleProgramClick} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

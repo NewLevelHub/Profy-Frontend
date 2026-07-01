@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
-import { BLOCK_NAMES } from '@/shared/config/constants';
+import { BLOCK_NAMES, BLOCK_EMOJIS } from '@/shared/config/constants';
 import type { AnswerPayload, AssessmentBlock, Question } from '@/shared/types';
 import { getAssessmentBlocks } from '../utils/assessmentBlocks';
 
@@ -99,6 +99,14 @@ export function useAssessment() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveBlock, retryCount, assessmentId]);
 
+  function handleStartBlock() {
+    if (introTimerRef.current !== null) {
+      clearTimeout(introTimerRef.current);
+      introTimerRef.current = null;
+    }
+    setPhase('question');
+  }
+
   function handleBack() {
     if (questionIndex === 0 || transitioning) return;
     setBlockAnswers(prev => prev.slice(0, questionIndex - 1));
@@ -167,6 +175,9 @@ export function useAssessment() {
 
       const nextIndex = currentBlock + 1;
       const isLast = nextIndex >= totalBlocks;
+      const nextBlockKey = activeBlocks[nextIndex];
+      const nextBlockName = nextBlockKey ? BLOCK_NAMES[nextBlockKey] : undefined;
+      const nextBlockEmoji = nextBlockKey ? BLOCK_EMOJIS[nextBlockKey] : undefined;
       advanceBlock();
       navigate('/assessment/praise', {
         state: {
@@ -177,6 +188,8 @@ export function useAssessment() {
           nextPath: isLast ? '/assessment/loading' : '/assessment',
           completedCount: nextIndex,
           totalBlocks,
+          nextBlockName,
+          nextBlockEmoji,
         },
       });
     } catch {
@@ -228,6 +241,7 @@ export function useAssessment() {
     isRetakeMode,
     exitConfirmOpen,
     handleBack,
+    handleStartBlock,
     handleOptionSelect,
     handleNextBlock,
     handleExit,

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
-const COLORS = ['#7C3AED', '#A78BFA', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#EF4444'];
-const COUNT = 36;
+const COLORS = ['#7C3AED', '#A78BFA', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#EF4444', '#F97316'];
+const COUNT = 40;
 
 export function ConfettiBlast() {
   const pieces = useMemo(
@@ -29,12 +29,12 @@ export function ConfettiBlast() {
           style={{
             position: 'absolute',
             left: p.left,
-            top: '-12px',
+            top: '-10px',
             width: p.size,
             height: p.size,
             backgroundColor: p.color,
             borderRadius: p.isCircle ? '50%' : '2px',
-            animation: `confetti-fall ${p.duration} ${p.delay} linear forwards`,
+            animation: `pf-confetti ${p.duration} ${p.delay} linear infinite`,
           }}
         />
       ))}

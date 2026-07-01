@@ -9,10 +9,10 @@ const FEATURES = [
 
 export function AuthLayout() {
   return (
-    <div className="min-h-screen bg-page text-primary flex">
+    <div className="min-h-screen text-primary lg:grid" style={{ gridTemplateColumns: '1.15fr .85fr' }}>
       {/* ── Left brand panel (desktop only) ───────────────── */}
       <div
-        className="hidden lg:flex flex-col flex-1 relative overflow-hidden select-none p-[46px_60px]"
+        className="hidden lg:flex flex-col relative overflow-hidden select-none p-[46px_60px]"
         style={{ background: 'linear-gradient(155deg,#7C3AED 0%,#6D28D9 55%,#5B21B6 100%)' }}
       >
         {/* Decorative blobs */}
@@ -56,7 +56,7 @@ export function AuthLayout() {
       </div>
 
       {/* ── Right form panel ───────────────────────────────── */}
-      <div className="flex-1 lg:max-w-[480px] lg:flex-none flex flex-col items-center justify-center px-10 py-12">
+      <div className="flex flex-col items-center justify-center px-10 py-12 min-h-screen lg:min-h-0" style={{ background: '#FFFFFF' }}>
         {/* Mobile logo */}
         <div className="lg:hidden mb-8 text-center">
           <span className="font-black text-2xl tracking-tight text-primary">

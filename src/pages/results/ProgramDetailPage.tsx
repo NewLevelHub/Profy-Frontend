@@ -1,8 +1,5 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Search } from 'lucide-react';
-import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { toDisplayString, formatCost, localizeKey } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
@@ -11,18 +8,17 @@ import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 
 function ProgramDetailSkeleton() {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-8 w-2/3" />
-        <Skeleton className="h-5 w-1/3" />
-      </div>
+    <div className="flex flex-col gap-5">
+      <Skeleton className="h-9 w-2/3" />
+      <Skeleton className="h-5 w-1/3" />
       <div className="flex gap-2">
-        <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-8 w-28 rounded-full" />
+        <Skeleton className="h-8 w-32 rounded-full" />
+        <Skeleton className="h-8 w-28 rounded-full" />
       </div>
       {[1, 2, 3].map(i => (
-        <div key={i} className="flex flex-col gap-2">
-          <Skeleton className="h-5 w-32" />
+        <div key={i} className="rounded-[20px] border border-[#EDE9FE] p-6 flex flex-col gap-2">
+          <Skeleton className="h-5 w-36" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-5/6" />
         </div>
@@ -31,31 +27,58 @@ function ProgramDetailSkeleton() {
   );
 }
 
-// ── Key-value table (requirements / deadlines) ────────────────────────────────
+// ── Section heading ───────────────────────────────────────────────────────────
 
-function KVTable({ data }: { data: Record<string, unknown> }) {
-  const entries = Object.entries(data);
-  if (entries.length === 0) return null;
+function SectionHeading({ children }: { children: string }) {
   return (
-    <Card className="!p-0 overflow-hidden divide-y divide-default">
-      {entries.map(([key, value]) => (
-        <div key={key} className="flex items-start justify-between gap-4 px-4 py-3">
-          <span className="text-caption text-secondary flex-1">{localizeKey(key)}</span>
-          <span className="text-caption text-primary text-right flex-1">{toDisplayString(value)}</span>
-        </div>
-      ))}
-    </Card>
+    <h3 style={{ fontSize: 18, fontWeight: 900, margin: '0 0 10px' }}>{children}</h3>
   );
 }
 
-// ── Section heading ───────────────────────────────────────────────────────────
+// ── Requirements table ────────────────────────────────────────────────────────
 
-function SectionHeading({ icon, children }: { icon: string; children: string }) {
+function RequirementsTable({ data }: { data: Record<string, unknown> }) {
+  const entries = Object.entries(data);
+  if (entries.length === 0) return null;
   return (
-    <h2 className="text-label font-bold text-primary flex items-center gap-2 mb-3">
-      <span aria-hidden="true">{icon}</span>
-      {children}
-    </h2>
+    <div style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}>
+      {entries.map(([key, value], i) => (
+        <div
+          key={key}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            padding: '14px 20px',
+            borderTop: i > 0 ? '1px solid #EDE9FE' : undefined,
+          }}
+        >
+          <span style={{ fontSize: 15, fontWeight: 600, color: '#4B5563' }}>{localizeKey(key)}</span>
+          <span style={{ fontSize: 15, fontWeight: 800, color: '#1E1B4B', textAlign: 'right' }}>{toDisplayString(value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Deadlines grid ────────────────────────────────────────────────────────────
+
+function DeadlinesGrid({ data }: { data: Record<string, unknown> }) {
+  const entries = Object.entries(data);
+  if (entries.length === 0) return null;
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {entries.map(([key, value]) => (
+        <div
+          key={key}
+          style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 16, padding: '16px 18px', boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#9CA3AF', marginBottom: 4 }}>{localizeKey(key)}</div>
+          <div style={{ fontSize: 17, fontWeight: 900, color: '#1E1B4B' }}>{toDisplayString(value)}</div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -63,21 +86,17 @@ function SectionHeading({ icon, children }: { icon: string; children: string }) 
 
 export default function ProgramDetailPage() {
   const navigate = useNavigate();
-  const { program, isLoading, error, assessmentId, handleCheckChances } = useProgramDetail();
+  const { program, isLoading, error } = useProgramDetail();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <div style={{ maxWidth: 780, margin: '0 auto', padding: '30px 32px 56px', animation: 'pf-fade-up .5s ease both' }}>
       {/* Nav */}
-      <div className="mb-6">
-        <button
-          className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
-          onClick={() => navigate(-1)}
-          aria-label="Назад"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Назад
-        </button>
-      </div>
+      <button
+        onClick={() => navigate(-1)}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', background: 'none', color: '#7C3AED', fontSize: 15, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', padding: 0, marginBottom: 18 }}
+      >
+        ← Назад
+      </button>
 
       {isLoading ? (
         <ProgramDetailSkeleton />
@@ -87,46 +106,46 @@ export default function ProgramDetailPage() {
           <Button variant="ghost" onClick={() => navigate(-1)}>Назад</Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {/* Title */}
-          <div>
-            <h1 className="text-h1 font-extrabold text-primary mb-1">{program.name}</h1>
-            <p className="text-body text-secondary">{program.university.name}</p>
-          </div>
+          <h1 style={{ fontSize: 34, fontWeight: 900, margin: '0 0 4px', letterSpacing: '-.01em' }}>{program.name}</h1>
+          <p style={{ fontSize: 17, color: '#6B7280', fontWeight: 700, margin: '0 0 16px' }}>{program.university.name}</p>
 
           {/* Meta badges */}
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="brand">🌐 {program.language}</Badge>
-            <Badge variant="default">💰 {formatCost(program.cost_per_year)}</Badge>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 26 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EDE9FE', color: '#5B21B6', fontSize: 14, fontWeight: 800, padding: '7px 14px', borderRadius: 9999 }}>
+              🌐 {program.language}
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#FFF7ED', color: '#C2410C', fontSize: 14, fontWeight: 800, padding: '7px 14px', borderRadius: 9999 }}>
+              💰 {formatCost(program.cost_per_year)}
+            </span>
           </div>
 
           {/* Description */}
           {program.description && program.description.length > 0 && (
-            <div>
-              <SectionHeading icon="📋">Описание</SectionHeading>
-              <p className="text-body text-secondary leading-relaxed">{program.description}</p>
+            <div style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 20, padding: '24px 26px', marginBottom: 16, boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}>
+              <SectionHeading>📋 Описание</SectionHeading>
+              <p style={{ fontSize: 15, color: '#4B5563', fontWeight: 600, lineHeight: 1.6, margin: 0 }}>{program.description}</p>
             </div>
           )}
 
           {/* Who it's for */}
           {program.who_its_for && program.who_its_for.length > 0 && (
-            <div>
-              <SectionHeading icon="🎯">Для кого</SectionHeading>
-              <Card className="bg-brand-subtle">
-                <p className="text-body text-primary leading-relaxed">{program.who_its_for}</p>
-              </Card>
+            <div style={{ background: '#EDE9FE', borderRadius: 20, padding: '22px 26px', marginBottom: 16 }}>
+              <SectionHeading>🎯 Для кого</SectionHeading>
+              <p style={{ fontSize: 15, color: '#4B5563', fontWeight: 600, lineHeight: 1.6, margin: 0 }}>{program.who_its_for}</p>
             </div>
           )}
 
           {/* Career options */}
           {(program.career_options ?? []).length > 0 && (
-            <div>
-              <SectionHeading icon="💼">Карьерные пути</SectionHeading>
-              <div className="flex flex-wrap gap-2">
+            <div style={{ marginBottom: 22 }}>
+              <SectionHeading>💼 Карьерные пути</SectionHeading>
+              <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
                 {program.career_options.map((career, i) => (
                   <span
                     key={i}
-                    className="px-3 py-1 rounded-pill text-caption font-semibold bg-brand-subtle text-brand border border-default"
+                    style={{ background: '#EDE9FE', color: '#5B21B6', fontSize: 14, fontWeight: 800, padding: '8px 16px', borderRadius: 9999 }}
                   >
                     {toDisplayString(career)}
                   </span>
@@ -137,56 +156,48 @@ export default function ProgramDetailPage() {
 
           {/* Requirements */}
           {Object.keys(program.requirements ?? {}).length > 0 && (
-            <div>
-              <SectionHeading icon="📝">Требования</SectionHeading>
-              <KVTable data={program.requirements ?? {}} />
+            <div style={{ marginBottom: 22 }}>
+              <SectionHeading>📝 Требования</SectionHeading>
+              <RequirementsTable data={program.requirements ?? {}} />
             </div>
           )}
 
           {/* Deadlines */}
           {Object.keys(program.deadlines ?? {}).length > 0 && (
-            <div>
-              <SectionHeading icon="📅">Дедлайны</SectionHeading>
-              <KVTable data={program.deadlines ?? {}} />
+            <div style={{ marginBottom: 22 }}>
+              <SectionHeading>🗓️ Дедлайны</SectionHeading>
+              <DeadlinesGrid data={program.deadlines ?? {}} />
             </div>
           )}
 
           {/* Grants */}
           {(program.grants ?? []).length > 0 && (
-            <div>
-              <SectionHeading icon="🎓">Гранты и стипендии</SectionHeading>
-              <ul className="flex flex-col gap-2">
-                {program.grants.map((grant, i) => (
-                  <li key={i} className="flex items-start gap-2 text-body text-secondary">
-                    <span className="text-brand font-bold mt-0.5 flex-shrink-0">•</span>
-                    {toDisplayString(grant)}
-                  </li>
-                ))}
-              </ul>
+            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 20, padding: '20px 24px', marginBottom: 26, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <span style={{ fontSize: 30 }}>🎓</span>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 900, color: '#C2410C', marginBottom: 2 }}>Гранты и стипендии</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#9A3412' }}>
+                  {program.grants.map(g => toDisplayString(g)).join(' · ')}
+                </div>
+              </div>
             </div>
           )}
 
-          {/* CTA */}
-          {/* ЗАКОМЕНТИРОВАНО ПЕРЕД ДЕПЛОЕМ НЕДОСТУПНО
-            НУЖНО БУДЕТ В БУДУЩЕМ ВОЗОБНОВИТЬ
-          /*}
-          {/* <div className="pt-2">
-            <Button
-              size="lg"
-              variant="primary"
-              className="w-full gap-2"
-              disabled={!assessmentId}
-              onClick={handleCheckChances}
+          {/* CTA buttons */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => navigate(-1)}
+              style={{ flex: 1, minWidth: 240, height: 58, border: 'none', borderRadius: 9999, background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', color: '#fff', fontSize: 17, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 10px 22px rgba(124,58,237,.3)' }}
             >
-              <Search className="w-5 h-5" />
-              Проверить мои шансы
-            </Button>
-            {!assessmentId && (
-              <p className="text-caption text-muted text-center mt-2">
-                Пройди диагностику, чтобы проверить свои шансы
-              </p>
-            )}
-          </div> */}
+              🎓 Посмотреть университеты
+            </button>
+            <button
+              onClick={() => navigate('/results')}
+              style={{ flex: 1, minWidth: 200, height: 58, border: '1.5px solid #DDD6FE', borderRadius: 9999, background: '#fff', color: '#5B21B6', fontSize: 17, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}
+            >
+              Назад к результатам
+            </button>
+          </div>
         </div>
       )}
     </div>

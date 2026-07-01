@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useHome } from './hooks/useHome';
 import { BlockRoadmap } from './components/BlockRoadmap';
+import { BlockRoadmapQuest } from './components/BlockRoadmapQuest';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ export default function HomePage() {
     handleContinue,
     handleRetakeBlock,
   } = useHome();
+
+  const [roadmapVariant, setRoadmapVariant] = useState<'stepper' | 'quest'>('stepper');
 
   const heroSubtitle = isCompleted
     ? 'Ты прошёл все блоки! Смотри результат'
@@ -153,15 +157,43 @@ export default function HomePage() {
       {/* ── Block roadmap ───────────────────────────────────────────── */}
       {hasAssessment && (
         <section aria-label="Дорожная карта блоков">
-          <h2 className="font-black text-primary mb-4" style={{ fontSize: 24 }}>Дорожная карта</h2>
-          <div className="bg-surface border border-default rounded-[var(--radius-lg)] shadow-card p-[30px_28px]">
-            <BlockRoadmap
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <h2 className="font-black text-primary" style={{ fontSize: 24 }}>Дорожная карта</h2>
+            <div className="flex gap-1 p-1 rounded-pill" style={{ background: '#EDE9FE' }}>
+              {(['stepper', 'quest'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setRoadmapVariant(v)}
+                  className="font-extrabold transition-all rounded-pill px-[18px] py-[7px]"
+                  style={roadmapVariant === v
+                    ? { background: '#fff', color: '#5B21B6', fontSize: 13, boxShadow: '0 2px 6px rgba(30,27,75,.08)' }
+                    : { background: 'transparent', color: '#7C3AED', fontSize: 13 }
+                  }
+                >
+                  {v === 'stepper' ? 'Стэппер' : 'Квест-карта'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {roadmapVariant === 'stepper' ? (
+            <div className="bg-surface border border-default rounded-[22px] shadow-card p-[30px_28px]">
+              <BlockRoadmap
+                blocks={activeBlocks}
+                currentBlock={currentBlock}
+                onContinue={handleContinue}
+                onRetake={handleRetakeBlock}
+              />
+            </div>
+          ) : (
+            <BlockRoadmapQuest
               blocks={activeBlocks}
               currentBlock={currentBlock}
               onContinue={handleContinue}
               onRetake={handleRetakeBlock}
             />
-          </div>
+          )}
         </section>
       )}
     </div>

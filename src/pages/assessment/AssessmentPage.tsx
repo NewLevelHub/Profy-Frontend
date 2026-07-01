@@ -25,6 +25,7 @@ export default function AssessmentPage() {
     isRetakeMode,
     exitConfirmOpen,
     handleBack,
+    handleStartBlock,
     handleOptionSelect,
     handleNextBlock,
     handleExit,
@@ -110,12 +111,13 @@ export default function AssessmentPage() {
             <span className="font-extrabold text-primary" style={{ fontSize: 15 }}>
               {blockName} · {headerTitle.match(/\d+ \/ \d+/)?.[0] ?? `${questionIndex + 1}`}
             </span>
-            <span
+            {/* Возможное внедрение в будущем: бейдж с XP за каждый вопрос в хедере */}
+            {/* <span
               className="inline-flex items-center gap-[6px] font-extrabold text-accent-text rounded-pill px-[11px] py-[5px]"
               style={{ background: 'var(--accent-soft)', border: '1px solid #FED7AA', fontSize: 13 }}
             >
               ⚡ {ageGroup === 'junior' ? 60 : ageGroup === 'middle' ? 90 : 120} XP
-            </span>
+            </span> */}
           </div>
 
           <button
@@ -161,20 +163,50 @@ export default function AssessmentPage() {
           </div>
         )}
 
-        {/* Block intro splash (~2s) */}
+        {/* Block intro splash */}
         {phase === 'intro' && (
-          <div
-            key={`intro-${currentBlock}`}
-            className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-[130px]"
-            style={{ animation: 'fade-in-up 0.5s ease both' }}
-          >
-            <span className="text-[74px] mb-[18px] inline-block" role="img" aria-hidden style={{ animation: 'pf-float 3s ease-in-out infinite' }}>{blockEmoji}</span>
-            <span className="inline-block bg-brand-subtle text-brand font-extrabold px-[18px] py-[7px] rounded-pill mb-[22px]" style={{ fontSize: 14 }}>
-              Блок {currentBlock + 1} из {totalBlocks}
-            </span>
-            <h2 className="font-black text-primary mb-[14px] tracking-[-0.02em]" style={{ fontSize: 48 }}>{blockName}</h2>
-            <p className="text-secondary font-semibold leading-relaxed" style={{ fontSize: 19 }}>{blockDesc}</p>
-          </div>
+          <>
+            <div
+              key={`intro-${currentBlock}`}
+              className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-[130px]"
+              style={{ animation: 'fade-in-up 0.5s ease both' }}
+            >
+              <span className="inline-block mb-[18px]" role="img" aria-hidden style={{ fontSize: 74, animation: 'pf-float 3s ease-in-out infinite' }}>{blockEmoji}</span>
+              <span className="inline-block bg-brand-subtle text-brand font-extrabold px-[18px] py-[7px] rounded-pill mb-[22px]" style={{ fontSize: 14 }}>
+                Блок {currentBlock + 1} из {totalBlocks}
+              </span>
+              <h2 className="font-black text-primary mb-[14px] tracking-[-0.02em]" style={{ fontSize: 48 }}>{blockName}</h2>
+              <p className="font-semibold leading-relaxed mb-[30px]" style={{ fontSize: 19, color: '#6B7280' }}>{blockDesc}</p>
+
+              <div className="flex items-center justify-center gap-[18px] font-bold" style={{ fontSize: 14, color: '#9CA3AF' }}>
+                <span className="inline-flex items-center gap-[6px]">📝 ~{questions.length} вопросов</span>
+                <span className="w-[4px] h-[4px] rounded-full" style={{ background: '#C4B5FD' }} />
+                <span className="inline-flex items-center gap-[6px]">⏱ {Math.max(1, Math.ceil(questions.length / 4))} мин</span>
+                {/* Будущая реализация: XP за блок
+                <span className="w-[4px] h-[4px] rounded-full" style={{ background: '#C4B5FD' }} />
+                <span className="inline-flex items-center gap-[6px]" style={{ color: '#C2410C' }}>⚡ +{ageGroup === 'junior' ? 60 : ageGroup === 'middle' ? 90 : 120} XP</span>
+                */}
+              </div>
+            </div>
+
+            <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center">
+              <Button
+                onClick={handleStartBlock}
+                size="lg"
+                className="w-full max-w-[560px] rounded-pill"
+                style={{
+                  height: 60,
+                  fontSize: 18,
+                  fontWeight: 800,
+                  background: 'linear-gradient(135deg,#7C3AED,#6D28D9)',
+                  boxShadow: '0 10px 22px rgba(124,58,237,.32)',
+                  animation: 'pf-pulse 2.4s infinite',
+                }}
+              >
+                Начать блок
+              </Button>
+            </div>
+          </>
         )}
 
         {/* Questions */}

@@ -214,9 +214,6 @@ export default function ResultsPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 flex flex-col gap-10">
       <div>
-        <div className="inline-flex items-center gap-[7px] font-extrabold rounded-pill px-[14px] py-[6px] mb-[14px]" style={{ background: 'var(--success-bg)', color: 'var(--success-text)', fontSize: 13 }}>
-          ✅ Диагностика завершена
-        </div>
         <h1 className="font-black text-primary mb-1.5 tracking-[-0.01em]" style={{ fontSize: 34 }}>Что мы узнали о тебе</h1>
         <p className="text-secondary font-semibold" style={{ fontSize: 16 }}>Твой профиль склонностей и рекомендованное направление</p>
       </div>
