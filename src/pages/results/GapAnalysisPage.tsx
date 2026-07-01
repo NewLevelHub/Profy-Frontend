@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import type { GapItem } from '@/shared/types';
+import { localizeKey } from '@/pages/results/utils/programUtils';
 import { useGapAnalysis } from '@/pages/results/hooks/useGapAnalysis';
 
 // ── Readiness circle ──────────────────────────────────────────────────────────
@@ -76,8 +77,8 @@ const GapSection = memo(function GapSection({
       <div className="flex flex-col gap-2">
         {items.map((item, i) => (
           <div key={i} className={cn('rounded-lg border p-4', cardClassName)}>
-            <p className={cn('text-label font-semibold capitalize mb-1', titleClassName)}>
-              {item.requirement}
+            <p className={cn('text-label font-semibold mb-1', titleClassName)}>
+              {localizeKey(item.requirement)}
             </p>
             <p className="text-caption text-secondary">{item.comment}</p>
           </div>

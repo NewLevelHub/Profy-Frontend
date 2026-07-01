@@ -145,10 +145,23 @@ export type RoadmapTaskCategory =
   | 'project'
   | 'exam'
   | 'explore'
-  | 'achievement';
+  | 'achievement'
+  | 'knowledge'
+  | 'skill'
+  | 'practice'
+  | 'portfolio'
+  | 'career'
+  | 'education'
+  | 'planning'
+  | 'documents'
+  | 'requirement'
+  | 'finance'
+  | 'admission'
+  | 'application';
 
 export interface RoadmapTask {
   text: string;
+  description: string | null;
   category: RoadmapTaskCategory;
   priority: number;
 }

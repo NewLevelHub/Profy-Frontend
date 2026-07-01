@@ -144,7 +144,7 @@ export default function UniversityListPage() {
         {isLoading ? (
           <>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#9CA3AF', marginBottom: 18 }}>Загрузка...</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
               {Array.from({ length: 6 }, (_, i) => <ProgramCardSkeleton key={i} />)}
             </div>
           </>
@@ -164,7 +164,7 @@ export default function UniversityListPage() {
             <div style={{ fontSize: 14, fontWeight: 700, color: '#9CA3AF', marginBottom: 18 }}>
               {programs.length} программ
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
               {programs.map(program => (
                 <ProgramCard key={program.id} program={program} onSelect={handleProgramClick} />
               ))}

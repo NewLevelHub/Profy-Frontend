@@ -102,8 +102,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── Quick access 3-col grid ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-[14px]">
+      {/* ── Quick access 2-col grid ─────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
         <button
           type="button"
           onClick={() => navigate('/results')}
@@ -127,31 +127,6 @@ export default function HomePage() {
             <p className="text-muted font-semibold" style={{ fontSize: 13 }}>Твои данные</p>
           </div>
         </button>
-
-        {isCompleted ? (
-          <button
-            type="button"
-            onClick={() => navigate('/roadmap')}
-            className="bg-surface border border-default rounded-[18px] p-[18px_20px] flex items-center gap-[14px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD]"
-          >
-            <div className="w-[46px] h-[46px] rounded-[13px] bg-brand-subtle flex items-center justify-center text-[22px] flex-none">🗺️</div>
-            <div>
-              <p className="font-extrabold text-primary" style={{ fontSize: 16 }}>Дорожная карта</p>
-              <p className="text-muted font-semibold" style={{ fontSize: 13 }}>Твой план</p>
-            </div>
-          </button>
-        ) : (
-          <div
-            className="rounded-[18px] p-[18px_20px] flex items-center gap-[14px]"
-            style={{ background: 'var(--accent-soft)', border: '1px solid #FED7AA', boxShadow: '0 4px 14px rgba(234,88,12,.06)' }}
-          >
-            <div className="w-[46px] h-[46px] rounded-[13px] flex items-center justify-center text-[22px] flex-none" style={{ background: '#FFEDD5' }}>🔒</div>
-            <div>
-              <p className="font-extrabold text-accent-text" style={{ fontSize: 16 }}>Твой план профессий</p>
-              <p className="font-semibold" style={{ fontSize: 13, color: 'var(--accent)' }}>Откроется после диагностики</p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ── Block roadmap ───────────────────────────────────────────── */}

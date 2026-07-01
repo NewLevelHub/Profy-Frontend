@@ -85,6 +85,18 @@ export const ROADMAP_CATEGORY_LABELS: Record<string, string> = {
   exam: 'Экзамен',
   explore: 'Исследование',
   achievement: 'Достижение',
+  knowledge: 'Знания',
+  skill: 'Навык',
+  practice: 'Практика',
+  portfolio: 'Портфолио',
+  career: 'Карьера',
+  education: 'Образование',
+  planning: 'Планирование',
+  documents: 'Документы',
+  requirement: 'Требование',
+  finance: 'Финансы',
+  admission: 'Поступление',
+  application: 'Заявка',
 };
 
 export const ROADMAP_CATEGORY_EMOJIS: Record<string, string> = {
@@ -94,6 +106,18 @@ export const ROADMAP_CATEGORY_EMOJIS: Record<string, string> = {
   exam: '📝',
   explore: '🔍',
   achievement: '🏆',
+  knowledge: '💡',
+  skill: '⚡',
+  practice: '🔨',
+  portfolio: '🗂️',
+  career: '🚀',
+  education: '🎓',
+  planning: '🗓️',
+  documents: '📄',
+  requirement: '✅',
+  finance: '💰',
+  admission: '🏛️',
+  application: '📨',
 };
 
 export const ARTIFACT_TYPE_LABELS: Record<string, string> = {
