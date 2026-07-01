@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
-import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { ConfettiBlast } from './components/ConfettiBlast';
 
 interface PraiseState {
@@ -11,9 +9,11 @@ interface PraiseState {
   nextPath: string;
   completedCount?: number;
   totalBlocks?: number;
+  nextBlockName?: string;
+  nextBlockEmoji?: string;
 }
 
-const AUTO_ADVANCE_MS = 2500;
+const AUTO_ADVANCE_MS = 4000;
 
 export default function PraisePage() {
   const navigate = useNavigate();
@@ -26,6 +26,8 @@ export default function PraisePage() {
     nextPath = '/home',
     completedCount,
     totalBlocks,
+    nextBlockName,
+    nextBlockEmoji,
   } = state;
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,49 +55,92 @@ export default function PraisePage() {
     totalBlocks !== undefined &&
     completedCount < totalBlocks;
 
+  const isLast = completedCount !== undefined && totalBlocks !== undefined && completedCount >= totalBlocks;
+
+  // Будущая интеграция: константа XP за пройденный блок
+  // const xpByBlock = 120;
+
   return (
-    <div className="flex flex-col min-h-screen bg-page">
+    <div className="flex flex-col min-h-screen bg-page relative overflow-hidden">
       <ConfettiBlast />
 
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center pb-[130px]">
         <div
-          className={cn(
-            'flex flex-col items-center text-center px-8 max-w-sm w-full',
-          )}
-          style={{ animation: 'scale-in 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards' }}
+          className="flex flex-col items-center text-center px-8 max-w-[480px] w-full"
+          style={{ animation: 'fade-in-up 0.5s ease both' }}
         >
-          <span className="text-6xl mb-6" role="img" aria-hidden>⭐</span>
-          <h1 className="text-display font-extrabold text-primary mb-3">{title}</h1>
-          <p className="text-body text-secondary mb-6">{subtitle}</p>
+          <span
+            className="inline-block mb-[6px]"
+            role="img"
+            aria-hidden
+            style={{ fontSize: 80, animation: 'pf-pop 0.7s ease both' }}
+          >
+            {isLast ? '🏆' : '⭐'}
+          </span>
+
+          <h1 className="font-black text-primary mb-2 tracking-[-0.01em]" style={{ fontSize: 44 }}>{title}</h1>
+          <p className="font-semibold mb-[14px]" style={{ fontSize: 18, color: '#6B7280' }}>{subtitle}</p>
+
+          {/* Будущая интеграция: бейдж с начисленными XP после каждого блока */}
+          {/* {!isLast && (
+            <div
+              className="inline-flex items-center gap-2 font-extrabold rounded-pill px-[18px] py-[9px] mb-[30px]"
+              style={{
+                background: '#FFF7ED',
+                border: '1px solid #FED7AA',
+                color: '#C2410C',
+                fontSize: 16,
+                animation: 'pf-pop 0.7s 0.15s ease both',
+              }}
+            >
+              ⚡ +{xpByBlock} XP заработано
+            </div>
+          )} */}
 
           {showProgress && (
-            <div className="w-full bg-surface rounded-xl p-4 shadow-card border border-default flex items-center gap-3">
-              <span className="text-muted flex-shrink-0" style={{ fontSize: 'var(--text-caption)' }}>
-                Прогресс
-              </span>
-              <ProgressBar
-                value={(completedCount! / totalBlocks!) * 100}
-                variant="success"
-                className="flex-1"
-              />
-              <span
-                className="text-muted font-bold flex-shrink-0"
-                style={{ fontSize: 'var(--text-caption)' }}
-              >
-                {completedCount}/{totalBlocks}
-              </span>
+            <div
+              className="w-full bg-surface rounded-[20px] p-[22px_26px]"
+              style={{ border: '1px solid #EDE9FE', boxShadow: '0 6px 18px rgba(30,27,75,.06)' }}
+            >
+              <div className="flex items-center justify-between mb-[10px]">
+                <span className="font-extrabold" style={{ fontSize: 15, color: '#4B5563' }}>Прогресс диагностики</span>
+                <span className="font-black" style={{ fontSize: 15, color: '#7C3AED' }}>{completedCount} / {totalBlocks}</span>
+              </div>
+              <div className="h-[14px] rounded-pill overflow-hidden" style={{ background: '#EDE9FE' }}>
+                <div
+                  className="h-full rounded-pill"
+                  style={{
+                    width: `${(completedCount! / totalBlocks!) * 100}%`,
+                    background: 'linear-gradient(90deg,#22C55E,#16A34A)',
+                  }}
+                />
+              </div>
+              {nextBlockName && (
+                <div className="flex items-center gap-2 mt-[14px] font-bold" style={{ fontSize: 14, color: '#7C3AED' }}>
+                  <span>{nextBlockEmoji ?? '🎯'}</span>
+                  <span>Следующий блок: «{nextBlockName}»</span>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      <div className="px-6 pb-8">
+      <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center">
         <Button
           onClick={handleContinue}
           size="lg"
-          className="w-full rounded-pill shadow-button"
+          className="w-full max-w-[560px] rounded-pill"
+          style={{
+            height: 60,
+            fontSize: 18,
+            fontWeight: 800,
+            background: 'linear-gradient(135deg,#7C3AED,#6D28D9)',
+            boxShadow: '0 10px 22px rgba(124,58,237,.32)',
+            animation: 'pf-pulse 2.4s infinite',
+          }}
         >
-          Дальше
+          Дальше →
         </Button>
       </div>
     </div>

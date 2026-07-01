@@ -1,21 +1,26 @@
 import type { AgeGroup, AssessmentBlock, AssessmentGoal } from '@/shared/types';
 
-const BASE_BLOCKS: AssessmentBlock[] = [
-  'interests',
-  'thinking',
-  'personality',
-  'motivation',
-  'academic',
-  'directions',
-  'goal_clarification',
-];
-
+/** Block sequence per methodology — junior skips academic and directions. */
 export function getAssessmentBlocks(
   ageGroup: AgeGroup,
   goal: AssessmentGoal | null,
 ): AssessmentBlock[] {
-  if (goal === 'university' && ageGroup === 'senior') {
-    return [...BASE_BLOCKS, 'university'];
+  const blocks: AssessmentBlock[] = [
+    'interests',
+    'thinking',
+    'personality',
+    'motivation',
+  ];
+
+  if (ageGroup !== 'junior') {
+    blocks.push('academic', 'directions');
   }
-  return BASE_BLOCKS;
+
+  blocks.push('goal_clarification');
+
+  if (ageGroup === 'senior' && goal === 'university') {
+    blocks.push('university');
+  }
+
+  return blocks;
 }

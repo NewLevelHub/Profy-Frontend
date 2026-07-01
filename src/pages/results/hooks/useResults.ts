@@ -18,7 +18,16 @@ export function useResults() {
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['result', assessmentId] as const,
-    queryFn: () => resultApi.get(assessmentId!),
+    queryFn: async () => {
+      try {
+        return await resultApi.get(assessmentId!);
+      } catch (err) {
+        if ((err as AxiosError)?.response?.status === 404) {
+          return await resultApi.generate(assessmentId!);
+        }
+        throw err;
+      }
+    },
     enabled: hasCompletedAssessment && !report && !!assessmentId,
     retry: (failureCount, err) => {
       if ((err as AxiosError)?.response?.status === 403) return false;

@@ -28,31 +28,31 @@ export const BLOCK_NAMES: Record<string, string> = {
   thinking: 'Стиль мышления',
   personality: 'Личность',
   motivation: 'Мотивация',
-  academic: 'Академика',
+  academic: 'Учебные склонности',
   directions: 'Направления',
-  goal_clarification: 'Уточнение цели',
+  goal_clarification: 'Твоя цель',
   university: 'Университет',
 };
 
 export const BLOCK_DESCRIPTIONS: Record<string, string> = {
-  interests: 'Расскажи, что тебе нравится делать и чем ты увлекаешься',
-  thinking: 'Узнаем, как ты подходишь к решению задач и принятию решений',
-  personality: 'Разберёмся в твоих чертах характера и способе общения',
-  motivation: 'Поймём, что тебя вдохновляет и движет вперёд',
-  academic: 'Оценим твои академические сильные стороны',
-  directions: 'Определим профессиональные направления, которые тебе подходят',
-  goal_clarification: 'Уточним твои цели и ожидания от будущей карьеры',
-  university: 'Узнаем твои предпочтения при выборе университета',
+  interests: 'Узнаем, что тебя по-настоящему интересует',
+  thinking: 'Разберёмся, как ты думаешь и решаешь задачи',
+  personality: 'Поймём твои сильные стороны характера',
+  motivation: 'Выясним, что тебя вдохновляет и движет',
+  academic: 'Посмотрим, какие предметы тебе ближе всего',
+  directions: 'Определим подходящие профессиональные пути',
+  goal_clarification: 'Уточним твою главную цель',
+  university: 'Подберём университеты под твой профиль',
 };
 
 export const BLOCK_EMOJIS: Record<string, string> = {
-  interests: '🎯',
-  thinking: '🧠',
-  personality: '🌟',
-  motivation: '⚡',
+  interests: '✨',
+  thinking: '🧩',
+  personality: '🦋',
+  motivation: '🚀',
   academic: '📚',
-  directions: '🚀',
-  goal_clarification: '🔍',
+  directions: '🧭',
+  goal_clarification: '🎯',
   university: '🎓',
 };
 

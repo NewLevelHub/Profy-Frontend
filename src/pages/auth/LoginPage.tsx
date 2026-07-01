@@ -84,17 +84,22 @@ export default function LoginPage() {
 
   return (
     <>
-      <h1 className="text-h1 font-black text-primary mb-6">Вход</h1>
+      <h2 className="font-black text-primary mb-1.5 tracking-[-0.01em]" style={{ fontSize: 30 }}>Вход</h2>
+      <p className="text-muted font-semibold mb-[26px]" style={{ fontSize: 14 }}>С возвращением! Продолжим путь 🎯</p>
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <div>
+          <label className="block font-extrabold text-secondary mb-[7px]" style={{ fontSize: 13 }}>
+            Электронная почта
+          </label>
           <input
             className={cn(
-              'w-full h-12 px-4 rounded-[10px] bg-page border text-primary text-body font-semibold placeholder:text-placeholder focus:outline-none focus:border-brand ring-brand transition-colors',
-              emailError ? 'border-danger' : 'border-default',
+              'w-full h-[52px] px-4 text-primary font-semibold placeholder:text-placeholder focus:outline-none transition-colors',
+              emailError ? 'border-danger' : 'border-default focus:border-brand',
             )}
+            style={{ border: '1.5px solid', borderRadius: 14, background: 'var(--bg-page)', fontSize: 15 }}
             type="email"
-            placeholder="Электронная почта"
+            placeholder="you@example.com"
             value={email}
             onChange={e => { setEmail(e.target.value); setEmailError(''); }}
             autoCapitalize="none"
@@ -104,15 +109,19 @@ export default function LoginPage() {
         </div>
 
         <div>
+          <label className="block font-extrabold text-secondary mb-[7px]" style={{ fontSize: 13 }}>
+            Пароль
+          </label>
           <div className="relative">
             <input
               ref={passwordRef}
               className={cn(
-                'w-full h-12 px-4 pr-12 rounded-[10px] bg-page border text-primary text-body font-semibold placeholder:text-placeholder focus:outline-none focus:border-brand ring-brand transition-colors',
-                passwordError ? 'border-danger' : 'border-default',
+                'w-full h-[52px] pl-4 pr-12 text-primary font-semibold placeholder:text-placeholder focus:outline-none transition-colors',
+                passwordError ? 'border-danger' : 'border-default focus:border-brand',
               )}
+              style={{ border: '1.5px solid', borderRadius: 14, background: 'var(--bg-page)', fontSize: 15 }}
               type={showPassword ? 'text' : 'password'}
-              placeholder="Пароль"
+              placeholder="••••••••"
               value={password}
               onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
               autoComplete="current-password"
@@ -165,24 +174,26 @@ export default function LoginPage() {
           type="submit"
           disabled={isLoading}
           className={cn(
-            'w-full h-12 bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button transition-opacity mt-1',
+            'w-full h-[54px] text-on-brand font-extrabold rounded-pill border-none transition-opacity mt-1',
             isLoading && 'opacity-60 cursor-not-allowed',
           )}
+          style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', fontSize: 17, boxShadow: '0 8px 18px rgba(124,58,237,.32)' }}
         >
           {isLoading ? 'Входим...' : 'Войти'}
         </button>
 
-        <div className="text-center">
+        <div className="text-center mt-1">
           <Link
             to="/forgot-password"
-            className="text-caption text-brand font-semibold hover:text-brand-hover transition-colors"
+            className="font-extrabold text-brand hover:text-brand-hover transition-colors"
+            style={{ fontSize: 14 }}
           >
             Забыли пароль?
           </Link>
         </div>
       </form>
 
-      <p className="text-caption text-center text-secondary mt-5">
+      <p className="text-center text-muted font-semibold mt-5 pt-[18px] border-t border-default" style={{ fontSize: 14 }}>
         Нет аккаунта?{' '}
         <Link to="/register" className="text-brand font-extrabold hover:text-brand-hover transition-colors">
           Зарегистрироваться

@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { cn } from '@/shared/lib/cn';
 import { useHome } from './hooks/useHome';
 import { BlockRoadmap } from './components/BlockRoadmap';
+import { BlockRoadmapQuest } from './components/BlockRoadmapQuest';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ export default function HomePage() {
     handleContinue,
     handleRetakeBlock,
   } = useHome();
+
+  const [roadmapVariant, setRoadmapVariant] = useState<'stepper' | 'quest'>('stepper');
 
   const heroSubtitle = isCompleted
     ? 'Ты прошёл все блоки! Смотри результат'
@@ -40,16 +43,17 @@ export default function HomePage() {
       {/* ── Page header ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-4">
         <div
-          className="w-13 h-13 rounded-full bg-brand flex items-center justify-center shadow-button flex-shrink-0"
+          className="w-[62px] h-[62px] rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', boxShadow: '0 8px 18px rgba(124,58,237,.3)', fontSize: 26, fontWeight: 900, color: '#fff' }}
           aria-hidden="true"
         >
-          <span className="text-title font-black text-on-brand">{initial}</span>
+          {initial}
         </div>
         <div>
-          <h1 className="text-h1 font-black text-primary leading-tight">
-            {`Привет, ${displayName}!`}
+          <h1 className="font-black text-primary leading-tight tracking-[-0.01em]" style={{ fontSize: 30 }}>
+            {`Привет, ${displayName}! 👋`}
           </h1>
-          <p className="text-body text-secondary">
+          <p className="text-secondary font-semibold" style={{ fontSize: 15, marginTop: 3 }}>
             {isCompleted
               ? 'Ты прошёл всю диагностику!'
               : inProgress
@@ -59,128 +63,139 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── Two-column layout (desktop) / single column (mobile) ────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-
-        {/* ── Main column (2/3) ───────────────────────────────────── */}
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* Hero progress card */}
-          <div className="bg-brand rounded-[var(--radius-lg)] p-6 shadow-button">
-            <div className="flex items-center gap-4 mb-5">
-              <div
-                className="w-16 h-16 rounded-full border-4 flex items-center justify-center flex-shrink-0"
-                style={{ borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(255,255,255,0.12)' }}
-              >
-                <span className="font-black text-on-brand" style={{ fontSize: 22, lineHeight: 1 }}>
-                  {completedCount}
-                </span>
-                <span className="text-on-brand/70 text-caption self-end mb-0.5">
-                  /{totalBlocks}
-                </span>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-title text-on-brand mb-1">Твой путь</p>
-                <p className="text-caption text-on-brand/80 leading-snug">{heroSubtitle}</p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleContinue}
-              className="w-full rounded-pill py-2.5 font-extrabold text-label transition-opacity hover:opacity-90 active:opacity-80"
-              style={{ backgroundColor: '#ffffff', color: 'var(--brand)' }}
+      {/* ── Hero progress card ──────────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden rounded-[24px] p-[28px_32px]"
+        style={{ background: 'linear-gradient(135deg,#7C3AED 0%,#6D28D9 100%)', boxShadow: '0 14px 32px rgba(124,58,237,.28)' }}
+      >
+        <div className="absolute top-[-50px] right-[-30px] w-[200px] h-[200px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
+        <div className="relative flex items-center gap-6 flex-wrap">
+          {/* Progress circle */}
+          <div className="w-[84px] h-[84px] flex-none relative">
+            <div
+              className="w-[84px] h-[84px] rounded-full flex items-center justify-center"
+              style={{ background: `conic-gradient(#fff ${Math.round((completedCount / totalBlocks) * 360)}deg, rgba(255,255,255,0.25) 0)` }}
             >
-              {heroBtnLabel}
-            </button>
-          </div>
-
-          {/* Block roadmap */}
-          {hasAssessment && (
-            <section aria-label="Дорожная карта блоков">
-              <h2 className="text-title font-black text-primary mb-4">Дорожная карта</h2>
-              <div className="bg-surface border border-default rounded-[var(--radius)] shadow-card p-4">
-                <BlockRoadmap
-                  blocks={activeBlocks}
-                  currentBlock={currentBlock}
-                  onContinue={handleContinue}
-                  onRetake={handleRetakeBlock}
-                />
+              <div
+                className="w-[68px] h-[68px] rounded-full flex flex-col items-center justify-center"
+                style={{ background: 'var(--brand)' }}
+              >
+                <span className="text-on-brand font-black leading-none" style={{ fontSize: 24 }}>{completedCount}</span>
+                <span className="text-on-brand/70 font-bold" style={{ fontSize: 12 }}>/{totalBlocks}</span>
               </div>
-            </section>
-          )}
-        </div>
-
-        {/* ── Sidebar column (1/3) ────────────────────────────────── */}
-        <div className="space-y-4">
-
-          {/* Quick access */}
-          <div>
-            <p className="text-caption font-bold text-muted uppercase tracking-wide mb-3">
-              Быстрый доступ
-            </p>
-            <div className="flex flex-col gap-2 lg:flex-col sm:flex-row">
-              <button
-                type="button"
-                onClick={() => navigate('/results')}
-                className="flex-1 bg-surface border border-default rounded-[var(--radius)] p-4 text-left shadow-card hover:bg-raised transition-colors flex items-center gap-3"
-              >
-                <span className="text-2xl flex-shrink-0" aria-hidden="true">📋</span>
-                <div>
-                  <p className="font-extrabold text-label text-primary">Результаты</p>
-                  <p className="text-caption text-secondary">Что мы узнали о тебе</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/profile')}
-                className="flex-1 bg-surface border border-default rounded-[var(--radius)] p-4 text-left shadow-card hover:bg-raised transition-colors flex items-center gap-3"
-              >
-                <span className="text-2xl flex-shrink-0" aria-hidden="true">👤</span>
-                <div>
-                  <p className="font-extrabold text-label text-primary">Профиль</p>
-                  <p className="text-caption text-secondary">Твои данные</p>
-                </div>
-              </button>
             </div>
           </div>
 
-          {/* Status banner */}
-          {hasAssessment && (
-            isCompleted ? (
-              <div
-                className="flex items-center gap-3 border rounded-[var(--radius)] px-4 py-3 bg-success-subtle"
-                style={{ borderColor: 'var(--success)' }}
-              >
-                <span className="text-xl flex-shrink-0" aria-hidden="true">🎉</span>
-                <div>
-                  <p className="font-extrabold text-label text-success">Поздравляю!</p>
-                  <p className={cn('text-caption text-success mt-0.5 opacity-80')}>
-                    Ты прошёл все блоки
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 bg-accent-soft rounded-[var(--radius)] px-4 py-3">
-                <div
-                  className="w-10 h-10 rounded-[var(--radius-sm)] flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(234,88,12,0.15)' }}
-                >
-                  <span className="text-base" aria-hidden="true">🔒</span>
-                </div>
-                <div>
-                  <p className="font-extrabold text-label text-accent">Твой план профессий</p>
-                  <p className="text-caption text-accent mt-0.5 opacity-70">
-                    Откроется после диагностики
-                  </p>
-                </div>
-              </div>
-            )
-          )}
+          <div className="flex-1 min-w-[220px]">
+            <h2 className="font-black text-on-brand mb-1" style={{ fontSize: 24 }}>Твой путь</h2>
+            <p className="text-on-brand/85 font-semibold" style={{ fontSize: 15 }}>{heroSubtitle}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleContinue}
+            className="h-[54px] px-[34px] rounded-pill font-extrabold transition-transform hover:scale-[1.03] active:scale-[0.98] whitespace-nowrap flex-none"
+            style={{ background: '#fff', color: '#5B21B6', fontSize: 16, boxShadow: '0 6px 16px rgba(0,0,0,.12)' }}
+          >
+            {heroBtnLabel} →
+          </button>
         </div>
       </div>
+
+      {/* ── Quick access 3-col grid ─────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-[14px]">
+        <button
+          type="button"
+          onClick={() => navigate('/results')}
+          className="bg-surface border border-default rounded-[18px] p-[18px_20px] flex items-center gap-[14px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD]"
+        >
+          <div className="w-[46px] h-[46px] rounded-[13px] bg-brand-subtle flex items-center justify-center text-[22px] flex-none">📋</div>
+          <div>
+            <p className="font-extrabold text-primary" style={{ fontSize: 16 }}>Результаты</p>
+            <p className="text-muted font-semibold" style={{ fontSize: 13 }}>Что мы узнали о тебе</p>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/profile')}
+          className="bg-surface border border-default rounded-[18px] p-[18px_20px] flex items-center gap-[14px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD]"
+        >
+          <div className="w-[46px] h-[46px] rounded-[13px] bg-brand-subtle flex items-center justify-center text-[22px] flex-none">👤</div>
+          <div>
+            <p className="font-extrabold text-primary" style={{ fontSize: 16 }}>Профиль</p>
+            <p className="text-muted font-semibold" style={{ fontSize: 13 }}>Твои данные</p>
+          </div>
+        </button>
+
+        {isCompleted ? (
+          <button
+            type="button"
+            onClick={() => navigate('/roadmap')}
+            className="bg-surface border border-default rounded-[18px] p-[18px_20px] flex items-center gap-[14px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD]"
+          >
+            <div className="w-[46px] h-[46px] rounded-[13px] bg-brand-subtle flex items-center justify-center text-[22px] flex-none">🗺️</div>
+            <div>
+              <p className="font-extrabold text-primary" style={{ fontSize: 16 }}>Дорожная карта</p>
+              <p className="text-muted font-semibold" style={{ fontSize: 13 }}>Твой план</p>
+            </div>
+          </button>
+        ) : (
+          <div
+            className="rounded-[18px] p-[18px_20px] flex items-center gap-[14px]"
+            style={{ background: 'var(--accent-soft)', border: '1px solid #FED7AA', boxShadow: '0 4px 14px rgba(234,88,12,.06)' }}
+          >
+            <div className="w-[46px] h-[46px] rounded-[13px] flex items-center justify-center text-[22px] flex-none" style={{ background: '#FFEDD5' }}>🔒</div>
+            <div>
+              <p className="font-extrabold text-accent-text" style={{ fontSize: 16 }}>Твой план профессий</p>
+              <p className="font-semibold" style={{ fontSize: 13, color: 'var(--accent)' }}>Откроется после диагностики</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Block roadmap ───────────────────────────────────────────── */}
+      {hasAssessment && (
+        <section aria-label="Дорожная карта блоков">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <h2 className="font-black text-primary" style={{ fontSize: 24 }}>Дорожная карта</h2>
+            <div className="flex gap-1 p-1 rounded-pill" style={{ background: '#EDE9FE' }}>
+              {(['stepper', 'quest'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setRoadmapVariant(v)}
+                  className="font-extrabold transition-all rounded-pill px-[18px] py-[7px]"
+                  style={roadmapVariant === v
+                    ? { background: '#fff', color: '#5B21B6', fontSize: 13, boxShadow: '0 2px 6px rgba(30,27,75,.08)' }
+                    : { background: 'transparent', color: '#7C3AED', fontSize: 13 }
+                  }
+                >
+                  {v === 'stepper' ? 'Стэппер' : 'Квест-карта'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {roadmapVariant === 'stepper' ? (
+            <div className="bg-surface border border-default rounded-[22px] shadow-card p-[30px_28px]">
+              <BlockRoadmap
+                blocks={activeBlocks}
+                currentBlock={currentBlock}
+                onContinue={handleContinue}
+                onRetake={handleRetakeBlock}
+              />
+            </div>
+          ) : (
+            <BlockRoadmapQuest
+              blocks={activeBlocks}
+              currentBlock={currentBlock}
+              onContinue={handleContinue}
+              onRetake={handleRetakeBlock}
+            />
+          )}
+        </section>
+      )}
     </div>
   );
 }
