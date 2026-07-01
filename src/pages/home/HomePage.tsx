@@ -71,17 +71,17 @@ export default function HomePage() {
         <div className="absolute top-[-50px] right-[-30px] w-[200px] h-[200px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
         <div className="relative flex items-center gap-6 flex-wrap">
           {/* Progress circle */}
-          <div className="w-[84px] h-[84px] flex-none relative">
+          <div className="w-[84px] h-[84px] flex-none">
             <div
               className="w-[84px] h-[84px] rounded-full flex items-center justify-center"
-              style={{ background: `conic-gradient(#fff ${Math.round((completedCount / totalBlocks) * 360)}deg, rgba(255,255,255,0.25) 0)` }}
+              style={{ background: `conic-gradient(#fff ${Math.round((completedCount / totalBlocks) * 360)}deg, rgba(255,255,255,.25) 0)` }}
             >
               <div
                 className="w-[68px] h-[68px] rounded-full flex flex-col items-center justify-center"
-                style={{ background: 'var(--brand)' }}
+                style={{ background: '#7C3AED', color: '#fff' }}
               >
-                <span className="text-on-brand font-black leading-none" style={{ fontSize: 24 }}>{completedCount}</span>
-                <span className="text-on-brand/70 font-bold" style={{ fontSize: 12 }}>/{totalBlocks}</span>
+                <span style={{ fontSize: 24, fontWeight: 900, lineHeight: 1 }}>{completedCount}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.8 }}>/{totalBlocks}</span>
               </div>
             </div>
           </div>
