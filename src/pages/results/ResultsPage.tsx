@@ -57,6 +57,44 @@ const MOTIVATION_ICON_PAIRS: [string, string][] = [
   ['результаты', '🔧'], ['исследовать', '🔍'], ['творческие', '🎨'], ['людей', '🤝'],
 ];
 
+// Направления генерируются ИИ, фиксированного enum нет — подбираем эмодзи
+// по ключевым словам в названии. Порядок важен: более специфичное выше общего
+// (напр. «искусственный интеллект» до «искусство»).
+const DIRECTION_ICON_PAIRS: [string, string][] = [
+  ['искусственн', '🤖'], ['машинн', '🤖'], ['нейросет', '🤖'], ['робот', '🤖'],
+  ['data', '📊'], ['данн', '📊'], ['аналит', '📊'], ['статист', '📊'],
+  ['кибербез', '🔒'], ['безопасн', '🔒'],
+  ['айти', '💻'], ['разработ', '💻'], ['программир', '💻'], ['цифров', '💻'], ['веб', '💻'], ['софт', '💻'],
+  ['медиц', '🩺'], ['здоров', '🩺'], ['врач', '🩺'], ['фарм', '💊'],
+  ['биолог', '🧬'], ['генет', '🧬'],
+  ['хими', '🧪'], ['физик', '⚛️'], ['матем', '📐'],
+  ['наук', '🔬'], ['исследов', '🔬'],
+  ['инженер', '⚙️'], ['механ', '⚙️'], ['производств', '🏭'], ['электрон', '🔌'], ['энерг', '⚡'],
+  ['космос', '🚀'], ['авиа', '✈️'],
+  ['архитект', '🏛️'], ['строит', '🏗️'],
+  ['дизайн', '🎨'], ['художн', '🖼️'], ['искусств', '🎭'], ['творч', '🎭'],
+  ['музык', '🎵'], ['театр', '🎭'], ['кино', '🎬'], ['видео', '🎬'], ['анимац', '🎞️'], ['фото', '📷'],
+  ['мод', '👗'], ['стиль', '👗'],
+  ['бизнес', '📈'], ['предприним', '📈'], ['менеджм', '📈'], ['управлен', '📈'],
+  ['финанс', '💰'], ['эконом', '💰'], ['банк', '🏦'], ['бухгалт', '🧾'],
+  ['маркетинг', '📣'], ['реклам', '📣'], ['продаж', '🛒'],
+  ['прав', '⚖️'], ['юрис', '⚖️'], ['закон', '⚖️'],
+  ['педагог', '📚'], ['образован', '📚'], ['преподав', '📚'], ['учит', '📚'],
+  ['психолог', '🧠'],
+  ['социальн', '🤝'], ['обществ', '🤝'],
+  ['политик', '🏛️'], ['госуд', '🏛️'],
+  ['журналист', '📰'], ['медиа', '📱'], ['контент', '📱'],
+  ['язык', '🗣️'], ['лингвист', '🗣️'], ['перевод', '🗣️'],
+  ['истор', '📜'],
+  ['эколог', '🌿'], ['природ', '🌿'], ['окружающ', '🌿'],
+  ['сельск', '🌾'], ['агро', '🌾'], ['ферм', '🌾'],
+  ['спорт', '🏅'], ['фитнес', '🏅'], ['тренер', '🏅'],
+  ['кулинар', '🍳'], ['повар', '🍳'], ['пищев', '🍳'], ['ресторан', '🍽️'],
+  ['туризм', '✈️'], ['путешеств', '✈️'], ['гостеприим', '🏨'], ['гостинич', '🏨'],
+  ['транспорт', '🚚'], ['логист', '🚚'], ['перевозк', '🚚'],
+  ['гейм', '🎮'], ['игр', '🎮'],
+];
+
 // ── Step reveal constants ────────────────────────────────────────────────────
 
 const BASE_NEXT_LABELS: string[] = [
@@ -70,14 +108,16 @@ const BASE_NEXT_LABELS: string[] = [
 
 const WELLBEING_NEXT_LABEL = 'Что учесть →';
 
+const STEP_STORAGE_PREFIX = 'profy_results_step_';
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function getIconForText(text: string, pairs: [string, string][]): string {
+function getIconForText(text: string, pairs: [string, string][], fallback = '⭐'): string {
   const lower = text.toLowerCase();
   for (const [kw, icon] of pairs) {
     if (lower.includes(kw)) return icon;
   }
-  return '⭐';
+  return fallback;
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -128,7 +168,9 @@ const DirectionCard = memo(function DirectionCard({
       className="bg-surface border border-default rounded-[18px] p-[18px_20px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD] flex flex-col gap-3"
     >
       <div className="flex items-center justify-between">
-        <span className="text-[24px]">🚀</span>
+        <span className="text-[24px]" aria-hidden="true">
+          {getIconForText(direction.name, DIRECTION_ICON_PAIRS, '🧭')}
+        </span>
         <span
           className="font-extrabold rounded-pill px-[10px] py-[3px]"
           style={{ fontSize: 13, background: 'var(--success-bg)', color: 'var(--success-text)' }}
@@ -185,6 +227,8 @@ export default function ResultsPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const shouldScrollRef = useRef(false);
+  const restoredRef = useRef(false);
 
   const {
     report,
@@ -197,9 +241,38 @@ export default function ResultsPage() {
     refetch,
   } = useResults();
 
+  const wellbeingZones = report?.wellbeing_zones ?? [];
+  const hasWellbeingZones = wellbeingZones.length > 0;
+  const nextLabels = hasWellbeingZones
+    ? [...BASE_NEXT_LABELS, WELLBEING_NEXT_LABEL]
+    : BASE_NEXT_LABELS;
+  const totalBlocks = nextLabels.length + 1;
+
+  const stepStorageKey = report ? `${STEP_STORAGE_PREFIX}${report.id}` : null;
+
+  // Restore reveal progress once the report is loaded, so a reload keeps
+  // already-opened blocks visible instead of collapsing them back to step 0.
   useEffect(() => {
-    if (currentStep > 0) {
+    if (!stepStorageKey || restoredRef.current) return;
+    restoredRef.current = true;
+    const saved = Number(localStorage.getItem(stepStorageKey));
+    if (Number.isFinite(saved) && saved > 0) {
+      setCurrentStep(Math.min(saved, totalBlocks - 1));
+    }
+  }, [stepStorageKey, totalBlocks]);
+
+  // Persist reveal progress per report.
+  useEffect(() => {
+    if (!stepStorageKey) return;
+    localStorage.setItem(stepStorageKey, String(currentStep));
+  }, [stepStorageKey, currentStep]);
+
+  // Scroll to a newly revealed block — but only when the user clicked "Next",
+  // not when progress was restored from storage on reload.
+  useEffect(() => {
+    if (currentStep > 0 && shouldScrollRef.current) {
       blockRefs.current[currentStep]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      shouldScrollRef.current = false;
     }
   }, [currentStep]);
 
@@ -237,14 +310,8 @@ export default function ResultsPage() {
     navigate(`/results/directions/${encodeURIComponent(direction.slug)}/universities`);
   }
 
-  const wellbeingZones = report.wellbeing_zones ?? [];
-  const hasWellbeingZones = wellbeingZones.length > 0;
-  const nextLabels = hasWellbeingZones
-    ? [...BASE_NEXT_LABELS, WELLBEING_NEXT_LABEL]
-    : BASE_NEXT_LABELS;
-  const totalBlocks = nextLabels.length + 1;
-
   function handleNext() {
+    shouldScrollRef.current = true;
     setCurrentStep(prev => Math.min(prev + 1, totalBlocks - 1));
   }
 
@@ -323,16 +390,16 @@ export default function ResultsPage() {
         <AnimatedBlock blockRef={el => { blockRefs.current[2] = el; }}>
           <section aria-label="Сильные стороны">
             <SectionHeader emoji="💪" title="Сильные стороны" />
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
               {(report.strengths ?? []).map((s, i) => (
                 <div
                   key={i}
-                  className="w-[130px] flex-shrink-0 bg-surface border border-default rounded-[var(--radius)] p-4 flex flex-col items-center gap-2 shadow-card"
+                  className="flex items-center gap-2.5 bg-surface border border-default rounded-pill pl-2 pr-4 py-1.5 shadow-card"
                 >
-                  <span className="text-2xl select-none" aria-hidden="true">
+                  <span className="w-8 h-8 rounded-full bg-brand-subtle flex items-center justify-center text-lg select-none flex-shrink-0" aria-hidden="true">
                     {getIconForText(s, STRENGTH_ICON_PAIRS)}
                   </span>
-                  <p className="text-caption text-primary text-center">{s}</p>
+                  <p className="text-caption font-semibold text-primary">{s}</p>
                 </div>
               ))}
             </div>
@@ -343,8 +410,8 @@ export default function ResultsPage() {
       {/* ── Block 3: Карта интересов ─────────────────────────────── */}
       {currentStep >= 3 && (
         <AnimatedBlock blockRef={el => { blockRefs.current[3] = el; }}>
-          <section aria-label="Карта интересов">
-            <SectionHeader emoji="📊" title="Твои сильные стороны" />
+          <section aria-label="Твои интересы">
+            <SectionHeader emoji="📊" title="Твои интересы" />
             <Card className="flex flex-col gap-4">
               {topInterests.length > 0 ? (
                 topInterests.map(([cat, score]) => {
