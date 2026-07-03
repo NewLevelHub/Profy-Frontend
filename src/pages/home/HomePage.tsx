@@ -14,7 +14,7 @@ export default function HomePage() {
     hasAssessment,
     isCompleted,
     inProgress,
-    currentBlock,
+    roadmapCurrentBlock,
     completedCount,
     nextBlockName,
     handleContinue,
@@ -156,7 +156,7 @@ export default function HomePage() {
             <div className="bg-surface border border-default rounded-[22px] shadow-card p-[30px_28px]">
               <BlockRoadmap
                 blocks={activeBlocks}
-                currentBlock={currentBlock}
+                currentBlock={roadmapCurrentBlock}
                 onContinue={handleContinue}
                 onRetake={handleRetakeBlock}
               />
@@ -164,7 +164,7 @@ export default function HomePage() {
           ) : (
             <BlockRoadmapQuest
               blocks={activeBlocks}
-              currentBlock={currentBlock}
+              currentBlock={roadmapCurrentBlock}
               onContinue={handleContinue}
               onRetake={handleRetakeBlock}
             />
