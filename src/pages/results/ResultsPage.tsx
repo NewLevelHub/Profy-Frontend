@@ -59,9 +59,7 @@ const MOTIVATION_ICON_PAIRS: [string, string][] = [
 
 // ── Step reveal constants ────────────────────────────────────────────────────
 
-const TOTAL_BLOCKS = 7;
-
-const NEXT_LABELS: string[] = [
+const BASE_NEXT_LABELS: string[] = [
   'Посмотреть резюме →',
   'Сильные стороны →',
   'Интересы →',
@@ -69,6 +67,8 @@ const NEXT_LABELS: string[] = [
   'Что мотивирует →',
   'Подходящие профессии →',
 ];
+
+const WELLBEING_NEXT_LABEL = 'Что учесть →';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -237,11 +237,18 @@ export default function ResultsPage() {
     navigate(`/results/directions/${encodeURIComponent(direction.slug)}/universities`);
   }
 
+  const wellbeingZones = report.wellbeing_zones ?? [];
+  const hasWellbeingZones = wellbeingZones.length > 0;
+  const nextLabels = hasWellbeingZones
+    ? [...BASE_NEXT_LABELS, WELLBEING_NEXT_LABEL]
+    : BASE_NEXT_LABELS;
+  const totalBlocks = nextLabels.length + 1;
+
   function handleNext() {
-    setCurrentStep(prev => Math.min(prev + 1, TOTAL_BLOCKS - 1));
+    setCurrentStep(prev => Math.min(prev + 1, totalBlocks - 1));
   }
 
-  const isAllVisible = currentStep >= TOTAL_BLOCKS - 1;
+  const isAllVisible = currentStep >= totalBlocks - 1;
 
   const thinkingDesc = topThinking.length > 0
     ? `У тебя хорошо развиты: ${topThinking.slice(0, 2).map(([cat]) => (THINKING_LABELS[cat] ?? cat).toLowerCase()).join(' и ')}.`
@@ -439,6 +446,25 @@ export default function ResultsPage() {
         </AnimatedBlock>
       )}
 
+      {/* ── Block 7: Зоны внимания (мягкая поддерживающая секция) ── */}
+      {currentStep >= 7 && hasWellbeingZones && (
+        <AnimatedBlock blockRef={el => { blockRefs.current[7] = el; }}>
+          <section aria-label="Зоны внимания">
+            <SectionHeader emoji="🌿" title="Зоны внимания" />
+            <p className="text-body text-secondary mb-3">
+              Несколько бережных наблюдений о твоём самочувствии — без оценок, просто на заметку
+            </p>
+            <div className="flex flex-col gap-2">
+              {wellbeingZones.map((zone, i) => (
+                <Card key={i} className="!p-4">
+                  <p className="text-body font-semibold text-primary">{zone}</p>
+                </Card>
+              ))}
+            </div>
+          </section>
+        </AnimatedBlock>
+      )}
+
       {/* ── Next button ──────────────────────────────────────────── */}
       {!isAllVisible && (
         <div className="flex justify-center pb-4">
@@ -447,7 +473,7 @@ export default function ResultsPage() {
             onClick={handleNext}
             className="shadow-pop px-8"
           >
-            {NEXT_LABELS[currentStep]}
+            {nextLabels[currentStep]}
           </Button>
         </div>
       )}

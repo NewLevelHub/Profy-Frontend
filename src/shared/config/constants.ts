@@ -21,6 +21,7 @@ export const ASSESSMENT_BLOCKS = [
   'directions',
   'goal_clarification',
   'university',
+  'wellbeing',
 ] as const;
 
 export const BLOCK_NAMES: Record<string, string> = {
@@ -32,6 +33,7 @@ export const BLOCK_NAMES: Record<string, string> = {
   directions: 'Направления',
   goal_clarification: 'Твоя цель',
   university: 'Университет',
+  wellbeing: 'Самочувствие',
 };
 
 export const BLOCK_DESCRIPTIONS: Record<string, string> = {
@@ -43,6 +45,7 @@ export const BLOCK_DESCRIPTIONS: Record<string, string> = {
   directions: 'Определим подходящие профессиональные пути',
   goal_clarification: 'Уточним твою главную цель',
   university: 'Подберём университеты под твой профиль',
+  wellbeing: 'Немного о том, как ты себя чувствуешь в последнее время',
 };
 
 export const BLOCK_EMOJIS: Record<string, string> = {
@@ -54,6 +57,7 @@ export const BLOCK_EMOJIS: Record<string, string> = {
   directions: '🧭',
   goal_clarification: '🎯',
   university: '🎓',
+  wellbeing: '🌿',
 };
 
 export const AGE_GROUPS = {

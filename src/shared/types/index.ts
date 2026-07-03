@@ -67,7 +67,8 @@ export type AssessmentBlock =
   | 'academic'
   | 'directions'
   | 'goal_clarification'
-  | 'university';
+  | 'university'
+  | 'wellbeing';
 
 export interface AssessmentResponse {
   id: string;
@@ -127,6 +128,7 @@ export interface AnalysisResultResponse {
   thinking_style: Record<string, number>;
   motivation: string[];
   directions: DirectionResult[];
+  wellbeing_zones: string[];
   created_at: string;
 }
 

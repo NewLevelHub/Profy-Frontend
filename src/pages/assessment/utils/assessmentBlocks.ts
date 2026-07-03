@@ -1,6 +1,11 @@
 import type { AgeGroup, AssessmentBlock, AssessmentGoal } from '@/shared/types';
 
-/** Block sequence per methodology — junior skips academic and directions. */
+/**
+ * Block sequence per methodology — junior skips academic and directions.
+ * `wellbeing` is a soft, non-scoring block shown to every age group at the
+ * end of the flow; it's excluded from the backend's required-block count,
+ * so it never blocks assessment completion.
+ */
 export function getAssessmentBlocks(
   ageGroup: AgeGroup,
   goal: AssessmentGoal | null,
@@ -21,6 +26,8 @@ export function getAssessmentBlocks(
   if (ageGroup === 'senior' && goal === 'university') {
     blocks.push('university');
   }
+
+  blocks.push('wellbeing');
 
   return blocks;
 }
