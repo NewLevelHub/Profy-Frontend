@@ -34,8 +34,8 @@ let activeAudio: HTMLAudioElement | null = null;
 // Custom block-finish sounds from public/sounds.
 // Files are played in a loop by block number: 1->1st, 2->2nd, 3->3rd, 4->1st...
 const BLOCK_FINISH_AUDIO_PATHS = [
-  '/sounds/block-finisged1.mp3',
-  '/sounds/block-finisged2.mp3',
+  '/sounds/block-finished1.mp3',
+  '/sounds/block-finished2.mp3',
   '/sounds/block-finisged3.mp3',
 ] as const;
 const FINAL_AUDIO_PATH = '/sounds/final.mp3';
