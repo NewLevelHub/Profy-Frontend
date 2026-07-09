@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { BLOCK_NAMES } from '@/shared/config/constants';
+import { playClick } from '@/shared/lib/sounds';
 import type { AssessmentBlock } from '@/shared/types';
 
 interface BlockRoadmapQuestProps {
@@ -55,7 +56,17 @@ export const BlockRoadmapQuest = memo(function BlockRoadmapQuest({
           const metaColor = state === 'done' ? '#16A34A' : state === 'current' ? '#7C3AED' : '#A78BFA';
 
           const clickable = state !== 'locked';
-          const handlePress = state === 'current' ? onContinue : state === 'done' ? () => onRetake(i) : undefined;
+          const handlePress = state === 'current'
+            ? () => {
+                playClick();
+                onContinue();
+              }
+            : state === 'done'
+              ? () => {
+                  playClick();
+                  onRetake(i);
+                }
+              : undefined;
 
           return (
             <div

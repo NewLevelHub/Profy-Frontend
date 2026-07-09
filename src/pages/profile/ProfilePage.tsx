@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router';
-import { LogOut, Pencil } from 'lucide-react';
+import { LogOut, Pencil, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
+import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { useProfile } from './hooks/useProfile';
 
 const AGE_GROUP_LABELS: Record<string, string> = {
@@ -60,6 +61,7 @@ export default function ProfilePage() {
     handleRestartConfirm,
     handleRestartCancel,
   } = useProfile();
+  const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
 
   return (
     <div className="max-w-[600px] mx-auto px-4 py-6 space-y-5">
@@ -162,6 +164,42 @@ export default function ProfilePage() {
           ↻ Начать тестирование заново
         </button>
       )}
+
+      {/* ── Sound settings ─────────────────────────────────────────── */}
+      <Card>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            {soundEnabled ? <Volume2 size={20} className="text-brand flex-shrink-0" /> : <VolumeX size={20} className="text-muted flex-shrink-0" />}
+            <div>
+              <p className="font-extrabold text-primary" style={{ fontSize: 15 }}>Звуковые эффекты</p>
+              <p className="text-secondary font-semibold" style={{ fontSize: 13 }}>
+                {prefersReducedMotion && !soundEnabled
+                  ? 'Отключены из‑за настройки «уменьшить движение»'
+                  : 'Короткие звуки при нажатии кнопок'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={soundEnabled}
+            aria-label="Звуковые эффекты"
+            onClick={toggleSound}
+            className={cn(
+              'relative w-12 h-7 rounded-pill transition-colors flex-shrink-0',
+              soundEnabled ? 'bg-brand' : 'bg-[#D1D5DB]',
+            )}
+          >
+            <span
+              className={cn(
+                'absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform',
+                soundEnabled && 'translate-x-5',
+              )}
+            />
+          </button>
+        </div>
+
+      </Card>
 
       {/* ── Logout ────────────────────────────────────────────────── */}
       <button

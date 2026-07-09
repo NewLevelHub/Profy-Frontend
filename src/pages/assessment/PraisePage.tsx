@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Button } from '@/shared/ui/Button';
+import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { ConfettiBlast } from './components/ConfettiBlast';
 
 interface PraiseState {
@@ -56,6 +57,13 @@ export default function PraisePage() {
     completedCount < totalBlocks;
 
   const isLast = completedCount !== undefined && totalBlocks !== undefined && completedCount >= totalBlocks;
+  const celebratedRef = useRef(false);
+
+  useEffect(() => {
+    if (celebratedRef.current) return;
+    celebratedRef.current = true;
+    playBlockFinishAudio(completedCount, totalBlocks);
+  }, [completedCount, totalBlocks]);
 
   // Будущая интеграция: константа XP за пройденный блок
   // const xpByBlock = 120;

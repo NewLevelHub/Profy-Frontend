@@ -4,6 +4,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
+import { playClick } from '@/shared/lib/sounds';
 
 const NAV_ITEMS = [
   { label: 'Главная', path: '/home' },
@@ -50,6 +51,7 @@ export function Header() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={() => playClick()}
               className={({ isActive }) =>
                 cn(
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
@@ -101,7 +103,10 @@ export function Header() {
             <NavLink
               key={item.path}
               to={item.path}
-              onClick={() => setMobileOpen(false)}
+              onClick={() => {
+                playClick();
+                setMobileOpen(false);
+              }}
               className={({ isActive }) =>
                 cn(
                   'block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',

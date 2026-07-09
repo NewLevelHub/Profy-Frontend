@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { BLOCK_NAMES } from '@/shared/config/constants';
+import { playClick } from '@/shared/lib/sounds';
 import type { AssessmentBlock } from '@/shared/types';
 
 interface BlockRoadmapProps {
@@ -61,9 +62,17 @@ export const BlockRoadmap = memo(function BlockRoadmap({
           const clickable = state !== 'locked';
 
           const handlePress =
-            state === 'current' ? onContinue :
-            state === 'completed' ? () => onRetake(i) :
-            undefined;
+            state === 'current'
+              ? () => {
+                  playClick();
+                  onContinue();
+                }
+              : state === 'completed'
+                ? () => {
+                    playClick();
+                    onRetake(i);
+                  }
+                : undefined;
 
           return (
             <div

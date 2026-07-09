@@ -178,7 +178,13 @@ export function useAssessment() {
       const nextBlockKey = activeBlocks[nextIndex];
       const nextBlockName = nextBlockKey ? BLOCK_NAMES[nextBlockKey] : undefined;
       const nextBlockEmoji = nextBlockKey ? BLOCK_EMOJIS[nextBlockKey] : undefined;
-      advanceBlock();
+      // IMPORTANT:
+      // Do not advance the local block index on the last block before navigating to PraisePage.
+      // Otherwise the "currentBlock >= totalBlocks" guard effect can race and immediately redirect
+      // to loading/results, skipping the final congratulations screen.
+      if (!isLast) {
+        advanceBlock();
+      }
       navigate('/assessment/praise', {
         state: {
           title: isLast ? 'Ты справился!' : 'Молодец!',
