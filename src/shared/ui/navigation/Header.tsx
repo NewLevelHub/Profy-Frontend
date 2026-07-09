@@ -1,6 +1,6 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
@@ -9,12 +9,27 @@ const NAV_ITEMS = [
   { label: 'Главная', path: '/home' },
   { label: 'Результаты', path: '/results' },
   { label: 'Профиль', path: '/profile' },
-];
+] as const;
+
+const ADMIN_NAV_ITEM = { label: 'Админка', path: '/admin/users', matchPrefix: '/admin' } as const;
+
+type HeaderNavItem = (typeof NAV_ITEMS)[number] | typeof ADMIN_NAV_ITEM;
+
+function isNavActive(
+  matchPrefix: string | undefined,
+  pathname: string,
+  isActive: boolean,
+) {
+  if (matchPrefix) return pathname.startsWith(matchPrefix);
+  return isActive;
+}
 
 export function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navItems: HeaderNavItem[] = user?.is_admin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : [...NAV_ITEMS];
 
   function handleLogout() {
     logout();
@@ -31,14 +46,14 @@ export function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
                 cn(
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                  isActive
+                  isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
                     ? 'bg-brand-subtle text-brand'
                     : 'text-secondary hover:bg-hover hover:text-primary',
                 )
@@ -82,7 +97,7 @@ export function Header() {
       {/* Mobile dropdown */}
       {mobileOpen && (
         <div className="md:hidden border-t border-default bg-surface px-4 py-3 space-y-1">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
@@ -90,7 +105,7 @@ export function Header() {
               className={({ isActive }) =>
                 cn(
                   'block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                  isActive
+                  isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
                     ? 'bg-brand-subtle text-brand'
                     : 'text-secondary hover:bg-hover hover:text-primary',
                 )

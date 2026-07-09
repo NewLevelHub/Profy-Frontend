@@ -46,8 +46,8 @@ export default function LoginPage() {
     try {
       const { access_token, user } = await authApi.login(email.trim(), password);
       storeLogin(access_token, user);
-      const from = (location.state as { from?: string })?.from ?? '/welcome';
-      navigate(from, { replace: true });
+      const from = (location.state as { from?: string })?.from;
+      navigate(from ?? '/welcome', { replace: true });
     } catch (err) {
       setPassword('');
       if (axios.isAxiosError(err)) {

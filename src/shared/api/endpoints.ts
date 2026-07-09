@@ -35,4 +35,9 @@ export const API = {
     programDetail: (id: string) => `/universities/programs/${id}`,
     gapAnalysis: (programId: string) => `/universities/programs/${programId}/gap-analysis`,
   },
+  admin: {
+    users: '/admin/users',
+    userDetail: (id: string) => `/admin/users/${id}`,
+    assessmentDetail: (id: string) => `/admin/assessments/${id}`,
+  },
 } as const;

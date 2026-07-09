@@ -4,6 +4,9 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  is_active?: boolean;
+  is_verified?: boolean;
+  is_admin?: boolean;
 }
 
 export interface TokenResponse {
@@ -226,4 +229,75 @@ export interface GapAnalysisResponse {
   in_progress: GapItem[];
   unknown: GapItem[];
   readiness_score: number;
+}
+
+// ─── Admin ─────────────────────────────────────────────────────────────────────
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  is_verified: boolean;
+  is_active: boolean;
+  is_admin: boolean;
+  created_at: string;
+  has_profile: boolean;
+  profile_name: string | null;
+  assessments_count: number;
+  latest_assessment_status: AssessmentStatus | null;
+}
+
+export interface AdminUserListResponse {
+  items: AdminUserListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminAssessmentSummary {
+  id: string;
+  goal: AssessmentGoal;
+  status: AssessmentStatus;
+  current_block: number;
+  created_at: string;
+  completed_at: string | null;
+  has_result: boolean;
+  has_roadmap: boolean;
+}
+
+export interface AdminUserDetail {
+  id: string;
+  email: string;
+  is_verified: boolean;
+  is_active: boolean;
+  is_admin: boolean;
+  created_at: string;
+  profile: ProfileResponse | null;
+  artifacts: ArtifactItem[];
+  assessments: AdminAssessmentSummary[];
+}
+
+export interface AdminResponseItem {
+  question_id: string;
+  block: string;
+  question_text: string;
+  question_order: number;
+  selected_option_index: number;
+  selected_answer_text: string;
+  scores: Record<string, number | string>;
+  created_at: string;
+}
+
+export interface AdminAssessmentDetail {
+  id: string;
+  user_id: string;
+  user_email: string;
+  profile_name: string | null;
+  goal: AssessmentGoal;
+  status: AssessmentStatus;
+  current_block: number;
+  created_at: string;
+  completed_at: string | null;
+  responses: AdminResponseItem[];
+  analysis_result: AnalysisResultResponse | null;
+  roadmap: RoadmapResponse | null;
 }

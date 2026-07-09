@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
+import { RequireAdmin } from '@/shared/guards/RequireAdmin';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
@@ -35,6 +36,10 @@ import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
 import GapAnalysisPage from '@/pages/results/GapAnalysisPage';
 import RoadmapPage from '@/pages/roadmap/RoadmapPage';
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+import AdminUsersPage from '@/pages/admin/AdminUsersPage';
+import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -97,6 +102,16 @@ export const router = createBrowserRouter([
               {
                 path: '/results/directions/:slug/universities/:programId/gap',
                 element: <GapAnalysisPage />,
+              },
+
+              // Admin (inside main layout — sidebar stays visible)
+              {
+                element: <RequireAdmin />,
+                children: [
+                  { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+                  { path: '/admin/users', element: <AdminUsersPage /> },
+                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                ],
               },
 
               { path: '*', element: <NotFoundPage /> },
