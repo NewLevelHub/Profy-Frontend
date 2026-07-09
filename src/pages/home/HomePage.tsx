@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { playClick } from '@/shared/lib/sounds';
 import { useHome } from './hooks/useHome';
 import { BlockRoadmap } from './components/BlockRoadmap';
 import { BlockRoadmapQuest } from './components/BlockRoadmapQuest';
@@ -93,7 +94,10 @@ export default function HomePage() {
 
           <button
             type="button"
-            onClick={handleContinue}
+            onClick={() => {
+              playClick();
+              handleContinue();
+            }}
             className="h-[54px] px-[34px] rounded-pill font-extrabold transition-transform hover:scale-[1.03] active:scale-[0.98] whitespace-nowrap flex-none"
             style={{ background: '#fff', color: '#5B21B6', fontSize: 16, boxShadow: '0 6px 16px rgba(0,0,0,.12)' }}
           >
@@ -106,7 +110,10 @@ export default function HomePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
         <button
           type="button"
-          onClick={() => navigate('/results')}
+          onClick={() => {
+            playClick();
+            navigate('/results');
+          }}
           className="bg-surface border border-default rounded-[18px] p-[18px_20px] flex items-center gap-[14px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD]"
         >
           <div className="w-[46px] h-[46px] rounded-[13px] bg-brand-subtle flex items-center justify-center text-[22px] flex-none">📋</div>
@@ -118,7 +125,10 @@ export default function HomePage() {
 
         <button
           type="button"
-          onClick={() => navigate('/profile')}
+          onClick={() => {
+            playClick();
+            navigate('/profile');
+          }}
           className="bg-surface border border-default rounded-[18px] p-[18px_20px] flex items-center gap-[14px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD]"
         >
           <div className="w-[46px] h-[46px] rounded-[13px] bg-brand-subtle flex items-center justify-center text-[22px] flex-none">👤</div>
@@ -139,7 +149,10 @@ export default function HomePage() {
                 <button
                   key={v}
                   type="button"
-                  onClick={() => setRoadmapVariant(v)}
+                  onClick={() => {
+                    playClick();
+                    setRoadmapVariant(v);
+                  }}
                   className="font-extrabold transition-all rounded-pill px-[18px] py-[7px]"
                   style={roadmapVariant === v
                     ? { background: '#fff', color: '#5B21B6', fontSize: 13, boxShadow: '0 2px 6px rgba(30,27,75,.08)' }

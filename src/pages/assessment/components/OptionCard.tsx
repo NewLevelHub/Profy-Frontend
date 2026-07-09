@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/shared/lib/cn';
+import { playClick } from '@/shared/lib/sounds';
 import type { AgeGroup } from '@/shared/types';
 
 const LETTERS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З'];
@@ -23,7 +24,10 @@ export const OptionCard = React.memo(function OptionCard({
   return (
     <button
       type="button"
-      onClick={onPress}
+      onClick={() => {
+        playClick('soft');
+        onPress();
+      }}
       className={cn(
         'w-full flex items-center gap-[14px] text-left border-2 px-5 py-[18px] transition-all duration-150',
         'focus-visible:outline-none focus-visible:ring-brand',

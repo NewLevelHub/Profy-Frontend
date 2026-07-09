@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
+import { playClick } from '@/shared/lib/sounds';
 import { useAuthStore } from '@/shared/store/auth';
 
 const NAV_ITEMS = [
@@ -40,6 +41,7 @@ export function Sidebar() {
           <NavLink
             key={path}
             to={path}
+            onClick={() => playClick()}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 px-[14px] py-3 rounded-[14px] font-bold transition-colors',
