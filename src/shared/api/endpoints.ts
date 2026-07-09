@@ -35,6 +35,12 @@ export const API = {
     programDetail: (id: string) => `/universities/programs/${id}`,
     gapAnalysis: (programId: string) => `/universities/programs/${programId}/gap-analysis`,
   },
+  inquiry: {
+    questions: (assessmentId: string, slug: string) =>
+      `/inquiry/${assessmentId}/directions/${slug}/questions`,
+    verdict: (assessmentId: string, slug: string) =>
+      `/inquiry/${assessmentId}/directions/${slug}/verdict`,
+  },
   admin: {
     users: '/admin/users',
     userDetail: (id: string) => `/admin/users/${id}`,

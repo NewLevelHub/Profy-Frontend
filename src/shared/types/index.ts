@@ -135,6 +135,27 @@ export interface AnalysisResultResponse {
   created_at: string;
 }
 
+// ─── Direction-fit inquiry ──────────────────────────────────────────────────────
+
+export interface DirectionQuestion {
+  text: string;
+  kind: 'interest' | 'readiness';
+}
+
+export interface DirectionQuestionsResponse {
+  direction_slug: string;
+  direction_name: string;
+  scale: string[];
+  questions: DirectionQuestion[];
+}
+
+export interface DirectionVerdict {
+  direction_slug: string;
+  readiness: string;
+  fit_summary: string;
+  note: string;
+}
+
 // ─── Roadmap ───────────────────────────────────────────────────────────────────
 
 export type RoadmapHorizonKey =
