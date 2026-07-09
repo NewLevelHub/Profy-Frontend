@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { resetUserSession } from '@/shared/lib/session';
 import type { User } from '@/shared/types';
 
 interface AuthState {
@@ -18,8 +19,14 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       user: null,
       _hasHydrated: false,
-      login: (token, user) => set({ token, user }),
-      logout: () => set({ token: null, user: null }),
+      login: (token, user) => {
+        resetUserSession();
+        set({ token, user });
+      },
+      logout: () => {
+        resetUserSession();
+        set({ token: null, user: null });
+      },
       setUser: (user) => set({ user }),
       setHasHydrated: (val) => set({ _hasHydrated: val }),
     }),

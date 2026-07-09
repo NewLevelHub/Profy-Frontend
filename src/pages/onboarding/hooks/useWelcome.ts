@@ -10,17 +10,18 @@ export function useWelcome() {
   const navigate = useNavigate();
   const setProfile = useProfileStore(s => s.setProfile);
   const user = useAuthStore(s => s.user);
+  const userId = user?.id;
   const firstName = user?.name?.trim().split(' ')[0] ?? null;
 
   const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile'],
+    queryKey: ['profile', userId],
     queryFn: () =>
       profileApi.get().catch((err: AxiosError) => {
         if (err.response?.status === 404) return null;
         throw err;
       }),
+    enabled: Boolean(userId),
     retry: false,
-    staleTime: Infinity,
   });
 
   useEffect(() => {

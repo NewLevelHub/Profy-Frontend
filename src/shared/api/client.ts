@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { env } from '@/shared/config/env';
+import { resetUserSession } from '@/shared/lib/session';
 
 export const apiClient = axios.create({
   baseURL: env.API_URL,
@@ -32,6 +33,7 @@ apiClient.interceptors.response.use(
     // Only force-logout on 401 if the user had an active session.
     // A 401 on the login endpoint itself must reach the form's catch block.
     if (error.response?.status === 401 && getToken()) {
+      resetUserSession();
       localStorage.removeItem('profy-auth');
       window.location.replace('/login');
     }

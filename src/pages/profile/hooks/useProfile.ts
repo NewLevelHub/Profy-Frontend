@@ -12,7 +12,6 @@ export function useProfile() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const profile = useProfileStore((s) => s.profile);
-  const clearProfile = useProfileStore((s) => s.clearProfile);
   const resetAssessment = useAssessmentStore((s) => s.resetAssessment);
   const clearReport = useResultStore((s) => s.clearReport);
 
@@ -26,9 +25,6 @@ export function useProfile() {
     (profile?.subjects_hard?.length ?? 0) > 0;
 
   function handleLogout() {
-    clearProfile();
-    resetAssessment();
-    clearReport();
     logout();
     navigate('/login', { replace: true });
   }
