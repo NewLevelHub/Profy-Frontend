@@ -1,6 +1,6 @@
-import { memo, useState, useRef, useEffect } from 'react';
+import { memo } from 'react';
 import { useNavigate } from 'react-router';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Sparkles } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -41,6 +41,10 @@ const THINKING_EMOJIS: Record<string, string> = {
   systematic: '⚙️',
   creative_think: '💡',
 };
+
+// Пастельная палитра для иконок сильных сторон — чередуется по кругу,
+// как в дизайн-референсе (rose/amber/blue/green).
+const STRENGTH_ICON_BG = ['#FFE4E6', '#FEF3C7', '#DBEAFE', '#DCFCE7'];
 
 const STRENGTH_ICON_PAIRS: [string, string][] = [
   ['технологии', '💻'], ['докапываться', '🔍'], ['нестандартные', '🎨'],
@@ -95,21 +99,6 @@ const DIRECTION_ICON_PAIRS: [string, string][] = [
   ['гейм', '🎮'], ['игр', '🎮'],
 ];
 
-// ── Step reveal constants ────────────────────────────────────────────────────
-
-const BASE_NEXT_LABELS: string[] = [
-  'Посмотреть резюме →',
-  'Сильные стороны →',
-  'Интересы →',
-  'Стиль мышления →',
-  'Что мотивирует →',
-  'Подходящие профессии →',
-];
-
-const WELLBEING_NEXT_LABEL = 'Что учесть →';
-
-const STEP_STORAGE_PREFIX = 'profy_results_step_';
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getIconForText(text: string, pairs: [string, string][], fallback = '⭐'): string {
@@ -122,18 +111,9 @@ function getIconForText(text: string, pairs: [string, string][], fallback = '⭐
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
-function AnimatedBlock({
-  children,
-  blockRef,
-}: {
-  children: React.ReactNode;
-  blockRef?: (el: HTMLDivElement | null) => void;
-}) {
+function AnimatedBlock({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      ref={blockRef}
-      style={{ animation: 'fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both' }}
-    >
+    <div style={{ animation: 'fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both' }}>
       {children}
     </div>
   );
@@ -151,43 +131,39 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
 interface DirectionCardProps {
   direction: DirectionResult;
   showUniversityBtn: boolean;
+  showInquiryBtn: boolean;
   onDetail: (d: DirectionResult) => void;
   onUniversity: (d: DirectionResult) => void;
+  onInquiry: (d: DirectionResult) => void;
 }
 
 const DirectionCard = memo(function DirectionCard({
   direction,
   showUniversityBtn,
+  showInquiryBtn,
   onDetail,
   onUniversity,
+  onInquiry,
 }: DirectionCardProps) {
   return (
-    <button
-      type="button"
+    <Card
       onClick={() => onDetail(direction)}
-      className="bg-surface border border-default rounded-[18px] p-[18px_20px] text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#C4B5FD] flex flex-col gap-3"
+      className="!p-[22px] flex flex-col gap-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-pop"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-[24px]" aria-hidden="true">
-          {getIconForText(direction.name, DIRECTION_ICON_PAIRS, '🧭')}
-        </span>
-        <span
-          className="font-extrabold rounded-pill px-[10px] py-[3px]"
-          style={{ fontSize: 13, background: 'var(--success-bg)', color: 'var(--success-text)' }}
-        >
-          {direction.match_score}%
-        </span>
-      </div>
+      <span className="text-[26px]" aria-hidden="true">
+        {getIconForText(direction.name, DIRECTION_ICON_PAIRS, '🧭')}
+      </span>
       <div>
-        <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 17 }}>{direction.name}</p>
-        <p className="text-muted font-semibold leading-snug" style={{ fontSize: 13 }}>{direction.why_it_fits}</p>
+        <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 16 }}>{direction.name}</p>
+        <p className="text-muted font-medium leading-snug" style={{ fontSize: 13 }}>{direction.why_it_fits}</p>
       </div>
       {(direction.professions ?? []).length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {direction.professions.slice(0, 3).map((prof, i) => (
             <span
               key={i}
-              className="px-2.5 py-0.5 rounded-pill text-caption text-secondary bg-raised border border-default"
+              className="font-bold text-brand bg-brand-subtle rounded-pill"
+              style={{ fontSize: 11.5, padding: '5px 12px' }}
             >
               {prof}
             </span>
@@ -198,19 +174,38 @@ const DirectionCard = memo(function DirectionCard({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onUniversity(direction); }}
-          className="mt-1 flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
+          className="flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
         >
           <GraduationCap className="w-3.5 h-3.5" />
           Найти университеты
         </button>
       )}
-    </button>
+      {showInquiryBtn && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onInquiry(direction); }}
+          className="mt-1 flex items-center justify-center gap-1.5 rounded-pill border-2 border-default bg-surface text-brand font-extrabold transition-colors hover:bg-brand-subtle"
+          style={{ fontSize: 12.5, padding: 12 }}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Подходит ли мне это направление?
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onDetail(direction); }}
+        className="font-extrabold text-center hover:opacity-75 transition-opacity"
+        style={{ fontSize: 12.5, color: 'var(--brand)', padding: 4 }}
+      >
+        Подробнее о направлении →
+      </button>
+    </Card>
   );
 });
 
 function ResultsSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto py-8 flex flex-col gap-10">
+    <div className="max-w-[1260px] mx-auto py-8 flex flex-col gap-10">
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="flex flex-col gap-4">
           <Skeleton className="h-7 w-40" />
@@ -225,10 +220,6 @@ function ResultsSkeleton() {
 
 export default function ResultsPage() {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const shouldScrollRef = useRef(false);
-  const restoredRef = useRef(false);
 
   const {
     report,
@@ -236,45 +227,11 @@ export default function ResultsPage() {
     error,
     hasCompletedAssessment,
     showUniversityBtn,
+    ageGroup,
     topInterests,
     topThinking,
     refetch,
   } = useResults();
-
-  const wellbeingZones = report?.wellbeing_zones ?? [];
-  const hasWellbeingZones = wellbeingZones.length > 0;
-  const nextLabels = hasWellbeingZones
-    ? [...BASE_NEXT_LABELS, WELLBEING_NEXT_LABEL]
-    : BASE_NEXT_LABELS;
-  const totalBlocks = nextLabels.length + 1;
-
-  const stepStorageKey = report ? `${STEP_STORAGE_PREFIX}${report.id}` : null;
-
-  // Restore reveal progress once the report is loaded, so a reload keeps
-  // already-opened blocks visible instead of collapsing them back to step 0.
-  useEffect(() => {
-    if (!stepStorageKey || restoredRef.current) return;
-    restoredRef.current = true;
-    const saved = Number(localStorage.getItem(stepStorageKey));
-    if (Number.isFinite(saved) && saved > 0) {
-      setCurrentStep(Math.min(saved, totalBlocks - 1));
-    }
-  }, [stepStorageKey, totalBlocks]);
-
-  // Persist reveal progress per report.
-  useEffect(() => {
-    if (!stepStorageKey) return;
-    localStorage.setItem(stepStorageKey, String(currentStep));
-  }, [stepStorageKey, currentStep]);
-
-  // Scroll to a newly revealed block — but only when the user clicked "Next",
-  // not when progress was restored from storage on reload.
-  useEffect(() => {
-    if (currentStep > 0 && shouldScrollRef.current) {
-      blockRefs.current[currentStep]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      shouldScrollRef.current = false;
-    }
-  }, [currentStep]);
 
   if (!hasCompletedAssessment) {
     return (
@@ -310,12 +267,13 @@ export default function ResultsPage() {
     navigate(`/results/directions/${encodeURIComponent(direction.slug)}/universities`);
   }
 
-  function handleNext() {
-    shouldScrollRef.current = true;
-    setCurrentStep(prev => Math.min(prev + 1, totalBlocks - 1));
+  function handleInquiry(direction: DirectionResult) {
+    navigate(`/results/directions/${encodeURIComponent(direction.slug)}/inquiry`);
   }
 
-  const isAllVisible = currentStep >= totalBlocks - 1;
+  const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
+  const wellbeingZones = report.wellbeing_zones ?? [];
+  const hasWellbeingZones = wellbeingZones.length > 0;
 
   const thinkingDesc = topThinking.length > 0
     ? `У тебя хорошо развиты: ${topThinking.slice(0, 2).map(([cat]) => (THINKING_LABELS[cat] ?? cat).toLowerCase()).join(' и ')}.`
@@ -324,17 +282,17 @@ export default function ResultsPage() {
   const topDirection = report.directions?.[0];
 
   return (
-    <div className="max-w-4xl mx-auto py-8 flex flex-col gap-10">
+    <div className="max-w-[1260px] mx-auto py-8 flex flex-col gap-10">
 
-      {/* Always visible page header */}
+      {/* Page header */}
       <div>
         <h1 className="font-black text-primary mb-1.5 tracking-[-0.01em]" style={{ fontSize: 34 }}>Что мы узнали о тебе</h1>
         <p className="text-secondary font-semibold" style={{ fontSize: 16 }}>Твой профиль склонностей и рекомендованное направление</p>
       </div>
 
-      {/* ── Block 0: Top match card ───────────────────────────────── */}
+      {/* ── Лучшее совпадение ────────────────────────────────────── */}
       {topDirection && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[0] = el; }}>
+        <AnimatedBlock>
           <div
             className="relative overflow-hidden rounded-[24px] p-[30px_32px] text-on-brand"
             style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', boxShadow: '0 14px 32px rgba(124,58,237,.26)' }}
@@ -342,10 +300,10 @@ export default function ResultsPage() {
             <div className="absolute bottom-[-60px] right-[-30px] w-[220px] h-[220px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
             <div className="relative">
               <div className="font-extrabold tracking-[.06em] uppercase mb-2 opacity-85" style={{ fontSize: 13 }}>
-                🎯 Лучшее совпадение · {topDirection.match_score}%
+                🎯 Лучшее совпадение
               </div>
               <h2 className="font-black mb-2 tracking-[-0.01em]" style={{ fontSize: 32 }}>{topDirection.name}</h2>
-              <p className="font-semibold opacity-90 mb-5 leading-relaxed" style={{ fontSize: 16, maxWidth: 520 }}>
+              <p className="font-semibold opacity-90 mb-5 leading-relaxed" style={{ fontSize: 16, maxWidth: 560 }}>
                 {topDirection.why_it_fits}
               </p>
               <div className="flex gap-3 flex-wrap">
@@ -373,9 +331,9 @@ export default function ResultsPage() {
         </AnimatedBlock>
       )}
 
-      {/* ── Block 1: Резюме ──────────────────────────────────────── */}
-      {currentStep >= 1 && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[1] = el; }}>
+      {/* ── Резюме ───────────────────────────────────────────────── */}
+      {report.summary && (
+        <AnimatedBlock>
           <section aria-label="Резюме">
             <SectionHeader emoji="📋" title="Резюме" />
             <Card className="bg-brand-subtle">
@@ -385,18 +343,22 @@ export default function ResultsPage() {
         </AnimatedBlock>
       )}
 
-      {/* ── Block 2: Сильные стороны ─────────────────────────────── */}
-      {currentStep >= 2 && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[2] = el; }}>
+      {/* ── Сильные стороны ──────────────────────────────────────── */}
+      {(report.strengths ?? []).length > 0 && (
+        <AnimatedBlock>
           <section aria-label="Сильные стороны">
             <SectionHeader emoji="💪" title="Сильные стороны" />
             <div className="flex flex-wrap gap-2.5">
-              {(report.strengths ?? []).map((s, i) => (
+              {report.strengths.map((s, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2.5 bg-surface border border-default rounded-pill pl-2 pr-4 py-1.5 shadow-card"
+                  className="flex items-center gap-2.5 bg-surface rounded-pill pl-2 pr-4 py-1.5 shadow-card"
                 >
-                  <span className="w-8 h-8 rounded-full bg-brand-subtle flex items-center justify-center text-lg select-none flex-shrink-0" aria-hidden="true">
+                  <span
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-lg select-none flex-shrink-0"
+                    style={{ background: STRENGTH_ICON_BG[i % STRENGTH_ICON_BG.length] }}
+                    aria-hidden="true"
+                  >
                     {getIconForText(s, STRENGTH_ICON_PAIRS)}
                   </span>
                   <p className="text-caption font-semibold text-primary">{s}</p>
@@ -407,10 +369,51 @@ export default function ResultsPage() {
         </AnimatedBlock>
       )}
 
-      {/* ── Block 3: Карта интересов ─────────────────────────────── */}
-      {currentStep >= 3 && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[3] = el; }}>
-          <section aria-label="Твои интересы">
+      {/* ── Мотивация ────────────────────────────────────────────── */}
+      {(report.motivation ?? []).length > 0 && (
+        <AnimatedBlock>
+          <section aria-label="Мотивация">
+            <SectionHeader emoji="⚡" title="Что тебя мотивирует" />
+            <div className="flex flex-col gap-2">
+              {report.motivation.map((text, i) => (
+                <Card key={i} className="flex items-center gap-3 !p-4">
+                  <span className="text-xl select-none flex-shrink-0" aria-hidden="true">
+                    {getIconForText(text, MOTIVATION_ICON_PAIRS)}
+                  </span>
+                  <p className="text-body font-semibold text-primary">{text}</p>
+                </Card>
+              ))}
+            </div>
+          </section>
+        </AnimatedBlock>
+      )}
+
+      {/* ── Подходящие профессии ─────────────────────────────────── */}
+      {(report.directions ?? []).length > 0 && (
+        <AnimatedBlock>
+          <section aria-label="Подходящие направления">
+            <SectionHeader emoji="👥" title="Подходящие профессии" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
+              {report.directions.map(direction => (
+                <DirectionCard
+                  key={direction.slug}
+                  direction={direction}
+                  showUniversityBtn={showUniversityBtn}
+                  showInquiryBtn={showInquiryBtn}
+                  onDetail={handleDirectionDetail}
+                  onUniversity={handleUniversity}
+                  onInquiry={handleInquiry}
+                />
+              ))}
+            </div>
+          </section>
+        </AnimatedBlock>
+      )}
+
+      {/* ── Интересы + Стиль мышления/Зоны внимания ─────────────────── */}
+      <AnimatedBlock>
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5">
+          <section aria-label="Твои интересы" className="min-w-0">
             <SectionHeader emoji="📊" title="Твои интересы" />
             <Card className="flex flex-col gap-4">
               {topInterests.length > 0 ? (
@@ -432,7 +435,7 @@ export default function ResultsPage() {
                       >
                         <div
                           className="h-full rounded-full transition-[width] duration-300 ease-out"
-                          style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#7C3AED,#A855F7)' }}
+                          style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#A78BFA,#7C3AED)' }}
                         />
                       </div>
                     </div>
@@ -443,107 +446,46 @@ export default function ResultsPage() {
               )}
             </Card>
           </section>
-        </AnimatedBlock>
-      )}
 
-      {/* ── Block 4: Стиль мышления ──────────────────────────────── */}
-      {currentStep >= 4 && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[4] = el; }}>
-          <section aria-label="Стиль мышления">
-            <SectionHeader emoji="🧠" title="Стиль мышления" />
-            {thinkingDesc && (
-              <p className="text-body text-secondary mb-3">{thinkingDesc}</p>
-            )}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-              {topThinking.map(([cat, score]) => (
-                <div
-                  key={cat}
-                  className="bg-surface border border-default rounded-[var(--radius)] p-3 flex flex-col items-center gap-1 shadow-card"
-                >
-                  <span className="text-xl select-none" aria-hidden="true">
-                    {THINKING_EMOJIS[cat] ?? '🔷'}
-                  </span>
-                  <p className="text-small font-semibold text-primary text-center">
-                    {THINKING_LABELS[cat] ?? cat}
-                  </p>
-                  <p className="text-small font-bold text-brand">{`${Math.round(score)}%`}</p>
+          <div className="flex flex-col gap-6 min-w-0">
+            <section aria-label="Стиль мышления">
+              <SectionHeader emoji="🧠" title="Стиль мышления" />
+              {thinkingDesc && (
+                <p className="text-body text-secondary mb-3">{thinkingDesc}</p>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                {topThinking.map(([cat, score]) => (
+                  <div
+                    key={cat}
+                    className="bg-surface rounded-[16px] p-4 text-center shadow-card"
+                  >
+                    <span className="block mb-1.5 text-xl select-none" aria-hidden="true">
+                      {THINKING_EMOJIS[cat] ?? '🔷'}
+                    </span>
+                    <p className="font-semibold text-secondary mb-1" style={{ fontSize: 11.5 }}>
+                      {THINKING_LABELS[cat] ?? cat}
+                    </p>
+                    <p className="font-extrabold text-primary" style={{ fontSize: 17 }}>{`${Math.round(score)}%`}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {hasWellbeingZones && (
+              <section aria-label="Зоны внимания">
+                <SectionHeader emoji="🌿" title="Зоны внимания" />
+                <div className="rounded-[16px] overflow-hidden bg-success-subtle">
+                  {wellbeingZones.map((zone, i) => (
+                    <div key={i} className="px-5 py-4">
+                      <p className="font-semibold" style={{ fontSize: 13.5, color: 'var(--success-text)', lineHeight: 1.5 }}>{zone}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
-        </AnimatedBlock>
-      )}
-
-      {/* ── Block 5: Мотивация ───────────────────────────────────── */}
-      {currentStep >= 5 && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[5] = el; }}>
-          <section aria-label="Мотивация">
-            <SectionHeader emoji="⚡" title="Что тебя мотивирует" />
-            <div className="flex flex-col gap-2">
-              {(report.motivation ?? []).map((text, i) => (
-                <Card key={i} className="flex items-center gap-3 !p-4">
-                  <span className="text-xl select-none flex-shrink-0" aria-hidden="true">
-                    {getIconForText(text, MOTIVATION_ICON_PAIRS)}
-                  </span>
-                  <p className="text-body font-semibold text-primary">{text}</p>
-                </Card>
-              ))}
-            </div>
-          </section>
-        </AnimatedBlock>
-      )}
-
-      {/* ── Block 6: Подходящие направления ─────────────────────── */}
-      {currentStep >= 6 && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[6] = el; }}>
-          <section aria-label="Подходящие направления">
-            <SectionHeader emoji="🧑‍💼" title="Подходящие профессии" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {(report.directions ?? []).map(direction => (
-                <DirectionCard
-                  key={direction.slug}
-                  direction={direction}
-                  showUniversityBtn={showUniversityBtn}
-                  onDetail={handleDirectionDetail}
-                  onUniversity={handleUniversity}
-                />
-              ))}
-            </div>
-          </section>
-        </AnimatedBlock>
-      )}
-
-      {/* ── Block 7: Зоны внимания (мягкая поддерживающая секция) ── */}
-      {currentStep >= 7 && hasWellbeingZones && (
-        <AnimatedBlock blockRef={el => { blockRefs.current[7] = el; }}>
-          <section aria-label="Зоны внимания">
-            <SectionHeader emoji="🌿" title="Зоны внимания" />
-            <p className="text-body text-secondary mb-3">
-              Несколько бережных наблюдений о твоём самочувствии — без оценок, просто на заметку
-            </p>
-            <div className="flex flex-col gap-2">
-              {wellbeingZones.map((zone, i) => (
-                <Card key={i} className="!p-4">
-                  <p className="text-body font-semibold text-primary">{zone}</p>
-                </Card>
-              ))}
-            </div>
-          </section>
-        </AnimatedBlock>
-      )}
-
-      {/* ── Next button ──────────────────────────────────────────── */}
-      {!isAllVisible && (
-        <div className="flex justify-center pb-4">
-          <Button
-            size="lg"
-            onClick={handleNext}
-            className="shadow-pop px-8"
-          >
-            {nextLabels[currentStep]}
-          </Button>
+              </section>
+            )}
+          </div>
         </div>
-      )}
+      </AnimatedBlock>
 
     </div>
   );

@@ -39,7 +39,7 @@ export default function HomePage() {
     : 'Начать тест';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-[1260px] mx-auto space-y-6">
 
       {/* ── Page header ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-4">
