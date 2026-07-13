@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, GraduationCap } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Sparkles } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
@@ -17,6 +17,7 @@ export default function DirectionDetailPage() {
 
   const direction = report?.directions.find(d => d.slug === slug);
   const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
+  const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
 
   if (!direction) {
     return (
@@ -137,26 +138,39 @@ export default function DirectionDetailPage() {
         )}
 
         {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          {showUniversityBtn && (
+        <div className="flex flex-col gap-3 pt-2">
+          {showInquiryBtn && (
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full gap-2"
+              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/inquiry`)}
+            >
+              <Sparkles className="w-5 h-5" />
+              Подходит ли мне это направление?
+            </Button>
+          )}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {showUniversityBtn && (
+              <Button
+                variant="ghost"
+                size="lg"
+                className="flex-1 gap-2"
+                onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities`)}
+              >
+                <GraduationCap className="w-5 h-5" />
+                Найти университеты
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="lg"
-              className="flex-1 gap-2"
-              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities`)}
+              className="flex-1"
+              onClick={() => navigate('/results')}
             >
-              <GraduationCap className="w-5 h-5" />
-              Найти университеты
+              Назад к результатам
             </Button>
-          )}
-          <Button
-            variant="primary"
-            size="lg"
-            className="flex-1"
-            onClick={() => navigate('/results')}
-          >
-            Назад к результатам
-          </Button>
+          </div>
         </div>
       </div>
     </div>

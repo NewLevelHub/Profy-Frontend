@@ -32,6 +32,7 @@ import ProfilePage from '@/pages/profile/ProfilePage';
 
 // ── Detail screens (mobile: App stack) ───────────────────────────────────────
 import DirectionDetailPage from '@/pages/results/DirectionDetailPage';
+import DirectionInquiryPage from '@/pages/results/inquiry/DirectionInquiryPage';
 import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
 import GapAnalysisPage from '@/pages/results/GapAnalysisPage';
@@ -94,6 +95,7 @@ export const router = createBrowserRouter([
 
               // Detail screens (mobile: App stack over tabs)
               { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
+              { path: '/results/directions/:slug/inquiry', element: <DirectionInquiryPage /> },
               { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
               {
                 path: '/results/directions/:slug/universities/:programId',
