@@ -1,10 +1,11 @@
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, GraduationCap, Sparkles } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Map, Sparkles } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useProfileStore } from '@/shared/store/profile';
 
 export default function DirectionDetailPage() {
@@ -15,9 +16,13 @@ export default function DirectionDetailPage() {
   const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
 
+  const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
+
   const direction = report?.directions.find(d => d.slug === slug);
   const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
   const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
+  // The plan only exists once the inquiry has been passed for this direction.
+  const hasRoadmap = selectedDirectionSlug === slug;
 
   if (!direction) {
     return (
@@ -139,9 +144,20 @@ export default function DirectionDetailPage() {
 
         {/* CTAs */}
         <div className="flex flex-col gap-3 pt-2">
-          {showInquiryBtn && (
+          {hasRoadmap && (
             <Button
               variant="primary"
+              size="lg"
+              className="w-full gap-2"
+              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/roadmap`)}
+            >
+              <Map className="w-5 h-5" />
+              Мой план по направлению
+            </Button>
+          )}
+          {showInquiryBtn && (
+            <Button
+              variant={hasRoadmap ? 'ghost' : 'primary'}
               size="lg"
               className="w-full gap-2"
               onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/inquiry`)}

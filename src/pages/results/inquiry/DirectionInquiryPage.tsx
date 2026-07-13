@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { useDirectionInquiry } from './hooks/useDirectionInquiry';
 import { InquiryQuestion } from './components/InquiryQuestion';
@@ -40,9 +40,26 @@ export default function DirectionInquiryPage() {
       {verdict ? (
         <div className="flex flex-col gap-8">
           <InquiryVerdict verdict={verdict} />
-          <Button variant="ghost" size="lg" className="w-full" onClick={() => navigate('/results')}>
-            Назад к результатам
-          </Button>
+
+          <div className="flex flex-col gap-3">
+            {/* Confirming the direction: generating its roadmap is what locks it in. */}
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(`/results/directions/${encodeURIComponent(slug ?? '')}/roadmap`, {
+                  state: { generate: true },
+                })
+              }
+            >
+              <Sparkles className="w-5 h-5" />
+              Построить мой план
+            </Button>
+            <Button variant="ghost" size="lg" className="w-full" onClick={() => navigate('/results')}>
+              Назад к результатам
+            </Button>
+          </div>
         </div>
       ) : questions ? (
         <div className="flex flex-col gap-8">
