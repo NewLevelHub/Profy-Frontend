@@ -22,12 +22,12 @@ export function ProfileHero({ displayName, initial, email, ageGroupLabel }: Prof
         {email && (
           <p className="text-muted font-semibold mt-0.5 text-label">{email}</p>
         )}
-        {ageGroupLabel && (
-          <span className="inline-block bg-brand-subtle text-brand-text font-extrabold rounded-pill px-4 py-1.5 mt-1 text-caption">
-            {ageGroupLabel}
-          </span>
-        )}
       </div>
+      {ageGroupLabel && (
+        <span className="inline-block bg-brand-subtle text-brand-text font-extrabold rounded-pill px-4 py-1.5 text-caption lg:ml-auto">
+          {ageGroupLabel}
+        </span>
+      )}
     </Card>
   );
 }

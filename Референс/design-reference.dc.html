@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #F5F3FF; font-family: 'Nunito', -apple-system, sans-serif; }
+  .pf-scroll::-webkit-scrollbar { width: 8px; }
+  .pf-scroll::-webkit-scrollbar-thumb { background: #DDD6FE; border-radius: 8px; }
+</style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;background:#F5F3FF;">
+
+  <!-- SIDEBAR -->
+  <div style="width:240px;flex:none;background:#F0ECFF;display:flex;flex-direction:column;padding:32px 16px;">
+    <div style="font:900 24px 'Nunito';color:#1E1B4B;padding:0 12px 32px;letter-spacing:-0.4px;">Profy</div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div style="{{ nav.home }}" onClick="{{ goHome }}"><span style="font-size:18px;">🏠</span> Главная</div>
+      <div style="{{ nav.results }}" onClick="{{ goResults }}"><span style="font-size:18px;">📊</span> Результаты</div>
+      <div style="{{ nav.profile }}" onClick="{{ goProfile }}"><span style="font-size:18px;">👤</span> Профиль</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="pf-scroll" style="flex:1;overflow-y:auto;">
+    <div style="max-width:1260px;margin:0 auto;padding:44px 48px 80px;">
+
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#5B21B6);display:flex;align-items:center;justify-content:center;color:#fff;font:800 20px 'Nunito';flex:none;">И</div>
+            <div>
+              <div style="font:800 28px 'Nunito';color:#1E1B4B;">Привет, Имя! 👋</div>
+              <div style="font:500 15px 'Nunito';color:#4B5563;">Ты прошёл всю диагностику!</div>
+            </div>
+          </div>
+
+          <div style="position:relative;overflow:hidden;background:linear-gradient(135deg,#7C3AED,#5B21B6);border-radius:22px;padding:36px 40px;box-shadow:0 12px 32px rgba(124,58,237,0.24);display:flex;align-items:center;gap:28px;margin-bottom:24px;">
+            <div style="position:absolute;right:-50px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08);"></div>
+            <div style="width:88px;height:88px;border-radius:50%;background:conic-gradient(#fff 360deg, rgba(255,255,255,.25) 0);display:flex;align-items:center;justify-content:center;flex:none;z-index:1;">
+              <div style="width:70px;height:70px;border-radius:50%;background:#6D2FC7;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <span style="color:#fff;font:800 24px 'Nunito';line-height:1;">8</span><span style="color:rgba(255,255,255,.75);font:700 11px 'Nunito';">/8</span>
+              </div>
+            </div>
+            <div style="flex:1;z-index:1;">
+              <div style="font:800 22px 'Nunito';color:#fff;margin-bottom:4px;">Твой путь</div>
+              <div style="font:500 14.5px 'Nunito';color:rgba(255,255,255,.85);">Ты прошёл все блоки! Смотри результат</div>
+            </div>
+            <button onClick="{{ goResults }}" style="z-index:1;border:none;background:#fff;color:#5B21B6;font:800 14px 'Nunito';padding:14px 24px;border-radius:999px;cursor:pointer;flex:none;">Обновить результат →</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;">
+            <div onClick="{{ goResults }}" style="background:#fff;border-radius:16px;padding:22px 24px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 6px 18px rgba(30,27,75,0.06);">
+              <div style="width:48px;height:48px;border-radius:12px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;">📋</div>
+              <div><div style="font:800 16px 'Nunito';color:#1E1B4B;">Результаты</div><div style="font:500 13.5px 'Nunito';color:#9CA3AF;">Что мы узнали о тебе</div></div>
+            </div>
+            <div onClick="{{ goProfile }}" style="background:#fff;border-radius:16px;padding:22px 24px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 6px 18px rgba(30,27,75,0.06);">
+              <div style="width:48px;height:48px;border-radius:12px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;">👤</div>
+              <div><div style="font:800 16px 'Nunito';color:#1E1B4B;">Профиль</div><div style="font:500 13.5px 'Nunito';color:#9CA3AF;">Твои данные</div></div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <div style="font:800 22px 'Nunito';color:#1E1B4B;">Дорожная карта</div>
+            <div style="background:#EDE9FE;border-radius:999px;padding:4px;display:flex;gap:2px;">
+              <div style="{{ roadmapTab.stepper }}" onClick="{{ setStepper }}">Стэппер</div>
+              <div style="{{ roadmapTab.quest }}" onClick="{{ setQuest }}">Квест-карта</div>
+            </div>
+          </div>
+
+          <sc-if value="{{ isStepper }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#fff;border-radius:22px;padding:36px 32px 28px;box-shadow:0 6px 18px rgba(30,27,75,0.06);">
+              <div style="display:grid;grid-template-columns:repeat(8,1fr);position:relative;">
+                <div style="position:absolute;top:22px;left:40px;right:40px;height:3px;background:#DCFCE7;"></div>
+                <sc-for list="{{ roadmap }}" as="step" hint-placeholder-count="8">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:1;">
+                    <div style="width:44px;height:44px;border-radius:50%;background:#22C55E;color:#fff;display:flex;align-items:center;justify-content:center;font:800 18px 'Nunito';box-shadow:0 4px 10px rgba(34,197,94,0.35);">✓</div>
+                    <div style="font:700 12px 'Nunito';color:#4B5563;text-align:center;line-height:1.3;padding:0 4px;">{{ step.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isQuest }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff;border-radius:22px;padding:40px 32px;box-shadow:0 6px 18px rgba(30,27,75,0.06);">
+              <div style="display:grid;grid-template-columns:repeat(8,1fr);align-items:end;gap:6px;">
+                <sc-for list="{{ roadmap }}" as="step" hint-placeholder-count="8">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;transform:translateY({{ step.zig }}px);">
+                    <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;display:flex;align-items:center;justify-content:center;font:800 20px 'Nunito';box-shadow:0 6px 14px rgba(124,58,237,0.3);">✓</div>
+                    <div style="font:700 11.5px 'Nunito';color:#4B5563;text-align:center;line-height:1.3;">{{ step.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="font:800 30px 'Nunito';color:#1E1B4B;margin-bottom:4px;">Что мы узнали о тебе</div>
+          <div style="font:500 15px 'Nunito';color:#4B5563;margin-bottom:24px;">Твой профиль склонностей и рекомендованное направление</div>
+
+          <div style="position:relative;overflow:hidden;background:linear-gradient(135deg,#7C3AED,#5B21B6);border-radius:22px;padding:36px 40px;box-shadow:0 12px 32px rgba(124,58,237,0.24);margin-bottom:28px;">
+            <div style="position:absolute;right:-40px;bottom:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08);"></div>
+            <div style="font:800 12px 'Nunito';color:rgba(255,255,255,.85);letter-spacing:.05em;margin-bottom:12px;z-index:1;">🎯 ЛУЧШЕЕ СОВПАДЕНИЕ</div>
+            <div style="font:800 30px 'Nunito';color:#fff;margin-bottom:12px;z-index:1;">Медиа / журналистика</div>
+            <div style="font:500 15px 'Nunito';color:rgba(255,255,255,.85);max-width:560px;line-height:1.55;margin-bottom:20px;z-index:1;">Развитые языки, коммуникация и творчество хорошо подходят для этого направления.</div>
+            <button style="z-index:1;border:none;background:#fff;color:#5B21B6;font:800 14px 'Nunito';padding:14px 26px;border-radius:999px;cursor:pointer;">Подробнее →</button>
+          </div>
+
+          <div style="background:#EDE9FE;border-radius:18px;padding:26px 30px;margin-bottom:28px;">
+            <div style="font:800 15px 'Nunito';color:#1E1B4B;margin-bottom:10px;">📋 Резюме</div>
+            <div style="font:500 14px 'Nunito';color:#4B5563;line-height:1.7;">Ты обладаешь удивительной способностью ясно и убедительно выражать свои мысли, а также хорошо понимаешь людей и их настроение. Это делает тебя отличным кандидатом для работы в сферах, связанных с психологией, журналистикой или правом. Попробуй поучаствовать в кружках или проектах, связанных с этими направлениями!</div>
+          </div>
+
+          <div style="font:800 15px 'Nunito';color:#1E1B4B;margin-bottom:14px;">💪 Сильные стороны</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px;">
+            <sc-for list="{{ strengths }}" as="s" hint-placeholder-count="4">
+              <div style="background:#fff;border-radius:999px;padding:10px 18px 10px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 18px rgba(30,27,75,0.06);">
+                <span style="width:30px;height:30px;border-radius:50%;background:{{ s.bg }};display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">{{ s.icon }}</span>
+                <span style="font:700 13px 'Nunito';color:#1E1B4B;">{{ s.text }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="font:800 22px 'Nunito';color:#1E1B4B;margin-bottom:16px;">👥 Подходящие профессии</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px;">
+            <sc-for list="{{ professions }}" as="p" hint-placeholder-count="5">
+              <div onClick="{{ p.open }}" style="background:#fff;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 6px 18px rgba(30,27,75,0.06);cursor:pointer;transition:transform .15s,box-shadow .15s;" style-hover="background:#fff;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 28px rgba(30,27,75,0.12);cursor:pointer;transform:translateY(-3px);transition:transform .15s,box-shadow .15s;">
+                <div style="font-size:26px;">{{ p.icon }}</div>
+                <div style="font:800 16px 'Nunito';color:#1E1B4B;">{{ p.title }}</div>
+                <div style="font:500 13px 'Nunito';color:#9CA3AF;line-height:1.55;flex:1;">{{ p.desc }}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <sc-for list="{{ p.tags }}" as="t" hint-placeholder-count="3">
+                    <span style="font:700 11.5px 'Nunito';color:#5B21B6;background:#EDE9FE;border-radius:999px;padding:5px 12px;">{{ t }}</span>
+                  </sc-for>
+                </div>
+                <button onClick="{{ p.toggle }}" style="{{ p.btnStyle }}">{{ p.btnLabel }}</button>
+                <button onClick="{{ p.toggle }}" style="border:none;background:transparent;color:#7C3AED;font:800 12.5px 'Nunito';padding:4px;cursor:pointer;text-align:center;">Подробнее о направлении →</button>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ hasSelected }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ closeProfession }}" style="position:fixed;inset:0;background:rgba(30,27,75,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:32px;">
+                <div onClick="{{ stopClick }}" style="background:#fff;border-radius:24px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;padding:36px 38px;box-shadow:0 24px 60px rgba(30,27,75,0.3);position:relative;">
+                  <button onClick="{{ closeProfession }}" style="position:absolute;top:20px;right:20px;border:none;background:#F5F3FF;color:#5B21B6;width:32px;height:32px;border-radius:50%;font:800 15px 'Nunito';cursor:pointer;">✕</button>
+                  <div style="font-size:34px;margin-bottom:10px;">{{ selectedProfession.icon }}</div>
+                  <div style="font:800 22px 'Nunito';color:#1E1B4B;margin-bottom:10px;">{{ selectedProfession.title }}</div>
+                  <div style="font:500 14px 'Nunito';color:#4B5563;line-height:1.6;margin-bottom:22px;">{{ selectedProfession.desc }}</div>
+                  <div style="font:800 14px 'Nunito';color:#1E1B4B;margin-bottom:10px;">Почему тебе подходит</div>
+                  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+                    <sc-for list="{{ selectedProfession.reasons }}" as="r" hint-placeholder-count="3">
+                      <div style="display:flex;gap:10px;font:500 13.5px 'Nunito';color:#4B5563;line-height:1.5;">
+                        <span style="color:#7C3AED;flex:none;">•</span><span>{{ r }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="font:800 14px 'Nunito';color:#1E1B4B;margin-bottom:12px;">Профессии в этом направлении</div>
+                  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+                    <sc-for list="{{ selectedProfession.roles }}" as="role" hint-placeholder-count="3">
+                      <div style="background:#F5F3FF;border-radius:14px;padding:14px 16px;">
+                        <div style="font:800 13.5px 'Nunito';color:#1E1B4B;margin-bottom:4px;">{{ role.name }}</div>
+                        <div style="font:500 12.5px 'Nunito';color:#4B5563;line-height:1.5;">{{ role.desc }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button onClick="{{ selectedProfession.toggle }}" style="{{ selectedProfession.btnStyle }}width:100%;">{{ selectedProfession.btnLabel }}</button>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px;">
+            <div>
+              <div style="font:800 18px 'Nunito';color:#1E1B4B;margin-bottom:14px;">📊 Твои интересы</div>
+              <div style="background:#fff;border-radius:18px;padding:26px 28px;box-shadow:0 6px 18px rgba(30,27,75,0.06);">
+                <sc-for list="{{ interests }}" as="i" hint-placeholder-count="7">
+                  <div style="margin-bottom:16px;">
+                    <div style="display:flex;justify-content:space-between;font:700 13.5px 'Nunito';color:#1E1B4B;margin-bottom:6px;"><span>{{ i.name }}</span><span style="color:#7C3AED;">{{ i.value }}%</span></div>
+                    <div style="height:8px;background:#EDE9FE;border-radius:999px;overflow:hidden;"><div style="height:100%;background:linear-gradient(90deg,#A78BFA,#7C3AED);border-radius:999px;width:{{ i.value }}%;"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="font:800 18px 'Nunito';color:#1E1B4B;margin-bottom:14px;">🧠 Стиль мышления</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+                <sc-for list="{{ thinkingStyle }}" as="ts" hint-placeholder-count="4">
+                  <div style="background:#fff;border-radius:16px;padding:16px;text-align:center;box-shadow:0 6px 18px rgba(30,27,75,0.06);">
+                    <div style="font-size:22px;margin-bottom:6px;">{{ ts.icon }}</div>
+                    <div style="font:700 11.5px 'Nunito';color:#4B5563;margin-bottom:4px;">{{ ts.label }}</div>
+                    <div style="font:800 17px 'Nunito';color:#1E1B4B;">{{ ts.value }}%</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font:800 18px 'Nunito';color:#1E1B4B;margin-bottom:14px;">🌿 Зоны внимания</div>
+              <div style="background:#F0FDF4;border-radius:16px;display:flex;flex-direction:column;gap:1px;overflow:hidden;">
+                <sc-for list="{{ attentionZones }}" as="zone" hint-placeholder-count="1">
+                  <div style="padding:16px 20px;font:600 13.5px 'Nunito';color:#166534;line-height:1.5;">{{ zone }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="font:800 30px 'Nunito';color:#1E1B4B;margin-bottom:28px;">Профиль</div>
+
+          <div style="background:#fff;border-radius:22px;padding:28px 32px;display:flex;align-items:center;gap:20px;box-shadow:0 6px 18px rgba(30,27,75,0.06);margin-bottom:24px;">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#5B21B6);display:flex;align-items:center;justify-content:center;color:#fff;font:800 28px 'Nunito';flex:none;">И</div>
+            <div>
+              <div style="font:800 20px 'Nunito';color:#1E1B4B;">Имя</div>
+              <div style="font:500 14px 'Nunito';color:#9CA3AF;">testnewtest@testmail.com</div>
+            </div>
+            <div style="margin-left:auto;font:800 13px 'Nunito';color:#5B21B6;background:#EDE9FE;padding:8px 18px;border-radius:999px;">Старший (15–18 лет)</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+            <div style="background:#fff;border-radius:18px;padding:24px;box-shadow:0 6px 18px rgba(30,27,75,0.06);min-width:0;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+                <div style="font:800 16px 'Nunito';color:#1E1B4B;">Личные данные</div>
+                <span style="font:700 13px 'Nunito';color:#7C3AED;cursor:pointer;white-space:nowrap;flex-shrink:0;">✏️ Изменить</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font:500 13.5px 'Nunito';">
+                <div><div style="color:#9CA3AF;margin-bottom:3px;">Возраст</div><div style="color:#1E1B4B;font-weight:800;">15 лет</div></div>
+                <div><div style="color:#9CA3AF;margin-bottom:3px;">Класс</div><div style="color:#1E1B4B;font-weight:800;">9 класс</div></div>
+                <div><div style="color:#9CA3AF;margin-bottom:3px;">Город</div><div style="color:#1E1B4B;font-weight:800;">Астана</div></div>
+                <div><div style="color:#9CA3AF;margin-bottom:3px;">Страна</div><div style="color:#1E1B4B;font-weight:800;">Казахстан</div></div>
+                <div style="grid-column:span 2;"><div style="color:#9CA3AF;margin-bottom:3px;">Язык обучения</div><div style="color:#1E1B4B;font-weight:800;">Русский</div></div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:18px;padding:24px;box-shadow:0 6px 18px rgba(30,27,75,0.06);min-width:0;">
+              <div style="font:800 16px 'Nunito';color:#1E1B4B;margin-bottom:16px;">Предметы</div>
+              <div style="font:800 12.5px 'Nunito';color:#166534;margin-bottom:10px;">Даются легко</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+                <sc-for list="{{ subjectsEasy }}" as="su" hint-placeholder-count="3">
+                  <span style="font:700 12.5px 'Nunito';color:#166534;background:#F0FDF4;border-radius:999px;padding:6px 14px;">{{ su }}</span>
+                </sc-for>
+              </div>
+              <div style="font:800 12.5px 'Nunito';color:#C2410C;margin-bottom:10px;">Даются сложно</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <sc-for list="{{ subjectsHard }}" as="su" hint-placeholder-count="1">
+                  <span style="font:700 12.5px 'Nunito';color:#C2410C;background:#FFF7ED;border-radius:999px;padding:6px 14px;">{{ su }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:16px;min-width:0;">
+              <div style="background:#fff;border-radius:18px;padding:18px;box-shadow:0 6px 18px rgba(30,27,75,0.06);display:flex;align-items:center;gap:12px;min-width:0;">
+                <span style="font-size:20px;flex:none;">🔊</span>
+                <div style="flex:1;min-width:0;"><div style="font:800 13.5px 'Nunito';color:#1E1B4B;">Звуковые эффекты</div><div style="font:500 11.5px 'Nunito';color:#9CA3AF;line-height:1.4;">Короткие звуки при нажатии</div></div>
+                <div style="width:40px;height:22px;background:#7C3AED;border-radius:12px;position:relative;flex:none;"><div style="width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:3px;right:3px;"></div></div>
+              </div>
+              <button style="border:1.5px solid #EDE9FE;background:#fff;color:#5B21B6;font:800 13.5px 'Nunito';padding:14px;border-radius:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><span>↻</span><span>Начать тестирование заново</span></button>
+              <button style="border:none;background:transparent;color:#9CA3AF;font:700 13px 'Nunito';padding:6px;cursor:pointer;text-align:left;">Выйти из аккаунта</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'home',
+    roadmapMode: 'stepper',
+    interested: {},
+    selectedProfessionId: null
+  };
+
+  navStyle(active) {
+    const base = {
+      display: 'flex', alignItems: 'center', gap: '10px',
+      padding: '12px 14px', borderRadius: '14px', cursor: 'pointer',
+      font: '800 14.5px "Nunito"', marginBottom: '2px'
+    };
+    return active
+      ? { ...base, background: '#fff', color: '#1E1B4B', boxShadow: '0 6px 18px rgba(30,27,75,0.08)' }
+      : { ...base, background: 'transparent', color: '#4B5563', fontWeight: 700 };
+  }
+
+  tabStyle(active) {
+    return {
+      padding: '8px 16px', borderRadius: '999px', cursor: 'pointer',
+      font: '800 12.5px "Nunito"',
+      background: active ? '#fff' : 'transparent',
+      color: active ? '#5B21B6' : '#5B21B6',
+      opacity: active ? 1 : 0.55,
+      boxShadow: active ? '0 4px 10px rgba(124,58,237,0.15)' : 'none'
+    };
+  }
+
+  toggleInterest(id) {
+    this.setState(s => ({ interested: { ...s.interested, [id]: !s.interested[id] } }));
+  }
+
+  openProfession(id) {
+    this.setState({ selectedProfessionId: id });
+  }
+
+  closeProfession() {
+    this.setState({ selectedProfessionId: null });
+  }
+
+  renderVals() {
+    const scr = this.state.screen;
+    const strengthColors = ['#FFE4E6', '#FEF3C7', '#DBEAFE', '#DCFCE7'];
+    const strengths = [
+      { icon: '📝', text: 'Ясно и убедительно выражает мысли' },
+      { icon: '🤝', text: 'Хорошо понимает людей и настроение' },
+      { icon: '❤️', text: 'Стремится помогать и приносить пользу' },
+      { icon: '🔍', text: 'Любит докапываться до сути' }
+    ].map((s, i) => ({ ...s, bg: strengthColors[i % strengthColors.length] }));
+
+    const professionsBase = [
+      { id: 1, icon: '📰', title: 'Медиа / журналистика', desc: 'Развиты языки, коммуникация и творчество — это направление тебе подходит.', tags: ['Журналист', 'Контент-менеджер', 'Сценарист'],
+        reasons: ['Легко подбираешь слова и удерживаешь внимание слушателей', 'Интересно наблюдать за людьми и событиями', 'Творческие задания решаешь легко'],
+        roles: [{ name: 'Журналист', desc: 'Собирает информацию и рассказывает истории через статьи, репортажи, видео' }, { name: 'Контент-менеджер', desc: 'Придумывает и выпускает тексты и материалы для аудитории бренда' }, { name: 'Сценарист', desc: 'Придумывает сюжеты и диалоги для фильмов, роликов, игр' }] },
+      { id: 2, icon: '📚', title: 'Психология / педагогика', desc: 'Работа с людьми и стремление помогать хорошо сочетаются с этим направлением.', tags: ['Психолог', 'Учитель', 'Коуч'],
+        reasons: ['Внимателен к чувствам и настроению других', 'Нравится помогать людям разбираться в себе', 'Легко находишь общий язык с разными людьми'],
+        roles: [{ name: 'Психолог', desc: 'Помогает людям разбираться в чувствах и находить решения в трудных ситуациях' }, { name: 'Учитель', desc: 'Объясняет материал и помогает ученикам разобраться в предмете' }, { name: 'Коуч', desc: 'Помогает человеку поставить цели и двигаться к ним' }] },
+      { id: 3, icon: '📈', title: 'Право / госуправление', desc: 'Языки, коммуникация и работа с людьми — основа для этого направления.', tags: ['Юрист', 'Адвокат', 'Госслужащий'],
+        reasons: ['Умеешь чётко и убедительно аргументировать позицию', 'Интересуешься тем, как устроены правила и системы', 'Готов защищать интересы других людей'],
+        roles: [{ name: 'Юрист', desc: 'Разбирается в законах и помогает решать споры и оформлять документы' }, { name: 'Адвокат', desc: 'Защищает интересы человека в суде и юридических вопросах' }, { name: 'Госслужащий', desc: 'Работает в госорганах и помогает организовывать жизнь города или страны' }] },
+      { id: 4, icon: '🩺', title: 'Медицина / биология', desc: 'Стремление помогать другим и интерес к естественным наукам подходят сюда.', tags: ['Врач', 'Биолог-исследователь', 'Фармацевт'],
+        reasons: ['Хочешь помогать людям заботиться о здоровье', 'Интересуешься тем, как устроен организм', 'Готов долго учиться и разбираться в деталях'],
+        roles: [{ name: 'Врач', desc: 'Диагностирует и лечит заболевания, заботится о здоровье пациентов' }, { name: 'Биолог-исследователь', desc: 'Изучает живые организмы и природные процессы' }, { name: 'Фармацевт', desc: 'Разрабатывает и подбирает лекарства для лечения' }] },
+      { id: 5, icon: '🔬', title: 'Наука и исследования', desc: 'Интерес к исследованиям и естественным наукам — база для этого направления.', tags: ['Учёный-исследователь', 'Физик', 'Химик'],
+        reasons: ['Любишь докапываться до причин и разбираться в деталях', 'Интересуешься тем, как устроен мир', 'Готов проверять гипотезы и не бояться ошибок'],
+        roles: [{ name: 'Учёный-исследователь', desc: 'Изучает новые явления и ищет ответы на нерешённые вопросы' }, { name: 'Физик', desc: 'Изучает законы природы — от частиц до вселенной' }, { name: 'Химик', desc: 'Исследует вещества и их взаимодействия' }] }
+    ];
+    const professions = professionsBase.map(p => {
+      const on = !!this.state.interested[p.id];
+      return {
+        ...p,
+        open: () => this.openProfession(p.id),
+        toggle: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.toggleInterest(p.id); },
+        btnLabel: on ? '✓ Отмечено' : 'Подходит ли мне это направление?',
+        btnStyle: on
+          ? { border: 'none', background: '#7C3AED', color: '#fff', font: '800 12.5px "Nunito"', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginTop: '4px' }
+          : { border: '2px solid #EDE9FE', background: '#fff', color: '#5B21B6', font: '800 12.5px "Nunito"', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginTop: '4px' }
+      };
+    });
+    const selectedProfession = professions.find(p => p.id === this.state.selectedProfessionId) || null;
+
+    return {
+      isHome: scr === 'home', isResults: scr === 'results', isProfile: scr === 'profile',
+      goHome: () => this.setState({ screen: 'home' }),
+      goResults: () => this.setState({ screen: 'results' }),
+      goProfile: () => this.setState({ screen: 'profile' }),
+      nav: { home: this.navStyle(scr === 'home'), results: this.navStyle(scr === 'results'), profile: this.navStyle(scr === 'profile') },
+      isStepper: this.state.roadmapMode === 'stepper',
+      isQuest: this.state.roadmapMode === 'quest',
+      setStepper: () => this.setState({ roadmapMode: 'stepper' }),
+      setQuest: () => this.setState({ roadmapMode: 'quest' }),
+      roadmapTab: { stepper: this.tabStyle(this.state.roadmapMode === 'stepper'), quest: this.tabStyle(this.state.roadmapMode === 'quest') },
+      roadmap: [
+        { label: 'Интересы', zig: 0 }, { label: 'Стиль мышления', zig: 18 }, { label: 'Личность', zig: 0 }, { label: 'Мотивация', zig: 18 },
+        { label: 'Учебные склонности', zig: 0 }, { label: 'Направления', zig: 18 }, { label: 'Твоя цель', zig: 0 }, { label: 'Самочувствие', zig: 18 }
+      ],
+      strengths,
+      professions,
+      interests: [
+        { name: 'Общение', value: 78 }, { name: 'Творчество', value: 50 }, { name: 'Исследование', value: 50 },
+        { name: 'Практика', value: 39 }, { name: 'Технологии', value: 39 }, { name: 'Наука', value: 33 },
+        { name: 'Понимание людей', value: 22 }
+      ],
+      thinkingStyle: [
+        { icon: '💬', label: 'Коммуникация', value: 100 }, { icon: '🗺️', label: 'Пространство', value: 22 },
+        { icon: '⚙️', label: 'Системность', value: 22 }, { icon: '💡', label: 'Творчество', value: 22 }
+      ],
+      subjectsEasy: ['Математика', 'Русский язык', 'Физкультура'],
+      subjectsHard: ['Математика'],
+      attentionZones: [
+        'Полноценный отдых важен для продуктивности и хорошего самочувствия',
+        'Старайся не откладывать сложные задачи на последний момент',
+        'Регулярные перерывы во время учёбы помогают дольше сохранять концентрацию',
+        'Общение с близкими людьми помогает восстановить силы после насыщенного дня',
+        'Физическая активность даже по 15-20 минут в день заметно улучшает настроение',
+        'Если что-то долго не получается — это повод попросить о помощи, а не сдаваться'
+      ],
+      hasSelected: !!selectedProfession,
+      selectedProfession: selectedProfession,
+      closeProfession: () => this.closeProfession(),
+      stopClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

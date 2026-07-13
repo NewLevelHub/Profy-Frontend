@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, GraduationCap, Sparkles } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
-import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -32,16 +31,13 @@ export default function DirectionDetailPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       {/* Nav */}
-      <div className="flex items-center justify-between mb-6">
-        <button
-          className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Назад
-        </button>
-        <Badge variant="brand">{`${direction.match_score}% совпадение`}</Badge>
-      </div>
+      <button
+        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Назад
+      </button>
 
       <h1 className="text-h1 font-extrabold text-primary mb-8">{direction.name}</h1>
 

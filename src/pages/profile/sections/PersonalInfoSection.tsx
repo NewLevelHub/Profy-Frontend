@@ -23,12 +23,12 @@ export function PersonalInfoSection({ profile, onEdit }: PersonalInfoSectionProp
           Изменить
         </button>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <InfoRow label="Возраст" value={profile.age ? `${profile.age} лет` : null} />
         <InfoRow label="Класс" value={profile.grade ? `${profile.grade} класс` : null} />
         <InfoRow label="Город" value={profile.city} />
         <InfoRow label="Страна" value={profile.country} />
-        <InfoRow label="Язык обучения" value={profile.language} />
+        <InfoRow label="Язык обучения" value={profile.language} className="col-span-2" />
       </div>
     </Card>
   );

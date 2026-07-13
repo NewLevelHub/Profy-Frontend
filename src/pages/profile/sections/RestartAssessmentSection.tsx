@@ -1,3 +1,4 @@
+import { RotateCcw } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 
@@ -32,9 +33,10 @@ export function RestartAssessmentSection({ confirmRestart, onRequest, onConfirm,
     <button
       type="button"
       onClick={onRequest}
-      className="w-full min-h-14 rounded-[var(--radius)] border-[1.5px] border-strong bg-brand-subtle text-brand font-extrabold transition-colors hover:bg-hover text-body"
+      className="w-full min-h-14 flex items-center justify-center gap-2 rounded-[var(--radius)] border-[1.5px] border-default bg-surface text-brand font-extrabold transition-colors hover:bg-hover text-body"
     >
-      ↻ Начать тестирование заново
+      <RotateCcw size={16} />
+      Начать тестирование заново
     </button>
   );
 }
