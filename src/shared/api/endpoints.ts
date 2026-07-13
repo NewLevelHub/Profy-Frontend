@@ -29,6 +29,9 @@ export const API = {
   roadmap: {
     generate: '/roadmap/generate',
     get: (assessmentId: string) => `/roadmap/${assessmentId}`,
+    generateDirection: '/roadmap/direction',
+    getDirection: (assessmentId: string, slug: string) =>
+      `/roadmap/${assessmentId}/directions/${slug}`,
   },
   universities: {
     programs: '/universities/programs',

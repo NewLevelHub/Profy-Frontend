@@ -205,6 +205,83 @@ export interface RoadmapResponse {
   milestones: RoadmapMilestone[];
 }
 
+// ─── Direction roadmap ─────────────────────────────────────────────────────────
+
+export type DirectionHorizonKey = 'months_3' | 'months_6' | 'months_9' | 'months_12';
+
+export type DirectionTaskCategory =
+  | 'knowledge'
+  | 'skill'
+  | 'practice'
+  | 'project'
+  | 'portfolio'
+  | 'soft_skill'
+  | 'subject'
+  | 'community'
+  | 'exam'
+  | 'university';
+
+/** Item from the content catalogue. Always empty until the catalogue ships. */
+export interface RoadmapResource {
+  title: string;
+  kind: string;
+  url: string | null;
+}
+
+/** What a step works on. Steps are tagged, not grouped into fixed columns. */
+export type StepTrack = 'profile' | 'growth' | 'integration';
+
+export interface RoadmapStep {
+  text: string;
+  /** What to do, where to start, and how to know it's done — no googling required. */
+  description: string;
+  track: StepTrack;
+  category: DirectionTaskCategory;
+  priority: number;
+  resources: RoadmapResource[];
+}
+
+export interface DirectionStage {
+  horizon: DirectionHorizonKey;
+  title: string;
+  /** What the student will have by the end of the stage, and why it matters. */
+  outcome: string;
+  steps: RoadmapStep[];
+  /** Set from months_9 on, where profile and growth work converge. */
+  integration_project: string | null;
+}
+
+export interface RoadmapTarget {
+  role: string;
+  why: string;
+  horizon_years: number;
+}
+
+export interface GrowthFocus {
+  weakness: string;
+  why_it_matters: string;
+  /** The signal in the student's own answers this was derived from. */
+  evidence: string;
+}
+
+export interface UniversityTrack {
+  specialties: string[];
+  prepare: string[];
+}
+
+export interface DirectionRoadmapResponse {
+  id: string;
+  assessment_id: string;
+  direction_slug: string;
+  direction_name: string;
+  target: RoadmapTarget;
+  growth_focus: GrowthFocus;
+  stages: DirectionStage[];
+  skills_to_build: string[];
+  subjects_to_focus: string[];
+  university_track: UniversityTrack;
+}
+
 // ─── University / Gap-analysis ─────────────────────────────────────────────────
 
 export interface UniversityBrief {

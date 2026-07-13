@@ -1,0 +1,112 @@
+import { useNavigate, useParams } from 'react-router';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Button } from '@/shared/ui/Button';
+import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
+import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
+import { GeneratingOverlay } from './components/GeneratingOverlay';
+import { GrowthFocusCard } from './components/GrowthFocusCard';
+import { SkillsSection } from './components/SkillsSection';
+import { StageCard } from './components/StageCard';
+import { TargetCard } from './components/TargetCard';
+import { UniversityTrackSection } from './components/UniversityTrackSection';
+
+export default function DirectionRoadmapPage() {
+  const { slug = '' } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const {
+    roadmap, isLoading, isGenerating, notGenerated,
+    errorKind, errorMessage, generate,
+  } = useDirectionRoadmap(slug);
+
+  const inquiryPath = `/results/directions/${encodeURIComponent(slug)}/inquiry`;
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+      <button
+        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Назад
+      </button>
+
+      {isGenerating ? (
+        <GeneratingOverlay />
+      ) : isLoading ? (
+        <DirectionRoadmapSkeleton />
+      ) : errorKind ? (
+        <div className="flex flex-col items-center gap-4 py-16 text-center">
+          <span className="text-5xl select-none" aria-hidden="true">
+            {errorKind === 'ai_unavailable' ? '🤖' : '🔒'}
+          </span>
+          <p className="text-body text-primary max-w-sm">{errorMessage}</p>
+
+          {errorKind === 'ai_unavailable' && (
+            <Button variant="primary" size="lg" onClick={generate}>
+              Попробовать снова
+            </Button>
+          )}
+          {errorKind === 'needs_inquiry' && (
+            <Button variant="primary" size="lg" onClick={() => navigate(inquiryPath)}>
+              Пройти опрос
+            </Button>
+          )}
+          {(errorKind === 'forbidden' || errorKind === 'generic') && (
+            <Button variant="ghost" size="lg" onClick={() => navigate('/results')}>
+              Назад к результатам
+            </Button>
+          )}
+        </div>
+      ) : notGenerated ? (
+        <div className="flex flex-col items-center gap-4 py-16 text-center">
+          <span className="text-5xl select-none" aria-hidden="true">🗺️</span>
+          <h1 className="text-h1 font-extrabold text-primary">Плана пока нет</h1>
+          <p className="text-body text-secondary max-w-sm">
+            Составим персональный план развития в этом направлении — от того, что ты можешь
+            делать уже сейчас, до конечной цели.
+          </p>
+          <Button variant="primary" size="lg" className="gap-2" onClick={generate}>
+            <Sparkles className="w-5 h-5" />
+            Построить мой план
+          </Button>
+        </div>
+      ) : roadmap ? (
+        <div className="flex flex-col gap-8">
+          <TargetCard target={roadmap.target} directionName={roadmap.direction_name} />
+          <GrowthFocusCard growthFocus={roadmap.growth_focus} />
+
+          <div>
+            <h2 className="text-title font-extrabold text-primary mb-1">Твой путь на год</h2>
+            <p className="text-body text-secondary mb-6">
+              Каждый месяц — шаги в профиль и в твою точку роста.
+            </p>
+            <ol className="flex flex-col">
+              {roadmap.stages.map((stage, i) => (
+                <StageCard
+                  key={stage.horizon}
+                  stage={stage}
+                  isLast={i === roadmap.stages.length - 1}
+                />
+              ))}
+            </ol>
+          </div>
+
+          <SkillsSection
+            skills={roadmap.skills_to_build}
+            subjects={roadmap.subjects_to_focus}
+          />
+          <UniversityTrackSection track={roadmap.university_track} />
+
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-full"
+            onClick={() => navigate('/results')}
+          >
+            Назад к результатам
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
