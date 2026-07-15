@@ -21,6 +21,11 @@ export const API = {
     questions: (assessmentId: string, block: string) =>
       `/assessment/${assessmentId}/questions/${block}`,
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
+    akinatorStart: (assessmentId: string) => `/assessment/${assessmentId}/akinator/start`,
+    akinatorAnswer: (assessmentId: string) => `/assessment/${assessmentId}/akinator/answer`,
+    akinatorFeedback: (assessmentId: string) => `/assessment/${assessmentId}/akinator/feedback`,
+    akinatorReject: (assessmentId: string, slug: string) => `/assessment/${assessmentId}/akinator/reject/${slug}`,
+    akinatorResolve: (assessmentId: string) => `/assessment/${assessmentId}/akinator/resolve`,
   },
   result: {
     generate: '/result/generate',

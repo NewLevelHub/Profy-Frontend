@@ -79,6 +79,55 @@ export interface AssessmentResponse {
   status: AssessmentStatus;
   current_block: number;
   created_at: string;
+  is_akinator: boolean;
+}
+
+// ── Akinator ───────────────────────────────────────────────────────────────
+
+export interface AkinatorOption {
+  index: number;
+  text: string;
+}
+
+export interface NextQuestionResponse {
+  type: 'next_question';
+  question_id: string;
+  text: string;
+  options: AkinatorOption[];
+}
+
+export interface RevealLeaf {
+  slug: string;
+  name: string;
+}
+
+export interface RevealResponse {
+  type: 'reveal';
+  status: 'single' | 'cluster';
+  leaves: RevealLeaf[];
+  backups: RevealLeaf[];
+  message: string;
+}
+
+export type AkinatorTurnResponse = NextQuestionResponse | RevealResponse;
+
+export interface AkinatorAnswerRequest {
+  question_id: string;
+  selected_option_index: number | null;
+}
+
+export interface AkinatorFeedbackRequest {
+  liked: boolean;
+  note?: string | null;
+}
+
+export interface AkinatorFeedbackResponse {
+  status: 'recorded';
+}
+
+export interface AkinatorResolveRequest {
+  question_id?: string | null;
+  selected_option_index?: number | null;
 }
 
 export interface QuestionOption {
