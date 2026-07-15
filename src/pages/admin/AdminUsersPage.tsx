@@ -3,6 +3,8 @@ import { Link } from 'react-router';
 import { Search } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { Card } from '@/shared/ui/Card';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
 import type { AdminUserListItem } from '@/shared/types';
 
@@ -57,15 +59,11 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="font-black text-primary" style={{ fontSize: 32 }}>
-          Пользователи
-        </h1>
-        <p className="text-secondary font-semibold mt-1">
-          Все зарегистрированные пользователи Profy и их прогресс
-        </p>
-      </div>
+    <PageContainer className="space-y-5">
+      <PageHeader
+        title="Пользователи"
+        subtitle="Все зарегистрированные пользователи Profy и их прогресс"
+      />
 
       <Card>
         <form
@@ -172,6 +170,6 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

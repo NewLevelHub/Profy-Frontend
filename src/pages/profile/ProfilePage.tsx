@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router';
 import { LogOut } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { useProfile } from './hooks/useProfile';
 import { getAgeGroupLabel } from './utils/ageGroupLabel';
@@ -27,8 +29,8 @@ export default function ProfilePage() {
   const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
 
   return (
-    <div className="max-w-[1260px] mx-auto space-y-6 lg:space-y-8">
-      <h1 className="font-black text-primary text-center tracking-[-0.01em] text-display">Профиль</h1>
+    <PageContainer className="space-y-6 lg:space-y-8">
+      <PageHeader title="Профиль" />
 
       <ProfileHero
         displayName={displayName}
@@ -75,6 +77,6 @@ export default function ProfilePage() {
           </button>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

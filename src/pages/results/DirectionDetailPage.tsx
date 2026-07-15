@@ -2,10 +2,21 @@ import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, GraduationCap, Map, Sparkles } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useProfileStore } from '@/shared/store/profile';
+
+function SectionTitle({ icon, children }: { icon: string; children: string }) {
+  return (
+    <h3 className="text-[15px] font-bold text-primary flex items-center gap-2 mb-3">
+      <span aria-hidden="true">{icon}</span>
+      {children}
+    </h3>
+  );
+}
 
 export default function DirectionDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -20,8 +31,12 @@ export default function DirectionDetailPage() {
   const direction = report?.directions.find(d => d.slug === slug);
   const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
   const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
-  // The plan only exists once the inquiry has been passed for this direction.
   const hasRoadmap = selectedDirectionSlug === slug;
+
+  const professions = direction?.professions ?? [];
+  const skills = direction?.skills_needed ?? [];
+  const subjects = direction?.subjects_to_develop ?? [];
+  const firstSteps = direction?.first_steps ?? [];
 
   if (!direction) {
     return (
@@ -34,117 +49,126 @@ export default function DirectionDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer className="space-y-6">
       {/* Nav */}
-      <button
-        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Назад
-      </button>
+      <div className="flex items-center justify-between gap-4">
+        <button
+          className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Назад
+        </button>
+        <Button
+          variant="ghost"
+          size="lg"
+          className="rounded-pill border border-default shrink-0"
+          onClick={() => navigate('/results')}
+        >
+          Назад к результатам
+        </Button>
+      </div>
 
-      <h1 className="text-h1 font-extrabold text-primary mb-8">{direction.name}</h1>
+      {/* Hero: title + description | why it fits */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-5 lg:gap-6 items-start">
+        <div className="flex flex-col gap-4 min-w-0">
+          <PageHeader title={direction.name} />
+          {direction.description && direction.description.length > 0 && (
+            <p className="text-body text-secondary leading-relaxed">{direction.description}</p>
+          )}
+        </div>
 
-      <div className="flex flex-col gap-6">
-        {direction.description && direction.description.length > 0 && (
-          <p className="text-body text-secondary leading-relaxed">{direction.description}</p>
-        )}
-
-        {/* Why it fits */}
-        <Card className="bg-brand-subtle flex flex-col gap-2">
+        <Card className="bg-brand-subtle border-brand/20 flex flex-col gap-2 h-full">
           <p className="text-label font-bold text-primary flex items-center gap-2">
             <span aria-hidden="true">✨</span>
             Почему тебе подходит
           </p>
           <p className="text-body text-primary leading-relaxed">{direction.why_it_fits}</p>
         </Card>
+      </div>
 
-        {/* Professions */}
-        {(direction.professions ?? []).length > 0 && (
-          <div>
-            <h2 className="text-label font-bold text-primary flex items-center gap-2 mb-3">
-              <span aria-hidden="true">👔</span>
-              Профессии
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {direction.professions.map((prof, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 rounded-pill text-caption font-semibold bg-brand-subtle text-brand border border-default"
-                >
-                  {prof}
-                </span>
-              ))}
-            </div>
+      {/* 3-column info grid */}
+      {(professions.length > 0 || skills.length > 0 || subjects.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {professions.length > 0 && (
+            <Card className="flex flex-col h-full">
+              <SectionTitle icon="👔">Профессии</SectionTitle>
+              <div className="flex flex-wrap gap-2">
+                {professions.map((prof, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 rounded-pill text-caption font-semibold bg-brand-subtle text-brand"
+                  >
+                    {prof}
+                  </span>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {skills.length > 0 && (
+            <Card className="flex flex-col h-full">
+              <SectionTitle icon="🛠️">Навыки для развития</SectionTitle>
+              <ul className="flex flex-col gap-2.5">
+                {skills.map((skill, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-body text-secondary">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-brand mt-2 flex-shrink-0"
+                      aria-hidden="true"
+                    />
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {subjects.length > 0 && (
+            <Card className="flex flex-col h-full">
+              <SectionTitle icon="📚">Предметы для изучения</SectionTitle>
+              <div className="flex flex-wrap gap-2">
+                {subjects.map((subj, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 rounded-pill text-caption font-semibold text-secondary bg-surface border border-default"
+                  >
+                    {subj}
+                  </span>
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* First steps — full-width card with horizontal sub-blocks */}
+      {firstSteps.length > 0 && (
+        <Card>
+          <SectionTitle icon="🎯">Первые шаги</SectionTitle>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {firstSteps.map((step, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 rounded-[var(--radius)] border border-default bg-page p-4"
+              >
+                <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
+                  <span className="text-small font-bold text-on-brand">{i + 1}</span>
+                </div>
+                <p className="text-body text-primary leading-snug">{step}</p>
+              </div>
+            ))}
           </div>
-        )}
+        </Card>
+      )}
 
-        {/* Skills needed */}
-        {(direction.skills_needed ?? []).length > 0 && (
-          <div>
-            <h2 className="text-label font-bold text-primary flex items-center gap-2 mb-3">
-              <span aria-hidden="true">🛠️</span>
-              Навыки для развития
-            </h2>
-            <ul className="flex flex-col gap-2">
-              {direction.skills_needed.map((skill, i) => (
-                <li key={i} className="flex items-start gap-2 text-body text-secondary">
-                  <span className="text-brand font-bold mt-0.5 flex-shrink-0">•</span>
-                  {skill}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Subjects to develop */}
-        {(direction.subjects_to_develop ?? []).length > 0 && (
-          <div>
-            <h2 className="text-label font-bold text-primary flex items-center gap-2 mb-3">
-              <span aria-hidden="true">📚</span>
-              Предметы для изучения
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {direction.subjects_to_develop.map((subj, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 rounded-pill text-caption text-secondary bg-surface border border-default"
-                >
-                  {subj}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* First steps */}
-        {(direction.first_steps ?? []).length > 0 && (
-          <div>
-            <h2 className="text-label font-bold text-primary flex items-center gap-2 mb-3">
-              <span aria-hidden="true">🎯</span>
-              Первые шаги
-            </h2>
-            <div className="flex flex-col gap-2">
-              {direction.first_steps.map((step, i) => (
-                <Card key={i} className="flex items-start gap-3 !p-4">
-                  <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
-                    <span className="text-small font-bold text-on-brand">{i + 1}</span>
-                  </div>
-                  <p className="text-body text-primary">{step}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* CTAs */}
-        <div className="flex flex-col gap-3 pt-2">
+      {/* Action buttons */}
+      {(hasRoadmap || showInquiryBtn || showUniversityBtn) && (
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
           {hasRoadmap && (
             <Button
               variant="primary"
               size="lg"
-              className="w-full gap-2"
+              className="gap-2 sm:flex-1 lg:flex-none lg:min-w-[240px]"
               onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/roadmap`)}
             >
               <Map className="w-5 h-5" />
@@ -155,36 +179,26 @@ export default function DirectionDetailPage() {
             <Button
               variant={hasRoadmap ? 'ghost' : 'primary'}
               size="lg"
-              className="w-full gap-2"
+              className="gap-2 sm:flex-1 lg:flex-none lg:min-w-[240px]"
               onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/inquiry`)}
             >
               <Sparkles className="w-5 h-5" />
               Подходит ли мне это направление?
             </Button>
           )}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {showUniversityBtn && (
-              <Button
-                variant="ghost"
-                size="lg"
-                className="flex-1 gap-2"
-                onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities`)}
-              >
-                <GraduationCap className="w-5 h-5" />
-                Найти университеты
-              </Button>
-            )}
+          {showUniversityBtn && (
             <Button
               variant="ghost"
               size="lg"
-              className="flex-1"
-              onClick={() => navigate('/results')}
+              className="gap-2 sm:flex-1 lg:flex-none lg:min-w-[240px]"
+              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities`)}
             >
-              Назад к результатам
+              <GraduationCap className="w-5 h-5" />
+              Найти университеты
             </Button>
-          </div>
+          )}
         </div>
-      </div>
-    </div>
+      )}
+    </PageContainer>
   );
 }

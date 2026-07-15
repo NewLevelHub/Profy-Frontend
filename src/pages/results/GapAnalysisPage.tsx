@@ -2,6 +2,8 @@ import { memo } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Map } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import type { GapItem } from '@/shared/types';
@@ -124,7 +126,7 @@ export default function GapAnalysisPage() {
   } = useGapAnalysis();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer className="space-y-6">
       {/* Nav */}
       <div className="mb-6">
         <button
@@ -158,58 +160,53 @@ export default function GapAnalysisPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-6">
-          {/* Header */}
           {programName && (
-            <div>
-              <h1 className="text-h1 font-extrabold text-primary mb-1">{programName}</h1>
-              {universityName && (
-                <p className="text-body text-secondary">{universityName}</p>
+            <PageHeader title={programName} subtitle={universityName ?? undefined} />
+          )}
+
+          <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-10 lg:items-start">
+            <div className="flex flex-col items-center lg:items-start gap-3 py-4 lg:sticky lg:top-6">
+              <ReadinessCircle score={result.readiness_score} />
+              <p className="text-body text-secondary text-center lg:text-left max-w-xs">
+                {READINESS_CAPTIONS[readinessLevel(result.readiness_score)]}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <GapSection
+                title="Уже есть"
+                icon="✓"
+                items={result.met}
+                cardClassName="bg-[#F0FDF4] border-[#86EFAC]"
+                titleClassName="text-success"
+              />
+              <GapSection
+                title="В процессе"
+                icon="◌"
+                items={result.in_progress}
+                cardClassName="bg-[#FFFBEB] border-[#FCD34D]"
+                titleClassName="text-warning"
+              />
+              <GapSection
+                title="Нужно развить"
+                icon="✗"
+                items={result.not_met}
+                cardClassName="bg-[#FEF2F2] border-[#FCA5A5]"
+                titleClassName="text-danger"
+              />
+              {result.unknown.length > 0 && (
+                <GapSection
+                  title="Нет данных"
+                  icon="?"
+                  items={result.unknown}
+                  cardClassName="bg-surface border-default"
+                  titleClassName="text-muted"
+                />
               )}
             </div>
-          )}
-
-          {/* Readiness circle */}
-          <div className="flex flex-col items-center gap-3 py-4">
-            <ReadinessCircle score={result.readiness_score} />
-            <p className="text-body text-secondary text-center max-w-xs">
-              {READINESS_CAPTIONS[readinessLevel(result.readiness_score)]}
-            </p>
           </div>
 
-          {/* Gap sections */}
-          <GapSection
-            title="Уже есть"
-            icon="✓"
-            items={result.met}
-            cardClassName="bg-[#F0FDF4] border-[#86EFAC]"
-            titleClassName="text-success"
-          />
-          <GapSection
-            title="В процессе"
-            icon="◌"
-            items={result.in_progress}
-            cardClassName="bg-[#FFFBEB] border-[#FCD34D]"
-            titleClassName="text-warning"
-          />
-          <GapSection
-            title="Нужно развить"
-            icon="✗"
-            items={result.not_met}
-            cardClassName="bg-[#FEF2F2] border-[#FCA5A5]"
-            titleClassName="text-danger"
-          />
-          {result.unknown.length > 0 && (
-            <GapSection
-              title="Нет данных"
-              icon="?"
-              items={result.unknown}
-              cardClassName="bg-surface border-default"
-              titleClassName="text-muted"
-            />
-          )}
-
-          {/* CTA */}
-          <div className="pt-2">
+          <div className="pt-2 lg:max-w-sm">
             <Button
               size="lg"
               variant="primary"
@@ -222,6 +219,6 @@ export default function GapAnalysisPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

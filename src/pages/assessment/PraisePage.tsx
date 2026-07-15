@@ -72,9 +72,9 @@ export default function PraisePage() {
     <div className="flex flex-col min-h-screen bg-page relative overflow-hidden">
       <ConfettiBlast />
 
-      <div className="flex-1 flex items-center justify-center pb-[130px]">
+      <div className="flex-1 flex items-center justify-center pb-[130px] lg:pb-8">
         <div
-          className="flex flex-col items-center text-center px-8 max-w-[480px] w-full"
+          className="flex flex-col items-center text-center px-8 max-w-[480px] lg:max-w-2xl w-full"
           style={{ animation: 'fade-in-up 0.5s ease both' }}
         >
           <span
@@ -134,11 +134,11 @@ export default function PraisePage() {
         </div>
       </div>
 
-      <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center">
+      <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center lg:static lg:px-8 lg:pb-8">
         <Button
           onClick={handleContinue}
           size="lg"
-          className="w-full max-w-[560px] rounded-pill"
+          className="w-full max-w-[560px] lg:max-w-md rounded-pill"
           style={{
             height: 60,
             fontSize: 18,

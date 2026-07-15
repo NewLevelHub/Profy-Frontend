@@ -134,7 +134,7 @@ export default function ArtifactsSetupPage() {
     <div className="min-h-screen bg-page flex flex-col">
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="bg-page border-b border-default px-5 pt-6 pb-5">
+      <div className="bg-page border-b border-default px-5 pt-6 pb-5 lg:max-w-4xl lg:mx-auto lg:w-full lg:border-b-0">
         <h1 className="text-h1 font-black text-primary tracking-tight mb-1">
           Твои увлечения и цели
         </h1>
@@ -144,9 +144,10 @@ export default function ArtifactsSetupPage() {
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-5 py-6 pb-40">
-        <div className="max-w-lg mx-auto flex flex-col gap-8">
+      <div className="flex-1 overflow-y-auto px-5 py-6 pb-40 lg:pb-8">
+        <div className="max-w-lg lg:max-w-4xl mx-auto flex flex-col gap-8">
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Section title="Хобби и занятия" emoji="🎨">
             <div className="flex flex-wrap gap-2">
               {HOBBIES.map(h => (
@@ -172,6 +173,7 @@ export default function ArtifactsSetupPage() {
               ))}
             </div>
           </Section>
+          </div>
 
           <Section title="Достижения" emoji="🏆" hint="Грамоты, победы, проекты, сертификаты">
             <TagInput
@@ -184,6 +186,7 @@ export default function ArtifactsSetupPage() {
             />
           </Section>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Section title="Мечты и цели" emoji="✨" hint="Чего хочешь достичь или попробовать">
             <TagInput
               placeholder="Например, создать своё приложение"
@@ -216,6 +219,7 @@ export default function ArtifactsSetupPage() {
               onRemove={tag => setTargets(prev => prev.filter(t => t !== tag))}
             />
           </Section>
+          </div>
 
           {saveError && (
             <p className="text-xs text-danger text-center">
@@ -226,7 +230,7 @@ export default function ArtifactsSetupPage() {
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <div className="fixed bottom-0 inset-x-0 bg-surface border-t border-default px-5 py-4 flex gap-3">
+      <div className="fixed bottom-0 inset-x-0 lg:static bg-surface border-t border-default px-5 py-4 flex gap-3 lg:max-w-4xl lg:mx-auto lg:w-full lg:mb-6 lg:rounded-[var(--radius)] lg:border lg:shadow-card">
         <Button
           variant="ghost"
           size="lg"

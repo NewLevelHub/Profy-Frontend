@@ -90,7 +90,8 @@ export default function ResultLoadingPage() {
   }, [retryCount]);
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-page px-6 gap-6 text-center">
+    <div className="flex flex-col min-h-screen items-center justify-center bg-page px-6">
+      <div className="w-full max-w-lg mx-auto text-center flex flex-col gap-6">
       {error === null ? (
         <>
           <span className="text-5xl select-none" aria-hidden="true">✨</span>
@@ -111,6 +112,7 @@ export default function ResultLoadingPage() {
           <Button onClick={() => setRetryCount(c => c + 1)}>Попробовать снова</Button>
         </div>
       )}
+      </div>
     </div>
   );
 }

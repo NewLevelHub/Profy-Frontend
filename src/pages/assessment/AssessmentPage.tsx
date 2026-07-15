@@ -154,7 +154,7 @@ export default function AssessmentPage() {
       </header>
 
       {/* ── Content ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full">
+      <div className="flex-1 flex flex-col max-w-2xl lg:max-w-4xl mx-auto w-full">
 
         {/* Loading */}
         {phase === 'loading' && (
@@ -168,7 +168,7 @@ export default function AssessmentPage() {
           <>
             <div
               key={`intro-${currentBlock}`}
-              className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-[130px]"
+              className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-[130px] lg:pb-8"
               style={{ animation: 'fade-in-up 0.5s ease both' }}
             >
               <span className="inline-block mb-[18px]" role="img" aria-hidden style={{ fontSize: 74, animation: 'pf-float 3s ease-in-out infinite' }}>{blockEmoji}</span>
@@ -189,11 +189,11 @@ export default function AssessmentPage() {
               </div>
             </div>
 
-            <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center">
+            <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center lg:static lg:px-8 lg:pb-8">
               <Button
                 onClick={handleStartBlock}
                 size="lg"
-                className="w-full max-w-[560px] rounded-pill"
+                className="w-full max-w-[560px] lg:max-w-md rounded-pill"
                 style={{
                   height: 60,
                   fontSize: 18,
@@ -264,13 +264,13 @@ export default function AssessmentPage() {
             </div>
 
             {showNextButton && (
-              <div className="px-6 pt-3 pb-8 flex justify-center" style={{ background: 'linear-gradient(to top, var(--bg-page) 60%, transparent)' }}>
+              <div className="px-6 pt-3 pb-8 lg:pb-6 flex justify-center" style={{ background: 'linear-gradient(to top, var(--bg-page) 60%, transparent)' }}>
                 <Button
                   onClick={handleNextBlock}
                   isLoading={saving}
                   disabled={saving}
                   size="lg"
-                  className="w-full max-w-[560px] rounded-pill"
+                  className="w-full max-w-[560px] lg:max-w-md rounded-pill"
                   style={{ height: 60, fontSize: 18, fontWeight: 800, boxShadow: '0 10px 22px rgba(124,58,237,.32)' }}
                 >
                   Дальше →

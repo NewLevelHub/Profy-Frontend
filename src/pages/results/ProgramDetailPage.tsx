@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { toDisplayString, formatCost, localizeKey } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
-
-// ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function ProgramDetailSkeleton() {
   return (
@@ -27,75 +28,60 @@ function ProgramDetailSkeleton() {
   );
 }
 
-// ── Section heading ───────────────────────────────────────────────────────────
-
-function SectionHeading({ children }: { children: string }) {
+function SectionHeadingLocal({ children }: { children: string }) {
   return (
-    <h3 style={{ fontSize: 18, fontWeight: 900, margin: '0 0 10px' }}>{children}</h3>
+    <h3 className="text-[18px] font-black text-primary mb-2.5">{children}</h3>
   );
 }
-
-// ── Requirements table ────────────────────────────────────────────────────────
 
 function RequirementsTable({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
   if (entries.length === 0) return null;
   return (
-    <div style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}>
+    <div className="bg-surface border border-[#EDE9FE] rounded-[20px] overflow-hidden shadow-card">
       {entries.map(([key, value], i) => (
         <div
           key={key}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
-            padding: '14px 20px',
-            borderTop: i > 0 ? '1px solid #EDE9FE' : undefined,
-          }}
+          className={`flex items-center justify-between gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-[#EDE9FE]' : ''}`}
         >
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#4B5563' }}>{localizeKey(key)}</span>
-          <span style={{ fontSize: 15, fontWeight: 800, color: '#1E1B4B', textAlign: 'right' }}>{toDisplayString(value)}</span>
+          <span className="text-[15px] font-semibold text-secondary">{localizeKey(key)}</span>
+          <span className="text-[15px] font-extrabold text-primary text-right">{toDisplayString(value)}</span>
         </div>
       ))}
     </div>
   );
 }
-
-// ── Deadlines grid ────────────────────────────────────────────────────────────
 
 function DeadlinesGrid({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
   if (entries.length === 0) return null;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {entries.map(([key, value]) => (
         <div
           key={key}
-          style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 16, padding: '16px 18px', boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}
+          className="bg-surface border border-[#EDE9FE] rounded-2xl px-[18px] py-4 shadow-card"
         >
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#9CA3AF', marginBottom: 4 }}>{localizeKey(key)}</div>
-          <div style={{ fontSize: 17, fontWeight: 900, color: '#1E1B4B' }}>{toDisplayString(value)}</div>
+          <div className="text-[13px] font-bold text-muted mb-1">{localizeKey(key)}</div>
+          <div className="text-[17px] font-black text-primary">{toDisplayString(value)}</div>
         </div>
       ))}
     </div>
   );
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ProgramDetailPage() {
   const navigate = useNavigate();
   const { program, isLoading, error } = useProgramDetail();
 
   return (
-    <div style={{ maxWidth: 780, margin: '0 auto', padding: '30px 32px 56px', animation: 'pf-fade-up .5s ease both' }}>
-      {/* Nav */}
+    <PageContainer className="space-y-6">
       <button
         onClick={() => navigate(-1)}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', background: 'none', color: '#7C3AED', fontSize: 15, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', padding: 0, marginBottom: 18 }}
+        className="inline-flex items-center gap-2 text-brand text-[15px] font-extrabold hover:opacity-70 transition-opacity"
       >
-        ← Назад
+        <ArrowLeft className="w-4 h-4" />
+        Назад
       </button>
 
       {isLoading ? (
@@ -106,46 +92,42 @@ export default function ProgramDetailPage() {
           <Button variant="ghost" onClick={() => navigate(-1)}>Назад</Button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          {/* Title */}
-          <h1 style={{ fontSize: 34, fontWeight: 900, margin: '0 0 4px', letterSpacing: '-.01em' }}>{program.name}</h1>
-          <p style={{ fontSize: 17, color: '#6B7280', fontWeight: 700, margin: '0 0 16px' }}>{program.university.name}</p>
+        <div className="flex flex-col gap-6">
+          <PageHeader title={program.name} subtitle={program.university.name} />
 
-          {/* Meta badges */}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 26 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EDE9FE', color: '#5B21B6', fontSize: 14, fontWeight: 800, padding: '7px 14px', borderRadius: 9999 }}>
+          <div className="flex gap-2.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 bg-[#EDE9FE] text-[#5B21B6] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
               🌐 {program.language}
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#FFF7ED', color: '#C2410C', fontSize: 14, fontWeight: 800, padding: '7px 14px', borderRadius: 9999 }}>
+            <span className="inline-flex items-center gap-1.5 bg-[#FFF7ED] text-[#C2410C] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
               💰 {formatCost(program.cost_per_year)}
             </span>
           </div>
 
-          {/* Description */}
-          {program.description && program.description.length > 0 && (
-            <div style={{ background: '#fff', border: '1px solid #EDE9FE', borderRadius: 20, padding: '24px 26px', marginBottom: 16, boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}>
-              <SectionHeading>📋 Описание</SectionHeading>
-              <p style={{ fontSize: 15, color: '#4B5563', fontWeight: 600, lineHeight: 1.6, margin: 0 }}>{program.description}</p>
-            </div>
-          )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {program.description && program.description.length > 0 && (
+              <div className="bg-surface border border-[#EDE9FE] rounded-[20px] p-6 shadow-card">
+                <SectionHeadingLocal>📋 Описание</SectionHeadingLocal>
+                <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0">{program.description}</p>
+              </div>
+            )}
 
-          {/* Who it's for */}
-          {program.who_its_for && program.who_its_for.length > 0 && (
-            <div style={{ background: '#EDE9FE', borderRadius: 20, padding: '22px 26px', marginBottom: 16 }}>
-              <SectionHeading>🎯 Для кого</SectionHeading>
-              <p style={{ fontSize: 15, color: '#4B5563', fontWeight: 600, lineHeight: 1.6, margin: 0 }}>{program.who_its_for}</p>
-            </div>
-          )}
+            {program.who_its_for && program.who_its_for.length > 0 && (
+              <div className="bg-[#EDE9FE] rounded-[20px] p-6">
+                <SectionHeadingLocal>🎯 Для кого</SectionHeadingLocal>
+                <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0">{program.who_its_for}</p>
+              </div>
+            )}
+          </div>
 
-          {/* Career options */}
           {(program.career_options ?? []).length > 0 && (
-            <div style={{ marginBottom: 22 }}>
-              <SectionHeading>💼 Карьерные пути</SectionHeading>
-              <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
+            <div>
+              <SectionHeadingLocal>💼 Карьерные пути</SectionHeadingLocal>
+              <div className="flex gap-2 flex-wrap">
                 {program.career_options.map((career, i) => (
                   <span
                     key={i}
-                    style={{ background: '#EDE9FE', color: '#5B21B6', fontSize: 14, fontWeight: 800, padding: '8px 16px', borderRadius: 9999 }}
+                    className="bg-[#EDE9FE] text-[#5B21B6] text-sm font-extrabold px-4 py-2 rounded-pill"
                   >
                     {toDisplayString(career)}
                   </span>
@@ -154,52 +136,48 @@ export default function ProgramDetailPage() {
             </div>
           )}
 
-          {/* Requirements */}
           {Object.keys(program.requirements ?? {}).length > 0 && (
-            <div style={{ marginBottom: 22 }}>
-              <SectionHeading>📝 Требования</SectionHeading>
+            <div>
+              <SectionHeadingLocal>📝 Требования</SectionHeadingLocal>
               <RequirementsTable data={program.requirements ?? {}} />
             </div>
           )}
 
-          {/* Deadlines */}
           {Object.keys(program.deadlines ?? {}).length > 0 && (
-            <div style={{ marginBottom: 22 }}>
-              <SectionHeading>🗓️ Дедлайны</SectionHeading>
+            <div>
+              <SectionHeadingLocal>🗓️ Дедлайны</SectionHeadingLocal>
               <DeadlinesGrid data={program.deadlines ?? {}} />
             </div>
           )}
 
-          {/* Grants */}
           {(program.grants ?? []).length > 0 && (
-            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 20, padding: '20px 24px', marginBottom: 26, display: 'flex', alignItems: 'center', gap: 14 }}>
-              <span style={{ fontSize: 30 }}>🎓</span>
+            <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-[20px] px-6 py-5 flex items-center gap-3.5">
+              <span className="text-3xl">🎓</span>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 900, color: '#C2410C', marginBottom: 2 }}>Гранты и стипендии</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#9A3412' }}>
+                <div className="text-base font-black text-[#C2410C] mb-0.5">Гранты и стипендии</div>
+                <div className="text-sm font-semibold text-[#9A3412]">
                   {program.grants.map(g => toDisplayString(g)).join(' · ')}
                 </div>
               </div>
             </div>
           )}
 
-          {/* CTA buttons */}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               onClick={() => navigate(-1)}
-              style={{ flex: 1, minWidth: 240, height: 58, border: 'none', borderRadius: 9999, background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', color: '#fff', fontSize: 17, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 10px 22px rgba(124,58,237,.3)' }}
+              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-gradient-to-br from-brand to-[#6D28D9] text-on-brand text-[17px] font-extrabold cursor-pointer shadow-[0_10px_22px_rgba(124,58,237,.3)] hover:opacity-95 transition-opacity"
             >
               🎓 Посмотреть университеты
             </button>
             <button
               onClick={() => navigate('/results')}
-              style={{ flex: 1, minWidth: 200, height: 58, border: '1.5px solid #DDD6FE', borderRadius: 9999, background: '#fff', color: '#5B21B6', fontSize: 17, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}
+              className="flex-1 min-w-[200px] h-[58px] border-[1.5px] border-[#DDD6FE] rounded-pill bg-surface text-[#5B21B6] text-[17px] font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors"
             >
               Назад к результатам
             </button>
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

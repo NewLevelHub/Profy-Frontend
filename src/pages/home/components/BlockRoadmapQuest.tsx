@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { cn } from '@/shared/lib/cn';
 import { BLOCK_NAMES } from '@/shared/config/constants';
 import { playClick } from '@/shared/lib/sounds';
 import type { AssessmentBlock } from '@/shared/types';
@@ -72,8 +73,10 @@ export const BlockRoadmapQuest = memo(function BlockRoadmapQuest({
             <div
               key={block}
               role="listitem"
-              className="relative"
-              style={{ maxWidth: 560, ...(left ? { marginRight: 'auto' } : { marginLeft: 'auto', flexDirection: 'row-reverse' }) }}
+              className={cn(
+                'relative w-full max-w-[560px] lg:max-w-none',
+                left ? 'mr-auto' : 'ml-auto',
+              )}
             >
               {/* Connector line from prev node */}
               {i > 0 && (

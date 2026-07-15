@@ -80,10 +80,10 @@ export default function ProfileSetupPage() {
       </div>
 
       {/* ── Scrollable content ────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-40">
+      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-40 lg:pb-8">
 
         {step === 1 && (
-          <div className="flex flex-col gap-6 max-w-sm mx-auto">
+          <div className="flex flex-col gap-6 max-w-sm lg:max-w-xl mx-auto">
             <div>
               <h1 className="text-h1 font-black text-primary tracking-tight mb-1">Расскажи о себе</h1>
               <p className="text-body text-secondary">Нам нужно немного узнать тебя</p>
@@ -98,6 +98,7 @@ export default function ProfileSetupPage() {
               autoFocus
             />
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Input
               label="Возраст"
               type="number"
@@ -121,11 +122,12 @@ export default function ProfileSetupPage() {
               min={1}
               max={12}
             />
+            </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="flex flex-col gap-6 max-w-sm mx-auto">
+          <div className="flex flex-col gap-6 max-w-sm lg:max-w-xl mx-auto">
             <div>
               <h1 className="text-h1 font-black text-primary tracking-tight mb-1">Где ты живёшь?</h1>
               <p className="text-body text-secondary">Поможет подобрать университеты и олимпиады</p>
@@ -163,7 +165,7 @@ export default function ProfileSetupPage() {
         )}
 
         {step === 3 && (
-          <div className="flex flex-col gap-8 max-w-lg mx-auto">
+          <div className="flex flex-col gap-8 max-w-lg lg:max-w-4xl mx-auto">
             <div>
               <h1 className="text-h1 font-black text-primary tracking-tight mb-1">Школьные предметы</h1>
               <p className="text-body text-secondary">Можно выбрать несколько в каждой группе</p>
@@ -171,10 +173,12 @@ export default function ProfileSetupPage() {
 
             <SubjectGroup title="Нравятся" emoji="❤️" selected={subjectsLike}
               onToggle={s => setSubjectsLike(prev => toggle(prev, s))} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <SubjectGroup title="Не нравятся" emoji="😕" selected={subjectsDislike}
               onToggle={s => setSubjectsDislike(prev => toggle(prev, s))} />
             <SubjectGroup title="Даются легко" emoji="✅" selected={subjectsEasy}
               onToggle={s => setSubjectsEasy(prev => toggle(prev, s))} />
+            </div>
             <SubjectGroup title="Даются сложно" emoji="🤯" selected={subjectsHard}
               onToggle={s => setSubjectsHard(prev => toggle(prev, s))} />
 
@@ -187,8 +191,8 @@ export default function ProfileSetupPage() {
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <div className={cn(
-        'fixed bottom-0 inset-x-0 bg-surface border-t border-default px-5 py-4',
-        'flex gap-3',
+        'bg-surface border-t border-default px-5 py-4 flex gap-3',
+        'fixed bottom-0 inset-x-0 lg:static lg:max-w-xl lg:mx-auto lg:w-full lg:mb-6 lg:rounded-[var(--radius)] lg:border lg:shadow-card',
       )}>
         {step > 1 && (
           <Button

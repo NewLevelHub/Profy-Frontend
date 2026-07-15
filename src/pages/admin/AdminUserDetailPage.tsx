@@ -5,6 +5,9 @@ import { cn } from '@/shared/lib/cn';
 import { adminApi } from '@/shared/api/admin';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
+import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { AdminAssessmentDetail, AdminResponseItem, AdminUserDetail } from '@/shared/types';
 
 const GOAL_LABELS: Record<string, string> = {
@@ -285,7 +288,7 @@ export default function AdminUserDetailPage() {
   }, {});
 
   return (
-    <div className="space-y-5">
+    <PageContainer className="space-y-5">
       <div className="flex items-center gap-3">
         <Link to="/admin/users">
           <Button variant="ghost" size="sm">
@@ -293,17 +296,15 @@ export default function AdminUserDetailPage() {
             Назад
           </Button>
         </Link>
-        <div>
-          <h1 className="font-black text-primary" style={{ fontSize: 28 }}>{user.email}</h1>
-          <p className="text-secondary font-semibold text-sm">
-            Зарегистрирован {formatDate(user.created_at)}
-          </p>
-        </div>
+        <PageHeader
+          title={user.email}
+          subtitle={`Зарегистрирован ${formatDate(user.created_at)}`}
+        />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card>
-          <h2 className="font-black text-primary mb-3" style={{ fontSize: 20 }}>Аккаунт</h2>
+          <SectionHeading title="Аккаунт" className="mb-3" />
           <InfoRow label="Email" value={user.email} />
           <InfoRow label="Верифицирован" value={user.is_verified ? 'Да' : 'Нет'} />
           <InfoRow label="Активен" value={user.is_active ? 'Да' : 'Нет'} />
@@ -311,7 +312,7 @@ export default function AdminUserDetailPage() {
         </Card>
 
         <Card>
-          <h2 className="font-black text-primary mb-3" style={{ fontSize: 20 }}>Профиль</h2>
+          <SectionHeading title="Профиль" className="mb-3" />
           {user.profile ? (
             <>
               <InfoRow label="Имя" value={user.profile.name} />
@@ -336,7 +337,7 @@ export default function AdminUserDetailPage() {
 
       {Object.keys(artifactsByType).length > 0 && (
         <Card>
-          <h2 className="font-black text-primary mb-3" style={{ fontSize: 20 }}>Артефакты</h2>
+          <SectionHeading title="Артефакты" className="mb-3" />
           {Object.entries(artifactsByType).map(([type, values]) => (
             <ChipList key={type} label={ARTIFACT_LABELS[type] ?? type} items={values} />
           ))}
@@ -344,7 +345,7 @@ export default function AdminUserDetailPage() {
       )}
 
       <Card>
-        <h2 className="font-black text-primary mb-3" style={{ fontSize: 20 }}>Тестирования</h2>
+        <SectionHeading title="Тестирования" className="mb-3" />
         {user.assessments.length === 0 ? (
           <p className="text-secondary font-semibold">Тесты не начинались</p>
         ) : (
@@ -405,6 +406,6 @@ export default function AdminUserDetailPage() {
           </div>
         )}
       </Card>
-    </div>
+    </PageContainer>
   );
 }

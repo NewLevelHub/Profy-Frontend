@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
-import { Button } from '@/shared/ui';
-import { Spinner } from '@/shared/ui';
+import { Button, Spinner } from '@/shared/ui';
 import { useWelcome } from './hooks/useWelcome';
 
 const STEPS = [
@@ -25,8 +24,8 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-page flex flex-col items-center justify-center px-5 py-12">
-      <div className="w-full max-w-sm flex flex-col gap-8">
+    <div className="min-h-screen bg-page flex flex-col items-center justify-center px-5 py-12 lg:px-8">
+      <div className="w-full max-w-sm lg:max-w-3xl flex flex-col gap-8">
 
         {/* Header */}
         <div className="flex flex-col items-center gap-3 text-center">
@@ -44,6 +43,7 @@ export default function WelcomePage() {
           <p className="text-tiny font-extrabold text-muted uppercase tracking-widest">
             Что тебя ждёт:
           </p>
+          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-3 lg:gap-4">
           {STEPS.map((step) => (
             <div
               key={step.num}
@@ -62,12 +62,13 @@ export default function WelcomePage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
 
         {/* CTA */}
         <Button
           size="lg"
-          className="w-full h-14 rounded-pill text-base font-extrabold shadow-button"
+          className="w-full lg:max-w-sm lg:mx-auto h-14 rounded-pill text-base font-extrabold shadow-button"
           onClick={() => navigate('/onboarding/profile')}
         >
           Поехали! 🚀

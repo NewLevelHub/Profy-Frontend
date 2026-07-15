@@ -188,8 +188,8 @@ export default function GoalSelectionPage() {
       />
 
       <div className="min-h-screen bg-page flex flex-col">
-        <div className="flex-1 overflow-y-auto px-6 py-[70px]">
-          <div className="max-w-[620px] mx-auto flex flex-col">
+        <div className="flex-1 overflow-y-auto px-6 py-[70px] lg:py-12">
+          <div className="max-w-[620px] lg:max-w-4xl mx-auto flex flex-col">
 
             <div className="mb-[30px]">
               <div className="inline-flex items-center gap-[7px] bg-brand-subtle text-brand-text font-extrabold rounded-pill px-[14px] py-[6px] mb-[18px]" style={{ fontSize: 13 }}>
@@ -208,7 +208,7 @@ export default function GoalSelectionPage() {
                 <Spinner size="lg" />
               </div>
             ) : (
-              <div className="flex flex-col gap-[14px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
                 {visibleCards.map((card, i) => (
                   <button
                     key={card.title}
