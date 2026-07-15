@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { playClick } from '@/shared/lib/sounds';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
+import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { useHome } from './hooks/useHome';
 import { BlockRoadmap } from './components/BlockRoadmap';
 import { BlockRoadmapQuest } from './components/BlockRoadmapQuest';
@@ -39,30 +42,28 @@ export default function HomePage() {
     : 'Начать тест';
 
   return (
-    <div className="max-w-[1260px] mx-auto space-y-6">
+    <PageContainer className="space-y-6">
 
       {/* ── Page header ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-4">
-        <div
-          className="w-[62px] h-[62px] rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', boxShadow: '0 8px 18px rgba(124,58,237,.3)', fontSize: 26, fontWeight: 900, color: '#fff' }}
-          aria-hidden="true"
-        >
-          {initial}
-        </div>
-        <div>
-          <h1 className="font-black text-primary leading-tight tracking-[-0.01em]" style={{ fontSize: 30 }}>
-            {`Привет, ${displayName}! 👋`}
-          </h1>
-          <p className="text-secondary font-semibold" style={{ fontSize: 15, marginTop: 3 }}>
-            {isCompleted
-              ? 'Ты прошёл всю диагностику!'
-              : inProgress
-              ? 'Продолжим путь к профессии?'
-              : 'Готов начать диагностику?'}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={`Привет, ${displayName}! 👋`}
+        subtitle={
+          isCompleted
+            ? 'Ты прошёл всю диагностику!'
+            : inProgress
+            ? 'Продолжим путь к профессии?'
+            : 'Готов начать диагностику?'
+        }
+        leading={(
+          <div
+            className="w-[62px] h-[62px] rounded-full flex items-center justify-center flex-shrink-0 text-[26px] font-black text-on-brand"
+            style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', boxShadow: '0 8px 18px rgba(124,58,237,.3)' }}
+            aria-hidden="true"
+          >
+            {initial}
+          </div>
+        )}
+      />
 
       {/* ── Hero progress card ──────────────────────────────────────── */}
       <div
@@ -143,7 +144,7 @@ export default function HomePage() {
       {hasAssessment && (
         <section aria-label="Дорожная карта блоков">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-            <h2 className="font-black text-primary" style={{ fontSize: 24 }}>Дорожная карта</h2>
+            <SectionHeading title="Дорожная карта" className="mb-0" />
             <div className="flex gap-1 p-1 rounded-pill" style={{ background: '#EDE9FE' }}>
               {(['stepper', 'quest'] as const).map((v) => (
                 <button
@@ -184,6 +185,6 @@ export default function HomePage() {
           )}
         </section>
       )}
-    </div>
+    </PageContainer>
   );
 }

@@ -1,6 +1,9 @@
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
+import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
 import { GeneratingOverlay } from './components/GeneratingOverlay';
@@ -21,7 +24,7 @@ export default function DirectionRoadmapPage() {
   const inquiryPath = `/results/directions/${encodeURIComponent(slug)}/inquiry`;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer className="space-y-6">
       <button
         className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
         onClick={() => navigate(-1)}
@@ -60,11 +63,11 @@ export default function DirectionRoadmapPage() {
       ) : notGenerated ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <span className="text-5xl select-none" aria-hidden="true">🗺️</span>
-          <h1 className="text-h1 font-extrabold text-primary">Плана пока нет</h1>
-          <p className="text-body text-secondary max-w-sm">
-            Составим персональный план развития в этом направлении — от того, что ты можешь
-            делать уже сейчас, до конечной цели.
-          </p>
+          <PageHeader
+            title="Плана пока нет"
+            subtitle="Составим персональный план развития в этом направлении — от того, что ты можешь делать уже сейчас, до конечной цели."
+            align="center"
+          />
           <Button variant="primary" size="lg" className="gap-2" onClick={generate}>
             <Sparkles className="w-5 h-5" />
             Построить мой план
@@ -72,15 +75,17 @@ export default function DirectionRoadmapPage() {
         </div>
       ) : roadmap ? (
         <div className="flex flex-col gap-8">
-          <TargetCard target={roadmap.target} directionName={roadmap.direction_name} />
-          <GrowthFocusCard growthFocus={roadmap.growth_focus} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TargetCard target={roadmap.target} directionName={roadmap.direction_name} />
+            <GrowthFocusCard growthFocus={roadmap.growth_focus} />
+          </div>
 
           <div>
-            <h2 className="text-title font-extrabold text-primary mb-1">Твой путь на год</h2>
+            <SectionHeading title="Твой путь на год" className="mb-1" />
             <p className="text-body text-secondary mb-6">
               Каждый месяц — шаги в профиль и в твою точку роста.
             </p>
-            <ol className="flex flex-col">
+            <ol className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8">
               {roadmap.stages.map((stage, i) => (
                 <StageCard
                   key={stage.horizon}
@@ -97,16 +102,18 @@ export default function DirectionRoadmapPage() {
           />
           <UniversityTrackSection track={roadmap.university_track} />
 
-          <Button
-            variant="ghost"
-            size="lg"
-            className="w-full"
-            onClick={() => navigate('/results')}
-          >
-            Назад к результатам
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 sm:justify-start">
+            <Button
+              variant="ghost"
+              size="lg"
+              className="sm:w-auto"
+              onClick={() => navigate('/results')}
+            >
+              Назад к результатам
+            </Button>
+          </div>
         </div>
       ) : null}
-    </div>
+    </PageContainer>
   );
 }

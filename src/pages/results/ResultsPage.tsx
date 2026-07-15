@@ -4,6 +4,9 @@ import { GraduationCap, Sparkles } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
+import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { DirectionResult } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 
@@ -120,12 +123,7 @@ function AnimatedBlock({ children }: { children: React.ReactNode }) {
 }
 
 function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
-  return (
-    <div className="flex items-center gap-2 mb-4">
-      <span className="text-xl select-none" aria-hidden="true">{emoji}</span>
-      <h2 className="text-title font-bold text-primary">{title}</h2>
-    </div>
-  );
+  return <SectionHeading emoji={emoji} title={title} />;
 }
 
 interface DirectionCardProps {
@@ -205,14 +203,14 @@ const DirectionCard = memo(function DirectionCard({
 
 function ResultsSkeleton() {
   return (
-    <div className="max-w-[1260px] mx-auto py-8 flex flex-col gap-10">
+    <PageContainer className="flex flex-col gap-6">
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="flex flex-col gap-4">
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-28 w-full" />
         </div>
       ))}
-    </div>
+    </PageContainer>
   );
 }
 
@@ -282,13 +280,12 @@ export default function ResultsPage() {
   const topDirection = report.directions?.[0];
 
   return (
-    <div className="max-w-[1260px] mx-auto py-8 flex flex-col gap-10">
+    <PageContainer className="flex flex-col gap-6">
 
-      {/* Page header */}
-      <div>
-        <h1 className="font-black text-primary mb-1.5 tracking-[-0.01em]" style={{ fontSize: 34 }}>Что мы узнали о тебе</h1>
-        <p className="text-secondary font-semibold" style={{ fontSize: 16 }}>Твой профиль склонностей и рекомендованное направление</p>
-      </div>
+      <PageHeader
+        title="Что мы узнали о тебе"
+        subtitle="Твой профиль склонностей и рекомендованное направление"
+      />
 
       {/* ── Лучшее совпадение ────────────────────────────────────── */}
       {topDirection && (
@@ -302,8 +299,8 @@ export default function ResultsPage() {
               <div className="font-extrabold tracking-[.06em] uppercase mb-2 opacity-85" style={{ fontSize: 13 }}>
                 🎯 Лучшее совпадение
               </div>
-              <h2 className="font-black mb-2 tracking-[-0.01em]" style={{ fontSize: 32 }}>{topDirection.name}</h2>
-              <p className="font-semibold opacity-90 mb-5 leading-relaxed" style={{ fontSize: 16, maxWidth: 560 }}>
+              <h2 className="font-black mb-2 tracking-[-0.01em] text-[32px] leading-tight">{topDirection.name}</h2>
+              <p className="font-semibold opacity-90 mb-5 leading-relaxed text-base max-w-2xl">
                 {topDirection.why_it_fits}
               </p>
               <div className="flex gap-3 flex-wrap">
@@ -374,7 +371,7 @@ export default function ResultsPage() {
         <AnimatedBlock>
           <section aria-label="Мотивация">
             <SectionHeader emoji="⚡" title="Что тебя мотивирует" />
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {report.motivation.map((text, i) => (
                 <Card key={i} className="flex items-center gap-3 !p-4">
                   <span className="text-xl select-none flex-shrink-0" aria-hidden="true">
@@ -487,6 +484,6 @@ export default function ResultsPage() {
         </div>
       </AnimatedBlock>
 
-    </div>
+    </PageContainer>
   );
 }

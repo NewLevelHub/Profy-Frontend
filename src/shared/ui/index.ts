@@ -20,6 +20,9 @@ export { Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
 
 export { PageStub } from './PageStub';
+export { PageContainer } from './PageContainer';
+export { PageHeader } from './PageHeader';
+export { SectionHeading } from './SectionHeading';
 export { AppLayout } from './layouts/AppLayout';
 export { AuthLayout } from './layouts/AuthLayout';
 export { Header } from './navigation/Header';

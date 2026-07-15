@@ -1,6 +1,8 @@
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { useDirectionInquiry } from './hooks/useDirectionInquiry';
 import { InquiryQuestion } from './components/InquiryQuestion';
 import { InquirySkeleton } from './components/InquirySkeleton';
@@ -16,33 +18,32 @@ export default function DirectionInquiryPage() {
   } = useDirectionInquiry(slug ?? '');
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <PageContainer className="space-y-6">
       <button
-        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
+        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
         onClick={() => navigate(-1)}
       >
         <ArrowLeft className="w-4 h-4" />
         Назад
       </button>
 
-      <h1 className="text-h1 font-extrabold text-primary mb-2">
-        Подходит ли тебе это направление?
-      </h1>
-      {questions && !verdict && (
-        <p className="text-body text-secondary mb-8">
-          Ответь честно — и узнаешь, насколько «{questions.direction_name}» про тебя.
-        </p>
-      )}
+      <PageHeader
+        title="Подходит ли тебе это направление?"
+        subtitle={
+          questions && !verdict
+            ? `Ответь честно — и узнаешь, насколько «${questions.direction_name}» про тебя.`
+            : undefined
+        }
+      />
 
       {isLoading && <InquirySkeleton />}
       {error && <p className="text-body text-danger">{error}</p>}
 
       {verdict ? (
-        <div className="flex flex-col gap-8">
+        <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-8 lg:items-start">
           <InquiryVerdict verdict={verdict} />
 
-          <div className="flex flex-col gap-3">
-            {/* Confirming the direction: generating its roadmap is what locks it in. */}
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:sticky lg:top-6 mt-6 lg:mt-0">
             <Button
               variant="primary"
               size="lg"
@@ -62,7 +63,7 @@ export default function DirectionInquiryPage() {
           </div>
         </div>
       ) : questions ? (
-        <div className="flex flex-col gap-8">
+        <div className="max-w-3xl flex flex-col gap-8">
           {questions.questions.map((q, i) => (
             <InquiryQuestion
               key={i}
@@ -76,18 +77,20 @@ export default function DirectionInquiryPage() {
 
           {submitError && <p className="text-body text-danger">{submitError}</p>}
 
-          <Button
-            variant="primary"
-            size="lg"
-            className="w-full"
-            disabled={!allAnswered}
-            isLoading={isSubmitting}
-            onClick={submit}
-          >
-            {isSubmitting ? 'Анализирую…' : 'Узнать результат'}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+            <Button
+              variant="primary"
+              size="lg"
+              className="sm:flex-1 lg:max-w-xs"
+              disabled={!allAnswered}
+              isLoading={isSubmitting}
+              onClick={submit}
+            >
+              {isSubmitting ? 'Анализирую…' : 'Узнать результат'}
+            </Button>
+          </div>
         </div>
       ) : null}
-    </div>
+    </PageContainer>
   );
 }
