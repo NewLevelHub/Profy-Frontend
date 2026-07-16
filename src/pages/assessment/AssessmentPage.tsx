@@ -4,8 +4,20 @@ import { Spinner } from '@/shared/ui/Spinner';
 import { BLOCK_NAMES, BLOCK_EMOJIS, BLOCK_DESCRIPTIONS } from '@/shared/config/constants';
 import { useAssessment } from './hooks/useAssessment';
 import { OptionCard } from './components/OptionCard';
+import { useAssessmentStore } from '@/shared/store/assessment';
+import { AkinatorAssessmentView } from './components/AkinatorAssessmentView';
 
 export default function AssessmentPage() {
+  const isAkinator = useAssessmentStore(s => s.isAkinator);
+
+  if (isAkinator) {
+    return <AkinatorAssessmentView />;
+  }
+
+  return <LegacyAssessmentView />;
+}
+
+function LegacyAssessmentView() {
   const {
     phase,
     questions,

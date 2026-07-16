@@ -9,8 +9,14 @@ interface AssessmentState {
   currentBlock: number;
   completedBlocks: string[];
   hasCompletedAssessment: boolean;
+  isAkinator: boolean;
   syncDone: boolean;
-  setAssessment: (assessmentId: string, goal: AssessmentGoal, currentBlock: number) => void;
+  setAssessment: (
+    assessmentId: string,
+    goal: AssessmentGoal,
+    currentBlock: number,
+    isAkinator: boolean
+  ) => void;
   advanceBlock: () => void;
   markBlockCompleted: (block: string) => void;
   completeAssessment: () => void;
@@ -28,9 +34,10 @@ export const useAssessmentStore = create<AssessmentState>()(
       currentBlock: 0,
       completedBlocks: [],
       hasCompletedAssessment: false,
+      isAkinator: false,
       syncDone: false,
-      setAssessment: (assessmentId, goal, currentBlock) =>
-        set({ assessmentId, goal, currentBlock }),
+      setAssessment: (assessmentId, goal, currentBlock, isAkinator) =>
+        set({ assessmentId, goal, currentBlock, isAkinator }),
       advanceBlock: () =>
         set((s) => ({ currentBlock: s.currentBlock + 1 })),
       markBlockCompleted: (block) =>
@@ -48,6 +55,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           currentBlock: 0,
           completedBlocks: [],
           hasCompletedAssessment: false,
+          isAkinator: false,
           syncDone: true,
         }),
       syncFromServer: (data, userId) =>
@@ -58,6 +66,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           currentBlock: data.current_block,
           completedBlocks: [],
           hasCompletedAssessment: data.status === 'completed',
+          isAkinator: data.is_akinator ?? false,
           syncDone: true,
         }),
       clearForUser: (userId) =>
@@ -68,13 +77,12 @@ export const useAssessmentStore = create<AssessmentState>()(
           currentBlock: 0,
           completedBlocks: [],
           hasCompletedAssessment: false,
+          isAkinator: false,
           syncDone: true,
         }),
     }),
     {
       name: 'profy-assessment',
-      // syncDone must not be persisted — it should always start false on page load
-      // so the UI waits for a fresh server sync before rendering content.
       partialize: ({ syncDone: _syncDone, ...rest }) => rest,
     },
   ),

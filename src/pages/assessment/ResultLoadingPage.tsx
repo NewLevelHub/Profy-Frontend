@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { resultApi } from '@/shared/api/result';
@@ -14,11 +14,8 @@ const MESSAGES = [
 
 export default function ResultLoadingPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const isRetake = searchParams.get('retake') === '1';
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
-  const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const completeAssessment = useAssessmentStore(s => s.completeAssessment);
   const setReport = useResultStore(s => s.setReport);
 
@@ -39,27 +36,20 @@ export default function ResultLoadingPage() {
     return () => clearInterval(id);
   }, []);
 
+  // No generation step anymore — the akinator's own reveal + feedback
+  // already produced the result, this just fetches and forwards to it.
   useEffect(() => {
     if (!assessmentId) {
       navigate('/home', { replace: true });
       return;
     }
 
-    // Result already generated — just fetch and forward (skip on retake: must regenerate)
-    if (!isRetake && hasCompletedAssessment) {
-      resultApi.get(assessmentId).then(result => {
-        setReport(result);
-        navigate('/results', { replace: true });
-      }).catch(() => navigate('/results', { replace: true }));
-      return;
-    }
-
     let cancelled = false;
 
-    async function generate() {
+    async function fetchResult() {
       setError(null);
       try {
-        const result = await resultApi.generate(assessmentId!);
+        const result = await resultApi.get(assessmentId!);
         if (!cancelled) {
           setReport(result);
           completeAssessment();
@@ -67,24 +57,12 @@ export default function ResultLoadingPage() {
         }
       } catch {
         if (!cancelled) {
-          // Result may already exist (e.g. duplicate call) — try fetching it
-          try {
-            const existing = await resultApi.get(assessmentId!);
-            if (!cancelled) {
-              setReport(existing);
-              completeAssessment();
-              navigate('/results', { replace: true });
-            }
-          } catch {
-            if (!cancelled) {
-              setError('Не удалось сформировать результат. Попробуй ещё раз.');
-            }
-          }
+          setError('Не удалось загрузить результат. Попробуй ещё раз.');
         }
       }
     }
 
-    generate();
+    fetchResult();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryCount]);

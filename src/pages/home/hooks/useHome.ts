@@ -42,7 +42,7 @@ export function useHome() {
 
   function handleContinue() {
     if (isCompleted) {
-      navigate('/assessment/loading');
+      navigate('/results');
     } else if (inProgress) {
       navigate('/assessment');
     } else {

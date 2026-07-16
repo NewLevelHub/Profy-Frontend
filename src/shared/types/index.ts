@@ -79,6 +79,85 @@ export interface AssessmentResponse {
   status: AssessmentStatus;
   current_block: number;
   created_at: string;
+  is_akinator: boolean;
+}
+
+// ── Akinator ───────────────────────────────────────────────────────────────
+
+export interface AkinatorOption {
+  index: number;
+  text: string;
+}
+
+export interface NextQuestionResponse {
+  type: 'next_question';
+  question_id: string;
+  text: string;
+  options: AkinatorOption[];
+}
+
+export interface RevealLeaf {
+  slug: string;
+  name: string;
+}
+
+export interface RevealResponse {
+  type: 'reveal';
+  status: 'single' | 'cluster';
+  leaves: RevealLeaf[];
+  backups: RevealLeaf[];
+  message: string;
+}
+
+export type AkinatorTurnResponse = NextQuestionResponse | RevealResponse;
+
+export interface AkinatorAnswerRequest {
+  question_id: string;
+  selected_option_index: number | null;
+}
+
+export interface AkinatorFeedbackRequest {
+  liked: boolean;
+  note?: string | null;
+  /** Which leaf was actually accepted (e.g. after a per-leaf simulation) — a
+   * backup or non-top cluster peer, not necessarily the engine's favorite. */
+  direction_slug?: string | null;
+}
+
+export interface AkinatorFeedbackResponse {
+  status: 'recorded';
+}
+
+export interface AkinatorResolveRequest {
+  question_id?: string | null;
+  selected_option_index?: number | null;
+}
+
+// ── Profession simulation (RJP) ───────────────────────────────────────────
+
+export interface SimulationStepOption {
+  text: string;
+  consequence: string;
+}
+
+export interface SimulationStep {
+  text: string;
+  options: SimulationStepOption[];
+}
+
+export interface SimulationDetailResponse {
+  leaf_slug: string;
+  steps: SimulationStep[];
+}
+
+export interface SimulationSubmitRequest {
+  accepted: boolean;
+  answers: number[];
+}
+
+export interface SimulationSubmitResponse {
+  status: 'recorded';
+  akinator_turn: AkinatorTurnResponse | null;
 }
 
 export interface QuestionOption {
@@ -110,50 +189,21 @@ export interface SaveAnswersResponse {
 
 // ─── Results ───────────────────────────────────────────────────────────────────
 
-export interface DirectionResult {
-  slug: string;
-  name: string;
-  match_score: number;
-  why_it_fits: string;
-  description: string;
-  professions: string[];
-  skills_needed: string[];
-  subjects_to_develop: string[];
-  first_steps: string[];
+export interface ResultAxisHighlight {
+  code: string;
+  label_ru: string;
+  direction_value: number;
 }
 
-export interface AnalysisResultResponse {
-  id: string;
+export interface AkinatorResultResponse {
   assessment_id: string;
-  summary: string;
-  strengths: string[];
-  interests_map: Record<string, number>;
-  thinking_style: Record<string, number>;
-  motivation: string[];
-  directions: DirectionResult[];
-  wellbeing_zones: string[];
-  created_at: string;
-}
-
-// ─── Direction-fit inquiry ──────────────────────────────────────────────────────
-
-export interface DirectionQuestion {
-  text: string;
-  kind: 'interest' | 'readiness';
-}
-
-export interface DirectionQuestionsResponse {
   direction_slug: string;
   direction_name: string;
-  scale: string[];
-  questions: DirectionQuestion[];
-}
-
-export interface DirectionVerdict {
-  direction_slug: string;
-  readiness: string;
-  fit_summary: string;
-  note: string;
+  direction_description: string;
+  message: string;
+  matched_axes: ResultAxisHighlight[];
+  backups: RevealLeaf[];
+  created_at: string;
 }
 
 // ─── Roadmap ───────────────────────────────────────────────────────────────────
@@ -396,6 +446,5 @@ export interface AdminAssessmentDetail {
   created_at: string;
   completed_at: string | null;
   responses: AdminResponseItem[];
-  analysis_result: AnalysisResultResponse | null;
   roadmap: RoadmapResponse | null;
 }

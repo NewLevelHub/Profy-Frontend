@@ -16,21 +16,16 @@ export function useResults() {
   const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
 
+  // No generate-on-404 fallback anymore: the akinator's own reveal + feedback
+  // already produced the result, so a 404 here means "not ready yet", not
+  // "needs generating" — surfaced as isNotReady, not as an error.
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['result', assessmentId] as const,
-    queryFn: async () => {
-      try {
-        return await resultApi.get(assessmentId!);
-      } catch (err) {
-        if ((err as AxiosError)?.response?.status === 404) {
-          return await resultApi.generate(assessmentId!);
-        }
-        throw err;
-      }
-    },
+    queryFn: () => resultApi.get(assessmentId!),
     enabled: hasCompletedAssessment && !report && !!assessmentId,
     retry: (failureCount, err) => {
-      if ((err as AxiosError)?.response?.status === 403) return false;
+      const status = (err as AxiosError)?.response?.status;
+      if (status === 403 || status === 404) return false;
       return failureCount < 2;
     },
   });
@@ -39,8 +34,11 @@ export function useResults() {
     if (data && !report) setReport(data);
   }, [data, report, setReport]);
 
+  const status = (error as AxiosError | null)?.response?.status;
+  const is403 = status === 403;
+  const isNotReady = status === 404;
+
   // Stale assessmentId from a previous user's session — clear it
-  const is403 = (error as AxiosError | null)?.response?.status === 403;
   useEffect(() => {
     if (is403) {
       resetAssessment();
@@ -50,24 +48,13 @@ export function useResults() {
 
   const effectiveReport = report ?? data ?? null;
 
-  const topInterests = Object.entries(effectiveReport?.interests_map ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 7);
-
-  const topThinking = Object.entries(effectiveReport?.thinking_style ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 4);
-
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
-    error: (!is403 && error) ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
+    isNotReady,
+    error: (!is403 && !isNotReady && error) ? 'Не удалось загрузить результат. Попробуй ещё раз.' : null,
     hasCompletedAssessment,
-    goal,
-    ageGroup,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
-    topInterests,
-    topThinking,
     refetch,
   };
 }

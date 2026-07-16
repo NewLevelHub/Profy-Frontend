@@ -172,29 +172,6 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
         <ResponsesSection responses={assessment.responses} />
       </div>
 
-      {assessment.analysis_result && (
-        <div className="space-y-3 pt-2">
-          <h4 className="font-extrabold text-primary">Результат анализа</h4>
-          <p className="text-primary font-medium leading-relaxed">{assessment.analysis_result.summary}</p>
-          {assessment.analysis_result.strengths.length > 0 && (
-            <ChipList label="Сильные стороны" items={assessment.analysis_result.strengths} />
-          )}
-          {assessment.analysis_result.directions.length > 0 && (
-            <div>
-              <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>Направления</p>
-              <div className="space-y-2">
-                {assessment.analysis_result.directions.map((direction) => (
-                  <div key={direction.slug} className="p-3 rounded-[var(--radius)] bg-raised border border-default">
-                    <p className="font-bold">{direction.name}</p>
-                    <p className="text-sm text-secondary mt-1">{direction.why_it_fits}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {assessment.roadmap && (
         <div className="space-y-3 pt-2">
           <h4 className="font-extrabold text-primary">Roadmap</h4>

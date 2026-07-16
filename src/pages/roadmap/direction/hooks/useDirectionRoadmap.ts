@@ -8,19 +8,22 @@ import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import type { DirectionRoadmapResponse } from '@/shared/types';
 
 /** What went wrong, so the page can offer the right way out. */
-export type RoadmapErrorKind = 'ai_unavailable' | 'needs_inquiry' | 'forbidden' | 'generic';
+export type RoadmapErrorKind = 'ai_unavailable' | 'wrong_direction' | 'forbidden' | 'generic';
 
 function errorKind(err: unknown): RoadmapErrorKind {
   const status = (err as AxiosError)?.response?.status;
   if (status === 503) return 'ai_unavailable';
-  if (status === 400) return 'needs_inquiry';
+  // 400 now means "not the direction you confirmed in the test" (see
+  // roadmap_builder._require_direction_roadmap_access) — the akinator
+  // inquiry step this used to mean was removed with the old block flow.
+  if (status === 400) return 'wrong_direction';
   if (status === 403) return 'forbidden';
   return 'generic';
 }
 
 const ERROR_MESSAGES: Record<RoadmapErrorKind, string> = {
   ai_unavailable: 'ИИ временно недоступен. Попробуй ещё раз — план не потеряется.',
-  needs_inquiry: 'Сначала пройди опрос по этому направлению — план строится по его результатам.',
+  wrong_direction: 'Сначала заверши тест и выбери направление.',
   forbidden: 'Эта возможность пока недоступна для твоего возраста.',
   generic: 'Не удалось составить план. Попробуй ещё раз.',
 };

@@ -49,7 +49,7 @@ export function useGoalSelection() {
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),
     onSuccess: (assessment) => {
       resetAssessment();
-      setAssessment(assessment.id, assessment.goal, assessment.current_block);
+      setAssessment(assessment.id, assessment.goal, assessment.current_block, assessment.is_akinator);
       navigate('/assessment');
     },
   });
@@ -63,7 +63,7 @@ export function useGoalSelection() {
       // Sync full assessment data into the store before entering the assessment flow.
       const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
-      setAssessment(current.id, current.goal, current.current_block);
+      setAssessment(current.id, current.goal, current.current_block, current.is_akinator);
       navigate('/assessment');
     }
   }
