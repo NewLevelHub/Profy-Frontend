@@ -206,55 +206,6 @@ export interface AkinatorResultResponse {
   created_at: string;
 }
 
-// ─── Roadmap ───────────────────────────────────────────────────────────────────
-
-export type RoadmapHorizonKey =
-  | 'month_1'
-  | 'months_3'
-  | 'months_6'
-  | 'year_1'
-  | 'until_goal';
-
-export type RoadmapTaskCategory =
-  | 'study'
-  | 'language'
-  | 'project'
-  | 'exam'
-  | 'explore'
-  | 'achievement'
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'portfolio'
-  | 'career'
-  | 'education'
-  | 'planning'
-  | 'documents'
-  | 'requirement'
-  | 'finance'
-  | 'admission'
-  | 'application';
-
-export interface RoadmapTask {
-  text: string;
-  description: string | null;
-  category: RoadmapTaskCategory;
-  priority: number;
-}
-
-export interface RoadmapMilestone {
-  horizon: RoadmapHorizonKey;
-  title: string;
-  tasks: RoadmapTask[];
-}
-
-export interface RoadmapResponse {
-  id: string;
-  assessment_id: string;
-  goal: string;
-  milestones: RoadmapMilestone[];
-}
-
 // ─── Direction roadmap ─────────────────────────────────────────────────────────
 
 export type DirectionHorizonKey = 'months_3' | 'months_6' | 'months_9' | 'months_12';
@@ -446,5 +397,4 @@ export interface AdminAssessmentDetail {
   created_at: string;
   completed_at: string | null;
   responses: AdminResponseItem[];
-  roadmap: RoadmapResponse | null;
 }

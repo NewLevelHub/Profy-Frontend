@@ -34,7 +34,6 @@ import ProfilePage from '@/pages/profile/ProfilePage';
 import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
 import GapAnalysisPage from '@/pages/results/GapAnalysisPage';
-import RoadmapPage from '@/pages/roadmap/RoadmapPage';
 import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
@@ -90,7 +89,6 @@ export const router = createBrowserRouter([
               { path: '/home', element: <HomePage /> },
               { path: '/results', element: <ResultsPage /> },
               { path: '/profile', element: <ProfilePage /> },
-              { path: '/roadmap', element: <RoadmapPage /> },
 
               // Detail screens (mobile: App stack over tabs)
               { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
