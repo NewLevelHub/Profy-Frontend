@@ -15,11 +15,17 @@ export function useAssessment() {
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const goal = useAssessmentStore(s => s.goal);
-  const currentBlock = useAssessmentStore(s => s.currentBlock);
-  const completedBlocks = useAssessmentStore(s => s.completedBlocks);
-  const advanceBlock = useAssessmentStore(s => s.advanceBlock);
-  const markBlockCompleted = useAssessmentStore(s => s.markBlockCompleted);
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
+
+  // Block progress used to live in the global assessment store, but the akinator
+  // engine has no blocks — the store no longer tracks it. This view is unreachable
+  // today (every assessment is akinator, see AssessmentPage), so this is session-local
+  // scaffolding kept only to keep it compiling until it's removed outright.
+  const [currentBlock, setCurrentBlock] = useState(0);
+  const [completedBlocks, setCompletedBlocks] = useState<string[]>([]);
+  const advanceBlock = () => setCurrentBlock(b => b + 1);
+  const markBlockCompleted = (block: string) =>
+    setCompletedBlocks(prev => (prev.includes(block) ? prev : [...prev, block]));
 
   // Retake mode: /assessment?retake=<blockIndex>
   const retakeParam = searchParams.get('retake');
