@@ -15,6 +15,11 @@ export const API = {
     update: '/profile',
     artifacts: '/profile/artifacts',
   },
+  directions: {
+    list: '/directions',
+    tree: '/directions/tree',
+    detail: (slug: string) => `/directions/${slug}`,
+  },
   assessment: {
     start: '/assessment/start',
     current: '/assessment/current',

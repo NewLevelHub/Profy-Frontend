@@ -1,11 +1,11 @@
-import { Navigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
 import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
 import type { AssessmentGoal } from '@/shared/types';
 
 interface GoalCard {
-  goal: AssessmentGoal;
+  goal: AssessmentGoal | 'known';
   emoji: string;
   title: string;
   subtitle: string;
@@ -24,6 +24,12 @@ const GOAL_CARDS: GoalCard[] = [
     emoji: '🎯',
     title: 'Выбрать профессию',
     subtitle: 'Найди направление, которое тебе подойдёт',
+  },
+  {
+    goal: 'known',
+    emoji: '✨',
+    title: 'Уже знаю, кем хочу стать',
+    subtitle: 'Круто — скажи нам, а мы проверим гипотезу',
   },
   {
     goal: 'university',
@@ -151,6 +157,7 @@ function RestartDialog({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GoalSelectionPage() {
+  const navigate = useNavigate();
   const { shouldRedirect } = useGoalGuard();
   const {
     ageGroup,
@@ -173,6 +180,14 @@ export default function GoalSelectionPage() {
   const visibleCards = GOAL_CARDS.filter(
     card => !card.seniorOnly || ageGroup === 'senior',
   );
+
+  function onCardClick(goal: GoalCard['goal']) {
+    if (goal === 'known') {
+      navigate('/assessment/known-profession');
+      return;
+    }
+    handleGoalSelect(goal);
+  }
 
   return (
     <>
@@ -213,8 +228,8 @@ export default function GoalSelectionPage() {
                   <button
                     key={card.title}
                     type="button"
-                    onClick={() => handleGoalSelect(card.goal)}
-                    disabled={isLoading}
+                    onClick={() => onCardClick(card.goal)}
+                    disabled={isLoading && card.goal !== 'known'}
                     className={cn(
                       'flex items-center gap-[18px] px-[22px] py-5 text-left border-[1.5px] transition-all duration-[180ms]',
                       'disabled:opacity-50 disabled:cursor-not-allowed',

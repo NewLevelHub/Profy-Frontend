@@ -24,6 +24,9 @@ import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
 import PraisePage from '@/pages/assessment/PraisePage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
+import KnownProfessionSpheresPage from '@/pages/assessment/knownProfession/KnownProfessionSpheresPage';
+import KnownProfessionListPage from '@/pages/assessment/knownProfession/KnownProfessionListPage';
+import KnownProfessionQuizPage from '@/pages/assessment/knownProfession/KnownProfessionQuizPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
 import HomePage from '@/pages/home/HomePage';
@@ -76,6 +79,12 @@ export const router = createBrowserRouter([
 
       // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → Praise → ResultLoading)
       { path: '/assessment/goal', element: <GoalSelectionPage /> },
+      { path: '/assessment/known-profession', element: <KnownProfessionSpheresPage /> },
+      { path: '/assessment/known-profession/:sphereSlug', element: <KnownProfessionListPage /> },
+      {
+        path: '/assessment/known-profession/:sphereSlug/:professionSlug',
+        element: <KnownProfessionQuizPage />,
+      },
       { path: '/assessment', element: <AssessmentPage /> },
       { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
