@@ -19,7 +19,9 @@ interface SimulationCardProps {
 // useAkinatorAssessment.handleLikeLeaf). Owns its own step/decision state so
 // it never gets folded into the generic akinator question loop.
 export function SimulationCard({ assessmentId, leaf, onAccept, onReject, onCancel }: SimulationCardProps) {
-  const { steps, isLoading, error, submit, isSubmitting, submitError } = useSimulation(assessmentId, leaf.slug);
+  const { steps, isLoading, error, notFound, submit, isSubmitting, submitError } = useSimulation(
+    assessmentId, leaf.slug
+  );
 
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -66,6 +68,40 @@ export function SimulationCard({ assessmentId, leaf, onAccept, onReject, onCance
       {isLoading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-10">
           <Spinner size="lg" />
+        </div>
+      ) : notFound ? (
+        // Content coverage is still partial (only a handful of professions
+        // have a written scenario) — a missing simulation must never block
+        // choosing the profession, so fall back to a plain accept/reject.
+        <div className="flex flex-col gap-5 text-center py-2">
+          <p className="text-secondary font-semibold">
+            Для «{leaf.name}» пока нет интерактивной пробы дня — но ты всё равно можешь её выбрать.
+          </p>
+          {submitError && (
+            <p className="text-danger text-caption text-center font-semibold">
+              Не удалось сохранить решение. Попробуй ещё раз.
+            </p>
+          )}
+          <div className="flex flex-col gap-2">
+            <Button
+              size="lg"
+              className="w-full rounded-pill"
+              isLoading={isSubmitting}
+              disabled={isSubmitting}
+              onClick={() => handleAccept(null)}
+            >
+              👍 Выбрать «{leaf.name}»
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="w-full rounded-pill"
+              disabled={isSubmitting}
+              onClick={handleReject}
+            >
+              Не моё — покажи другое
+            </Button>
+          </div>
         </div>
       ) : error || steps.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-6 text-center">
