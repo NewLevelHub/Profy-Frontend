@@ -26,9 +26,12 @@ export const API = {
     akinatorFeedback: (assessmentId: string) => `/assessment/${assessmentId}/akinator/feedback`,
     akinatorReject: (assessmentId: string, slug: string) => `/assessment/${assessmentId}/akinator/reject/${slug}`,
     akinatorResolve: (assessmentId: string) => `/assessment/${assessmentId}/akinator/resolve`,
+    simulation: (assessmentId: string, leafSlug: string) =>
+      `/assessment/${assessmentId}/simulation/${leafSlug}`,
+    simulationSubmit: (assessmentId: string, leafSlug: string) =>
+      `/assessment/${assessmentId}/simulation/${leafSlug}/submit`,
   },
   result: {
-    generate: '/result/generate',
     get: (assessmentId: string) => `/result/${assessmentId}`,
   },
   roadmap: {
@@ -42,12 +45,6 @@ export const API = {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
     gapAnalysis: (programId: string) => `/universities/programs/${programId}/gap-analysis`,
-  },
-  inquiry: {
-    questions: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/questions`,
-    verdict: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/verdict`,
   },
   admin: {
     users: '/admin/users',

@@ -21,8 +21,6 @@ export default function DirectionRoadmapPage() {
     errorKind, errorMessage, generate,
   } = useDirectionRoadmap(slug);
 
-  const inquiryPath = `/results/directions/${encodeURIComponent(slug)}/inquiry`;
-
   return (
     <PageContainer className="space-y-6">
       <button
@@ -49,12 +47,7 @@ export default function DirectionRoadmapPage() {
               Попробовать снова
             </Button>
           )}
-          {errorKind === 'needs_inquiry' && (
-            <Button variant="primary" size="lg" onClick={() => navigate(inquiryPath)}>
-              Пройти опрос
-            </Button>
-          )}
-          {(errorKind === 'forbidden' || errorKind === 'generic') && (
+          {(errorKind === 'wrong_direction' || errorKind === 'forbidden' || errorKind === 'generic') && (
             <Button variant="ghost" size="lg" onClick={() => navigate('/results')}>
               Назад к результатам
             </Button>

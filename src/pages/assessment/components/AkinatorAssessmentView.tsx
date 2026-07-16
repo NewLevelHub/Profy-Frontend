@@ -1,12 +1,14 @@
-import { useState } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { OptionCard } from './OptionCard';
+import { RevealCard } from './reveal/RevealCard';
+import { SimulationCard } from './simulation/SimulationCard';
 import { useAkinatorAssessment } from '../hooks/useAkinatorAssessment';
 
 export function AkinatorAssessmentView() {
   const {
+    assessmentId,
     isLoading,
     saving,
     error,
@@ -14,6 +16,7 @@ export function AkinatorAssessmentView() {
     reveal,
     step,
     isResolving,
+    simulatingLeaf,
     selectedIndex,
     transitioning,
     exitConfirmOpen,
@@ -23,25 +26,23 @@ export function AkinatorAssessmentView() {
     handleResolve,
     handleReject,
     handleFeedback,
+    handleLikeLeaf,
+    handleSimulationCancel,
+    handleSimulationAccept,
+    handleSimulationReject,
     handleExit,
     confirmExit,
     cancelExit,
     retry,
   } = useAkinatorAssessment();
 
-  const [note, setNote] = useState('');
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
-  const [selectedFeedbackValue, setSelectedFeedbackValue] = useState<boolean | null>(null);
-
-  const headerTitle = question
+  const headerTitle = simulatingLeaf
+    ? `Проба: ${simulatingLeaf.name}`
+    : question
     ? `Вопрос ${step + 1}`
     : reveal
     ? 'Результаты подобраны!'
     : 'Анализ';
-
-  const onFeedbackSubmit = (liked: boolean) => {
-    handleFeedback(liked, note.trim() || null);
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -126,7 +127,9 @@ export function AkinatorAssessmentView() {
           </div>
           <div className="flex justify-between mt-2 mx-0.5" style={{ fontSize: 12 }}>
             <span className="font-bold text-muted">
-              {reveal
+              {simulatingLeaf
+                ? 'Проба профессии'
+                : reveal
                 ? 'Диагностика завершена'
                 : isResolving
                 ? 'Разрешение противоречий'
@@ -151,6 +154,16 @@ export function AkinatorAssessmentView() {
             <span className="text-5xl">⚠️</span>
             <p className="text-body text-danger font-semibold">{error}</p>
             <Button onClick={retry}>Попробовать снова</Button>
+          </div>
+        ) : simulatingLeaf ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-6">
+            <SimulationCard
+              assessmentId={assessmentId!}
+              leaf={simulatingLeaf}
+              onAccept={handleSimulationAccept}
+              onReject={handleSimulationReject}
+              onCancel={handleSimulationCancel}
+            />
           </div>
         ) : question ? (
           <div className="flex-1 flex flex-col overflow-hidden">
@@ -210,136 +223,13 @@ export function AkinatorAssessmentView() {
           </div>
         ) : reveal ? (
           <div className="flex-1 flex flex-col items-center justify-center py-6">
-            <div
-              className="w-full max-w-xl bg-surface rounded-[24px] p-6 lg:p-8 flex flex-col gap-6"
-              style={{
-                boxShadow: '0 10px 30px rgba(30,27,75,.04)',
-                border: '1px solid #EDE9FE',
-              }}
-            >
-              <div className="text-center flex flex-col items-center gap-3">
-                <span className="text-5xl select-none animate-bounce">✨</span>
-                <h2 className="font-black text-primary tracking-[-0.02em]" style={{ fontSize: 32 }}>
-                  Результат готов!
-                </h2>
-                <p className="text-secondary leading-relaxed font-medium" style={{ fontSize: 16 }}>
-                  {reveal.message}
-                </p>
-              </div>
-
-              {/* Matched Directions Cards */}
-              <div className="flex flex-col gap-3">
-                {reveal.leaves.map((leaf, index) => (
-                  <div
-                    key={leaf.slug}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-brand bg-active-tint/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{index === 0 ? '🏆' : '⭐'}</span>
-                      <span className="font-bold text-primary text-subtitle">{leaf.name}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={() => {
-                          setSelectedFeedbackValue(true);
-                          setShowFeedbackForm(true);
-                        }}
-                      >
-                        Подходит 👍
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleReject(leaf.slug)}
-                        className="text-danger hover:bg-danger-subtle"
-                      >
-                        Исключить ✕
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {reveal.backups.length > 0 && (
-                  <div className="mt-4">
-                    <p className="font-bold text-secondary text-caption mb-2">Другие возможные варианты:</p>
-                    <div className="flex flex-col gap-2">
-                      {reveal.backups.map(leaf => (
-                        <div
-                          key={leaf.slug}
-                          className="flex items-center justify-between p-3 rounded-lg border border-default bg-surface/50"
-                        >
-                          <span className="font-semibold text-secondary">{leaf.name}</span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleReject(leaf.slug)}
-                            className="text-danger"
-                          >
-                            ✕
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Cluster resolve button */}
-              {reveal.status === 'cluster' && (
-                <div className="p-4 rounded-xl bg-brand-subtle flex flex-col gap-3 text-center items-center mt-2">
-                  <p className="text-secondary font-bold text-caption">
-                    Найдено несколько похожих направлений. Хочешь ответить на несколько дополнительных вопросов, чтобы сузить выбор?
-                  </p>
-                  <Button onClick={handleResolve} className="rounded-pill px-6" style={{ background: '#7C3AED' }}>
-                    ⚖️ Уточнить выбор
-                  </Button>
-                </div>
-              )}
-
-              {/* General feedback prompt if the user hasn't clicked feedback yet */}
-              {!showFeedbackForm && (
-                <div className="flex justify-center gap-4 mt-4">
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setSelectedFeedbackValue(false);
-                      setShowFeedbackForm(true);
-                    }}
-                    className="text-danger"
-                  >
-                    👎 Ничего не подошло
-                  </Button>
-                </div>
-              )}
-
-              {/* Feedback Form */}
-              {showFeedbackForm && (
-                <div className="flex flex-col gap-4 border-t pt-5 mt-2">
-                  <p className="font-bold text-primary text-center">
-                    {selectedFeedbackValue
-                      ? 'Рады, что подошло! Напиши пару слов о своем выборе:'
-                      : 'Жаль, что не подошло. Напиши, что именно пошло не так:'}
-                  </p>
-                  <textarea
-                    className="w-full min-h-[100px] border rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand font-medium text-primary"
-                    placeholder="Твой комментарий..."
-                    value={note}
-                    onChange={e => setNote(e.target.value)}
-                  />
-                  <div className="flex gap-3 justify-end">
-                    <Button variant="ghost" onClick={() => setShowFeedbackForm(false)}>
-                      Отмена
-                    </Button>
-                    <Button onClick={() => onFeedbackSubmit(selectedFeedbackValue ?? false)}>
-                      Сохранить и завершить
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <RevealCard
+              reveal={reveal}
+              onReject={handleReject}
+              onLikeLeaf={handleLikeLeaf}
+              onFeedback={handleFeedback}
+              onResolve={handleResolve}
+            />
           </div>
         ) : null}
       </div>

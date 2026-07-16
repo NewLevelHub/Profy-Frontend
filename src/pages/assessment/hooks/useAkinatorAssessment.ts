@@ -4,7 +4,9 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
 import type {
+  AkinatorTurnResponse,
   NextQuestionResponse,
+  RevealLeaf,
   RevealResponse,
 } from '@/shared/types';
 
@@ -28,6 +30,10 @@ export function useAkinatorAssessment() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [transitioning, setTransitioning] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  // RJP simulation entry point — set only by an explicit "Нравится" on a
+  // reveal leaf (handleLikeLeaf), never automatically. Distinct from the
+  // cluster resolver (isResolving), which is entered via handleResolve.
+  const [simulatingLeaf, setSimulatingLeaf] = useState<RevealLeaf | null>(null);
 
   useEffect(() => {
     if (!assessmentId) {
@@ -158,12 +164,16 @@ export function useAkinatorAssessment() {
     }
   };
 
-  const handleFeedback = async (liked: boolean, note: string | null = null) => {
+  const handleFeedback = async (
+    liked: boolean,
+    note: string | null = null,
+    directionSlug?: string,
+  ) => {
     if (saving || !assessmentId) return;
     setSaving(true);
     setError(null);
     try {
-      await assessmentApi.akinatorFeedback(assessmentId, { liked, note });
+      await assessmentApi.akinatorFeedback(assessmentId, { liked, note, direction_slug: directionSlug });
       completeAssessment();
       navigate('/assessment/praise', {
         state: {
@@ -181,10 +191,50 @@ export function useAkinatorAssessment() {
     }
   };
 
+  const handleLikeLeaf = (leaf: RevealLeaf) => {
+    setSimulatingLeaf(leaf);
+  };
+
+  const handleSimulationCancel = () => {
+    setSimulatingLeaf(null);
+  };
+
+  // Accepting the simulation confirms the leaf — reuse the existing feedback
+  // finalize step (liked=true), same as before the simulation screen existed.
+  // Pass the simulated leaf's slug through so the backend finalizes THIS
+  // leaf, not whichever one the engine currently believes in most — a
+  // backup or a non-top cluster peer must stick when that's what got accepted.
+  const handleSimulationAccept = async (note: string | null) => {
+    const slug = simulatingLeaf?.slug;
+    setSimulatingLeaf(null);
+    await handleFeedback(true, note, slug);
+  };
+
+  // Rejecting the simulation feeds the outcome back into the akinator engine
+  // (see submit_simulation_outcome on the backend, which demotes this leaf
+  // and re-derives the turn) — merge whatever turn comes back exactly like
+  // handleOptionSelect/handleReject do, so results reflect the rejection.
+  const handleSimulationReject = (turn: AkinatorTurnResponse | null) => {
+    setSimulatingLeaf(null);
+    if (!turn) return;
+    if (turn.type === 'next_question') {
+      setQuestion(turn);
+      setIsResolving(false);
+      setReveal(null);
+      setSelectedIndex(null);
+      setStep(prev => prev + 1);
+    } else {
+      setReveal(turn);
+      setQuestion(null);
+      setSelectedIndex(null);
+    }
+  };
+
   // Converging indicator: starts fast and slowly approaches 100%, never reaching it.
   const questionProgress = 100 * (1 - Math.pow(0.85, step));
 
   return {
+    assessmentId,
     isLoading,
     saving,
     error,
@@ -192,6 +242,7 @@ export function useAkinatorAssessment() {
     reveal,
     step,
     isResolving,
+    simulatingLeaf,
     selectedIndex,
     transitioning,
     exitConfirmOpen,
@@ -201,6 +252,10 @@ export function useAkinatorAssessment() {
     handleResolve,
     handleReject,
     handleFeedback,
+    handleLikeLeaf,
+    handleSimulationCancel,
+    handleSimulationAccept,
+    handleSimulationReject,
     handleExit: () => setExitConfirmOpen(true),
     confirmExit: () => {
       setExitConfirmOpen(false);

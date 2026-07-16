@@ -11,6 +11,9 @@ import type {
   AkinatorFeedbackRequest,
   AkinatorFeedbackResponse,
   AkinatorResolveRequest,
+  SimulationDetailResponse,
+  SimulationSubmitRequest,
+  SimulationSubmitResponse,
 } from '@/shared/types';
 
 export const assessmentApi = {
@@ -53,5 +56,15 @@ export const assessmentApi = {
   akinatorResolve: (assessmentId: string, payload: AkinatorResolveRequest) =>
     apiClient
       .post<AkinatorTurnResponse>(API.assessment.akinatorResolve(assessmentId), payload)
+      .then(r => r.data),
+
+  getSimulation: (assessmentId: string, leafSlug: string) =>
+    apiClient
+      .get<SimulationDetailResponse>(API.assessment.simulation(assessmentId, leafSlug))
+      .then(r => r.data),
+
+  submitSimulation: (assessmentId: string, leafSlug: string, payload: SimulationSubmitRequest) =>
+    apiClient
+      .post<SimulationSubmitResponse>(API.assessment.simulationSubmit(assessmentId, leafSlug), payload)
       .then(r => r.data),
 };

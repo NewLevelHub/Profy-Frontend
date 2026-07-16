@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import type { AnalysisResultResponse } from '@/shared/types';
+import type { AkinatorResultResponse } from '@/shared/types';
 
 interface ResultState {
-  report: AnalysisResultResponse | null;
-  setReport: (report: AnalysisResultResponse) => void;
+  report: AkinatorResultResponse | null;
+  setReport: (report: AkinatorResultResponse) => void;
   clearReport: () => void;
 }
 
