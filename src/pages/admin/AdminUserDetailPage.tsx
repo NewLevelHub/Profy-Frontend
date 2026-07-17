@@ -171,22 +171,6 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
         <h4 className="font-extrabold text-primary">Вопросы и ответы</h4>
         <ResponsesSection responses={assessment.responses} />
       </div>
-
-      {assessment.roadmap && (
-        <div className="space-y-3 pt-2">
-          <h4 className="font-extrabold text-primary">Roadmap</h4>
-          {assessment.roadmap.milestones.map((milestone) => (
-            <div key={milestone.horizon} className="p-3 rounded-[var(--radius)] bg-raised border border-default">
-              <p className="font-bold">{milestone.title}</p>
-              <ul className="mt-2 space-y-1 text-sm text-secondary">
-                {milestone.tasks.map((task) => (
-                  <li key={`${milestone.horizon}-${task.text}`}>• {task.text}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

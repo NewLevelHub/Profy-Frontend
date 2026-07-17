@@ -74,56 +74,6 @@ export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
   [AGE_GROUPS.SENIOR]: '10–11 класс',
 };
 
-export const ROADMAP_HORIZON_LABELS: Record<string, string> = {
-  month_1: '1 месяц',
-  months_3: '3 месяца',
-  months_6: '6 месяцев',
-  year_1: '1 год',
-  until_goal: 'До цели',
-};
-
-export const ROADMAP_CATEGORY_LABELS: Record<string, string> = {
-  study: 'Учёба',
-  language: 'Язык',
-  project: 'Проект',
-  exam: 'Экзамен',
-  explore: 'Исследование',
-  achievement: 'Достижение',
-  knowledge: 'Знания',
-  skill: 'Навык',
-  practice: 'Практика',
-  portfolio: 'Портфолио',
-  career: 'Карьера',
-  education: 'Образование',
-  planning: 'Планирование',
-  documents: 'Документы',
-  requirement: 'Требование',
-  finance: 'Финансы',
-  admission: 'Поступление',
-  application: 'Заявка',
-};
-
-export const ROADMAP_CATEGORY_EMOJIS: Record<string, string> = {
-  study: '📚',
-  language: '🌍',
-  project: '🛠️',
-  exam: '📝',
-  explore: '🔍',
-  achievement: '🏆',
-  knowledge: '💡',
-  skill: '⚡',
-  practice: '🔨',
-  portfolio: '🗂️',
-  career: '🚀',
-  education: '🎓',
-  planning: '🗓️',
-  documents: '📄',
-  requirement: '✅',
-  finance: '💰',
-  admission: '🏛️',
-  application: '📨',
-};
-
 // ─── Direction roadmap (PRO-64) ────────────────────────────────────────────────
 
 export const DIRECTION_HORIZON_LABELS: Record<string, string> = {
