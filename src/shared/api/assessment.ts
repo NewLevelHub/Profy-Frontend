@@ -10,7 +10,7 @@ import type {
   AkinatorAnswerRequest,
   AkinatorFeedbackRequest,
   AkinatorFeedbackResponse,
-  AkinatorResolveRequest,
+  AkinatorRejectAllRequest,
   SimulationDetailResponse,
   SimulationSubmitRequest,
   SimulationSubmitResponse,
@@ -53,9 +53,9 @@ export const assessmentApi = {
       .post<AkinatorTurnResponse>(API.assessment.akinatorReject(assessmentId, slug))
       .then(r => r.data),
 
-  akinatorResolve: (assessmentId: string, payload: AkinatorResolveRequest) =>
+  akinatorRejectAll: (assessmentId: string, payload: AkinatorRejectAllRequest) =>
     apiClient
-      .post<AkinatorTurnResponse>(API.assessment.akinatorResolve(assessmentId), payload)
+      .post<AkinatorTurnResponse>(API.assessment.akinatorRejectAll(assessmentId), payload)
       .then(r => r.data),
 
   getSimulation: (assessmentId: string, leafSlug: string) =>

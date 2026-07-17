@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { useResultStore } from '@/shared/store/result';
 import { assessmentApi } from '@/shared/api/assessment';
 import type {
   AkinatorTurnResponse,
@@ -15,6 +16,8 @@ export function useAkinatorAssessment() {
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const completeAssessment = useAssessmentStore(s => s.completeAssessment);
+  const resetAssessment = useAssessmentStore(s => s.resetAssessment);
+  const clearReport = useResultStore(s => s.clearReport);
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
 
   const [isLoading, setIsLoading] = useState(true);
@@ -25,14 +28,12 @@ export function useAkinatorAssessment() {
   const [question, setQuestion] = useState<NextQuestionResponse | null>(null);
   const [reveal, setReveal] = useState<RevealResponse | null>(null);
   const [step, setStep] = useState(0);
-  const [isResolving, setIsResolving] = useState(false);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [transitioning, setTransitioning] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
-  // RJP simulation entry point — set only by an explicit "Нравится" on a
-  // reveal leaf (handleLikeLeaf), never automatically. Distinct from the
-  // cluster resolver (isResolving), which is entered via handleResolve.
+  // RJP simulation entry point — set only by an explicit "try it on" click
+  // on a reveal leaf (handleLikeLeaf), never automatically.
   const [simulatingLeaf, setSimulatingLeaf] = useState<RevealLeaf | null>(null);
 
   useEffect(() => {
@@ -57,7 +58,6 @@ export function useAkinatorAssessment() {
           setQuestion(null);
         }
         setStep(0);
-        setIsResolving(false);
       } catch {
         if (!cancelled) {
           setError('Не удалось запустить тест. Попробуй ещё раз.');
@@ -86,18 +86,10 @@ export function useAkinatorAssessment() {
     await new Promise(resolve => setTimeout(resolve, 300));
 
     try {
-      let data;
-      if (isResolving) {
-        data = await assessmentApi.akinatorResolve(assessmentId, {
-          question_id: question.question_id,
-          selected_option_index: optionIndex,
-        });
-      } else {
-        data = await assessmentApi.akinatorAnswer(assessmentId, {
-          question_id: question.question_id,
-          selected_option_index: optionIndex,
-        });
-      }
+      const data = await assessmentApi.akinatorAnswer(assessmentId, {
+        question_id: question.question_id,
+        selected_option_index: optionIndex,
+      });
 
       if (data.type === 'next_question') {
         setQuestion(data);
@@ -116,30 +108,6 @@ export function useAkinatorAssessment() {
     }
   };
 
-  const handleResolve = async () => {
-    if (saving || !assessmentId) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const data = await assessmentApi.akinatorResolve(assessmentId, {});
-      if (data.type === 'next_question') {
-        setQuestion(data);
-        setIsResolving(true);
-        setReveal(null);
-        setSelectedIndex(null);
-        setStep(prev => prev + 1);
-      } else {
-        setReveal(data);
-        setQuestion(null);
-        setSelectedIndex(null);
-      }
-    } catch {
-      setError('Не удалось начать уточнение результатов.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleReject = async (slug: string) => {
     if (saving || !assessmentId) return;
     setSaving(true);
@@ -148,7 +116,6 @@ export function useAkinatorAssessment() {
       const data = await assessmentApi.akinatorReject(assessmentId, slug);
       if (data.type === 'next_question') {
         setQuestion(data);
-        setIsResolving(false);
         setReveal(null);
         setSelectedIndex(null);
         setStep(prev => prev + 1);
@@ -159,6 +126,33 @@ export function useAkinatorAssessment() {
       }
     } catch {
       setError('Не удалось исключить направление.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // "Ничего из этого не подходит" — rejects every leaf currently shown at
+  // once (not a single card) and keeps testing, same mechanism as
+  // handleReject. Only the terminal "inconclusive" reveal ends the session
+  // via a comment (see handleFeedback / RevealFeedbackFooter variant="final").
+  const handleRejectAll = async (slugs: string[]) => {
+    if (saving || !assessmentId || slugs.length === 0) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const data = await assessmentApi.akinatorRejectAll(assessmentId, { leaf_slugs: slugs });
+      if (data.type === 'next_question') {
+        setQuestion(data);
+        setReveal(null);
+        setSelectedIndex(null);
+        setStep(prev => prev + 1);
+      } else {
+        setReveal(data);
+        setQuestion(null);
+        setSelectedIndex(null);
+      }
+    } catch {
+      setError('Не удалось продолжить тест.');
     } finally {
       setSaving(false);
     }
@@ -191,6 +185,17 @@ export function useAkinatorAssessment() {
     }
   };
 
+  // Offered only on the "inconclusive" dead end (no confident pick, no leaf
+  // the user chose) — same restart mechanism as the profile page's "Начать
+  // тестирование заново" (see useProfile.handleRestartConfirm): a fresh
+  // assessment/session is minted server-side by POST /assessment/start, so
+  // just clear local state and send the user back to goal selection.
+  const handleRetakeTest = () => {
+    resetAssessment();
+    clearReport();
+    navigate('/assessment/goal', { state: { fromRestart: true } });
+  };
+
   const handleLikeLeaf = (leaf: RevealLeaf) => {
     setSimulatingLeaf(leaf);
   };
@@ -219,7 +224,6 @@ export function useAkinatorAssessment() {
     if (!turn) return;
     if (turn.type === 'next_question') {
       setQuestion(turn);
-      setIsResolving(false);
       setReveal(null);
       setSelectedIndex(null);
       setStep(prev => prev + 1);
@@ -241,7 +245,6 @@ export function useAkinatorAssessment() {
     question,
     reveal,
     step,
-    isResolving,
     simulatingLeaf,
     selectedIndex,
     transitioning,
@@ -249,9 +252,10 @@ export function useAkinatorAssessment() {
     questionProgress,
     ageGroup,
     handleOptionSelect,
-    handleResolve,
     handleReject,
+    handleRejectAll,
     handleFeedback,
+    handleRetakeTest,
     handleLikeLeaf,
     handleSimulationCancel,
     handleSimulationAccept,

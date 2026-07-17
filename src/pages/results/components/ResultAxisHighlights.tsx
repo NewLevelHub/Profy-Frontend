@@ -31,8 +31,8 @@ export function ResultAxisHighlights({ axes }: ResultAxisHighlightsProps) {
   const negative = axes.filter(a => a.direction_value < 0);
 
   return (
-    <section aria-label="Что откликается в этом направлении">
-      <SectionHeading emoji="✨" title="Что откликается" />
+    <section aria-label="Что важно для этой профессии">
+      <SectionHeading emoji="✨" title="Что важно для этой профессии" />
       <Card className="flex flex-col gap-4">
         {positive.length > 0 && (
           <div className="flex flex-col gap-2">

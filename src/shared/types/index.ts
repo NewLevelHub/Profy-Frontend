@@ -99,14 +99,17 @@ export interface NextQuestionResponse {
 export interface RevealLeaf {
   slug: string;
   name: string;
+  description: string;
 }
 
 export interface RevealResponse {
   type: 'reveal';
-  status: 'single' | 'cluster';
+  status: 'single' | 'cluster' | 'inconclusive';
   leaves: RevealLeaf[];
   backups: RevealLeaf[];
   message: string;
+  /** Only populated for status='inconclusive' — friendly axis-strength labels. */
+  strengths: string[];
 }
 
 export type AkinatorTurnResponse = NextQuestionResponse | RevealResponse;
@@ -128,9 +131,8 @@ export interface AkinatorFeedbackResponse {
   status: 'recorded';
 }
 
-export interface AkinatorResolveRequest {
-  question_id?: string | null;
-  selected_option_index?: number | null;
+export interface AkinatorRejectAllRequest {
+  leaf_slugs: string[];
 }
 
 // ── Profession simulation (RJP) ───────────────────────────────────────────
@@ -195,6 +197,15 @@ export interface ResultAxisHighlight {
   direction_value: number;
 }
 
+/** A summed axis score from the child's own answers across the whole
+ * session — distinct from ResultAxisHighlight, which describes the
+ * profession's own axis profile, not what the child actually answered. */
+export interface ChildAxisSignal {
+  code: string;
+  label_ru: string;
+  score: number;
+}
+
 export interface AkinatorResultResponse {
   assessment_id: string;
   direction_slug: string;
@@ -202,6 +213,8 @@ export interface AkinatorResultResponse {
   direction_description: string;
   message: string;
   matched_axes: ResultAxisHighlight[];
+  strengths: ChildAxisSignal[];
+  growth_areas: ChildAxisSignal[];
   backups: RevealLeaf[];
   created_at: string;
 }

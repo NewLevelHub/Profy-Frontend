@@ -5,6 +5,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useResults } from './hooks/useResults';
 import { ResultHero } from './components/ResultHero';
+import { ResultChildProfile } from './components/ResultChildProfile';
 import { ResultAxisHighlights } from './components/ResultAxisHighlights';
 import { ResultBackups } from './components/ResultBackups';
 import { ResultSkeleton } from './components/ResultSkeleton';
@@ -41,6 +42,7 @@ export default function ResultsPage() {
         message={report.message}
       />
 
+      <ResultChildProfile strengths={report.strengths} growthAreas={report.growth_areas} />
       <ResultAxisHighlights axes={report.matched_axes} />
       <ResultBackups backups={report.backups} />
 

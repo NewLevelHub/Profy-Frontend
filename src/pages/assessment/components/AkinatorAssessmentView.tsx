@@ -15,7 +15,6 @@ export function AkinatorAssessmentView() {
     question,
     reveal,
     step,
-    isResolving,
     simulatingLeaf,
     selectedIndex,
     transitioning,
@@ -23,9 +22,10 @@ export function AkinatorAssessmentView() {
     questionProgress,
     ageGroup,
     handleOptionSelect,
-    handleResolve,
     handleReject,
+    handleRejectAll,
     handleFeedback,
+    handleRetakeTest,
     handleLikeLeaf,
     handleSimulationCancel,
     handleSimulationAccept,
@@ -131,8 +131,6 @@ export function AkinatorAssessmentView() {
                 ? 'Проба профессии'
                 : reveal
                 ? 'Диагностика завершена'
-                : isResolving
-                ? 'Разрешение противоречий'
                 : 'Поиск подходящих профессий'}
             </span>
             <span className="font-bold text-muted">
@@ -176,7 +174,7 @@ export function AkinatorAssessmentView() {
               <div className="flex items-center gap-[10px] mb-2">
                 <span className="text-[26px]">⚡</span>
                 <span className="font-extrabold text-brand tracking-[.02em]" style={{ fontSize: 14 }}>
-                  {isResolving ? 'РАЗРЕШЕНИЕ ПРОТИВОРЕЧИЙ' : 'АНАЛИЗ ИНТЕРЕСОВ'}
+                  АНАЛИЗ ИНТЕРЕСОВ
                 </span>
               </div>
 
@@ -226,9 +224,10 @@ export function AkinatorAssessmentView() {
             <RevealCard
               reveal={reveal}
               onReject={handleReject}
+              onRejectAll={handleRejectAll}
               onLikeLeaf={handleLikeLeaf}
               onFeedback={handleFeedback}
-              onResolve={handleResolve}
+              onRetakeTest={handleRetakeTest}
             />
           </div>
         ) : null}

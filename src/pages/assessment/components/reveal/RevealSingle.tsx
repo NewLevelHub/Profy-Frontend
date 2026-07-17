@@ -25,7 +25,7 @@ export function RevealSingle({ leaf, backups, onLike, onReject }: RevealSinglePr
         </span>
         <div className="flex items-center gap-3 mt-1">
           <Button size="sm" onClick={() => onLike(leaf)}>
-            👍 Нравится
+            🔍 Узнать, подходит ли мне
           </Button>
           <button
             type="button"
@@ -52,7 +52,7 @@ export function RevealSingle({ leaf, backups, onLike, onReject }: RevealSinglePr
                 <span className="font-semibold text-secondary">{backup.name}</span>
                 <div className="flex items-center gap-2">
                   <Button size="sm" variant="ghost" onClick={() => onLike(backup)}>
-                    👍 Нравится
+                    🔍 Узнать, подходит ли мне
                   </Button>
                   <button
                     type="button"
