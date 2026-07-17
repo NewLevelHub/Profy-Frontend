@@ -23,6 +23,7 @@ export const API = {
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
     akinatorStart: (assessmentId: string) => `/assessment/${assessmentId}/akinator/start`,
     akinatorAnswer: (assessmentId: string) => `/assessment/${assessmentId}/akinator/answer`,
+    akinatorBack: (assessmentId: string) => `/assessment/${assessmentId}/akinator/back`,
     akinatorFeedback: (assessmentId: string) => `/assessment/${assessmentId}/akinator/feedback`,
     akinatorReject: (assessmentId: string, slug: string) => `/assessment/${assessmentId}/akinator/reject/${slug}`,
     akinatorRejectAll: (assessmentId: string) => `/assessment/${assessmentId}/akinator/reject-all`,

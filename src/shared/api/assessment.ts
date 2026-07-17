@@ -43,6 +43,11 @@ export const assessmentApi = {
       .post<AkinatorTurnResponse>(API.assessment.akinatorAnswer(assessmentId), payload)
       .then(r => r.data),
 
+  akinatorBack: (assessmentId: string) =>
+    apiClient
+      .post<AkinatorTurnResponse>(API.assessment.akinatorBack(assessmentId))
+      .then(r => r.data),
+
   akinatorFeedback: (assessmentId: string, payload: AkinatorFeedbackRequest) =>
     apiClient
       .post<AkinatorFeedbackResponse>(API.assessment.akinatorFeedback(assessmentId), payload)
