@@ -48,6 +48,9 @@ export function useResults() {
 
   const effectiveReport = report ?? data ?? null;
 
+  const hasRecommendedPrograms = (effectiveReport?.recommended_programs?.length ?? 0) > 0;
+  const showUniversityRecommendations = hasRecommendedPrograms;
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
@@ -55,6 +58,7 @@ export function useResults() {
     error: (!is403 && !isNotReady && error) ? 'Не удалось загрузить результат. Попробуй ещё раз.' : null,
     hasCompletedAssessment,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
+    showUniversityRecommendations,
     refetch,
   };
 }

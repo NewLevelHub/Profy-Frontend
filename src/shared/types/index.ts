@@ -62,6 +62,26 @@ export interface ArtifactItem {
 export type AssessmentGoal = 'explore' | 'profession' | 'university';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
+// ─── Direction taxonomy (spheres + leaf professions) ───────────────────────────
+
+export interface DirectionBrief {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  is_leaf: boolean;
+  parent_id: string | null;
+  label_junior: string | null;
+}
+
+export interface DirectionTreeNode {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  professions: DirectionBrief[];
+}
+
 export type AssessmentBlock =
   | 'interests'
   | 'thinking'
@@ -216,6 +236,7 @@ export interface AkinatorResultResponse {
   strengths: ChildAxisSignal[];
   growth_areas: ChildAxisSignal[];
   backups: RevealLeaf[];
+  recommended_programs: ProgramBrief[];
   created_at: string;
 }
 
@@ -305,6 +326,7 @@ export interface UniversityBrief {
   city: string;
   website: string | null;
   ranking: number | null;
+  description?: string | null;
 }
 
 export interface ProgramBrief {
