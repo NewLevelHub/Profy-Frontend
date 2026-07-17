@@ -223,6 +223,7 @@ export interface AkinatorResultResponse {
   message: string;
   matched_axes: ResultAxisHighlight[];
   backups: RevealLeaf[];
+  recommended_programs: ProgramBrief[];
   created_at: string;
 }
 
@@ -361,6 +362,7 @@ export interface UniversityBrief {
   city: string;
   website: string | null;
   ranking: number | null;
+  description?: string | null;
 }
 
 export interface ProgramBrief {

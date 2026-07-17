@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
 import { universityApi } from '@/shared/api/university';
-import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 
 export const COUNTRY_FILTERS: { label: string; value: string | undefined }[] = [
@@ -21,11 +20,10 @@ const ASIA_COUNTRIES = new Set(['Сингапур', 'Южная Корея', 'Я
 export function useUniversityList() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
   const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
 
-  const isAllowed = goal === 'university' && ageGroup === 'senior';
+  const isAllowed = ageGroup === 'senior';
 
   const { data: allPrograms = [], isLoading, error, refetch } = useQuery({
     queryKey: ['programs', slug] as const,

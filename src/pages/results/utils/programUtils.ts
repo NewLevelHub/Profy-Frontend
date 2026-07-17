@@ -34,8 +34,11 @@ const KEY_LABELS: Record<string, string> = {
   act: 'Балл ACT',
   ielts: 'Балл IELTS',
   toefl: 'Балл TOEFL',
-  ent: 'Балл ЕНТ',
-  // Deadlines
+  admission_summary: 'Условия поступления',
+  admission_requirements: 'Требования к поступлению',
+  location: 'Адрес',
+  rankings: 'Рейтинги',
+  website: 'Сайт',
   application: 'Подача заявки',
   application_open: 'Открытие приёма',
   application_close: 'Закрытие приёма',

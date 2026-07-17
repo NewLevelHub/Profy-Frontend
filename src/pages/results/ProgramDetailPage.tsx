@@ -52,24 +52,6 @@ function RequirementsTable({ data }: { data: Record<string, unknown> }) {
   );
 }
 
-function DeadlinesGrid({ data }: { data: Record<string, unknown> }) {
-  const entries = Object.entries(data);
-  if (entries.length === 0) return null;
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {entries.map(([key, value]) => (
-        <div
-          key={key}
-          className="bg-surface border border-[#EDE9FE] rounded-2xl px-[18px] py-4 shadow-card"
-        >
-          <div className="text-[13px] font-bold text-muted mb-1">{localizeKey(key)}</div>
-          <div className="text-[17px] font-black text-primary">{toDisplayString(value)}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function ProgramDetailPage() {
   const navigate = useNavigate();
   const { program, isLoading, error } = useProgramDetail();
@@ -102,7 +84,34 @@ export default function ProgramDetailPage() {
             <span className="inline-flex items-center gap-1.5 bg-[#FFF7ED] text-[#C2410C] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
               💰 {formatCost(program.cost_per_year)}
             </span>
+            {program.university.ranking !== null && (
+              <span className="inline-flex items-center gap-1.5 bg-[#ECFDF5] text-[#047857] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
+                🏆 QS #{program.university.ranking}
+              </span>
+            )}
           </div>
+
+          {program.university.description && (
+            <div className="bg-surface border border-[#EDE9FE] rounded-[20px] p-6 shadow-card">
+              <SectionHeadingLocal>🏛️ Об университете</SectionHeadingLocal>
+              <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0 mb-3">
+                {program.university.description}
+              </p>
+              <div className="flex flex-col gap-1 text-[14px] font-semibold text-muted">
+                <span>📍 {program.university.city}, {program.university.country}</span>
+                {program.university.website && (
+                  <a
+                    href={program.university.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-brand hover:underline"
+                  >
+                    {program.university.website}
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {program.description && program.description.length > 0 && (
@@ -139,16 +148,21 @@ export default function ProgramDetailPage() {
           {Object.keys(program.requirements ?? {}).length > 0 && (
             <div>
               <SectionHeadingLocal>📝 Требования</SectionHeadingLocal>
-              <RequirementsTable data={program.requirements ?? {}} />
+              {Array.isArray(program.requirements.admission_requirements) && (
+                <ul className="mb-4 pl-5 text-[15px] text-secondary font-semibold leading-relaxed space-y-2">
+                  {(program.requirements.admission_requirements as string[]).map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              )}
+              <RequirementsTable
+                data={Object.fromEntries(
+                  Object.entries(program.requirements ?? {}).filter(([key]) => key !== 'admission_requirements'),
+                )}
+              />
             </div>
           )}
 
-          {Object.keys(program.deadlines ?? {}).length > 0 && (
-            <div>
-              <SectionHeadingLocal>🗓️ Дедлайны</SectionHeadingLocal>
-              <DeadlinesGrid data={program.deadlines ?? {}} />
-            </div>
-          )}
 
           {(program.grants ?? []).length > 0 && (
             <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-[20px] px-6 py-5 flex items-center gap-3.5">

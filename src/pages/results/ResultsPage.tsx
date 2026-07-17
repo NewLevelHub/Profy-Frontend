@@ -7,12 +7,13 @@ import { useResults } from './hooks/useResults';
 import { ResultHero } from './components/ResultHero';
 import { ResultAxisHighlights } from './components/ResultAxisHighlights';
 import { ResultBackups } from './components/ResultBackups';
+import { ResultProgramRecommendations } from './components/ResultProgramRecommendations';
 import { ResultSkeleton } from './components/ResultSkeleton';
 import { ResultEmptyState } from './components/ResultEmptyState';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
-  const { report, isLoading, isNotReady, error, hasCompletedAssessment, showUniversityBtn, refetch } = useResults();
+  const { report, isLoading, isNotReady, error, hasCompletedAssessment, showUniversityBtn, showUniversityRecommendations, refetch } = useResults();
 
   if (!hasCompletedAssessment || isNotReady) {
     return <ResultEmptyState onStart={() => navigate('/assessment/goal')} />;
@@ -43,6 +44,12 @@ export default function ResultsPage() {
 
       <ResultAxisHighlights axes={report.matched_axes} />
       <ResultBackups backups={report.backups} />
+      {showUniversityRecommendations && (
+        <ResultProgramRecommendations
+          programs={report.recommended_programs}
+          directionSlug={report.direction_slug}
+        />
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3">
         <Button
