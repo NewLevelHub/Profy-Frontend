@@ -108,6 +108,28 @@ export function useAkinatorAssessment() {
     }
   };
 
+  // Undoes the last answer and re-serves that exact question so it can be
+  // answered differently — only available while a question is showing
+  // (step > 0 gates the button itself; the backend also rejects it once a
+  // reveal has been reached, see akinator_session_service.go_back).
+  const handleBack = async () => {
+    if (saving || !assessmentId || step === 0) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const data = await assessmentApi.akinatorBack(assessmentId);
+      if (data.type === 'next_question') {
+        setQuestion(data);
+        setSelectedIndex(null);
+        setStep(prev => prev - 1);
+      }
+    } catch {
+      setError('Не удалось вернуться к предыдущему вопросу.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleReject = async (slug: string) => {
     if (saving || !assessmentId) return;
     setSaving(true);
@@ -252,6 +274,7 @@ export function useAkinatorAssessment() {
     questionProgress,
     ageGroup,
     handleOptionSelect,
+    handleBack,
     handleReject,
     handleRejectAll,
     handleFeedback,

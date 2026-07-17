@@ -22,6 +22,7 @@ export function AkinatorAssessmentView() {
     questionProgress,
     ageGroup,
     handleOptionSelect,
+    handleBack,
     handleReject,
     handleRejectAll,
     handleFeedback,
@@ -171,11 +172,24 @@ export function AkinatorAssessmentView() {
                 transitioning ? 'opacity-0' : 'opacity-100'
               )}
             >
-              <div className="flex items-center gap-[10px] mb-2">
-                <span className="text-[26px]">⚡</span>
-                <span className="font-extrabold text-brand tracking-[.02em]" style={{ fontSize: 14 }}>
-                  АНАЛИЗ ИНТЕРЕСОВ
-                </span>
+              <div className="flex items-center justify-between gap-[10px] mb-2">
+                <div className="flex items-center gap-[10px]">
+                  <span className="text-[26px]">⚡</span>
+                  <span className="font-extrabold text-brand tracking-[.02em]" style={{ fontSize: 14 }}>
+                    АНАЛИЗ ИНТЕРЕСОВ
+                  </span>
+                </div>
+                {step > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    disabled={saving}
+                    className="font-bold text-secondary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ fontSize: 13 }}
+                  >
+                    ← Назад
+                  </button>
+                )}
               </div>
 
               <h2
