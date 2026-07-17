@@ -2,25 +2,44 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/Button';
 
 interface RevealFeedbackFooterProps {
+  // 'continue': single/cluster reveal — the pill immediately rejects
+  // everything shown and keeps testing (onContinue), no comment step.
+  // 'final': the inconclusive dead-end — the only place a comment-then-finish
+  // step still makes sense, since there's nowhere left to send the user.
+  variant: 'continue' | 'final';
+  onContinue: () => void;
   mode: 'disliked' | null;
   onPickDisliked: () => void;
   onCancel: () => void;
   onSubmit: (note: string | null) => void;
 }
 
-// The session-ending "ничего не подходит" feedback step — deliberately a
-// muted pill button, not a red one, so it doesn't read like the per-leaf
-// "не моё" reject buttons above it (RevealSingle/RevealCluster). A *liked*
-// leaf no longer lands here directly — it goes through the RJP simulation
-// first (see SimulationCard / useAkinatorAssessment.handleLikeLeaf), which
-// has its own accept-with-note step.
+// A *liked* leaf never lands here directly — it goes through the RJP
+// simulation first (see SimulationCard / useAkinatorAssessment.handleLikeLeaf),
+// which has its own accept-with-note step.
 export function RevealFeedbackFooter({
+  variant,
+  onContinue,
   mode,
   onPickDisliked,
   onCancel,
   onSubmit,
 }: RevealFeedbackFooterProps) {
   const [note, setNote] = useState('');
+
+  if (variant === 'continue') {
+    return (
+      <div className="flex justify-center border-t border-default pt-4 mt-2">
+        <button
+          type="button"
+          onClick={onContinue}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-pill border border-default text-secondary font-bold hover:bg-raised transition-colors"
+        >
+          🤷 Ничего из этого не подходит
+        </button>
+      </div>
+    );
+  }
 
   if (mode === null) {
     return (
@@ -30,7 +49,7 @@ export function RevealFeedbackFooter({
           onClick={onPickDisliked}
           className="flex items-center gap-2 px-5 py-2.5 rounded-pill border border-default text-secondary font-bold hover:bg-raised transition-colors"
         >
-          🤷 Ничего из этого не подходит
+          Завершить тест
         </button>
       </div>
     );

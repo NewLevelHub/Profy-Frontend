@@ -25,7 +25,7 @@ export const API = {
     akinatorAnswer: (assessmentId: string) => `/assessment/${assessmentId}/akinator/answer`,
     akinatorFeedback: (assessmentId: string) => `/assessment/${assessmentId}/akinator/feedback`,
     akinatorReject: (assessmentId: string, slug: string) => `/assessment/${assessmentId}/akinator/reject/${slug}`,
-    akinatorResolve: (assessmentId: string) => `/assessment/${assessmentId}/akinator/resolve`,
+    akinatorRejectAll: (assessmentId: string) => `/assessment/${assessmentId}/akinator/reject-all`,
     simulation: (assessmentId: string, leafSlug: string) =>
       `/assessment/${assessmentId}/simulation/${leafSlug}`,
     simulationSubmit: (assessmentId: string, leafSlug: string) =>

@@ -99,14 +99,17 @@ export interface NextQuestionResponse {
 export interface RevealLeaf {
   slug: string;
   name: string;
+  description: string;
 }
 
 export interface RevealResponse {
   type: 'reveal';
-  status: 'single' | 'cluster';
+  status: 'single' | 'cluster' | 'inconclusive';
   leaves: RevealLeaf[];
   backups: RevealLeaf[];
   message: string;
+  /** Only populated for status='inconclusive' — friendly axis-strength labels. */
+  strengths: string[];
 }
 
 export type AkinatorTurnResponse = NextQuestionResponse | RevealResponse;
@@ -128,9 +131,8 @@ export interface AkinatorFeedbackResponse {
   status: 'recorded';
 }
 
-export interface AkinatorResolveRequest {
-  question_id?: string | null;
-  selected_option_index?: number | null;
+export interface AkinatorRejectAllRequest {
+  leaf_slugs: string[];
 }
 
 // ── Profession simulation (RJP) ───────────────────────────────────────────
