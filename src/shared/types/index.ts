@@ -197,6 +197,15 @@ export interface ResultAxisHighlight {
   direction_value: number;
 }
 
+/** A summed axis score from the child's own answers across the whole
+ * session — distinct from ResultAxisHighlight, which describes the
+ * profession's own axis profile, not what the child actually answered. */
+export interface ChildAxisSignal {
+  code: string;
+  label_ru: string;
+  score: number;
+}
+
 export interface AkinatorResultResponse {
   assessment_id: string;
   direction_slug: string;
@@ -204,6 +213,8 @@ export interface AkinatorResultResponse {
   direction_description: string;
   message: string;
   matched_axes: ResultAxisHighlight[];
+  strengths: ChildAxisSignal[];
+  growth_areas: ChildAxisSignal[];
   backups: RevealLeaf[];
   created_at: string;
 }
