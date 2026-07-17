@@ -9,7 +9,7 @@ interface LocationState {
 }
 
 export function useGapAnalysis() {
-  const { programId } = useParams<{ programId: string }>();
+  const { slug, programId } = useParams<{ slug: string; programId: string }>();
   const navigate = useNavigate();
   const { state } = useLocation();
   const assessmentId = useAssessmentStore(s => s.assessmentId);
@@ -23,7 +23,10 @@ export function useGapAnalysis() {
   });
 
   function handleBuildPlan() {
-    navigate('/roadmap');
+    // The general goal-roadmap (/roadmap) was retired with the old scoring
+    // pipeline — direction-roadmap is the live plan builder now, and `slug`
+    // (the program's direction) is already in this page's route.
+    if (slug) navigate(`/results/directions/${encodeURIComponent(slug)}/roadmap`);
   }
 
   return {

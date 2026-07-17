@@ -14,10 +14,10 @@ interface SimulationCardProps {
   onCancel: () => void;
 }
 
-// RJP simulation — a separate entry point from the cluster resolver, opened
-// only by an explicit "Нравится" on a specific reveal leaf (see RevealCard /
-// useAkinatorAssessment.handleLikeLeaf). Owns its own step/decision state so
-// it never gets folded into the generic akinator question loop.
+// RJP simulation — opened by an explicit "🔍 Узнать, подходит ли мне" on a
+// specific reveal leaf (see RevealCard / useAkinatorAssessment.handleLikeLeaf).
+// Owns its own step/decision state so it never gets folded into the generic
+// akinator question loop.
 export function SimulationCard({ assessmentId, leaf, onAccept, onReject, onCancel }: SimulationCardProps) {
   const { steps, isLoading, error, notFound, submit, isSubmitting, submitError } = useSimulation(
     assessmentId, leaf.slug
@@ -64,6 +64,15 @@ export function SimulationCard({ assessmentId, leaf, onAccept, onReject, onCance
           ✕
         </button>
       </div>
+
+      {leaf.description && (
+        <div className="p-4 rounded-xl bg-brand-subtle">
+          <p className="font-bold text-primary mb-1">{leaf.name}</p>
+          <p className="text-secondary font-medium text-caption leading-relaxed">
+            {leaf.description}
+          </p>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-10">

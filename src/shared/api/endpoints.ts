@@ -30,7 +30,7 @@ export const API = {
     akinatorAnswer: (assessmentId: string) => `/assessment/${assessmentId}/akinator/answer`,
     akinatorFeedback: (assessmentId: string) => `/assessment/${assessmentId}/akinator/feedback`,
     akinatorReject: (assessmentId: string, slug: string) => `/assessment/${assessmentId}/akinator/reject/${slug}`,
-    akinatorResolve: (assessmentId: string) => `/assessment/${assessmentId}/akinator/resolve`,
+    akinatorRejectAll: (assessmentId: string) => `/assessment/${assessmentId}/akinator/reject-all`,
     simulation: (assessmentId: string, leafSlug: string) =>
       `/assessment/${assessmentId}/simulation/${leafSlug}`,
     simulationSubmit: (assessmentId: string, leafSlug: string) =>
@@ -40,8 +40,6 @@ export const API = {
     get: (assessmentId: string) => `/result/${assessmentId}`,
   },
   roadmap: {
-    generate: '/roadmap/generate',
-    get: (assessmentId: string) => `/roadmap/${assessmentId}`,
     generateDirection: '/roadmap/direction',
     getDirection: (assessmentId: string, slug: string) =>
       `/roadmap/${assessmentId}/directions/${slug}`,

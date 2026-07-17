@@ -25,7 +25,7 @@ export function RevealCluster({ leaves, onLike, onReject }: RevealClusterProps) 
             <span className="font-bold text-primary text-subtitle">{leaf.name}</span>
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={() => onLike(leaf)}>
-                👍 Нравится
+                🔍 Узнать, подходит ли мне
               </Button>
               <button
                 type="button"
