@@ -211,19 +211,25 @@ export interface SaveAnswersResponse {
 
 // ─── Results ───────────────────────────────────────────────────────────────────
 
-export interface ResultAxisHighlight {
-  code: string;
-  label_ru: string;
-  direction_value: number;
+/** Static, non-personalized copy for a growth-area axis — same text
+ * regardless of which direction or student it's attached to. */
+export interface AxisGrowthExplanation {
+  meaning: string;
+  suggestion: string;
 }
 
-/** A summed axis score from the child's own answers across the whole
- * session — distinct from ResultAxisHighlight, which describes the
- * profession's own axis profile, not what the child actually answered. */
-export interface ChildAxisSignal {
+/** One axis compared between the child's own normalized signal and the
+ * target direction's needs. `profile_value` is only set when the axis is
+ * actually one the direction needs — null when the item came from the
+ * whole-session fallback (see AkinatorResultResponse.is_direction_specific).
+ * Exactly one of `strength_phrase` (match) / `explanation` (growth) is set. */
+export interface AxisComparisonItem {
   code: string;
   label_ru: string;
-  score: number;
+  profile_value: number | null;
+  child_score: number;
+  strength_phrase: string | null;
+  explanation: AxisGrowthExplanation | null;
 }
 
 export interface AkinatorResultResponse {
@@ -232,9 +238,12 @@ export interface AkinatorResultResponse {
   direction_name: string;
   direction_description: string;
   message: string;
-  matched_axes: ResultAxisHighlight[];
-  strengths: ChildAxisSignal[];
-  growth_areas: ChildAxisSignal[];
+  matches: AxisComparisonItem[];
+  growth_areas: AxisComparisonItem[];
+  /** False when matches/growth_areas fell back to the child's whole-session
+   * signal because no axis this direction needs had any real answer signal
+   * — the UI must say these aren't direction-specific. */
+  is_direction_specific: boolean;
   backups: RevealLeaf[];
   recommended_programs: ProgramBrief[];
   created_at: string;
