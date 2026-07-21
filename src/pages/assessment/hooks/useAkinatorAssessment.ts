@@ -130,33 +130,11 @@ export function useAkinatorAssessment() {
     }
   };
 
-  const handleReject = async (slug: string) => {
-    if (saving || !assessmentId) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const data = await assessmentApi.akinatorReject(assessmentId, slug);
-      if (data.type === 'next_question') {
-        setQuestion(data);
-        setReveal(null);
-        setSelectedIndex(null);
-        setStep(prev => prev + 1);
-      } else {
-        setReveal(data);
-        setQuestion(null);
-        setSelectedIndex(null);
-      }
-    } catch {
-      setError('Не удалось исключить направление.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   // "Ничего из этого не подходит" — rejects every leaf currently shown at
-  // once (not a single card) and keeps testing, same mechanism as
-  // handleReject. Only the terminal "inconclusive" reveal ends the session
-  // via a comment (see handleFeedback / RevealFeedbackFooter variant="final").
+  // once (never a single card — see RevealCard's docstring for why a
+  // per-card reject was removed) and keeps testing. Only the terminal
+  // "inconclusive" reveal ends the session via a comment (see handleFeedback
+  // / RevealFeedbackFooter variant="final").
   const handleRejectAll = async (slugs: string[]) => {
     if (saving || !assessmentId || slugs.length === 0) return;
     setSaving(true);
@@ -240,7 +218,7 @@ export function useAkinatorAssessment() {
   // Rejecting the simulation feeds the outcome back into the akinator engine
   // (see submit_simulation_outcome on the backend, which demotes this leaf
   // and re-derives the turn) — merge whatever turn comes back exactly like
-  // handleOptionSelect/handleReject do, so results reflect the rejection.
+  // handleOptionSelect/handleRejectAll do, so results reflect the rejection.
   const handleSimulationReject = (turn: AkinatorTurnResponse | null) => {
     setSimulatingLeaf(null);
     if (!turn) return;
@@ -275,7 +253,6 @@ export function useAkinatorAssessment() {
     ageGroup,
     handleOptionSelect,
     handleBack,
-    handleReject,
     handleRejectAll,
     handleFeedback,
     handleRetakeTest,

@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
-import { directionsApi } from '@/shared/api/directions';
 import { Button, Spinner } from '@/shared/ui';
 import { OptionCard } from '../components/OptionCard';
 import { useProfileStore } from '@/shared/store/profile';
+import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
 import {
   getProfessionQuestions,
   scoreProfessionQuiz,
@@ -27,10 +26,7 @@ export default function KnownProfessionQuizPage() {
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
   const state = (location.state as LocationState | null) ?? {};
 
-  const { data: tree, isLoading } = useQuery({
-    queryKey: ['directions', 'tree'],
-    queryFn: () => directionsApi.tree(),
-  });
+  const { data: tree, isLoading } = useKnownProfessionTree();
 
   const sphere = tree?.find(s => s.slug === sphereSlug);
   const profession = sphere?.professions.find(p => p.slug === professionSlug);

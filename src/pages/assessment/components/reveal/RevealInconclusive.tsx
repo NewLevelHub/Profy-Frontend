@@ -42,10 +42,17 @@ export function RevealInconclusive({ strengths, leaves, onLike, onRetakeTest }: 
             {leaves.map(leaf => (
               <div
                 key={leaf.slug}
-                className="flex items-center justify-between p-3 rounded-lg border border-default bg-surface/50"
+                className="flex items-center justify-between gap-3 p-3 rounded-lg border border-default bg-surface/50"
               >
-                <span className="font-semibold text-secondary">{leaf.name}</span>
-                <Button size="sm" variant="ghost" onClick={() => onLike(leaf)}>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="font-semibold text-secondary">{leaf.name}</span>
+                  {leaf.description && (
+                    <span className="text-muted font-medium text-caption leading-snug">
+                      {leaf.description}
+                    </span>
+                  )}
+                </div>
+                <Button size="sm" variant="ghost" className="shrink-0" onClick={() => onLike(leaf)}>
                   🔍 Узнать, подходит ли мне
                 </Button>
               </div>
