@@ -257,6 +257,7 @@ export interface AkinatorResultResponse {
    * signal because no axis this direction needs had any real answer signal
    * — the UI must say these aren't direction-specific. */
   is_direction_specific: boolean;
+  professions: string[];
   backups: RevealLeaf[];
   recommended_programs: ProgramBrief[];
   created_at: string;

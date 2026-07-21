@@ -12,14 +12,17 @@ export function ResultProfessionExamples({ professions }: ResultProfessionExampl
   if (professions.length === 0) return null;
 
   return (
-    <section aria-label="Чем можно заниматься">
-      <SectionHeading emoji="💼" title="Чем можно заниматься" />
-      <Card className="flex flex-col gap-2.5">
+    <section aria-label="Профессии">
+      <SectionHeading emoji="💼" title="Кем можно стать" />
+      <Card className="flex flex-wrap gap-2.5">
         {professions.map(profession => (
-          <p key={profession} className="text-primary font-semibold" style={{ fontSize: 15 }}>
-            <span className="text-secondary mr-2" aria-hidden="true">—</span>
+          <span
+            key={profession}
+            className="font-bold text-secondary bg-raised rounded-pill px-3.5 py-2"
+            style={{ fontSize: 13.5 }}
+          >
             {profession}
-          </p>
+          </span>
         ))}
       </Card>
     </section>
