@@ -53,11 +53,6 @@ export const assessmentApi = {
       .post<AkinatorFeedbackResponse>(API.assessment.akinatorFeedback(assessmentId), payload)
       .then(r => r.data),
 
-  akinatorReject: (assessmentId: string, slug: string) =>
-    apiClient
-      .post<AkinatorTurnResponse>(API.assessment.akinatorReject(assessmentId, slug))
-      .then(r => r.data),
-
   akinatorRejectAll: (assessmentId: string, payload: AkinatorRejectAllRequest) =>
     apiClient
       .post<AkinatorTurnResponse>(API.assessment.akinatorRejectAll(assessmentId), payload)

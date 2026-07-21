@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
-import { directionsApi } from '@/shared/api/directions';
 import { Spinner } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
+import { useProfileStore } from '@/shared/store/profile';
+import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
+import { useProfessionSearch } from './hooks/useProfessionSearch';
+import { ProfessionSearchInput } from './components/ProfessionSearchInput';
+import { ProfessionSearchResults } from './components/ProfessionSearchResults';
+import type { SpecialtySearchMatch } from './utils/search';
 
 const SPHERE_EMOJI: Record<string, string> = {
   'akinator-medicine': '🏥',
@@ -25,11 +30,26 @@ const SPHERE_EMOJI: Record<string, string> = {
 
 export default function KnownProfessionSpheresPage() {
   const navigate = useNavigate();
+  const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
+  const [query, setQuery] = useState('');
 
-  const { data: tree, isLoading, error, refetch } = useQuery({
-    queryKey: ['directions', 'tree'],
-    queryFn: () => directionsApi.tree(),
-  });
+  const { data: tree, isLoading, error, refetch } = useKnownProfessionTree();
+  const searchResults = useProfessionSearch(tree, query);
+  const isSearching = query.trim().length > 0;
+
+  function handleSelectMatch(match: SpecialtySearchMatch) {
+    const label =
+      ageGroup === 'junior' && match.specialty.label_junior
+        ? match.specialty.label_junior
+        : match.specialty.name;
+
+    navigate(`/assessment/known-profession/${match.sphereSlug}/${match.specialty.slug}`, {
+      state: {
+        professionName: match.matchedProfession ?? label,
+        sphereName: match.sphereName,
+      },
+    });
+  }
 
   return (
     <div className="min-h-screen bg-page flex flex-col">
@@ -57,9 +77,15 @@ export default function KnownProfessionSpheresPage() {
               Выбери сферу
             </h1>
             <p className="text-secondary font-semibold" style={{ fontSize: 17 }}>
-              В какой области твоя профессия?
+              {isSearching ? 'Результаты поиска по всем сферам' : 'В какой области твоя профессия?'}
             </p>
           </div>
+
+          {tree && tree.length > 0 && (
+            <div className="mb-5">
+              <ProfessionSearchInput value={query} onChange={setQuery} />
+            </div>
+          )}
 
           {isLoading && (
             <div className="flex justify-center py-12">
@@ -91,7 +117,15 @@ export default function KnownProfessionSpheresPage() {
             </p>
           )}
 
-          {tree && tree.length > 0 && (
+          {tree && isSearching && (
+            <ProfessionSearchResults
+              results={searchResults}
+              ageGroup={ageGroup}
+              onSelect={handleSelectMatch}
+            />
+          )}
+
+          {tree && tree.length > 0 && !isSearching && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
               {tree.map((sphere, i) => (
                 <button

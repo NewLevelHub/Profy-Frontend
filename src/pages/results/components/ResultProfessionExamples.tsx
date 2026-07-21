@@ -1,11 +1,14 @@
 import { Card } from '@/shared/ui/Card';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 
-interface ResultProfessionsProps {
+interface ResultProfessionExamplesProps {
   professions: string[];
 }
 
-export function ResultProfessions({ professions }: ResultProfessionsProps) {
+// Plain rows on purpose, not pills like ResultBackups — those are
+// alternatives to pick between, these are just what the one chosen
+// specialty actually leads to, so they read as a quiet fact, not a choice.
+export function ResultProfessionExamples({ professions }: ResultProfessionExamplesProps) {
   if (professions.length === 0) return null;
 
   return (

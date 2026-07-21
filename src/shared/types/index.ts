@@ -72,6 +72,9 @@ export interface DirectionBrief {
   is_leaf: boolean;
   parent_id: string | null;
   label_junior: string | null;
+  // Concrete job titles this specialty leads to, e.g. software-engineer ->
+  // ["Backend-разработчик", ...]. Empty for section nodes.
+  professions: string[];
 }
 
 export interface DirectionTreeNode {
@@ -119,7 +122,11 @@ export interface NextQuestionResponse {
 export interface RevealLeaf {
   slug: string;
   name: string;
+  // Parent section name (e.g. "Медицина и здоровье") — a broader anchor
+  // alongside the specific specialty name.
+  direction: string;
   description: string;
+  // Concrete job titles this specialty leads to, e.g. "Архитектор".
   professions: string[];
 }
 
@@ -129,7 +136,9 @@ export interface RevealResponse {
   leaves: RevealLeaf[];
   backups: RevealLeaf[];
   message: string;
-  /** Only populated for status='inconclusive' — friendly axis-strength labels. */
+  /** Populated for both cluster reveals (status='cluster' or 'inconclusive')
+   * — friendly axis-strength labels explaining what belief still describes.
+   * Empty for status='single' (one clear pick, nothing to summarize). */
   strengths: string[];
 }
 
@@ -239,6 +248,9 @@ export interface AkinatorResultResponse {
   direction_name: string;
   direction_description: string;
   message: string;
+  // Concrete job titles this specialty leads to, e.g. "Архитектор". Empty
+  // is possible (not every seeded specialty has one), UI must handle that.
+  professions: string[];
   matches: AxisComparisonItem[];
   growth_areas: AxisComparisonItem[];
   /** False when matches/growth_areas fell back to the child's whole-session
