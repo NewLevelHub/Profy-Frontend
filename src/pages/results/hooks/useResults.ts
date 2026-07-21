@@ -5,8 +5,20 @@ import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import type { AkinatorResultResponse } from '@/shared/types';
 
-export function useResults() {
+interface UseResultsReturn {
+  report: AkinatorResultResponse | null;
+  isLoading: boolean;
+  isNotReady: boolean;
+  error: string | null;
+  hasCompletedAssessment: boolean;
+  showUniversityBtn: boolean;
+  showUniversityRecommendations: boolean;
+  refetch: () => Promise<unknown>;
+}
+
+export function useResults(): UseResultsReturn {
   const report = useResultStore(s => s.report);
   const setReport = useResultStore(s => s.setReport);
   const clearReport = useResultStore(s => s.clearReport);
