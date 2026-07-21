@@ -72,6 +72,9 @@ export interface DirectionBrief {
   is_leaf: boolean;
   parent_id: string | null;
   label_junior: string | null;
+  // Concrete job titles this specialty leads to, e.g. software-engineer ->
+  // ["Backend-разработчик", ...]. Empty for section nodes.
+  professions: string[];
 }
 
 export interface DirectionTreeNode {
@@ -238,6 +241,9 @@ export interface AkinatorResultResponse {
   direction_name: string;
   direction_description: string;
   message: string;
+  // Concrete job titles this specialty leads to, e.g. "Архитектор". Empty
+  // is possible (not every seeded specialty has one), UI must handle that.
+  professions: string[];
   matches: AxisComparisonItem[];
   growth_areas: AxisComparisonItem[];
   /** False when matches/growth_areas fell back to the child's whole-session

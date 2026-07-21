@@ -5,6 +5,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useResults } from './hooks/useResults';
 import { ResultHero } from './components/ResultHero';
+import { ResultProfessionExamples } from './components/ResultProfessionExamples';
 import { ResultAxisComparison } from './components/ResultAxisComparison';
 import { ResultBackups } from './components/ResultBackups';
 import { ResultProgramRecommendations } from './components/ResultProgramRecommendations';
@@ -39,8 +40,9 @@ export default function ResultsPage() {
       <ResultHero
         directionName={report.direction_name}
         directionDescription={report.direction_description}
-        message={report.message}
       />
+
+      <ResultProfessionExamples professions={report.professions} />
 
       <ResultAxisComparison
         matches={report.matches}
