@@ -122,7 +122,12 @@ export interface NextQuestionResponse {
 export interface RevealLeaf {
   slug: string;
   name: string;
+  // Parent section name (e.g. "Медицина и здоровье") — a broader anchor
+  // alongside the specific specialty name.
+  direction: string;
   description: string;
+  // Concrete job titles this specialty leads to, e.g. "Архитектор".
+  professions: string[];
 }
 
 export interface RevealResponse {
@@ -131,7 +136,9 @@ export interface RevealResponse {
   leaves: RevealLeaf[];
   backups: RevealLeaf[];
   message: string;
-  /** Only populated for status='inconclusive' — friendly axis-strength labels. */
+  /** Populated for both cluster reveals (status='cluster' or 'inconclusive')
+   * — friendly axis-strength labels explaining what belief still describes.
+   * Empty for status='single' (one clear pick, nothing to summarize). */
   strengths: string[];
 }
 

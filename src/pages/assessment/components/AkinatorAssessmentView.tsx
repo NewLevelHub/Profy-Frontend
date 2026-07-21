@@ -23,7 +23,6 @@ export function AkinatorAssessmentView() {
     ageGroup,
     handleOptionSelect,
     handleBack,
-    handleReject,
     handleRejectAll,
     handleFeedback,
     handleRetakeTest,
@@ -237,7 +236,6 @@ export function AkinatorAssessmentView() {
           <div className="flex-1 flex flex-col items-center justify-center py-6">
             <RevealCard
               reveal={reveal}
-              onReject={handleReject}
               onRejectAll={handleRejectAll}
               onLikeLeaf={handleLikeLeaf}
               onFeedback={handleFeedback}
