@@ -3,15 +3,15 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
 import { GeneratingOverlay } from './components/GeneratingOverlay';
 import { GrowthFocusCard } from './components/GrowthFocusCard';
+import { ProfessionsCard } from './components/ProfessionsCard';
 import { SkillsSection } from './components/SkillsSection';
-import { StageCard } from './components/StageCard';
-import { TargetCard } from './components/TargetCard';
-import { UniversityTrackSection } from './components/UniversityTrackSection';
+import { StarterActionsSection } from './components/StarterActionsSection';
+import { SubjectsNowSection } from './components/SubjectsNowSection';
+import { UniversityRequirementsSection } from './components/UniversityRequirementsSection';
 
 export default function DirectionRoadmapPage() {
   const { slug = '' } = useParams<{ slug: string }>();
@@ -69,31 +69,17 @@ export default function DirectionRoadmapPage() {
       ) : roadmap ? (
         <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TargetCard target={roadmap.target} directionName={roadmap.direction_name} />
+            <ProfessionsCard
+              professions={roadmap.profession_options}
+              directionName={roadmap.direction_name}
+            />
             <GrowthFocusCard growthFocus={roadmap.growth_focus} />
           </div>
 
-          <div>
-            <SectionHeading title="Твой путь на год" className="mb-1" />
-            <p className="text-body text-secondary mb-6">
-              Каждый месяц — шаги в профиль и в твою точку роста.
-            </p>
-            <ol className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8">
-              {roadmap.stages.map((stage, i) => (
-                <StageCard
-                  key={stage.horizon}
-                  stage={stage}
-                  isLast={i === roadmap.stages.length - 1}
-                />
-              ))}
-            </ol>
-          </div>
-
-          <SkillsSection
-            skills={roadmap.skills_to_build}
-            subjects={roadmap.subjects_to_focus}
-          />
-          <UniversityTrackSection track={roadmap.university_track} />
+          <SubjectsNowSection subjects={roadmap.subjects_now} />
+          <StarterActionsSection actions={roadmap.starter_actions} />
+          <SkillsSection skills={roadmap.skills_to_build} />
+          <UniversityRequirementsSection requirements={roadmap.university_requirements} />
 
           <div className="flex flex-col sm:flex-row gap-3 sm:justify-start">
             <Button
