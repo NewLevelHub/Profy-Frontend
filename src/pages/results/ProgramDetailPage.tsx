@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { toDisplayString, formatCost, localizeKey } from '@/pages/results/utils/programUtils';
+import { toDisplayString, localizeKey } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 
 function ProgramDetailSkeleton() {
@@ -80,9 +80,6 @@ export default function ProgramDetailPage() {
           <div className="flex gap-2.5 flex-wrap">
             <span className="inline-flex items-center gap-1.5 bg-[#EDE9FE] text-[#5B21B6] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
               🌐 {program.language}
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-[#FFF7ED] text-[#C2410C] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
-              💰 {formatCost(program.cost_per_year)}
             </span>
             {program.university.ranking !== null && (
               <span className="inline-flex items-center gap-1.5 bg-[#ECFDF5] text-[#047857] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">

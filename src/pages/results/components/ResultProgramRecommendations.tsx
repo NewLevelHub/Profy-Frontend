@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router';
 import type { ProgramBrief } from '@/shared/types';
-import { formatCost } from '@/pages/results/utils/programUtils';
 
 interface ResultProgramRecommendationsProps {
   programs: ProgramBrief[];
@@ -34,7 +33,6 @@ const ProgramCard = memo(function ProgramCard({
 
       <div className="flex gap-4 flex-wrap mb-4 text-[15px] font-bold text-secondary">
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">💰 {formatCost(program.cost_per_year)}</span>
       </div>
 
       <button
