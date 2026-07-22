@@ -47,6 +47,8 @@ export default function RegisterPage() {
         const message: string = err.response?.data?.detail ?? err.response?.data?.message ?? '';
         if (status === 409 || (status === 400 && message.toLowerCase().includes('already'))) {
           setEmailError('Этот email уже зарегистрирован');
+        } else if (status === 422 && message) {
+          setEmailError(message);
         } else {
           setFormError('Ошибка регистрации. Попробуйте позже');
           setTimeout(() => passwordRef.current?.focus(), 0);

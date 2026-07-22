@@ -6,7 +6,6 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import type { ProgramBrief } from '@/shared/types';
-import { formatCost } from '@/pages/results/utils/programUtils';
 import { COUNTRY_FILTERS, useUniversityList } from '@/pages/results/hooks/useUniversityList';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -57,7 +56,6 @@ const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCard
 
       <div className="flex gap-4 flex-wrap mb-4 text-[15px] font-bold text-secondary">
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">💰 {formatCost(program.cost_per_year)}</span>
       </div>
 
       <button
