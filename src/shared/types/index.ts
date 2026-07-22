@@ -264,54 +264,23 @@ export interface AkinatorResultResponse {
 
 // ─── Direction roadmap ─────────────────────────────────────────────────────────
 
-export type DirectionHorizonKey = 'months_3' | 'months_6' | 'months_9' | 'months_12';
-
-export type DirectionTaskCategory =
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'project'
-  | 'portfolio'
-  | 'soft_skill'
-  | 'subject'
-  | 'community'
-  | 'exam'
-  | 'university';
-
-/** Item from the content catalogue. Always empty until the catalogue ships. */
-export interface RoadmapResource {
+/**
+ * Direction roadmap: two layers. Real, curated/DB-backed facts (profession
+ * title list, subject weight, university admission data) plus a thin LLM
+ * personalization layer (why/note text, growth_focus, starter_actions
+ * fallback). See backend app/services/roadmap_builder.py.
+ */
+export interface ProfessionOption {
   title: string;
-  kind: string;
-  url: string | null;
+  /** Set only when a real signal singles this one out; null when just listed as an open option. */
+  why: string | null;
 }
 
-/** What a step works on. Steps are tagged, not grouped into fixed columns. */
-export type StepTrack = 'profile' | 'growth' | 'integration';
-
-export interface RoadmapStep {
-  text: string;
-  /** What to do, where to start, and how to know it's done — no googling required. */
-  description: string;
-  track: StepTrack;
-  category: DirectionTaskCategory;
-  priority: number;
-  resources: RoadmapResource[];
-}
-
-export interface DirectionStage {
-  horizon: DirectionHorizonKey;
-  title: string;
-  /** What the student will have by the end of the stage, and why it matters. */
-  outcome: string;
-  steps: RoadmapStep[];
-  /** Set from months_9 on, where profile and growth work converge. */
-  integration_project: string | null;
-}
-
-export interface RoadmapTarget {
-  role: string;
-  why: string;
-  horizon_years: number;
+export interface SubjectPriority {
+  subject: string;
+  /** From Direction.subjects_required — backend-attached, not the model's call. */
+  weight: number;
+  note: string;
 }
 
 export interface GrowthFocus {
@@ -321,9 +290,13 @@ export interface GrowthFocus {
   evidence: string;
 }
 
-export interface UniversityTrack {
-  specialties: string[];
-  prepare: string[];
+export interface UniversityRequirement {
+  program_name: string;
+  university_name: string;
+  city: string;
+  exams: string[];
+  admission_requirements: string[];
+  admission_summary: string;
 }
 
 export interface DirectionRoadmapResponse {
@@ -331,12 +304,12 @@ export interface DirectionRoadmapResponse {
   assessment_id: string;
   direction_slug: string;
   direction_name: string;
-  target: RoadmapTarget;
+  profession_options: ProfessionOption[];
+  subjects_now: SubjectPriority[];
+  starter_actions: string[];
   growth_focus: GrowthFocus;
-  stages: DirectionStage[];
   skills_to_build: string[];
-  subjects_to_focus: string[];
-  university_track: UniversityTrack;
+  university_requirements: UniversityRequirement[];
 }
 
 // ─── Subject readiness ──────────────────────────────────────────────────────────

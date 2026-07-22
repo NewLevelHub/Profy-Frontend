@@ -74,54 +74,6 @@ export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
   [AGE_GROUPS.SENIOR]: '10–11 класс',
 };
 
-// ─── Direction roadmap (PRO-64) ────────────────────────────────────────────────
-
-export const DIRECTION_HORIZON_LABELS: Record<string, string> = {
-  months_3: '3 месяца',
-  months_6: '6 месяцев',
-  months_9: '9 месяцев',
-  months_12: '12 месяцев',
-};
-
-export const DIRECTION_HORIZON_HINTS: Record<string, string> = {
-  months_3: 'База и теория',
-  months_6: 'Практика и выход из зоны комфорта',
-  months_9: 'Интеграция навыков',
-  months_12: 'Готовность к профильному пути',
-};
-
-export const STEP_TRACK_LABELS: Record<string, string> = {
-  profile: 'Профиль',
-  growth: 'Точка роста',
-  integration: 'Интеграция',
-};
-
-export const DIRECTION_CATEGORY_LABELS: Record<string, string> = {
-  knowledge: 'Знания',
-  skill: 'Навык',
-  practice: 'Практика',
-  project: 'Проект',
-  portfolio: 'Портфолио',
-  soft_skill: 'Софт-скилл',
-  subject: 'Предмет',
-  community: 'Сообщество',
-  exam: 'Экзамен',
-  university: 'Вуз',
-};
-
-export const DIRECTION_CATEGORY_EMOJIS: Record<string, string> = {
-  knowledge: '💡',
-  skill: '⚡',
-  practice: '🔨',
-  project: '🛠️',
-  portfolio: '🗂️',
-  soft_skill: '🤝',
-  subject: '📚',
-  community: '👥',
-  exam: '📝',
-  university: '🎓',
-};
-
 export const ARTIFACT_TYPE_LABELS: Record<string, string> = {
   hobby: 'Хобби',
   club: 'Кружок / секция',
