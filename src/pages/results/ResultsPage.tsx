@@ -14,7 +14,10 @@ import { ResultEmptyState } from './components/ResultEmptyState';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
-  const { report, isLoading, isNotReady, error, hasCompletedAssessment, showUniversityBtn, showUniversityRecommendations, refetch } = useResults();
+  const {
+    report, isLoading, isNotReady, error, hasCompletedAssessment,
+    showUniversityBtn, showUniversityRecommendations, subjectReadiness, refetch,
+  } = useResults();
 
   if (!hasCompletedAssessment || isNotReady) {
     return <ResultEmptyState onStart={() => navigate('/assessment/goal')} />;
@@ -48,6 +51,7 @@ export default function ResultsPage() {
         matches={report.matches}
         growthAreas={report.growth_areas}
         isDirectionSpecific={report.is_direction_specific}
+        subjectScores={subjectReadiness?.subject_scores}
       />
       <ResultBackups backups={report.backups} />
       {showUniversityRecommendations && (

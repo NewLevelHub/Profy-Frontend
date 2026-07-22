@@ -169,11 +169,20 @@ export function useAkinatorAssessment() {
     try {
       await assessmentApi.akinatorFeedback(assessmentId, { liked, note, direction_slug: directionSlug });
       completeAssessment();
+      // A confirmed direction (liked + a slug) routes through the subject
+      // readiness quiz before /results, for middle/senior — see
+      // subjectReadinessApi / SubjectReadinessPage. Junior never sees it, and
+      // the quiz page itself falls through to /results on its own if the
+      // direction has no subjects_required content yet.
+      const nextPath =
+        liked && directionSlug && ageGroup !== 'junior'
+          ? `/results/directions/${encodeURIComponent(directionSlug)}/subject-readiness`
+          : '/results';
       navigate('/assessment/praise', {
         state: {
           title: liked ? 'Отлично!' : 'Готово!',
           subtitle: liked ? 'Новые направления открыты!' : 'Твой выбор сохранён',
-          nextPath: '/results',
+          nextPath,
           completedCount: 1,
           totalBlocks: 1,
         },

@@ -44,6 +44,11 @@ export const API = {
     getDirection: (assessmentId: string, slug: string) =>
       `/roadmap/${assessmentId}/directions/${slug}`,
   },
+  subjectReadiness: {
+    questions: (assessmentId: string) => `/subject-readiness/${assessmentId}/questions`,
+    submit: (assessmentId: string) => `/subject-readiness/${assessmentId}/answers`,
+    result: (assessmentId: string) => `/subject-readiness/${assessmentId}/result`,
+  },
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
