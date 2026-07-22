@@ -6,7 +6,7 @@ import { subjectReadinessApi } from '@/shared/api/subjectReadiness';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
-import type { AkinatorResultResponse } from '@/shared/types';
+import type { AkinatorResultResponse, SubjectReadinessResult } from '@/shared/types';
 
 interface UseResultsReturn {
   report: AkinatorResultResponse | null;
@@ -16,6 +16,7 @@ interface UseResultsReturn {
   hasCompletedAssessment: boolean;
   showUniversityBtn: boolean;
   showUniversityRecommendations: boolean;
+  subjectReadiness: SubjectReadinessResult | null;
   refetch: () => Promise<unknown>;
 }
 
