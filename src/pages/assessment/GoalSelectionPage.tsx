@@ -38,12 +38,6 @@ const GOAL_CARDS: GoalCard[] = [
     subtitle: 'Построй путь к поступлению',
     seniorOnly: true,
   },
-  {
-    goal: 'explore',
-    emoji: '💬',
-    title: 'Пока не знаю',
-    subtitle: 'Начнём с начала, разберёмся вместе',
-  },
 ];
 
 // ── Resume dialog ─────────────────────────────────────────────────────────────
