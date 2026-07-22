@@ -389,7 +389,7 @@ export interface UniversityBrief {
 export interface ProgramBrief {
   id: string;
   name: string;
-  direction_slug: string;
+  direction_slugs: string[];
   language: string;
   cost_per_year: number | null;
   description: string | null;
