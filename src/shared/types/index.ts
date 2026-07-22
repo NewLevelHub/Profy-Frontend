@@ -339,6 +339,41 @@ export interface DirectionRoadmapResponse {
   university_track: UniversityTrack;
 }
 
+// ─── Subject readiness ──────────────────────────────────────────────────────────
+
+export interface SubjectQuestionOption {
+  text: string;
+  index: number;
+}
+
+export interface SubjectQuestion {
+  id: string;
+  subject: string;
+  kind: 'level' | 'interest';
+  text: string;
+  options: SubjectQuestionOption[];
+}
+
+export interface SubjectAnswerPayload {
+  question_id: string;
+  selected_option_index: number;
+}
+
+export interface SubjectScoreItem {
+  subject: string;
+  level: number;
+  interest: number;
+  is_strength: boolean;
+}
+
+export interface SubjectReadinessResult {
+  id: string;
+  assessment_id: string;
+  direction_slug: string;
+  subject_scores: SubjectScoreItem[];
+  completed_at: string;
+}
+
 // ─── University / Gap-analysis ─────────────────────────────────────────────────
 
 export interface UniversityBrief {

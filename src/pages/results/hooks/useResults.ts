@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { resultApi } from '@/shared/api/result';
+import { subjectReadinessApi } from '@/shared/api/subjectReadiness';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
@@ -63,6 +64,18 @@ export function useResults(): UseResultsReturn {
   const hasRecommendedPrograms = (effectiveReport?.recommended_programs?.length ?? 0) > 0;
   const showUniversityRecommendations = hasRecommendedPrograms;
 
+  // Quiz is taken automatically right after confirming a direction (see
+  // useAkinatorAssessment.handleFeedback) — this just displays whatever came
+  // out of it, if anything. Silently absent for junior, for directions with
+  // no subjects_required content yet, or if the student never went through
+  // that flow (e.g. an older assessment from before this feature existed).
+  const subjectReadinessQuery = useQuery({
+    queryKey: ['subject-readiness-result', assessmentId] as const,
+    queryFn: () => subjectReadinessApi.getResult(assessmentId!),
+    enabled: hasCompletedAssessment && !!assessmentId,
+    retry: false,
+  });
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
@@ -71,6 +84,7 @@ export function useResults(): UseResultsReturn {
     hasCompletedAssessment,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
     showUniversityRecommendations,
+    subjectReadiness: subjectReadinessQuery.data ?? null,
     refetch,
   };
 }
