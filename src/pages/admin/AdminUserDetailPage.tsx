@@ -8,7 +8,11 @@ import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
-import type { AdminAssessmentDetail, AdminResponseItem, AdminUserDetail } from '@/shared/types';
+import type {
+  AdminAssessmentDetail,
+  AdminSubjectScoreItem,
+  AdminUserDetail,
+} from '@/shared/types';
 
 const GOAL_LABELS: Record<string, string> = {
   explore: 'Исследовать',
@@ -19,6 +23,13 @@ const GOAL_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   in_progress: 'В процессе',
   completed: 'Завершён',
+};
+
+const AKINATOR_STATUS_LABELS: Record<string, string> = {
+  in_progress: 'В процессе',
+  converged_single: 'Сошёлся к одному',
+  converged_cluster: 'Кластер',
+  exhausted_ceiling: 'Потолок',
 };
 
 const ARTIFACT_LABELS: Record<string, string> = {
@@ -33,19 +44,6 @@ const ARTIFACT_LABELS: Record<string, string> = {
   profession: 'Профессии',
   university: 'Вузы',
   dream: 'Мечты',
-};
-
-const BLOCK_LABELS: Record<string, string> = {
-  interests: 'Интересы',
-  thinking: 'Мышление',
-  personality: 'Личность',
-  motivation: 'Мотивация',
-  academic: 'Учёба',
-  directions: 'Направления',
-  goal_clarification: 'Уточнение цели',
-  university: 'Вуз',
-  wellbeing: 'Благополучие',
-  unknown: 'Прочее',
 };
 
 function formatDate(value: string) {
@@ -99,56 +97,286 @@ function ChipList({ label, items }: { label: string; items: string[] }) {
   );
 }
 
-function groupResponsesByBlock(responses: AdminResponseItem[]) {
-  const groups = new Map<string, AdminResponseItem[]>();
-  for (const response of responses) {
-    const block = response.block || 'unknown';
-    const items = groups.get(block) ?? [];
-    items.push(response);
-    groups.set(block, items);
-  }
-  return groups;
+function Chip({ text }: { text: string }) {
+  return (
+    <span
+      className="px-3 py-1 rounded-pill font-extrabold text-sm"
+      style={{ background: 'var(--brand-subtle)', color: '#5B21B6' }}
+    >
+      {text}
+    </span>
+  );
 }
 
-function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
-  if (!responses.length) {
-    return (
-      <p className="text-secondary font-semibold">Пользователь ещё не ответил на вопросы</p>
-    );
-  }
+function SubsectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h4 className="font-extrabold text-primary mb-3" style={{ fontSize: 15 }}>
+      {children}
+    </h4>
+  );
+}
 
-  const groups = groupResponsesByBlock(responses);
+function EmptyState({ text }: { text: string }) {
+  return <p className="text-secondary font-semibold">{text}</p>;
+}
+
+function AkinatorSessionSection({ assessment }: { assessment: AdminAssessmentDetail }) {
+  const session = assessment.akinator_session;
 
   return (
-    <div className="space-y-4">
-      {Array.from(groups.entries()).map(([block, items]) => (
-        <div key={block} className="space-y-2">
-          <h4 className="font-extrabold text-primary" style={{ fontSize: 15 }}>
-            {BLOCK_LABELS[block] ?? block}
-          </h4>
-          <div className="space-y-2">
-            {items.map((item, index) => (
-              <div
-                key={`${item.question_id}-${index}`}
-                className="p-3 rounded-[var(--radius)] bg-raised border border-default"
-              >
-                <p className="font-bold text-primary">{item.question_text}</p>
-                <p className="text-sm text-secondary mt-2">
-                  <span className="font-semibold text-brand">Ответ: </span>
-                  {item.selected_answer_text}
-                </p>
+    <div className="space-y-3">
+      <SubsectionTitle>Акинатор — сессия</SubsectionTitle>
+      {!session ? (
+        <EmptyState text="Сессия акинатора не начата" />
+      ) : (
+        <>
+          <InfoRow
+            label="Статус"
+            value={AKINATOR_STATUS_LABELS[session.status] ?? session.status}
+          />
+          <InfoRow label="Шаг" value={session.step} />
+          <div className="py-2 border-b border-default">
+            <p className="text-secondary font-semibold mb-2">Отклонённые направления</p>
+            {(session.rejected_leaves ?? []).length === 0 ? (
+              <span className="text-primary font-bold">нет</span>
+            ) : (
+              <div className="flex flex-wrap gap-2 mt-1">
+                {(session.rejected_leaves ?? []).map((slug) => (
+                  <Chip key={slug} text={slug} />
+                ))}
               </div>
-            ))}
+            )}
           </div>
+          <div className="py-2">
+            <p className="text-secondary font-semibold mb-2">Топ-5 направлений (belief)</p>
+            {(session.top_directions ?? []).length === 0 ? (
+              <span className="text-primary font-bold">нет данных</span>
+            ) : (
+              <div className="space-y-1 mt-1">
+                {(session.top_directions ?? []).slice(0, 5).map(({ slug, name, probability }) => (
+                  <div key={slug} className="flex items-center justify-between">
+                    <span className="text-primary font-semibold text-sm">{name ?? slug}</span>
+                    <span className="text-brand font-extrabold text-sm">
+                      {(probability * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function AkinatorAnswersSection({ assessment }: { assessment: AdminAssessmentDetail }) {
+  const answers = [...(assessment.akinator_session?.answers ?? [])].sort((a, b) => a.step - b.step);
+
+  return (
+    <div className="space-y-3">
+      <SubsectionTitle>Акинатор — история ответов</SubsectionTitle>
+      {answers.length === 0 ? (
+        <EmptyState text="Ответов нет" />
+      ) : (
+        <div className="space-y-2">
+          {answers.map((answer) => (
+            <div
+              key={answer.step}
+              className="p-3 rounded-[var(--radius)] bg-raised border border-default"
+            >
+              <p className="text-xs text-secondary font-semibold mb-1">Шаг {answer.step}</p>
+              <p className="font-bold text-primary">{answer.question_text}</p>
+              <p className="text-sm mt-2">
+                <span className="text-secondary font-semibold">Ответ: </span>
+                {answer.selected_answer === null ? (
+                  <em className="text-secondary">Не знаю</em>
+                ) : (
+                  <span className="font-semibold text-primary">{answer.selected_answer}</span>
+                )}
+              </p>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+    </div>
+  );
+}
+
+function FeedbackSection({ assessment }: { assessment: AdminAssessmentDetail }) {
+  const session = assessment.akinator_session;
+  const liked = session?.liked ?? null;
+
+  return (
+    <div className="space-y-3">
+      <SubsectionTitle>Фидбэк</SubsectionTitle>
+      {liked === null ? (
+        <EmptyState text="Фидбэк не оставлен" />
+      ) : (
+        <>
+          <InfoRow label="Оценка" value={liked ? '👍 Понравилось' : '👎 Не понравилось'} />
+          {session?.feedback_note && (
+            <InfoRow label="Заметка" value={session.feedback_note} />
+          )}
+          {session?.feedback_at && (
+            <InfoRow label="Дата" value={formatDate(session.feedback_at)} />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function SimulationsSection({ assessment }: { assessment: AdminAssessmentDetail }) {
+  const logs = assessment.profession_simulations ?? [];
+
+  return (
+    <div className="space-y-3">
+      <SubsectionTitle>Симуляции профессий</SubsectionTitle>
+      {logs.length === 0 ? (
+        <EmptyState text="Симуляций не было" />
+      ) : (
+        <div className="space-y-2">
+          {logs.map((log) => (
+            <div
+              key={log.leaf_slug}
+              className="flex items-center justify-between py-2 border-b border-default last:border-b-0"
+            >
+              <span className="text-primary font-semibold">{log.leaf_name ?? log.leaf_slug}</span>
+              <span className={cn('font-extrabold text-sm', log.accepted ? 'text-green-600' : 'text-red-500')}>
+                {log.accepted ? '✅ Принял' : '❌ Отклонил'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SubjectReadinessSection({ assessment }: { assessment: AdminAssessmentDetail }) {
+  const readiness = assessment.subject_readiness;
+
+  return (
+    <div className="space-y-3">
+      <SubsectionTitle>Тест готовности по предметам</SubsectionTitle>
+      {!readiness ? (
+        <EmptyState text="Тест готовности не проходился" />
+      ) : (
+        <>
+          <InfoRow label="Направление" value={readiness.direction_name ?? readiness.direction_slug} />
+          <InfoRow label="Статус" value={readiness.status} />
+          {readiness.subject_scores.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {readiness.subject_scores.map((item: AdminSubjectScoreItem) => (
+                <div
+                  key={item.subject}
+                  className="p-3 rounded-[var(--radius)] bg-raised border border-default"
+                >
+                  <p className="font-bold text-primary mb-1">{item.subject}</p>
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                    <span className="text-secondary">
+                      Уровень: <span className="font-extrabold text-primary">{item.level ?? '—'}</span>
+                    </span>
+                    <span className="text-secondary">
+                      Интерес: <span className="font-extrabold text-primary">{item.interest ?? '—'}</span>
+                    </span>
+                    <span className="text-secondary">
+                      Сильная сторона:{' '}
+                      <span className={cn('font-extrabold', item.is_strength ? 'text-green-600' : 'text-secondary')}>
+                        {item.is_strength ? 'Да' : 'Нет'}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function SelectedDirectionSection({ assessment }: { assessment: AdminAssessmentDetail }) {
+  return (
+    <div className="space-y-3">
+      <SubsectionTitle>Выбранное направление</SubsectionTitle>
+      {!assessment.selected_direction_slug ? (
+        <EmptyState text="Направление не выбрано" />
+      ) : (
+        <p className="font-black text-primary" style={{ fontSize: 20 }}>
+          {assessment.selected_direction_name ?? assessment.selected_direction_slug}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function RoadmapsSection({ assessment }: { assessment: AdminAssessmentDetail }) {
+  const roadmaps = assessment.roadmaps ?? [];
+
+  return (
+    <div className="space-y-3">
+      <SubsectionTitle>Роадмапы</SubsectionTitle>
+      {roadmaps.length === 0 ? (
+        <EmptyState text="Роадмапов нет" />
+      ) : (
+        <div className="space-y-4">
+          {roadmaps.map((roadmap, idx) => (
+            <div
+              key={roadmap.direction_slug ?? idx}
+              className="p-3 rounded-[var(--radius)] bg-raised border border-default space-y-3"
+            >
+              <div>
+                <p className="font-extrabold text-primary">{roadmap.direction_name ?? roadmap.direction_slug}</p>
+                {roadmap.created_at && (
+                  <p className="text-xs text-secondary font-semibold mt-0.5">
+                    {formatDate(roadmap.created_at)}
+                  </p>
+                )}
+              </div>
+              {(roadmap.skills_to_build ?? []).length > 0 && (
+                <div>
+                  <p className="text-secondary font-semibold text-sm mb-2">Навыки для развития</p>
+                  <div className="flex flex-wrap gap-2">
+                    {roadmap.skills_to_build.map((skill) => (
+                      <Chip key={skill} text={skill} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(roadmap.subjects_now ?? []).length > 0 && (
+                <div>
+                  <p className="text-secondary font-semibold text-sm mb-2">Предметы сейчас</p>
+                  <div className="flex flex-wrap gap-2">
+                    {roadmap.subjects_now.map((subject) => (
+                      <Chip key={subject} text={subject} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(roadmap.starter_actions ?? []).length > 0 && (
+                <div>
+                  <p className="text-secondary font-semibold text-sm mb-2">С чего начать</p>
+                  <div className="flex flex-wrap gap-2">
+                    {roadmap.starter_actions.map((action) => (
+                      <Chip key={action} text={action} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAssessmentDetail; compact?: boolean }) {
   return (
-    <div className={cn('space-y-4', compact ? 'pt-4 border-t border-default' : '')}>
+    <div className={cn('space-y-6', compact ? 'pt-4 border-t border-default' : '')}>
       {!compact && (
         <div>
           <h3 className="font-black text-primary" style={{ fontSize: 20 }}>
@@ -160,17 +388,13 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
         </div>
       )}
 
-      {!compact && (
-        <>
-          <InfoRow label="Ответов" value={assessment.responses.length} />
-          <InfoRow label="Текущий блок" value={assessment.current_block} />
-        </>
-      )}
-
-      <div className="space-y-3">
-        <h4 className="font-extrabold text-primary">Вопросы и ответы</h4>
-        <ResponsesSection responses={assessment.responses} />
-      </div>
+      <AkinatorSessionSection assessment={assessment} />
+      <AkinatorAnswersSection assessment={assessment} />
+      <FeedbackSection assessment={assessment} />
+      <SimulationsSection assessment={assessment} />
+      <SubjectReadinessSection assessment={assessment} />
+      <SelectedDirectionSection assessment={assessment} />
+      <RoadmapsSection assessment={assessment} />
     </div>
   );
 }
@@ -353,7 +577,7 @@ export default function AdminUserDetailPage() {
                   {isOpen && (
                     <div className="px-3 pb-4">
                       {assessmentLoading ? (
-                        <p className="text-secondary font-semibold py-2">Загрузка вопросов...</p>
+                        <p className="text-secondary font-semibold py-2">Загрузка данных...</p>
                       ) : selectedAssessment ? (
                         <AssessmentDetailPanel assessment={selectedAssessment} compact />
                       ) : (
