@@ -90,6 +90,18 @@ export const router = createBrowserRouter([
       { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
 
+      // Subject-readiness quiz — also full-screen/no chrome, same reasoning as
+      // the assessment flow above: keeping it outside AppLayout means there's
+      // no sidebar/header nav link the student can click to wander off (and
+      // silently lose the in-progress quiz — nothing persists answers until
+      // the final submit, see useSubjectReadiness.submit).
+      {
+        element: <RequireProfile />,
+        children: [
+          { path: '/results/directions/:slug/subject-readiness', element: <SubjectReadinessPage /> },
+        ],
+      },
+
       // Main app layout — sidebar/header always present once authenticated
       {
         element: <AppLayout />,
@@ -104,7 +116,6 @@ export const router = createBrowserRouter([
 
               // Detail screens (mobile: App stack over tabs)
               { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
-              { path: '/results/directions/:slug/subject-readiness', element: <SubjectReadinessPage /> },
               { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
               {
                 path: '/results/directions/:slug/universities/:programId',
