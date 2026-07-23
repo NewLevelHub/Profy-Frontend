@@ -3,6 +3,7 @@ import { Header } from '@/shared/ui/navigation/Header';
 import { Sidebar } from '@/shared/ui/navigation/Sidebar';
 import { ScrollToTop } from '@/shared/ui/ScrollToTop';
 import { Spinner } from '@/shared/ui';
+import { Toaster } from '@/shared/ui/Toaster';
 import { useAssessmentSync } from '@/shared/hooks/useAssessmentSync';
 import { useAssessmentStore } from '@/shared/store/assessment';
 
@@ -13,6 +14,7 @@ export function AppLayout() {
   return (
     <div className="h-screen bg-page text-primary flex overflow-hidden">
       <ScrollToTop />
+      <Toaster />
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Header />

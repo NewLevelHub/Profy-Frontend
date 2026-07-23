@@ -43,6 +43,7 @@ import SubjectReadinessPage from '@/pages/results/subjectReadiness/SubjectReadin
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
+import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -89,12 +90,13 @@ export const router = createBrowserRouter([
       { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
 
-      // Main app — guarded by profile; redirects to /welcome if profile not yet created
+      // Main app layout — sidebar/header always present once authenticated
       {
-        element: <RequireProfile />,
+        element: <AppLayout />,
         children: [
+          // Guarded by profile; redirects to /welcome if profile not yet created
           {
-            element: <AppLayout />,
+            element: <RequireProfile />,
             children: [
               { path: '/home', element: <HomePage /> },
               { path: '/results', element: <ResultsPage /> },
@@ -112,20 +114,22 @@ export const router = createBrowserRouter([
                 path: '/results/directions/:slug/universities/:programId/gap',
                 element: <GapAnalysisPage />,
               },
-
-              // Admin (inside main layout — sidebar stays visible)
-              {
-                element: <RequireAdmin />,
-                children: [
-                  { path: '/admin', element: <Navigate to="/admin/users" replace /> },
-                  { path: '/admin/users', element: <AdminUsersPage /> },
-                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-                ],
-              },
-
-              { path: '*', element: <NotFoundPage /> },
             ],
           },
+
+          // Admin — gated only by is_admin, not by having a student profile
+          // (admin accounts aren't expected to go through onboarding).
+          {
+            element: <RequireAdmin />,
+            children: [
+              { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+              { path: '/admin/users', element: <AdminUsersPage /> },
+              { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+              { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+            ],
+          },
+
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],

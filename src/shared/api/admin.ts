@@ -2,8 +2,10 @@ import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import type {
   AdminAssessmentDetail,
+  AdminFeedbackListResponse,
   AdminUserDetail,
   AdminUserListResponse,
+  FeedbackRating,
 } from '@/shared/types';
 
 export const adminApi = {
@@ -18,5 +20,10 @@ export const adminApi = {
   getAssessment: (assessmentId: string) =>
     apiClient
       .get<AdminAssessmentDetail>(API.admin.assessmentDetail(assessmentId))
+      .then((r) => r.data),
+
+  listFeedback: (params?: { page?: number; limit?: number; rating?: FeedbackRating }) =>
+    apiClient
+      .get<AdminFeedbackListResponse>(API.admin.feedback, { params })
       .then((r) => r.data),
 };

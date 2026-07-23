@@ -44,6 +44,9 @@ export const API = {
     getDirection: (assessmentId: string, slug: string) =>
       `/roadmap/${assessmentId}/directions/${slug}`,
   },
+  feedback: {
+    submit: '/feedback',
+  },
   subjectReadiness: {
     questions: (assessmentId: string) => `/subject-readiness/${assessmentId}/questions`,
     submit: (assessmentId: string) => `/subject-readiness/${assessmentId}/answers`,
@@ -58,5 +61,6 @@ export const API = {
     users: '/admin/users',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
+    feedback: '/admin/feedback',
   },
 } as const;

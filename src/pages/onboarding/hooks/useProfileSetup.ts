@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import { profileApi } from '@/shared/api/profile';
 import { useProfileStore } from '@/shared/store/profile';
+import { useAuthStore } from '@/shared/store/auth';
 import type { ProfilePayload } from '@/shared/types';
 
 type FieldErrors = Partial<Record<'name' | 'age' | 'grade', string>>;
@@ -15,9 +17,31 @@ function toggle(list: string[], item: string): string[] {
 
 export function useProfileSetup() {
   const navigate = useNavigate();
+  const userId = useAuthStore(s => s.user?.id);
   const setProfile = useProfileStore(s => s.setProfile);
-  const existing = useProfileStore(s => s.profile);
-  const isEditMode = existing !== null;
+  const storeProfile = useProfileStore(s => s.profile);
+
+  // The Zustand profile store is in-memory only (no persist), so it's empty on
+  // any fresh page load or direct navigation to this route (bookmark, refresh
+  // mid-edit, new tab). Relying on it alone to decide create-vs-edit made the
+  // form call POST /profile for users who already had one, which the backend
+  // correctly rejects with 409 "Profile already exists for this user". Verify
+  // against the backend instead, same as useWelcome/RequireProfile do.
+  const { data: fetchedProfile, isLoading: isCheckingProfile } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: () =>
+      profileApi.get().catch((err: AxiosError) => {
+        if (err.response?.status === 404) return null;
+        throw err;
+      }),
+    enabled: Boolean(userId),
+    retry: false,
+  });
+
+  const existing = fetchedProfile !== undefined ? fetchedProfile : storeProfile;
+  const isEditMode = existing != null;
+
+  const didInitFields = useRef(false);
 
   const [step, setStep] = useState(1);
   const [name, setName] = useState(existing?.name ?? '');
@@ -31,6 +55,27 @@ export function useProfileSetup() {
   const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? []);
   const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? []);
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  // Populate the form once the backend check resolves, in case the store was
+  // empty at mount and fields were initialized blank. Runs only on the first
+  // resolution so it doesn't clobber in-progress edits on a later refetch.
+  useEffect(() => {
+    if (didInitFields.current || fetchedProfile === undefined) return;
+    didInitFields.current = true;
+    if (!fetchedProfile) return;
+
+    setProfile(fetchedProfile);
+    setName(fetchedProfile.name ?? '');
+    setAge(fetchedProfile.age ? String(fetchedProfile.age) : '');
+    setGrade(fetchedProfile.grade ? String(fetchedProfile.grade) : '');
+    setCity(fetchedProfile.city ?? '');
+    setCountry(fetchedProfile.country ?? '');
+    setLanguage(fetchedProfile.language ?? '');
+    setSubjectsLike(fetchedProfile.subjects_like ?? []);
+    setSubjectsDislike(fetchedProfile.subjects_dislike ?? []);
+    setSubjectsEasy(fetchedProfile.subjects_easy ?? []);
+    setSubjectsHard(fetchedProfile.subjects_hard ?? []);
+  }, [fetchedProfile, setProfile]);
 
   const mutation = useMutation({
     mutationFn: (payload: ProfilePayload) =>
@@ -81,6 +126,7 @@ export function useProfileSetup() {
   }
 
   return {
+    isCheckingProfile,
     step,
     totalSteps: TOTAL_STEPS,
     progress: (step / TOTAL_STEPS) * 100,
