@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Search } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
+import { AdminTabs } from '@/shared/ui/admin/AdminTabs';
 import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -64,6 +65,8 @@ export default function AdminUsersPage() {
         title="Пользователи"
         subtitle="Все зарегистрированные пользователи Profy и их прогресс"
       />
+
+      <AdminTabs />
 
       <Card>
         <form

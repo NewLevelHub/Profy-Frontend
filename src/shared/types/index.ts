@@ -161,6 +161,26 @@ export interface AkinatorFeedbackResponse {
   status: 'recorded';
 }
 
+// ─── Product feedback (service-level, not tied to a profession match) ─────────
+
+export type FeedbackRating = 'good' | 'neutral' | 'bad';
+
+export interface ProductFeedbackRequest {
+  context: 'roadmap';
+  rating: FeedbackRating;
+  message?: string | null;
+  assessment_id?: string | null;
+  direction_slug?: string | null;
+}
+
+export interface ProductFeedbackResponse {
+  status: 'recorded';
+}
+
+export interface ProductFeedbackStatusResponse {
+  submitted: boolean;
+}
+
 export interface AkinatorRejectAllRequest {
   leaf_slugs: string[];
 }
@@ -507,4 +527,21 @@ export interface AdminAssessmentDetail {
   profession_simulations: AdminProfessionSimulation[];
   subject_readiness: AdminSubjectReadiness | null;
   roadmaps: AdminRoadmapBrief[];
+}
+
+export interface AdminFeedbackListItem {
+  id: string;
+  user_email: string;
+  context: string;
+  rating: FeedbackRating;
+  message: string | null;
+  direction_slug: string | null;
+  created_at: string;
+}
+
+export interface AdminFeedbackListResponse {
+  items: AdminFeedbackListItem[];
+  total: number;
+  page: number;
+  limit: number;
 }

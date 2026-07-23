@@ -1,5 +1,5 @@
 import { cn } from '@/shared/lib/cn';
-import { Button, Input, ProgressBar } from '@/shared/ui';
+import { Button, Input, ProgressBar, Spinner } from '@/shared/ui';
 import { useProfileSetup } from './hooks/useProfileSetup';
 
 const LANGUAGES = ['Русский', 'Казахский', 'Английский'];
@@ -54,6 +54,7 @@ function SubjectGroup({
 
 export default function ProfileSetupPage() {
   const {
+    isCheckingProfile,
     step, totalSteps, progress,
     name, setName,
     age, setAge,
@@ -69,6 +70,14 @@ export default function ProfileSetupPage() {
     isLoading, submitError,
     handleNext, handleBack, handleSubmit, toggle,
   } = useProfileSetup();
+
+  if (isCheckingProfile) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-page">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-page flex flex-col">

@@ -3,9 +3,13 @@ import { useLocation } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
+import { feedbackApi } from '@/shared/api/feedback';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
-import type { DirectionRoadmapResponse } from '@/shared/types';
+import { useToastStore } from '@/shared/store/toast';
+import type { DirectionRoadmapResponse, FeedbackRating } from '@/shared/types';
+
+const FEEDBACK_CONTEXT = 'roadmap';
 
 /** What went wrong, so the page can offer the right way out. */
 export type RoadmapErrorKind = 'ai_unavailable' | 'wrong_direction' | 'forbidden' | 'generic';
@@ -86,6 +90,38 @@ export function useDirectionRoadmap(slug: string) {
   const failure = generateMutation.error ?? (notGenerated ? null : roadmapQuery.error);
   const kind = failure ? errorKind(failure) : null;
 
+  const feedbackStatusKey = ['roadmap-feedback-status', assessmentId, FEEDBACK_CONTEXT] as const;
+
+  const feedbackStatusQuery = useQuery({
+    queryKey: feedbackStatusKey,
+    queryFn: () => feedbackApi.getStatus(assessmentId!, FEEDBACK_CONTEXT),
+    enabled: !!assessmentId && !!roadmap,
+    staleTime: Infinity,
+  });
+
+  const feedbackMutation = useMutation({
+    mutationFn: (input: { rating: FeedbackRating; message: string | null }) =>
+      feedbackApi.submit({
+        context: FEEDBACK_CONTEXT,
+        rating: input.rating,
+        message: input.message,
+        assessment_id: assessmentId,
+        direction_slug: slug,
+      }),
+    onSuccess: () => {
+      queryClient.setQueryData(feedbackStatusKey, { submitted: true });
+      useToastStore.getState().show('Спасибо! Нам очень важно ваше мнение!');
+    },
+  });
+
+  const submitFeedback = useCallback(
+    (rating: FeedbackRating, message: string | null) => {
+      if (feedbackMutation.isPending) return;
+      feedbackMutation.mutate({ rating, message });
+    },
+    [feedbackMutation],
+  );
+
   return {
     roadmap,
     isLoading: roadmapQuery.isLoading && !roadmap,
@@ -95,5 +131,9 @@ export function useDirectionRoadmap(slug: string) {
     errorKind: kind,
     errorMessage: kind ? ERROR_MESSAGES[kind] : null,
     generate,
+    submitFeedback,
+    feedbackPending: feedbackMutation.isPending,
+    /** Only true once we've confirmed (from the server) this assessment hasn't given feedback yet. */
+    showFeedbackPrompt: feedbackStatusQuery.data?.submitted === false,
   };
 }
