@@ -440,15 +440,55 @@ export interface AdminUserDetail {
   assessments: AdminAssessmentSummary[];
 }
 
-export interface AdminResponseItem {
-  question_id: string;
-  block: string;
+export interface AdminAkinatorAnswer {
+  step: number;
   question_text: string;
-  question_order: number;
-  selected_option_index: number;
-  selected_answer_text: string;
-  scores: Record<string, number | string>;
-  created_at: string;
+  selected_answer: string | null;
+  belief_after: Record<string, number>;
+}
+
+export interface AdminAkinatorSession {
+  status: string;
+  step: number;
+  top_directions: { slug: string; name: string | null; probability: number }[];
+  rejected_leaves: string[];
+  liked: boolean | null;
+  feedback_note: string | null;
+  feedback_at: string | null;
+  answers: AdminAkinatorAnswer[];
+}
+
+export interface AdminProfessionSimulation {
+  leaf_slug: string;
+  leaf_name: string | null;
+  accepted: boolean;
+  answers: unknown[];
+}
+
+export interface AdminSubjectScoreItem {
+  subject: string;
+  level: number | null;
+  interest: number | null;
+  is_strength: boolean | null;
+}
+
+export interface AdminSubjectReadiness {
+  direction_slug: string;
+  direction_name: string | null;
+  status: string;
+  subject_scores: AdminSubjectScoreItem[];
+}
+
+export interface AdminRoadmapBrief {
+  direction_slug: string;
+  direction_name: string | null;
+  growth_focus: string | null;
+  skills_to_build: string[];
+  subjects_now: string[];
+  starter_actions: string[];
+  profession_options: string[];
+  university_requirements: string[];
+  created_at: string | null;
 }
 
 export interface AdminAssessmentDetail {
@@ -461,5 +501,10 @@ export interface AdminAssessmentDetail {
   current_block: number;
   created_at: string;
   completed_at: string | null;
-  responses: AdminResponseItem[];
+  selected_direction_slug: string | null;
+  selected_direction_name: string | null;
+  akinator_session: AdminAkinatorSession | null;
+  profession_simulations: AdminProfessionSimulation[];
+  subject_readiness: AdminSubjectReadiness | null;
+  roadmaps: AdminRoadmapBrief[];
 }
