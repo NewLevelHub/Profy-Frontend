@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { AdminTabs } from '@/shared/ui/admin/AdminTabs';
 import { Card } from '@/shared/ui/Card';
@@ -13,6 +14,16 @@ const RATING_LABELS: Record<FeedbackRating, string> = {
   neutral: '😐 Средне',
   bad: '🙁 Плохо',
 };
+
+const RATING_EMOJI: Record<FeedbackRating, string> = {
+  good: '🙂',
+  neutral: '😐',
+  bad: '🙁',
+};
+
+function axisCell(rating: FeedbackRating | null) {
+  return rating ? RATING_EMOJI[rating] : '—';
+}
 
 const RATING_FILTERS: { value: FeedbackRating | null; label: string }[] = [
   { value: null, label: 'Все' },
@@ -69,12 +80,13 @@ export default function AdminFeedbackPage() {
     <PageContainer className="space-y-5">
       <PageHeader
         title="Фидбек"
-        subtitle="Оценки и комментарии пользователей о продукте"
+        subtitle="Оценки по тесту, результату, плану, дизайну и комментарии пользователей"
       />
 
       <AdminTabs />
 
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
+        <span className="text-caption font-semibold text-secondary">Общая оценка:</span>
         {RATING_FILTERS.map((filter) => (
           <button
             key={filter.label}
@@ -113,7 +125,11 @@ export default function AdminFeedbackPage() {
                 <tr>
                   <th className="text-left px-4 py-3 font-extrabold">Дата</th>
                   <th className="text-left px-4 py-3 font-extrabold">Пользователь</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Оценка</th>
+                  <th className="text-left px-4 py-3 font-extrabold">Общее</th>
+                  <th className="text-left px-4 py-3 font-extrabold" title="Вопросы теста">Вопросы</th>
+                  <th className="text-left px-4 py-3 font-extrabold" title="Совпадение результата">Результат</th>
+                  <th className="text-left px-4 py-3 font-extrabold" title="Полезность плана">План</th>
+                  <th className="text-left px-4 py-3 font-extrabold" title="Дизайн и удобство">Дизайн</th>
                   <th className="text-left px-4 py-3 font-extrabold">Направление</th>
                   <th className="text-left px-4 py-3 font-extrabold">Сообщение</th>
                 </tr>
@@ -122,8 +138,16 @@ export default function AdminFeedbackPage() {
                 {items.map((item) => (
                   <tr key={item.id} className="border-b border-default last:border-b-0 align-top">
                     <td className="px-4 py-3 text-secondary whitespace-nowrap">{formatDate(item.created_at)}</td>
-                    <td className="px-4 py-3 font-semibold">{item.user_email}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{RATING_LABELS[item.rating]}</td>
+                    <td className="px-4 py-3 font-semibold">
+                      <Link to={`/admin/users/${item.user_id}`} className="text-brand hover:underline">
+                        {item.user_email}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">{RATING_LABELS[item.overall_rating]}</td>
+                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.questions_rating)}</td>
+                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.result_match_rating)}</td>
+                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.plan_usefulness_rating)}</td>
+                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.design_rating)}</td>
                     <td className="px-4 py-3">{item.direction_slug ?? '—'}</td>
                     <td className="px-4 py-3 text-secondary max-w-md">{item.message ?? '—'}</td>
                   </tr>

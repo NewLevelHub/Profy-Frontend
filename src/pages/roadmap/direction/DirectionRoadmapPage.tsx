@@ -5,10 +5,10 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
+import { FeedbackSurveyModal } from './components/FeedbackSurveyModal';
 import { GeneratingOverlay } from './components/GeneratingOverlay';
 import { GrowthFocusCard } from './components/GrowthFocusCard';
 import { ProfessionsCard } from './components/ProfessionsCard';
-import { RoadmapFeedbackCard } from './components/RoadmapFeedbackCard';
 import { SkillsSection } from './components/SkillsSection';
 import { StarterActionsSection } from './components/StarterActionsSection';
 import { SubjectsNowSection } from './components/SubjectsNowSection';
@@ -20,7 +20,8 @@ export default function DirectionRoadmapPage() {
   const {
     roadmap, isLoading, isGenerating, notGenerated,
     errorKind, errorMessage, generate,
-    submitFeedback, showFeedbackPrompt, feedbackPending,
+    submitFeedback, feedbackPending,
+    feedbackSentinelRef, isFeedbackModalOpen, closeFeedbackModal,
   } = useDirectionRoadmap(slug);
 
   return (
@@ -83,9 +84,7 @@ export default function DirectionRoadmapPage() {
           <SkillsSection skills={roadmap.skills_to_build} />
           <UniversityRequirementsSection requirements={roadmap.university_requirements} />
 
-          {showFeedbackPrompt && (
-            <RoadmapFeedbackCard isPending={feedbackPending} onSubmit={submitFeedback} />
-          )}
+          <div ref={feedbackSentinelRef} />
 
           <div className="flex flex-col sm:flex-row gap-3 sm:justify-start">
             <Button
@@ -99,6 +98,13 @@ export default function DirectionRoadmapPage() {
           </div>
         </div>
       ) : null}
+
+      <FeedbackSurveyModal
+        isOpen={isFeedbackModalOpen}
+        isPending={feedbackPending}
+        onClose={closeFeedbackModal}
+        onSubmit={submitFeedback}
+      />
     </PageContainer>
   );
 }
