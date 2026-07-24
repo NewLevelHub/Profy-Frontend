@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
@@ -7,7 +7,8 @@ import { feedbackApi } from '@/shared/api/feedback';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useToastStore } from '@/shared/store/toast';
-import type { DirectionRoadmapResponse, FeedbackRating } from '@/shared/types';
+import type { DirectionRoadmapResponse } from '@/shared/types';
+import type { FeedbackSurveyAnswers } from '../components/FeedbackSurveyModal';
 
 const FEEDBACK_CONTEXT = 'roadmap';
 
@@ -99,28 +100,61 @@ export function useDirectionRoadmap(slug: string) {
     staleTime: Infinity,
   });
 
+  // Prompt for feedback once the user has scrolled through the whole plan —
+  // rating "is this plan useful" before reading it doesn't make sense, and a
+  // modal that pops up the instant the page loads would just get dismissed.
+  const [isFeedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const feedbackDismissedRef = useRef(false);
+  const feedbackSentinelRef = useRef<HTMLDivElement | null>(null);
+  const showFeedbackPrompt = feedbackStatusQuery.data?.submitted === false;
+
   const feedbackMutation = useMutation({
-    mutationFn: (input: { rating: FeedbackRating; message: string | null }) =>
+    mutationFn: (answers: FeedbackSurveyAnswers) =>
       feedbackApi.submit({
         context: FEEDBACK_CONTEXT,
-        rating: input.rating,
-        message: input.message,
+        overall_rating: answers.overallRating,
+        questions_rating: answers.questionsRating,
+        result_match_rating: answers.resultMatchRating,
+        plan_usefulness_rating: answers.planUsefulnessRating,
+        design_rating: answers.designRating,
+        message: answers.message,
         assessment_id: assessmentId,
         direction_slug: slug,
       }),
     onSuccess: () => {
       queryClient.setQueryData(feedbackStatusKey, { submitted: true });
       useToastStore.getState().show('Спасибо! Нам очень важно ваше мнение!');
+      setFeedbackModalOpen(false);
     },
   });
 
   const submitFeedback = useCallback(
-    (rating: FeedbackRating, message: string | null) => {
+    (answers: FeedbackSurveyAnswers) => {
       if (feedbackMutation.isPending) return;
-      feedbackMutation.mutate({ rating, message });
+      feedbackMutation.mutate(answers);
     },
     [feedbackMutation],
   );
+
+  useEffect(() => {
+    if (!showFeedbackPrompt || feedbackDismissedRef.current) return;
+    const el = feedbackSentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setFeedbackModalOpen(true);
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [showFeedbackPrompt, roadmap]);
+
+  const closeFeedbackModal = useCallback(() => {
+    feedbackDismissedRef.current = true;
+    setFeedbackModalOpen(false);
+  }, []);
 
   return {
     roadmap,
@@ -133,7 +167,8 @@ export function useDirectionRoadmap(slug: string) {
     generate,
     submitFeedback,
     feedbackPending: feedbackMutation.isPending,
-    /** Only true once we've confirmed (from the server) this assessment hasn't given feedback yet. */
-    showFeedbackPrompt: feedbackStatusQuery.data?.submitted === false,
+    feedbackSentinelRef,
+    isFeedbackModalOpen,
+    closeFeedbackModal,
   };
 }

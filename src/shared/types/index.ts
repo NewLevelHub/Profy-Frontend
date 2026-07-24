@@ -167,7 +167,11 @@ export type FeedbackRating = 'good' | 'neutral' | 'bad';
 
 export interface ProductFeedbackRequest {
   context: 'roadmap';
-  rating: FeedbackRating;
+  overall_rating: FeedbackRating;
+  questions_rating?: FeedbackRating | null;
+  result_match_rating?: FeedbackRating | null;
+  plan_usefulness_rating?: FeedbackRating | null;
+  design_rating?: FeedbackRating | null;
   message?: string | null;
   assessment_id?: string | null;
   direction_slug?: string | null;
@@ -531,9 +535,14 @@ export interface AdminAssessmentDetail {
 
 export interface AdminFeedbackListItem {
   id: string;
+  user_id: string;
   user_email: string;
   context: string;
-  rating: FeedbackRating;
+  overall_rating: FeedbackRating;
+  questions_rating: FeedbackRating | null;
+  result_match_rating: FeedbackRating | null;
+  plan_usefulness_rating: FeedbackRating | null;
+  design_rating: FeedbackRating | null;
   message: string | null;
   direction_slug: string | null;
   created_at: string;
