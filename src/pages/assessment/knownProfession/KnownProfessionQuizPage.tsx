@@ -1,15 +1,9 @@
-import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { Button, Spinner } from '@/shared/ui';
 import { OptionCard } from '../components/OptionCard';
 import { useProfileStore } from '@/shared/store/profile';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
-import {
-  getProfessionQuestions,
-  scoreProfessionQuiz,
-  VERDICT_COPY,
-  type MatchVerdict,
-} from './questionBanks';
+import { useKnownProfessionQuiz } from './hooks/useKnownProfessionQuiz';
 
 interface LocationState {
   professionName?: string;
@@ -26,7 +20,7 @@ export default function KnownProfessionQuizPage() {
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
   const state = (location.state as LocationState | null) ?? {};
 
-  const { data: tree, isLoading } = useKnownProfessionTree();
+  const { data: tree, isLoading: treeLoading } = useKnownProfessionTree();
 
   const sphere = tree?.find(s => s.slug === sphereSlug);
   const profession = sphere?.professions.find(p => p.slug === professionSlug);
@@ -39,41 +33,22 @@ export default function KnownProfessionQuizPage() {
     professionSlug ??
     'профессия';
 
-  const questions = useMemo(
-    () => getProfessionQuestions(professionSlug ?? '', professionName),
-    [professionSlug, professionName],
-  );
+  const {
+    isLoading: quizLoading,
+    error,
+    questions,
+    questionIndex,
+    current,
+    isLastQuestion,
+    progress,
+    selectedIndex,
+    setSelectedIndex,
+    handleNext,
+    submitting,
+    finalizeError,
+  } = useKnownProfessionQuiz(professionSlug ?? '');
 
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [verdict, setVerdict] = useState<MatchVerdict | null>(null);
-  const [percent, setPercent] = useState(0);
-
-  const current = questions[questionIndex];
-  const progress =
-    questions.length === 0
-      ? 0
-      : ((questionIndex + (selectedIndex != null ? 0.5 : 0)) / questions.length) * 100;
-
-  function handleNext() {
-    if (selectedIndex == null || !current) return;
-
-    const nextAnswers = { ...answers, [current.id]: selectedIndex };
-    setAnswers(nextAnswers);
-
-    if (questionIndex + 1 >= questions.length) {
-      const result = scoreProfessionQuiz(questions, nextAnswers);
-      setPercent(result.percent);
-      setVerdict(result.verdict);
-      return;
-    }
-
-    setQuestionIndex(i => i + 1);
-    setSelectedIndex(null);
-  }
-
-  if (isLoading) {
+  if (treeLoading || quizLoading) {
     return (
       <div className="min-h-screen bg-page flex items-center justify-center">
         <Spinner size="lg" />
@@ -81,71 +56,20 @@ export default function KnownProfessionQuizPage() {
     );
   }
 
-  if (verdict) {
-    const copy = VERDICT_COPY[verdict];
+  if (error || (!quizLoading && questions.length === 0)) {
     return (
-      <div className="min-h-screen bg-page flex flex-col">
-        <div className="flex-1 overflow-y-auto px-6 py-[70px] lg:py-12">
-          <div className="max-w-[520px] mx-auto flex flex-col gap-6">
-            <div
-              className="inline-flex self-start items-center gap-[7px] bg-brand-subtle text-brand-text font-extrabold rounded-pill px-[14px] py-[6px]"
-              style={{ fontSize: 13 }}
-            >
-              Проверка гипотезы
-            </div>
-            <h1
-              className="font-black text-primary tracking-[-0.01em]"
-              style={{ fontSize: 32 }}
-            >
-              {copy.title}
-            </h1>
-            <p className="text-secondary font-semibold" style={{ fontSize: 17 }}>
-              {professionName}: совпадение ≈ {percent}%
-            </p>
-            <p className="text-primary font-semibold leading-relaxed" style={{ fontSize: 16 }}>
-              {copy.body}
-            </p>
-
-            <div className="flex flex-col gap-3 mt-4">
-              {verdict === 'strong' && (
-                <Button
-                  size="lg"
-                  className="w-full h-12 rounded-pill font-extrabold"
-                  onClick={() => navigate('/home')}
-                >
-                  Отлично, на главную
-                </Button>
-              )}
-              {(verdict === 'partial' || verdict === 'weak') && (
-                <Button
-                  size="lg"
-                  className="w-full h-12 rounded-pill font-extrabold"
-                  onClick={() =>
-                    navigate(`/assessment/known-profession/${sphereSlug}`)
-                  }
-                >
-                  Выбрать другую в этой сфере
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="lg"
-                className="w-full h-12 rounded-pill"
-                onClick={() => navigate('/assessment/goal')}
-              >
-                Пройти полный тест
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                className="w-full h-12 rounded-pill"
-                onClick={() => navigate('/assessment/known-profession')}
-              >
-                Выбрать другую сферу
-              </Button>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-page flex flex-col items-center justify-center gap-3 px-6">
+        <p className="text-secondary text-center">
+          Для «{professionName}» пока нет вопросов. Попробуй другую профессию.
+        </p>
+        <Button
+          variant="ghost"
+          size="lg"
+          className="rounded-pill"
+          onClick={() => navigate(`/assessment/known-profession/${sphereSlug}`)}
+        >
+          Выбрать другую профессию
+        </Button>
       </div>
     );
   }
@@ -208,6 +132,11 @@ export default function KnownProfessionQuizPage() {
               />
             ))}
           </div>
+          {finalizeError && (
+            <p className="text-danger text-sm text-center mt-4">
+              Не удалось сохранить результат. Попробуй ещё раз.
+            </p>
+          )}
         </div>
       </div>
 
@@ -216,10 +145,10 @@ export default function KnownProfessionQuizPage() {
           <Button
             size="lg"
             className="w-full h-12 rounded-pill font-extrabold"
-            disabled={selectedIndex == null}
+            disabled={selectedIndex == null || submitting}
             onClick={handleNext}
           >
-            {questionIndex + 1 >= questions.length ? 'Узнать результат' : 'Дальше'}
+            {submitting ? 'Сохраняем…' : isLastQuestion ? 'Узнать результат' : 'Дальше'}
           </Button>
         </div>
       </div>

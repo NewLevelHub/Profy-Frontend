@@ -59,7 +59,7 @@ export interface ArtifactItem {
 
 // ─── Assessment ────────────────────────────────────────────────────────────────
 
-export type AssessmentGoal = 'explore' | 'profession' | 'university';
+export type AssessmentGoal = 'explore' | 'profession' | 'university' | 'known';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 // ─── Direction taxonomy (spheres + leaf professions) ───────────────────────────
@@ -214,6 +214,40 @@ export interface SimulationSubmitRequest {
 export interface SimulationSubmitResponse {
   status: 'recorded';
   akinator_turn: AkinatorTurnResponse | null;
+}
+
+// ─── Known-profession validation quiz ("Уже знаю, кем хочу стать") ────────────
+
+export type KnownProfessionQuestionKind = 'situational' | 'subject' | 'commitment';
+
+export interface KnownProfessionQuestionOption {
+  text: string;
+  fit_score: 0 | 1 | 2;
+}
+
+export interface KnownProfessionQuestion {
+  id: string;
+  kind: KnownProfessionQuestionKind;
+  text: string;
+  options: KnownProfessionQuestionOption[];
+}
+
+export interface KnownProfessionQuizResponse {
+  leaf_slug: string;
+  questions: KnownProfessionQuestion[];
+}
+
+export interface KnownProfessionFinalizeRequest {
+  direction_slug: string;
+  answers: Record<string, number>;
+}
+
+export type KnownProfessionVerdict = 'strong' | 'partial' | 'weak';
+
+export interface KnownProfessionFinalizeResponse {
+  assessment_id: string;
+  percent: number;
+  verdict: KnownProfessionVerdict;
 }
 
 export interface QuestionOption {
