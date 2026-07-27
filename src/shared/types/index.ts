@@ -319,6 +319,7 @@ export interface UniversityRequirement {
   university_name: string;
   city: string;
   exams: string[];
+  ent_subjects?: string[];
   admission_requirements: string[];
   admission_summary: string;
 }

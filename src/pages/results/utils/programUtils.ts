@@ -6,6 +6,7 @@ export function formatCost(cost: number | null): string {
 const KEY_LABELS: Record<string, string> = {
   // Requirements
   exams: 'Вступительные экзамены',
+  ent_subjects: 'Обязательные предметы ЕНТ',
   min_gpa: 'Минимальный GPA',
   min_sat: 'Минимальный балл SAT',
   min_ielts: 'Минимальный балл IELTS',
