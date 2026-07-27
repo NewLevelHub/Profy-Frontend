@@ -44,6 +44,22 @@ export function UniversityRequirementsSection({ requirements }: UniversityRequir
               </div>
             )}
 
+            {req.ent_subjects && req.ent_subjects.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-caption font-semibold text-secondary">Обязательные предметы ЕНТ:</p>
+                <div className="flex flex-wrap gap-2">
+                  {req.ent_subjects.map((subject, j) => (
+                    <span
+                      key={j}
+                      className="px-2.5 py-0.5 rounded-pill text-caption font-semibold bg-surface-secondary text-secondary border border-default"
+                    >
+                      {subject}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {req.admission_summary && (
               <p className="text-body text-secondary leading-relaxed">{req.admission_summary}</p>
             )}
