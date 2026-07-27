@@ -14,6 +14,8 @@ import type {
   SimulationDetailResponse,
   SimulationSubmitRequest,
   SimulationSubmitResponse,
+  KnownProfessionFinalizeRequest,
+  KnownProfessionFinalizeResponse,
 } from '@/shared/types';
 
 export const assessmentApi = {
@@ -66,5 +68,10 @@ export const assessmentApi = {
   submitSimulation: (assessmentId: string, leafSlug: string, payload: SimulationSubmitRequest) =>
     apiClient
       .post<SimulationSubmitResponse>(API.assessment.simulationSubmit(assessmentId, leafSlug), payload)
+      .then(r => r.data),
+
+  knownProfessionFinalize: (payload: KnownProfessionFinalizeRequest) =>
+    apiClient
+      .post<KnownProfessionFinalizeResponse>(API.assessment.knownProfessionFinalize, payload)
       .then(r => r.data),
 };

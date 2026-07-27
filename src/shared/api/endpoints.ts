@@ -19,10 +19,12 @@ export const API = {
     list: '/directions',
     tree: '/directions/tree',
     detail: (slug: string) => `/directions/${slug}`,
+    knownProfessionQuiz: (slug: string) => `/directions/${slug}/known-profession-quiz`,
   },
   assessment: {
     start: '/assessment/start',
     current: '/assessment/current',
+    knownProfessionFinalize: '/assessment/known-profession/finalize',
     questions: (assessmentId: string, block: string) =>
       `/assessment/${assessmentId}/questions/${block}`,
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,

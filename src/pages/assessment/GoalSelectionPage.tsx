@@ -10,6 +10,10 @@ interface GoalCard {
   title: string;
   subtitle: string;
   seniorOnly?: boolean;
+  // "Уже знаю" quizzes only exist for leaf specialties, and junior never
+  // resolves to a leaf (only sections) — same age-group rule as the main
+  // akinator engine, see seed_akinator_content.py's "Age-group pass".
+  hiddenForJunior?: boolean;
 }
 
 const GOAL_CARDS: GoalCard[] = [
@@ -30,6 +34,7 @@ const GOAL_CARDS: GoalCard[] = [
     emoji: '✨',
     title: 'Уже знаю, кем хочу стать',
     subtitle: 'Круто — скажи нам, а мы проверим гипотезу',
+    hiddenForJunior: true,
   },
   {
     goal: 'university',
@@ -172,7 +177,9 @@ export default function GoalSelectionPage() {
   }
 
   const visibleCards = GOAL_CARDS.filter(
-    card => !card.seniorOnly || ageGroup === 'senior',
+    card =>
+      (!card.seniorOnly || ageGroup === 'senior') &&
+      (!card.hiddenForJunior || ageGroup !== 'junior'),
   );
 
   function onCardClick(goal: GoalCard['goal']) {

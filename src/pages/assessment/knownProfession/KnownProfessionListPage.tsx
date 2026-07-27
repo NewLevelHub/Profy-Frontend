@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Spinner } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
-import { hasSpecializedBank } from './questionBanks';
 import { useProfileStore } from '@/shared/store/profile';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
 import { ProfessionSearchInput } from './components/ProfessionSearchInput';
@@ -105,8 +104,6 @@ export default function KnownProfessionListPage() {
                       : label !== prof.name
                         ? prof.name
                         : null;
-                    const specialized = hasSpecializedBank(prof.slug);
-
                     return (
                       <button
                         key={prof.slug}
@@ -144,17 +141,6 @@ export default function KnownProfessionListPage() {
                             </p>
                           )}
                         </div>
-                        {specialized ? (
-                          <span
-                            className="shrink-0 text-[11px] font-extrabold text-brand-text bg-brand-subtle px-2.5 py-1 rounded-pill"
-                          >
-                            свой банк
-                          </span>
-                        ) : (
-                          <span className="shrink-0 text-[11px] font-bold text-muted">
-                            общий банк
-                          </span>
-                        )}
                         <span
                           className="text-[20px] text-[#A78BFA] font-black shrink-0"
                           aria-hidden
