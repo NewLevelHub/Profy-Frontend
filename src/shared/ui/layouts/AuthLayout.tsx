@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router';
 import { env } from '@/shared/config/env';
-import { MascotVideo } from '@/shared/ui/MascotVideo';
 
 const FEATURES = [
   { emoji: '🧠', text: 'Анализ мышления и интересов' },
@@ -20,17 +19,6 @@ export function AuthLayout() {
         <div className="absolute top-[-120px] left-[-90px] w-[420px] h-[420px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.12)' }} />
         <div className="absolute bottom-[-160px] right-[-60px] w-[420px] h-[420px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
         <div className="absolute rounded-full pointer-events-none" style={{ top: '42%', left: '30%', width: 130, height: 130, background: 'rgba(234,88,12,0.30)', filter: 'blur(8px)' }} />
-
-        {/* Mascot — near-white bg keyed out on canvas so subject colors stay intact */}
-        <div
-          className="absolute inset-y-0 right-[-14%] w-[58%] pointer-events-none flex items-end justify-center pb-0 translate-y-30"
-          aria-hidden="true"
-        >
-          <MascotVideo
-            src="/video/IMG_1050.MOV"
-            className="w-full h-auto max-h-[85%] object-contain object-bottom"
-          />
-        </div>
 
         <div className="relative z-10 flex flex-col h-full">
           {/* Logo */}
