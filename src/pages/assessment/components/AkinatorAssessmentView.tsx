@@ -17,11 +17,13 @@ export function AkinatorAssessmentView() {
     step,
     simulatingLeaf,
     selectedIndex,
+    disinterestedSelected,
     transitioning,
     exitConfirmOpen,
     questionProgress,
     ageGroup,
     handleOptionSelect,
+    handleDisinterested,
     handleBack,
     handleRejectAll,
     handleFeedback,
@@ -219,7 +221,7 @@ export function AkinatorAssessmentView() {
                   onClick={() => handleOptionSelect(null)}
                   className={cn(
                     'w-full flex items-center justify-center gap-[14px] text-center border-2 px-5 py-[18px] transition-all duration-150 md:col-span-2 mt-4',
-                    selectedIndex === null
+                    selectedIndex === null && !disinterestedSelected
                       ? 'border-brand bg-active-tint'
                       : 'border-dashed border-default bg-surface/50 text-secondary hover:border-[#C4B5FD]'
                   )}
@@ -229,6 +231,31 @@ export function AkinatorAssessmentView() {
                     🤷‍♂️ Затрудняюсь ответить / Не знаю
                   </span>
                 </button>
+
+                {/* "Не интересует" — a distinct, stronger signal than "не
+                    знаю": tells the engine to actively de-prioritize this
+                    question's specific directions, not just skip neutrally.
+                    Only shown from step 3 onward — the first 3 questions are
+                    the deliberately wide/generic start with no specific
+                    direction to reject (see WIDE_START_STEPS on the
+                    backend). */}
+                {step >= 3 && (
+                  <button
+                    type="button"
+                    onClick={handleDisinterested}
+                    className={cn(
+                      'w-full flex items-center justify-center gap-[14px] text-center border-2 px-5 py-[14px] transition-all duration-150 md:col-span-2 mt-2',
+                      disinterestedSelected
+                        ? 'border-brand bg-active-tint'
+                        : 'border-dashed border-default bg-surface/30 text-secondary hover:border-[#C4B5FD]'
+                    )}
+                    style={{ borderRadius: 18 }}
+                  >
+                    <span className="font-medium text-secondary" style={{ fontSize: 14 }}>
+                      🙅 Это не моя тема — не интересует
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

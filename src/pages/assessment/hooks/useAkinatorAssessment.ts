@@ -30,6 +30,7 @@ export function useAkinatorAssessment() {
   const [step, setStep] = useState(0);
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [disinterestedSelected, setDisinterestedSelected] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   // RJP simulation entry point — set only by an explicit "try it on" click
@@ -80,6 +81,7 @@ export function useAkinatorAssessment() {
     if (transitioning || saving || !question || !assessmentId) return;
 
     setSelectedIndex(optionIndex);
+    setDisinterestedSelected(false);
     setTransitioning(true);
 
     // Wait 300ms for smooth transition animation
@@ -100,6 +102,47 @@ export function useAkinatorAssessment() {
         setReveal(data);
         setQuestion(null);
         setSelectedIndex(null);
+      }
+    } catch {
+      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+    } finally {
+      setTransitioning(false);
+    }
+  };
+
+  // "Не интересует" — a distinct, stronger signal than "не знаю"
+  // (handleOptionSelect(null)). Only shown by the view once step >=
+  // WIDE_START_STEPS (3, mirrored as a UI-only constant below) — the first
+  // few questions are deliberately generic/wide and have no specific
+  // direction to reject anyway. See akinator_engine.apply_disinterest on
+  // the backend for why this needs to exist separately from "не знаю": a
+  // real user can sincerely answer an off-topic question, which still
+  // moves belief toward whatever it favors even with no real stake in it.
+  const handleDisinterested = async () => {
+    if (transitioning || saving || !question || !assessmentId) return;
+
+    setSelectedIndex(null);
+    setDisinterestedSelected(true);
+    setTransitioning(true);
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    try {
+      const data = await assessmentApi.akinatorAnswer(assessmentId, {
+        question_id: question.question_id,
+        selected_option_index: null,
+        disinterested: true,
+      });
+
+      if (data.type === 'next_question') {
+        setQuestion(data);
+        setReveal(null);
+        setDisinterestedSelected(false);
+        setStep(prev => prev + 1);
+      } else {
+        setReveal(data);
+        setQuestion(null);
+        setDisinterestedSelected(false);
       }
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
@@ -256,11 +299,13 @@ export function useAkinatorAssessment() {
     step,
     simulatingLeaf,
     selectedIndex,
+    disinterestedSelected,
     transitioning,
     exitConfirmOpen,
     questionProgress,
     ageGroup,
     handleOptionSelect,
+    handleDisinterested,
     handleBack,
     handleRejectAll,
     handleFeedback,

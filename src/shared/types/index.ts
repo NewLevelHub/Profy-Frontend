@@ -147,6 +147,10 @@ export type AkinatorTurnResponse = NextQuestionResponse | RevealResponse;
 export interface AkinatorAnswerRequest {
   question_id: string;
   selected_option_index: number | null;
+  /** "Не интересует" — a distinct, stronger signal than "не знаю"
+   * (selected_option_index: null with disinterested: false). Mutually
+   * exclusive with selected_option_index. */
+  disinterested?: boolean;
 }
 
 export interface AkinatorFeedbackRequest {
