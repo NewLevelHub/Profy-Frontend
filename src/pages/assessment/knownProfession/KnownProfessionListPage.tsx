@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Spinner, Button } from '@/shared/ui';
+import { Spinner } from '@/shared/ui';
+import { cn } from '@/shared/lib/cn';
 import { useProfileStore } from '@/shared/store/profile';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
-import { useProfessionSelection } from './hooks/useProfessionSelection';
 import { ProfessionSearchInput } from './components/ProfessionSearchInput';
-import { ProfessionListItem } from './components/ProfessionListItem';
 import { filterSpecialties } from './utils/search';
 
 export default function KnownProfessionListPage() {
@@ -22,21 +21,14 @@ export default function KnownProfessionListPage() {
     [sphere, query],
   );
 
-  const { selectedSlug, toggle, ready, hint, confirm } = useProfessionSelection(
-    sphere?.slug,
-    sphere?.name,
-    filteredProfessions,
-    ageGroup,
-  );
-
   return (
     <div className="min-h-screen bg-page flex flex-col">
       <div className="flex-1 overflow-y-auto px-6 py-[70px] lg:py-12">
-        <div className="max-w-[620px] lg:max-w-4xl mx-auto flex flex-col gap-[18px]">
+        <div className="max-w-[620px] lg:max-w-4xl mx-auto flex flex-col">
           <button
             type="button"
             onClick={() => navigate('/assessment/known-profession')}
-            className="self-start text-secondary font-bold text-sm hover:text-primary transition-colors"
+            className="self-start text-secondary font-bold text-sm mb-6 hover:text-primary transition-colors"
           >
             ← Все сферы
           </button>
@@ -59,30 +51,31 @@ export default function KnownProfessionListPage() {
 
           {sphere && (
             <>
-              <div
-                className="self-start inline-flex items-center gap-[7px] bg-brand-subtle text-brand-text font-extrabold rounded-pill px-[14px] py-[6px]"
-                style={{ fontSize: 13 }}
-              >
-                Уже знаешь · Шаг 2
-              </div>
-
-              <div>
+              <div className="mb-[30px]">
+                <div
+                  className="inline-flex items-center gap-[7px] bg-brand-subtle text-brand-text font-extrabold rounded-pill px-[14px] py-[6px] mb-[18px]"
+                  style={{ fontSize: 13 }}
+                >
+                  Уже знаешь · Шаг 2
+                </div>
                 <h1
-                  className="font-black text-primary tracking-[-0.02em] leading-[1.1]"
+                  className="font-black text-primary tracking-[-0.01em] mb-2"
                   style={{ fontSize: 34 }}
                 >
                   {sphere.name}
                 </h1>
-                <p className="text-secondary font-semibold mt-2 text-pretty" style={{ fontSize: 17 }}>
+                <p className="text-secondary font-semibold" style={{ fontSize: 17 }}>
                   Выбери профессию — проверим, насколько она тебе подходит
                 </p>
               </div>
 
-              <ProfessionSearchInput
-                value={query}
-                onChange={setQuery}
-                placeholder="Найди профессию в этой сфере"
-              />
+              <div className="mb-5">
+                <ProfessionSearchInput
+                  value={query}
+                  onChange={setQuery}
+                  placeholder="Найди профессию в этой сфере"
+                />
+              </div>
 
               {filteredProfessions.length === 0 ? (
                 <p className="text-secondary text-center py-8">
@@ -97,40 +90,68 @@ export default function KnownProfessionListPage() {
                   .
                 </p>
               ) : (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-[10px]">
                   {filteredProfessions.map(({ specialty: prof, matchedProfession }) => {
                     const label =
-                      ageGroup === 'junior' && prof.label_junior ? prof.label_junior : prof.name;
+                      ageGroup === 'junior' && prof.label_junior
+                        ? prof.label_junior
+                        : prof.name;
+                    // matched via a job title -> subtitle gives the specialty
+                    // it belongs to (header already shows the job title);
+                    // otherwise fall back to the original junior/full-name pairing.
                     const subtitle = matchedProfession
                       ? label
                       : label !== prof.name
                         ? prof.name
                         : null;
                     return (
-                      <ProfessionListItem
+                      <button
                         key={prof.slug}
-                        name={matchedProfession ?? label}
-                        subtitle={subtitle}
-                        selected={selectedSlug === prof.slug}
-                        onSelect={() => toggle(prof.slug)}
-                      />
+                        type="button"
+                        onClick={() =>
+                          navigate(
+                            `/assessment/known-profession/${sphere.slug}/${prof.slug}`,
+                            {
+                              state: {
+                                professionName: matchedProfession ?? label,
+                                sphereName: sphere.name,
+                              },
+                            },
+                          )
+                        }
+                        className={cn(
+                          'flex items-center gap-4 px-5 py-4 text-left border-[1.5px] transition-all duration-[180ms]',
+                          'border-default bg-surface hover:border-[#C4B5FD] hover:bg-hover hover:-translate-y-0.5',
+                        )}
+                        style={{
+                          borderRadius: 18,
+                          boxShadow: '0 4px 14px rgba(30,27,75,.04)',
+                        }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className="font-extrabold text-primary"
+                            style={{ fontSize: 17 }}
+                          >
+                            {matchedProfession ?? label}
+                          </p>
+                          {subtitle && (
+                            <p className="text-secondary text-xs font-semibold mt-0.5">
+                              {subtitle}
+                            </p>
+                          )}
+                        </div>
+                        <span
+                          className="text-[20px] text-[#A78BFA] font-black shrink-0"
+                          aria-hidden
+                        >
+                          ›
+                        </span>
+                      </button>
                     );
                   })}
                 </div>
               )}
-
-              <div className="flex flex-wrap items-center gap-3.5 bg-surface border-[1.5px] border-default rounded-[20px] px-[22px] py-[18px] mt-1.5">
-                <p className="flex-1 text-secondary font-semibold text-[15px] text-pretty">{hint}</p>
-                <Button
-                  type="button"
-                  size="lg"
-                  disabled={!ready}
-                  onClick={confirm}
-                  className="rounded-pill whitespace-nowrap"
-                >
-                  Проверить гипотезу
-                </Button>
-              </div>
             </>
           )}
         </div>

@@ -42,7 +42,6 @@ export function Header() {
   }, [drawerOpen]);
 
   function handleLogout() {
-    setDrawerOpen(false);
     logout();
     navigate('/login', { replace: true });
   }

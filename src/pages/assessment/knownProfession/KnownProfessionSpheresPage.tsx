@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Spinner } from '@/shared/ui';
+import { cn } from '@/shared/lib/cn';
 import { useProfileStore } from '@/shared/store/profile';
-import { SPHERE_MASCOT } from '@/shared/config/sphereMascot';
+import { SPHERE_EMOJI } from '@/shared/config/sphereEmoji';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
 import { useProfessionSearch } from './hooks/useProfessionSearch';
 import { ProfessionSearchInput } from './components/ProfessionSearchInput';
 import { ProfessionSearchResults } from './components/ProfessionSearchResults';
-import { SphereCard } from './components/SphereCard';
 import type { SpecialtySearchMatch } from './utils/search';
 
 export default function KnownProfessionSpheresPage() {
@@ -36,7 +36,7 @@ export default function KnownProfessionSpheresPage() {
   return (
     <div className="min-h-screen bg-page flex flex-col">
       <div className="flex-1 overflow-y-auto px-6 py-[70px] lg:py-12">
-        <div className="max-w-[620px] lg:max-w-5xl mx-auto flex flex-col">
+        <div className="max-w-[620px] lg:max-w-4xl mx-auto flex flex-col">
           <button
             type="button"
             onClick={() => navigate('/assessment/goal')}
@@ -53,25 +53,19 @@ export default function KnownProfessionSpheresPage() {
               Уже знаешь · Шаг 1
             </div>
             <h1
-              className="font-black text-primary tracking-[-0.02em] mb-2"
+              className="font-black text-primary tracking-[-0.01em] mb-2"
               style={{ fontSize: 34 }}
             >
               Выбери сферу
             </h1>
-            <p className="text-secondary font-semibold text-pretty" style={{ fontSize: 17 }}>
-              {isSearching
-                ? 'Результаты поиска по всем сферам'
-                : 'В какой области твоя профессия? Открой сферу, чтобы посмотреть профессии.'}
+            <p className="text-secondary font-semibold" style={{ fontSize: 17 }}>
+              {isSearching ? 'Результаты поиска по всем сферам' : 'В какой области твоя профессия?'}
             </p>
           </div>
 
           {tree && tree.length > 0 && (
             <div className="mb-5">
-              <ProfessionSearchInput
-                value={query}
-                onChange={setQuery}
-                placeholder="Найди профессию или специальность"
-              />
+              <ProfessionSearchInput value={query} onChange={setQuery} />
             </div>
           )}
 
@@ -114,15 +108,60 @@ export default function KnownProfessionSpheresPage() {
           )}
 
           {tree && tree.length > 0 && !isSearching && (
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 sm:gap-5">
-              {tree.map(sphere => (
-                <SphereCard
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
+              {tree.map((sphere, i) => (
+                <button
                   key={sphere.slug}
-                  sphere={sphere}
-                  ageGroup={ageGroup}
-                  mascotKind={SPHERE_MASCOT[sphere.slug] ?? 'pm'}
-                  onClick={() => navigate(`/assessment/known-profession/${sphere.slug}`)}
-                />
+                  type="button"
+                  onClick={() =>
+                    navigate(`/assessment/known-profession/${sphere.slug}`)
+                  }
+                  className={cn(
+                    'flex items-center gap-[18px] px-[22px] py-5 text-left border-[1.5px] transition-all duration-[180ms]',
+                    'border-default bg-surface hover:border-[#C4B5FD] hover:bg-hover hover:-translate-y-0.5',
+                  )}
+                  style={{
+                    borderRadius: 20,
+                    boxShadow: '0 4px 14px rgba(30,27,75,.05)',
+                  }}
+                >
+                  <div
+                    className="w-[54px] h-[54px] flex items-center justify-center shrink-0"
+                    style={{
+                      borderRadius: 15,
+                      background: i % 3 === 0 ? 'var(--bg-brand-subtle, #F5F3FF)' : 'var(--bg-active)',
+                    }}
+                  >
+                    <span className="text-[26px] leading-none" role="img">
+                      {SPHERE_EMOJI[sphere.slug] ?? '🧭'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p
+                      className="font-extrabold text-primary mb-[3px]"
+                      style={{ fontSize: 18 }}
+                    >
+                      {sphere.name}
+                    </p>
+                    <p
+                      className="text-secondary font-semibold"
+                      style={{ fontSize: 13 }}
+                    >
+                      {sphere.professions.length}{' '}
+                      {sphere.professions.length === 1
+                        ? 'профессия'
+                        : sphere.professions.length < 5
+                          ? 'профессии'
+                          : 'профессий'}
+                    </p>
+                  </div>
+                  <span
+                    className="text-[22px] text-[#A78BFA] font-black shrink-0"
+                    aria-hidden
+                  >
+                    ›
+                  </span>
+                </button>
               ))}
             </div>
           )}

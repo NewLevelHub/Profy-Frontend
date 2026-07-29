@@ -231,7 +231,6 @@
   .hover\:text-primary:hover   { color: var(--text-primary); }
   .hover\:text-brand:hover     { color: var(--brand-text); }
   .hover\:border-strong:hover  { border-color: var(--border-strong); }
-  .hover\:border-brand:hover   { border-color: var(--brand); }
 
   .bg-nav-active  { background-color: var(--nav-active-bg); }
   .bg-nav-hover   { background-color: var(--nav-hover-bg); }

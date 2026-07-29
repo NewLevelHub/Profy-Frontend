@@ -4,17 +4,24 @@ import { useNavigate, useParams } from 'react-router';
 import { universityApi } from '@/shared/api/university';
 import { useProfileStore } from '@/shared/store/profile';
 
-export const CITY_FILTERS: { label: string; value: string | undefined }[] = [
+export const COUNTRY_FILTERS: { label: string; value: string | undefined }[] = [
   { label: 'Все', value: undefined },
-  { label: 'Алматы', value: 'Алматы' },
-  { label: 'Астана', value: 'Астана' },
+  { label: 'Казахстан', value: 'Казахстан' },
+  { label: 'США', value: 'США' },
+  { label: 'Великобритания', value: 'Великобритания' },
+  { label: 'Европа', value: '__europe__' },
+  { label: 'Канада', value: 'Канада' },
+  { label: 'Азия', value: '__asia__' },
 ];
+
+const EUROPE_COUNTRIES = new Set(['Нидерланды', 'Германия', 'Швейцария', 'Франция', 'Италия', 'Испания', 'Польша', 'Чехия', 'Австрия', 'Бельгия', 'Португалия', 'Швеция', 'Норвегия', 'Дания', 'Финляндия']);
+const ASIA_COUNTRIES = new Set(['Сингапур', 'Южная Корея', 'Япония', 'Китай', 'Индия', 'Малайзия', 'Гонконг']);
 
 export function useUniversityList() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const ageGroup = useProfileStore(s => s.profile?.age_group);
-  const [activeCity, setActiveCity] = useState<string | undefined>(undefined);
+  const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
 
   const isAllowed = ageGroup === 'senior';
 
@@ -25,9 +32,11 @@ export function useUniversityList() {
   });
 
   const programs = useMemo(() => {
-    if (!activeCity) return allPrograms;
-    return allPrograms.filter(p => p.university.city === activeCity);
-  }, [allPrograms, activeCity]);
+    if (!activeCountry) return allPrograms;
+    if (activeCountry === '__europe__') return allPrograms.filter(p => EUROPE_COUNTRIES.has(p.university.country));
+    if (activeCountry === '__asia__') return allPrograms.filter(p => ASIA_COUNTRIES.has(p.university.country));
+    return allPrograms.filter(p => p.university.country === activeCountry);
+  }, [allPrograms, activeCountry]);
 
   function handleProgramClick(programId: string) {
     navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
@@ -38,8 +47,8 @@ export function useUniversityList() {
     programs,
     isLoading,
     error: error ? 'Не удалось загрузить программы. Попробуй ещё раз.' : null,
-    activeCity,
-    setActiveCity,
+    activeCountry,
+    setActiveCountry,
     isAllowed,
     handleProgramClick,
     refetch,
