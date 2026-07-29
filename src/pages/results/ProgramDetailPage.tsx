@@ -42,7 +42,7 @@ function RequirementsTable({ data }: { data: Record<string, unknown> }) {
       {entries.map(([key, value], i) => (
         <div
           key={key}
-          className={`flex items-center justify-between gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-[#EDE9FE]' : ''}`}
+          className={`flex items-center justify-between flex-wrap gap-x-4 gap-y-1 px-5 py-3.5 ${i > 0 ? 'border-t border-[#EDE9FE]' : ''}`}
         >
           <span className="text-[15px] font-semibold text-secondary">{localizeKey(key)}</span>
           <span className="text-[15px] font-extrabold text-primary text-right">{toDisplayString(value)}</span>
