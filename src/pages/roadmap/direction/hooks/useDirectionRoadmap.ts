@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
-import { feedbackApi } from '@/shared/api/feedback';
+// import { feedbackApi } from '@/shared/api/feedback';
+import { subjectReadinessApi } from '@/shared/api/subjectReadiness';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
-import { useToastStore } from '@/shared/store/toast';
+// import { useToastStore } from '@/shared/store/toast';
 import type { DirectionRoadmapResponse } from '@/shared/types';
-import type { FeedbackSurveyAnswers } from '../components/FeedbackSurveyModal';
+// import type { FeedbackSurveyAnswers } from '../components/FeedbackSurveyModal';
 
-const FEEDBACK_CONTEXT = 'roadmap';
+// const FEEDBACK_CONTEXT = 'roadmap';
 
 /** What went wrong, so the page can offer the right way out. */
 export type RoadmapErrorKind = 'ai_unavailable' | 'wrong_direction' | 'forbidden' | 'generic';
@@ -91,6 +92,14 @@ export function useDirectionRoadmap(slug: string) {
   const failure = generateMutation.error ?? (notGenerated ? null : roadmapQuery.error);
   const kind = failure ? errorKind(failure) : null;
 
+  const subjectReadinessQuery = useQuery({
+    queryKey: ['subject-readiness-result', assessmentId] as const,
+    queryFn: () => subjectReadinessApi.getResult(assessmentId!),
+    enabled: !!assessmentId && !!roadmap,
+    retry: false,
+  });
+
+  /* Feedback modal — disabled for now
   const feedbackStatusKey = ['roadmap-feedback-status', assessmentId, FEEDBACK_CONTEXT] as const;
 
   const feedbackStatusQuery = useQuery({
@@ -100,9 +109,6 @@ export function useDirectionRoadmap(slug: string) {
     staleTime: Infinity,
   });
 
-  // Prompt for feedback once the user has scrolled through the whole plan —
-  // rating "is this plan useful" before reading it doesn't make sense, and a
-  // modal that pops up the instant the page loads would just get dismissed.
   const [isFeedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const feedbackDismissedRef = useRef(false);
   const feedbackSentinelRef = useRef<HTMLDivElement | null>(null);
@@ -155,6 +161,7 @@ export function useDirectionRoadmap(slug: string) {
     feedbackDismissedRef.current = true;
     setFeedbackModalOpen(false);
   }, []);
+  */
 
   return {
     roadmap,
@@ -165,10 +172,11 @@ export function useDirectionRoadmap(slug: string) {
     errorKind: kind,
     errorMessage: kind ? ERROR_MESSAGES[kind] : null,
     generate,
-    submitFeedback,
-    feedbackPending: feedbackMutation.isPending,
-    feedbackSentinelRef,
-    isFeedbackModalOpen,
-    closeFeedbackModal,
+    // submitFeedback,
+    // feedbackPending: feedbackMutation.isPending,
+    // feedbackSentinelRef,
+    // isFeedbackModalOpen,
+    // closeFeedbackModal,
+    subjectScores: subjectReadinessQuery.data?.subject_scores ?? [],
   };
 }
