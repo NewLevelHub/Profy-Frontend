@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router';
-import { GraduationCap, Map } from 'lucide-react';
+import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
 import { useResults } from './hooks/useResults';
 import { ResultHero } from './components/ResultHero';
 import { ResultProfessionExamples } from './components/ResultProfessionExamples';
@@ -20,7 +19,9 @@ export default function ResultsPage() {
   } = useResults();
 
   if (!hasCompletedAssessment || isNotReady) {
-    return <ResultEmptyState onStart={() => navigate('/assessment/goal')} />;
+    return (
+      <ResultEmptyState onStart={() => navigate('/assessment/goal')} onHome={() => navigate('/home')} />
+    );
   }
 
   if (isLoading) return <ResultSkeleton />;
@@ -38,11 +39,18 @@ export default function ResultsPage() {
 
   return (
     <PageContainer className="flex flex-col gap-6">
-      <PageHeader title="Твой результат" subtitle="Направление, которое подобрал тест" />
+      <div className="flex items-center gap-3.5 flex-wrap">
+        <h1 className="font-black text-primary tracking-[-0.02em] text-[30px] leading-tight m-0">
+          Твой результат
+        </h1>
+        <Badge variant="success">Тест пройден</Badge>
+      </div>
 
       <ResultHero
+        directionSlug={report.direction_slug}
         directionName={report.direction_name}
         directionDescription={report.direction_description}
+        matchPercent={report.match_percent}
       />
 
       <ResultProfessionExamples professions={report.professions} />
@@ -61,7 +69,7 @@ export default function ResultsPage() {
         />
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-wrap gap-3 pt-1">
         <Button
           size="lg"
           className="gap-2"
@@ -71,8 +79,7 @@ export default function ResultsPage() {
             })
           }
         >
-          <Map className="w-5 h-5" />
-          Составить план развития
+          🗺️ Составить план развития
         </Button>
         {showUniversityBtn && (
           <Button
@@ -83,10 +90,19 @@ export default function ResultsPage() {
               navigate(`/results/directions/${encodeURIComponent(report.direction_slug)}/universities`)
             }
           >
-            <GraduationCap className="w-5 h-5" />
-            Найти университеты
+            🎓 Найти университеты
           </Button>
         )}
+        <Button
+          variant="ghost"
+          size="lg"
+          className="gap-2"
+          onClick={() =>
+            navigate(`/results/directions/${encodeURIComponent(report.direction_slug)}/feedback`)
+          }
+        >
+          💬 Оценить результат
+        </Button>
       </div>
     </PageContainer>
   );

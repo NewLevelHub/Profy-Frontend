@@ -39,6 +39,7 @@ import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
 import GapAnalysisPage from '@/pages/results/GapAnalysisPage';
 import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
 import SubjectReadinessPage from '@/pages/results/subjectReadiness/SubjectReadinessPage';
+import ResultFeedbackPage from '@/pages/results/feedback/ResultFeedbackPage';
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
@@ -116,6 +117,7 @@ export const router = createBrowserRouter([
 
               // Detail screens (mobile: App stack over tabs)
               { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
+              { path: '/results/directions/:slug/feedback', element: <ResultFeedbackPage /> },
               { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
               {
                 path: '/results/directions/:slug/universities/:programId',
