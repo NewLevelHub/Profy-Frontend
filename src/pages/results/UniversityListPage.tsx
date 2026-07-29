@@ -6,7 +6,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import type { ProgramBrief } from '@/shared/types';
-import { COUNTRY_FILTERS, useUniversityList } from '@/pages/results/hooks/useUniversityList';
+import { CITY_FILTERS, useUniversityList } from '@/pages/results/hooks/useUniversityList';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -38,11 +38,11 @@ interface ProgramCardProps {
 
 const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCardProps) {
   return (
-    <div className="bg-surface border border-[#EDE9FE] rounded-[22px] p-6 shadow-card flex flex-col h-full">
+    <div className="bg-surface border border-[#EDE9FE] rounded-[22px] p-6 shadow-card flex flex-col h-full hover:border-brand transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-[21px] font-black leading-snug text-primary m-0">{program.name}</h3>
         <span className="shrink-0 bg-[#EDE9FE] text-[#5B21B6] text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
-          {program.university.country}
+          {program.university.city}
         </span>
       </div>
 
@@ -54,8 +54,10 @@ const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCard
         </p>
       )}
 
-      <div className="flex gap-4 flex-wrap mb-4 text-[15px] font-bold text-secondary">
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
+      <div className="flex gap-2 flex-wrap mb-4">
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap bg-[#F5F3FF] text-[#6D28D9] border border-[#DDD6FE] text-sm font-bold px-3 py-1 rounded-pill">
+          🌐 {program.language}
+        </span>
       </div>
 
       <button
@@ -76,8 +78,8 @@ export default function UniversityListPage() {
     programs,
     isLoading,
     error,
-    activeCountry,
-    setActiveCountry,
+    activeCity,
+    setActiveCity,
     isAllowed,
     handleProgramClick,
     refetch,
@@ -109,16 +111,16 @@ export default function UniversityListPage() {
         <PageHeader title="Университеты" className="flex-1 min-w-0" />
       </div>
 
-      <div className="flex gap-2.5 flex-wrap" role="group" aria-label="Фильтр по стране">
-        {COUNTRY_FILTERS.map(filter => (
+      <div className="flex gap-2.5 flex-wrap" role="group" aria-label="Фильтр по городу">
+        {CITY_FILTERS.map(filter => (
           <button
             key={filter.label}
-            onClick={() => setActiveCountry(filter.value)}
-            aria-pressed={activeCountry === filter.value}
+            onClick={() => setActiveCity(filter.value)}
+            aria-pressed={activeCity === filter.value}
             className={
-              activeCountry === filter.value
+              activeCity === filter.value
                 ? 'px-5 py-2 rounded-pill text-sm font-bold bg-brand text-on-brand border-none cursor-pointer'
-                : 'px-5 py-2 rounded-pill text-sm font-bold bg-surface text-secondary border-[1.5px] border-[#DDD6FE] cursor-pointer hover:border-brand transition-colors'
+                : 'px-5 py-2 rounded-pill text-sm font-bold bg-surface text-secondary border-[1.5px] border-[#DDD6FE] cursor-pointer hover:border-brand hover:bg-raised transition-colors'
             }
           >
             {filter.label}
@@ -142,7 +144,7 @@ export default function UniversityListPage() {
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <span className="text-5xl select-none" aria-hidden="true">🎓</span>
             <p className="text-label font-bold text-primary">Программы не найдены</p>
-            <p className="text-body text-secondary">Попробуй выбрать другую страну</p>
+            <p className="text-body text-secondary">Попробуй выбрать другой город</p>
           </div>
         ) : (
         <>
