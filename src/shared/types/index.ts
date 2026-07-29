@@ -322,6 +322,12 @@ export interface AkinatorResultResponse {
   backups: RevealLeaf[];
   recommended_programs: ProgramBrief[];
   created_at: string;
+  completed_at: string | null;
+  // null when neither the akinator engine nor the known-profession quiz
+  // logged a signal for this assessment (e.g. an assessment from before
+  // this was tracked) — UI must handle that, not assume a value.
+  questions_answered: number | null;
+  match_percent: number | null;
 }
 
 // ─── Direction roadmap ─────────────────────────────────────────────────────────
