@@ -68,7 +68,7 @@ export default function ResultLoadingPage() {
   }, [retryCount]);
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-page px-6">
+    <div className="flex flex-col h-full items-center justify-center px-6">
       <div className="w-full max-w-lg mx-auto text-center flex flex-col gap-6">
       {error === null ? (
         <>

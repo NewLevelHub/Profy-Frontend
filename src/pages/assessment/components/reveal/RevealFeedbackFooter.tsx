@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/Button';
 
 interface RevealFeedbackFooterProps {
-  // 'continue': single/cluster reveal — the pill immediately rejects
-  // everything shown and keeps testing (onContinue), no comment step.
-  // 'final': the inconclusive dead-end — the only place a comment-then-finish
-  // step still makes sense, since there's nowhere left to send the user.
+  // 'continue': single/cluster reveal — additionally offers "none of these,
+  // keep testing" (onContinue), which 'final' doesn't since there's nowhere
+  // left to send the user. Both variants offer the finish/comment step.
   variant: 'continue' | 'final';
   onContinue: () => void;
   mode: 'disliked' | null;
@@ -17,6 +16,13 @@ interface RevealFeedbackFooterProps {
 // A *liked* leaf never lands here directly — it goes through the RJP
 // simulation first (see SimulationCard / useAkinatorAssessment.handleLikeLeaf),
 // which has its own accept-with-note step.
+//
+// "Завершить тест" is available regardless of variant — matching the design
+// (SoftResultScreen.dc.html always has a direct finish button on the main
+// reveal screen, independent of the per-leaf trial modal). Without it, a
+// 'continue' (single/cluster) reveal had no way to end the test at all
+// short of trialing a specific leaf: "🤷 Ничего из этого не подходит" only
+// requests different candidates and keeps testing, it never finishes.
 export function RevealFeedbackFooter({
   variant,
   onContinue,
@@ -27,23 +33,18 @@ export function RevealFeedbackFooter({
 }: RevealFeedbackFooterProps) {
   const [note, setNote] = useState('');
 
-  if (variant === 'continue') {
-    return (
-      <div className="flex justify-center border-t border-default pt-4 mt-2">
-        <button
-          type="button"
-          onClick={onContinue}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-pill border border-default text-secondary font-bold hover:bg-raised transition-colors"
-        >
-          🤷 Ничего из этого не подходит
-        </button>
-      </div>
-    );
-  }
-
   if (mode === null) {
     return (
-      <div className="flex justify-center border-t border-default pt-4 mt-2">
+      <div className="flex flex-wrap justify-center gap-3 border-t border-default pt-4 mt-2">
+        {variant === 'continue' && (
+          <button
+            type="button"
+            onClick={onContinue}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-pill border border-default text-secondary font-bold hover:bg-raised transition-colors"
+          >
+            🤷 Ничего из этого не подходит
+          </button>
+        )}
         <button
           type="button"
           onClick={onPickDisliked}

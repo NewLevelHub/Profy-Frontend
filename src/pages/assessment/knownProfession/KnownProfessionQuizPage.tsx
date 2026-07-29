@@ -50,7 +50,7 @@ export default function KnownProfessionQuizPage() {
 
   if (treeLoading || quizLoading) {
     return (
-      <div className="min-h-screen bg-page flex items-center justify-center">
+      <div className="h-full flex items-center justify-center">
         <Spinner size="lg" />
       </div>
     );
@@ -58,7 +58,7 @@ export default function KnownProfessionQuizPage() {
 
   if (error || (!quizLoading && questions.length === 0)) {
     return (
-      <div className="min-h-screen bg-page flex flex-col items-center justify-center gap-3 px-6">
+      <div className="h-full flex flex-col items-center justify-center gap-3 px-6">
         <p className="text-secondary text-center">
           Для «{professionName}» пока нет вопросов. Попробуй другую профессию.
         </p>
@@ -76,14 +76,14 @@ export default function KnownProfessionQuizPage() {
 
   if (!current) {
     return (
-      <div className="min-h-screen bg-page flex items-center justify-center px-6">
+      <div className="h-full flex items-center justify-center px-6">
         <p className="text-secondary">Вопросы не найдены</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-page">
+    <div className="flex flex-col h-full">
       <div className="px-6 pt-6 pb-3">
         <div className="max-w-[620px] mx-auto">
           <div className="flex items-center justify-between mb-3">
@@ -112,7 +112,7 @@ export default function KnownProfessionQuizPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-28">
+      <div className="flex-1 overflow-y-auto px-6 pb-28 lg:pb-6">
         <div className="max-w-[620px] mx-auto pt-6">
           <h2
             className="font-black text-primary mb-6 leading-snug"
@@ -140,7 +140,7 @@ export default function KnownProfessionQuizPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 bg-page/95 backdrop-blur border-t border-default px-6 py-4">
+      <div className="fixed bottom-0 inset-x-0 lg:static bg-page/95 backdrop-blur border-t border-default px-6 py-4">
         <div className="max-w-[620px] mx-auto">
           <Button
             size="lg"

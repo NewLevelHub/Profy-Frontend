@@ -39,7 +39,7 @@ export function RevealCluster({ leaves, strengths, onLike }: RevealClusterProps)
         {leaves.map(leaf => (
           <div
             key={leaf.slug}
-            className="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-brand bg-active-tint/20"
+            className="flex flex-col items-center text-center gap-2 p-4 rounded-xl border-2 border-strong bg-surface"
           >
             <span className="font-bold text-primary text-subtitle">{leaf.name}</span>
             {leaf.description && (

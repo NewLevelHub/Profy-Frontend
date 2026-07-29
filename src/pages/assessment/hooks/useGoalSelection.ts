@@ -2,19 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
+import { resultApi } from '@/shared/api/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
+import { useResultStore } from '@/shared/store/result';
 import type { AssessmentGoal } from '@/shared/types';
 import type { AxiosError } from 'axios';
-
-export function useGoalGuard() {
-  const syncDone = useAssessmentStore(s => s.syncDone);
-  const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
-  // Redirect to home if user already has completed assessment (guard fires from store)
-  const shouldRedirect = syncDone && hasCompletedAssessment;
-  return { syncDone, shouldRedirect };
-}
 
 export function useGoalSelection() {
   const navigate = useNavigate();
@@ -35,7 +29,13 @@ export function useGoalSelection() {
         throw err;
       }),
     retry: false,
-    staleTime: Infinity,
+    // Must always reflect the real server state on mount — this page can be
+    // revisited within the same session right after finishing an assessment
+    // (e.g. via the sidebar), and a stale cached "in_progress"/"not_started"
+    // status from before completion would send the student back into the
+    // resume flow instead of showing the "already completed" state.
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   useEffect(() => {
@@ -44,6 +44,24 @@ export function useGoalSelection() {
       else if (current?.status === 'completed' && !fromRestart) setRestartOpen(true);
     }
   }, [isCheckingCurrent, current, fromRestart]);
+
+  // Reuses the ['result', id] cache with useResults/useHome — if the student
+  // already visited /results or /home this session, this never refetches.
+  const report = useResultStore(s => s.report);
+  const setReport = useResultStore(s => s.setReport);
+  const clearReport = useResultStore(s => s.clearReport);
+  const { data: fetchedResult, isLoading: isResultLoading } = useQuery({
+    queryKey: ['result', current?.id] as const,
+    queryFn: () => resultApi.get(current!.id),
+    enabled: restartOpen && !report && !!current?.id,
+    retry: false,
+  });
+  useEffect(() => {
+    if (fetchedResult && !report) setReport(fetchedResult);
+  }, [fetchedResult, report, setReport]);
+  const effectiveReport = report ?? fetchedResult ?? null;
+
+  const [confirmRestart, setConfirmRestart] = useState(false);
 
   const startMutation = useMutation({
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),
@@ -82,8 +100,19 @@ export function useGoalSelection() {
     navigate('/results');
   }
 
-  function handleConfirmRestart() {
+  function handleRestartRequest() {
+    setConfirmRestart(true);
+  }
+
+  function handleRestartConfirm() {
+    setConfirmRestart(false);
     setRestartOpen(false);
+    resetAssessment();
+    clearReport();
+  }
+
+  function handleRestartCancel() {
+    setConfirmRestart(false);
   }
 
   return {
@@ -98,6 +127,16 @@ export function useGoalSelection() {
     handleResume,
     handleStartNew,
     handleViewResults,
-    handleConfirmRestart,
+    completedAt: effectiveReport?.created_at ?? null,
+    directionName: effectiveReport?.direction_name ?? null,
+    questionsAnswered: effectiveReport?.questions_answered ?? null,
+    matchPercent: effectiveReport?.match_percentage != null
+      ? Math.round(effectiveReport.match_percentage * 100)
+      : null,
+    isCompletionLoading: restartOpen && isResultLoading && !effectiveReport,
+    confirmRestart,
+    handleRestartRequest,
+    handleRestartConfirm,
+    handleRestartCancel,
   };
 }

@@ -27,6 +27,20 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   { id: 'admin', label: 'Админка', emoji: '⚙️', path: '/admin/users', adminOnly: true },
 ];
 
+// A completed assessment must route back through /assessment/goal (where
+// GoalSelectionPage shows the "already completed" screen), never straight
+// into the live quiz view. assessmentId/goal are only cleared by an explicit
+// restart, not by finishing — so their mere presence doesn't tell "in
+// progress" and "completed" apart, hasCompletedAssessment must gate this too.
+export function getTestPath(options: {
+  assessmentId: string | null;
+  goal: string | null;
+  hasCompletedAssessment: boolean;
+}): string {
+  const { assessmentId, goal, hasCompletedAssessment } = options;
+  return assessmentId && goal && !hasCompletedAssessment ? '/assessment' : '/assessment/goal';
+}
+
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length >= 2) {

@@ -4,6 +4,7 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { Mascot } from '@/shared/ui/Mascot';
 import { useSubjectReadiness } from './hooks/useSubjectReadiness';
 import { SubjectQuestionCard } from './components/SubjectQuestionCard';
 import { SubjectReadinessSkeleton } from './components/SubjectReadinessSkeleton';
@@ -40,6 +41,20 @@ export default function SubjectReadinessPage() {
               title="Квиз по предметам"
               subtitle="Ответь на 8 коротких вопросов — это поможет точнее понять твою готовность"
             />
+            <div className="flex flex-wrap items-center gap-4 bg-surface border-2 border-strong rounded-[var(--radius-lg)] px-5 py-4">
+              <div
+                className="w-[60px] h-[74px] flex-none rounded-2xl bg-brand-subtle flex items-end justify-center overflow-hidden"
+                aria-hidden="true"
+              >
+                <Mascot kind="science" className="w-[54px] h-[70px]" />
+              </div>
+              <p className="flex-1 min-w-[180px] text-secondary font-semibold text-[15px] text-pretty">
+                Тут нет правильных ответов — отвечай так, как есть на самом деле.
+              </p>
+              <span className="font-extrabold text-brand-text whitespace-nowrap" style={{ fontSize: 15 }}>
+                {Object.keys(answers).length} из {questions.length}
+              </span>
+            </div>
             <div className="flex flex-col gap-4">
               {questions.map(question => (
                 <SubjectQuestionCard

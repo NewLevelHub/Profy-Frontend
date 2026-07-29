@@ -48,8 +48,8 @@ export function SimulationCard({ assessmentId, leaf, onAccept, onReject, onCance
 
   return (
     <div
-      className="w-full max-w-xl bg-surface rounded-[24px] p-6 lg:p-8 flex flex-col gap-6"
-      style={{ boxShadow: '0 10px 30px rgba(30,27,75,.04)', border: '1px solid #EDE9FE' }}
+      className="w-full max-w-xl bg-surface border-2 border-strong rounded-[24px] p-6 lg:p-8 flex flex-col gap-6"
+      style={{ boxShadow: '0 10px 30px rgba(30,27,75,.04)' }}
     >
       <div className="flex items-center justify-between">
         <span className="font-extrabold text-brand tracking-[.02em]" style={{ fontSize: 13 }}>

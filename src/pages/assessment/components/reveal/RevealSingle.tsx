@@ -39,7 +39,7 @@ export function RevealSingle({ leaf, backups, onLike }: RevealSingleProps) {
             {backups.map(backup => (
               <div
                 key={backup.slug}
-                className="flex items-center justify-between p-3 rounded-lg border border-default bg-surface/50"
+                className="flex items-center justify-between p-3 rounded-lg border-2 border-strong bg-surface/50"
               >
                 <span className="font-semibold text-secondary">{backup.name}</span>
                 <Button size="sm" variant="ghost" onClick={() => onLike(backup)}>

@@ -69,7 +69,7 @@ export default function PraisePage() {
   // const xpByBlock = 120;
 
   return (
-    <div className="flex flex-col min-h-screen bg-page relative overflow-hidden">
+    <div className="flex flex-col h-full relative overflow-hidden">
       <ConfettiBlast />
 
       <div className="flex-1 flex items-center justify-center pb-[130px] lg:pb-8">
