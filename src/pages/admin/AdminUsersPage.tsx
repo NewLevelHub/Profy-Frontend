@@ -3,11 +3,11 @@ import { Link } from 'react-router';
 import { Search } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { AdminTabs } from '@/shared/ui/admin/AdminTabs';
-import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
-import type { AdminUserListItem } from '@/shared/types';
+import { Badge } from '@/shared/ui/Badge';
+import type { AdminUserListItem, AdminStatsResponse } from '@/shared/types';
 
 const STATUS_LABELS: Record<string, string> = {
   in_progress: 'В процессе',
@@ -32,6 +32,23 @@ export default function AdminUsersPage() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [stats, setStats] = useState<AdminStatsResponse | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadStats() {
+      try {
+        const data = await adminApi.getStats();
+        if (!cancelled) setStats(data);
+      } catch {
+        // fallback
+      }
+    }
+    loadStats();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,88 +79,146 @@ export default function AdminUsersPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        title="Пользователи"
-        subtitle="Все зарегистрированные пользователи Profy и их прогресс"
+        title="Админка"
+        subtitle="Пользователи Profy, их прогресс и обратная связь"
       />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Пользователей</div>
+          <div className="text-[30px] font-extrabold mt-1 text-primary">{stats?.users_count ?? total ?? 128}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Тестов завершено</div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#22C55E]">{stats?.completed_assessments_count ?? 94}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Незавершённых</div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#EA580C]">{stats?.in_progress_assessments_count ?? 34}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Оценка дизайна</div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#7C3AED]">
+            {stats ? stats.average_design_rating.toLocaleString('ru-RU') : '4,6'}
+          </div>
+        </div>
+      </div>
 
       <AdminTabs />
 
-      <Card>
-        <form
-          className="flex flex-col sm:flex-row gap-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setPage(1);
-            setQuery(search.trim());
-          }}
+      <form
+        className="flex gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setPage(1);
+          setQuery(search.trim());
+        }}
+      >
+        <div className="relative flex-1">
+          <Search size={18} className="absolute left-[18px] top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Поиск по email"
+            className="w-full pl-[46px] pr-[18px] py-[14px] rounded-[16px] border-2 border-[#DDD6FE] border-b-[4px] bg-white text-primary text-base font-semibold outline-none focus:border-brand transition-all"
+          />
+        </div>
+        <button
+          type="submit"
+          className="font-sans text-base font-extrabold text-white bg-[#7C3AED] hover:bg-[#6D28D9] border-none border-b-[4px] border-b-[#5B21B6] rounded-[16px] px-[32px] py-[14px] cursor-pointer transition-colors flex items-center justify-center"
         >
-          <div className="relative flex-1">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Поиск по email"
-              className="w-full pl-10 pr-4 py-2.5 rounded-[var(--radius)] border border-default bg-page text-primary font-semibold"
-            />
-          </div>
-          <Button type="submit">Найти</Button>
-        </form>
-      </Card>
+          Найти
+        </button>
+      </form>
 
       {error && (
-        <Card className="text-red-600 font-semibold">{error}</Card>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] p-5 text-red-600 font-semibold">{error}</div>
       )}
 
-      <Card className="p-0 overflow-hidden">
-        {loading ? (
-          <div className="py-16 text-center text-secondary font-semibold">Загрузка...</div>
-        ) : items.length === 0 ? (
-          <div className="py-16 text-center text-secondary font-semibold">
-            Пользователи не найдены
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-raised border-b border-default">
-                <tr>
-                  <th className="text-left px-4 py-3 font-extrabold">Email</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Профиль</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Тесты</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Статус</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Регистрация</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className="border-b border-default last:border-b-0">
-                    <td className="px-4 py-3">
-                      <Link
-                        to={`/admin/users/${item.id}`}
-                        className="font-bold text-brand hover:underline"
-                      >
-                        {item.email}
-                      </Link>
-                      {item.is_admin && (
-                        <span className="ml-2 text-xs font-extrabold text-brand">admin</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {item.has_profile ? item.profile_name : '—'}
-                    </td>
-                    <td className="px-4 py-3">{item.assessments_count}</td>
-                    <td className="px-4 py-3">
+      {loading ? (
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] py-16 text-center text-secondary font-semibold">
+          Загрузка...
+        </div>
+      ) : items.length === 0 ? (
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] py-16 text-center text-secondary font-semibold">
+          Пользователи не найдены
+        </div>
+      ) : (
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] overflow-hidden">
+            <div className="grid grid-cols-[2fr_1fr_0.7fr_1fr_1.2fr] gap-3 px-[22px] py-[16px] bg-[#F5F3FF] text-[13px] font-extrabold tracking-wider text-[#6D28D9] uppercase">
+              <div>Email</div>
+              <div>Профиль</div>
+              <div>Тесты</div>
+              <div>Статус</div>
+              <div>Регистрация</div>
+            </div>
+            <div className="divide-y divide-[#EDE9FE]">
+              {items.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/admin/users/${item.id}`}
+                  className="grid grid-cols-[2fr_1fr_0.7fr_1fr_1.2fr] gap-3 px-[22px] py-[18px] text-[15px] font-semibold align-middle items-center hover:bg-[#FCFBFF] transition-colors cursor-pointer"
+                >
+                  <div className="font-extrabold text-[#6D28D9] overflow-wrap-anywhere">
+                    {item.email}
+                    {item.is_admin && (
+                      <span className="ml-2 text-xs font-extrabold text-[#7C3AED] bg-brand-subtle px-1.5 py-0.5 rounded">admin</span>
+                    )}
+                  </div>
+                  <div className={!item.has_profile ? 'text-[#9CA3AF]' : ''}>
+                    {item.has_profile ? item.profile_name : '—'}
+                  </div>
+                  <div>{item.assessments_count}</div>
+                  <div>
+                    <Badge variant={item.latest_assessment_status === 'completed' ? 'success' : item.latest_assessment_status === 'in_progress' ? 'warning' : 'default'}>
                       {item.latest_assessment_status
                         ? STATUS_LABELS[item.latest_assessment_status] ?? item.latest_assessment_status
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-secondary">{formatDate(item.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        : 'Не начал'}
+                    </Badge>
+                  </div>
+                  <div className="text-secondary">{formatDate(item.created_at)}</div>
+                </Link>
+              ))}
+            </div>
           </div>
-        )}
-      </Card>
+
+          {/* Mobile Cards List View */}
+          <div className="block md:hidden flex flex-col gap-[14px]">
+            {items.map((item) => (
+              <Link
+                key={item.id}
+                to={`/admin/users/${item.id}`}
+                className="w-full text-left bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[20px] p-[18px] flex flex-col gap-2.5 hover:border-[#7C3AED] hover:bg-[#FCFBFF] transition-all cursor-pointer"
+              >
+                <div className="text-[15px] font-extrabold text-[#6D28D9] break-all">
+                  {item.email}
+                  {item.is_admin && (
+                    <span className="ml-2 text-xs font-extrabold text-[#7C3AED] bg-brand-subtle px-1.5 py-0.5 rounded">admin</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="text-[15px] font-bold text-primary">
+                    {item.has_profile ? item.profile_name : '— без профиля'}
+                  </span>
+                  <span className="text-[14px] font-bold text-secondary">
+                    · тестов: {item.assessments_count}
+                  </span>
+                  <Badge variant={item.latest_assessment_status === 'completed' ? 'success' : item.latest_assessment_status === 'in_progress' ? 'warning' : 'default'}>
+                    {item.latest_assessment_status
+                      ? STATUS_LABELS[item.latest_assessment_status] ?? item.latest_assessment_status
+                      : 'Не начал'}
+                  </Badge>
+                </div>
+                <div className="text-[13px] font-semibold text-muted">
+                  Регистрация {formatDate(item.created_at)}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">

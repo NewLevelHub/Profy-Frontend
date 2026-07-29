@@ -599,3 +599,11 @@ export interface AdminFeedbackListResponse {
   page: number;
   limit: number;
 }
+
+export interface AdminStatsResponse {
+  users_count: number;
+  completed_assessments_count: number;
+  in_progress_assessments_count: number;
+  average_design_rating: number;
+}
+
