@@ -1,18 +1,19 @@
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
-import { FeedbackSurveyModal } from './components/FeedbackSurveyModal';
+import { EntReadinessSection } from './components/EntReadinessSection';
+// import { FeedbackSurveyModal } from './components/FeedbackSurveyModal';
 import { GeneratingOverlay } from './components/GeneratingOverlay';
 import { GrowthFocusCard } from './components/GrowthFocusCard';
 import { ProfessionsCard } from './components/ProfessionsCard';
+import { RoadmapUniversitiesCta } from './components/RoadmapUniversitiesCta';
 import { SkillsSection } from './components/SkillsSection';
 import { StarterActionsSection } from './components/StarterActionsSection';
-import { SubjectsNowSection } from './components/SubjectsNowSection';
-import { UniversityRequirementsSection } from './components/UniversityRequirementsSection';
+import { roadmapBackButton, roadmapType } from './roadmapTypography';
 
 export default function DirectionRoadmapPage() {
   const { slug = '' } = useParams<{ slug: string }>();
@@ -20,20 +21,13 @@ export default function DirectionRoadmapPage() {
   const {
     roadmap, isLoading, isGenerating, notGenerated,
     errorKind, errorMessage, generate,
-    submitFeedback, feedbackPending,
-    feedbackSentinelRef, isFeedbackModalOpen, closeFeedbackModal,
+    // submitFeedback, feedbackPending,
+    // feedbackSentinelRef, isFeedbackModalOpen, closeFeedbackModal,
+    subjectScores,
   } = useDirectionRoadmap(slug);
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Назад
-      </button>
-
       {isGenerating ? (
         <GeneratingOverlay />
       ) : isLoading ? (
@@ -70,8 +64,19 @@ export default function DirectionRoadmapPage() {
           </Button>
         </div>
       ) : roadmap ? (
-        <div className="flex flex-col gap-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-3.5 flex-wrap">
+            <button
+              type="button"
+              className={roadmapBackButton}
+              onClick={() => navigate(-1)}
+            >
+              <span className={roadmapType.backButton}>← Назад</span>
+            </button>
+            <h1 className={roadmapType.pageTitle}>План развития</h1>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <ProfessionsCard
               professions={roadmap.profession_options}
               directionName={roadmap.direction_name}
@@ -79,32 +84,31 @@ export default function DirectionRoadmapPage() {
             <GrowthFocusCard growthFocus={roadmap.growth_focus} />
           </div>
 
-          <SubjectsNowSection subjects={roadmap.subjects_now} />
           <StarterActionsSection actions={roadmap.starter_actions} />
+          <EntReadinessSection
+            subjects={roadmap.subjects_now}
+            subjectScores={subjectScores}
+          />
           <SkillsSection skills={roadmap.skills_to_build} />
-          <UniversityRequirementsSection requirements={roadmap.university_requirements} />
+          <RoadmapUniversitiesCta
+            directionSlug={roadmap.direction_slug}
+            onNavigate={path => navigate(path)}
+          />
 
+          {/* Feedback modal sentinel — disabled for now
           <div ref={feedbackSentinelRef} />
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:justify-start">
-            <Button
-              variant="ghost"
-              size="lg"
-              className="sm:w-auto"
-              onClick={() => navigate('/results')}
-            >
-              Назад к результатам
-            </Button>
-          </div>
+          */}
         </div>
       ) : null}
 
+      {/* Feedback modal — disabled for now
       <FeedbackSurveyModal
         isOpen={isFeedbackModalOpen}
         isPending={feedbackPending}
         onClose={closeFeedbackModal}
         onSubmit={submitFeedback}
       />
+      */}
     </PageContainer>
   );
 }
