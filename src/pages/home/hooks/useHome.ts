@@ -57,7 +57,8 @@ export function useHome() {
 
   function handleContinue() {
     if (status === 'completed') {
-      navigate('/results');
+      const slug = effectiveReport?.direction_slug;
+      navigate(slug ? `/results/directions/${slug}` : '/results');
     } else if (status === 'in_progress') {
       navigate('/assessment');
     } else {
@@ -99,6 +100,7 @@ export function useHome() {
     goToSphere,
     completedAt: effectiveReport?.completed_at ?? null,
     directionName: effectiveReport?.direction_name ?? null,
+    directionSlug: effectiveReport?.direction_slug ?? null,
     questionsAnswered: effectiveReport?.questions_answered ?? null,
     matchPercent: effectiveReport?.match_percent ?? null,
     isCompletionLoading: status === 'completed' && isResultLoading && !effectiveReport,

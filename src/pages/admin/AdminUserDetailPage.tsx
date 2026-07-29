@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { adminApi } from '@/shared/api/admin';
-import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { SectionHeading } from '@/shared/ui/SectionHeading';
+import { Badge } from '@/shared/ui/Badge';
 import type {
   AdminAssessmentDetail,
   AdminSubjectScoreItem,
@@ -70,47 +69,32 @@ function profileSubjects(
 function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (!value && value !== 0) return null;
   return (
-    <div className="flex items-center justify-between py-2 border-b border-default last:border-b-0">
-      <span className="text-secondary font-semibold">{label}</span>
-      <span className="text-primary font-bold text-right ml-4">{value}</span>
+    <div className="flex items-center justify-between py-2.5 border-b border-[#EDE9FE] last:border-b-0 text-[15px] font-semibold">
+      <span className="text-secondary">{label}</span>
+      <span className="text-primary font-extrabold text-right ml-4">{value}</span>
     </div>
   );
 }
 
-function ChipList({ label, items }: { label: string; items: string[] }) {
+function ChipList({ label, items, variant = 'brand' }: { label: string; items: string[]; variant?: any }) {
   if (!items.length) return null;
   return (
     <div className="mb-4 last:mb-0">
-      <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>{label}</p>
+      <p className="font-extrabold text-primary mb-2 text-[14px]">{label}</p>
       <div className="flex flex-wrap gap-2">
         {items.map((item) => (
-          <span
-            key={item}
-            className="px-3 py-1 rounded-pill font-extrabold text-sm"
-            style={{ background: 'var(--brand-subtle)', color: '#5B21B6' }}
-          >
+          <Badge key={item} variant={variant}>
             {item}
-          </span>
+          </Badge>
         ))}
       </div>
     </div>
   );
 }
 
-function Chip({ text }: { text: string }) {
-  return (
-    <span
-      className="px-3 py-1 rounded-pill font-extrabold text-sm"
-      style={{ background: 'var(--brand-subtle)', color: '#5B21B6' }}
-    >
-      {text}
-    </span>
-  );
-}
-
 function SubsectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h4 className="font-extrabold text-primary mb-3" style={{ fontSize: 15 }}>
+    <h4 className="font-extrabold text-primary mb-3 text-[16px]">
       {children}
     </h4>
   );
@@ -124,39 +108,49 @@ function AkinatorSessionSection({ assessment }: { assessment: AdminAssessmentDet
   const session = assessment.akinator_session;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <SubsectionTitle>Акинатор — сессия</SubsectionTitle>
       {!session ? (
         <EmptyState text="Сессия акинатора не начата" />
       ) : (
         <>
-          <InfoRow
-            label="Статус"
-            value={AKINATOR_STATUS_LABELS[session.status] ?? session.status}
-          />
-          <InfoRow label="Шаг" value={session.step} />
-          <div className="py-2 border-b border-default">
-            <p className="text-secondary font-semibold mb-2">Отклонённые направления</p>
-            {(session.rejected_leaves ?? []).length === 0 ? (
-              <span className="text-primary font-bold">нет</span>
-            ) : (
-              <div className="flex flex-wrap gap-2 mt-1">
-                {(session.rejected_leaves ?? []).map((slug) => (
-                  <Chip key={slug} text={slug} />
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="bg-[#F5F3FF] rounded-[14px] p-3.5">
+              <div className="text-[13px] font-bold text-secondary">Статус сессии</div>
+              <div className="text-[17px] font-extrabold text-primary mt-0.5">
+                {AKINATOR_STATUS_LABELS[session.status] ?? session.status}
               </div>
-            )}
+            </div>
+            <div className="bg-[#F5F3FF] rounded-[14px] p-3.5">
+              <div className="text-[13px] font-bold text-secondary">Шагов</div>
+              <div className="text-[17px] font-extrabold text-primary mt-0.5">{session.step}</div>
+            </div>
+            <div className="bg-[#F5F3FF] rounded-[14px] p-3.5">
+              <div className="text-[13px] font-bold text-secondary">Отклонённые направления</div>
+              <div className="text-[17px] font-extrabold text-primary mt-0.5">
+                {(session.rejected_leaves ?? []).length === 0 ? (
+                  <span className="text-[#9CA3AF]">нет</span>
+                ) : (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {(session.rejected_leaves ?? []).map((slug) => (
+                      <Badge key={slug} variant="default">{slug}</Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="py-2">
-            <p className="text-secondary font-semibold mb-2">Топ-5 направлений (belief)</p>
+
+          <div>
+            <div className="text-[16px] font-extrabold text-primary mb-2.5">Топ-5 направлений</div>
             {(session.top_directions ?? []).length === 0 ? (
-              <span className="text-primary font-bold">нет данных</span>
+              <span className="text-secondary font-semibold">нет данных</span>
             ) : (
-              <div className="space-y-1 mt-1">
+              <div className="flex flex-col gap-2">
                 {(session.top_directions ?? []).slice(0, 5).map(({ slug, name, probability }) => (
-                  <div key={slug} className="flex items-center justify-between">
-                    <span className="text-primary font-semibold text-sm">{name ?? slug}</span>
-                    <span className="text-brand font-extrabold text-sm">
+                  <div key={slug} className="flex items-center justify-between gap-3 bg-[#F5F3FF] rounded-xl px-4 py-2.5">
+                    <span className="text-[15px] font-bold text-primary">{name ?? slug}</span>
+                    <span className="text-[15px] font-extrabold text-[#6D28D9]">
                       {(probability * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -175,26 +169,26 @@ function AkinatorAnswersSection({ assessment }: { assessment: AdminAssessmentDet
 
   return (
     <div className="space-y-3">
-      <SubsectionTitle>Акинатор — история ответов</SubsectionTitle>
+      <SubsectionTitle>История ответов</SubsectionTitle>
       {answers.length === 0 ? (
         <EmptyState text="Ответов нет" />
       ) : (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2.5">
           {answers.map((answer) => (
             <div
               key={answer.step}
-              className="p-3 rounded-[var(--radius)] bg-raised border border-default"
+              className="bg-[#F5F3FF] rounded-[14px] p-[14px_18px]"
             >
-              <p className="text-xs text-secondary font-semibold mb-1">Шаг {answer.step}</p>
-              <p className="font-bold text-primary">{answer.question_text}</p>
-              <p className="text-sm mt-2">
-                <span className="text-secondary font-semibold">Ответ: </span>
+              <div className="text-[13px] font-bold text-[#9CA3AF]">Шаг {answer.step}</div>
+              <div className="text-[16px] font-extrabold text-primary mt-0.5 leading-snug">{answer.question_text}</div>
+              <div className="text-[15px] font-semibold text-[#4B5563] mt-1">
+                <span className="text-[#9CA3AF]">Ответ: </span>
                 {answer.selected_answer === null ? (
                   <em className="text-secondary">Не знаю</em>
                 ) : (
-                  <span className="font-semibold text-primary">{answer.selected_answer}</span>
+                  <span className="font-extrabold text-primary">{answer.selected_answer}</span>
                 )}
-              </p>
+              </div>
             </div>
           ))}
         </div>
@@ -208,20 +202,29 @@ function FeedbackSection({ assessment }: { assessment: AdminAssessmentDetail }) 
   const liked = session?.liked ?? null;
 
   return (
-    <div className="space-y-3">
-      <SubsectionTitle>Фидбэк</SubsectionTitle>
+    <div className="border-2 border-[#EDE9FE] rounded-[16px] p-4 flex flex-col gap-2 bg-white">
+      <div className="text-[15px] font-extrabold text-primary mb-1">Фидбэк по сессии</div>
       {liked === null ? (
         <EmptyState text="Фидбэк не оставлен" />
       ) : (
-        <>
-          <InfoRow label="Оценка" value={liked ? '👍 Понравилось' : '👎 Не понравилось'} />
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center text-[15px] font-semibold">
+            <span className="text-[#6B7280]">Оценка</span>
+            <span className="font-extrabold text-primary">{liked ? '👍 Понравилось' : '👎 Не понравилось'}</span>
+          </div>
           {session?.feedback_note && (
-            <InfoRow label="Заметка" value={session.feedback_note} />
+            <div className="flex justify-between items-start text-[15px] font-semibold gap-4">
+              <span className="text-[#6B7280] shrink-0">Заметка</span>
+              <span className="font-extrabold text-primary text-right break-words">{session.feedback_note}</span>
+            </div>
           )}
           {session?.feedback_at && (
-            <InfoRow label="Дата" value={formatDate(session.feedback_at)} />
+            <div className="flex justify-between items-center text-[15px] font-semibold">
+              <span className="text-[#6B7280]">Дата</span>
+              <span className="font-extrabold text-primary">{formatDate(session.feedback_at)}</span>
+            </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -231,20 +234,20 @@ function SimulationsSection({ assessment }: { assessment: AdminAssessmentDetail 
   const logs = assessment.profession_simulations ?? [];
 
   return (
-    <div className="space-y-3">
-      <SubsectionTitle>Симуляции профессий</SubsectionTitle>
+    <div className="border-2 border-[#EDE9FE] rounded-[16px] p-4 flex flex-col gap-2 bg-white">
+      <div className="text-[15px] font-extrabold text-primary mb-1">Симуляции профессий</div>
       {logs.length === 0 ? (
         <EmptyState text="Симуляций не было" />
       ) : (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-1">
           {logs.map((log) => (
             <div
               key={log.leaf_slug}
-              className="flex items-center justify-between py-2 border-b border-default last:border-b-0"
+              className="flex justify-between items-center text-[15px] font-semibold py-1 border-b border-default last:border-b-0 gap-4"
             >
-              <span className="text-primary font-semibold">{log.leaf_name ?? log.leaf_slug}</span>
-              <span className={cn('font-extrabold text-sm', log.accepted ? 'text-green-600' : 'text-red-500')}>
-                {log.accepted ? '✅ Принял' : '❌ Отклонил'}
+              <span className="text-primary truncate">{log.leaf_name ?? log.leaf_slug}</span>
+              <span className={cn('font-extrabold text-sm shrink-0', log.accepted ? 'text-[#15803D]' : 'text-[#C2410C]')}>
+                {log.accepted ? '✓ Принял' : '✕ Отклонил'}
               </span>
             </div>
           ))}
@@ -258,35 +261,27 @@ function SubjectReadinessSection({ assessment }: { assessment: AdminAssessmentDe
   const readiness = assessment.subject_readiness;
 
   return (
-    <div className="space-y-3">
-      <SubsectionTitle>Тест готовности по предметам</SubsectionTitle>
+    <div className="border-2 border-[#EDE9FE] rounded-[16px] p-4 flex flex-col gap-3 bg-white">
+      <div className="text-[15px] font-extrabold text-primary">
+        Тест готовности по предметам · {readiness?.direction_name ?? readiness?.direction_slug ?? '—'}
+      </div>
       {!readiness ? (
         <EmptyState text="Тест готовности не проходился" />
       ) : (
         <>
-          <InfoRow label="Направление" value={readiness.direction_name ?? readiness.direction_slug} />
-          <InfoRow label="Статус" value={readiness.status} />
           {readiness.subject_scores.length > 0 && (
-            <div className="mt-2 space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {readiness.subject_scores.map((item: AdminSubjectScoreItem) => (
                 <div
                   key={item.subject}
-                  className="p-3 rounded-[var(--radius)] bg-raised border border-default"
+                  className="bg-[#F5F3FF] rounded-xl p-3 flex flex-col justify-between"
                 >
-                  <p className="font-bold text-primary mb-1">{item.subject}</p>
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-                    <span className="text-secondary">
-                      Уровень: <span className="font-extrabold text-primary">{item.level ?? '—'}</span>
-                    </span>
-                    <span className="text-secondary">
-                      Интерес: <span className="font-extrabold text-primary">{item.interest ?? '—'}</span>
-                    </span>
-                    <span className="text-secondary">
-                      Сильная сторона:{' '}
-                      <span className={cn('font-extrabold', item.is_strength ? 'text-green-600' : 'text-secondary')}>
-                        {item.is_strength ? 'Да' : 'Нет'}
-                      </span>
-                    </span>
+                  <p className="text-[15px] font-extrabold text-primary">{item.subject}</p>
+                  <div className="text-[13px] font-semibold text-secondary mt-1">
+                    Уровень {item.level ?? '—'} · интерес {item.interest ?? '—'}
+                    {item.is_strength && (
+                      <span className="block text-[#15803D] font-extrabold text-[11px] mt-0.5">Сильная сторона</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -300,12 +295,12 @@ function SubjectReadinessSection({ assessment }: { assessment: AdminAssessmentDe
 
 function SelectedDirectionSection({ assessment }: { assessment: AdminAssessmentDetail }) {
   return (
-    <div className="space-y-3">
-      <SubsectionTitle>Выбранное направление</SubsectionTitle>
+    <div className="space-y-2 border-2 border-[#EDE9FE] rounded-[16px] p-4 bg-white">
+      <div className="text-[15px] font-extrabold text-primary">Выбранное направление</div>
       {!assessment.selected_direction_slug ? (
         <EmptyState text="Направление не выбрано" />
       ) : (
-        <p className="font-black text-primary" style={{ fontSize: 20 }}>
+        <p className="font-extrabold text-[#6D28D9] text-[18px]">
           {assessment.selected_direction_name ?? assessment.selected_direction_slug}
         </p>
       )}
@@ -317,16 +312,16 @@ function RoadmapsSection({ assessment }: { assessment: AdminAssessmentDetail }) 
   const roadmaps = assessment.roadmaps ?? [];
 
   return (
-    <div className="space-y-3">
-      <SubsectionTitle>Роадмапы</SubsectionTitle>
+    <div className="space-y-3 border-2 border-[#EDE9FE] rounded-[16px] p-4 bg-white">
+      <div className="text-[15px] font-extrabold text-primary">Роадмапы</div>
       {roadmaps.length === 0 ? (
         <EmptyState text="Роадмапов нет" />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {roadmaps.map((roadmap, idx) => (
             <div
               key={roadmap.direction_slug ?? idx}
-              className="p-3 rounded-[var(--radius)] bg-raised border border-default space-y-3"
+              className="p-3.5 rounded-[var(--radius)] bg-[#F5F3FF] border border-default space-y-3"
             >
               <div>
                 <p className="font-extrabold text-primary">{roadmap.direction_name ?? roadmap.direction_slug}</p>
@@ -338,30 +333,30 @@ function RoadmapsSection({ assessment }: { assessment: AdminAssessmentDetail }) 
               </div>
               {(roadmap.skills_to_build ?? []).length > 0 && (
                 <div>
-                  <p className="text-secondary font-semibold text-sm mb-2">Навыки для развития</p>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-secondary font-semibold text-xs mb-1.5">Навыки для развития</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {roadmap.skills_to_build.map((skill) => (
-                      <Chip key={skill} text={skill} />
+                      <Badge key={skill} variant="brand">{skill}</Badge>
                     ))}
                   </div>
                 </div>
               )}
               {(roadmap.subjects_now ?? []).length > 0 && (
                 <div>
-                  <p className="text-secondary font-semibold text-sm mb-2">Предметы сейчас</p>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-secondary font-semibold text-xs mb-1.5">Предметы сейчас</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {roadmap.subjects_now.map((subject) => (
-                      <Chip key={subject} text={subject} />
+                      <Badge key={subject} variant="brand">{subject}</Badge>
                     ))}
                   </div>
                 </div>
               )}
               {(roadmap.starter_actions ?? []).length > 0 && (
                 <div>
-                  <p className="text-secondary font-semibold text-sm mb-2">С чего начать</p>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-secondary font-semibold text-xs mb-1.5">С чего начать</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {roadmap.starter_actions.map((action) => (
-                      <Chip key={action} text={action} />
+                      <Badge key={action} variant="brand">{action}</Badge>
                     ))}
                   </div>
                 </div>
@@ -390,8 +385,12 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
 
       <AkinatorSessionSection assessment={assessment} />
       <AkinatorAnswersSection assessment={assessment} />
-      <FeedbackSection assessment={assessment} />
-      <SimulationsSection assessment={assessment} />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <FeedbackSection assessment={assessment} />
+        <SimulationsSection assessment={assessment} />
+      </div>
+
       <SubjectReadinessSection assessment={assessment} />
       <SelectedDirectionSection assessment={assessment} />
       <RoadmapsSection assessment={assessment} />
@@ -407,6 +406,7 @@ export default function AdminUserDetailPage() {
   const [loading, setLoading] = useState(true);
   const [assessmentLoading, setAssessmentLoading] = useState(false);
   const [error, setError] = useState('');
+  const [filter, setFilter] = useState<'all' | 'with_result' | 'without_result'>('all');
 
   useEffect(() => {
     if (!userId) return;
@@ -462,7 +462,7 @@ export default function AdminUserDetailPage() {
   }
 
   if (error || !user) {
-    return <Card className="text-red-600 font-semibold">{error || 'Пользователь не найден'}</Card>;
+    return <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] p-5 text-red-600 font-semibold">{error || 'Пользователь не найден'}</div>;
   }
 
   const artifactsByType = user.artifacts.reduce<Record<string, string[]>>((acc, item) => {
@@ -472,117 +472,239 @@ export default function AdminUserDetailPage() {
     return acc;
   }, {});
 
+  const totalAssessments = user.assessments.length;
+  const withResult = user.assessments.filter((a) => a.has_result).length;
+  const abandoned = user.assessments.filter((a) => a.status === 'in_progress').length;
+  const selectedDirection = selectedAssessment?.selected_direction_name ?? selectedAssessment?.selected_direction_slug ?? '—';
+  const emailInitials = user.email.slice(0, 2).toUpperCase();
+
+  const filteredAssessments = user.assessments.filter((a) => {
+    if (filter === 'all') return true;
+    if (filter === 'with_result') return a.has_result;
+    return !a.has_result;
+  });
+
   return (
     <PageContainer className="space-y-5">
-      <div className="flex items-center gap-3">
-        <Link to="/admin/users">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft size={16} />
-            Назад
-          </Button>
+      <div className="flex items-center gap-4 flex-wrap">
+        <Link
+          to="/admin/users"
+          className="font-sans text-[15px] font-extrabold text-[#6D28D9] bg-white border-2 border-[#DDD6FE] border-b-[4px] border-b-[#DDD6FE] rounded-full px-5 py-2.5 hover:border-[#7C3AED] hover:bg-[#F5F3FF] transition-all cursor-pointer flex items-center justify-center shrink-0"
+        >
+          ← Назад
         </Link>
-        <PageHeader
-          title={user.email}
-          subtitle={`Зарегистрирован ${formatDate(user.created_at)}`}
-        />
+        <div className="w-[52px] h-[52px] rounded-full bg-[#7C3AED] text-white flex items-center justify-center text-[19px] font-extrabold shrink-0 shadow-card">
+          {emailInitials}
+        </div>
+        <div>
+          <h1 className="text-[28px] font-extrabold text-primary leading-tight tracking-tight break-all">
+            {user.email}
+          </h1>
+          <p className="text-[15px] font-semibold text-secondary mt-1">
+            Зарегистрирован {formatDate(user.created_at)}
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <SectionHeading title="Аккаунт" className="mb-3" />
-          <InfoRow label="Email" value={user.email} />
-          <InfoRow label="Верифицирован" value={user.is_verified ? 'Да' : 'Нет'} />
-          <InfoRow label="Активен" value={user.is_active ? 'Да' : 'Нет'} />
-          <InfoRow label="Админ" value={user.is_admin ? 'Да' : 'Нет'} />
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Тестирований</div>
+          <div className="text-[28px] font-extrabold mt-1 text-primary">{totalAssessments}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">С результатом</div>
+          <div className="text-[28px] font-extrabold mt-1 text-[#22C55E]">{withResult}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Брошено</div>
+          <div className="text-[28px] font-extrabold mt-1 text-[#EA580C]">{abandoned}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Выбранное направление</div>
+          <div className="text-[17px] font-extrabold mt-1.5 text-[#6D28D9] leading-snug">{selectedDirection}</div>
+        </div>
+      </div>
 
-        <Card>
-          <SectionHeading title="Профиль" className="mb-3" />
+      <div className="grid gap-5 lg:grid-cols-2 items-start">
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] p-6.5">
+          <SubsectionTitle>Аккаунт</SubsectionTitle>
+          <div className="flex flex-col mt-2">
+            <InfoRow label="Email" value={user.email} />
+            <div className="flex items-center justify-between py-2.5 border-b border-[#EDE9FE] last:border-[#EDE9FE] text-[15px] font-semibold">
+              <span className="text-secondary">Верифицирован</span>
+              <Badge variant={user.is_verified ? 'success' : 'default'}>{user.is_verified ? 'Да' : 'Нет'}</Badge>
+            </div>
+            <div className="flex items-center justify-between py-2.5 border-b border-[#EDE9FE] last:border-[#EDE9FE] text-[15px] font-semibold">
+              <span className="text-secondary">Активен</span>
+              <Badge variant={user.is_active ? 'success' : 'default'}>{user.is_active ? 'Да' : 'Нет'}</Badge>
+            </div>
+            <div className="flex items-center justify-between py-2.5 border-b border-[#EDE9FE] last:border-b-0 text-[15px] font-semibold">
+              <span className="text-secondary">Админ</span>
+              <Badge variant={user.is_admin ? 'brand' : 'default'}>{user.is_admin ? 'Да' : 'Нет'}</Badge>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] p-6.5">
+          <SubsectionTitle>Профиль</SubsectionTitle>
           {user.profile ? (
-            <>
-              <InfoRow label="Имя" value={user.profile.name} />
-              <InfoRow label="Возраст" value={user.profile.age} />
-              <InfoRow label="Класс" value={user.profile.grade} />
-              <InfoRow label="Город" value={user.profile.city} />
-              <InfoRow label="Страна" value={user.profile.country} />
-              <InfoRow label="Язык" value={user.profile.language} />
-              <InfoRow label="Возрастная группа" value={user.profile.age_group} />
-              <div className="pt-3">
-                <ChipList label="Нравятся предметы" items={profileSubjects(user.profile, 'liked')} />
-                <ChipList label="Не нравятся" items={profileSubjects(user.profile, 'disliked')} />
-                <ChipList label="Легко даются" items={profileSubjects(user.profile, 'easy')} />
-                <ChipList label="Сложные" items={profileSubjects(user.profile, 'hard')} />
+            <div className="flex flex-col gap-4 mt-2">
+              <div className="grid grid-cols-2 gap-4 border-b border-[#EDE9FE] pb-4">
+                <div>
+                  <div className="text-[13px] font-semibold text-secondary">Имя</div>
+                  <div className="text-[17px] font-extrabold mt-0.5">{user.profile.name}</div>
+                </div>
+                <div>
+                  <div className="text-[13px] font-semibold text-secondary">Возраст · класс</div>
+                  <div className="text-[17px] font-extrabold mt-0.5">{user.profile.age} · {user.profile.grade} класс</div>
+                </div>
+                <div>
+                  <div className="text-[13px] font-semibold text-secondary">Город</div>
+                  <div className="text-[17px] font-extrabold mt-0.5">{user.profile.city}</div>
+                </div>
+                <div>
+                  <div className="text-[13px] font-semibold text-secondary">Язык</div>
+                  <div className="text-[17px] font-extrabold mt-0.5">{user.profile.language}</div>
+                </div>
               </div>
-            </>
+              <div className="space-y-3">
+                <ChipList label="Даются легко" items={profileSubjects(user.profile, 'easy')} variant="success" />
+                <ChipList label="Даются сложно" items={profileSubjects(user.profile, 'hard')} variant="warning" />
+              </div>
+            </div>
           ) : (
-            <p className="text-secondary font-semibold">Профиль не заполнен</p>
+            <p className="text-secondary font-semibold mt-2">Профиль не заполнен</p>
           )}
-        </Card>
+        </div>
       </div>
 
       {Object.keys(artifactsByType).length > 0 && (
-        <Card>
-          <SectionHeading title="Артефакты" className="mb-3" />
-          {Object.entries(artifactsByType).map(([type, values]) => (
-            <ChipList key={type} label={ARTIFACT_LABELS[type] ?? type} items={values} />
-          ))}
-        </Card>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] p-6.5">
+          <SubsectionTitle>Артефакты</SubsectionTitle>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-3">
+            {Object.entries(artifactsByType).map(([type, values]) => (
+              <div key={type}>
+                <div className="text-[14px] font-bold text-secondary mb-2">
+                  {ARTIFACT_LABELS[type] ?? type}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {values.map((val) => (
+                    <Badge key={val} variant="brand">
+                      {val}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      <Card>
-        <SectionHeading title="Тестирования" className="mb-3" />
-        {user.assessments.length === 0 ? (
-          <p className="text-secondary font-semibold">Тесты не начинались</p>
+      <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] p-6.5 flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <SubsectionTitle>Тестирования</SubsectionTitle>
+            <p className="text-[14px] font-semibold text-secondary mt-0.5">
+              История прохождений и ответы по каждой сессии
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setFilter('all')}
+              className={cn(
+                'text-[14px] font-extrabold px-[18px] py-[9px] rounded-full cursor-pointer transition-all border-2',
+                filter === 'all'
+                  ? 'border-[#7C3AED] bg-[#7C3AED] text-white'
+                  : 'border-[#DDD6FE] bg-white text-[#4B5563] hover:border-[#7C3AED] hover:bg-[#EFECFF]'
+              )}
+            >
+              Все
+            </button>
+            <button
+              onClick={() => setFilter('with_result')}
+              className={cn(
+                'text-[14px] font-extrabold px-[18px] py-[9px] rounded-full cursor-pointer transition-all border-2',
+                filter === 'with_result'
+                  ? 'border-[#7C3AED] bg-[#7C3AED] text-white'
+                  : 'border-[#DDD6FE] bg-white text-[#4B5563] hover:border-[#7C3AED] hover:bg-[#EFECFF]'
+              )}
+            >
+              С результатом
+            </button>
+            <button
+              onClick={() => setFilter('without_result')}
+              className={cn(
+                'text-[14px] font-extrabold px-[18px] py-[9px] rounded-full cursor-pointer transition-all border-2',
+                filter === 'without_result'
+                  ? 'border-[#7C3AED] bg-[#7C3AED] text-white'
+                  : 'border-[#DDD6FE] bg-white text-[#4B5563] hover:border-[#7C3AED] hover:bg-[#EFECFF]'
+              )}
+            >
+              Без результата
+            </button>
+          </div>
+        </div>
+
+        {filteredAssessments.length === 0 ? (
+          <p className="text-secondary font-semibold">Тесты не найдены</p>
         ) : (
-          <div className="space-y-2">
-            {user.assessments.map((assessment, index) => {
+          <div className="space-y-3">
+            {filteredAssessments.map((assessment, index) => {
               const isOpen = selectedAssessmentId === assessment.id;
               return (
-                <div
-                  key={assessment.id}
-                  className={cn(
-                    'rounded-[var(--radius)] border transition-colors',
-                    isOpen ? 'border-brand bg-surface' : 'border-default bg-raised',
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => openAssessment(assessment.id)}
-                    className="w-full text-left p-3"
-                  >
-                    <div className="flex items-center justify-between gap-3">
+                <div key={assessment.id} className="transition-all">
+                  {!isOpen ? (
+                    <button
+                      type="button"
+                      onClick={() => openAssessment(assessment.id)}
+                      className="w-full text-left bg-[#F5F3FF] border-2 border-[#EDE9FE] rounded-[16px] p-4 flex justify-between items-center gap-3.5 hover:border-[#C4B5FD] transition-all cursor-pointer"
+                    >
                       <div>
-                        <p className="font-bold">
+                        <span className="text-[17px] font-extrabold text-primary">
                           {GOAL_LABELS[assessment.goal] ?? assessment.goal}
-                          <span className="text-secondary font-semibold ml-2" style={{ fontSize: 13 }}>
+                        </span>
+                        <span className="text-[14px] font-bold text-[#9CA3AF] ml-2">
+                          #{user.assessments.length - index}
+                        </span>
+                        <div className="text-[14px] font-semibold text-secondary mt-0.5">
+                          {STATUS_LABELS[assessment.status] ?? assessment.status} · {formatDate(assessment.created_at)}
+                        </div>
+                      </div>
+                      <span className="text-[14px] font-extrabold text-[#6D28D9] flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                        {assessment.has_result ? 'есть результат' : 'без результата'} ⌄
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="border-2 border-[#7C3AED] rounded-[18px] p-5 flex flex-col gap-4.5 bg-white shadow-pop">
+                      <button
+                        type="button"
+                        onClick={() => openAssessment(assessment.id)}
+                        className="w-full text-left flex justify-between items-center gap-3.5 hover:opacity-80 transition-all cursor-pointer"
+                      >
+                        <div>
+                          <span className="text-[19px] font-extrabold text-primary">
+                            {GOAL_LABELS[assessment.goal] ?? assessment.goal}
+                          </span>
+                          <span className="text-[14px] font-bold text-[#9CA3AF] ml-2">
                             #{user.assessments.length - index}
                           </span>
-                        </p>
-                        <p className="text-sm text-secondary mt-0.5">
-                          {STATUS_LABELS[assessment.status] ?? assessment.status} · {formatDate(assessment.created_at)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs font-extrabold text-secondary">
-                          {assessment.has_result ? 'есть результат' : 'без результата'}
+                          <div className="text-[14px] font-semibold text-secondary mt-0.5">
+                            {STATUS_LABELS[assessment.status] ?? assessment.status} · {formatDate(assessment.created_at)}
+                          </div>
+                        </div>
+                        <span className="text-[14px] font-extrabold text-[#6D28D9] flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                          {assessment.has_result ? 'есть результат' : 'без результата'} ⌃
                         </span>
-                        <ChevronDown
-                          size={18}
-                          className={cn('text-secondary transition-transform', isOpen && 'rotate-180')}
-                        />
+                      </button>
+                      <div className="mt-2">
+                        {assessmentLoading ? (
+                          <p className="text-secondary font-semibold py-4 text-center">Загрузка данных...</p>
+                        ) : selectedAssessment ? (
+                          <AssessmentDetailPanel assessment={selectedAssessment} compact />
+                        ) : (
+                          <p className="text-red-600 font-semibold py-4 text-center">Не удалось загрузить тест</p>
+                        )}
                       </div>
-                    </div>
-                  </button>
-
-                  {isOpen && (
-                    <div className="px-3 pb-4">
-                      {assessmentLoading ? (
-                        <p className="text-secondary font-semibold py-2">Загрузка данных...</p>
-                      ) : selectedAssessment ? (
-                        <AssessmentDetailPanel assessment={selectedAssessment} compact />
-                      ) : (
-                        <p className="text-red-600 font-semibold py-2">Не удалось загрузить тест</p>
-                      )}
                     </div>
                   )}
                 </div>
@@ -590,7 +712,7 @@ export default function AdminUserDetailPage() {
             })}
           </div>
         )}
-      </Card>
+      </div>
     </PageContainer>
   );
 }

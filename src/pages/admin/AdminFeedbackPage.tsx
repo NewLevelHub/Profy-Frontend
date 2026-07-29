@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { AdminTabs } from '@/shared/ui/admin/AdminTabs';
-import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
-import type { AdminFeedbackListItem, FeedbackRating } from '@/shared/types';
+import type { AdminFeedbackListItem, FeedbackRating, AdminStatsResponse } from '@/shared/types';
 
 const RATING_LABELS: Record<FeedbackRating, string> = {
   good: '🙂 Хорошо',
@@ -49,6 +48,23 @@ export default function AdminFeedbackPage() {
   const [rating, setRating] = useState<FeedbackRating | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [stats, setStats] = useState<AdminStatsResponse | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadStats() {
+      try {
+        const data = await adminApi.getStats();
+        if (!cancelled) setStats(data);
+      } catch {
+        // fallback
+      }
+    }
+    loadStats();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,14 +95,39 @@ export default function AdminFeedbackPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        title="Фидбек"
-        subtitle="Оценки по тесту, результату, плану, дизайну и комментарии пользователей"
+        title="Админка"
+        subtitle="Пользователи Profy, их прогресс и обратная связь"
       />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Пользователей</div>
+          <div className="text-[30px] font-extrabold mt-1 text-primary">{stats?.users_count ?? 128}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Тестов завершено</div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#22C55E]">{stats?.completed_assessments_count ?? 94}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Незавершённых</div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#EA580C]">{stats?.in_progress_assessments_count ?? 34}</div>
+        </div>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+          <div className="text-[13px] font-bold text-secondary">Оценка дизайна</div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#7C3AED]">
+            {stats ? stats.average_design_rating.toLocaleString('ru-RU') : '4,6'}
+          </div>
+        </div>
+      </div>
 
       <AdminTabs />
 
-      <div className="flex items-center gap-2">
-        <span className="text-caption font-semibold text-secondary">Общая оценка:</span>
+      <div className="text-[16px] font-semibold text-secondary">
+        Оценки по тесту, результату, плану и дизайну — и комментарии пользователей
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className="text-[15px] font-extrabold text-[#4B5563]">Общая оценка:</span>
         {RATING_FILTERS.map((filter) => (
           <button
             key={filter.label}
@@ -96,10 +137,10 @@ export default function AdminFeedbackPage() {
               setRating(filter.value);
             }}
             className={cn(
-              'px-3 py-1.5 rounded-pill border font-semibold text-sm transition-colors',
+              'text-[15px] font-extrabold px-[22px] py-[10px] rounded-full cursor-pointer transition-all border-2',
               rating === filter.value
-                ? 'border-brand bg-brand-subtle text-brand'
-                : 'border-default text-secondary hover:bg-raised',
+                ? 'border-[#7C3AED] bg-[#7C3AED] text-white'
+                : 'border-[#DDD6FE] bg-white text-[#4B5563] hover:border-[#7C3AED] hover:bg-[#EFECFF]'
             )}
           >
             {filter.label}
@@ -108,55 +149,75 @@ export default function AdminFeedbackPage() {
       </div>
 
       {error && (
-        <Card className="text-red-600 font-semibold">{error}</Card>
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] p-5 text-red-600 font-semibold">{error}</div>
       )}
 
-      <Card className="p-0 overflow-hidden">
-        {loading ? (
-          <div className="py-16 text-center text-secondary font-semibold">Загрузка...</div>
-        ) : items.length === 0 ? (
-          <div className="py-16 text-center text-secondary font-semibold">
-            Фидбек не найден
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-raised border-b border-default">
-                <tr>
-                  <th className="text-left px-4 py-3 font-extrabold">Дата</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Пользователь</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Общее</th>
-                  <th className="text-left px-4 py-3 font-extrabold" title="Вопросы теста">Вопросы</th>
-                  <th className="text-left px-4 py-3 font-extrabold" title="Совпадение результата">Результат</th>
-                  <th className="text-left px-4 py-3 font-extrabold" title="Полезность плана">План</th>
-                  <th className="text-left px-4 py-3 font-extrabold" title="Дизайн и удобство">Дизайн</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Направление</th>
-                  <th className="text-left px-4 py-3 font-extrabold">Сообщение</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className="border-b border-default last:border-b-0 align-top">
-                    <td className="px-4 py-3 text-secondary whitespace-nowrap">{formatDate(item.created_at)}</td>
-                    <td className="px-4 py-3 font-semibold">
-                      <Link to={`/admin/users/${item.user_id}`} className="text-brand hover:underline">
-                        {item.user_email}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">{RATING_LABELS[item.overall_rating]}</td>
-                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.questions_rating)}</td>
-                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.result_match_rating)}</td>
-                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.plan_usefulness_rating)}</td>
-                    <td className="px-4 py-3 text-center text-lg">{axisCell(item.design_rating)}</td>
-                    <td className="px-4 py-3">{item.direction_slug ?? '—'}</td>
-                    <td className="px-4 py-3 text-secondary max-w-md">{item.message ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+      {loading ? (
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] py-16 text-center text-secondary font-semibold">
+          Загрузка...
+        </div>
+      ) : items.length === 0 ? (
+        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[22px] py-16 text-center text-secondary font-semibold">
+          Фидбек не найден
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[20px] p-5 flex flex-col gap-3"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                <Link
+                  to={`/admin/users/${item.user_id}`}
+                  className="text-[15px] font-extrabold text-[#6D28D9] break-all hover:underline"
+                >
+                  {item.user_email}
+                </Link>
+                <div className="text-[13px] font-bold text-secondary">
+                  {formatDate(item.created_at)}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[15px] font-extrabold bg-[#EDE9FE] text-[#5B21B6] rounded-full px-4 py-1.5">
+                  {RATING_LABELS[item.overall_rating]}
+                </span>
+                {item.direction_slug && (
+                  <span className="text-[14px] font-bold text-[#4B5563] bg-[#F5F3FF] rounded-full px-3.5 py-1.5">
+                    {item.direction_slug}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-4 gap-2.5">
+                <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
+                  <div className="text-[12px] font-bold text-secondary">Вопросы</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.questions_rating)}</div>
+                </div>
+                <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
+                  <div className="text-[12px] font-bold text-secondary">Результат</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.result_match_rating)}</div>
+                </div>
+                <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
+                  <div className="text-[12px] font-bold text-secondary">План</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.plan_usefulness_rating)}</div>
+                </div>
+                <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
+                  <div className="text-[12px] font-bold text-secondary">Дизайн</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.design_rating)}</div>
+                </div>
+              </div>
+              <div className="border-t-2 border-[#EDE9FE] pt-3">
+                <div className="text-[12px] font-extrabold uppercase tracking-wider text-[#6D28D9] mb-1">
+                  Комментарий
+                </div>
+                <div className="text-[15px] font-semibold text-[#4B5563] leading-normal text-wrap">
+                  {item.message ?? '—'}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">

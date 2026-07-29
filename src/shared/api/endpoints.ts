@@ -60,6 +60,7 @@ export const API = {
     gapAnalysis: (programId: string) => `/universities/programs/${programId}/gap-analysis`,
   },
   admin: {
+    stats: '/admin/stats',
     users: '/admin/users',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
