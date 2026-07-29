@@ -3,30 +3,12 @@ import { useNavigate } from 'react-router';
 import { Spinner } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
 import { useProfileStore } from '@/shared/store/profile';
+import { SPHERE_EMOJI } from '@/shared/config/sphereEmoji';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
 import { useProfessionSearch } from './hooks/useProfessionSearch';
 import { ProfessionSearchInput } from './components/ProfessionSearchInput';
 import { ProfessionSearchResults } from './components/ProfessionSearchResults';
 import type { SpecialtySearchMatch } from './utils/search';
-
-const SPHERE_EMOJI: Record<string, string> = {
-  'akinator-medicine': '🏥',
-  'akinator-psychology-help': '💬',
-  'akinator-animals-nature': '🐾',
-  'akinator-it-data': '💻',
-  'akinator-engineering-tech': '⚙️',
-  'akinator-construction-manual': '🔧',
-  'akinator-creative-design': '🎨',
-  'akinator-stage-media': '🎬',
-  'akinator-words-communication': '✍️',
-  'akinator-education': '📚',
-  'akinator-sports-body': '🏃',
-  'akinator-food-hospitality': '🍳',
-  'akinator-business-sales': '📈',
-  'akinator-beauty-services': '✂️',
-  'akinator-safety-rescue': '🚒',
-  'akinator-logistics-service': '📦',
-};
 
 export default function KnownProfessionSpheresPage() {
   const navigate = useNavigate();
