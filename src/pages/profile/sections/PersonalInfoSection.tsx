@@ -1,7 +1,8 @@
-import { Pencil } from 'lucide-react';
 import type { ProfileResponse } from '@/shared/types';
 import { Card } from '@/shared/ui/Card';
+import { cn } from '@/shared/lib/cn';
 import { InfoRow } from '../components/InfoRow';
+import { PROFILE_CARD_CLASS } from '../utils/profileStyles';
 
 export interface PersonalInfoSectionProps {
   profile: ProfileResponse;
@@ -10,25 +11,24 @@ export interface PersonalInfoSectionProps {
 
 export function PersonalInfoSection({ profile, onEdit }: PersonalInfoSectionProps) {
   return (
-    <Card>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-black text-primary text-subtitle">Личные данные</h2>
+    <Card className={PROFILE_CARD_CLASS}>
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <h2 className="font-black text-primary text-[18px] lg:text-subtitle">Личные данные</h2>
         <button
           type="button"
           onClick={onEdit}
-          className="flex items-center gap-[6px] text-brand font-extrabold hover:opacity-75 transition-opacity text-sm"
+          className="text-brand font-extrabold hover:opacity-75 transition-opacity text-[15px] whitespace-nowrap"
           aria-label="Редактировать профиль"
         >
-          <Pencil size={13} />
-          Изменить
+          ✏️ Изменить
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-5">
         <InfoRow label="Возраст" value={profile.age ? `${profile.age} лет` : null} />
         <InfoRow label="Класс" value={profile.grade ? `${profile.grade} класс` : null} />
         <InfoRow label="Город" value={profile.city} />
         <InfoRow label="Страна" value={profile.country} />
-        <InfoRow label="Язык обучения" value={profile.language} className="col-span-2" />
+        <InfoRow label="Язык обучения" value={profile.language} />
       </div>
     </Card>
   );

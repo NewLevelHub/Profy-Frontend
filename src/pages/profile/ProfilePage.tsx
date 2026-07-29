@@ -6,11 +6,13 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { useProfile } from './hooks/useProfile';
 import { getAgeGroupLabel } from './utils/ageGroupLabel';
+import { PROFILE_CARD_CLASS } from './utils/profileStyles';
 import { ProfileHero } from './sections/ProfileHero';
 import { PersonalInfoSection } from './sections/PersonalInfoSection';
 import { SubjectsSection } from './sections/SubjectsSection';
 import { RestartAssessmentSection } from './sections/RestartAssessmentSection';
 import { SoundSettingsSection } from './sections/SoundSettingsSection';
+import { cn } from '@/shared/lib/cn';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -29,8 +31,8 @@ export default function ProfilePage() {
   const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
 
   return (
-    <PageContainer className="space-y-6 lg:space-y-8">
-      <PageHeader title="Профиль" />
+    <PageContainer className="space-y-4 lg:space-y-8">
+      <PageHeader title="Профиль" titleClassName="text-[26px] lg:text-[30px]" />
 
       <ProfileHero
         displayName={displayName}
@@ -39,21 +41,23 @@ export default function ProfilePage() {
         ageGroupLabel={getAgeGroupLabel(profile?.age_group)}
       />
 
-      <div className="grid gap-5 lg:gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-        {profile ? (
-          <>
-            <PersonalInfoSection profile={profile} onEdit={() => navigate('/onboarding/profile')} />
-            {hasSubjects && <SubjectsSection profile={profile} />}
-          </>
-        ) : (
-          <Card className="flex flex-col items-center py-10 text-center">
-            <span className="text-5xl mb-3" aria-hidden="true">📝</span>
-            <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
-            <p className="text-body text-secondary">
-              Данные появятся после прохождения настройки профиля
-            </p>
-          </Card>
-        )}
+      <div className="grid gap-4 lg:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <div className="flex flex-col gap-4">
+          {profile ? (
+            <>
+              <PersonalInfoSection profile={profile} onEdit={() => navigate('/onboarding/profile')} />
+              {hasSubjects && <SubjectsSection profile={profile} />}
+            </>
+          ) : (
+            <Card className={cn(PROFILE_CARD_CLASS, 'flex flex-col items-center py-10 text-center')}>
+              <span className="text-5xl mb-3" aria-hidden="true">📝</span>
+              <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
+              <p className="text-body text-secondary">
+                Данные появятся после прохождения настройки профиля
+              </p>
+            </Card>
+          )}
+        </div>
 
         <div className="flex flex-col gap-4">
           <SoundSettingsSection

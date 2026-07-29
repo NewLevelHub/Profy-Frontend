@@ -10,8 +10,8 @@ function InfoRowBase({ label, value, className }: InfoRowProps) {
   if (!value && value !== 0) return null;
   return (
     <div className={className}>
-      <p className="text-caption text-secondary font-semibold mb-0.5">{label}</p>
-      <p className="text-body text-primary font-bold">{value}</p>
+      <p className="text-[13px] text-muted font-semibold mb-1">{label}</p>
+      <p className="text-[16px] text-primary font-extrabold">{value}</p>
     </div>
   );
 }
