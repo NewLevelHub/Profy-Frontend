@@ -13,6 +13,9 @@ export type { ProgressBarProps, ProgressBarVariant } from './ProgressBar';
 export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant } from './Badge';
 
+export { Mascot } from './Mascot';
+export type { MascotProps, MascotKind } from './Mascot';
+
 export { Spinner } from './Spinner';
 export type { SpinnerProps, SpinnerSize } from './Spinner';
 

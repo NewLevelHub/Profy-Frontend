@@ -3,7 +3,8 @@ import { playClick } from '@/shared/lib/sounds';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { Skeleton } from '@/shared/ui/Skeleton';
-import { SPHERE_EMOJI } from '@/shared/config/sphereEmoji';
+import { Mascot } from '@/shared/ui/Mascot';
+import { SPHERE_MASCOT } from '@/shared/config/sphereMascot';
 import { useHome } from './hooks/useHome';
 import type { HomeStatus } from './hooks/useHome';
 
@@ -66,7 +67,7 @@ export default function HomePage() {
           className="w-[130px] h-[160px] sm:w-[150px] sm:h-[190px] flex-none rounded-[22px] bg-brand-subtle flex items-end justify-center overflow-hidden"
           aria-hidden="true"
         >
-          <span className="text-[92px] leading-none select-none -mb-2">🧑‍🎓</span>
+          <Mascot kind="pm" className="w-[112px] h-[148px] sm:w-[130px] sm:h-[172px]" />
         </div>
 
         <div className="relative bg-surface border-2 border-strong rounded-[22px] p-5 sm:p-[22px_26px] flex-1 w-full">
@@ -153,8 +154,8 @@ export default function HomePage() {
                   }}
                   className="bg-surface border-2 border-strong rounded-[20px] overflow-hidden flex flex-col transition-colors hover:border-brand"
                 >
-                  <div className="h-[110px] w-full bg-brand-subtle flex items-center justify-center text-[44px] leading-none" aria-hidden="true">
-                    {SPHERE_EMOJI[sphere.slug] ?? '🧭'}
+                  <div className="h-[110px] w-full bg-brand-subtle flex items-end justify-center" aria-hidden="true">
+                    <Mascot kind={SPHERE_MASCOT[sphere.slug] ?? 'pm'} className="w-[78px] h-[104px]" />
                   </div>
                   <div className="px-3 py-3 text-center">
                     <p className="font-extrabold text-primary text-[15px]">{sphere.name}</p>
