@@ -1,6 +1,7 @@
 import { Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Card } from '@/shared/ui/Card';
+import { PROFILE_CARD_CLASS } from '../utils/profileStyles';
 
 export interface SoundSettingsSectionProps {
   soundEnabled: boolean;
@@ -10,7 +11,7 @@ export interface SoundSettingsSectionProps {
 
 export function SoundSettingsSection({ soundEnabled, toggleSound, prefersReducedMotion }: SoundSettingsSectionProps) {
   return (
-    <Card>
+    <Card className={PROFILE_CARD_CLASS}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           {soundEnabled ? <Volume2 size={20} className="text-brand flex-shrink-0" /> : <VolumeX size={20} className="text-muted flex-shrink-0" />}

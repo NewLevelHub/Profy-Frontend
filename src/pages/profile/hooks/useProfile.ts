@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { getInitials } from '@/shared/ui/navigation/navConfig';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -16,7 +17,7 @@ export function useProfile() {
   const clearReport = useResultStore((s) => s.clearReport);
 
   const displayName = profile?.name?.trim() || user?.name?.trim() || 'Пользователь';
-  const initial = displayName[0]?.toUpperCase() ?? '?';
+  const initial = getInitials(displayName);
 
   const hasSubjects =
     (profile?.subjects_like?.length ?? 0) > 0 ||

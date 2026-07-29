@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { cn } from '@/shared/lib/cn';
 
 export interface ChipProps {
   label: string;
@@ -6,14 +7,15 @@ export interface ChipProps {
 }
 
 function ChipBase({ label, accent }: ChipProps) {
-  const style = accent === 'green'
-    ? { background: 'var(--brand-subtle)', color: '#5B21B6' }
-    : accent === 'orange'
-    ? { background: 'var(--accent-soft)', color: 'var(--accent-text)' }
-    : { background: 'var(--brand-subtle)', color: '#5B21B6' };
-
   return (
-    <span className="px-[15px] py-[7px] rounded-pill font-extrabold text-sm" style={style}>
+    <span
+      className={cn(
+        'px-[15px] py-[7px] rounded-pill font-extrabold text-[14px]',
+        accent === 'green' && 'bg-success-subtle text-success-text',
+        accent === 'orange' && 'bg-accent-soft text-accent-text',
+        !accent && 'bg-brand-subtle text-brand-text',
+      )}
+    >
       {label}
     </span>
   );
