@@ -2,8 +2,11 @@ import { useNavigate } from 'react-router';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useKnownProfessionTree } from '@/pages/assessment/knownProfession/hooks/useKnownProfessionTree';
 
 export type HomeStatus = 'not_started' | 'in_progress' | 'completed';
+
+const SPHERES_PREVIEW_COUNT = 5;
 
 export function useHome() {
   const navigate = useNavigate();
@@ -24,7 +27,10 @@ export function useHome() {
     profile?.name?.trim().split(' ')[0] ||
     user?.name?.trim().split(' ')[0] ||
     'друг';
-  const initial = displayName[0]?.toUpperCase() ?? 'A';
+
+  const { data: sphereTree, isLoading: spheresLoading } = useKnownProfessionTree();
+  const spheresPreview = sphereTree?.slice(0, SPHERES_PREVIEW_COUNT) ?? [];
+  const spheresTotal = sphereTree?.length ?? 0;
 
   function handleContinue() {
     if (status === 'completed') {
@@ -36,10 +42,22 @@ export function useHome() {
     }
   }
 
+  function goToSpheres() {
+    navigate('/assessment/known-profession');
+  }
+
+  function goToSphere(slug: string) {
+    navigate(`/assessment/known-profession/${slug}`);
+  }
+
   return {
     displayName,
-    initial,
     status,
+    spheresPreview,
+    spheresTotal,
+    spheresLoading,
     handleContinue,
+    goToSpheres,
+    goToSphere,
   };
 }
