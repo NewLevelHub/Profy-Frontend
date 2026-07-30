@@ -5,10 +5,14 @@ import type {
   AdminFeedbackListResponse,
   AdminUserDetail,
   AdminUserListResponse,
+  AdminStatsResponse,
   FeedbackRating,
 } from '@/shared/types';
 
 export const adminApi = {
+  getStats: () =>
+    apiClient.get<AdminStatsResponse>(API.admin.stats).then((r) => r.data),
+
   listUsers: (params?: { page?: number; limit?: number; search?: string }) =>
     apiClient
       .get<AdminUserListResponse>(API.admin.users, { params })

@@ -1,54 +1,46 @@
-import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
+import { cn } from '@/shared/lib/cn';
 import type { ProfessionOption } from '@/shared/types';
+import { roadmapDirectionCard, roadmapType } from '../roadmapTypography';
 
 interface ProfessionsCardProps {
   professions: ProfessionOption[];
   directionName: string;
 }
 
-/**
- * Single role with a `why` only when the test data actually singles one out;
- * otherwise an honest list of real options — never a guess dressed as certainty.
- */
 export function ProfessionsCard({ professions, directionName }: ProfessionsCardProps) {
   if (professions.length === 0) return null;
   const single = professions.length === 1 ? professions[0] : null;
 
   return (
-    <Card elevated className="bg-brand-subtle flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-2xl select-none" aria-hidden="true">🏁</span>
-        <Badge variant="brand">{directionName}</Badge>
-      </div>
+    <div className={cn(roadmapDirectionCard, 'flex flex-col h-full')}>
+      <div className={roadmapType.cardLabelBrand}>🏁 Направление</div>
+
+      <h2 className={cn(roadmapType.cardTitle, 'my-1.5 mb-3.5')}>{directionName}</h2>
 
       {single ? (
         <>
-          <div className="flex flex-col gap-1">
-            <p className="text-caption font-semibold text-muted uppercase tracking-wide">
-              Кем ты можешь стать
+          {single.why && (
+            <p className={cn(roadmapType.growthBody, 'text-[#6B7280] mb-2.5 normal-case')}>
+              {single.why}
             </p>
-            <h2 className="text-h1 font-extrabold text-primary leading-tight">{single.title}</h2>
-          </div>
-          {single.why && <p className="text-body text-primary leading-relaxed">{single.why}</p>}
+          )}
+          <Badge variant="brand">{single.title}</Badge>
         </>
       ) : (
-        <div className="flex flex-col gap-2">
-          <p className="text-caption font-semibold text-muted uppercase tracking-wide">
-            Тебе подходит несколько ролей — рано выбирать одну
+        <>
+          <p className={cn(roadmapType.cardSubtitle, 'mb-2.5')}>
+            Подходит несколько ролей — рано выбирать одну
           </p>
-          <div className="flex flex-wrap gap-2">
-            {professions.map((profession) => (
-              <span
-                key={profession.title}
-                className="px-3 py-1.5 rounded-pill text-body font-semibold bg-surface text-primary border border-default"
-              >
+          <div className="flex flex-wrap gap-2.5">
+            {professions.map(profession => (
+              <Badge key={profession.title} variant="brand">
                 {profession.title}
-              </span>
+              </Badge>
             ))}
           </div>
-        </div>
+        </>
       )}
-    </Card>
+    </div>
   );
 }

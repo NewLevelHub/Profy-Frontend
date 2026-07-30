@@ -10,7 +10,7 @@ export function AdminTabs() {
   const { pathname } = useLocation();
 
   return (
-    <div className="flex gap-2 border-b border-default">
+    <div className="flex flex-wrap gap-[10px]">
       {TABS.map((tab) => {
         const isActive = pathname.startsWith(tab.path);
         return (
@@ -18,10 +18,10 @@ export function AdminTabs() {
             key={tab.path}
             to={tab.path}
             className={cn(
-              'px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors',
+              'text-[16px] font-extrabold px-[26px] py-[12px] rounded-full cursor-pointer transition-all border-2',
               isActive
-                ? 'border-brand text-brand'
-                : 'border-transparent text-secondary hover:text-primary',
+                ? 'border-[#7C3AED] border-b-[4px] border-b-[#5B21B6] bg-[#7C3AED] text-white'
+                : 'border-[#DDD6FE] border-b-[4px] border-b-[#DDD6FE] bg-white text-[#4B5563] hover:border-[#7C3AED] hover:bg-[#EFECFF]'
             )}
           >
             {tab.label}

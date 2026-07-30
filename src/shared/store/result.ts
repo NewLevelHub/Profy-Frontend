@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { AkinatorResultResponse } from '@/shared/types';
 
 interface ResultState {
@@ -7,8 +8,15 @@ interface ResultState {
   clearReport: () => void;
 }
 
-export const useResultStore = create<ResultState>()((set) => ({
-  report: null,
-  setReport: (report) => set({ report }),
-  clearReport: () => set({ report: null }),
-}));
+export const useResultStore = create<ResultState>()(
+  persist(
+    (set) => ({
+      report: null,
+      setReport: (report) => set({ report }),
+      clearReport: () => set({ report: null }),
+    }),
+    {
+      name: 'profy-result',
+    },
+  ),
+);

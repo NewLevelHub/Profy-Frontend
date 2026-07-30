@@ -32,36 +32,37 @@ const BANNER_COPY: Partial<Record<HomeStatus, { eyebrow: string; title: string; 
   },
 };
 
-const QUICK_CARDS = [
-  {
-    title: 'Твой результат',
-    description: 'Направление, которое подобрал тест, и почему оно тебе подходит.',
-    cta: 'Смотреть →',
-    to: '/results',
-  },
-  {
-    title: 'План развития',
-    description: 'Что подтянуть по предметам и с чего начать уже сейчас.',
-    cta: 'Открыть →',
-    to: '/results',
-  },
-  {
-    title: 'Университеты',
-    description: 'Программы в Казахстане и за рубежом с требованиями по ЕНТ.',
-    cta: 'Найти →',
-    to: '/results',
-  },
-] as const;
-
 export default function HomePage() {
   const navigate = useNavigate();
   const {
     displayName, status,
     spheresPreview, spheresTotal, spheresLoading,
     handleContinue, goToSpheres, goToSphere,
+    directionSlug,
   } = useHome();
 
   const banner = status === 'completed' ? undefined : BANNER_COPY[status];
+
+  const cards = [
+    {
+      title: 'Твой результат',
+      description: 'Направление, которое подобрал тест, и почему оно тебе подходит.',
+      cta: 'Смотреть →',
+      to: '/results',
+    },
+    {
+      title: 'План развития',
+      description: 'Что подтянуть по предметам и с чего начать уже сейчас.',
+      cta: 'Открыть →',
+      to: directionSlug ? `/results/directions/${directionSlug}/roadmap` : '/results',
+    },
+    {
+      title: 'Университеты',
+      description: 'Программы в Казахстане и за рубежом с требованиями по ЕНТ.',
+      cta: 'Найти →',
+      to: directionSlug ? `/results/directions/${directionSlug}/universities` : '/results',
+    },
+  ] as const;
 
   return (
     <PageContainer className="space-y-7">
@@ -111,7 +112,7 @@ export default function HomePage() {
 
       {/* ── Quick access cards ───────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
-        {QUICK_CARDS.map(card => (
+        {cards.map(card => (
           <button
             key={card.title}
             type="button"
