@@ -52,7 +52,7 @@ export default function ResultsPage() {
         directionSlug={report.direction_slug}
         directionName={report.direction_name}
         directionDescription={report.direction_description}
-        matchPercent={report.match_percent}
+        matchPercent={report.match_percentage != null ? Math.round(report.match_percentage * 100) : null}
       />
 
       <ResultProfessionExamples professions={report.professions} />

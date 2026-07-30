@@ -2,6 +2,7 @@ import { BackButton } from '@/shared/ui/BackButton';
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { getDirectionMascot } from '@/shared/config/directionMascot';
 import { useResultFeedback } from './hooks/useResultFeedback';
 import { OverallRatingCard } from './components/OverallRatingCard';
 import { AspectsCard } from './components/AspectsCard';
@@ -23,7 +24,7 @@ export default function ResultFeedbackPage() {
 
   if (!report) return null;
 
-  const testDate = report.completed_at ?? report.created_at;
+  const testDate = report.created_at;
 
   return (
     <PageContainer size="content" className="flex flex-col gap-6 pb-10">
@@ -49,7 +50,7 @@ export default function ResultFeedbackPage() {
               className="w-[76px] h-[96px] sm:w-[96px] sm:h-[120px] flex-none rounded-[18px] bg-surface flex items-end justify-center overflow-hidden"
               aria-hidden="true"
             >
-              <Mascot kind="psy" className="w-[68px] h-[86px] sm:w-[88px] sm:h-[110px]" />
+              <Mascot kind={getDirectionMascot(report.direction_slug)} className="w-[68px] h-[86px] sm:w-[88px] sm:h-[110px]" />
             </div>
             <div className="min-w-0">
               <p className="font-extrabold text-primary text-[18px] sm:text-[20px] m-0 text-pretty">

@@ -30,7 +30,7 @@ export function ProfessionsCard({ professions, directionName }: ProfessionsCardP
       ) : (
         <>
           <p className={cn(roadmapType.cardSubtitle, 'mb-2.5')}>
-            Подходит несколько ролей — рано выбирать одну
+            Возможные роли в этом направлении
           </p>
           <div className="flex flex-wrap gap-2.5">
             {professions.map(profession => (
