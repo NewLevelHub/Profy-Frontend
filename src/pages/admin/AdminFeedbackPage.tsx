@@ -1,12 +1,37 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import { adminApi } from '@/shared/api/admin';
 import { AdminTabs } from '@/shared/ui/admin/AdminTabs';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
-import type { AdminFeedbackListItem, FeedbackRating, AdminStatsResponse } from '@/shared/types';
+import type { AdminFeedbackListItem, AdminFeedbackStatsResponse, FeedbackAxisStats, FeedbackRating } from '@/shared/types';
+
+const AXIS_LABELS: { key: keyof AdminFeedbackStatsResponse; label: string }[] = [
+  { key: 'overall', label: 'Общая оценка' },
+  { key: 'questions', label: 'Вопросы' },
+  { key: 'result_match', label: 'Результат' },
+  { key: 'plan_usefulness', label: 'План' },
+  { key: 'design', label: 'Дизайн' },
+];
+
+function AxisStatsCard({ label, stats }: { label: string; stats: FeedbackAxisStats }) {
+  return (
+    <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
+      <div className="text-[13px] font-bold text-secondary">{label}</div>
+      <div className="text-[30px] font-extrabold mt-1 text-[#7C3AED]">
+        {stats.average != null ? `${stats.average.toLocaleString('ru-RU')} / 5` : '—'}
+      </div>
+      {stats.scored_count > 0 && stats.scored_count < stats.total_count && (
+        <div className="text-[11px] font-semibold text-muted mt-1">
+          По {stats.scored_count} из {stats.total_count} отзывов
+        </div>
+      )}
+    </div>
+  );
+}
 
 const RATING_LABELS: Record<FeedbackRating, string> = {
   good: '🙂 Хорошо',
@@ -20,7 +45,10 @@ const RATING_EMOJI: Record<FeedbackRating, string> = {
   bad: '🙁',
 };
 
-function axisCell(rating: FeedbackRating | null) {
+// Legacy rows (submitted before scores existed) only have the emoji category
+// — show the real number whenever it's there instead.
+function axisCell(rating: FeedbackRating | null, score: number | null) {
+  if (score != null) return `${rating ? RATING_EMOJI[rating] : ''} ${score}`.trim();
   return rating ? RATING_EMOJI[rating] : '—';
 }
 
@@ -48,19 +76,15 @@ export default function AdminFeedbackPage() {
   const [rating, setRating] = useState<FeedbackRating | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stats, setStats] = useState<AdminStatsResponse | null>(null);
+  const [stats, setStats] = useState<AdminFeedbackStatsResponse | null>(null);
 
+  // Aggregated server-side across every feedback row — not just the current
+  // page/filter above, so it stays accurate no matter how the list is paged.
   useEffect(() => {
     let cancelled = false;
-    async function loadStats() {
-      try {
-        const data = await adminApi.getStats();
-        if (!cancelled) setStats(data);
-      } catch {
-        // fallback
-      }
-    }
-    loadStats();
+    adminApi.getFeedbackStats()
+      .then((data) => { if (!cancelled) setStats(data); })
+      .catch(() => { /* cards show '—' via the null check below */ });
     return () => {
       cancelled = true;
     };
@@ -99,26 +123,18 @@ export default function AdminFeedbackPage() {
         subtitle="Пользователи Profy, их прогресс и обратная связь"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
-          <div className="text-[13px] font-bold text-secondary">Пользователей</div>
-          <div className="text-[30px] font-extrabold mt-1 text-primary">{stats?.users_count ?? 128}</div>
-        </div>
-        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
-          <div className="text-[13px] font-bold text-secondary">Тестов завершено</div>
-          <div className="text-[30px] font-extrabold mt-1 text-[#22C55E]">{stats?.completed_assessments_count ?? 94}</div>
-        </div>
-        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
-          <div className="text-[13px] font-bold text-secondary">Незавершённых</div>
-          <div className="text-[30px] font-extrabold mt-1 text-[#EA580C]">{stats?.in_progress_assessments_count ?? 34}</div>
-        </div>
-        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
-          <div className="text-[13px] font-bold text-secondary">Оценка дизайна</div>
-          <div className="text-[30px] font-extrabold mt-1 text-[#7C3AED]">
-            {stats ? stats.average_design_rating.toLocaleString('ru-RU') : '4,6'}
-          </div>
-        </div>
+      <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px] max-w-[220px]">
+        <div className="text-[13px] font-bold text-secondary">Отзывов</div>
+        <div className="text-[30px] font-extrabold mt-1 text-primary">{total}</div>
       </div>
+
+      {stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {AXIS_LABELS.map(({ key, label }) => (
+            <AxisStatsCard key={key} label={label} stats={stats[key]} />
+          ))}
+        </div>
+      )}
 
       <AdminTabs />
 
@@ -169,7 +185,7 @@ export default function AdminFeedbackPage() {
             >
               <div className="flex flex-wrap items-center justify-between gap-2.5">
                 <Link
-                  to={`/admin/users/${item.user_id}`}
+                  to={ROUTES.adminUserDetail(item.user_id)}
                   className="text-[15px] font-extrabold text-[#6D28D9] break-all hover:underline"
                 >
                   {item.user_email}
@@ -181,6 +197,7 @@ export default function AdminFeedbackPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[15px] font-extrabold bg-[#EDE9FE] text-[#5B21B6] rounded-full px-4 py-1.5">
                   {RATING_LABELS[item.overall_rating]}
+                  {item.overall_score != null && ` (${item.overall_score}/5)`}
                 </span>
                 {item.direction_slug && (
                   <span className="text-[14px] font-bold text-[#4B5563] bg-[#F5F3FF] rounded-full px-3.5 py-1.5">
@@ -191,19 +208,19 @@ export default function AdminFeedbackPage() {
               <div className="grid grid-cols-4 gap-2.5">
                 <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
                   <div className="text-[12px] font-bold text-secondary">Вопросы</div>
-                  <div className="text-[20px] mt-1">{axisCell(item.questions_rating)}</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.questions_rating, item.questions_score)}</div>
                 </div>
                 <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
                   <div className="text-[12px] font-bold text-secondary">Результат</div>
-                  <div className="text-[20px] mt-1">{axisCell(item.result_match_rating)}</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.result_match_rating, item.result_match_score)}</div>
                 </div>
                 <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
                   <div className="text-[12px] font-bold text-secondary">План</div>
-                  <div className="text-[20px] mt-1">{axisCell(item.plan_usefulness_rating)}</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.plan_usefulness_rating, item.plan_usefulness_score)}</div>
                 </div>
                 <div className="bg-[#F5F3FF] rounded-xl p-2.5 text-center">
                   <div className="text-[12px] font-bold text-secondary">Дизайн</div>
-                  <div className="text-[20px] mt-1">{axisCell(item.design_rating)}</div>
+                  <div className="text-[20px] mt-1">{axisCell(item.design_rating, item.design_score)}</div>
                 </div>
               </div>
               <div className="border-t-2 border-[#EDE9FE] pt-3">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Search } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { adminApi } from '@/shared/api/admin';
 import { AdminTabs } from '@/shared/ui/admin/AdminTabs';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -36,15 +37,9 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     let cancelled = false;
-    async function loadStats() {
-      try {
-        const data = await adminApi.getStats();
-        if (!cancelled) setStats(data);
-      } catch {
-        // fallback
-      }
-    }
-    loadStats();
+    adminApi.getStats()
+      .then((data) => { if (!cancelled) setStats(data); })
+      .catch(() => { /* cards fall back to the user list's own total below */ });
     return () => {
       cancelled = true;
     };
@@ -83,24 +78,20 @@ export default function AdminUsersPage() {
         subtitle="Пользователи Profy, их прогресс и обратная связь"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
           <div className="text-[13px] font-bold text-secondary">Пользователей</div>
-          <div className="text-[30px] font-extrabold mt-1 text-primary">{stats?.users_count ?? total ?? 128}</div>
+          {/* stats.users_count is the whole table; `total` is only this
+              search's result count — stats wins when both are available. */}
+          <div className="text-[30px] font-extrabold mt-1 text-primary">{stats?.users_count ?? total}</div>
         </div>
         <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
           <div className="text-[13px] font-bold text-secondary">Тестов завершено</div>
-          <div className="text-[30px] font-extrabold mt-1 text-[#22C55E]">{stats?.completed_assessments_count ?? 94}</div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#22C55E]">{stats?.completed_assessments_count ?? '—'}</div>
         </div>
         <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
           <div className="text-[13px] font-bold text-secondary">Незавершённых</div>
-          <div className="text-[30px] font-extrabold mt-1 text-[#EA580C]">{stats?.in_progress_assessments_count ?? 34}</div>
-        </div>
-        <div className="bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[18px] p-[18px]">
-          <div className="text-[13px] font-bold text-secondary">Оценка дизайна</div>
-          <div className="text-[30px] font-extrabold mt-1 text-[#7C3AED]">
-            {stats ? stats.average_design_rating.toLocaleString('ru-RU') : '4,6'}
-          </div>
+          <div className="text-[30px] font-extrabold mt-1 text-[#EA580C]">{stats?.in_progress_assessments_count ?? '—'}</div>
         </div>
       </div>
 
@@ -158,7 +149,7 @@ export default function AdminUsersPage() {
               {items.map((item) => (
                 <Link
                   key={item.id}
-                  to={`/admin/users/${item.id}`}
+                  to={ROUTES.adminUserDetail(item.id)}
                   className="grid grid-cols-[2fr_1fr_0.7fr_1fr_1.2fr] gap-3 px-[22px] py-[18px] text-[15px] font-semibold align-middle items-center hover:bg-[#FCFBFF] transition-colors cursor-pointer"
                 >
                   <div className="font-extrabold text-[#6D28D9] overflow-wrap-anywhere">
@@ -189,7 +180,7 @@ export default function AdminUsersPage() {
             {items.map((item) => (
               <Link
                 key={item.id}
-                to={`/admin/users/${item.id}`}
+                to={ROUTES.adminUserDetail(item.id)}
                 className="w-full text-left bg-white border-2 border-[#DDD6FE] border-b-[4px] rounded-[20px] p-[18px] flex flex-col gap-2.5 hover:border-[#7C3AED] hover:bg-[#FCFBFF] transition-all cursor-pointer"
               >
                 <div className="text-[15px] font-extrabold text-[#6D28D9] break-all">

@@ -1,7 +1,9 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Map } from 'lucide-react';
+import { Map } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
+import { BackButton } from '@/shared/ui/BackButton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
@@ -129,14 +131,7 @@ export default function GapAnalysisPage() {
     <PageContainer className="space-y-6">
       {/* Nav */}
       <div className="mb-6">
-        <button
-          className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
-          onClick={() => navigate(-1)}
-          aria-label="Назад"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Назад
-        </button>
+        <BackButton />
       </div>
 
       {isLoading ? (
@@ -151,7 +146,7 @@ export default function GapAnalysisPage() {
           <p className="text-body text-secondary max-w-sm">
             Пройди диагностику, чтобы получить анализ готовности.
           </p>
-          <Button onClick={() => navigate('/assessment/goal')}>Начать диагностику</Button>
+          <Button onClick={() => navigate(ROUTES.assessmentGoal)}>Начать диагностику</Button>
         </div>
       ) : error !== null || !result ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">

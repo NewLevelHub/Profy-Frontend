@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { ROUTES } from '@/app/routes';
 
 export default function NotFoundPage() {
   return (
@@ -7,7 +8,7 @@ export default function NotFoundPage() {
         <p className="text-6xl font-black text-subtle">404</p>
         <h1 className="text-xl font-black text-primary">Страница не найдена</h1>
         <Link
-          to="/home"
+          to={ROUTES.home}
           className="inline-block mt-2 rounded-xl bg-brand text-on-brand px-6 py-3 text-sm font-extrabold hover:bg-brand-hover transition-colors"
         >
           На главную

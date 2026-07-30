@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import type { ProgramBrief } from '@/shared/types';
 
 interface ResultProgramRecommendationsProps {
@@ -51,9 +52,7 @@ export function ResultProgramRecommendations({ programs, directionSlug }: Result
   if (programs.length === 0) return null;
 
   function handleProgramClick(programId: string) {
-    navigate(
-      `/results/directions/${encodeURIComponent(directionSlug)}/universities/${programId}`,
-    );
+    navigate(ROUTES.programDetail(directionSlug, programId));
   }
 
   return (
@@ -72,9 +71,7 @@ export function ResultProgramRecommendations({ programs, directionSlug }: Result
       </div>
 
       <button
-        onClick={() =>
-          navigate(`/results/directions/${encodeURIComponent(directionSlug)}/universities`)
-        }
+        onClick={() => navigate(ROUTES.universityList(directionSlug))}
         className="self-start text-brand text-base font-extrabold hover:underline"
       >
         Смотреть все программы

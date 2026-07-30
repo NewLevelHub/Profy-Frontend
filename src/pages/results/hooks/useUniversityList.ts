@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { SlugParams } from '@/app/routes';
 import { universityApi } from '@/shared/api/university';
 import { useProfileStore } from '@/shared/store/profile';
 
@@ -11,7 +13,7 @@ export const CITY_FILTERS: { label: string; value: string | undefined }[] = [
 ];
 
 export function useUniversityList() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams<SlugParams>();
   const navigate = useNavigate();
   const ageGroup = useProfileStore(s => s.profile?.age_group);
   const [activeCity, setActiveCity] = useState<string | undefined>(undefined);
@@ -30,7 +32,7 @@ export function useUniversityList() {
   }, [allPrograms, activeCity]);
 
   function handleProgramClick(programId: string) {
-    navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
+    navigate(ROUTES.programDetail(slug!, programId));
   }
 
   return {

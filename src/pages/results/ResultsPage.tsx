@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { DirectionRoadmapState } from '@/app/routes';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -20,7 +22,7 @@ export default function ResultsPage() {
 
   if (!hasCompletedAssessment || isNotReady) {
     return (
-      <ResultEmptyState onStart={() => navigate('/assessment/goal')} onHome={() => navigate('/home')} />
+      <ResultEmptyState onStart={() => navigate(ROUTES.assessmentGoal)} onHome={() => navigate(ROUTES.home)} />
     );
   }
 
@@ -74,8 +76,8 @@ export default function ResultsPage() {
           size="lg"
           className="gap-2"
           onClick={() =>
-            navigate(`/results/directions/${encodeURIComponent(report.direction_slug)}/roadmap`, {
-              state: { generate: true },
+            navigate(ROUTES.directionRoadmap(report.direction_slug), {
+              state: { generate: true } satisfies DirectionRoadmapState,
             })
           }
         >
@@ -86,9 +88,7 @@ export default function ResultsPage() {
             variant="ghost"
             size="lg"
             className="gap-2"
-            onClick={() =>
-              navigate(`/results/directions/${encodeURIComponent(report.direction_slug)}/universities`)
-            }
+            onClick={() => navigate(ROUTES.universityList(report.direction_slug))}
           >
             🎓 Найти университеты
           </Button>
@@ -97,9 +97,7 @@ export default function ResultsPage() {
           variant="ghost"
           size="lg"
           className="gap-2"
-          onClick={() =>
-            navigate(`/results/directions/${encodeURIComponent(report.direction_slug)}/feedback`)
-          }
+          onClick={() => navigate(ROUTES.resultFeedback(report.direction_slug))}
         >
           💬 Оценить результат
         </Button>

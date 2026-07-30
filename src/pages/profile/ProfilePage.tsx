@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import { LogOut } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -45,7 +46,7 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-4">
           {profile ? (
             <>
-              <PersonalInfoSection profile={profile} onEdit={() => navigate('/onboarding/profile')} />
+              <PersonalInfoSection profile={profile} onEdit={() => navigate(ROUTES.onboardingProfile)} />
               {hasSubjects && <SubjectsSection profile={profile} />}
             </>
           ) : (

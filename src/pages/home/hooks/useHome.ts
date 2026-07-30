@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import { ROUTES } from '@/app/routes';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
+import { useValidatedReport } from '@/shared/hooks/useValidatedReport';
 import { resultApi } from '@/shared/api/result';
 import { useKnownProfessionTree } from '@/pages/assessment/knownProfession/hooks/useKnownProfessionTree';
 
@@ -38,7 +40,7 @@ export function useHome() {
 
   // Shares the ['result', assessmentId] cache with useResults — visiting
   // /results first (the common path) means this never refetches.
-  const report = useResultStore(s => s.report);
+  const report = useValidatedReport();
   const setReport = useResultStore(s => s.setReport);
   const { data: fetchedResult } = useQuery({
     queryKey: ['result', assessmentId] as const,
@@ -53,21 +55,23 @@ export function useHome() {
 
   function handleContinue() {
     if (status === 'completed') {
-      const slug = effectiveReport?.direction_slug;
-      navigate(slug ? `/results/directions/${slug}` : '/results');
+      // No route reads a bare "/results/directions/:slug" (only its
+      // sub-pages — roadmap, universities, etc. — do); /results itself
+      // already shows whichever direction is in the result store.
+      navigate(ROUTES.results);
     } else if (status === 'in_progress') {
-      navigate('/assessment');
+      navigate(ROUTES.assessment);
     } else {
-      navigate('/assessment/goal');
+      navigate(ROUTES.assessmentGoal);
     }
   }
 
   function goToSpheres() {
-    navigate('/assessment/known-profession');
+    navigate(ROUTES.knownProfessionSpheres);
   }
 
   function goToSphere(slug: string) {
-    navigate(`/assessment/known-profession/${slug}`);
+    navigate(ROUTES.knownProfessionList(slug));
   }
 
   return {

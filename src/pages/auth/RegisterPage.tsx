@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 
@@ -39,7 +40,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await authApi.register(email.trim(), password);
-      navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+      navigate(`${ROUTES.verifyEmail}?email=${encodeURIComponent(email.trim())}`);
     } catch (err) {
       setPassword('');
       if (axios.isAxiosError(err)) {
@@ -126,7 +127,7 @@ export default function RegisterPage() {
 
       <p className="text-caption text-center text-secondary mt-5">
         Уже есть аккаунт?{' '}
-        <Link to="/login" className="text-brand font-extrabold hover:text-brand-hover transition-colors">
+        <Link to={ROUTES.login} className="text-brand font-extrabold hover:text-brand-hover transition-colors">
           Войти
         </Link>
       </p>

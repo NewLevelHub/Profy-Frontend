@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { PraiseState } from '@/app/routes';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
@@ -54,13 +56,13 @@ export function useAssessment() {
 
   useEffect(() => {
     if (!assessmentId) {
-      navigate('/assessment/goal', { replace: true });
+      navigate(ROUTES.assessmentGoal, { replace: true });
       return;
     }
 
     // Normal mode: redirect to loading if all blocks done
     if (!isRetakeMode && currentBlock >= totalBlocks) {
-      navigate('/assessment/loading', { replace: true });
+      navigate(ROUTES.assessmentLoading, { replace: true });
       return;
     }
 
@@ -167,14 +169,14 @@ export function useAssessment() {
 
       if (isRetakeMode) {
         // Retake: only one block — go straight to result regeneration
-        navigate('/assessment/praise', {
+        navigate(ROUTES.assessmentPraise, {
           state: {
             title: 'Готово!',
             subtitle: `Блок «${BLOCK_NAMES[currentBlockKey]}» обновлён`,
-            nextPath: '/assessment/loading?retake=1',
+            nextPath: `${ROUTES.assessmentLoading}?retake=1`,
             completedCount: totalBlocks,
             totalBlocks,
-          },
+          } satisfies PraiseState,
         });
         return;
       }
@@ -191,18 +193,18 @@ export function useAssessment() {
       if (!isLast) {
         advanceBlock();
       }
-      navigate('/assessment/praise', {
+      navigate(ROUTES.assessmentPraise, {
         state: {
           title: isLast ? 'Ты справился!' : 'Молодец!',
           subtitle: isLast
             ? 'Считаем результат...'
             : `Блок «${BLOCK_NAMES[currentBlockKey]}» пройден`,
-          nextPath: isLast ? '/assessment/loading' : '/assessment',
+          nextPath: isLast ? ROUTES.assessmentLoading : ROUTES.assessment,
           completedCount: nextIndex,
           totalBlocks,
           nextBlockName,
           nextBlockEmoji,
-        },
+        } satisfies PraiseState,
       });
     } catch {
       setError('Не удалось сохранить ответы. Попробуй ещё раз.');
@@ -217,7 +219,7 @@ export function useAssessment() {
 
   function confirmExit() {
     setExitConfirmOpen(false);
-    navigate('/home');
+    navigate(ROUTES.home);
   }
 
   function cancelExit() {

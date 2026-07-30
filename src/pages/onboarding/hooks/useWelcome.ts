@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import { ROUTES } from '@/app/routes';
 import { profileApi } from '@/shared/api/profile';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAuthStore } from '@/shared/store/auth';
@@ -27,7 +28,7 @@ export function useWelcome() {
   useEffect(() => {
     if (profile) {
       setProfile(profile);
-      navigate('/home', { replace: true });
+      navigate(ROUTES.home, { replace: true });
     }
   }, [profile, navigate, setProfile]);
 

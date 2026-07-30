@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import { playClick } from '@/shared/lib/sounds';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
@@ -48,19 +49,19 @@ export default function HomePage() {
       title: 'Твой результат',
       description: 'Направление, которое подобрал тест, и почему оно тебе подходит.',
       cta: 'Смотреть →',
-      to: '/results',
+      to: ROUTES.results,
     },
     {
       title: 'План развития',
       description: 'Что подтянуть по предметам и с чего начать уже сейчас.',
       cta: 'Открыть →',
-      to: directionSlug ? `/results/directions/${directionSlug}/roadmap` : '/results',
+      to: directionSlug ? ROUTES.directionRoadmap(directionSlug) : ROUTES.results,
     },
     {
       title: 'Университеты',
       description: 'Программы в Казахстане и за рубежом с требованиями по ЕНТ.',
       cta: 'Найти →',
-      to: directionSlug ? `/results/directions/${directionSlug}/universities` : '/results',
+      to: directionSlug ? ROUTES.universityList(directionSlug) : ROUTES.results,
     },
   ] as const;
 

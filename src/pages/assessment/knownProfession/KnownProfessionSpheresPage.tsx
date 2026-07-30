@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Spinner } from '@/shared/ui';
+import { ROUTES } from '@/app/routes';
+import type { KnownProfessionQuizState } from '@/app/routes';
+import { BackButton, Spinner } from '@/shared/ui';
 import { useProfileStore } from '@/shared/store/profile';
 import { SPHERE_MASCOT } from '@/shared/config/sphereMascot';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
@@ -25,23 +27,21 @@ export default function KnownProfessionSpheresPage() {
         ? match.specialty.label_junior
         : match.specialty.name;
 
-    navigate(`/assessment/known-profession/${match.sphereSlug}/${match.specialty.slug}`, {
+    navigate(ROUTES.knownProfessionQuiz(match.sphereSlug, match.specialty.slug), {
       state: {
         professionName: match.matchedProfession ?? label,
         sphereName: match.sphereName,
-      },
+      } satisfies KnownProfessionQuizState,
     });
   }
 
   return (
     <div className="max-w-[620px] lg:max-w-5xl mx-auto flex flex-col">
-      <button
-        type="button"
-        onClick={() => navigate('/assessment/goal')}
-        className="self-start text-secondary font-bold text-sm mb-6 hover:text-primary transition-colors"
-      >
-        ← Назад к целям
-      </button>
+      <BackButton
+        onClick={() => navigate(ROUTES.assessmentGoal)}
+        label="Назад к целям"
+        className="self-start mb-6"
+      />
 
       <div className="mb-[30px]">
         <div
@@ -119,7 +119,7 @@ export default function KnownProfessionSpheresPage() {
               sphere={sphere}
               ageGroup={ageGroup}
               mascotKind={SPHERE_MASCOT[sphere.slug] ?? 'pm'}
-              onClick={() => navigate(`/assessment/known-profession/${sphere.slug}`)}
+              onClick={() => navigate(ROUTES.knownProfessionList(sphere.slug))}
             />
           ))}
         </div>

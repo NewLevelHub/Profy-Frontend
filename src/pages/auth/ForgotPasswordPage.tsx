@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 
@@ -25,7 +26,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     try {
       await authApi.forgotPassword(email.trim());
-      navigate(`/reset-password?email=${encodeURIComponent(email.trim())}`);
+      navigate(`${ROUTES.resetPassword}?email=${encodeURIComponent(email.trim())}`);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setFormError('Слишком много запросов. Попробуйте позже');
@@ -78,7 +79,7 @@ export default function ForgotPasswordPage() {
 
       <div className="text-center mt-5">
         <Link
-          to="/login"
+          to={ROUTES.login}
           className="text-caption text-muted hover:text-secondary transition-colors"
         >
           ← Вернуться ко входу

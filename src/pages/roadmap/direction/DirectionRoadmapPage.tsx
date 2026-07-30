@@ -1,5 +1,8 @@
 import { useNavigate, useParams } from 'react-router';
 import { Sparkles } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
+import type { SlugParams } from '@/app/routes';
+import { BackButton } from '@/shared/ui/BackButton';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -13,10 +16,10 @@ import { ProfessionsCard } from './components/ProfessionsCard';
 import { RoadmapUniversitiesCta } from './components/RoadmapUniversitiesCta';
 import { SkillsSection } from './components/SkillsSection';
 import { StarterActionsSection } from './components/StarterActionsSection';
-import { roadmapBackButton, roadmapType } from './roadmapTypography';
+import { roadmapType } from './roadmapTypography';
 
 export default function DirectionRoadmapPage() {
-  const { slug = '' } = useParams<{ slug: string }>();
+  const { slug = '' } = useParams<SlugParams>();
   const navigate = useNavigate();
   const {
     roadmap, isLoading, isGenerating, notGenerated,
@@ -45,7 +48,7 @@ export default function DirectionRoadmapPage() {
             </Button>
           )}
           {(errorKind === 'wrong_direction' || errorKind === 'forbidden' || errorKind === 'generic') && (
-            <Button variant="ghost" size="lg" onClick={() => navigate('/results')}>
+            <Button variant="ghost" size="lg" onClick={() => navigate(ROUTES.results)}>
               Назад к результатам
             </Button>
           )}
@@ -66,13 +69,7 @@ export default function DirectionRoadmapPage() {
       ) : roadmap ? (
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3.5 flex-wrap">
-            <button
-              type="button"
-              className={roadmapBackButton}
-              onClick={() => navigate(-1)}
-            >
-              <span className={roadmapType.backButton}>← Назад</span>
-            </button>
+            <BackButton />
             <h1 className={roadmapType.pageTitle}>План развития</h1>
           </div>
 

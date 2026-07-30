@@ -1,30 +1,22 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { PraiseState } from '@/app/routes';
 import { Button } from '@/shared/ui/Button';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
+import { useTypedLocationState } from '@/shared/hooks/useTypedLocationState';
 import { ConfettiBlast } from './components/ConfettiBlast';
-
-interface PraiseState {
-  title: string;
-  subtitle: string;
-  nextPath: string;
-  completedCount?: number;
-  totalBlocks?: number;
-  nextBlockName?: string;
-  nextBlockEmoji?: string;
-}
 
 const AUTO_ADVANCE_MS = 4000;
 
 export default function PraisePage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const state = (location.state ?? {}) as PraiseState;
+  const state = useTypedLocationState<PraiseState>();
 
   const {
     title = 'Молодец!',
     subtitle = '',
-    nextPath = '/home',
+    nextPath = ROUTES.home,
     completedCount,
     totalBlocks,
     nextBlockName,

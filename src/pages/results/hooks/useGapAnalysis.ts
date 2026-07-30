@@ -1,20 +1,17 @@
-import { useLocation, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import { ROUTES } from '@/app/routes';
+import type { GapAnalysisState, ProgramParams } from '@/app/routes';
 import { universityApi } from '@/shared/api/university';
 import { useAssessmentStore } from '@/shared/store/assessment';
-
-interface LocationState {
-  programName?: string;
-  universityName?: string;
-}
+import { useTypedLocationState } from '@/shared/hooks/useTypedLocationState';
 
 export function useGapAnalysis() {
-  const { slug, programId } = useParams<{ slug: string; programId: string }>();
+  const { slug, programId } = useParams<ProgramParams>();
   const navigate = useNavigate();
-  const { state } = useLocation();
   const assessmentId = useAssessmentStore(s => s.assessmentId);
 
-  const { programName, universityName } = (state ?? {}) as LocationState;
+  const { programName, universityName } = useTypedLocationState<GapAnalysisState>();
 
   const { data: result, isLoading, error, refetch } = useQuery({
     queryKey: ['gap-analysis', programId, assessmentId] as const,
@@ -26,7 +23,7 @@ export function useGapAnalysis() {
     // The general goal-roadmap (/roadmap) was retired with the old scoring
     // pipeline — direction-roadmap is the live plan builder now, and `slug`
     // (the program's direction) is already in this page's route.
-    if (slug) navigate(`/results/directions/${encodeURIComponent(slug)}/roadmap`);
+    if (slug) navigate(ROUTES.directionRoadmap(slug));
   }
 
   return {

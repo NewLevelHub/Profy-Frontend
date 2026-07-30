@@ -1,24 +1,18 @@
-import { useLocation, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { KnownProfessionQuizParams, KnownProfessionQuizState } from '@/app/routes';
 import { Button, Spinner } from '@/shared/ui';
 import { OptionCard } from '../components/OptionCard';
 import { useProfileStore } from '@/shared/store/profile';
+import { useTypedLocationState } from '@/shared/hooks/useTypedLocationState';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
 import { useKnownProfessionQuiz } from './hooks/useKnownProfessionQuiz';
 
-interface LocationState {
-  professionName?: string;
-  sphereName?: string;
-}
-
 export default function KnownProfessionQuizPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { sphereSlug, professionSlug } = useParams<{
-    sphereSlug: string;
-    professionSlug: string;
-  }>();
+  const { sphereSlug, professionSlug } = useParams<KnownProfessionQuizParams>();
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
-  const state = (location.state as LocationState | null) ?? {};
+  const state = useTypedLocationState<KnownProfessionQuizState>();
 
   const { data: tree, isLoading: treeLoading } = useKnownProfessionTree();
 
@@ -66,7 +60,7 @@ export default function KnownProfessionQuizPage() {
           variant="ghost"
           size="lg"
           className="rounded-pill"
-          onClick={() => navigate(`/assessment/known-profession/${sphereSlug}`)}
+          onClick={() => navigate(ROUTES.knownProfessionList(sphereSlug!))}
         >
           Выбрать другую профессию
         </Button>
@@ -90,7 +84,7 @@ export default function KnownProfessionQuizPage() {
             <button
               type="button"
               onClick={() =>
-                navigate(`/assessment/known-profession/${sphereSlug}`)
+                navigate(ROUTES.knownProfessionList(sphereSlug!))
               }
               className="text-secondary font-bold text-sm hover:text-primary"
             >

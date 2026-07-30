@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { PraiseState } from '@/app/routes';
 import { directionsApi } from '@/shared/api/directions';
 import { assessmentApi } from '@/shared/api/assessment';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -43,11 +45,11 @@ export function useKnownProfessionQuiz(professionSlug: string) {
       setAssessment(response.assessment_id, 'known', false);
       completeAssessment();
       const praise = VERDICT_PRAISE[response.verdict];
-      navigate('/assessment/praise', {
+      navigate(ROUTES.assessmentPraise, {
         state: {
           ...praise,
-          nextPath: `/results/directions/${encodeURIComponent(professionSlug)}/subject-readiness`,
-        },
+          nextPath: ROUTES.subjectReadiness(professionSlug),
+        } satisfies PraiseState,
       });
     },
   });

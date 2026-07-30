@@ -1,3 +1,5 @@
+import { ROUTES } from '@/app/routes';
+
 export type NavItemId =
   | 'home'
   | 'test'
@@ -17,14 +19,14 @@ export interface NavItem {
 }
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'Главная', emoji: '🏠', path: '/home' },
-  { id: 'test', label: 'Тест', emoji: '🧩', path: '/assessment/goal' },
-  { id: 'spheres', label: 'Сферы профессий', emoji: '🧭', path: '/assessment/known-profession' },
-  { id: 'result', label: 'Результат', emoji: '🎯', path: '/results' },
-  { id: 'roadmap', label: 'План развития', emoji: '🗺️', path: '/results' },
-  { id: 'universities', label: 'Университеты', emoji: '🎓', path: '/results' },
-  { id: 'profile', label: 'Профиль', emoji: '👤', path: '/profile' },
-  { id: 'admin', label: 'Админка', emoji: '⚙️', path: '/admin/users', adminOnly: true },
+  { id: 'home', label: 'Главная', emoji: '🏠', path: ROUTES.home },
+  { id: 'test', label: 'Тест', emoji: '🧩', path: ROUTES.assessmentGoal },
+  { id: 'spheres', label: 'Сферы профессий', emoji: '🧭', path: ROUTES.knownProfessionSpheres },
+  { id: 'result', label: 'Результат', emoji: '🎯', path: ROUTES.results },
+  { id: 'roadmap', label: 'План развития', emoji: '🗺️', path: ROUTES.results },
+  { id: 'universities', label: 'Университеты', emoji: '🎓', path: ROUTES.results },
+  { id: 'profile', label: 'Профиль', emoji: '👤', path: ROUTES.profile },
+  { id: 'admin', label: 'Админка', emoji: '⚙️', path: ROUTES.adminUsers, adminOnly: true },
 ];
 
 // A completed assessment must route back through /assessment/goal (where
@@ -38,7 +40,7 @@ export function getTestPath(options: {
   hasCompletedAssessment: boolean;
 }): string {
   const { assessmentId, goal, hasCompletedAssessment } = options;
-  return assessmentId && goal && !hasCompletedAssessment ? '/assessment' : '/assessment/goal';
+  return assessmentId && goal && !hasCompletedAssessment ? ROUTES.assessment : ROUTES.assessmentGoal;
 }
 
 export function getInitials(name: string): string {
@@ -61,10 +63,10 @@ export function resolveNavPath(
 ): string {
   if (item.id === 'test') return options.testPath;
   if (item.id === 'roadmap' && options.directionSlug) {
-    return `/results/directions/${encodeURIComponent(options.directionSlug)}/roadmap`;
+    return ROUTES.directionRoadmap(options.directionSlug);
   }
   if (item.id === 'universities' && options.directionSlug) {
-    return `/results/directions/${encodeURIComponent(options.directionSlug)}/universities`;
+    return ROUTES.universityList(options.directionSlug);
   }
   return item.path;
 }
@@ -72,21 +74,21 @@ export function resolveNavPath(
 export function isNavItemActive(item: NavItem, pathname: string): boolean {
   switch (item.id) {
     case 'home':
-      return pathname === '/home';
+      return pathname === ROUTES.home;
     case 'test':
-      return pathname.startsWith('/assessment') && !pathname.startsWith('/assessment/known-profession');
+      return pathname.startsWith(ROUTES.assessment) && !pathname.startsWith(ROUTES.knownProfessionSpheres);
     case 'spheres':
-      return pathname.startsWith('/assessment/known-profession');
+      return pathname.startsWith(ROUTES.knownProfessionSpheres);
     case 'result':
-      return pathname === '/results';
+      return pathname === ROUTES.results;
     case 'roadmap':
       return pathname.includes('/roadmap');
     case 'universities':
       return pathname.includes('/universities');
     case 'profile':
-      return pathname === '/profile';
+      return pathname === ROUTES.profile;
     case 'admin':
-      return pathname.startsWith('/admin');
+      return pathname.startsWith(ROUTES.admin);
     default:
       return false;
   }

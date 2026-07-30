@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
+import { BackButton } from '@/shared/ui/BackButton';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -58,13 +59,7 @@ export default function ProgramDetailPage() {
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-brand text-[15px] font-extrabold hover:opacity-70 transition-opacity"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Назад
-      </button>
+      <BackButton />
 
       {isLoading ? (
         <ProgramDetailSkeleton />
@@ -181,7 +176,7 @@ export default function ProgramDetailPage() {
               🎓 Посмотреть университеты
             </button>
             <button
-              onClick={() => navigate('/results')}
+              onClick={() => navigate(ROUTES.results)}
               className="flex-1 min-w-[200px] h-[58px] border-[1.5px] border-[#DDD6FE] rounded-pill bg-surface text-[#5B21B6] text-[17px] font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors"
             >
               Назад к результатам

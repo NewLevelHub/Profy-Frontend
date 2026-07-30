@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import { useAuthStore } from '@/shared/store/auth';
 
 export function RequireGuest() {
@@ -14,7 +15,7 @@ export function RequireGuest() {
   }
 
   if (token) {
-    return <Navigate to="/welcome" replace />;
+    return <Navigate to={ROUTES.welcome} replace />;
   }
 
   return <Outlet />;

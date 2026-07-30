@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import { ROUTES } from '@/app/routes';
 import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
@@ -48,7 +49,7 @@ export function RequireProfile() {
     );
   }
 
-  if (data === null) return <Navigate to="/welcome" replace />;
+  if (data === null) return <Navigate to={ROUTES.welcome} replace />;
 
   return <Outlet />;
 }

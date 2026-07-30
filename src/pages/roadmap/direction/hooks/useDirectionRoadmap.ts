@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
+import type { DirectionRoadmapState } from '@/app/routes';
 import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
 // import { feedbackApi } from '@/shared/api/feedback';
 import { subjectReadinessApi } from '@/shared/api/subjectReadiness';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
+import { useTypedLocationState } from '@/shared/hooks/useTypedLocationState';
 // import { useToastStore } from '@/shared/store/toast';
 import type { DirectionRoadmapResponse } from '@/shared/types';
 // import type { FeedbackSurveyAnswers } from '../components/FeedbackSurveyModal';
@@ -34,16 +35,11 @@ const ERROR_MESSAGES: Record<RoadmapErrorKind, string> = {
   generic: 'Не удалось составить план. Попробуй ещё раз.',
 };
 
-interface NavigationState {
-  /** Set when arriving straight from the inquiry verdict — start generating at once. */
-  generate?: boolean;
-}
-
 export function useDirectionRoadmap(slug: string) {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const setRoadmap = useDirectionRoadmapStore(s => s.setRoadmap);
   const queryClient = useQueryClient();
-  const { state } = useLocation() as { state: NavigationState | null };
+  const state = useTypedLocationState<DirectionRoadmapState>();
 
   const queryKey = ['direction-roadmap', assessmentId, slug] as const;
 

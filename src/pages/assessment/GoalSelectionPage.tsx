@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import { RotateCcw } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
 import { Mascot } from '@/shared/ui/Mascot';
@@ -154,7 +155,7 @@ export default function GoalSelectionPage() {
 
   function onCardClick(goal: GoalCard['goal']) {
     if (goal === 'known') {
-      navigate('/assessment/known-profession');
+      navigate(ROUTES.knownProfessionSpheres);
       return;
     }
     handleGoalSelect(goal);

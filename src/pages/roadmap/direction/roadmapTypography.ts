@@ -11,7 +11,6 @@ export const roadmapType = {
   actionText: 'text-[16px] font-semibold text-primary text-pretty',
   progressLabel: 'text-[15px] font-extrabold text-primary',
   progressPercent: 'text-[14px] font-extrabold tabular-nums',
-  backButton: 'text-[15px] font-extrabold text-[#6D28D9]',
   cta: 'text-[17px] font-extrabold',
 } as const;
 
@@ -26,9 +25,6 @@ export const roadmapGrowthCard =
 
 export const roadmapActionRow =
   'flex items-center gap-3.5 bg-[#F5F3FF] border-2 border-[#DDD6FE] rounded-2xl p-4';
-
-export const roadmapBackButton =
-  'inline-flex items-center font-inherit bg-white border-2 border-[#DDD6FE] border-b-4 border-b-[#DDD6FE] rounded-pill px-[18px] py-2 cursor-pointer hover:bg-[#EFECFF] hover:border-brand transition-colors';
 
 export const roadmapActionNumber =
   'w-10 h-10 flex-none rounded-full bg-brand border-b-[3px] border-b-[#5B21B6] text-white font-extrabold flex items-center justify-center';

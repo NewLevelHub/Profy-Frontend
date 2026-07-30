@@ -1,10 +1,13 @@
 import { useState, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff, Mail } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
+import type { LoginState } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 import { useAuthStore } from '@/shared/store/auth';
+import { useTypedLocationState } from '@/shared/hooks/useTypedLocationState';
 
 function validateEmail(email: string): string {
   return email.includes('@') ? '' : 'Введите корректный email';
@@ -16,7 +19,7 @@ function validatePassword(password: string): string {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { from } = useTypedLocationState<LoginState>();
   const storeLogin = useAuthStore(s => s.login);
 
   const [email, setEmail] = useState('');
@@ -46,8 +49,7 @@ export default function LoginPage() {
     try {
       const { access_token, user } = await authApi.login(email.trim(), password);
       storeLogin(access_token, user);
-      const from = (location.state as { from?: string })?.from;
-      navigate(from ?? '/welcome', { replace: true });
+      navigate(from ?? ROUTES.welcome, { replace: true });
     } catch (err) {
       setPassword('');
       if (axios.isAxiosError(err)) {
@@ -74,7 +76,7 @@ export default function LoginPage() {
     setResendLoading(true);
     try {
       await authApi.resendVerification(email.trim());
-      navigate(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+      navigate(`${ROUTES.verifyEmail}?email=${encodeURIComponent(email.trim())}`);
     } catch {
       setResendDone(true);
     } finally {
@@ -184,7 +186,7 @@ export default function LoginPage() {
 
         <div className="text-center mt-1">
           <Link
-            to="/forgot-password"
+            to={ROUTES.forgotPassword}
             className="font-extrabold text-brand hover:text-brand-hover transition-colors"
             style={{ fontSize: 14 }}
           >
@@ -195,7 +197,7 @@ export default function LoginPage() {
 
       <p className="text-center text-muted font-semibold mt-5 pt-[18px] border-t border-default" style={{ fontSize: 14 }}>
         Нет аккаунта?{' '}
-        <Link to="/register" className="text-brand font-extrabold hover:text-brand-hover transition-colors">
+        <Link to={ROUTES.register} className="text-brand font-extrabold hover:text-brand-hover transition-colors">
           Зарегистрироваться
         </Link>
       </p>

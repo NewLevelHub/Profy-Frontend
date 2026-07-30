@@ -169,13 +169,17 @@ export interface AkinatorFeedbackResponse {
 
 export type FeedbackRating = 'good' | 'neutral' | 'bad';
 
+/** Raw 1-5 picker values, sent as-is — the backend derives the
+ * good/neutral/bad category itself (see product_feedback_service.py's
+ * _score_to_rating) rather than the frontend collapsing it before
+ * submitting, so admin analytics can average the real number. */
 export interface ProductFeedbackRequest {
   context: 'roadmap';
-  overall_rating: FeedbackRating;
-  questions_rating?: FeedbackRating | null;
-  result_match_rating?: FeedbackRating | null;
-  plan_usefulness_rating?: FeedbackRating | null;
-  design_rating?: FeedbackRating | null;
+  overall_score: number;
+  questions_score?: number | null;
+  result_match_score?: number | null;
+  plan_usefulness_score?: number | null;
+  design_score?: number | null;
   message?: string | null;
   assessment_id?: string | null;
   direction_slug?: string | null;
@@ -321,17 +325,18 @@ export interface AkinatorResultResponse {
   is_direction_specific: boolean;
   backups: RevealLeaf[];
   recommended_programs: ProgramBrief[];
-  // Result row is created right when the akinator test finishes, so this
-  // doubles as the completion timestamp — there is no separate completed_at
-  // on this response.
   created_at: string;
+  // null when the test was never actually finished as its own step (e.g. an
+  // assessment from before this was tracked) — UI must handle that, not
+  // assume a value or fall back to created_at silently.
+  completed_at: string | null;
   // null when neither the akinator engine nor the known-profession quiz
   // logged a signal for this assessment (e.g. an assessment from before
   // this was tracked) — UI must handle that, not assume a value.
   questions_answered: number | null;
-  // Fraction 0-1 (e.g. 0.60 for 60%), matching the admin panel's `probability`
-  // field — UI must scale by 100 before displaying.
-  match_percentage: number | null;
+  // Already a 0-100 percentage (backend does round(belief_score * 100)) —
+  // unlike the admin panel's `probability`, this is not a 0-1 fraction.
+  match_percent: number | null;
 }
 
 // ─── Direction roadmap ─────────────────────────────────────────────────────────
@@ -555,12 +560,12 @@ export interface AdminSubjectReadiness {
 export interface AdminRoadmapBrief {
   direction_slug: string;
   direction_name: string | null;
-  growth_focus: string | null;
+  growth_focus: GrowthFocus | null;
   skills_to_build: string[];
-  subjects_now: string[];
+  subjects_now: SubjectPriority[];
   starter_actions: string[];
-  profession_options: string[];
-  university_requirements: string[];
+  profession_options: ProfessionOption[];
+  university_requirements: UniversityRequirement[];
   created_at: string | null;
 }
 
@@ -592,6 +597,13 @@ export interface AdminFeedbackListItem {
   result_match_rating: FeedbackRating | null;
   plan_usefulness_rating: FeedbackRating | null;
   design_rating: FeedbackRating | null;
+  // Raw 1-5 scores — null on responses submitted before these existed (the
+  // *_rating category above is all those rows have).
+  overall_score: number | null;
+  questions_score: number | null;
+  result_match_score: number | null;
+  plan_usefulness_score: number | null;
+  design_score: number | null;
   message: string | null;
   direction_slug: string | null;
   created_at: string;
@@ -608,6 +620,28 @@ export interface AdminStatsResponse {
   users_count: number;
   completed_assessments_count: number;
   in_progress_assessments_count: number;
-  average_design_rating: number;
+}
+
+/** null average means nobody has rated this axis yet — not a placeholder,
+ * an honest "no data". good/neutral/bad map to 5/3/1 for the average (see
+ * product_feedback_service._axis_stats on the backend). */
+export interface FeedbackAxisStats {
+  average: number | null;
+  good_count: number;
+  neutral_count: number;
+  bad_count: number;
+  total_count: number;
+  // Rows with a real 1-5 score — may be lower than total_count for older
+  // responses submitted before scores were collected (average is computed
+  // only from these).
+  scored_count: number;
+}
+
+export interface AdminFeedbackStatsResponse {
+  overall: FeedbackAxisStats;
+  questions: FeedbackAxisStats;
+  result_match: FeedbackAxisStats;
+  plan_usefulness: FeedbackAxisStats;
+  design: FeedbackAxisStats;
 }
 
