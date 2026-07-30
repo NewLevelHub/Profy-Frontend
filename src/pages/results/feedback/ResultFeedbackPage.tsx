@@ -24,7 +24,7 @@ export default function ResultFeedbackPage() {
 
   if (!report) return null;
 
-  const testDate = report.created_at;
+  const testDate = report.completed_at ?? report.created_at;
 
   return (
     <PageContainer size="content" className="flex flex-col gap-6 pb-10">

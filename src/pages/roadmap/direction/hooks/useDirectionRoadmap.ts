@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
+import { ROUTES } from '@/app/routes';
 import type { DirectionRoadmapState } from '@/app/routes';
 import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
-// import { feedbackApi } from '@/shared/api/feedback';
+import { feedbackApi } from '@/shared/api/feedback';
 import { subjectReadinessApi } from '@/shared/api/subjectReadiness';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useTypedLocationState } from '@/shared/hooks/useTypedLocationState';
-// import { useToastStore } from '@/shared/store/toast';
 import type { DirectionRoadmapResponse } from '@/shared/types';
-// import type { FeedbackSurveyAnswers } from '../components/FeedbackSurveyModal';
 
-// const FEEDBACK_CONTEXT = 'roadmap';
+// Same context + query key as the dedicated feedback page (see
+// useResultFeedback.ts) — one submission there satisfies this check too, so
+// a student who already rated the result never gets pulled into the
+// feedback page again from here.
+const FEEDBACK_CONTEXT = 'roadmap';
 
 /** What went wrong, so the page can offer the right way out. */
 export type RoadmapErrorKind = 'ai_unavailable' | 'wrong_direction' | 'forbidden' | 'generic';
@@ -39,6 +43,7 @@ export function useDirectionRoadmap(slug: string) {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const setRoadmap = useDirectionRoadmapStore(s => s.setRoadmap);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const state = useTypedLocationState<DirectionRoadmapState>();
 
   const queryKey = ['direction-roadmap', assessmentId, slug] as const;
@@ -95,69 +100,69 @@ export function useDirectionRoadmap(slug: string) {
     retry: false,
   });
 
-  /* Feedback modal — disabled for now
   const feedbackStatusKey = ['roadmap-feedback-status', assessmentId, FEEDBACK_CONTEXT] as const;
-
   const feedbackStatusQuery = useQuery({
     queryKey: feedbackStatusKey,
     queryFn: () => feedbackApi.getStatus(assessmentId!, FEEDBACK_CONTEXT),
     enabled: !!assessmentId && !!roadmap,
     staleTime: Infinity,
   });
-
-  const [isFeedbackModalOpen, setFeedbackModalOpen] = useState(false);
-  const feedbackDismissedRef = useRef(false);
-  const feedbackSentinelRef = useRef<HTMLDivElement | null>(null);
   const showFeedbackPrompt = feedbackStatusQuery.data?.submitted === false;
 
-  const feedbackMutation = useMutation({
-    mutationFn: (answers: FeedbackSurveyAnswers) =>
-      feedbackApi.submit({
-        context: FEEDBACK_CONTEXT,
-        overall_rating: answers.overallRating,
-        questions_rating: answers.questionsRating,
-        result_match_rating: answers.resultMatchRating,
-        plan_usefulness_rating: answers.planUsefulnessRating,
-        design_rating: answers.designRating,
-        message: answers.message,
-        assessment_id: assessmentId,
-        direction_slug: slug,
-      }),
-    onSuccess: () => {
-      queryClient.setQueryData(feedbackStatusKey, { submitted: true });
-      useToastStore.getState().show('Спасибо! Нам очень важно ваше мнение!');
-      setFeedbackModalOpen(false);
-    },
-  });
-
-  const submitFeedback = useCallback(
-    (answers: FeedbackSurveyAnswers) => {
-      if (feedbackMutation.isPending) return;
-      feedbackMutation.mutate(answers);
-    },
-    [feedbackMutation],
-  );
-
+  // Once the student scrolls to the bottom of a generated plan (and hasn't
+  // rated the result yet for this assessment), send them straight to the
+  // dedicated feedback page — one-shot per mount so re-crossing the sentinel
+  // during the same visit doesn't re-navigate.
+  const feedbackSentinelRef = useRef<HTMLDivElement | null>(null);
+  const feedbackNavigatedRef = useRef(false);
   useEffect(() => {
-    if (!showFeedbackPrompt || feedbackDismissedRef.current) return;
+    if (!showFeedbackPrompt || feedbackNavigatedRef.current) return;
     const el = feedbackSentinelRef.current;
     if (!el) return;
 
+    // AppLayout scrolls inside its own overflow-y-auto pane, not the
+    // document — an observer with the default (viewport) root can end up
+    // treating the sentinel as already visible the instant it's observed,
+    // firing before the student has scrolled at all. Use the real scroll
+    // container as root instead.
+    let scroller: HTMLElement | null = el.parentElement;
+    while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) {
+      scroller = scroller.parentElement;
+    }
+
+    const triggerNavigate = () => {
+      if (feedbackNavigatedRef.current) return;
+      feedbackNavigatedRef.current = true;
+      navigate(ROUTES.resultFeedback(slug));
+    };
+
+    // A short plan that already fits on screen has nothing to scroll —
+    // its intersection state will never change, so the observer below
+    // would never fire. Nothing left to scroll to counts as "reached the
+    // bottom" already.
+    if (scroller && scroller.scrollHeight <= scroller.clientHeight + 1) {
+      triggerNavigate();
+      return;
+    }
+
+    // IntersectionObserver's first callback always reports the state at
+    // observe()-time, not a scroll-triggered change — skip it so a plan
+    // that happens to render with the sentinel already in view doesn't
+    // fire instantly on mount.
+    let isFirstCallback = true;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) setFeedbackModalOpen(true);
+        if (isFirstCallback) {
+          isFirstCallback = false;
+          return;
+        }
+        if (entry.isIntersecting) triggerNavigate();
       },
-      { threshold: 0.4 },
+      { root: scroller, threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [showFeedbackPrompt, roadmap]);
-
-  const closeFeedbackModal = useCallback(() => {
-    feedbackDismissedRef.current = true;
-    setFeedbackModalOpen(false);
-  }, []);
-  */
+  }, [showFeedbackPrompt, roadmap, navigate, slug]);
 
   return {
     roadmap,
@@ -168,11 +173,7 @@ export function useDirectionRoadmap(slug: string) {
     errorKind: kind,
     errorMessage: kind ? ERROR_MESSAGES[kind] : null,
     generate,
-    // submitFeedback,
-    // feedbackPending: feedbackMutation.isPending,
-    // feedbackSentinelRef,
-    // isFeedbackModalOpen,
-    // closeFeedbackModal,
+    feedbackSentinelRef,
     subjectScores: subjectReadinessQuery.data?.subject_scores ?? [],
   };
 }

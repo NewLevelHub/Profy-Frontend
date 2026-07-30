@@ -17,7 +17,7 @@ export default function ResultsPage() {
   const navigate = useNavigate();
   const {
     report, isLoading, isNotReady, error, hasCompletedAssessment,
-    showUniversityBtn, showUniversityRecommendations, subjectReadiness, refetch,
+    showUniversityBtn, showUniversityRecommendations, showFeedbackBtn, subjectReadiness, refetch,
   } = useResults();
 
   if (!hasCompletedAssessment || isNotReady) {
@@ -52,7 +52,7 @@ export default function ResultsPage() {
         directionSlug={report.direction_slug}
         directionName={report.direction_name}
         directionDescription={report.direction_description}
-        matchPercent={report.match_percentage != null ? Math.round(report.match_percentage * 100) : null}
+        matchPercent={report.match_percent}
       />
 
       <ResultProfessionExamples professions={report.professions} />
@@ -93,14 +93,16 @@ export default function ResultsPage() {
             🎓 Найти университеты
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="lg"
-          className="gap-2"
-          onClick={() => navigate(ROUTES.resultFeedback(report.direction_slug))}
-        >
-          💬 Оценить результат
-        </Button>
+        {showFeedbackBtn && (
+          <Button
+            variant="ghost"
+            size="lg"
+            className="gap-2"
+            onClick={() => navigate(ROUTES.resultFeedback(report.direction_slug))}
+          >
+            💬 Оценить результат
+          </Button>
+        )}
       </div>
     </PageContainer>
   );

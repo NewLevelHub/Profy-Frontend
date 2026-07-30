@@ -9,7 +9,6 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
 import { EntReadinessSection } from './components/EntReadinessSection';
-// import { FeedbackSurveyModal } from './components/FeedbackSurveyModal';
 import { GeneratingOverlay } from './components/GeneratingOverlay';
 import { GrowthFocusCard } from './components/GrowthFocusCard';
 import { ProfessionsCard } from './components/ProfessionsCard';
@@ -24,8 +23,7 @@ export default function DirectionRoadmapPage() {
   const {
     roadmap, isLoading, isGenerating, notGenerated,
     errorKind, errorMessage, generate,
-    // submitFeedback, feedbackPending,
-    // feedbackSentinelRef, isFeedbackModalOpen, closeFeedbackModal,
+    feedbackSentinelRef,
     subjectScores,
   } = useDirectionRoadmap(slug);
 
@@ -92,20 +90,9 @@ export default function DirectionRoadmapPage() {
             onNavigate={path => navigate(path)}
           />
 
-          {/* Feedback modal sentinel — disabled for now
           <div ref={feedbackSentinelRef} />
-          */}
         </div>
       ) : null}
-
-      {/* Feedback modal — disabled for now
-      <FeedbackSurveyModal
-        isOpen={isFeedbackModalOpen}
-        isPending={feedbackPending}
-        onClose={closeFeedbackModal}
-        onSubmit={submitFeedback}
-      />
-      */}
     </PageContainer>
   );
 }

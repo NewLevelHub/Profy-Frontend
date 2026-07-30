@@ -2,12 +2,18 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { resultApi } from '@/shared/api/result';
+import { feedbackApi } from '@/shared/api/feedback';
 import { subjectReadinessApi } from '@/shared/api/subjectReadiness';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { useValidatedReport } from '@/shared/hooks/useValidatedReport';
 import type { AkinatorResultResponse, SubjectReadinessResult } from '@/shared/types';
+
+// Same context + query key as the roadmap page's auto-navigate-to-feedback
+// and the feedback page's own submit status (see useDirectionRoadmap.ts /
+// useResultFeedback.ts) — one submission anywhere satisfies all three.
+const FEEDBACK_CONTEXT = 'roadmap';
 
 interface UseResultsReturn {
   report: AkinatorResultResponse | null;
@@ -17,6 +23,7 @@ interface UseResultsReturn {
   hasCompletedAssessment: boolean;
   showUniversityBtn: boolean;
   showUniversityRecommendations: boolean;
+  showFeedbackBtn: boolean;
   subjectReadiness: SubjectReadinessResult | null;
   refetch: () => Promise<unknown>;
 }
@@ -78,6 +85,13 @@ export function useResults(): UseResultsReturn {
     retry: false,
   });
 
+  const feedbackStatusQuery = useQuery({
+    queryKey: ['roadmap-feedback-status', assessmentId, FEEDBACK_CONTEXT] as const,
+    queryFn: () => feedbackApi.getStatus(assessmentId!, FEEDBACK_CONTEXT),
+    enabled: hasCompletedAssessment && !!assessmentId,
+    staleTime: Infinity,
+  });
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
@@ -86,6 +100,7 @@ export function useResults(): UseResultsReturn {
     hasCompletedAssessment,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
     showUniversityRecommendations,
+    showFeedbackBtn: feedbackStatusQuery.data?.submitted !== true,
     subjectReadiness: subjectReadinessQuery.data ?? null,
     refetch,
   };
