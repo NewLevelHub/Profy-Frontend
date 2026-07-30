@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { GoalSelectionState } from '@/app/routes';
 import { getInitials } from '@/shared/ui/navigation/navConfig';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
@@ -27,7 +29,7 @@ export function useProfile() {
 
   function handleLogout() {
     logout();
-    navigate('/login', { replace: true });
+    navigate(ROUTES.login, { replace: true });
   }
 
   function handleRestartRequest() {
@@ -38,7 +40,7 @@ export function useProfile() {
     resetAssessment();
     clearReport();
     setConfirmRestart(false);
-    navigate('/assessment/goal', { state: { fromRestart: true } });
+    navigate(ROUTES.assessmentGoal, { state: { fromRestart: true } satisfies GoalSelectionState });
   }
 
   function handleRestartCancel() {

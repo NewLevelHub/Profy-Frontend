@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff, XCircle } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 
@@ -60,7 +61,7 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
     try {
       await authApi.resetPassword(email!, code.trim(), password);
-      navigate('/login', { replace: true });
+      navigate(ROUTES.login, { replace: true });
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
@@ -103,12 +104,12 @@ export default function ResetPasswordPage() {
           Запросите код для сброса пароля заново.
         </p>
         <Link
-          to="/forgot-password"
+          to={ROUTES.forgotPassword}
           className="mt-1 inline-block w-full text-center h-12 leading-[3rem] bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button"
         >
           Запросить код заново
         </Link>
-        <Link to="/login" className="text-caption text-muted hover:text-secondary transition-colors">
+        <Link to={ROUTES.login} className="text-caption text-muted hover:text-secondary transition-colors">
           ← Вернуться ко входу
         </Link>
       </div>
@@ -227,7 +228,7 @@ export default function ResetPasswordPage() {
           <p className="text-small text-secondary text-center">{resendMessage}</p>
         )}
         <Link
-          to="/login"
+          to={ROUTES.login}
           className="text-caption text-muted hover:text-secondary transition-colors mt-2"
         >
           ← Вернуться ко входу

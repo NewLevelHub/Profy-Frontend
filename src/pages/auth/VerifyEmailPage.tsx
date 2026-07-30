@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 import { useAuthStore } from '@/shared/store/auth';
@@ -56,12 +57,12 @@ function TokenVerify({ token }: { token: string }) {
         Ссылка недействительна или срок её действия истёк.
       </p>
       <Link
-        to="/register"
+        to={ROUTES.register}
         className="mt-1 inline-block w-full text-center h-12 leading-[3rem] bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button"
       >
         Зарегистрироваться заново
       </Link>
-      <Link to="/login" className="text-caption text-muted hover:text-secondary transition-colors">
+      <Link to={ROUTES.login} className="text-caption text-muted hover:text-secondary transition-colors">
         ← Вернуться ко входу
       </Link>
     </div>
@@ -187,7 +188,7 @@ function OtpVerify({ email }: { email: string }) {
           <p className="text-small text-secondary text-center">{resendMessage}</p>
         )}
         <Link
-          to="/login"
+          to={ROUTES.login}
           className="text-caption text-muted hover:text-secondary transition-colors mt-2"
         >
           ← Вернуться ко входу
@@ -215,7 +216,7 @@ export default function VerifyEmailPage() {
       <p className="text-body text-secondary">
         Проверьте письмо или зарегистрируйтесь заново.
       </p>
-      <Link to="/login" className="text-caption text-brand font-semibold hover:text-brand-hover transition-colors">
+      <Link to={ROUTES.login} className="text-caption text-brand font-semibold hover:text-brand-hover transition-colors">
         ← Вернуться ко входу
       </Link>
     </div>

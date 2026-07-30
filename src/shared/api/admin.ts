@@ -3,9 +3,10 @@ import { API } from '@/shared/api/endpoints';
 import type {
   AdminAssessmentDetail,
   AdminFeedbackListResponse,
+  AdminFeedbackStatsResponse,
+  AdminStatsResponse,
   AdminUserDetail,
   AdminUserListResponse,
-  AdminStatsResponse,
   FeedbackRating,
 } from '@/shared/types';
 
@@ -30,4 +31,7 @@ export const adminApi = {
     apiClient
       .get<AdminFeedbackListResponse>(API.admin.feedback, { params })
       .then((r) => r.data),
+
+  getFeedbackStats: () =>
+    apiClient.get<AdminFeedbackStatsResponse>(API.admin.feedbackStats).then((r) => r.data),
 };

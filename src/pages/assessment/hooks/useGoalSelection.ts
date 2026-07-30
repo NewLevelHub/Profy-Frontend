@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { ROUTES } from '@/app/routes';
+import type { GoalSelectionState } from '@/app/routes';
 import { assessmentApi } from '@/shared/api/assessment';
 import { resultApi } from '@/shared/api/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useResultStore } from '@/shared/store/result';
+import { useTypedLocationState } from '@/shared/hooks/useTypedLocationState';
 import type { AssessmentGoal } from '@/shared/types';
 import type { AxiosError } from 'axios';
 
 export function useGoalSelection() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const fromRestart = !!(location.state as { fromRestart?: boolean } | null)?.fromRestart;
+  const fromRestart = !!useTypedLocationState<GoalSelectionState>().fromRestart;
   const setAssessment = useAssessmentStore(s => s.setAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
@@ -47,9 +49,20 @@ export function useGoalSelection() {
 
   // Reuses the ['result', id] cache with useResults/useHome — if the student
   // already visited /results or /home this session, this never refetches.
-  const report = useResultStore(s => s.report);
+  // Validated against `current.id` (the server-confirmed assessment, just
+  // fetched above) rather than the assessment store — a stale cached report
+  // from a since-abandoned assessment must not block this refetch (see
+  // useValidatedReport for the general version of this problem; this hook
+  // needs its own copy because it's keyed to `current`, not the store's
+  // assessmentId).
+  const rawReport = useResultStore(s => s.report);
   const setReport = useResultStore(s => s.setReport);
   const clearReport = useResultStore(s => s.clearReport);
+  const reportIsStale = rawReport != null && rawReport.assessment_id !== current?.id;
+  const report = reportIsStale ? null : rawReport;
+  useEffect(() => {
+    if (reportIsStale) clearReport();
+  }, [reportIsStale, clearReport]);
   const { data: fetchedResult, isLoading: isResultLoading } = useQuery({
     queryKey: ['result', current?.id] as const,
     queryFn: () => resultApi.get(current!.id),
@@ -68,7 +81,7 @@ export function useGoalSelection() {
     onSuccess: (assessment) => {
       resetAssessment();
       setAssessment(assessment.id, assessment.goal, assessment.is_akinator);
-      navigate('/assessment');
+      navigate(ROUTES.assessment);
     },
   });
 
@@ -82,7 +95,7 @@ export function useGoalSelection() {
       const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
       setAssessment(current.id, current.goal, current.is_akinator);
-      navigate('/assessment');
+      navigate(ROUTES.assessment);
     }
   }
 
@@ -97,7 +110,7 @@ export function useGoalSelection() {
       const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
     }
-    navigate('/results');
+    navigate(ROUTES.results);
   }
 
   function handleRestartRequest() {
@@ -127,12 +140,10 @@ export function useGoalSelection() {
     handleResume,
     handleStartNew,
     handleViewResults,
-    completedAt: effectiveReport?.created_at ?? null,
+    completedAt: effectiveReport?.completed_at ?? effectiveReport?.created_at ?? null,
     directionName: effectiveReport?.direction_name ?? null,
     questionsAnswered: effectiveReport?.questions_answered ?? null,
-    matchPercent: effectiveReport?.match_percentage != null
-      ? Math.round(effectiveReport.match_percentage * 100)
-      : null,
+    matchPercent: effectiveReport?.match_percent ?? null,
     isCompletionLoading: restartOpen && isResultLoading && !effectiveReport,
     confirmRestart,
     handleRestartRequest,

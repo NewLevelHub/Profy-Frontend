@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { resultApi } from '@/shared/api/result';
@@ -40,7 +41,7 @@ export default function ResultLoadingPage() {
   // already produced the result, this just fetches and forwards to it.
   useEffect(() => {
     if (!assessmentId) {
-      navigate('/home', { replace: true });
+      navigate(ROUTES.home, { replace: true });
       return;
     }
 
@@ -53,7 +54,7 @@ export default function ResultLoadingPage() {
         if (!cancelled) {
           setReport(result);
           completeAssessment();
-          navigate('/results', { replace: true });
+          navigate(ROUTES.results, { replace: true });
         }
       } catch {
         if (!cancelled) {

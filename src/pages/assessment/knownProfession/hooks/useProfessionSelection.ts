@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { KnownProfessionQuizState } from '@/app/routes';
 import type { AgeGroup, DirectionBrief } from '@/shared/types';
 
 interface FilteredProfession {
@@ -36,8 +38,8 @@ export function useProfessionSelection(
 
   function confirm() {
     if (!selected || !sphereSlug) return;
-    navigate(`/assessment/known-profession/${sphereSlug}/${selected.specialty.slug}`, {
-      state: { professionName: labelFor(selected, ageGroup), sphereName },
+    navigate(ROUTES.knownProfessionQuiz(sphereSlug, selected.specialty.slug), {
+      state: { professionName: labelFor(selected, ageGroup), sphereName } satisfies KnownProfessionQuizState,
     });
   }
 

@@ -6,153 +6,214 @@ import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
+import { RouteErrorBoundary } from './RouteErrorBoundary';
+import { ROUTES, ROUTE_PATTERNS } from './routes';
 
-// ── Auth (mobile: AuthNavigator) ──────────────────────────────────────────────
-import LoginPage from '@/pages/auth/LoginPage';
-import RegisterPage from '@/pages/auth/RegisterPage';
-import VerifyEmailPage from '@/pages/auth/VerifyEmailPage';
-import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
-import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
-
-// ── Onboarding flow (mobile: Welcome → ProfileSetup → ArtifactsSetup) ─────────
-import WelcomePage from '@/pages/onboarding/WelcomePage';
-import ProfileSetupPage from '@/pages/onboarding/ProfileSetupPage';
-import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
-
-// ── Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
-import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
-import AssessmentPage from '@/pages/assessment/AssessmentPage';
-import PraisePage from '@/pages/assessment/PraisePage';
-import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
-import KnownProfessionSpheresPage from '@/pages/assessment/knownProfession/KnownProfessionSpheresPage';
-import KnownProfessionListPage from '@/pages/assessment/knownProfession/KnownProfessionListPage';
-import KnownProfessionQuizPage from '@/pages/assessment/knownProfession/KnownProfessionQuizPage';
-
-// ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
-import HomePage from '@/pages/home/HomePage';
-import ResultsPage from '@/pages/results/ResultsPage';
-import ProfilePage from '@/pages/profile/ProfilePage';
-
-// ── Detail screens (mobile: App stack) ───────────────────────────────────────
-import UniversityListPage from '@/pages/results/UniversityListPage';
-import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
-import GapAnalysisPage from '@/pages/results/GapAnalysisPage';
-import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
-import SubjectReadinessPage from '@/pages/results/subjectReadiness/SubjectReadinessPage';
-import ResultFeedbackPage from '@/pages/results/feedback/ResultFeedbackPage';
-
-// ── Admin ─────────────────────────────────────────────────────────────────────
-import AdminUsersPage from '@/pages/admin/AdminUsersPage';
-import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
-import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
-
-// ── Errors ────────────────────────────────────────────────────────────────────
-import NotFoundPage from '@/pages/errors/NotFoundPage';
+// Every leaf page below is loaded through `lazy` (react-router v7's own
+// route-level code splitting) instead of React.lazy + <Suspense>: the router
+// fetches a route's component *and* its loader/action data in parallel and
+// only swaps the screen once both are ready, so there's no extra
+// fallback/flash beyond what AppLayout's own `syncDone` spinner already
+// shows. Guards and layouts stay eager — they're small, structural, and
+// needed on every single route, so lazy-loading them would only add a
+// waterfall with no payload-size benefit.
 
 export const router = createBrowserRouter([
-  // Root redirect — RequireProfile will handle the profile check at /home
-  { path: '/', element: <Navigate to="/home" replace /> },
-
-  // ── Guest-only: AuthLayout (mobile: AuthNavigator) ─────────────────────────
   {
-    element: <RequireGuest />,
+    id: 'root',
+    // Catches thrown Response()s, a failed lazy-chunk fetch (stale deploy),
+    // and render errors from any matched route — see RouteErrorBoundary.
+    errorElement: <RouteErrorBoundary />,
     children: [
-      {
-        element: <AuthLayout />,
-        children: [
-          { path: '/login', element: <LoginPage /> },
-          { path: '/register', element: <RegisterPage /> },
-          { path: '/verify-email', element: <VerifyEmailPage /> },
-          { path: '/forgot-password', element: <ForgotPasswordPage /> },
-          { path: '/reset-password', element: <ResetPasswordPage /> },
-        ],
-      },
-    ],
-  },
+      // Root redirect — RequireProfile will handle the profile check at /home
+      { path: ROUTES.root, element: <Navigate to={ROUTES.home} replace /> },
 
-  // ── Authenticated (mobile: AppNavigator) ───────────────────────────────────
-  {
-    element: <RequireAuth />,
-    children: [
-      // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
-      { path: '/welcome', element: <WelcomePage /> },
-      { path: '/onboarding/profile', element: <ProfileSetupPage /> },
-      { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
-
-      // Subject-readiness quiz — full-screen/no chrome on purpose: keeping it
-      // outside AppLayout means there's no sidebar/header nav link the student
-      // can click to wander off (and silently lose the in-progress quiz —
-      // nothing persists answers until the final submit, see
-      // useSubjectReadiness.submit). The main assessment flow below doesn't
-      // have this risk — the akinator engine saves progress per answer, so
-      // it's safe to render inside AppLayout with the sidebar/header visible.
+      // ── Guest-only: AuthLayout (mobile: AuthNavigator) ─────────────────
       {
-        element: <RequireProfile />,
+        element: <RequireGuest />,
         children: [
-          { path: '/results/directions/:slug/subject-readiness', element: <SubjectReadinessPage /> },
-        ],
-      },
-
-      // Main app layout — sidebar/header always present once authenticated
-      {
-        element: <AppLayout />,
-        children: [
-          // Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
-          // — not gated by RequireProfile: GoalSelectionPage tolerates a
-          // missing profile (falls back to 'middle' age group) rather than
-          // requiring one, same as before this moved under AppLayout.
-          { path: '/assessment/goal', element: <GoalSelectionPage /> },
-          { path: '/assessment/known-profession', element: <KnownProfessionSpheresPage /> },
-          { path: '/assessment/known-profession/:sphereSlug', element: <KnownProfessionListPage /> },
           {
-            path: '/assessment/known-profession/:sphereSlug/:professionSlug',
-            element: <KnownProfessionQuizPage />,
+            element: <AuthLayout />,
+            children: [
+              {
+                path: ROUTES.login,
+                lazy: () => import('@/pages/auth/LoginPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.register,
+                lazy: () => import('@/pages/auth/RegisterPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.verifyEmail,
+                lazy: () => import('@/pages/auth/VerifyEmailPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.forgotPassword,
+                lazy: () => import('@/pages/auth/ForgotPasswordPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.resetPassword,
+                lazy: () => import('@/pages/auth/ResetPasswordPage').then(m => ({ Component: m.default })),
+              },
+            ],
           },
-          { path: '/assessment', element: <AssessmentPage /> },
-          { path: '/assessment/praise', element: <PraisePage /> },
-          { path: '/assessment/loading', element: <ResultLoadingPage /> },
+        ],
+      },
 
-          // Guarded by profile; redirects to /welcome if profile not yet created
+      // ── Authenticated (mobile: AppNavigator) ────────────────────────────
+      {
+        element: <RequireAuth />,
+        children: [
+          // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
+          {
+            path: ROUTES.welcome,
+            lazy: () => import('@/pages/onboarding/WelcomePage').then(m => ({ Component: m.default })),
+          },
+          {
+            path: ROUTES.onboardingProfile,
+            lazy: () => import('@/pages/onboarding/ProfileSetupPage').then(m => ({ Component: m.default })),
+          },
+          {
+            path: ROUTES.onboardingArtifacts,
+            lazy: () => import('@/pages/onboarding/ArtifactsSetupPage').then(m => ({ Component: m.default })),
+          },
+
+          // Subject-readiness quiz — full-screen/no chrome on purpose: keeping it
+          // outside AppLayout means there's no sidebar/header nav link the student
+          // can click to wander off (and silently lose the in-progress quiz —
+          // nothing persists answers until the final submit, see
+          // useSubjectReadiness.submit). The main assessment flow below doesn't
+          // have this risk — the akinator engine saves progress per answer, so
+          // it's safe to render inside AppLayout with the sidebar/header visible.
           {
             element: <RequireProfile />,
             children: [
-              { path: '/home', element: <HomePage /> },
-              { path: '/results', element: <ResultsPage /> },
-              { path: '/profile', element: <ProfilePage /> },
-
-              // Detail screens (mobile: App stack over tabs)
-              { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
-              { path: '/results/directions/:slug/feedback', element: <ResultFeedbackPage /> },
-              { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
               {
-                path: '/results/directions/:slug/universities/:programId',
-                element: <ProgramDetailPage />,
-              },
-              {
-                path: '/results/directions/:slug/universities/:programId/gap',
-                element: <GapAnalysisPage />,
+                path: ROUTE_PATTERNS.subjectReadiness,
+                lazy: () =>
+                  import('@/pages/results/subjectReadiness/SubjectReadinessPage').then(m => ({ Component: m.default })),
               },
             ],
           },
 
-          // Admin — gated only by is_admin, not by having a student profile
-          // (admin accounts aren't expected to go through onboarding).
+          // Main app layout — sidebar/header always present once authenticated
           {
-            element: <RequireAdmin />,
+            element: <AppLayout />,
             children: [
-              { path: '/admin', element: <Navigate to="/admin/users" replace /> },
-              { path: '/admin/users', element: <AdminUsersPage /> },
-              { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-              { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+              // Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
+              // — not gated by RequireProfile: GoalSelectionPage tolerates a
+              // missing profile (falls back to 'middle' age group) rather than
+              // requiring one, same as before this moved under AppLayout.
+              {
+                path: ROUTES.assessmentGoal,
+                lazy: () => import('@/pages/assessment/GoalSelectionPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.knownProfessionSpheres,
+                lazy: () =>
+                  import('@/pages/assessment/knownProfession/KnownProfessionSpheresPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTE_PATTERNS.knownProfessionList,
+                lazy: () =>
+                  import('@/pages/assessment/knownProfession/KnownProfessionListPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTE_PATTERNS.knownProfessionQuiz,
+                lazy: () =>
+                  import('@/pages/assessment/knownProfession/KnownProfessionQuizPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.assessment,
+                lazy: () => import('@/pages/assessment/AssessmentPage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.assessmentPraise,
+                lazy: () => import('@/pages/assessment/PraisePage').then(m => ({ Component: m.default })),
+              },
+              {
+                path: ROUTES.assessmentLoading,
+                lazy: () => import('@/pages/assessment/ResultLoadingPage').then(m => ({ Component: m.default })),
+              },
+
+              // Guarded by profile; redirects to /welcome if profile not yet created
+              {
+                element: <RequireProfile />,
+                children: [
+                  {
+                    path: ROUTES.home,
+                    lazy: () => import('@/pages/home/HomePage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTES.results,
+                    lazy: () => import('@/pages/results/ResultsPage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTES.profile,
+                    lazy: () => import('@/pages/profile/ProfilePage').then(m => ({ Component: m.default })),
+                  },
+
+                  // Detail screens (mobile: App stack over tabs)
+                  {
+                    path: ROUTE_PATTERNS.directionRoadmap,
+                    lazy: () =>
+                      import('@/pages/roadmap/direction/DirectionRoadmapPage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTE_PATTERNS.resultFeedback,
+                    lazy: () =>
+                      import('@/pages/results/feedback/ResultFeedbackPage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTE_PATTERNS.universityList,
+                    lazy: () => import('@/pages/results/UniversityListPage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTE_PATTERNS.programDetail,
+                    lazy: () => import('@/pages/results/ProgramDetailPage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTE_PATTERNS.gapAnalysis,
+                    lazy: () => import('@/pages/results/GapAnalysisPage').then(m => ({ Component: m.default })),
+                  },
+                ],
+              },
+
+              // Admin — gated only by is_admin, not by having a student profile
+              // (admin accounts aren't expected to go through onboarding).
+              {
+                element: <RequireAdmin />,
+                children: [
+                  { path: ROUTES.admin, element: <Navigate to={ROUTES.adminUsers} replace /> },
+                  {
+                    path: ROUTES.adminUsers,
+                    lazy: () => import('@/pages/admin/AdminUsersPage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTE_PATTERNS.adminUserDetail,
+                    lazy: () => import('@/pages/admin/AdminUserDetailPage').then(m => ({ Component: m.default })),
+                  },
+                  {
+                    path: ROUTES.adminFeedback,
+                    lazy: () => import('@/pages/admin/AdminFeedbackPage').then(m => ({ Component: m.default })),
+                  },
+                ],
+              },
+
+              {
+                path: '*',
+                lazy: () => import('@/pages/errors/NotFoundPage').then(m => ({ Component: m.default })),
+              },
             ],
           },
-
-          { path: '*', element: <NotFoundPage /> },
         ],
+      },
+
+      // Catch-all for unauthenticated 404s (outside AppLayout, no sidebar/header)
+      {
+        path: '*',
+        lazy: () => import('@/pages/errors/NotFoundPage').then(m => ({ Component: m.default })),
       },
     ],
   },
-
-  // Catch-all
-  { path: '*', element: <NotFoundPage /> },
 ]);

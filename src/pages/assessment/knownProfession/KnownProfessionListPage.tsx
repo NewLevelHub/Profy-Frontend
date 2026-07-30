@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { SphereSlugParams } from '@/app/routes';
 import { Spinner, Button } from '@/shared/ui';
 import { useProfileStore } from '@/shared/store/profile';
 import { useKnownProfessionTree } from './hooks/useKnownProfessionTree';
@@ -10,7 +12,7 @@ import { filterSpecialties } from './utils/search';
 
 export default function KnownProfessionListPage() {
   const navigate = useNavigate();
-  const { sphereSlug } = useParams<{ sphereSlug: string }>();
+  const { sphereSlug } = useParams<SphereSlugParams>();
   const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
   const [query, setQuery] = useState('');
 
@@ -33,7 +35,7 @@ export default function KnownProfessionListPage() {
     <div className="max-w-[620px] lg:max-w-4xl mx-auto flex flex-col gap-[18px]">
       <button
         type="button"
-        onClick={() => navigate('/assessment/known-profession')}
+        onClick={() => navigate(ROUTES.knownProfessionSpheres)}
         className="self-start text-secondary font-bold text-sm hover:text-primary transition-colors"
       >
         ← Все сферы
@@ -87,7 +89,7 @@ export default function KnownProfessionListPage() {
               Ничего не нашлось в этой сфере. Попробуй другое слово или{' '}
               <button
                 type="button"
-                onClick={() => navigate('/assessment/known-profession')}
+                onClick={() => navigate(ROUTES.knownProfessionSpheres)}
                 className="text-brand-text font-extrabold"
               >
                 поищи по всем сферам

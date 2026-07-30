@@ -1,3 +1,4 @@
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { roadmapCtaButton, roadmapType } from '../roadmapTypography';
 
@@ -11,9 +12,7 @@ export function RoadmapUniversitiesCta({ directionSlug, onNavigate }: RoadmapUni
     <button
       type="button"
       className={cn(roadmapCtaButton, roadmapType.cta)}
-      onClick={() =>
-        onNavigate(`/results/directions/${encodeURIComponent(directionSlug)}/universities`)
-      }
+      onClick={() => onNavigate(ROUTES.universityList(directionSlug))}
     >
       🎓 Куда поступать — смотреть вузы
     </button>

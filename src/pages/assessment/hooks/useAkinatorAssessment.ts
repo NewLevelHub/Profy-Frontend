@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { GoalSelectionState, PraiseState } from '@/app/routes';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { useResultStore } from '@/shared/store/result';
@@ -39,7 +41,7 @@ export function useAkinatorAssessment() {
 
   useEffect(() => {
     if (!assessmentId) {
-      navigate('/assessment/goal', { replace: true });
+      navigate(ROUTES.assessmentGoal, { replace: true });
       return;
     }
 
@@ -219,16 +221,16 @@ export function useAkinatorAssessment() {
       // direction has no subjects_required content yet.
       const nextPath =
         liked && directionSlug && ageGroup !== 'junior'
-          ? `/results/directions/${encodeURIComponent(directionSlug)}/subject-readiness`
-          : '/results';
-      navigate('/assessment/praise', {
+          ? ROUTES.subjectReadiness(directionSlug)
+          : ROUTES.results;
+      navigate(ROUTES.assessmentPraise, {
         state: {
           title: liked ? 'Отлично!' : 'Готово!',
           subtitle: liked ? 'Новые направления открыты!' : 'Твой выбор сохранён',
           nextPath,
           completedCount: 1,
           totalBlocks: 1,
-        },
+        } satisfies PraiseState,
       });
     } catch {
       setError('Не удалось отправить отзыв. Попробуй ещё раз.');
@@ -245,7 +247,7 @@ export function useAkinatorAssessment() {
   const handleRetakeTest = () => {
     resetAssessment();
     clearReport();
-    navigate('/assessment/goal', { state: { fromRestart: true } });
+    navigate(ROUTES.assessmentGoal, { state: { fromRestart: true } satisfies GoalSelectionState });
   };
 
   const handleLikeLeaf = (leaf: RevealLeaf) => {
@@ -317,7 +319,7 @@ export function useAkinatorAssessment() {
     handleExit: () => setExitConfirmOpen(true),
     confirmExit: () => {
       setExitConfirmOpen(false);
-      navigate('/home');
+      navigate(ROUTES.home);
     },
     cancelExit: () => setExitConfirmOpen(false),
     retry: () => setRetryCount(c => c + 1),

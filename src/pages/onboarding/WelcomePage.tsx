@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
 import { useWelcome } from './hooks/useWelcome';
@@ -69,7 +70,7 @@ export default function WelcomePage() {
         <Button
           size="lg"
           className="w-full lg:max-w-sm lg:mx-auto h-14 rounded-pill text-base font-extrabold shadow-button"
-          onClick={() => navigate('/onboarding/profile')}
+          onClick={() => navigate(ROUTES.onboardingProfile)}
         >
           Поехали! 🚀
         </Button>

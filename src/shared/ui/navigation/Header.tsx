@@ -1,6 +1,7 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
@@ -46,7 +47,7 @@ export function Header() {
   function handleLogout() {
     setDrawerOpen(false);
     logout();
-    navigate('/login', { replace: true });
+    navigate(ROUTES.login, { replace: true });
   }
 
   return (
@@ -75,7 +76,7 @@ export function Header() {
 
           <button
             type="button"
-            onClick={() => navigate('/profile')}
+            onClick={() => navigate(ROUTES.profile)}
             className="w-9 h-9 rounded-full bg-brand grid place-items-center flex-shrink-0"
             aria-label="Профиль"
           >
@@ -153,10 +154,10 @@ export function Header() {
             {/* User card */}
             <div
               className="mt-6 rounded-[16px] bg-brand-subtle border border-default p-3 flex items-center gap-3 cursor-pointer hover:bg-brand-subtle/80 transition-colors"
-              onClick={() => { playClick(); setDrawerOpen(false); navigate('/profile'); }}
+              onClick={() => { playClick(); setDrawerOpen(false); navigate(ROUTES.profile); }}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDrawerOpen(false); navigate('/profile'); } }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDrawerOpen(false); navigate(ROUTES.profile); } }}
             >
               <div className="w-10 h-10 rounded-full bg-brand grid place-items-center flex-none">
                 <span className="text-on-brand text-sm font-black">{initials}</span>

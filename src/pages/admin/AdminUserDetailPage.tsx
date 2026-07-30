@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ChevronDown } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
+import type { AdminUserParams } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { adminApi } from '@/shared/api/admin';
 import { Button } from '@/shared/ui/Button';
@@ -345,8 +347,8 @@ function RoadmapsSection({ assessment }: { assessment: AdminAssessmentDetail }) 
                 <div>
                   <p className="text-secondary font-semibold text-xs mb-1.5">Предметы сейчас</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {roadmap.subjects_now.map((subject) => (
-                      <Badge key={subject} variant="brand">{subject}</Badge>
+                    {roadmap.subjects_now.map((item) => (
+                      <Badge key={item.subject} variant="brand">{item.subject}</Badge>
                     ))}
                   </div>
                 </div>
@@ -399,7 +401,7 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
 }
 
 export default function AdminUserDetailPage() {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams<AdminUserParams>();
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
   const [selectedAssessment, setSelectedAssessment] = useState<AdminAssessmentDetail | null>(null);
@@ -488,7 +490,7 @@ export default function AdminUserDetailPage() {
     <PageContainer className="space-y-5">
       <div className="flex items-center gap-4 flex-wrap">
         <Link
-          to="/admin/users"
+          to={ROUTES.adminUsers}
           className="font-sans text-[15px] font-extrabold text-[#6D28D9] bg-white border-2 border-[#DDD6FE] border-b-[4px] border-b-[#DDD6FE] rounded-full px-5 py-2.5 hover:border-[#7C3AED] hover:bg-[#F5F3FF] transition-all cursor-pointer flex items-center justify-center shrink-0"
         >
           ← Назад

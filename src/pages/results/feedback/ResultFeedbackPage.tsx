@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { BackButton } from '@/shared/ui/BackButton';
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -33,10 +33,7 @@ export default function ResultFeedbackPage() {
       ) : (
         <>
           <div className="flex items-start sm:items-center gap-4 flex-col sm:flex-row">
-            <Button variant="ghost" size="sm" className="gap-1.5 rounded-pill" onClick={toResult}>
-              <ArrowLeft className="w-4 h-4" />
-              К результату
-            </Button>
+            <BackButton onClick={toResult} label="К результату" />
             <div>
               <h1 className="font-black text-primary tracking-[-0.02em] text-[26px] sm:text-[32px] leading-tight">
                 Как тебе результат?

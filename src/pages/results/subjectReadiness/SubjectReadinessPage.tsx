@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Sparkles } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -24,7 +25,7 @@ export default function SubjectReadinessPage() {
   } = useSubjectReadiness();
 
   useEffect(() => {
-    if (errorKind || hasResult) navigate('/results', { replace: true });
+    if (errorKind || hasResult) navigate(ROUTES.results, { replace: true });
   }, [errorKind, hasResult, navigate]);
 
   // Full-screen shell (own bg/padding) rather than AppLayout's <main> — this

@@ -1,5 +1,6 @@
 import { LogOut } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
+import { ROUTES } from '@/app/routes';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
 import { useAuth } from '@/shared/hooks/useAuth';
@@ -54,7 +55,7 @@ export function Sidebar() {
 
   function handleLogout() {
     logout();
-    navigate('/login', { replace: true });
+    navigate(ROUTES.login, { replace: true });
   }
 
   return (
@@ -92,10 +93,10 @@ export function Sidebar() {
 
       <div
         className="mt-6 rounded-[16px] bg-brand-subtle border border-default p-3 flex items-center gap-3 cursor-pointer hover:bg-brand-subtle/80 transition-colors"
-        onClick={() => { playClick(); navigate('/profile'); }}
+        onClick={() => { playClick(); navigate(ROUTES.profile); }}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/profile'); } }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(ROUTES.profile); } }}
       >
         <div className="w-10 h-10 rounded-full bg-brand grid place-items-center flex-none">
           <span className="text-on-brand text-sm font-black">{initials}</span>

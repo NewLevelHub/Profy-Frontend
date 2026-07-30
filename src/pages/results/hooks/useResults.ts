@@ -6,6 +6,7 @@ import { subjectReadinessApi } from '@/shared/api/subjectReadiness';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { useValidatedReport } from '@/shared/hooks/useValidatedReport';
 import type { AkinatorResultResponse, SubjectReadinessResult } from '@/shared/types';
 
 interface UseResultsReturn {
@@ -21,7 +22,7 @@ interface UseResultsReturn {
 }
 
 export function useResults(): UseResultsReturn {
-  const report = useResultStore(s => s.report);
+  const report = useValidatedReport();
   const setReport = useResultStore(s => s.setReport);
   const clearReport = useResultStore(s => s.clearReport);
   const assessmentId = useAssessmentStore(s => s.assessmentId);

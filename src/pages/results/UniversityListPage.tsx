@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ROUTES } from '@/app/routes';
+import { BackButton } from '@/shared/ui/BackButton';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -93,7 +94,7 @@ export default function UniversityListPage() {
         <p className="text-body text-secondary max-w-md">
           Этот раздел открыт для учеников старшей школы, планирующих поступление в вуз.
         </p>
-        <Button onClick={() => navigate('/results')}>Назад к результатам</Button>
+        <Button onClick={() => navigate(ROUTES.results)}>Назад к результатам</Button>
       </div>
     );
   }
@@ -101,13 +102,7 @@ export default function UniversityListPage() {
   return (
     <PageContainer className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-brand text-label font-extrabold hover:opacity-70 transition-opacity shrink-0"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Назад
-        </button>
+        <BackButton className="shrink-0" />
         <PageHeader title="Университеты" className="flex-1 min-w-0" />
       </div>
 

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
+import { ROUTES } from '@/app/routes';
+import type { LoginState } from '@/app/routes';
 import { authApi } from '@/shared/api/auth';
 import { useAuthStore } from '@/shared/store/auth';
 
@@ -54,11 +56,12 @@ export function RequireAdmin() {
   }
 
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const state: LoginState = { from: location.pathname };
+    return <Navigate to={ROUTES.login} state={state} replace />;
   }
 
   if (!isAdmin) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to={ROUTES.home} replace />;
   }
 
   return <Outlet />;

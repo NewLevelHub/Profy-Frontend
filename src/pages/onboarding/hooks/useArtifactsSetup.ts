@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
+import { ROUTES } from '@/app/routes';
 import { artifactsApi } from '@/shared/api/artifacts';
 import type { ArtifactItem } from '@/shared/types';
 
@@ -25,7 +26,7 @@ export function useArtifactsSetup() {
 
   const mutation = useMutation({
     mutationFn: (items: ArtifactItem[]) => artifactsApi.save(items),
-    onSuccess: () => navigate('/assessment/goal', { replace: true }),
+    onSuccess: () => navigate(ROUTES.assessmentGoal, { replace: true }),
   });
 
   function buildItems(): ArtifactItem[] {
@@ -42,14 +43,14 @@ export function useArtifactsSetup() {
   function handleNext() {
     const items = buildItems();
     if (items.length === 0) {
-      navigate('/assessment/goal', { replace: true });
+      navigate(ROUTES.assessmentGoal, { replace: true });
       return;
     }
     mutation.mutate(items);
   }
 
   function handleSkip() {
-    navigate('/assessment/goal', { replace: true });
+    navigate(ROUTES.assessmentGoal, { replace: true });
   }
 
   function addTag(
