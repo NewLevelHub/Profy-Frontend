@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/shared/store/auth';
@@ -19,7 +19,6 @@ export function useHome() {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const goal = useAssessmentStore(s => s.goal);
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
-  const resetAssessment = useAssessmentStore(s => s.resetAssessment);
 
   const hasAssessment = assessmentId !== null && goal !== null;
   const status: HomeStatus = !hasAssessment
@@ -41,8 +40,7 @@ export function useHome() {
   // /results first (the common path) means this never refetches.
   const report = useResultStore(s => s.report);
   const setReport = useResultStore(s => s.setReport);
-  const clearReport = useResultStore(s => s.clearReport);
-  const { data: fetchedResult, isLoading: isResultLoading } = useQuery({
+  const { data: fetchedResult } = useQuery({
     queryKey: ['result', assessmentId] as const,
     queryFn: () => resultApi.get(assessmentId!),
     enabled: status === 'completed' && !report && !!assessmentId,
@@ -52,8 +50,6 @@ export function useHome() {
     if (fetchedResult && !report) setReport(fetchedResult);
   }, [fetchedResult, report, setReport]);
   const effectiveReport = report ?? fetchedResult ?? null;
-
-  const [confirmRestart, setConfirmRestart] = useState(false);
 
   function handleContinue() {
     if (status === 'completed') {
@@ -74,21 +70,6 @@ export function useHome() {
     navigate(`/assessment/known-profession/${slug}`);
   }
 
-  function handleRestartRequest() {
-    setConfirmRestart(true);
-  }
-
-  function handleRestartConfirm() {
-    resetAssessment();
-    clearReport();
-    setConfirmRestart(false);
-    navigate('/assessment/goal', { state: { fromRestart: true } });
-  }
-
-  function handleRestartCancel() {
-    setConfirmRestart(false);
-  }
-
   return {
     displayName,
     status,
@@ -98,15 +79,6 @@ export function useHome() {
     handleContinue,
     goToSpheres,
     goToSphere,
-    completedAt: effectiveReport?.completed_at ?? null,
-    directionName: effectiveReport?.direction_name ?? null,
     directionSlug: effectiveReport?.direction_slug ?? null,
-    questionsAnswered: effectiveReport?.questions_answered ?? null,
-    matchPercent: effectiveReport?.match_percent ?? null,
-    isCompletionLoading: status === 'completed' && isResultLoading && !effectiveReport,
-    confirmRestart,
-    handleRestartRequest,
-    handleRestartConfirm,
-    handleRestartCancel,
   };
 }

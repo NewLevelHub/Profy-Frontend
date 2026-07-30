@@ -79,23 +79,13 @@ export const router = createBrowserRouter([
       { path: '/onboarding/profile', element: <ProfileSetupPage /> },
       { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
 
-      // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → Praise → ResultLoading)
-      { path: '/assessment/goal', element: <GoalSelectionPage /> },
-      { path: '/assessment/known-profession', element: <KnownProfessionSpheresPage /> },
-      { path: '/assessment/known-profession/:sphereSlug', element: <KnownProfessionListPage /> },
-      {
-        path: '/assessment/known-profession/:sphereSlug/:professionSlug',
-        element: <KnownProfessionQuizPage />,
-      },
-      { path: '/assessment', element: <AssessmentPage /> },
-      { path: '/assessment/praise', element: <PraisePage /> },
-      { path: '/assessment/loading', element: <ResultLoadingPage /> },
-
-      // Subject-readiness quiz — also full-screen/no chrome, same reasoning as
-      // the assessment flow above: keeping it outside AppLayout means there's
-      // no sidebar/header nav link the student can click to wander off (and
-      // silently lose the in-progress quiz — nothing persists answers until
-      // the final submit, see useSubjectReadiness.submit).
+      // Subject-readiness quiz — full-screen/no chrome on purpose: keeping it
+      // outside AppLayout means there's no sidebar/header nav link the student
+      // can click to wander off (and silently lose the in-progress quiz —
+      // nothing persists answers until the final submit, see
+      // useSubjectReadiness.submit). The main assessment flow below doesn't
+      // have this risk — the akinator engine saves progress per answer, so
+      // it's safe to render inside AppLayout with the sidebar/header visible.
       {
         element: <RequireProfile />,
         children: [
@@ -107,6 +97,21 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
+          // Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
+          // — not gated by RequireProfile: GoalSelectionPage tolerates a
+          // missing profile (falls back to 'middle' age group) rather than
+          // requiring one, same as before this moved under AppLayout.
+          { path: '/assessment/goal', element: <GoalSelectionPage /> },
+          { path: '/assessment/known-profession', element: <KnownProfessionSpheresPage /> },
+          { path: '/assessment/known-profession/:sphereSlug', element: <KnownProfessionListPage /> },
+          {
+            path: '/assessment/known-profession/:sphereSlug/:professionSlug',
+            element: <KnownProfessionQuizPage />,
+          },
+          { path: '/assessment', element: <AssessmentPage /> },
+          { path: '/assessment/praise', element: <PraisePage /> },
+          { path: '/assessment/loading', element: <ResultLoadingPage /> },
+
           // Guarded by profile; redirects to /welcome if profile not yet created
           {
             element: <RequireProfile />,

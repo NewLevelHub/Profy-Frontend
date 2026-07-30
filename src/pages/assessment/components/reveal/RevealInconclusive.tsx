@@ -42,7 +42,7 @@ export function RevealInconclusive({ strengths, leaves, onLike, onRetakeTest }: 
             {leaves.map(leaf => (
               <div
                 key={leaf.slug}
-                className="flex items-center justify-between gap-3 p-3 rounded-lg border border-default bg-surface/50"
+                className="flex items-center justify-between gap-3 p-3 rounded-lg border-2 border-strong bg-surface/50"
               >
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <span className="font-semibold text-secondary">{leaf.name}</span>

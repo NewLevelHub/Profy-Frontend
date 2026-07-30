@@ -321,13 +321,17 @@ export interface AkinatorResultResponse {
   is_direction_specific: boolean;
   backups: RevealLeaf[];
   recommended_programs: ProgramBrief[];
+  // Result row is created right when the akinator test finishes, so this
+  // doubles as the completion timestamp — there is no separate completed_at
+  // on this response.
   created_at: string;
-  completed_at: string | null;
   // null when neither the akinator engine nor the known-profession quiz
   // logged a signal for this assessment (e.g. an assessment from before
   // this was tracked) — UI must handle that, not assume a value.
   questions_answered: number | null;
-  match_percent: number | null;
+  // Fraction 0-1 (e.g. 0.60 for 60%), matching the admin panel's `probability`
+  // field — UI must scale by 100 before displaying.
+  match_percentage: number | null;
 }
 
 // ─── Direction roadmap ─────────────────────────────────────────────────────────

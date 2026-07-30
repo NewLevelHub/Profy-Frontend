@@ -10,6 +10,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import {
   getInitials,
+  getTestPath,
   isNavItemActive,
   MAIN_NAV_ITEMS,
   resolveNavPath,
@@ -24,10 +25,11 @@ export function Header() {
   const profile = useProfileStore((s) => s.profile);
   const assessmentId = useAssessmentStore((s) => s.assessmentId);
   const goal = useAssessmentStore((s) => s.goal);
+  const hasCompletedAssessment = useAssessmentStore((s) => s.hasCompletedAssessment);
   const directionSlug = useResultStore((s) => s.report?.direction_slug);
 
   const navItems = MAIN_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
-  const testPath = assessmentId && goal ? '/assessment' : '/assessment/goal';
+  const testPath = getTestPath({ assessmentId, goal, hasCompletedAssessment });
 
   const displayName = profile?.name?.trim() || user?.name?.trim() || 'Пользователь';
   const initials = getInitials(displayName);

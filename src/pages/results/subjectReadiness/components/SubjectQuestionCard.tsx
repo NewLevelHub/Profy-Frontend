@@ -14,8 +14,8 @@ export const SubjectQuestionCard = memo(function SubjectQuestionCard({
   onSelect,
 }: SubjectQuestionCardProps) {
   return (
-    <div className="flex flex-col gap-3 p-5 rounded-[var(--radius)] bg-raised">
-      <p className="text-body font-semibold text-primary">{question.text}</p>
+    <div className="flex flex-col gap-3 p-5 sm:p-6 rounded-[var(--radius-lg)] border-2 border-strong bg-raised">
+      <p className="text-body font-extrabold text-primary text-pretty">{question.text}</p>
       <div className="flex flex-col gap-2">
         {question.options.map(option => (
           <button
@@ -23,10 +23,10 @@ export const SubjectQuestionCard = memo(function SubjectQuestionCard({
             type="button"
             onClick={() => onSelect(question.id, option.index)}
             className={cn(
-              'text-left px-4 py-3 rounded-[var(--radius-sm)] border transition-colors text-label',
+              'text-left px-4 py-3 rounded-[var(--radius-sm)] border-2 transition-colors text-label',
               selectedIndex === option.index
-                ? 'border-brand bg-[color-mix(in_srgb,var(--brand)_12%,transparent)] text-primary font-semibold'
-                : 'border-default text-secondary hover:border-strong hover:bg-raised',
+                ? 'border-brand bg-active-tint text-primary font-semibold'
+                : 'border-transparent text-secondary hover:border-strong hover:bg-surface',
             )}
           >
             {option.text}

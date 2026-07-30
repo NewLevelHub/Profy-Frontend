@@ -1,6 +1,7 @@
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
+import { Mascot } from '@/shared/ui/Mascot';
 import { OptionCard } from './OptionCard';
 import { RevealCard } from './reveal/RevealCard';
 import { SimulationCard } from './simulation/SimulationCard';
@@ -47,7 +48,7 @@ export function AkinatorAssessmentView() {
     : 'Анализ';
 
   return (
-    <div className="flex flex-col min-h-screen bg-page">
+    <div className="flex flex-col h-full">
       {/* ── Exit confirmation modal ─────────────────────────────────── */}
       {exitConfirmOpen && (
         <div
@@ -166,17 +167,29 @@ export function AkinatorAssessmentView() {
             />
           </div>
         ) : question ? (
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col sm:flex-row gap-4 sm:gap-[26px] sm:items-start overflow-hidden">
+            <div className="flex flex-row sm:flex-col items-center gap-3 sm:gap-2.5 sm:w-[170px] sm:flex-none">
+              <div className="w-16 h-20 sm:w-[170px] sm:h-[210px] flex-none rounded-2xl sm:rounded-[22px] bg-brand-subtle flex items-end justify-center overflow-hidden">
+                <Mascot kind="psy" className="w-14 h-[72px] sm:w-[150px] sm:h-[200px]" />
+              </div>
+              <p className="text-muted font-bold text-left sm:text-center text-pretty" style={{ fontSize: 13 }}>
+                Отвечай честно — правильных ответов нет.
+              </p>
+            </div>
+
             <div
               className={cn(
-                'flex-1 transition-opacity duration-300',
+                'flex-1 min-w-0 transition-opacity duration-300',
                 transitioning ? 'opacity-0' : 'opacity-100'
               )}
             >
               <div className="flex items-center justify-between gap-[10px] mb-2">
                 <div className="flex items-center gap-[10px]">
                   <span className="text-[26px]">⚡</span>
-                  <span className="font-extrabold text-brand tracking-[.02em]" style={{ fontSize: 14 }}>
+                  <span
+                    className="font-extrabold text-brand uppercase tracking-[0.08em]"
+                    style={{ fontSize: 14 }}
+                  >
                     АНАЛИЗ ИНТЕРЕСОВ
                   </span>
                 </div>
