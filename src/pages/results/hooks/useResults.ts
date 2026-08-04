@@ -5,6 +5,8 @@ import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { RIASEC_TYPES } from '@/shared/config/constants';
+import type { HollandType } from '@/shared/types';
 
 export function useResults() {
   const report = useResultStore(s => s.report);
@@ -50,13 +52,10 @@ export function useResults() {
 
   const effectiveReport = report ?? data ?? null;
 
-  const topInterests = Object.entries(effectiveReport?.interests_map ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 7);
-
-  const topThinking = Object.entries(effectiveReport?.thinking_style ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 4);
+  const profileEntries: [HollandType, number][] = RIASEC_TYPES.map(letter => [
+    letter,
+    effectiveReport?.profile?.[letter] ?? 0,
+  ]);
 
   return {
     report: effectiveReport,
@@ -66,8 +65,7 @@ export function useResults() {
     goal,
     ageGroup,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
-    topInterests,
-    topThinking,
+    profileEntries,
     refetch,
   };
 }

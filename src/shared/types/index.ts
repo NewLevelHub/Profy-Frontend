@@ -62,59 +62,46 @@ export interface ArtifactItem {
 export type AssessmentGoal = 'explore' | 'profession' | 'university';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
-export type AssessmentBlock =
-  | 'interests'
-  | 'thinking'
-  | 'personality'
-  | 'motivation'
-  | 'academic'
-  | 'directions'
-  | 'goal_clarification'
-  | 'university'
-  | 'wellbeing';
+export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
 
 export interface AssessmentResponse {
   id: string;
   goal: AssessmentGoal;
   status: AssessmentStatus;
-  current_block: number;
+  answered_count: number;
+  total_questions: number;
   created_at: string;
-}
-
-export interface QuestionOption {
-  text: string;
-  index: number;
 }
 
 export interface Question {
   id: string;
-  block: AssessmentBlock;
+  riasec_type: HollandType;
   text: string;
-  options: QuestionOption[];
+  order: number;
 }
 
 export interface AnswerPayload {
   question_id: string;
-  selected_option_index: number;
+  value: number;
 }
 
 export interface SaveAnswersPayload {
-  block: AssessmentBlock;
   answers: AnswerPayload[];
 }
 
 export interface SaveAnswersResponse {
-  block: AssessmentBlock;
-  scores: Record<string, number>;
+  answered_count: number;
+  total: number;
+  completed: boolean;
 }
 
 // ─── Results ───────────────────────────────────────────────────────────────────
 
-export interface DirectionResult {
+export interface CareerMatch {
   slug: string;
   name: string;
+  holland_code: string;
   match_score: number;
-  why_it_fits: string;
   description: string;
   professions: string[];
   skills_needed: string[];
@@ -122,16 +109,28 @@ export interface DirectionResult {
   first_steps: string[];
 }
 
+export interface RiasecMeta {
+  differentiation: number;
+  consistency: 'high' | 'medium' | 'low';
+  aversion: Record<HollandType, number>;
+}
+
+export interface DevelopmentPlan {
+  reinforce: string[];
+  compensate: string[];
+}
+
 export interface AnalysisResultResponse {
   id: string;
   assessment_id: string;
+  profile: Record<HollandType, number>;
+  code: HollandType[];
+  meta: RiasecMeta;
+  careers: CareerMatch[];
+  strengths: HollandType[];
+  weaknesses: HollandType[];
+  development_plan: DevelopmentPlan;
   summary: string;
-  strengths: string[];
-  interests_map: Record<string, number>;
-  thinking_style: Record<string, number>;
-  motivation: string[];
-  directions: DirectionResult[];
-  wellbeing_zones: string[];
   created_at: string;
 }
 
@@ -355,7 +354,8 @@ export interface AdminAssessmentSummary {
   id: string;
   goal: AssessmentGoal;
   status: AssessmentStatus;
-  current_block: number;
+  answered_count: number;
+  total_questions: number;
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
@@ -376,12 +376,11 @@ export interface AdminUserDetail {
 
 export interface AdminResponseItem {
   question_id: string;
-  block: string;
+  riasec_type: string;
   question_text: string;
   question_order: number;
-  selected_option_index: number;
+  answer_value: number;
   selected_answer_text: string;
-  scores: Record<string, number | string>;
   created_at: string;
 }
 
@@ -392,7 +391,8 @@ export interface AdminAssessmentDetail {
   profile_name: string | null;
   goal: AssessmentGoal;
   status: AssessmentStatus;
-  current_block: number;
+  answered_count: number;
+  total_questions: number;
   created_at: string;
   completed_at: string | null;
   responses: AdminResponseItem[];

@@ -6,13 +6,12 @@ interface AssessmentState {
   userId: string | null;
   assessmentId: string | null;
   goal: AssessmentGoal | null;
-  currentBlock: number;
-  completedBlocks: string[];
+  answeredCount: number;
+  totalQuestions: number;
   hasCompletedAssessment: boolean;
   syncDone: boolean;
-  setAssessment: (assessmentId: string, goal: AssessmentGoal, currentBlock: number) => void;
-  advanceBlock: () => void;
-  markBlockCompleted: (block: string) => void;
+  setAssessment: (assessmentId: string, goal: AssessmentGoal, answeredCount: number, totalQuestions: number) => void;
+  setProgress: (answeredCount: number, totalQuestions: number) => void;
   completeAssessment: () => void;
   resetAssessment: () => void;
   syncFromServer: (data: AssessmentResponse, userId: string) => void;
@@ -25,28 +24,22 @@ export const useAssessmentStore = create<AssessmentState>()(
       userId: null,
       assessmentId: null,
       goal: null,
-      currentBlock: 0,
-      completedBlocks: [],
+      answeredCount: 0,
+      totalQuestions: 0,
       hasCompletedAssessment: false,
       syncDone: false,
-      setAssessment: (assessmentId, goal, currentBlock) =>
-        set({ assessmentId, goal, currentBlock }),
-      advanceBlock: () =>
-        set((s) => ({ currentBlock: s.currentBlock + 1 })),
-      markBlockCompleted: (block) =>
-        set((s) => ({
-          completedBlocks: s.completedBlocks.includes(block)
-            ? s.completedBlocks
-            : [...s.completedBlocks, block],
-        })),
+      setAssessment: (assessmentId, goal, answeredCount, totalQuestions) =>
+        set({ assessmentId, goal, answeredCount, totalQuestions }),
+      setProgress: (answeredCount, totalQuestions) =>
+        set({ answeredCount, totalQuestions }),
       completeAssessment: () => set({ hasCompletedAssessment: true }),
       resetAssessment: () =>
         set({
           userId: null,
           assessmentId: null,
           goal: null,
-          currentBlock: 0,
-          completedBlocks: [],
+          answeredCount: 0,
+          totalQuestions: 0,
           hasCompletedAssessment: false,
           syncDone: true,
         }),
@@ -55,8 +48,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           userId,
           assessmentId: data.id,
           goal: data.goal,
-          currentBlock: data.current_block,
-          completedBlocks: [],
+          answeredCount: data.answered_count,
+          totalQuestions: data.total_questions,
           hasCompletedAssessment: data.status === 'completed',
           syncDone: true,
         }),
@@ -65,8 +58,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           userId,
           assessmentId: null,
           goal: null,
-          currentBlock: 0,
-          completedBlocks: [],
+          answeredCount: 0,
+          totalQuestions: 0,
           hasCompletedAssessment: false,
           syncDone: true,
         }),

@@ -1,39 +1,31 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { playClick } from '@/shared/lib/sounds';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { useHome } from './hooks/useHome';
-import { BlockRoadmap } from './components/BlockRoadmap';
-import { BlockRoadmapQuest } from './components/BlockRoadmapQuest';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const {
     displayName,
     initial,
-    activeBlocks,
-    totalBlocks,
     hasAssessment,
     isCompleted,
     inProgress,
-    roadmapCurrentBlock,
-    completedCount,
-    nextBlockName,
+    answeredCount,
+    totalQuestions,
     handleContinue,
-    handleRetakeBlock,
   } = useHome();
 
-  const [roadmapVariant, setRoadmapVariant] = useState<'stepper' | 'quest'>('stepper');
+  const progressPct = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   const heroSubtitle = isCompleted
-    ? 'Ты прошёл все блоки! Смотри результат'
+    ? 'Ты прошёл весь тест RIASEC! Смотри результат'
     : !hasAssessment
-    ? `${totalBlocks} коротких блоков — и ты получишь персональную карту профессий`
-    : completedCount === 0
-    ? `Начнём с блока «${nextBlockName}»`
-    : `Пройден ${completedCount} блок из ${totalBlocks}${nextBlockName ? `. Дальше — «${nextBlockName}»` : ''}`;
+    ? 'Один тест из 146 вопросов — и ты получишь персональную карту профессий'
+    : answeredCount === 0
+    ? 'Начнём тест RIASEC?'
+    : `Отвечено ${answeredCount} из ${totalQuestions} вопросов`;
 
   const heroBtnLabel = isCompleted
     ? 'Обновить результат'
@@ -76,14 +68,13 @@ export default function HomePage() {
           <div className="w-[84px] h-[84px] flex-none">
             <div
               className="w-[84px] h-[84px] rounded-full flex items-center justify-center"
-              style={{ background: `conic-gradient(#fff ${Math.round((completedCount / totalBlocks) * 360)}deg, rgba(255,255,255,.25) 0)` }}
+              style={{ background: `conic-gradient(#fff ${Math.round(progressPct * 3.6)}deg, rgba(255,255,255,.25) 0)` }}
             >
               <div
                 className="w-[68px] h-[68px] rounded-full flex flex-col items-center justify-center"
                 style={{ background: '#7C3AED', color: '#fff' }}
               >
-                <span style={{ fontSize: 24, fontWeight: 900, lineHeight: 1 }}>{completedCount}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.8 }}>/{totalBlocks}</span>
+                <span style={{ fontSize: 20, fontWeight: 900, lineHeight: 1 }}>{progressPct}%</span>
               </div>
             </div>
           </div>
@@ -105,6 +96,17 @@ export default function HomePage() {
             {heroBtnLabel} →
           </button>
         </div>
+
+        {hasAssessment && !isCompleted && (
+          <div className="relative mt-6">
+            <div className="h-2.5 rounded-pill overflow-hidden" style={{ background: 'rgba(255,255,255,.25)' }}>
+              <div
+                className="h-full rounded-pill transition-[width] duration-500 ease-out"
+                style={{ width: `${progressPct}%`, background: '#fff' }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Quick access 2-col grid ─────────────────────────────────── */}
@@ -139,52 +141,6 @@ export default function HomePage() {
           </div>
         </button>
       </div>
-
-      {/* ── Block roadmap ───────────────────────────────────────────── */}
-      {hasAssessment && (
-        <section aria-label="Дорожная карта блоков">
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-            <SectionHeading title="Дорожная карта" className="mb-0" />
-            <div className="flex gap-1 p-1 rounded-pill" style={{ background: '#EDE9FE' }}>
-              {(['stepper', 'quest'] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => {
-                    playClick();
-                    setRoadmapVariant(v);
-                  }}
-                  className="font-extrabold transition-all rounded-pill px-[18px] py-[7px]"
-                  style={roadmapVariant === v
-                    ? { background: '#fff', color: '#5B21B6', fontSize: 13, boxShadow: '0 2px 6px rgba(30,27,75,.08)' }
-                    : { background: 'transparent', color: '#7C3AED', fontSize: 13 }
-                  }
-                >
-                  {v === 'stepper' ? 'Стэппер' : 'Квест-карта'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {roadmapVariant === 'stepper' ? (
-            <div className="bg-surface border border-default rounded-[22px] shadow-card p-[30px_28px]">
-              <BlockRoadmap
-                blocks={activeBlocks}
-                currentBlock={roadmapCurrentBlock}
-                onContinue={handleContinue}
-                onRetake={handleRetakeBlock}
-              />
-            </div>
-          ) : (
-            <BlockRoadmapQuest
-              blocks={activeBlocks}
-              currentBlock={roadmapCurrentBlock}
-              onContinue={handleContinue}
-              onRetake={handleRetakeBlock}
-            />
-          )}
-        </section>
-      )}
     </PageContainer>
   );
 }

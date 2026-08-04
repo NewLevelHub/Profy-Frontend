@@ -18,8 +18,7 @@ export const API = {
   assessment: {
     start: '/assessment/start',
     current: '/assessment/current',
-    questions: (assessmentId: string, block: string) =>
-      `/assessment/${assessmentId}/questions/${block}`,
+    questions: (assessmentId: string) => `/assessment/${assessmentId}/questions`,
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
   },
   result: {

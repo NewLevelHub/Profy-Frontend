@@ -7,109 +7,46 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
-import type { DirectionResult } from '@/shared/types';
+import { RIASEC_LABELS, RIASEC_ICONS } from '@/shared/config/constants';
+import type { CareerMatch, HollandType } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 
 // ── Label maps ───────────────────────────────────────────────────────────────
 
-const INTEREST_LABELS: Record<string, string> = {
-  technology: 'Технологии',
-  investigative: 'Исследование',
-  artistic: 'Творчество',
-  creative_think: 'Креативность',
-  social: 'Общение',
-  social_think: 'Понимание людей',
-  science: 'Наука',
-  nature: 'Природа',
-  realistic: 'Практика',
-  media: 'Медиа',
-  conventional: 'Системность',
-  numbers: 'Числа и данные',
-};
-
-const THINKING_LABELS: Record<string, string> = {
-  logical: 'Логика',
-  mathematical: 'Математика',
-  verbal: 'Коммуникация',
-  spatial: 'Пространство',
-  systematic: 'Системность',
-  creative_think: 'Творчество',
-};
-
-const THINKING_EMOJIS: Record<string, string> = {
-  logical: '🧠',
-  mathematical: '📐',
-  verbal: '💬',
-  spatial: '🗺️',
-  systematic: '⚙️',
-  creative_think: '💡',
-};
-
-// Пастельная палитра для иконок сильных сторон — чередуется по кругу,
-// как в дизайн-референсе (rose/amber/blue/green).
-const STRENGTH_ICON_BG = ['#FFE4E6', '#FEF3C7', '#DBEAFE', '#DCFCE7'];
-
-const STRENGTH_ICON_PAIRS: [string, string][] = [
-  ['технологии', '💻'], ['докапываться', '🔍'], ['нестандартные', '🎨'],
-  ['понимает людей', '🤝'], ['структурно', '🧠'], ['числами', '📐'],
-  ['словами', '📝'], ['пространство', '🗺️'], ['инициативу', '🏆'],
-  ['начатое', '✅'], ['новому', '🌟'], ['помогать', '❤️'],
-  ['целиком', '🎯'], ['воплощать', '🔧'], ['научному', '🔬'],
-  ['природой', '🌿'], ['данными', '📊'], ['порядок', '📋'], ['системы', '⚙️'],
+// Направления генерируются из плоского каталога профессий, фиксированного enum
+// названий нет — подбираем эмодзи по ключевым словам. Порядок важен: более
+// специфичное выше общего.
+const CAREER_ICON_PAIRS: [string, string][] = [
+  ['engineer', '⚙️'], ['architect', '🏛️'], ['develop', '💻'], ['program', '💻'],
+  ['analyst', '📊'], ['data', '📊'], ['statistic', '📊'],
+  ['doctor', '🩺'], ['nurse', '🩺'], ['medic', '🩺'], ['physician', '🩺'], ['dent', '🩺'], ['pharma', '💊'],
+  ['biolog', '🧬'], ['chem', '🧪'], ['physic', '⚛️'], ['math', '📐'],
+  ['scien', '🔬'], ['research', '🔬'], ['geolog', '🔬'],
+  ['teach', '📚'], ['professor', '📚'], ['faculty', '📚'], ['librarian', '📚'], ['instructor', '📚'],
+  ['psycholog', '🧠'], ['counsel', '🧠'], ['therap', '🧠'],
+  ['social', '🤝'], ['volunteer', '🤝'], ['communit', '🤝'],
+  ['manager', '📈'], ['business', '📈'], ['entrepreneur', '📈'], ['executive', '📈'],
+  ['financ', '💰'], ['account', '🧾'], ['bank', '🏦'], ['tax', '🧾'], ['broker', '💰'],
+  ['market', '📣'], ['advertis', '📣'], ['sales', '🛒'], ['public relations', '📣'],
+  ['law', '⚖️'], ['attorney', '⚖️'], ['paralegal', '⚖️'], ['judge', '⚖️'],
+  ['journal', '📰'], ['report', '📰'], ['writer', '✍️'], ['editor', '✍️'], ['author', '✍️'],
+  ['artist', '🎨'], ['design', '🎨'], ['illustrat', '🎨'], ['fashion', '👗'],
+  ['music', '🎵'], ['danc', '💃'], ['drama', '🎭'], ['actor', '🎭'], ['entertain', '🎭'], ['photograph', '📷'],
+  ['pilot', '✈️'], ['air traffic', '✈️'], ['aviation', '✈️'],
+  ['farm', '🌾'], ['agri', '🌾'], ['forest', '🌲'], ['garden', '🌿'],
+  ['veterinar', '🐾'], ['animal', '🐾'],
+  ['polic', '👮'], ['safety', '🦺'], ['inspector', '🦺'], ['warden', '🦺'],
+  ['sport', '🏅'], ['athlet', '🏅'], ['coach', '🏅'], ['recreation', '🏅'],
+  ['travel', '✈️'], ['tour', '✈️'],
+  ['comput', '💻'], ['technolog', '💻'], ['technic', '🔧'],
 ];
 
-const MOTIVATION_ICON_PAIRS: [string, string][] = [
-  ['помогать', '❤️'], ['вести за собой', '🏆'], ['создавать', '🚀'],
-  ['высоком уровне', '✅'], ['новому', '🌟'], ['масштабно', '🎯'],
-  ['результаты', '🔧'], ['исследовать', '🔍'], ['творческие', '🎨'], ['людей', '🤝'],
-];
-
-// Направления генерируются ИИ, фиксированного enum нет — подбираем эмодзи
-// по ключевым словам в названии. Порядок важен: более специфичное выше общего
-// (напр. «искусственный интеллект» до «искусство»).
-const DIRECTION_ICON_PAIRS: [string, string][] = [
-  ['искусственн', '🤖'], ['машинн', '🤖'], ['нейросет', '🤖'], ['робот', '🤖'],
-  ['data', '📊'], ['данн', '📊'], ['аналит', '📊'], ['статист', '📊'],
-  ['кибербез', '🔒'], ['безопасн', '🔒'],
-  ['айти', '💻'], ['разработ', '💻'], ['программир', '💻'], ['цифров', '💻'], ['веб', '💻'], ['софт', '💻'],
-  ['медиц', '🩺'], ['здоров', '🩺'], ['врач', '🩺'], ['фарм', '💊'],
-  ['биолог', '🧬'], ['генет', '🧬'],
-  ['хими', '🧪'], ['физик', '⚛️'], ['матем', '📐'],
-  ['наук', '🔬'], ['исследов', '🔬'],
-  ['инженер', '⚙️'], ['механ', '⚙️'], ['производств', '🏭'], ['электрон', '🔌'], ['энерг', '⚡'],
-  ['космос', '🚀'], ['авиа', '✈️'],
-  ['архитект', '🏛️'], ['строит', '🏗️'],
-  ['дизайн', '🎨'], ['художн', '🖼️'], ['искусств', '🎭'], ['творч', '🎭'],
-  ['музык', '🎵'], ['театр', '🎭'], ['кино', '🎬'], ['видео', '🎬'], ['анимац', '🎞️'], ['фото', '📷'],
-  ['мод', '👗'], ['стиль', '👗'],
-  ['бизнес', '📈'], ['предприним', '📈'], ['менеджм', '📈'], ['управлен', '📈'],
-  ['финанс', '💰'], ['эконом', '💰'], ['банк', '🏦'], ['бухгалт', '🧾'],
-  ['маркетинг', '📣'], ['реклам', '📣'], ['продаж', '🛒'],
-  ['прав', '⚖️'], ['юрис', '⚖️'], ['закон', '⚖️'],
-  ['педагог', '📚'], ['образован', '📚'], ['преподав', '📚'], ['учит', '📚'],
-  ['психолог', '🧠'],
-  ['социальн', '🤝'], ['обществ', '🤝'],
-  ['политик', '🏛️'], ['госуд', '🏛️'],
-  ['журналист', '📰'], ['медиа', '📱'], ['контент', '📱'],
-  ['язык', '🗣️'], ['лингвист', '🗣️'], ['перевод', '🗣️'],
-  ['истор', '📜'],
-  ['эколог', '🌿'], ['природ', '🌿'], ['окружающ', '🌿'],
-  ['сельск', '🌾'], ['агро', '🌾'], ['ферм', '🌾'],
-  ['спорт', '🏅'], ['фитнес', '🏅'], ['тренер', '🏅'],
-  ['кулинар', '🍳'], ['повар', '🍳'], ['пищев', '🍳'], ['ресторан', '🍽️'],
-  ['туризм', '✈️'], ['путешеств', '✈️'], ['гостеприим', '🏨'], ['гостинич', '🏨'],
-  ['транспорт', '🚚'], ['логист', '🚚'], ['перевозк', '🚚'],
-  ['гейм', '🎮'], ['игр', '🎮'],
-];
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function getIconForText(text: string, pairs: [string, string][], fallback = '⭐'): string {
-  const lower = text.toLowerCase();
-  for (const [kw, icon] of pairs) {
+function getIconForCareer(name: string): string {
+  const lower = name.toLowerCase();
+  for (const [kw, icon] of CAREER_ICON_PAIRS) {
     if (lower.includes(kw)) return icon;
   }
-  return fallback;
+  return '🧭';
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -126,52 +63,53 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
   return <SectionHeading emoji={emoji} title={title} />;
 }
 
-interface DirectionCardProps {
-  direction: DirectionResult;
-  showUniversityBtn: boolean;
-  showInquiryBtn: boolean;
-  onDetail: (d: DirectionResult) => void;
-  onUniversity: (d: DirectionResult) => void;
-  onInquiry: (d: DirectionResult) => void;
+function careerFitLine(career: CareerMatch): string {
+  return `Код направления — ${career.holland_code}. Совпадение с твоим профилем: ${career.match_score} из 6.`;
 }
 
-const DirectionCard = memo(function DirectionCard({
-  direction,
+interface CareerCardProps {
+  career: CareerMatch;
+  showUniversityBtn: boolean;
+  showInquiryBtn: boolean;
+  onDetail: (c: CareerMatch) => void;
+  onUniversity: (c: CareerMatch) => void;
+  onInquiry: (c: CareerMatch) => void;
+}
+
+const CareerCard = memo(function CareerCard({
+  career,
   showUniversityBtn,
   showInquiryBtn,
   onDetail,
   onUniversity,
   onInquiry,
-}: DirectionCardProps) {
+}: CareerCardProps) {
   return (
     <Card
-      onClick={() => onDetail(direction)}
+      onClick={() => onDetail(career)}
       className="!p-[22px] flex flex-col gap-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-pop"
     >
-      <span className="text-[26px]" aria-hidden="true">
-        {getIconForText(direction.name, DIRECTION_ICON_PAIRS, '🧭')}
-      </span>
-      <div>
-        <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 16 }}>{direction.name}</p>
-        <p className="text-muted font-medium leading-snug" style={{ fontSize: 13 }}>{direction.why_it_fits}</p>
+      <div className="flex items-center justify-between">
+        <span className="text-[26px]" aria-hidden="true">{getIconForCareer(career.name)}</span>
+        <span
+          className="font-extrabold text-brand bg-brand-subtle rounded-pill"
+          style={{ fontSize: 11.5, padding: '5px 12px' }}
+        >
+          {career.holland_code} · {career.match_score}/6
+        </span>
       </div>
-      {(direction.professions ?? []).length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {direction.professions.slice(0, 3).map((prof, i) => (
-            <span
-              key={i}
-              className="font-bold text-brand bg-brand-subtle rounded-pill"
-              style={{ fontSize: 11.5, padding: '5px 12px' }}
-            >
-              {prof}
-            </span>
-          ))}
-        </div>
-      )}
+      <div>
+        <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 16 }}>{career.name}</p>
+        {(career.professions ?? []).length > 0 && (
+          <p className="text-muted font-medium leading-snug" style={{ fontSize: 13 }}>
+            {career.professions.slice(0, 3).join(', ')}
+          </p>
+        )}
+      </div>
       {showUniversityBtn && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onUniversity(direction); }}
+          onClick={(e) => { e.stopPropagation(); onUniversity(career); }}
           className="flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
         >
           <GraduationCap className="w-3.5 h-3.5" />
@@ -181,7 +119,7 @@ const DirectionCard = memo(function DirectionCard({
       {showInquiryBtn && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onInquiry(direction); }}
+          onClick={(e) => { e.stopPropagation(); onInquiry(career); }}
           className="mt-1 flex items-center justify-center gap-1.5 rounded-pill border-2 border-default bg-surface text-brand font-extrabold transition-colors hover:bg-brand-subtle"
           style={{ fontSize: 12.5, padding: 12 }}
         >
@@ -191,7 +129,7 @@ const DirectionCard = memo(function DirectionCard({
       )}
       <button
         type="button"
-        onClick={(e) => { e.stopPropagation(); onDetail(direction); }}
+        onClick={(e) => { e.stopPropagation(); onDetail(career); }}
         className="font-extrabold text-center hover:opacity-75 transition-opacity"
         style={{ fontSize: 12.5, color: 'var(--brand)', padding: 4 }}
       >
@@ -226,8 +164,7 @@ export default function ResultsPage() {
     hasCompletedAssessment,
     showUniversityBtn,
     ageGroup,
-    topInterests,
-    topThinking,
+    profileEntries,
     refetch,
   } = useResults();
 
@@ -257,38 +194,32 @@ export default function ResultsPage() {
     );
   }
 
-  function handleDirectionDetail(direction: DirectionResult) {
-    navigate(`/results/directions/${encodeURIComponent(direction.slug)}`);
+  function handleCareerDetail(career: CareerMatch) {
+    navigate(`/results/directions/${encodeURIComponent(career.slug)}`);
   }
 
-  function handleUniversity(direction: DirectionResult) {
-    navigate(`/results/directions/${encodeURIComponent(direction.slug)}/universities`);
+  function handleUniversity(career: CareerMatch) {
+    navigate(`/results/directions/${encodeURIComponent(career.slug)}/universities`);
   }
 
-  function handleInquiry(direction: DirectionResult) {
-    navigate(`/results/directions/${encodeURIComponent(direction.slug)}/inquiry`);
+  function handleInquiry(career: CareerMatch) {
+    navigate(`/results/directions/${encodeURIComponent(career.slug)}/inquiry`);
   }
 
   const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
-  const wellbeingZones = report.wellbeing_zones ?? [];
-  const hasWellbeingZones = wellbeingZones.length > 0;
-
-  const thinkingDesc = topThinking.length > 0
-    ? `У тебя хорошо развиты: ${topThinking.slice(0, 2).map(([cat]) => (THINKING_LABELS[cat] ?? cat).toLowerCase()).join(' и ')}.`
-    : null;
-
-  const topDirection = report.directions?.[0];
+  const topCareer = report.careers?.[0];
+  const isFlatProfile = report.meta.differentiation < 20;
 
   return (
     <PageContainer className="flex flex-col gap-6">
 
       <PageHeader
         title="Что мы узнали о тебе"
-        subtitle="Твой профиль склонностей и рекомендованное направление"
+        subtitle="Твой RIASEC-профиль и рекомендованное направление"
       />
 
       {/* ── Лучшее совпадение ────────────────────────────────────── */}
-      {topDirection && (
+      {topCareer && (
         <AnimatedBlock>
           <div
             className="relative overflow-hidden rounded-[24px] p-[30px_32px] text-on-brand"
@@ -297,16 +228,16 @@ export default function ResultsPage() {
             <div className="absolute bottom-[-60px] right-[-30px] w-[220px] h-[220px] rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.08)' }} />
             <div className="relative">
               <div className="font-extrabold tracking-[.06em] uppercase mb-2 opacity-85" style={{ fontSize: 13 }}>
-                🎯 Лучшее совпадение
+                🎯 Твой код — {report.code.join('')}
               </div>
-              <h2 className="font-black mb-2 tracking-[-0.01em] text-[32px] leading-tight">{topDirection.name}</h2>
+              <h2 className="font-black mb-2 tracking-[-0.01em] text-[32px] leading-tight">{topCareer.name}</h2>
               <p className="font-semibold opacity-90 mb-5 leading-relaxed text-base max-w-2xl">
-                {topDirection.why_it_fits}
+                {careerFitLine(topCareer)}
               </p>
               <div className="flex gap-3 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => handleDirectionDetail(topDirection)}
+                  onClick={() => handleCareerDetail(topCareer)}
                   className="h-[50px] px-7 rounded-pill font-extrabold transition-transform hover:scale-[1.03] active:scale-[0.98]"
                   style={{ background: '#fff', color: '#5B21B6', fontSize: 15, border: 'none' }}
                 >
@@ -315,7 +246,7 @@ export default function ResultsPage() {
                 {showUniversityBtn && (
                   <button
                     type="button"
-                    onClick={() => handleUniversity(topDirection)}
+                    onClick={() => handleUniversity(topCareer)}
                     className="h-[50px] px-[26px] rounded-pill font-extrabold transition-colors"
                     style={{ border: '1.5px solid rgba(255,255,255,.55)', background: 'rgba(255,255,255,.12)', color: '#fff', fontSize: 15 }}
                   >
@@ -335,30 +266,36 @@ export default function ResultsPage() {
             <SectionHeader emoji="📋" title="Резюме" />
             <Card className="bg-brand-subtle">
               <p className="text-body text-primary leading-relaxed">{report.summary}</p>
+              {isFlatProfile && (
+                <p className="text-caption text-secondary mt-3">
+                  Твои результаты по разным типам близки друг к другу — это нормально,
+                  если ты ещё не определился с направлением. Такой результат стоит
+                  воспринимать как отправную точку, а не окончательный вывод.
+                </p>
+              )}
             </Card>
           </section>
         </AnimatedBlock>
       )}
 
       {/* ── Сильные стороны ──────────────────────────────────────── */}
-      {(report.strengths ?? []).length > 0 && (
+      {report.strengths.length > 0 && (
         <AnimatedBlock>
           <section aria-label="Сильные стороны">
             <SectionHeader emoji="💪" title="Сильные стороны" />
             <div className="flex flex-wrap gap-2.5">
-              {report.strengths.map((s, i) => (
+              {report.strengths.map((letter) => (
                 <div
-                  key={i}
+                  key={letter}
                   className="flex items-center gap-2.5 bg-surface rounded-pill pl-2 pr-4 py-1.5 shadow-card"
                 >
                   <span
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-lg select-none flex-shrink-0"
-                    style={{ background: STRENGTH_ICON_BG[i % STRENGTH_ICON_BG.length] }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-lg select-none flex-shrink-0 bg-brand-subtle"
                     aria-hidden="true"
                   >
-                    {getIconForText(s, STRENGTH_ICON_PAIRS)}
+                    {RIASEC_ICONS[letter]}
                   </span>
-                  <p className="text-caption font-semibold text-primary">{s}</p>
+                  <p className="text-caption font-semibold text-primary">{RIASEC_LABELS[letter]}</p>
                 </div>
               ))}
             </div>
@@ -366,38 +303,19 @@ export default function ResultsPage() {
         </AnimatedBlock>
       )}
 
-      {/* ── Мотивация ────────────────────────────────────────────── */}
-      {(report.motivation ?? []).length > 0 && (
-        <AnimatedBlock>
-          <section aria-label="Мотивация">
-            <SectionHeader emoji="⚡" title="Что тебя мотивирует" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {report.motivation.map((text, i) => (
-                <Card key={i} className="flex items-center gap-3 !p-4">
-                  <span className="text-xl select-none flex-shrink-0" aria-hidden="true">
-                    {getIconForText(text, MOTIVATION_ICON_PAIRS)}
-                  </span>
-                  <p className="text-body font-semibold text-primary">{text}</p>
-                </Card>
-              ))}
-            </div>
-          </section>
-        </AnimatedBlock>
-      )}
-
       {/* ── Подходящие профессии ─────────────────────────────────── */}
-      {(report.directions ?? []).length > 0 && (
+      {(report.careers ?? []).length > 0 && (
         <AnimatedBlock>
           <section aria-label="Подходящие направления">
             <SectionHeader emoji="👥" title="Подходящие профессии" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-              {report.directions.map(direction => (
-                <DirectionCard
-                  key={direction.slug}
-                  direction={direction}
+              {report.careers.map(career => (
+                <CareerCard
+                  key={career.slug}
+                  career={career}
                   showUniversityBtn={showUniversityBtn}
                   showInquiryBtn={showInquiryBtn}
-                  onDetail={handleDirectionDetail}
+                  onDetail={handleCareerDetail}
                   onUniversity={handleUniversity}
                   onInquiry={handleInquiry}
                 />
@@ -407,77 +325,58 @@ export default function ResultsPage() {
         </AnimatedBlock>
       )}
 
-      {/* ── Интересы + Стиль мышления/Зоны внимания ─────────────────── */}
+      {/* ── Профиль RIASEC + план развития ─────────────────────────── */}
       <AnimatedBlock>
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5">
-          <section aria-label="Твои интересы" className="min-w-0">
-            <SectionHeader emoji="📊" title="Твои интересы" />
+          <section aria-label="Твой профиль RIASEC" className="min-w-0">
+            <SectionHeader emoji="📊" title="Твой профиль RIASEC" />
             <Card className="flex flex-col gap-4">
-              {topInterests.length > 0 ? (
-                topInterests.map(([cat, score]) => {
-                  const label = INTEREST_LABELS[cat] ?? cat;
-                  return (
-                    <div key={cat}>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="font-extrabold text-primary" style={{ fontSize: 15 }}>{label}</span>
-                        <span className="font-extrabold text-brand" style={{ fontSize: 14 }}>{Math.round(score)}%</span>
-                      </div>
-                      <div
-                        role="progressbar"
-                        aria-valuenow={Math.round(score)}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-label={label}
-                        className="h-3 w-full rounded-full bg-brand-subtle overflow-hidden"
-                      >
-                        <div
-                          className="h-full rounded-full transition-[width] duration-300 ease-out"
-                          style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#A78BFA,#7C3AED)' }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-caption text-muted text-center">Данных пока нет</p>
-              )}
+              {profileEntries.map(([letter, score]) => (
+                <div key={letter}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-extrabold text-primary" style={{ fontSize: 15 }}>
+                      {RIASEC_ICONS[letter]} {RIASEC_LABELS[letter]}
+                    </span>
+                    <span className="font-extrabold text-brand" style={{ fontSize: 14 }}>{Math.round(score)}%</span>
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-valuenow={Math.round(score)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={RIASEC_LABELS[letter]}
+                    className="h-3 w-full rounded-full bg-brand-subtle overflow-hidden"
+                  >
+                    <div
+                      className="h-full rounded-full transition-[width] duration-300 ease-out"
+                      style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#A78BFA,#7C3AED)' }}
+                    />
+                  </div>
+                </div>
+              ))}
             </Card>
           </section>
 
           <div className="flex flex-col gap-6 min-w-0">
-            <section aria-label="Стиль мышления">
-              <SectionHeader emoji="🧠" title="Стиль мышления" />
-              {thinkingDesc && (
-                <p className="text-body text-secondary mb-3">{thinkingDesc}</p>
-              )}
-              <div className="grid grid-cols-2 gap-3">
-                {topThinking.map(([cat, score]) => (
-                  <div
-                    key={cat}
-                    className="bg-surface rounded-[16px] p-4 text-center shadow-card"
-                  >
-                    <span className="block mb-1.5 text-xl select-none" aria-hidden="true">
-                      {THINKING_EMOJIS[cat] ?? '🔷'}
-                    </span>
-                    <p className="font-semibold text-secondary mb-1" style={{ fontSize: 11.5 }}>
-                      {THINKING_LABELS[cat] ?? cat}
-                    </p>
-                    <p className="font-extrabold text-primary" style={{ fontSize: 17 }}>{`${Math.round(score)}%`}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {hasWellbeingZones && (
-              <section aria-label="Зоны внимания">
-                <SectionHeader emoji="🌿" title="Зоны внимания" />
-                <div className="rounded-[16px] overflow-hidden bg-success-subtle">
-                  {wellbeingZones.map((zone, i) => (
-                    <div key={i} className="px-5 py-4">
-                      <p className="font-semibold" style={{ fontSize: 13.5, color: 'var(--success-text)', lineHeight: 1.5 }}>{zone}</p>
-                    </div>
+            {report.development_plan.reinforce.length > 0 && (
+              <section aria-label="Что усилить">
+                <SectionHeader emoji="🚀" title="Что усилить" />
+                <Card className="flex flex-col gap-2">
+                  {report.development_plan.reinforce.map((item, i) => (
+                    <p key={i} className="text-body font-semibold text-primary">• {item}</p>
                   ))}
-                </div>
+                </Card>
+              </section>
+            )}
+
+            {report.development_plan.compensate.length > 0 && (
+              <section aria-label="Что подтянуть">
+                <SectionHeader emoji="🌱" title="Что можно подтянуть" />
+                <Card className="flex flex-col gap-2">
+                  {report.development_plan.compensate.map((item, i) => (
+                    <p key={i} className="text-body font-semibold text-primary">• {item}</p>
+                  ))}
+                </Card>
               </section>
             )}
           </div>

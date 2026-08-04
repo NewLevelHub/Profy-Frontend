@@ -15,9 +15,9 @@ export const assessmentApi = {
   current: () =>
     apiClient.get<AssessmentResponse>(API.assessment.current).then(r => r.data),
 
-  getQuestions: (assessmentId: string, block: string) =>
+  getQuestions: (assessmentId: string) =>
     apiClient
-      .get<Question[]>(API.assessment.questions(assessmentId, block))
+      .get<Question[]>(API.assessment.questions(assessmentId))
       .then(r => r.data),
 
   saveAnswers: (assessmentId: string, payload: SaveAnswersPayload) =>

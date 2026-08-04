@@ -1,43 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
-import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
-import { BLOCK_NAMES, BLOCK_EMOJIS } from '@/shared/config/constants';
-import type { AnswerPayload, AssessmentBlock, Question } from '@/shared/types';
-import { getAssessmentBlocks } from '../utils/assessmentBlocks';
+import type { Question } from '@/shared/types';
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
 export function useAssessment() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
-  const goal = useAssessmentStore(s => s.goal);
-  const currentBlock = useAssessmentStore(s => s.currentBlock);
-  const completedBlocks = useAssessmentStore(s => s.completedBlocks);
-  const advanceBlock = useAssessmentStore(s => s.advanceBlock);
-  const markBlockCompleted = useAssessmentStore(s => s.markBlockCompleted);
-  const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
-
-  // Retake mode: /assessment?retake=<blockIndex>
-  const retakeParam = searchParams.get('retake');
-  const retakeIndex = retakeParam !== null ? parseInt(retakeParam, 10) : null;
-  const isRetakeMode = retakeIndex !== null && !isNaN(retakeIndex) && retakeIndex >= 0;
-
-  const activeBlocks = getAssessmentBlocks(ageGroup, goal);
-  const totalBlocks = activeBlocks.length;
-
-  // In retake mode use the retake block, otherwise use the store's currentBlock
-  const effectiveBlock = isRetakeMode ? retakeIndex! : currentBlock;
-  const currentBlockKey = activeBlocks[effectiveBlock] as AssessmentBlock | undefined;
+  const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
+  const setProgress = useAssessmentStore(s => s.setProgress);
+  const completeAssessment = useAssessmentStore(s => s.completeAssessment);
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [blockAnswers, setBlockAnswers] = useState<AnswerPayload[]>([]);
+  const [selectedValue, setSelectedValue] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [transitioning, setTransitioning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +26,7 @@ export function useAssessment() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startIndexApplied = useRef(false);
 
   useEffect(() => {
     if (!assessmentId) {
@@ -52,27 +34,27 @@ export function useAssessment() {
       return;
     }
 
-    // Normal mode: redirect to loading if all blocks done
-    if (!isRetakeMode && currentBlock >= totalBlocks) {
-      navigate('/assessment/loading', { replace: true });
-      return;
-    }
-
-    if (!currentBlockKey) return;
-
     let cancelled = false;
 
-    async function loadBlock() {
+    async function loadQuestions() {
       setPhase('loading');
       setError(null);
       try {
-        const data = await assessmentApi.getQuestions(assessmentId!, currentBlockKey!);
+        const data = await assessmentApi.getQuestions(assessmentId!);
         if (cancelled) return;
         if (data.length === 0) throw new Error('empty_questions');
         setQuestions(data);
-        setQuestionIndex(0);
-        setSelectedIndex(null);
-        setBlockAnswers([]);
+
+        if (!startIndexApplied.current) {
+          startIndexApplied.current = true;
+          const startIndex = Math.min(answeredCountFromStore, data.length - 1);
+          setQuestionIndex(startIndex);
+          if (startIndex >= data.length - 1 && answeredCountFromStore >= data.length) {
+            navigate('/assessment/loading', { replace: true });
+            return;
+          }
+        }
+
         setPhase('intro');
         introTimerRef.current = setTimeout(() => {
           if (!cancelled) setPhase('question');
@@ -85,7 +67,7 @@ export function useAssessment() {
       }
     }
 
-    loadBlock();
+    loadQuestions();
 
     return () => {
       cancelled = true;
@@ -94,12 +76,16 @@ export function useAssessment() {
         introTimerRef.current = null;
       }
     };
-    // effectiveBlock captures both currentBlock (normal) and retakeIndex (retake)
-    // assessmentId ensures fresh fetch when a new assessment is started at the same block index
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveBlock, retryCount, assessmentId]);
+  }, [assessmentId, retryCount]);
 
-  function handleStartBlock() {
+  useEffect(() => {
+    const question = questions[questionIndex];
+    setSelectedValue(question ? (answers[question.id] ?? null) : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionIndex, questions]);
+
+  function handleStartIntro() {
     if (introTimerRef.current !== null) {
       clearTimeout(introTimerRef.current);
       introTimerRef.current = null;
@@ -108,98 +94,45 @@ export function useAssessment() {
   }
 
   function handleBack() {
-    if (questionIndex === 0 || transitioning) return;
-    setBlockAnswers(prev => prev.slice(0, questionIndex - 1));
+    if (questionIndex === 0 || transitioning || saving) return;
     setQuestionIndex(i => i - 1);
-    setSelectedIndex(null);
   }
 
-  function handleOptionSelect(questionId: string, optionIndex: number) {
-    if (transitioning) return;
-    const isLast = questionIndex === questions.length - 1;
+  async function handleAnswer(value: number) {
+    const question = questions[questionIndex];
+    if (!question || saving || transitioning) return;
 
-    if (!isLast && selectedIndex !== null) return;
-
-    setSelectedIndex(optionIndex);
-
-    if (isLast) {
-      setBlockAnswers(prev => {
-        const idx = prev.findIndex(a => a.question_id === questionId);
-        if (idx >= 0) {
-          const copy = [...prev];
-          copy[idx] = { question_id: questionId, selected_option_index: optionIndex };
-          return copy;
-        }
-        return [...prev, { question_id: questionId, selected_option_index: optionIndex }];
-      });
-      return;
-    }
-
-    setBlockAnswers(prev => [
-      ...prev,
-      { question_id: questionId, selected_option_index: optionIndex },
-    ]);
-
-    setTransitioning(true);
-    setTimeout(() => {
-      setQuestionIndex(i => i + 1);
-      setSelectedIndex(null);
-      setTransitioning(false);
-    }, 300);
-  }
-
-  async function handleNextBlock() {
-    if (saving || selectedIndex === null || !currentBlockKey || !assessmentId) return;
+    setSelectedValue(value);
     setSaving(true);
     setError(null);
-    try {
-      await assessmentApi.saveAnswers(assessmentId, {
-        block: currentBlockKey,
-        answers: blockAnswers,
-      });
-      markBlockCompleted(currentBlockKey);
 
-      if (isRetakeMode) {
-        // Retake: only one block — go straight to result regeneration
-        navigate('/assessment/praise', {
-          state: {
-            title: 'Готово!',
-            subtitle: `Блок «${BLOCK_NAMES[currentBlockKey]}» обновлён`,
-            nextPath: '/assessment/loading?retake=1',
-            completedCount: totalBlocks,
-            totalBlocks,
-          },
-        });
+    try {
+      const response = await assessmentApi.saveAnswers(assessmentId!, {
+        answers: [{ question_id: question.id, value }],
+      });
+      setAnswers(prev => ({ ...prev, [question.id]: value }));
+      setProgress(response.answered_count, response.total);
+
+      if (response.completed) {
+        completeAssessment();
+        navigate('/assessment/loading');
         return;
       }
 
-      const nextIndex = currentBlock + 1;
-      const isLast = nextIndex >= totalBlocks;
-      const nextBlockKey = activeBlocks[nextIndex];
-      const nextBlockName = nextBlockKey ? BLOCK_NAMES[nextBlockKey] : undefined;
-      const nextBlockEmoji = nextBlockKey ? BLOCK_EMOJIS[nextBlockKey] : undefined;
-      // IMPORTANT:
-      // Do not advance the local block index on the last block before navigating to PraisePage.
-      // Otherwise the "currentBlock >= totalBlocks" guard effect can race and immediately redirect
-      // to loading/results, skipping the final congratulations screen.
-      if (!isLast) {
-        advanceBlock();
+      const isLast = questionIndex >= questions.length - 1;
+      if (isLast) {
+        // Shouldn't normally happen (completed should be true), but guard anyway.
+        navigate('/assessment/loading');
+        return;
       }
-      navigate('/assessment/praise', {
-        state: {
-          title: isLast ? 'Ты справился!' : 'Молодец!',
-          subtitle: isLast
-            ? 'Считаем результат...'
-            : `Блок «${BLOCK_NAMES[currentBlockKey]}» пройден`,
-          nextPath: isLast ? '/assessment/loading' : '/assessment',
-          completedCount: nextIndex,
-          totalBlocks,
-          nextBlockName,
-          nextBlockEmoji,
-        },
-      });
+
+      setTransitioning(true);
+      setTimeout(() => {
+        setQuestionIndex(i => i + 1);
+        setTransitioning(false);
+      }, 250);
     } catch {
-      setError('Не удалось сохранить ответы. Попробуй ещё раз.');
+      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {
       setSaving(false);
     }
@@ -219,37 +152,24 @@ export function useAssessment() {
   }
 
   const currentQuestion = questions[questionIndex];
-  const isLastQuestion = questions.length > 0 && questionIndex === questions.length - 1;
-  const showNextButton = isLastQuestion && selectedIndex !== null;
-  const questionProgress =
-    questions.length > 0 ? ((questionIndex + 1) / questions.length) * 100 : 0;
-  const overallProgress = totalBlocks > 0 ? (effectiveBlock / totalBlocks) * 100 : 0;
+  const totalQuestions = questions.length;
+  const progress = totalQuestions > 0 ? ((questionIndex + 1) / totalQuestions) * 100 : 0;
 
   return {
     phase,
     questions,
     questionIndex,
-    selectedIndex,
+    totalQuestions,
+    selectedValue,
     transitioning,
     saving,
     error,
-    currentBlock: effectiveBlock,
-    currentBlockKey,
-    totalBlocks,
-    activeBlocks,
-    ageGroup,
-    completedBlocks,
     currentQuestion,
-    isLastQuestion,
-    showNextButton,
-    questionProgress,
-    overallProgress,
-    isRetakeMode,
+    progress,
     exitConfirmOpen,
     handleBack,
-    handleStartBlock,
-    handleOptionSelect,
-    handleNextBlock,
+    handleStartIntro,
+    handleAnswer,
     handleExit,
     confirmExit,
     cancelExit,

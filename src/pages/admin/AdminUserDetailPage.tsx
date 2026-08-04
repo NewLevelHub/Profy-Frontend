@@ -35,17 +35,14 @@ const ARTIFACT_LABELS: Record<string, string> = {
   dream: 'Мечты',
 };
 
-const BLOCK_LABELS: Record<string, string> = {
-  interests: 'Интересы',
-  thinking: 'Мышление',
-  personality: 'Личность',
-  motivation: 'Мотивация',
-  academic: 'Учёба',
-  directions: 'Направления',
-  goal_clarification: 'Уточнение цели',
-  university: 'Вуз',
-  wellbeing: 'Благополучие',
-  unknown: 'Прочее',
+const RIASEC_TYPE_LABELS: Record<string, string> = {
+  R: 'Реалистичный',
+  I: 'Исследовательский',
+  A: 'Артистичный',
+  S: 'Социальный',
+  E: 'Предприимчивый',
+  C: 'Конвенциональный',
+  '?': 'Прочее',
 };
 
 function formatDate(value: string) {
@@ -99,13 +96,13 @@ function ChipList({ label, items }: { label: string; items: string[] }) {
   );
 }
 
-function groupResponsesByBlock(responses: AdminResponseItem[]) {
+function groupResponsesByType(responses: AdminResponseItem[]) {
   const groups = new Map<string, AdminResponseItem[]>();
   for (const response of responses) {
-    const block = response.block || 'unknown';
-    const items = groups.get(block) ?? [];
+    const type = response.riasec_type || '?';
+    const items = groups.get(type) ?? [];
     items.push(response);
-    groups.set(block, items);
+    groups.set(type, items);
   }
   return groups;
 }
@@ -117,14 +114,14 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
     );
   }
 
-  const groups = groupResponsesByBlock(responses);
+  const groups = groupResponsesByType(responses);
 
   return (
     <div className="space-y-4">
-      {Array.from(groups.entries()).map(([block, items]) => (
-        <div key={block} className="space-y-2">
+      {Array.from(groups.entries()).map(([type, items]) => (
+        <div key={type} className="space-y-2">
           <h4 className="font-extrabold text-primary" style={{ fontSize: 15 }}>
-            {BLOCK_LABELS[block] ?? block}
+            {RIASEC_TYPE_LABELS[type] ?? type}
           </h4>
           <div className="space-y-2">
             {items.map((item, index) => (
@@ -162,8 +159,7 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
 
       {!compact && (
         <>
-          <InfoRow label="Ответов" value={assessment.responses.length} />
-          <InfoRow label="Текущий блок" value={assessment.current_block} />
+          <InfoRow label="Ответов" value={`${assessment.answered_count} / ${assessment.total_questions}`} />
         </>
       )}
 
@@ -179,14 +175,16 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
           {assessment.analysis_result.strengths.length > 0 && (
             <ChipList label="Сильные стороны" items={assessment.analysis_result.strengths} />
           )}
-          {assessment.analysis_result.directions.length > 0 && (
+          {assessment.analysis_result.careers.length > 0 && (
             <div>
               <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>Направления</p>
               <div className="space-y-2">
-                {assessment.analysis_result.directions.map((direction) => (
-                  <div key={direction.slug} className="p-3 rounded-[var(--radius)] bg-raised border border-default">
-                    <p className="font-bold">{direction.name}</p>
-                    <p className="text-sm text-secondary mt-1">{direction.why_it_fits}</p>
+                {assessment.analysis_result.careers.map((career) => (
+                  <div key={career.slug} className="p-3 rounded-[var(--radius)] bg-raised border border-default">
+                    <p className="font-bold">{career.name}</p>
+                    <p className="text-sm text-secondary mt-1">
+                      Код {career.holland_code} · совпадение {career.match_score}/6
+                    </p>
                   </div>
                 ))}
               </div>

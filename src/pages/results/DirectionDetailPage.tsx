@@ -28,7 +28,7 @@ export default function DirectionDetailPage() {
 
   const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
 
-  const direction = report?.directions.find(d => d.slug === slug);
+  const direction = report?.careers.find(d => d.slug === slug);
   const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
   const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
   const hasRoadmap = selectedDirectionSlug === slug;
@@ -83,7 +83,9 @@ export default function DirectionDetailPage() {
             <span aria-hidden="true">✨</span>
             Почему тебе подходит
           </p>
-          <p className="text-body text-primary leading-relaxed">{direction.why_it_fits}</p>
+          <p className="text-body text-primary leading-relaxed">
+            Код направления — {direction.holland_code}. Совпадение с твоим профилем: {direction.match_score} из 6.
+          </p>
         </Card>
       </div>
 
