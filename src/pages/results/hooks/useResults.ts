@@ -61,6 +61,8 @@ export function useResults() {
     effectiveReport?.thinking_style ?? {},
   ) as [keyof ThinkingStyle, number][];
 
+  const motivationHighlights = effectiveReport?.motivation_highlights ?? [];
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
@@ -71,6 +73,7 @@ export function useResults() {
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
     profileEntries,
     thinkingStyleEntries,
+    motivationHighlights,
     refetch,
   };
 }

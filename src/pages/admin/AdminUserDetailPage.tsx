@@ -8,7 +8,12 @@ import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
-import type { AdminAssessmentDetail, AdminResponseItem, AdminUserDetail } from '@/shared/types';
+import type {
+  AdminAssessmentDetail,
+  AdminMotivationResponseItem,
+  AdminResponseItem,
+  AdminUserDetail,
+} from '@/shared/types';
 
 const GOAL_LABELS: Record<string, string> = {
   explore: 'Исследовать',
@@ -50,6 +55,18 @@ const BIGFIVE_DOMAIN_LABELS: Record<string, string> = {
   O: 'Открытость опыту',
   A: 'Доброжелательность',
   C: 'Добросовестность',
+};
+
+const MOTIVATION_LABELS: Record<string, string> = {
+  interest: 'Интерес к делу',
+  challenge: 'Вызов и рост',
+  helping: 'Польза другим',
+  freedom: 'Свобода решений',
+  money: 'Материальный результат',
+  recognition: 'Признание',
+  stability: 'Стабильность',
+  creation: 'Создавать своё',
+  teamwork: 'Команда',
 };
 
 function groupLabel(instrument: string, category: string): string {
@@ -156,6 +173,38 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
   );
 }
 
+function MotivationResponsesSection({ responses }: { responses: AdminMotivationResponseItem[] }) {
+  if (!responses.length) {
+    return <p className="text-secondary font-semibold">Блок мотивации ещё не пройден</p>;
+  }
+  return (
+    <div className="space-y-2">
+      {responses.map((item) => (
+        <div
+          key={item.triplet_index}
+          className="p-3 rounded-[var(--radius)] bg-raised border border-default space-y-1"
+        >
+          <p className="text-sm">
+            <span className="font-extrabold text-brand">Важнее всего: </span>
+            {item.most_text}{' '}
+            <span className="text-muted">({MOTIVATION_LABELS[item.most_category] ?? item.most_category})</span>
+          </p>
+          <p className="text-sm">
+            <span className="font-extrabold text-secondary">Нейтрально: </span>
+            {item.neutral_text}{' '}
+            <span className="text-muted">({MOTIVATION_LABELS[item.neutral_category] ?? item.neutral_category})</span>
+          </p>
+          <p className="text-sm">
+            <span className="font-extrabold text-danger">Менее всего: </span>
+            {item.least_text}{' '}
+            <span className="text-muted">({MOTIVATION_LABELS[item.least_category] ?? item.least_category})</span>
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAssessmentDetail; compact?: boolean }) {
   return (
     <div className={cn('space-y-4', compact ? 'pt-4 border-t border-default' : '')}>
@@ -179,6 +228,11 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
       <div className="space-y-3">
         <h4 className="font-extrabold text-primary">Вопросы и ответы</h4>
         <ResponsesSection responses={assessment.responses} />
+      </div>
+
+      <div className="space-y-3">
+        <h4 className="font-extrabold text-primary">Мотивация (MOST/LEAST)</h4>
+        <MotivationResponsesSection responses={assessment.motivation_responses} />
       </div>
 
       {assessment.analysis_result && (

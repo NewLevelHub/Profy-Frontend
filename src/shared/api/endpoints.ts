@@ -20,6 +20,8 @@ export const API = {
     current: '/assessment/current',
     questions: (assessmentId: string) => `/assessment/${assessmentId}/questions`,
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
+    motivationTriplets: (assessmentId: string) => `/assessment/${assessmentId}/motivation-triplets`,
+    motivationAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-answers`,
   },
   result: {
     generate: '/result/generate',

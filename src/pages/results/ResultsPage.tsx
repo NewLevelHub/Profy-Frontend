@@ -166,6 +166,7 @@ export default function ResultsPage() {
     ageGroup,
     profileEntries,
     thinkingStyleEntries,
+    motivationHighlights,
     refetch,
   } = useResults();
 
@@ -428,6 +429,23 @@ export default function ResultsPage() {
                 </div>
               ))}
             </Card>
+          </section>
+        </AnimatedBlock>
+      )}
+
+      {/* ── Что тебя драйвит ─────────────────────────────────────── */}
+      {motivationHighlights.length > 0 && (
+        <AnimatedBlock>
+          <section aria-label="Что тебя драйвит">
+            <SectionHeader emoji="🔥" title="Что тебя драйвит" />
+            <div className="flex flex-col gap-2.5">
+              {motivationHighlights.map((phrase, i) => (
+                <Card key={i} className="flex flex-row items-center gap-2.5">
+                  <span className="text-lg select-none flex-shrink-0" aria-hidden="true">🔥</span>
+                  <p className="text-body font-semibold text-primary">{phrase}</p>
+                </Card>
+              ))}
+            </div>
           </section>
         </AnimatedBlock>
       )}

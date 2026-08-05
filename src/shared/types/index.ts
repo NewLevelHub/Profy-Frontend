@@ -72,6 +72,8 @@ export interface AssessmentResponse {
   status: AssessmentStatus;
   answered_count: number;
   total_questions: number;
+  motivation_answered_count: number;
+  motivation_total: number;
   created_at: string;
 }
 
@@ -94,6 +96,40 @@ export interface SaveAnswersPayload {
 }
 
 export interface SaveAnswersResponse {
+  answered_count: number;
+  total: number;
+  completed: boolean;
+}
+
+// ─── Motivation (forced-choice triplets) ────────────────────────────────────────
+
+export type MotivationCategory =
+  | 'interest' | 'challenge' | 'helping' | 'freedom' | 'money'
+  | 'recognition' | 'stability' | 'creation' | 'teamwork';
+
+export interface MotivationStatement {
+  id: string;
+  triplet_index: number;
+  order: number;
+  text: string;
+}
+
+export interface MotivationTriplet {
+  triplet_index: number;
+  statements: MotivationStatement[];
+}
+
+export interface MotivationAnswerPayload {
+  triplet_index: number;
+  most_statement_id: string;
+  least_statement_id: string;
+}
+
+export interface SubmitMotivationPayload {
+  answers: MotivationAnswerPayload[];
+}
+
+export interface SubmitMotivationResponse {
   answered_count: number;
   total: number;
   completed: boolean;
@@ -144,6 +180,9 @@ export interface AnalysisResultResponse {
   big_five: Record<BigFiveDomain, number>;
   thinking_style: ThinkingStyle;
   personality_highlights: string[];
+  motivation: Record<MotivationCategory, number>;
+  motivation_top: MotivationCategory[];
+  motivation_highlights: string[];
   summary: string;
   created_at: string;
 }
@@ -399,6 +438,17 @@ export interface AdminResponseItem {
   created_at: string;
 }
 
+export interface AdminMotivationResponseItem {
+  triplet_index: number;
+  most_text: string;
+  most_category: string;
+  least_text: string;
+  least_category: string;
+  neutral_text: string;
+  neutral_category: string;
+  created_at: string;
+}
+
 export interface AdminAssessmentDetail {
   id: string;
   user_id: string;
@@ -411,6 +461,7 @@ export interface AdminAssessmentDetail {
   created_at: string;
   completed_at: string | null;
   responses: AdminResponseItem[];
+  motivation_responses: AdminMotivationResponseItem[];
   analysis_result: AnalysisResultResponse | null;
   roadmap: RoadmapResponse | null;
 }

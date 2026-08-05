@@ -13,7 +13,6 @@ export function useAssessment() {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const setProgress = useAssessmentStore(s => s.setProgress);
-  const completeAssessment = useAssessmentStore(s => s.completeAssessment);
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -51,7 +50,11 @@ export function useAssessment() {
           const startIndex = Math.min(answeredCountFromStore, data.length - 1);
           setQuestionIndex(startIndex);
           if (startIndex >= data.length - 1 && answeredCountFromStore >= data.length) {
-            navigate('/assessment/loading', { replace: true });
+            // Likert phase already fully answered — motivation may still be
+            // pending, so continue there rather than assuming the whole
+            // test is done (useMotivationAssessment.ts skips ahead itself
+            // if that phase is also already complete).
+            navigate('/assessment/motivation', { replace: true });
             return;
           }
         }
@@ -115,15 +118,16 @@ export function useAssessment() {
       setProgress(response.answered_count, response.total);
 
       if (response.completed) {
-        completeAssessment();
-        navigate('/assessment/loading');
+        // Likert phase (RIASEC + Big Five) done — seamlessly continue into
+        // the motivation triplets, no results screen in between.
+        navigate('/assessment/motivation');
         return;
       }
 
       const isLast = questionIndex >= questions.length - 1;
       if (isLast) {
         // Shouldn't normally happen (completed should be true), but guard anyway.
-        navigate('/assessment/loading');
+        navigate('/assessment/motivation');
         return;
       }
 
