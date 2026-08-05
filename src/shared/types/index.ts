@@ -63,6 +63,8 @@ export type AssessmentGoal = 'explore' | 'profession' | 'university';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
+export type Instrument = 'riasec' | 'big_five';
+export type BigFiveDomain = 'N' | 'E' | 'O' | 'A' | 'C';
 
 export interface AssessmentResponse {
   id: string;
@@ -75,7 +77,9 @@ export interface AssessmentResponse {
 
 export interface Question {
   id: string;
-  riasec_type: HollandType;
+  instrument: Instrument;
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
   text: string;
   order: number;
 }
@@ -120,6 +124,13 @@ export interface DevelopmentPlan {
   compensate: string[];
 }
 
+export interface ThinkingStyle {
+  creative_think: number;
+  systematic: number;
+  strategic: number;
+  practical: number;
+}
+
 export interface AnalysisResultResponse {
   id: string;
   assessment_id: string;
@@ -130,6 +141,9 @@ export interface AnalysisResultResponse {
   strengths: HollandType[];
   weaknesses: HollandType[];
   development_plan: DevelopmentPlan;
+  big_five: Record<BigFiveDomain, number>;
+  thinking_style: ThinkingStyle;
+  personality_highlights: string[];
   summary: string;
   created_at: string;
 }
@@ -376,7 +390,8 @@ export interface AdminUserDetail {
 
 export interface AdminResponseItem {
   question_id: string;
-  riasec_type: string;
+  instrument: string;
+  category: string;
   question_text: string;
   question_order: number;
   answer_value: number;

@@ -6,15 +6,17 @@ import { LIKERT_SCALE } from '@/shared/config/constants';
 interface LikertScaleProps {
   selected: number | null;
   onSelect: (value: number) => void;
+  scale?: { value: number; label: string }[];
 }
 
 export const LikertScale = React.memo(function LikertScale({
   selected,
   onSelect,
+  scale = LIKERT_SCALE,
 }: LikertScaleProps) {
   return (
     <div className="flex flex-col gap-[10px]">
-      {LIKERT_SCALE.map(({ value, label }) => {
+      {scale.map(({ value, label }) => {
         const isSelected = selected === value;
         return (
           <button

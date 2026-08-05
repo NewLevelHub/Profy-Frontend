@@ -14,6 +14,7 @@ export default function AssessmentPage() {
     saving,
     error,
     currentQuestion,
+    currentScale,
     progress,
     exitConfirmOpen,
     handleBack,
@@ -194,7 +195,7 @@ export default function AssessmentPage() {
                   >
                     {currentQuestion.text}
                   </h2>
-                  <LikertScale selected={selectedValue} onSelect={handleAnswer} />
+                  <LikertScale selected={selectedValue} onSelect={handleAnswer} scale={currentScale} />
                 </div>
               )}
             </div>

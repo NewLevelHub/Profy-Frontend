@@ -42,8 +42,21 @@ const RIASEC_TYPE_LABELS: Record<string, string> = {
   S: 'Социальный',
   E: 'Предприимчивый',
   C: 'Конвенциональный',
-  '?': 'Прочее',
 };
+
+const BIGFIVE_DOMAIN_LABELS: Record<string, string> = {
+  N: 'Эмоциональная чувствительность',
+  E: 'Экстраверсия',
+  O: 'Открытость опыту',
+  A: 'Доброжелательность',
+  C: 'Добросовестность',
+};
+
+function groupLabel(instrument: string, category: string): string {
+  if (instrument === 'big_five') return `Big Five: ${BIGFIVE_DOMAIN_LABELS[category] ?? category}`;
+  if (instrument === 'riasec') return `RIASEC: ${RIASEC_TYPE_LABELS[category] ?? category}`;
+  return 'Прочее';
+}
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString('ru-RU', {
@@ -99,10 +112,10 @@ function ChipList({ label, items }: { label: string; items: string[] }) {
 function groupResponsesByType(responses: AdminResponseItem[]) {
   const groups = new Map<string, AdminResponseItem[]>();
   for (const response of responses) {
-    const type = response.riasec_type || '?';
-    const items = groups.get(type) ?? [];
+    const key = `${response.instrument}:${response.category}`;
+    const items = groups.get(key) ?? [];
     items.push(response);
-    groups.set(type, items);
+    groups.set(key, items);
   }
   return groups;
 }
@@ -118,10 +131,10 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
 
   return (
     <div className="space-y-4">
-      {Array.from(groups.entries()).map(([type, items]) => (
-        <div key={type} className="space-y-2">
+      {Array.from(groups.entries()).map(([key, items]) => (
+        <div key={key} className="space-y-2">
           <h4 className="font-extrabold text-primary" style={{ fontSize: 15 }}>
-            {RIASEC_TYPE_LABELS[type] ?? type}
+            {groupLabel(items[0].instrument, items[0].category)}
           </h4>
           <div className="space-y-2">
             {items.map((item, index) => (

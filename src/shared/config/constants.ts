@@ -40,6 +40,28 @@ export const LIKERT_SCALE: { value: number; label: string }[] = [
   { value: 5, label: 'Очень нравится' },
 ];
 
+export const BIGFIVE_LIKERT_SCALE: { value: number; label: string }[] = [
+  { value: 1, label: 'Очень Неточно' },
+  { value: 2, label: 'Умеренно Неточно' },
+  { value: 3, label: 'Ни Точно, Ни Неточно' },
+  { value: 4, label: 'Умеренно Точно' },
+  { value: 5, label: 'Очень Точно' },
+];
+
+export const THINKING_STYLE_LABELS: Record<string, string> = {
+  creative_think: 'Творческое мышление',
+  systematic: 'Системность',
+  strategic: 'Стратегическое видение',
+  practical: 'Практичность',
+};
+
+export const THINKING_STYLE_ICONS: Record<string, string> = {
+  creative_think: '💡',
+  systematic: '🗂️',
+  strategic: '🧭',
+  practical: '🔨',
+};
+
 export const AGE_GROUPS = {
   JUNIOR: 'junior',
   MIDDLE: 'middle',

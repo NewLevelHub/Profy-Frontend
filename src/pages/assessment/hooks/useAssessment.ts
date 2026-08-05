@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { assessmentApi } from '@/shared/api/assessment';
+import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
 import type { Question } from '@/shared/types';
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
@@ -154,6 +155,7 @@ export function useAssessment() {
   const currentQuestion = questions[questionIndex];
   const totalQuestions = questions.length;
   const progress = totalQuestions > 0 ? ((questionIndex + 1) / totalQuestions) * 100 : 0;
+  const currentScale = currentQuestion?.instrument === 'big_five' ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE;
 
   return {
     phase,
@@ -161,6 +163,7 @@ export function useAssessment() {
     questionIndex,
     totalQuestions,
     selectedValue,
+    currentScale,
     transitioning,
     saving,
     error,

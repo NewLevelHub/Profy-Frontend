@@ -6,7 +6,7 @@ import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { RIASEC_TYPES } from '@/shared/config/constants';
-import type { HollandType } from '@/shared/types';
+import type { HollandType, ThinkingStyle } from '@/shared/types';
 
 export function useResults() {
   const report = useResultStore(s => s.report);
@@ -57,6 +57,10 @@ export function useResults() {
     effectiveReport?.profile?.[letter] ?? 0,
   ]);
 
+  const thinkingStyleEntries = Object.entries(
+    effectiveReport?.thinking_style ?? {},
+  ) as [keyof ThinkingStyle, number][];
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
@@ -66,6 +70,7 @@ export function useResults() {
     ageGroup,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
     profileEntries,
+    thinkingStyleEntries,
     refetch,
   };
 }

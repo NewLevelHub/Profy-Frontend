@@ -7,7 +7,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
-import { RIASEC_LABELS, RIASEC_ICONS } from '@/shared/config/constants';
+import { RIASEC_LABELS, RIASEC_ICONS, THINKING_STYLE_LABELS, THINKING_STYLE_ICONS } from '@/shared/config/constants';
 import type { CareerMatch, HollandType } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 
@@ -165,6 +165,7 @@ export default function ResultsPage() {
     showUniversityBtn,
     ageGroup,
     profileEntries,
+    thinkingStyleEntries,
     refetch,
   } = useResults();
 
@@ -279,7 +280,7 @@ export default function ResultsPage() {
       )}
 
       {/* ── Сильные стороны ──────────────────────────────────────── */}
-      {report.strengths.length > 0 && (
+      {(report.strengths.length > 0 || report.personality_highlights.length > 0) && (
         <AnimatedBlock>
           <section aria-label="Сильные стороны">
             <SectionHeader emoji="💪" title="Сильные стороны" />
@@ -296,6 +297,20 @@ export default function ResultsPage() {
                     {RIASEC_ICONS[letter]}
                   </span>
                   <p className="text-caption font-semibold text-primary">{RIASEC_LABELS[letter]}</p>
+                </div>
+              ))}
+              {report.personality_highlights.map((phrase, i) => (
+                <div
+                  key={`ph-${i}`}
+                  className="flex items-center gap-2.5 bg-surface rounded-pill pl-2 pr-4 py-1.5 shadow-card"
+                >
+                  <span
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-lg select-none flex-shrink-0 bg-brand-subtle"
+                    aria-hidden="true"
+                  >
+                    🧠
+                  </span>
+                  <p className="text-caption font-semibold text-primary">{phrase}</p>
                 </div>
               ))}
             </div>
@@ -382,6 +397,40 @@ export default function ResultsPage() {
           </div>
         </div>
       </AnimatedBlock>
+
+      {/* ── Стиль мышления ───────────────────────────────────────── */}
+      {thinkingStyleEntries.length > 0 && (
+        <AnimatedBlock>
+          <section aria-label="Стиль мышления">
+            <SectionHeader emoji="🧭" title="Стиль мышления" />
+            <Card className="flex flex-col gap-4">
+              {thinkingStyleEntries.map(([key, score]) => (
+                <div key={key}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-extrabold text-primary" style={{ fontSize: 15 }}>
+                      {THINKING_STYLE_ICONS[key]} {THINKING_STYLE_LABELS[key]}
+                    </span>
+                    <span className="font-extrabold text-brand" style={{ fontSize: 14 }}>{Math.round(score)}%</span>
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-valuenow={Math.round(score)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={THINKING_STYLE_LABELS[key]}
+                    className="h-3 w-full rounded-full bg-brand-subtle overflow-hidden"
+                  >
+                    <div
+                      className="h-full rounded-full transition-[width] duration-300 ease-out"
+                      style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#A78BFA,#7C3AED)' }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </Card>
+          </section>
+        </AnimatedBlock>
+      )}
 
     </PageContainer>
   );
