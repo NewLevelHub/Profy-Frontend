@@ -8,6 +8,7 @@ import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useProfileStore } from '@/shared/store/profile';
+import { describeCareerFit } from '@/shared/lib/riasecMatch';
 
 function SectionTitle({ icon, children }: { icon: string; children: string }) {
   return (
@@ -84,7 +85,7 @@ export default function DirectionDetailPage() {
             Почему тебе подходит
           </p>
           <p className="text-body text-primary leading-relaxed">
-            Код направления — {direction.holland_code}. Совпадение с твоим профилем: {direction.match_score} из 6.
+            {report ? describeCareerFit(report.code, direction) : `Совпадение с твоим профилем: ${direction.match_score} из 6.`}
           </p>
         </Card>
       </div>

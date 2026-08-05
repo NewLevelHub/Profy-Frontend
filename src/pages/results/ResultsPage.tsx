@@ -8,6 +8,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { RIASEC_LABELS, RIASEC_ICONS, THINKING_STYLE_LABELS, THINKING_STYLE_ICONS } from '@/shared/config/constants';
+import { describeCareerFit } from '@/shared/lib/riasecMatch';
 import type { CareerMatch, HollandType } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 
@@ -63,10 +64,6 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
   return <SectionHeading emoji={emoji} title={title} />;
 }
 
-function careerFitLine(career: CareerMatch): string {
-  return `Код направления — ${career.holland_code}. Совпадение с твоим профилем: ${career.match_score} из 6.`;
-}
-
 interface CareerCardProps {
   career: CareerMatch;
   showUniversityBtn: boolean;
@@ -95,7 +92,7 @@ const CareerCard = memo(function CareerCard({
           className="font-extrabold text-brand bg-brand-subtle rounded-pill"
           style={{ fontSize: 11.5, padding: '5px 12px' }}
         >
-          {career.holland_code} · {career.match_score}/6
+          Совпадение {career.match_score}/6
         </span>
       </div>
       <div>
@@ -234,7 +231,7 @@ export default function ResultsPage() {
               </div>
               <h2 className="font-black mb-2 tracking-[-0.01em] text-[32px] leading-tight">{topCareer.name}</h2>
               <p className="font-semibold opacity-90 mb-5 leading-relaxed text-base max-w-2xl">
-                {careerFitLine(topCareer)}
+                {describeCareerFit(report.code, topCareer)}
               </p>
               <div className="flex gap-3 flex-wrap">
                 <button
