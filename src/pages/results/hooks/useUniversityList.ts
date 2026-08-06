@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { universityApi } from '@/shared/api/university';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { useResultStore } from '@/shared/store/result';
 
 export const COUNTRY_FILTERS: { label: string; value: string | undefined }[] = [
   { label: 'Все', value: undefined },
@@ -23,14 +24,23 @@ export function useUniversityList() {
   const navigate = useNavigate();
   const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
+  const report = useResultStore(s => s.report);
   const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
 
   const isAllowed = goal === 'university' && ageGroup === 'senior';
 
+  // Program.direction_slug is one of ~10 curated categories, not the
+  // profession's own slug (report.careers[].slug) — the two are independent
+  // vocabularies, so the university search must key off category_slugs.
+  // Some professions (e.g. "Архитектор") span more than one category, so all
+  // of them are sent and the backend returns their union.
+  const categorySlugs = report?.careers.find(c => c.slug === slug)?.category_slugs ?? [];
+  const categoryParam = categorySlugs.join(',');
+
   const { data: allPrograms = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['programs', slug] as const,
-    queryFn: () => universityApi.getPrograms(slug!),
-    enabled: !!slug && isAllowed,
+    queryKey: ['programs', categoryParam] as const,
+    queryFn: () => universityApi.getPrograms(categoryParam),
+    enabled: categorySlugs.length > 0 && isAllowed,
   });
 
   const programs = useMemo(() => {

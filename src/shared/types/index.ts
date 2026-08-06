@@ -141,6 +141,7 @@ export interface CareerMatch {
   slug: string;
   name: string;
   holland_code: string;
+  category_slugs: string[];
   match_score: number;
   description: string;
   professions: string[];
