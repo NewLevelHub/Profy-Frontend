@@ -149,6 +149,10 @@ export interface QuestionPair {
   pair_index: number;
   instrument: Instrument;
   frame: string | null;
+  // min(option_a's, option_b's) underlying Question.order — used to
+  // interleave a pair into its position in the plain-Likert sequence
+  // (middle only; junior's dedicated screen just uses pair_index order).
+  display_order: number;
   option_a: QuestionPairOption;
   option_b: QuestionPairOption;
 }
@@ -174,7 +178,6 @@ export interface CareerMatch {
   slug: string;
   name: string;
   holland_code: string;
-  category_slugs: string[];
   match_score: number;
   description: string;
   professions: string[];

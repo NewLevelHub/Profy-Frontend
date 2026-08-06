@@ -1,5 +1,6 @@
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
+import { pairsApi } from '@/shared/api/pairs';
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -14,15 +15,33 @@ function shuffled<T>(items: T[]): T[] {
   return copy;
 }
 
-/** Dev-only helper: answers every remaining Likert question (RIASEC + Big
- * Five) with a random 1-5 value, then every motivation triplet with a random
- * MOST/LEAST pair — so the whole test (both phases, submit endpoints already
- * accept batched answers) completes in two requests instead of ~278 clicks. */
+/** Dev-only helper: answers every remaining plain Likert question (RIASEC +
+ * Big Five, minus whatever's been pulled into pairs — see
+ * buildDisplaySequence.ts) with a random 1-5 value, every pair (middle's
+ * Dilemma/Scenario subset, or junior's whole test if this profile somehow
+ * still hits this page) by picking a random option, then every motivation
+ * triplet with a random MOST/LEAST pair — so the whole test completes in
+ * three requests instead of up to ~278 clicks. */
 export async function autofillAssessment(assessmentId: string): Promise<void> {
-  const questions = await assessmentApi.getQuestions(assessmentId);
-  if (questions.length > 0) {
+  const [questions, pairs] = await Promise.all([
+    assessmentApi.getQuestions(assessmentId),
+    pairsApi.getPairs(assessmentId),
+  ]);
+
+  const pairedQuestionIds = new Set(pairs.flatMap(p => [p.option_a.id, p.option_b.id]));
+  const likertOnly = questions.filter(q => !pairedQuestionIds.has(q.id));
+  if (likertOnly.length > 0) {
     await assessmentApi.saveAnswers(assessmentId, {
-      answers: questions.map(q => ({ question_id: q.id, value: randomInt(1, 5) })),
+      answers: likertOnly.map(q => ({ question_id: q.id, value: randomInt(1, 5) })),
+    });
+  }
+
+  if (pairs.length > 0) {
+    await pairsApi.submitAnswers(assessmentId, {
+      answers: pairs.map(p => ({
+        pair_index: p.pair_index,
+        picked_question_id: shuffled([p.option_a.id, p.option_b.id])[0],
+      })),
     });
   }
 

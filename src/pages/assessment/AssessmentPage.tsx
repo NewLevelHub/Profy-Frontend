@@ -3,17 +3,20 @@ import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { useAssessment } from './hooks/useAssessment';
 import { LikertScale } from './components/LikertScale';
+import { PairChoice } from './components/PairChoice';
 
 export default function AssessmentPage() {
   const {
     phase,
-    questionIndex,
-    totalQuestions,
+    itemIndex,
+    totalItems,
     selectedValue,
+    selectedPairOptionId,
     transitioning,
     saving,
     error,
     currentQuestion,
+    currentPair,
     currentScale,
     progress,
     exitConfirmOpen,
@@ -21,6 +24,7 @@ export default function AssessmentPage() {
     handleBack,
     handleStartIntro,
     handleAnswer,
+    handlePairAnswer,
     handleAutofill,
     handleExit,
     confirmExit,
@@ -29,8 +33,8 @@ export default function AssessmentPage() {
   } = useAssessment();
 
   const headerTitle =
-    phase === 'question' && totalQuestions > 0
-      ? `Вопрос ${questionIndex + 1} из ${totalQuestions}`
+    phase === 'question' && totalItems > 0
+      ? `Вопрос ${itemIndex + 1} из ${totalItems}`
       : 'Тест RIASEC';
 
   return (
@@ -71,7 +75,7 @@ export default function AssessmentPage() {
         style={{ background: 'rgba(245,243,255,0.9)', backdropFilter: 'blur(8px)' }}
       >
         <div className="flex items-center justify-between max-w-[980px] mx-auto mb-[14px]">
-          {phase === 'question' && questionIndex > 0 ? (
+          {phase === 'question' && itemIndex > 0 ? (
             <button
               type="button"
               onClick={handleBack}
@@ -160,9 +164,9 @@ export default function AssessmentPage() {
                 Отвечай честно: правильных и неправильных ответов здесь нет
               </p>
               <div className="flex items-center justify-center gap-[18px] font-bold" style={{ fontSize: 14, color: '#9CA3AF' }}>
-                <span className="inline-flex items-center gap-[6px]">📝 {totalQuestions} вопросов</span>
+                <span className="inline-flex items-center gap-[6px]">📝 {totalItems} вопросов</span>
                 <span className="w-[4px] h-[4px] rounded-full" style={{ background: '#C4B5FD' }} />
-                <span className="inline-flex items-center gap-[6px]">⏱ ~{Math.max(1, Math.ceil(totalQuestions / 20))} мин</span>
+                <span className="inline-flex items-center gap-[6px]">⏱ ~{Math.max(1, Math.ceil(totalItems / 20))} мин</span>
               </div>
             </div>
 
@@ -213,6 +217,29 @@ export default function AssessmentPage() {
                     {currentQuestion.text}
                   </h2>
                   <LikertScale selected={selectedValue} onSelect={handleAnswer} scale={currentScale} />
+                </div>
+              )}
+
+              {currentPair !== undefined && (
+                <div
+                  className={cn(
+                    'transition-opacity duration-300',
+                    transitioning ? 'opacity-0' : 'opacity-100',
+                  )}
+                >
+                  <h2
+                    className="font-black text-primary mb-8 leading-snug tracking-[-0.01em] text-subtitle text-center"
+                    style={{ fontSize: 28 }}
+                  >
+                    Что тебе ближе?
+                  </h2>
+                  <PairChoice
+                    frame={currentPair.frame}
+                    optionA={currentPair.option_a}
+                    optionB={currentPair.option_b}
+                    onSelect={handlePairAnswer}
+                    selected={selectedPairOptionId}
+                  />
                 </div>
               )}
             </div>

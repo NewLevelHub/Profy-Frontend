@@ -3,10 +3,10 @@ import { API } from '@/shared/api/endpoints';
 import type { GapAnalysisResponse, ProgramBrief, ProgramDetail } from '@/shared/types';
 
 export const universityApi = {
-  getPrograms: (directionSlug: string, country?: string) =>
+  getPrograms: (professionSlug: string, country?: string) =>
     apiClient
       .get<ProgramBrief[]>(API.universities.programs, {
-        params: { direction: directionSlug, limit: 50, ...(country ? { country } : {}) },
+        params: { profession: professionSlug, limit: 50, ...(country ? { country } : {}) },
       })
       .then(r => r.data),
 

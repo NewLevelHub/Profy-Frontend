@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { assessmentApi } from '@/shared/api/assessment';
+import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment } from '@/shared/dev/autofillAssessment';
 import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
-import type { Question } from '@/shared/types';
+import { buildDisplaySequence, type DisplayItem } from '../utils/buildDisplaySequence';
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
@@ -16,10 +17,13 @@ export function useAssessment() {
   const setProgress = useAssessmentStore(s => s.setProgress);
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [questionIndex, setQuestionIndex] = useState(0);
+  const [sequence, setSequence] = useState<DisplayItem[]>([]);
+  const [rawQuestionCount, setRawQuestionCount] = useState(0);
+  const [itemIndex, setItemIndex] = useState(0);
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [selectedPairOptionId, setSelectedPairOptionId] = useState<string | null>(null);
+  const [likertAnswers, setLikertAnswers] = useState<Record<string, number>>({});
+  const [pairAnswers, setPairAnswers] = useState<Record<number, string>>({});
   const [transitioning, setTransitioning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,24 +42,42 @@ export function useAssessment() {
 
     let cancelled = false;
 
-    async function loadQuestions() {
+    async function loadSequence() {
       setPhase('loading');
       setError(null);
       try {
-        const data = await assessmentApi.getQuestions(assessmentId!);
+        const [questions, pairs] = await Promise.all([
+          assessmentApi.getQuestions(assessmentId!),
+          pairsApi.getPairs(assessmentId!),
+        ]);
         if (cancelled) return;
-        if (data.length === 0) throw new Error('empty_questions');
-        setQuestions(data);
+        if (questions.length === 0) throw new Error('empty_questions');
+        setRawQuestionCount(questions.length);
+        const built = buildDisplaySequence(questions, pairs);
+        setSequence(built);
 
         if (!startIndexApplied.current) {
           startIndexApplied.current = true;
-          const startIndex = Math.min(answeredCountFromStore, data.length - 1);
-          setQuestionIndex(startIndex);
-          if (startIndex >= data.length - 1 && answeredCountFromStore >= data.length) {
-            // Likert phase already fully answered — motivation may still be
-            // pending, so continue there rather than assuming the whole
-            // test is done (useMotivationAssessment.ts skips ahead itself
-            // if that phase is also already complete).
+          // Each sequence item consumes 1 (likert) or 2 (pair) raw
+          // UserResponse rows — walk until we've accounted for everything
+          // the store says is already answered, landing on the first
+          // not-yet-answered item.
+          let cumulative = 0;
+          let startIndex = built.length > 0 ? built.length - 1 : 0;
+          for (let i = 0; i < built.length; i++) {
+            const weight = built[i].kind === 'pair' ? 2 : 1;
+            if (cumulative + weight > answeredCountFromStore) {
+              startIndex = i;
+              break;
+            }
+            cumulative += weight;
+            startIndex = i;
+          }
+          setItemIndex(startIndex);
+          if (answeredCountFromStore >= questions.length) {
+            // Likert+pairs phase already fully answered — motivation may
+            // still be pending, so continue there rather than assuming the
+            // whole test is done.
             navigate('/assessment/motivation', { replace: true });
             return;
           }
@@ -73,7 +95,7 @@ export function useAssessment() {
       }
     }
 
-    loadQuestions();
+    loadSequence();
 
     return () => {
       cancelled = true;
@@ -86,10 +108,19 @@ export function useAssessment() {
   }, [assessmentId, retryCount]);
 
   useEffect(() => {
-    const question = questions[questionIndex];
-    setSelectedValue(question ? (answers[question.id] ?? null) : null);
+    const item = sequence[itemIndex];
+    if (!item) {
+      setSelectedValue(null);
+      setSelectedPairOptionId(null);
+    } else if (item.kind === 'likert') {
+      setSelectedValue(likertAnswers[item.question.id] ?? null);
+      setSelectedPairOptionId(null);
+    } else {
+      setSelectedPairOptionId(pairAnswers[item.pair.pair_index] ?? null);
+      setSelectedValue(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questionIndex, questions]);
+  }, [itemIndex, sequence]);
 
   function handleStartIntro() {
     if (introTimerRef.current !== null) {
@@ -100,13 +131,27 @@ export function useAssessment() {
   }
 
   function handleBack() {
-    if (questionIndex === 0 || transitioning || saving) return;
-    setQuestionIndex(i => i - 1);
+    if (itemIndex === 0 || transitioning || saving) return;
+    setItemIndex(i => i - 1);
+  }
+
+  function advance() {
+    const isLast = itemIndex >= sequence.length - 1;
+    if (isLast) {
+      navigate('/assessment/motivation');
+      return;
+    }
+    setTransitioning(true);
+    setTimeout(() => {
+      setItemIndex(i => i + 1);
+      setTransitioning(false);
+    }, 250);
   }
 
   async function handleAnswer(value: number) {
-    const question = questions[questionIndex];
-    if (!question || saving || transitioning) return;
+    const item = sequence[itemIndex];
+    if (!item || item.kind !== 'likert' || saving || transitioning) return;
+    const question = item.question;
 
     setSelectedValue(value);
     setSaving(true);
@@ -116,28 +161,44 @@ export function useAssessment() {
       const response = await assessmentApi.saveAnswers(assessmentId!, {
         answers: [{ question_id: question.id, value }],
       });
-      setAnswers(prev => ({ ...prev, [question.id]: value }));
+      setLikertAnswers(prev => ({ ...prev, [question.id]: value }));
       setProgress(response.answered_count, response.total);
 
       if (response.completed) {
-        // Likert phase (RIASEC + Big Five) done — seamlessly continue into
-        // the motivation triplets, no results screen in between.
+        // Likert+pairs phase done — seamlessly continue into the
+        // motivation triplets, no results screen in between.
         navigate('/assessment/motivation');
         return;
       }
+      advance();
+    } catch {
+      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
-      const isLast = questionIndex >= questions.length - 1;
-      if (isLast) {
-        // Shouldn't normally happen (completed should be true), but guard anyway.
+  async function handlePairAnswer(pickedQuestionId: string) {
+    const item = sequence[itemIndex];
+    if (!item || item.kind !== 'pair' || saving || transitioning) return;
+    const pair = item.pair;
+
+    setSelectedPairOptionId(pickedQuestionId);
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await pairsApi.submitAnswers(assessmentId!, {
+        answers: [{ pair_index: pair.pair_index, picked_question_id: pickedQuestionId }],
+      });
+      setPairAnswers(prev => ({ ...prev, [pair.pair_index]: pickedQuestionId }));
+      setProgress(response.answered_count, response.total);
+
+      if (response.completed) {
         navigate('/assessment/motivation');
         return;
       }
-
-      setTransitioning(true);
-      setTimeout(() => {
-        setQuestionIndex(i => i + 1);
-        setTransitioning(false);
-      }, 250);
+      advance();
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {
@@ -172,28 +233,36 @@ export function useAssessment() {
     setExitConfirmOpen(false);
   }
 
-  const currentQuestion = questions[questionIndex];
-  const totalQuestions = questions.length;
-  const progress = totalQuestions > 0 ? ((questionIndex + 1) / totalQuestions) * 100 : 0;
-  const currentScale = currentQuestion?.instrument === 'big_five' ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE;
+  const currentItem = sequence[itemIndex];
+  const currentQuestion = currentItem?.kind === 'likert' ? currentItem.question : undefined;
+  const currentPair = currentItem?.kind === 'pair' ? currentItem.pair : undefined;
+  const totalItems = sequence.length;
+  const progress = totalItems > 0 ? ((itemIndex + 1) / totalItems) * 100 : 0;
+  const currentScale = useMemo(
+    () => (currentQuestion?.instrument === 'big_five' ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE),
+    [currentQuestion],
+  );
 
   return {
     phase,
-    questions,
-    questionIndex,
-    totalQuestions,
+    itemIndex,
+    totalItems,
+    rawQuestionCount,
     selectedValue,
+    selectedPairOptionId,
     currentScale,
     transitioning,
     saving,
     error,
     currentQuestion,
+    currentPair,
     progress,
     exitConfirmOpen,
     autofilling,
     handleBack,
     handleStartIntro,
     handleAnswer,
+    handlePairAnswer,
     handleAutofill,
     handleExit,
     confirmExit,
