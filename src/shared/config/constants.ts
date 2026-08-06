@@ -62,6 +62,26 @@ export const THINKING_STYLE_ICONS: Record<string, string> = {
   practical: '🔨',
 };
 
+export const PERSONALITY_LABELS: Record<string, string> = {
+  openness: 'Открытость новому',
+  conscientiousness: 'Организованность',
+  extraversion: 'Общительность',
+  agreeableness: 'Доброжелательность',
+  emotional_stability: 'Эмоциональная устойчивость',
+};
+
+export const PERSONALITY_ICONS: Record<string, string> = {
+  openness: '🌱',
+  conscientiousness: '🗂️',
+  extraversion: '🎉',
+  agreeableness: '🤝',
+  emotional_stability: '🧘',
+};
+
+export const PERSONALITY_ORDER: string[] = [
+  'openness', 'conscientiousness', 'extraversion', 'agreeableness', 'emotional_stability',
+];
+
 export const AGE_GROUPS = {
   JUNIOR: 'junior',
   MIDDLE: 'middle',

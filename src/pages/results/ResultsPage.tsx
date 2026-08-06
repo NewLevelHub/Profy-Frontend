@@ -7,7 +7,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
-import { RIASEC_LABELS, RIASEC_ICONS, THINKING_STYLE_LABELS, THINKING_STYLE_ICONS } from '@/shared/config/constants';
+import { RIASEC_LABELS, RIASEC_ICONS, THINKING_STYLE_LABELS, THINKING_STYLE_ICONS, PERSONALITY_LABELS, PERSONALITY_ICONS } from '@/shared/config/constants';
 import { describeCareerFit } from '@/shared/lib/riasecMatch';
 import type { CareerMatch, HollandType } from '@/shared/types';
 import { useResults } from './hooks/useResults';
@@ -164,6 +164,8 @@ export default function ResultsPage() {
     profileEntries,
     thinkingStyleEntries,
     motivationHighlights,
+    personalityEntries,
+    personalityNotes,
     refetch,
   } = useResults();
 
@@ -423,6 +425,43 @@ export default function ResultsPage() {
                       style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#A78BFA,#7C3AED)' }}
                     />
                   </div>
+                </div>
+              ))}
+            </Card>
+          </section>
+        </AnimatedBlock>
+      )}
+
+      {/* ── Твой характер ────────────────────────────────────────── */}
+      {personalityEntries.length > 0 && (
+        <AnimatedBlock>
+          <section aria-label="Твой характер">
+            <SectionHeader emoji="🧬" title="Твой характер" />
+            <Card className="flex flex-col gap-5">
+              {personalityEntries.map(([trait, score]) => (
+                <div key={trait}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-extrabold text-primary" style={{ fontSize: 15 }}>
+                      {PERSONALITY_ICONS[trait]} {PERSONALITY_LABELS[trait]}
+                    </span>
+                    <span className="font-extrabold text-brand" style={{ fontSize: 14 }}>{Math.round(score)}%</span>
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-valuenow={Math.round(score)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={PERSONALITY_LABELS[trait]}
+                    className="h-3 w-full rounded-full bg-brand-subtle overflow-hidden"
+                  >
+                    <div
+                      className="h-full rounded-full transition-[width] duration-300 ease-out"
+                      style={{ width: `${Math.round(score)}%`, background: 'linear-gradient(90deg,#A78BFA,#7C3AED)' }}
+                    />
+                  </div>
+                  {personalityNotes[trait] && (
+                    <p className="text-caption text-secondary mt-1.5 leading-snug">{personalityNotes[trait]}</p>
+                  )}
                 </div>
               ))}
             </Card>

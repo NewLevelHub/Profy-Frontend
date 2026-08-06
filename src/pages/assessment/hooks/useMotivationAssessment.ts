@@ -30,6 +30,7 @@ export function useMotivationAssessment() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
@@ -168,6 +169,26 @@ export function useMotivationAssessment() {
     }
   }
 
+  async function handleAutofill() {
+    if (!assessmentId || autofilling || triplets.length === 0) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      const response = await motivationApi.submitAnswers(assessmentId, {
+        answers: triplets.map(t => {
+          const [most, least] = [...t.statements].sort(() => Math.random() - 0.5);
+          return { triplet_index: t.triplet_index, most_statement_id: most.id, least_statement_id: least.id };
+        }),
+      });
+      if (response.completed) completeAssessment();
+      navigate('/assessment/loading');
+    } catch {
+      setError('Не удалось автозаполнить тест.');
+    } finally {
+      setAutofilling(false);
+    }
+  }
+
   function handleExit() {
     setExitConfirmOpen(true);
   }
@@ -198,11 +219,13 @@ export function useMotivationAssessment() {
     canProceed,
     progress,
     exitConfirmOpen,
+    autofilling,
     handleBack,
     handleStartIntro,
     handleSelectMost,
     handleSelectLeast,
     handleNext,
+    handleAutofill,
     handleExit,
     confirmExit,
     cancelExit,

@@ -167,6 +167,9 @@ export interface ThinkingStyle {
   practical: number;
 }
 
+export type PersonalityTrait =
+  | 'openness' | 'conscientiousness' | 'extraversion' | 'agreeableness' | 'emotional_stability';
+
 export interface AnalysisResultResponse {
   id: string;
   assessment_id: string;
@@ -180,6 +183,8 @@ export interface AnalysisResultResponse {
   big_five: Record<BigFiveDomain, number>;
   thinking_style: ThinkingStyle;
   personality_highlights: string[];
+  personality_profile: Record<PersonalityTrait, number>;
+  personality_notes: Record<PersonalityTrait, string>;
   motivation: Record<MotivationCategory, number>;
   motivation_top: MotivationCategory[];
   motivation_highlights: string[];

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { assessmentApi } from '@/shared/api/assessment';
+import { autofillAssessment } from '@/shared/dev/autofillAssessment';
 import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
 import type { Question } from '@/shared/types';
 
@@ -24,6 +25,7 @@ export function useAssessment() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
@@ -143,6 +145,20 @@ export function useAssessment() {
     }
   }
 
+  async function handleAutofill() {
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      await autofillAssessment(assessmentId);
+      navigate('/assessment/loading');
+    } catch {
+      setError('Не удалось автозаполнить тест.');
+    } finally {
+      setAutofilling(false);
+    }
+  }
+
   function handleExit() {
     setExitConfirmOpen(true);
   }
@@ -174,9 +190,11 @@ export function useAssessment() {
     currentQuestion,
     progress,
     exitConfirmOpen,
+    autofilling,
     handleBack,
     handleStartIntro,
     handleAnswer,
+    handleAutofill,
     handleExit,
     confirmExit,
     cancelExit,

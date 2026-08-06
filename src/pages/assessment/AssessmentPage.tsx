@@ -17,9 +17,11 @@ export default function AssessmentPage() {
     currentScale,
     progress,
     exitConfirmOpen,
+    autofilling,
     handleBack,
     handleStartIntro,
     handleAnswer,
+    handleAutofill,
     handleExit,
     confirmExit,
     cancelExit,
@@ -87,15 +89,30 @@ export default function AssessmentPage() {
             {headerTitle}
           </span>
 
-          <button
-            type="button"
-            onClick={handleExit}
-            aria-label="Выйти из теста"
-            className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
-            style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)', fontSize: 16 }}
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {import.meta.env.DEV && (
+              <button
+                type="button"
+                onClick={handleAutofill}
+                disabled={autofilling}
+                aria-label="Автозаполнить тест (dev)"
+                title="Автозаполнить тест случайными ответами (только в dev)"
+                className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-[13px] font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+                style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)' }}
+              >
+                {autofilling ? '…' : '⚡ Автозаполнить'}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleExit}
+              aria-label="Выйти из теста"
+              className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
+              style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)', fontSize: 16 }}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="max-w-[980px] mx-auto">

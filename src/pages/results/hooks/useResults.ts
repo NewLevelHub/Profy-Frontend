@@ -5,8 +5,8 @@ import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
-import { RIASEC_TYPES } from '@/shared/config/constants';
-import type { HollandType, ThinkingStyle } from '@/shared/types';
+import { RIASEC_TYPES, PERSONALITY_ORDER } from '@/shared/config/constants';
+import type { HollandType, ThinkingStyle, PersonalityTrait } from '@/shared/types';
 
 export function useResults() {
   const report = useResultStore(s => s.report);
@@ -63,6 +63,12 @@ export function useResults() {
 
   const motivationHighlights = effectiveReport?.motivation_highlights ?? [];
 
+  const personalityEntries = (PERSONALITY_ORDER as PersonalityTrait[]).map(trait => [
+    trait,
+    effectiveReport?.personality_profile?.[trait] ?? 0,
+  ] as [PersonalityTrait, number]);
+  const personalityNotes = effectiveReport?.personality_notes ?? ({} as Record<PersonalityTrait, string>);
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
@@ -74,6 +80,8 @@ export function useResults() {
     profileEntries,
     thinkingStyleEntries,
     motivationHighlights,
+    personalityEntries,
+    personalityNotes,
     refetch,
   };
 }
