@@ -22,6 +22,7 @@ import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
 // ── Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
 import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
+import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
 import PraisePage from '@/pages/assessment/PraisePage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
@@ -80,6 +81,7 @@ export const router = createBrowserRouter([
       // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → Praise → ResultLoading)
       { path: '/assessment/goal', element: <GoalSelectionPage /> },
       { path: '/assessment', element: <AssessmentPage /> },
+      { path: '/assessment/pairs', element: <PairAssessmentPage /> },
       { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
       { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },

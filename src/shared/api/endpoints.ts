@@ -22,6 +22,8 @@ export const API = {
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
     motivationTriplets: (assessmentId: string) => `/assessment/${assessmentId}/motivation-triplets`,
     motivationAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-answers`,
+    pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
+    pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
   },
   result: {
     generate: '/result/generate',

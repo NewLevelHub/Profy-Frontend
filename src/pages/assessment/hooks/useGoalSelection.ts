@@ -50,7 +50,9 @@ export function useGoalSelection() {
     onSuccess: (assessment) => {
       resetAssessment();
       setAssessment(assessment.id, assessment.goal, assessment.answered_count, assessment.total_questions);
-      navigate('/assessment');
+      // Likert is banned for junior (TZ_Profi.md §13) — send them to the
+      // forced-choice-pair flow instead.
+      navigate(ageGroup === 'junior' ? '/assessment/pairs' : '/assessment');
     },
   });
 
@@ -64,7 +66,7 @@ export function useGoalSelection() {
       const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
       setAssessment(current.id, current.goal, current.answered_count, current.total_questions);
-      navigate('/assessment');
+      navigate(ageGroup === 'junior' ? '/assessment/pairs' : '/assessment');
     }
   }
 

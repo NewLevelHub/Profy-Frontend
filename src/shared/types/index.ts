@@ -135,6 +135,39 @@ export interface SubmitMotivationResponse {
   completed: boolean;
 }
 
+// ─── Question pairs (junior forced-choice format) ───────────────────────────────
+
+export interface QuestionPairOption {
+  id: string;
+  text: string;
+  icon: string | null;
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
+}
+
+export interface QuestionPair {
+  pair_index: number;
+  instrument: Instrument;
+  frame: string | null;
+  option_a: QuestionPairOption;
+  option_b: QuestionPairOption;
+}
+
+export interface PairAnswerPayload {
+  pair_index: number;
+  picked_question_id: string;
+}
+
+export interface SubmitPairAnswersPayload {
+  answers: PairAnswerPayload[];
+}
+
+export interface SubmitPairAnswersResponse {
+  answered_count: number;
+  total: number;
+  completed: boolean;
+}
+
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {
