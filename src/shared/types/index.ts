@@ -135,6 +135,33 @@ export interface SubmitMotivationResponse {
   completed: boolean;
 }
 
+// ─── Motivation pairs (Harter format, junior + middle) ──────────────────────────
+
+export interface MotivationPairItem {
+  pair_index: number;
+  text_a: string;
+  text_b: string;
+}
+
+export type MotivationPairSide = 'a' | 'b';
+export type MotivationIntensity = 'high' | 'medium';
+
+export interface MotivationPairAnswerPayload {
+  pair_index: number;
+  chosen_side: MotivationPairSide;
+  intensity: MotivationIntensity;
+}
+
+export interface SubmitMotivationPairPayload {
+  answers: MotivationPairAnswerPayload[];
+}
+
+export interface SubmitMotivationPairResponse {
+  answered_count: number;
+  total: number;
+  completed: boolean;
+}
+
 // ─── Question pairs (junior forced-choice format) ───────────────────────────────
 
 export interface QuestionPairOption {

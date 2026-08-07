@@ -1,5 +1,5 @@
 import { pairsApi } from '@/shared/api/pairs';
-import { motivationApi } from '@/shared/api/motivation';
+import { motivationPairsApi } from '@/shared/api/motivationPairs';
 
 function shuffled<T>(items: T[]): T[] {
   const copy = [...items];
@@ -12,8 +12,9 @@ function shuffled<T>(items: T[]): T[] {
 
 /** Dev-only helper, junior's pairs equivalent of autofillAssessment.ts:
  * answers every remaining pair by picking one option at random, then every
- * motivation triplet with a random MOST/LEAST pair — so the whole test
- * completes in two requests instead of ~46 taps. */
+ * motivation Harter pair with a random side + intensity (junior always uses
+ * the Harter format now, never the triplets — see MotivationAssessmentPage.tsx)
+ * — so the whole test completes in two requests instead of ~52 taps. */
 export async function autofillPairAssessment(assessmentId: string): Promise<void> {
   const pairs = await pairsApi.getPairs(assessmentId);
   if (pairs.length > 0) {
@@ -25,17 +26,14 @@ export async function autofillPairAssessment(assessmentId: string): Promise<void
     });
   }
 
-  const triplets = await motivationApi.getTriplets(assessmentId);
-  if (triplets.length > 0) {
-    await motivationApi.submitAnswers(assessmentId, {
-      answers: triplets.map(t => {
-        const [most, least] = shuffled(t.statements);
-        return {
-          triplet_index: t.triplet_index,
-          most_statement_id: most.id,
-          least_statement_id: least.id,
-        };
-      }),
+  const motivationPairs = await motivationPairsApi.getPairs(assessmentId);
+  if (motivationPairs.length > 0) {
+    await motivationPairsApi.submitAnswers(assessmentId, {
+      answers: motivationPairs.map(p => ({
+        pair_index: p.pair_index,
+        chosen_side: Math.random() < 0.5 ? 'a' : 'b',
+        intensity: Math.random() < 0.5 ? 'high' : 'medium',
+      })),
     });
   }
 }

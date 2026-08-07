@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment } from '@/shared/dev/autofillAssessment';
@@ -15,6 +16,7 @@ export function useAssessment() {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const setProgress = useAssessmentStore(s => s.setProgress);
+  const ageGroup = useProfileStore(s => s.profile?.age_group);
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [sequence, setSequence] = useState<DisplayItem[]>([]);
@@ -211,7 +213,7 @@ export function useAssessment() {
     setAutofilling(true);
     setError(null);
     try {
-      await autofillAssessment(assessmentId);
+      await autofillAssessment(assessmentId, ageGroup);
       navigate('/assessment/loading');
     } catch {
       setError('Не удалось автозаполнить тест.');
