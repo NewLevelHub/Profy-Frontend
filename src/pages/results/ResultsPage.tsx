@@ -7,9 +7,9 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
-import { RIASEC_LABELS, RIASEC_ICONS, THINKING_STYLE_LABELS, THINKING_STYLE_ICONS, PERSONALITY_LABELS, PERSONALITY_ICONS } from '@/shared/config/constants';
+import { RIASEC_LABELS, RIASEC_ICONS, MI_LABELS, MI_ICONS, THINKING_STYLE_LABELS, THINKING_STYLE_ICONS, PERSONALITY_LABELS, PERSONALITY_ICONS } from '@/shared/config/constants';
 import { describeCareerFit } from '@/shared/lib/riasecMatch';
-import type { CareerMatch, HollandType } from '@/shared/types';
+import type { CareerMatch } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 
 // ── Label maps ───────────────────────────────────────────────────────────────
@@ -161,6 +161,7 @@ export default function ResultsPage() {
     hasCompletedAssessment,
     showUniversityBtn,
     ageGroup,
+    isJunior,
     profileEntries,
     thinkingStyleEntries,
     motivationHighlights,
@@ -168,6 +169,11 @@ export default function ResultsPage() {
     personalityNotes,
     refetch,
   } = useResults();
+
+  // Junior (6-9) answers MI categories instead of RIASEC letters — see
+  // useResults.ts's isJunior/profileEntries and MI_LABELS/MI_ICONS.
+  const profileLabels = isJunior ? MI_LABELS : RIASEC_LABELS;
+  const profileIcons = isJunior ? MI_ICONS : RIASEC_ICONS;
 
   if (!hasCompletedAssessment) {
     return (
@@ -216,7 +222,7 @@ export default function ResultsPage() {
 
       <PageHeader
         title="Что мы узнали о тебе"
-        subtitle="Твой RIASEC-профиль и рекомендованное направление"
+        subtitle={isJunior ? 'Что тебе интересно и что стоит попробовать' : 'Твой RIASEC-профиль и рекомендованное направление'}
       />
 
       {/* ── Лучшее совпадение ────────────────────────────────────── */}
@@ -285,18 +291,18 @@ export default function ResultsPage() {
           <section aria-label="Сильные стороны">
             <SectionHeader emoji="💪" title="Сильные стороны" />
             <div className="flex flex-wrap gap-2.5">
-              {report.strengths.map((letter) => (
+              {report.strengths.map((key) => (
                 <div
-                  key={letter}
+                  key={key}
                   className="flex items-center gap-2.5 bg-surface rounded-pill pl-2 pr-4 py-1.5 shadow-card"
                 >
                   <span
                     className="w-8 h-8 rounded-full flex items-center justify-center text-lg select-none flex-shrink-0 bg-brand-subtle"
                     aria-hidden="true"
                   >
-                    {RIASEC_ICONS[letter]}
+                    {profileIcons[key]}
                   </span>
-                  <p className="text-caption font-semibold text-primary">{RIASEC_LABELS[letter]}</p>
+                  <p className="text-caption font-semibold text-primary">{profileLabels[key]}</p>
                 </div>
               ))}
               {report.personality_highlights.map((phrase, i) => (
@@ -343,14 +349,14 @@ export default function ResultsPage() {
       {/* ── Профиль RIASEC + план развития ─────────────────────────── */}
       <AnimatedBlock>
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5">
-          <section aria-label="Твой профиль RIASEC" className="min-w-0">
-            <SectionHeader emoji="📊" title="Твой профиль RIASEC" />
+          <section aria-label={isJunior ? 'Твой профиль интересов' : 'Твой профиль RIASEC'} className="min-w-0">
+            <SectionHeader emoji="📊" title={isJunior ? 'Твой профиль интересов' : 'Твой профиль RIASEC'} />
             <Card className="flex flex-col gap-4">
-              {profileEntries.map(([letter, score]) => (
-                <div key={letter}>
+              {profileEntries.map(([key, score]) => (
+                <div key={key}>
                   <div className="flex justify-between items-center mb-1.5">
                     <span className="font-extrabold text-primary" style={{ fontSize: 15 }}>
-                      {RIASEC_ICONS[letter]} {RIASEC_LABELS[letter]}
+                      {profileIcons[key]} {profileLabels[key]}
                     </span>
                     <span className="font-extrabold text-brand" style={{ fontSize: 14 }}>{Math.round(score)}%</span>
                   </div>
@@ -359,7 +365,7 @@ export default function ResultsPage() {
                     aria-valuenow={Math.round(score)}
                     aria-valuemin={0}
                     aria-valuemax={100}
-                    aria-label={RIASEC_LABELS[letter]}
+                    aria-label={profileLabels[key]}
                     className="h-3 w-full rounded-full bg-brand-subtle overflow-hidden"
                   >
                     <div

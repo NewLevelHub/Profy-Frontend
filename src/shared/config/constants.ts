@@ -32,6 +32,34 @@ export const RIASEC_ICONS: Record<string, string> = {
   C: '📋',
 };
 
+// Junior's (6-9) interest instrument, replacing RIASEC — see MIType.
+export const MI_TYPES = [
+  'verbal', 'logical', 'musical', 'visual', 'bodily',
+  'interpersonal', 'intrapersonal', 'naturalistic',
+] as const;
+
+export const MI_LABELS: Record<string, string> = {
+  verbal: 'Слова и истории',
+  logical: 'Логика и счёт',
+  musical: 'Музыка и ритм',
+  visual: 'Картинки и образы',
+  bodily: 'Движение и руки',
+  interpersonal: 'Дружба и команда',
+  intrapersonal: 'Своё мнение',
+  naturalistic: 'Природа и животные',
+};
+
+export const MI_ICONS: Record<string, string> = {
+  verbal: '📚',
+  logical: '🧩',
+  musical: '🎵',
+  visual: '🎨',
+  bodily: '🤸',
+  interpersonal: '🤝',
+  intrapersonal: '💭',
+  naturalistic: '🌿',
+};
+
 export const LIKERT_SCALE: { value: number; label: string }[] = [
   { value: 1, label: 'Очень не нравится' },
   { value: 2, label: 'Скорее не нравится' },

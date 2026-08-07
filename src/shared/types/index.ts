@@ -63,8 +63,13 @@ export type AssessmentGoal = 'explore' | 'profession' | 'university';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
-export type Instrument = 'riasec' | 'big_five';
+export type Instrument = 'riasec' | 'big_five' | 'mi';
 export type BigFiveDomain = 'N' | 'E' | 'O' | 'A' | 'C';
+// Junior's (6-9) interest instrument, replacing RIASEC — TZ_Profi.md §4.1
+// excludes career orientation for that age group. See MI_LABELS/MI_ICONS.
+export type MIType =
+  | 'verbal' | 'logical' | 'musical' | 'visual' | 'bodily'
+  | 'interpersonal' | 'intrapersonal' | 'naturalistic';
 
 export interface AssessmentResponse {
   id: string;
@@ -170,6 +175,7 @@ export interface QuestionPairOption {
   icon: string | null;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
+  mi_category: MIType | null;
 }
 
 export interface QuestionPair {
@@ -216,7 +222,9 @@ export interface CareerMatch {
 export interface RiasecMeta {
   differentiation: number;
   consistency: 'high' | 'medium' | 'low';
-  aversion: Record<HollandType, number>;
+  // HollandType keys for middle/senior, MIType keys for junior — see
+  // AnalysisResultResponse.profile/code below.
+  aversion: Record<string, number>;
 }
 
 export interface DevelopmentPlan {
@@ -237,12 +245,15 @@ export type PersonalityTrait =
 export interface AnalysisResultResponse {
   id: string;
   assessment_id: string;
-  profile: Record<HollandType, number>;
-  code: HollandType[];
+  // RIASEC letters (HollandType) for middle/senior; MI categories (MIType)
+  // for junior — see MI_LABELS/MI_ICONS in shared/config/constants.ts and
+  // useResults.ts's ageGroup branching. `careers` is always [] for junior.
+  profile: Record<string, number>;
+  code: string[];
   meta: RiasecMeta;
   careers: CareerMatch[];
-  strengths: HollandType[];
-  weaknesses: HollandType[];
+  strengths: string[];
+  weaknesses: string[];
   development_plan: DevelopmentPlan;
   big_five: Record<BigFiveDomain, number>;
   thinking_style: ThinkingStyle;

@@ -57,6 +57,17 @@ const BIGFIVE_DOMAIN_LABELS: Record<string, string> = {
   C: 'Добросовестность',
 };
 
+const MI_TYPE_LABELS: Record<string, string> = {
+  verbal: 'Слова и истории',
+  logical: 'Логика и счёт',
+  musical: 'Музыка и ритм',
+  visual: 'Картинки и образы',
+  bodily: 'Движение и руки',
+  interpersonal: 'Дружба и команда',
+  intrapersonal: 'Своё мнение',
+  naturalistic: 'Природа и животные',
+};
+
 const MOTIVATION_LABELS: Record<string, string> = {
   interest: 'Интерес к делу',
   challenge: 'Вызов и рост',
@@ -72,6 +83,7 @@ const MOTIVATION_LABELS: Record<string, string> = {
 function groupLabel(instrument: string, category: string): string {
   if (instrument === 'big_five') return `Big Five: ${BIGFIVE_DOMAIN_LABELS[category] ?? category}`;
   if (instrument === 'riasec') return `RIASEC: ${RIASEC_TYPE_LABELS[category] ?? category}`;
+  if (instrument === 'mi') return `MI: ${MI_TYPE_LABELS[category] ?? category}`;
   return 'Прочее';
 }
 

@@ -5,8 +5,8 @@ import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
-import { RIASEC_TYPES, PERSONALITY_ORDER } from '@/shared/config/constants';
-import type { HollandType, ThinkingStyle, PersonalityTrait } from '@/shared/types';
+import { RIASEC_TYPES, MI_TYPES, PERSONALITY_ORDER } from '@/shared/config/constants';
+import type { ThinkingStyle, PersonalityTrait } from '@/shared/types';
 
 export function useResults() {
   const report = useResultStore(s => s.report);
@@ -52,9 +52,16 @@ export function useResults() {
 
   const effectiveReport = report ?? data ?? null;
 
-  const profileEntries: [HollandType, number][] = RIASEC_TYPES.map(letter => [
-    letter,
-    effectiveReport?.profile?.[letter] ?? 0,
+  // Junior (6-9) answers the MI instrument instead of RIASEC (TZ_Profi.md
+  // §4.1 — no career orientation for that age) — profile/code/strengths
+  // keys are MIType, not HollandType, for that group. See MI_LABELS/
+  // MI_ICONS in shared/config/constants.ts for the matching label lookup.
+  const isJunior = ageGroup === 'junior';
+  const profileKeys: readonly string[] = isJunior ? MI_TYPES : RIASEC_TYPES;
+
+  const profileEntries: [string, number][] = profileKeys.map(key => [
+    key,
+    effectiveReport?.profile?.[key] ?? 0,
   ]);
 
   const thinkingStyleEntries = Object.entries(
@@ -76,6 +83,7 @@ export function useResults() {
     hasCompletedAssessment,
     goal,
     ageGroup,
+    isJunior,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
     profileEntries,
     thinkingStyleEntries,

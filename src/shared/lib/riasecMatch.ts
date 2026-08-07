@@ -1,5 +1,5 @@
 import { RIASEC_LABELS } from '@/shared/config/constants';
-import type { CareerMatch, HollandType } from '@/shared/types';
+import type { CareerMatch } from '@/shared/types';
 
 function joinRu(items: string[]): string {
   if (items.length === 0) return '';
@@ -11,12 +11,15 @@ function joinRu(items: string[]): string {
  * these two codes are independent (career.holland_code is the profession's
  * fixed code, not derived from the student), so showing them side by side
  * ("ТВОЙ КОД — CIA" next to "Код направления — RCI") reads as a mismatch
- * even on a strong match. Showing the overlap instead makes the fit legible. */
-export function matchedLetters(userCode: HollandType[], career: CareerMatch): HollandType[] {
+ * even on a strong match. Showing the overlap instead makes the fit legible.
+ * `userCode` is typed string[] because AnalysisResultResponse.code holds
+ * MIType keys for junior — but junior never has careers, so this only ever
+ * runs with real RIASEC letters in practice. */
+export function matchedLetters(userCode: string[], career: CareerMatch): string[] {
   return userCode.filter(letter => career.holland_code.includes(letter));
 }
 
-export function describeCareerFit(userCode: HollandType[], career: CareerMatch): string {
+export function describeCareerFit(userCode: string[], career: CareerMatch): string {
   const matched = matchedLetters(userCode, career);
   if (matched.length === 0) {
     return `Совпадение с твоим профилем: ${career.match_score} из 6.`;

@@ -50,9 +50,11 @@ export function useGoalSelection() {
     onSuccess: (assessment) => {
       resetAssessment();
       setAssessment(assessment.id, assessment.goal, assessment.answered_count, assessment.total_questions);
-      // Likert is banned for junior (TZ_Profi.md §13) — send them to the
-      // forced-choice-pair flow instead.
-      navigate(ageGroup === 'junior' ? '/assessment/pairs' : '/assessment');
+      // Junior answers MI as plain Likert now (product override — ipsative
+      // pair choices between unrelated MI categories made an already-weak
+      // construct less reliable) woven with Big Five pair cards, same mixed
+      // flow middle already uses — see buildDisplaySequence.ts.
+      navigate('/assessment');
     },
   });
 
@@ -66,7 +68,7 @@ export function useGoalSelection() {
       const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
       setAssessment(current.id, current.goal, current.answered_count, current.total_questions);
-      navigate(ageGroup === 'junior' ? '/assessment/pairs' : '/assessment');
+      navigate('/assessment');
     }
   }
 
