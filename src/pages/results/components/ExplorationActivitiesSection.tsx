@@ -1,0 +1,25 @@
+import { Card } from '@/shared/ui/Card';
+import { SectionHeading } from '@/shared/ui/SectionHeading';
+
+interface ExplorationActivitiesSectionProps {
+  activities: string[];
+}
+
+// mi-only (contract §7) — always non-empty for junior, always [] for riasec.
+export function ExplorationActivitiesSection({ activities }: ExplorationActivitiesSectionProps) {
+  if (activities.length === 0) return null;
+
+  return (
+    <section aria-label="Что можно попробовать">
+      <SectionHeading emoji="🧪" title="Что можно попробовать" />
+      <div className="flex flex-col gap-2.5">
+        {activities.map((activity, i) => (
+          <Card key={i} className="flex flex-row items-center gap-2.5">
+            <span className="text-lg select-none flex-shrink-0" aria-hidden="true">✨</span>
+            <p className="text-body font-semibold text-primary">{activity}</p>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}

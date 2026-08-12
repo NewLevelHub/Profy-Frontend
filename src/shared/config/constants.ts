@@ -110,6 +110,23 @@ export const PERSONALITY_ORDER: string[] = [
   'openness', 'conscientiousness', 'extraversion', 'agreeableness', 'emotional_stability',
 ];
 
+// interest_map[].level (result-v2 contract §5) — opaque enum, never a
+// percentage: the backend deliberately doesn't expose the score it was
+// computed from, so this is display-only.
+export const INTEREST_LEVEL_LABELS: Record<'low' | 'medium' | 'high', string> = {
+  low: 'Слабо выражено',
+  medium: 'Средне выражено',
+  high: 'Ярко выражено',
+};
+
+// careers[].tier (result-v2 contract §6) — three-tier match instead of a
+// score, per TZ §18.3 (no percentages shown to the student).
+export const CAREER_TIER_LABELS: Record<'strong' | 'good' | 'worth_trying', string> = {
+  strong: 'Сильное совпадение',
+  good: 'Хорошее совпадение',
+  worth_trying: 'Стоит попробовать',
+};
+
 export const AGE_GROUPS = {
   JUNIOR: 'junior',
   MIDDLE: 'middle',

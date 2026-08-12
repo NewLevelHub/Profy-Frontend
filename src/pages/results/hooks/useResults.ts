@@ -5,8 +5,6 @@ import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
-import { RIASEC_TYPES, MI_TYPES, PERSONALITY_ORDER } from '@/shared/config/constants';
-import type { ThinkingStyle, PersonalityTrait } from '@/shared/types';
 
 export function useResults() {
   const report = useResultStore(s => s.report);
@@ -52,29 +50,10 @@ export function useResults() {
 
   const effectiveReport = report ?? data ?? null;
 
-  // Junior (6-9) answers the MI instrument instead of RIASEC (TZ_Profi.md
-  // §4.1 — no career orientation for that age) — profile/code/strengths
-  // keys are MIType, not HollandType, for that group. See MI_LABELS/
-  // MI_ICONS in shared/config/constants.ts for the matching label lookup.
-  const isJunior = ageGroup === 'junior';
-  const profileKeys: readonly string[] = isJunior ? MI_TYPES : RIASEC_TYPES;
-
-  const profileEntries: [string, number][] = profileKeys.map(key => [
-    key,
-    effectiveReport?.profile?.[key] ?? 0,
-  ]);
-
-  const thinkingStyleEntries = Object.entries(
-    effectiveReport?.thinking_style ?? {},
-  ) as [keyof ThinkingStyle, number][];
-
-  const motivationHighlights = effectiveReport?.motivation_highlights ?? [];
-
-  const personalityEntries = (PERSONALITY_ORDER as PersonalityTrait[]).map(trait => [
-    trait,
-    effectiveReport?.personality_profile?.[trait] ?? 0,
-  ] as [PersonalityTrait, number]);
-  const personalityNotes = effectiveReport?.personality_notes ?? ({} as Record<PersonalityTrait, string>);
+  // interest_instrument is the ONLY field the result-v2 contract (§3) allows
+  // for branching mi/riasec — never age group, array length, or `code`
+  // (there is no `code` in this contract at all).
+  const isJunior = effectiveReport?.interest_instrument === 'mi';
 
   return {
     report: effectiveReport,
@@ -85,11 +64,7 @@ export function useResults() {
     ageGroup,
     isJunior,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
-    profileEntries,
-    thinkingStyleEntries,
-    motivationHighlights,
-    personalityEntries,
-    personalityNotes,
+    showInquiryBtn: ageGroup === 'middle' || ageGroup === 'senior',
     refetch,
   };
 }
