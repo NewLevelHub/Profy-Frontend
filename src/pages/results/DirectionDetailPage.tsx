@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, GraduationCap, Map, Sparkles } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Map } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -8,7 +8,6 @@ import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useProfileStore } from '@/shared/store/profile';
-import { describeCareerFit } from '@/shared/lib/riasecMatch';
 
 function SectionTitle({ icon, children }: { icon: string; children: string }) {
   return (
@@ -29,15 +28,14 @@ export default function DirectionDetailPage() {
 
   const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
 
-  const direction = report?.careers.find(d => d.slug === slug);
+  const direction = report && report.interest_instrument === 'riasec'
+    ? report.careers.find(d => d.slug === slug)
+    : undefined;
   const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
-  const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
   const hasRoadmap = selectedDirectionSlug === slug;
 
-  const professions = direction?.professions ?? [];
   const skills = direction?.skills_needed ?? [];
   const subjects = direction?.subjects_to_develop ?? [];
-  const firstSteps = direction?.first_steps ?? [];
 
   if (!direction) {
     return (
@@ -84,31 +82,25 @@ export default function DirectionDetailPage() {
             <span aria-hidden="true">✨</span>
             Почему тебе подходит
           </p>
-          <p className="text-body text-primary leading-relaxed">
-            {report ? describeCareerFit(report.code, direction) : `Совпадение с твоим профилем: ${direction.match_score} из 6.`}
-          </p>
+          <p className="text-body text-primary leading-relaxed">{direction.why}</p>
+          {direction.matched_strengths.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {direction.matched_strengths.map((strength, i) => (
+                <span
+                  key={i}
+                  className="px-2.5 py-1 rounded-pill text-caption font-semibold bg-surface text-brand"
+                >
+                  {strength}
+                </span>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
-      {/* 3-column info grid */}
-      {(professions.length > 0 || skills.length > 0 || subjects.length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {professions.length > 0 && (
-            <Card className="flex flex-col h-full">
-              <SectionTitle icon="👔">Профессии</SectionTitle>
-              <div className="flex flex-wrap gap-2">
-                {professions.map((prof, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1.5 rounded-pill text-caption font-semibold bg-brand-subtle text-brand"
-                  >
-                    {prof}
-                  </span>
-                ))}
-              </div>
-            </Card>
-          )}
-
+      {/* 2-column info grid */}
+      {(skills.length > 0 || subjects.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {skills.length > 0 && (
             <Card className="flex flex-col h-full">
               <SectionTitle icon="🛠️">Навыки для развития</SectionTitle>
@@ -144,28 +136,17 @@ export default function DirectionDetailPage() {
         </div>
       )}
 
-      {/* First steps — full-width card with horizontal sub-blocks */}
-      {firstSteps.length > 0 && (
-        <Card>
-          <SectionTitle icon="🎯">Первые шаги</SectionTitle>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {firstSteps.map((step, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 rounded-[var(--radius)] border border-default bg-page p-4"
-              >
-                <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
-                  <span className="text-small font-bold text-on-brand">{i + 1}</span>
-                </div>
-                <p className="text-body text-primary leading-snug">{step}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      {/* Try now — always present (contract guarantees non-empty try_now) */}
+      <Card className="bg-brand-subtle border-brand/20 flex flex-row items-start gap-3">
+        <span className="text-2xl select-none flex-shrink-0" aria-hidden="true">⚡</span>
+        <div>
+          <p className="text-label font-bold text-primary mb-1">Попробуй прямо сейчас</p>
+          <p className="text-body text-primary leading-relaxed">{direction.try_now}</p>
+        </div>
+      </Card>
 
       {/* Action buttons */}
-      {(hasRoadmap || showInquiryBtn || showUniversityBtn) && (
+      {(hasRoadmap || showUniversityBtn) && (
         <div className="flex flex-col sm:flex-row flex-wrap gap-3">
           {hasRoadmap && (
             <Button
@@ -176,17 +157,6 @@ export default function DirectionDetailPage() {
             >
               <Map className="w-5 h-5" />
               Мой план по направлению
-            </Button>
-          )}
-          {showInquiryBtn && (
-            <Button
-              variant={hasRoadmap ? 'ghost' : 'primary'}
-              size="lg"
-              className="gap-2 sm:flex-1 lg:flex-none lg:min-w-[240px]"
-              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/inquiry`)}
-            >
-              <Sparkles className="w-5 h-5" />
-              Подходит ли мне это направление?
             </Button>
           )}
           {showUniversityBtn && (

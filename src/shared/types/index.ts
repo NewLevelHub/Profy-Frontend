@@ -242,6 +242,11 @@ export interface ThinkingStyle {
 export type PersonalityTrait =
   | 'openness' | 'conscientiousness' | 'extraversion' | 'agreeableness' | 'emotional_stability';
 
+// Raw/admin-only shape — mirrors the backend's AdminAnalysisResultResponse
+// (schemas/admin_result.py). Student-facing `/result` no longer returns this
+// at all (see ResultResponse below) — this type is only used by the admin
+// panel (AdminAssessmentDetail.analysis_result), which talks to a separate,
+// unaffected admin endpoint.
 export interface AnalysisResultResponse {
   id: string;
   assessment_id: string;
@@ -266,6 +271,89 @@ export interface AnalysisResultResponse {
   summary: string;
   created_at: string;
 }
+
+// ─── Result v2 (student-facing /result — see frontend-result-api-contract.md) ──
+//
+// No raw scores/percentages/codes anywhere in this shape — that's a content
+// guarantee from the backend (extra="forbid" on every model there), not just
+// a convention here. `interest_instrument` is the ONLY field allowed to
+// decide which branch of the union applies — never infer it from age group,
+// array lengths, or any other field (contract §3).
+
+export interface StrengthCard {
+  title: string;
+  description: string;
+}
+
+export interface ThinkingStyleNote {
+  title: string;
+  description: string;
+}
+
+// One card per Big Five domain, always exactly 5, same order, for every
+// age group/instrument (Big Five is answered identically by all three —
+// only the wording differs: junior gets simplified phrasing). Deterministic
+// server text, not LLM-generated — see frontend-result-api-contract.md §4.3a.
+export interface StudentPersonalityNote {
+  trait: PersonalityTrait;
+  label: string;
+  description: string;
+}
+
+export type InterestLevel = 'low' | 'medium' | 'high';
+
+export interface InterestMapItem {
+  code: string;
+  sphere: string;
+  level: InterestLevel;
+}
+
+export type CareerTier = 'strong' | 'good' | 'worth_trying';
+
+export interface StudentCareer {
+  slug: string;
+  name: string;
+  rank: number;
+  tier: CareerTier;
+  why: string;
+  matched_strengths: string[];
+  try_now: string;
+  description: string | null;
+  skills_needed: string[];
+  subjects_to_develop: string[];
+}
+
+interface ResultResponseBase {
+  report_version: 2;
+  assessment_id: string;
+  summary: string;
+  disclaimer: string;
+  strength_cards: StrengthCard[];
+  interest_map: InterestMapItem[];
+  interest_map_note: string;
+  thinking_style_notes: ThinkingStyleNote[];
+  personality_notes: StudentPersonalityNote[];
+  personality_note: string;
+  motivation_highlights: string[];
+  is_flat_profile: boolean;
+  exploration_note: string;
+  final_analysis: string;
+  created_at: string;
+}
+
+export interface MiResultResponse extends ResultResponseBase {
+  interest_instrument: 'mi';
+  careers: [];
+  exploration_activities: string[];
+}
+
+export interface RiasecResultResponse extends ResultResponseBase {
+  interest_instrument: 'riasec';
+  careers: StudentCareer[];
+  exploration_activities: [];
+}
+
+export type ResultResponse = MiResultResponse | RiasecResultResponse;
 
 // ─── Direction-fit inquiry ──────────────────────────────────────────────────────
 
