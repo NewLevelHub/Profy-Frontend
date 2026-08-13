@@ -10,6 +10,7 @@ import { SummaryCard } from './components/SummaryCard';
 import { StrengthCardsSection } from './components/StrengthCardsSection';
 import { CareerCard } from './components/CareerCard';
 import { InterestMapSection } from './components/InterestMapSection';
+import { PersonalitySection } from './components/PersonalitySection';
 import { ThinkingStyleSection } from './components/ThinkingStyleSection';
 import { MotivationSection } from './components/MotivationSection';
 import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
@@ -92,11 +93,12 @@ export default function ResultsPage() {
 
       {/* Порядок разделов ниже — как в TZ_Profi.md §18.2 / result-report-
           redesign-plan.md "Флоу для нетехнического пользователя": резюме →
-          сильные стороны → карта интересов → стиль мышления → мотивация →
-          "что делать дальше" (профессии/занятия) — последним, не первым. */}
+          сильные стороны → карта интересов → характер → стиль мышления →
+          мотивация → "что делать дальше" (профессии/занятия) — последним,
+          не первым. */}
 
       <AnimatedBlock>
-        <SummaryCard summary={report.summary} disclaimer={report.disclaimer} isFlatProfile={report.is_flat_profile} />
+        <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
       </AnimatedBlock>
 
       <AnimatedBlock>
@@ -105,6 +107,10 @@ export default function ResultsPage() {
 
       <AnimatedBlock>
         <InterestMapSection items={report.interest_map} isJunior={isJunior} />
+      </AnimatedBlock>
+
+      <AnimatedBlock>
+        <PersonalitySection notes={report.personality_notes} />
       </AnimatedBlock>
 
       <AnimatedBlock>

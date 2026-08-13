@@ -290,6 +290,16 @@ export interface ThinkingStyleNote {
   description: string;
 }
 
+// One card per Big Five domain, always exactly 5, same order, for every
+// age group/instrument (Big Five is answered identically by all three —
+// only the wording differs: junior gets simplified phrasing). Deterministic
+// server text, not LLM-generated — see frontend-result-api-contract.md §4.3a.
+export interface StudentPersonalityNote {
+  trait: PersonalityTrait;
+  label: string;
+  description: string;
+}
+
 export type InterestLevel = 'low' | 'medium' | 'high';
 
 export interface InterestMapItem {
@@ -321,6 +331,7 @@ interface ResultResponseBase {
   strength_cards: StrengthCard[];
   interest_map: InterestMapItem[];
   thinking_style_notes: ThinkingStyleNote[];
+  personality_notes: StudentPersonalityNote[];
   motivation_highlights: string[];
   is_flat_profile: boolean;
   exploration_note: string;
