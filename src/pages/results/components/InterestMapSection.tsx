@@ -7,19 +7,21 @@ const LEVEL_DOTS: Record<InterestMapItem['level'], number> = { low: 1, medium: 2
 
 interface InterestMapSectionProps {
   items: InterestMapItem[];
+  note: string;
   isJunior: boolean;
 }
 
 // interest_map is always the full 6/8-category set with an opaque low/
 // medium/high level (contract §5) — never a percentage, so this renders a
 // 3-dot indicator instead of a progress bar to avoid implying a score.
-export function InterestMapSection({ items, isJunior }: InterestMapSectionProps) {
+export function InterestMapSection({ items, note, isJunior }: InterestMapSectionProps) {
   if (items.length === 0) return null;
   const icons = isJunior ? MI_ICONS : RIASEC_ICONS;
 
   return (
     <section aria-label={isJunior ? 'Твоя карта интересов' : 'Твой профиль RIASEC'}>
       <SectionHeading emoji="📊" title={isJunior ? 'Твоя карта интересов' : 'Твой профиль RIASEC'} />
+      {note && <p className="text-body text-secondary mb-3">{note}</p>}
       <Card className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {items.map((item) => (
           <div key={item.code} className="flex items-center gap-3">

@@ -330,11 +330,14 @@ interface ResultResponseBase {
   disclaimer: string;
   strength_cards: StrengthCard[];
   interest_map: InterestMapItem[];
+  interest_map_note: string;
   thinking_style_notes: ThinkingStyleNote[];
   personality_notes: StudentPersonalityNote[];
+  personality_note: string;
   motivation_highlights: string[];
   is_flat_profile: boolean;
   exploration_note: string;
+  final_analysis: string;
   created_at: string;
 }
 

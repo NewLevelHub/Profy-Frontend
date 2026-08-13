@@ -14,6 +14,7 @@ import { PersonalitySection } from './components/PersonalitySection';
 import { ThinkingStyleSection } from './components/ThinkingStyleSection';
 import { MotivationSection } from './components/MotivationSection';
 import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
+import { FinalAnalysisSection } from './components/FinalAnalysisSection';
 
 function AnimatedBlock({ children }: { children: React.ReactNode }) {
   return (
@@ -106,11 +107,11 @@ export default function ResultsPage() {
       </AnimatedBlock>
 
       <AnimatedBlock>
-        <InterestMapSection items={report.interest_map} isJunior={isJunior} />
+        <InterestMapSection items={report.interest_map} note={report.interest_map_note} isJunior={isJunior} />
       </AnimatedBlock>
 
       <AnimatedBlock>
-        <PersonalitySection notes={report.personality_notes} />
+        <PersonalitySection notes={report.personality_notes} note={report.personality_note} />
       </AnimatedBlock>
 
       <AnimatedBlock>
@@ -142,6 +143,10 @@ export default function ResultsPage() {
 
       <AnimatedBlock>
         <ExplorationActivitiesSection activities={report.exploration_activities} note={report.exploration_note} />
+      </AnimatedBlock>
+
+      <AnimatedBlock>
+        <FinalAnalysisSection text={report.final_analysis} />
       </AnimatedBlock>
 
     </PageContainer>
