@@ -311,7 +311,6 @@ export interface StudentCareer {
   description: string | null;
   skills_needed: string[];
   subjects_to_develop: string[];
-  first_steps: string[];
 }
 
 interface ResultResponseBase {
@@ -324,6 +323,7 @@ interface ResultResponseBase {
   thinking_style_notes: ThinkingStyleNote[];
   motivation_highlights: string[];
   is_flat_profile: boolean;
+  exploration_note: string;
   created_at: string;
 }
 

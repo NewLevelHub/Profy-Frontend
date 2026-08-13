@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, GraduationCap, Map, Sparkles } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Map } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -32,12 +32,10 @@ export default function DirectionDetailPage() {
     ? report.careers.find(d => d.slug === slug)
     : undefined;
   const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
-  const showInquiryBtn = ageGroup === 'middle' || ageGroup === 'senior';
   const hasRoadmap = selectedDirectionSlug === slug;
 
   const skills = direction?.skills_needed ?? [];
   const subjects = direction?.subjects_to_develop ?? [];
-  const firstSteps = direction?.first_steps ?? [];
 
   if (!direction) {
     return (
@@ -147,28 +145,8 @@ export default function DirectionDetailPage() {
         </div>
       </Card>
 
-      {/* First steps — full-width card with horizontal sub-blocks */}
-      {firstSteps.length > 0 && (
-        <Card>
-          <SectionTitle icon="🎯">Первые шаги</SectionTitle>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {firstSteps.map((step, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 rounded-[var(--radius)] border border-default bg-page p-4"
-              >
-                <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
-                  <span className="text-small font-bold text-on-brand">{i + 1}</span>
-                </div>
-                <p className="text-body text-primary leading-snug">{step}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
       {/* Action buttons */}
-      {(hasRoadmap || showInquiryBtn || showUniversityBtn) && (
+      {(hasRoadmap || showUniversityBtn) && (
         <div className="flex flex-col sm:flex-row flex-wrap gap-3">
           {hasRoadmap && (
             <Button
@@ -179,17 +157,6 @@ export default function DirectionDetailPage() {
             >
               <Map className="w-5 h-5" />
               Мой план по направлению
-            </Button>
-          )}
-          {showInquiryBtn && (
-            <Button
-              variant={hasRoadmap ? 'ghost' : 'primary'}
-              size="lg"
-              className="gap-2 sm:flex-1 lg:flex-none lg:min-w-[240px]"
-              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/inquiry`)}
-            >
-              <Sparkles className="w-5 h-5" />
-              Подходит ли мне это направление?
             </Button>
           )}
           {showUniversityBtn && (

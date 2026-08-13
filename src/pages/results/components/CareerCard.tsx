@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { GraduationCap, Sparkles } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { CAREER_TIER_LABELS } from '@/shared/config/constants';
 import { getIconForCareer } from '../utils/careerIcon';
@@ -8,19 +8,15 @@ import type { StudentCareer } from '@/shared/types';
 interface CareerCardProps {
   career: StudentCareer;
   showUniversityBtn: boolean;
-  showInquiryBtn: boolean;
   onDetail: (c: StudentCareer) => void;
   onUniversity: (c: StudentCareer) => void;
-  onInquiry: (c: StudentCareer) => void;
 }
 
 export const CareerCard = memo(function CareerCard({
   career,
   showUniversityBtn,
-  showInquiryBtn,
   onDetail,
   onUniversity,
-  onInquiry,
 }: CareerCardProps) {
   return (
     <Card
@@ -48,17 +44,6 @@ export const CareerCard = memo(function CareerCard({
         >
           <GraduationCap className="w-3.5 h-3.5" />
           Найти университеты
-        </button>
-      )}
-      {showInquiryBtn && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onInquiry(career); }}
-          className="mt-1 flex items-center justify-center gap-1.5 rounded-pill border-2 border-default bg-surface text-brand font-extrabold transition-colors hover:bg-brand-subtle"
-          style={{ fontSize: 12.5, padding: 12 }}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          Подходит ли мне это направление?
         </button>
       )}
       <button

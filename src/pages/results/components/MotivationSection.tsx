@@ -9,8 +9,8 @@ export function MotivationSection({ highlights }: MotivationSectionProps) {
   if (highlights.length === 0) return null;
 
   return (
-    <section aria-label="Что тебя драйвит">
-      <SectionHeading emoji="🔥" title="Что тебя драйвит" />
+    <section aria-label="Что тебя мотивирует">
+      <SectionHeading emoji="🔥" title="Что тебя мотивирует" />
       <div className="flex flex-col gap-2.5">
         {highlights.map((phrase, i) => (
           <Card key={i} className="flex flex-row items-center gap-2.5">

@@ -6,7 +6,6 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { StudentCareer } from '@/shared/types';
 import { useResults } from './hooks/useResults';
-import { TopCareerHero } from './components/TopCareerHero';
 import { SummaryCard } from './components/SummaryCard';
 import { StrengthCardsSection } from './components/StrengthCardsSection';
 import { CareerCard } from './components/CareerCard';
@@ -45,7 +44,6 @@ export default function ResultsPage() {
     error,
     hasCompletedAssessment,
     showUniversityBtn,
-    showInquiryBtn,
     isJunior,
     refetch,
   } = useResults();
@@ -84,12 +82,6 @@ export default function ResultsPage() {
     navigate(`/results/directions/${encodeURIComponent(career.slug)}/universities`);
   }
 
-  function handleInquiry(career: StudentCareer) {
-    navigate(`/results/directions/${encodeURIComponent(career.slug)}/inquiry`);
-  }
-
-  const topCareer = report.careers[0];
-
   return (
     <PageContainer className="flex flex-col gap-6">
 
@@ -98,16 +90,10 @@ export default function ResultsPage() {
         subtitle={isJunior ? 'Что тебе интересно и что стоит попробовать' : 'Твой RIASEC-профиль и рекомендованное направление'}
       />
 
-      {topCareer && (
-        <AnimatedBlock>
-          <TopCareerHero
-            career={topCareer}
-            showUniversityBtn={showUniversityBtn}
-            onDetail={handleCareerDetail}
-            onUniversity={handleUniversity}
-          />
-        </AnimatedBlock>
-      )}
+      {/* Порядок разделов ниже — как в TZ_Profi.md §18.2 / result-report-
+          redesign-plan.md "Флоу для нетехнического пользователя": резюме →
+          сильные стороны → карта интересов → стиль мышления → мотивация →
+          "что делать дальше" (профессии/занятия) — последним, не первым. */}
 
       <AnimatedBlock>
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} isFlatProfile={report.is_flat_profile} />
@@ -115,31 +101,6 @@ export default function ResultsPage() {
 
       <AnimatedBlock>
         <StrengthCardsSection cards={report.strength_cards} />
-      </AnimatedBlock>
-
-      {report.careers.length > 0 && (
-        <AnimatedBlock>
-          <section aria-label="Подходящие направления">
-            <SectionHeading emoji="👥" title="Подходящие профессии" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-              {report.careers.map(career => (
-                <CareerCard
-                  key={career.slug}
-                  career={career}
-                  showUniversityBtn={showUniversityBtn}
-                  showInquiryBtn={showInquiryBtn}
-                  onDetail={handleCareerDetail}
-                  onUniversity={handleUniversity}
-                  onInquiry={handleInquiry}
-                />
-              ))}
-            </div>
-          </section>
-        </AnimatedBlock>
-      )}
-
-      <AnimatedBlock>
-        <ExplorationActivitiesSection activities={report.exploration_activities} />
       </AnimatedBlock>
 
       <AnimatedBlock>
@@ -152,6 +113,29 @@ export default function ResultsPage() {
 
       <AnimatedBlock>
         <MotivationSection highlights={report.motivation_highlights} />
+      </AnimatedBlock>
+
+      {report.careers.length > 0 && (
+        <AnimatedBlock>
+          <section aria-label="Подходящие направления">
+            <SectionHeading emoji="👥" title="Подходящие профессии" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
+              {report.careers.map(career => (
+                <CareerCard
+                  key={career.slug}
+                  career={career}
+                  showUniversityBtn={showUniversityBtn}
+                  onDetail={handleCareerDetail}
+                  onUniversity={handleUniversity}
+                />
+              ))}
+            </div>
+          </section>
+        </AnimatedBlock>
+      )}
+
+      <AnimatedBlock>
+        <ExplorationActivitiesSection activities={report.exploration_activities} note={report.exploration_note} />
       </AnimatedBlock>
 
     </PageContainer>

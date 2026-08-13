@@ -64,7 +64,6 @@ export function useResults() {
     ageGroup,
     isJunior,
     showUniversityBtn: goal === 'university' && ageGroup === 'senior',
-    showInquiryBtn: ageGroup === 'middle' || ageGroup === 'senior',
     refetch,
   };
 }

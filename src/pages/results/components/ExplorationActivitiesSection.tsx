@@ -3,10 +3,11 @@ import { SectionHeading } from '@/shared/ui/SectionHeading';
 
 interface ExplorationActivitiesSectionProps {
   activities: string[];
+  note: string;
 }
 
 // mi-only (contract §7) — always non-empty for junior, always [] for riasec.
-export function ExplorationActivitiesSection({ activities }: ExplorationActivitiesSectionProps) {
+export function ExplorationActivitiesSection({ activities, note }: ExplorationActivitiesSectionProps) {
   if (activities.length === 0) return null;
 
   return (
@@ -20,6 +21,7 @@ export function ExplorationActivitiesSection({ activities }: ExplorationActiviti
           </Card>
         ))}
       </div>
+      {note && <p className="text-caption text-secondary leading-snug mt-2.5">{note}</p>}
     </section>
   );
 }
