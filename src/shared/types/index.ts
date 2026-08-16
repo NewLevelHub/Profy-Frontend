@@ -355,6 +355,50 @@ export interface RiasecResultResponse extends ResultResponseBase {
 
 export type ResultResponse = MiResultResponse | RiasecResultResponse;
 
+
+// ─── Goal Overlays ─────────────────────────────────────────────────────────────
+
+export interface ScenarioAData {
+  top_spheres: string[];
+  roadmap_summary: string;
+  roadmap_id: string | null;
+}
+
+export interface BridgeScenario {
+  what_works: string[];
+  what_to_check: string[];
+}
+
+export interface ScenarioBData {
+  target_selected: boolean;
+  selected_target_name: string | null;
+  alignment: 'strong' | 'good' | 'worth_trying' | null;
+  match_explanation: string | null;
+  bridge_scenario: BridgeScenario | null;
+  adjacent_directions: string[];
+  top_directions: string[];
+}
+
+export interface ScenarioCData {
+  target_selected: boolean;
+  selected_program_id: string | null;
+  selected_program_name: string | null;
+  selected_university_name: string | null;
+  gap_analysis: GapAnalysisResponse | null;
+  admission_roadmap_ref: string | null;
+}
+
+export interface GoalOverlayResponse {
+  assessment_id: string;
+  primary_goal: AssessmentGoal;
+  effective_goal: AssessmentGoal;
+  scenario: 'A' | 'B' | 'C';
+  secondary_goals: AssessmentGoal[];
+  redirected: boolean;
+  admission_info_note: string | null;
+  overlay_data: ScenarioAData | ScenarioBData | ScenarioCData;
+}
+
 // ─── Direction-fit inquiry ──────────────────────────────────────────────────────
 
 export interface DirectionQuestion {

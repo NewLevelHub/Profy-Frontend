@@ -26,10 +26,12 @@ export const API = {
     motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
+    updateGoal: (assessmentId: string) => `/assessment/${assessmentId}/goal`,
   },
   result: {
     generate: '/result/generate',
     get: (assessmentId: string) => `/result/${assessmentId}`,
+    goalContext: (assessmentId: string) => `/result/${assessmentId}/goal-context`,
   },
   roadmap: {
     generate: '/roadmap/generate',

@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
-import type { ResultResponse } from '@/shared/types';
+import type { GoalOverlayResponse, ResultResponse } from '@/shared/types';
 
 export const resultApi = {
   generate: (assessmentId: string) =>
@@ -11,5 +11,12 @@ export const resultApi = {
   get: (assessmentId: string) =>
     apiClient
       .get<ResultResponse>(API.result.get(assessmentId))
+      .then(r => r.data),
+
+  getGoalContext: (assessmentId: string, programId?: string) =>
+    apiClient
+      .get<GoalOverlayResponse>(API.result.goalContext(assessmentId), {
+        params: programId ? { program_id: programId } : undefined,
+      })
       .then(r => r.data),
 };
