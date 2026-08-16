@@ -90,10 +90,13 @@ export function useGoalSelection() {
     setRestartOpen(false);
   }
 
+  const isProfileLoaded = useProfileStore(s => s.isLoaded);
+
   return {
     ageGroup,
     isLoading: startMutation.isPending,
     isCheckingCurrent,
+    isProfileLoaded,
     error: startMutation.isError ? 'Не удалось начать тест. Попробуй ещё раз.' : null,
     resumeOpen,
     restartOpen,

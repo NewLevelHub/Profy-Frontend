@@ -25,8 +25,8 @@ export const assessmentApi = {
       .post<SaveAnswersResponse>(API.assessment.answers(assessmentId), payload)
       .then(r => r.data),
 
-  updateGoal: (assessmentId: string, goal: AssessmentGoal) =>
+  updateGoal: (assessmentId: string, goal: AssessmentGoal, secondaryGoals: AssessmentGoal[] = []) =>
     apiClient
-      .patch<AssessmentResponse>(API.assessment.updateGoal(assessmentId), { goal })
+      .patch<AssessmentResponse>(API.assessment.updateGoal(assessmentId), { goal, secondary_goals: secondaryGoals })
       .then(r => r.data),
 };

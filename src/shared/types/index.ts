@@ -59,7 +59,7 @@ export interface ArtifactItem {
 
 // ─── Assessment ────────────────────────────────────────────────────────────────
 
-export type AssessmentGoal = 'explore' | 'profession' | 'university';
+export type AssessmentGoal = 'explore' | 'profession' | 'university' | 'unsure';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
@@ -80,6 +80,8 @@ export interface AssessmentResponse {
   motivation_answered_count: number;
   motivation_total: number;
   created_at: string;
+  secondary_goals: AssessmentGoal[];
+  goal_changed_count: number;
 }
 
 export interface Question {
@@ -370,17 +372,10 @@ export interface BridgeScenario {
 }
 
 export interface ScenarioBData {
-  target_selected: boolean;
-  selected_target_name: string | null;
-  alignment: 'strong' | 'good' | 'worth_trying' | null;
-  match_explanation: string | null;
-  bridge_scenario: BridgeScenario | null;
-  adjacent_directions: string[];
   top_directions: string[];
 }
 
 export interface ScenarioCData {
-  target_selected: boolean;
   selected_program_id: string | null;
   selected_program_name: string | null;
   selected_university_name: string | null;
@@ -388,15 +383,27 @@ export interface ScenarioCData {
   admission_roadmap_ref: string | null;
 }
 
+export interface GoalAlignmentBlock {
+  target_selected: boolean;
+  target_name: string | null;
+  alignment: 'match' | 'partial' | 'bridge' | 'not_applicable';
+  match_explanation: string | null;
+  bridge_scenario: BridgeScenario | null;
+  adjacent_directions: string[];
+}
+
 export interface GoalOverlayResponse {
   assessment_id: string;
   primary_goal: AssessmentGoal;
-  effective_goal: AssessmentGoal;
-  scenario: 'A' | 'B' | 'C';
+  effective_goal: AssessmentGoal | null;
+  scenario: 'A' | 'B' | 'C' | null;
   secondary_goals: AssessmentGoal[];
   redirected: boolean;
   admission_info_note: string | null;
-  overlay_data: ScenarioAData | ScenarioBData | ScenarioCData;
+  needs_goal_selection: boolean;
+  suggested_goals: AssessmentGoal[];
+  alignment_block: GoalAlignmentBlock | null;
+  overlay_data: ScenarioAData | ScenarioBData | ScenarioCData | null;
 }
 
 // ─── Direction-fit inquiry ──────────────────────────────────────────────────────

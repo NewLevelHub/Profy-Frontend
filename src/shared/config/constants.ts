@@ -2,6 +2,7 @@ export const ASSESSMENT_GOALS = {
   EXPLORE: 'explore',
   PROFESSION: 'profession',
   UNIVERSITY: 'university',
+  UNSURE: 'unsure',
 } as const;
 
 export type AssessmentGoal = (typeof ASSESSMENT_GOALS)[keyof typeof ASSESSMENT_GOALS];
@@ -10,6 +11,7 @@ export const ASSESSMENT_GOAL_LABELS: Record<AssessmentGoal, string> = {
   [ASSESSMENT_GOALS.EXPLORE]: 'Исследовать варианты',
   [ASSESSMENT_GOALS.PROFESSION]: 'Выбрать профессию',
   [ASSESSMENT_GOALS.UNIVERSITY]: 'Выбрать университет',
+  [ASSESSMENT_GOALS.UNSURE]: 'Пока не знаю',
 };
 
 export const RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const;

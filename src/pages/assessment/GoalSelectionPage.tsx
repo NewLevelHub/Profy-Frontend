@@ -9,7 +9,7 @@ interface GoalCard {
   emoji: string;
   title: string;
   subtitle: string;
-  seniorOnly?: boolean;
+  allowedFor: ('junior' | 'middle' | 'senior')[];
 }
 
 const GOAL_CARDS: GoalCard[] = [
@@ -18,25 +18,28 @@ const GOAL_CARDS: GoalCard[] = [
     emoji: '🔍',
     title: 'Понять себя',
     subtitle: 'Узнай свои сильные стороны и интересы',
+    allowedFor: ['junior', 'middle', 'senior'],
   },
   {
     goal: 'profession',
     emoji: '🎯',
     title: 'Выбрать профессию',
     subtitle: 'Найди направление, которое тебе подойдёт',
+    allowedFor: ['middle', 'senior'],
   },
   {
     goal: 'university',
     emoji: '🎓',
     title: 'Поступить в университет',
     subtitle: 'Построй путь к поступлению',
-    seniorOnly: true,
+    allowedFor: ['senior'],
   },
   {
-    goal: 'explore',
+    goal: 'unsure',
     emoji: '💬',
     title: 'Пока не знаю',
     subtitle: 'Начнём с начала, разберёмся вместе',
+    allowedFor: ['middle', 'senior'],
   },
 ];
 
@@ -156,6 +159,7 @@ export default function GoalSelectionPage() {
     ageGroup,
     isLoading,
     isCheckingCurrent,
+    isProfileLoaded,
     error,
     resumeOpen,
     restartOpen,
@@ -171,7 +175,7 @@ export default function GoalSelectionPage() {
   }
 
   const visibleCards = GOAL_CARDS.filter(
-    card => !card.seniorOnly || ageGroup === 'senior',
+    card => card.allowedFor.includes(ageGroup),
   );
 
   return (
@@ -203,7 +207,7 @@ export default function GoalSelectionPage() {
               </p>
             </div>
 
-            {isCheckingCurrent || restartOpen ? (
+            {isCheckingCurrent || restartOpen || !isProfileLoaded ? (
               <div className="flex justify-center py-8">
                 <Spinner size="lg" />
               </div>
