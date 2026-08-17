@@ -4,11 +4,36 @@ import { useProfileSetup } from './hooks/useProfileSetup';
 
 const LANGUAGES = ['Русский', 'Казахский', 'Английский'];
 
+// Типовой учебный план РК по классам:
+// 1-4: начальная школа — естествознание не делится на физику/химию/
+//   биологию, истории/географии/информатики как отдельных предметов нет.
+// 5-6: появляются история, география, биология, информатика.
+// 7: добавляется физика.
+// 8-11/12: добавляется химия — дальше предметный набор не меняется.
+const PRIMARY_SUBJECTS = [
+  'Математика', 'Русский язык', 'Литературное чтение', 'Познание мира',
+  'Английский язык', 'Физкультура', 'Музыка', 'Рисование', 'Труд',
+];
+
+const MIDDLE_SUBJECTS = [
+  'Математика', 'История', 'География', 'Биология', 'Информатика',
+  'Русский язык', 'Литература', 'Английский язык', 'Физкультура', 'Рисование', 'Музыка',
+];
+
+const WITH_PHYSICS_SUBJECTS = [
+  'Математика', 'Физика', 'История', 'География', 'Биология', 'Информатика',
+  'Русский язык', 'Литература', 'Английский язык', 'Физкультура', 'Рисование', 'Музыка',
+];
+
 const SUBJECTS = [
   'Математика', 'Физика', 'Химия', 'Биология',
   'История', 'География', 'Русский язык', 'Литература',
   'Английский язык', 'Информатика', 'Физкультура', 'Рисование', 'Музыка',
 ];
+
+const PRIMARY_SCHOOL_MAX_GRADE = 4;
+const MIDDLE_SCHOOL_MAX_GRADE = 6;
+const PHYSICS_ONLY_GRADE = 7;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -30,10 +55,10 @@ function Chip({ label, selected, onClick }: { label: string; selected: boolean; 
 }
 
 function SubjectGroup({
-  title, emoji, selected,
+  title, emoji, subjects, selected,
   onToggle,
 }: {
-  title: string; emoji: string; selected: string[];
+  title: string; emoji: string; subjects: string[]; selected: string[];
   onToggle: (s: string) => void;
 }) {
   return (
@@ -42,7 +67,7 @@ function SubjectGroup({
         <span role="img" className="mr-1.5">{emoji}</span>{title}
       </p>
       <div className="flex flex-wrap gap-2">
-        {SUBJECTS.map(s => (
+        {subjects.map(s => (
           <Chip key={s} label={s} selected={selected.includes(s)} onClick={() => onToggle(s)} />
         ))}
       </div>
@@ -69,6 +94,13 @@ export default function ProfileSetupPage() {
     isLoading, submitError,
     handleNext, handleBack, handleSubmit, toggle,
   } = useProfileSetup();
+
+  const gradeNum = Number(grade);
+  const subjectOptions =
+    gradeNum <= PRIMARY_SCHOOL_MAX_GRADE ? PRIMARY_SUBJECTS
+    : gradeNum <= MIDDLE_SCHOOL_MAX_GRADE ? MIDDLE_SUBJECTS
+    : gradeNum === PHYSICS_ONLY_GRADE ? WITH_PHYSICS_SUBJECTS
+    : SUBJECTS;
 
   return (
     <div className="min-h-screen bg-page flex flex-col">
@@ -171,15 +203,15 @@ export default function ProfileSetupPage() {
               <p className="text-body text-secondary">Можно выбрать несколько в каждой группе</p>
             </div>
 
-            <SubjectGroup title="Нравятся" emoji="❤️" selected={subjectsLike}
+            <SubjectGroup title="Нравятся" emoji="❤️" subjects={subjectOptions} selected={subjectsLike}
               onToggle={s => setSubjectsLike(prev => toggle(prev, s))} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <SubjectGroup title="Не нравятся" emoji="😕" selected={subjectsDislike}
+            <SubjectGroup title="Не нравятся" emoji="😕" subjects={subjectOptions} selected={subjectsDislike}
               onToggle={s => setSubjectsDislike(prev => toggle(prev, s))} />
-            <SubjectGroup title="Даются легко" emoji="✅" selected={subjectsEasy}
+            <SubjectGroup title="Даются легко" emoji="✅" subjects={subjectOptions} selected={subjectsEasy}
               onToggle={s => setSubjectsEasy(prev => toggle(prev, s))} />
             </div>
-            <SubjectGroup title="Даются сложно" emoji="🤯" selected={subjectsHard}
+            <SubjectGroup title="Даются сложно" emoji="🤯" subjects={subjectOptions} selected={subjectsHard}
               onToggle={s => setSubjectsHard(prev => toggle(prev, s))} />
 
             {submitError && (
