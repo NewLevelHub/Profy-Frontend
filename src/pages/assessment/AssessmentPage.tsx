@@ -3,29 +3,30 @@ import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { useAssessment } from './hooks/useAssessment';
-import { LikertScale } from './components/LikertScale';
+import { LikertPage } from './components/LikertPage';
 import { PairChoice } from './components/PairChoice';
 import { ExitAssessmentModal } from './components/ExitAssessmentModal';
 
 export default function AssessmentPage() {
   const {
     phase,
-    itemIndex,
+    pageIndex,
+    totalPages,
     totalItems,
-    selectedValue,
+    likertAnswers,
     selectedPairOptionId,
     transitioning,
     saving,
     error,
-    currentQuestion,
+    currentLikertQuestions,
     currentPair,
-    currentScale,
     progress,
     exitConfirmOpen,
     autofilling,
     handleBack,
     handleStartIntro,
-    handleAnswer,
+    handleLikertSelect,
+    handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
     handleExit,
@@ -35,8 +36,8 @@ export default function AssessmentPage() {
   } = useAssessment();
 
   const headerTitle =
-    phase === 'question' && totalItems > 0
-      ? `Вопрос ${itemIndex + 1} из ${totalItems}`
+    phase === 'question' && totalPages > 0
+      ? `Страница ${pageIndex + 1} из ${totalPages}`
       : 'Диагностика';
 
   return (
@@ -51,7 +52,7 @@ export default function AssessmentPage() {
         sectionLabel="Диагностика"
         progressAriaLabel="Прогресс теста"
         progress={progress}
-        showBack={phase === 'question' && itemIndex > 0}
+        showBack={phase === 'question' && pageIndex > 0}
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
@@ -120,24 +121,20 @@ export default function AssessmentPage() {
                 </div>
               )}
 
-              {currentQuestion !== undefined && (
+              {currentLikertQuestions !== undefined && (
                 <div
                   className={cn(
-                    'flex flex-col gap-16 transition-opacity duration-300',
+                    'transition-opacity duration-300',
                     transitioning ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  <p
-                    className="font-semibold leading-snug tracking-[-0.02em]"
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 28,
-                      color: 'var(--midnight)',
-                    }}
-                  >
-                    {currentQuestion.text}
-                  </p>
-                  <LikertScale selected={selectedValue} onSelect={handleAnswer} scale={currentScale} />
+                  <LikertPage
+                    questions={currentLikertQuestions}
+                    answers={likertAnswers}
+                    onSelect={handleLikertSelect}
+                    onSubmit={handleSubmitLikertPage}
+                    saving={saving}
+                  />
                 </div>
               )}
 
@@ -165,7 +162,7 @@ export default function AssessmentPage() {
               )}
             </div>
 
-            {currentQuestion !== undefined && (
+            {currentLikertQuestions !== undefined && (
               <div className="px-3 py-5 sm:px-4 lg:px-6" style={{ borderTop: '1px solid var(--line)' }}>
                 <p className="text-[15px]" style={{ color: 'var(--mute)' }}>
                   Нет неправильных ответов

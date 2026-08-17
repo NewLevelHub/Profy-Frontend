@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment } from '@/shared/dev/autofillAssessment';
-import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
-import { buildDisplaySequence, type DisplayItem } from '../utils/buildDisplaySequence';
+import { buildDisplaySequence } from '../utils/buildDisplaySequence';
+import { buildPages, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
@@ -16,14 +16,14 @@ export function useAssessment() {
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
+  const totalQuestionsFromStore = useAssessmentStore(s => s.totalQuestions);
   const setProgress = useAssessmentStore(s => s.setProgress);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
-  const [sequence, setSequence] = useState<DisplayItem[]>([]);
+  const [pages, setPages] = useState<Page[]>([]);
   const [rawQuestionCount, setRawQuestionCount] = useState(0);
-  const [itemIndex, setItemIndex] = useState(0);
-  const [selectedValue, setSelectedValue] = useState<number | null>(null);
+  const [pageIndex, setPageIndex] = useState(0);
   const [selectedPairOptionId, setSelectedPairOptionId] = useState<string | null>(null);
   const [likertAnswers, setLikertAnswers] = useState<Record<string, number>>({});
   const [pairAnswers, setPairAnswers] = useState<Record<number, string>>({});
@@ -56,19 +56,22 @@ export function useAssessment() {
         if (cancelled) return;
         if (questions.length === 0) throw new Error('empty_questions');
         setRawQuestionCount(questions.length);
-        const built = buildDisplaySequence(questions, pairs);
-        setSequence(built);
+        // All Likert questions first, then all pairs (buildDisplaySequence),
+        // then grouped into pages of up to 5 Likert questions / 1 pair each.
+        const built = buildPages(buildDisplaySequence(questions, pairs));
+        setPages(built);
 
         if (!startIndexApplied.current) {
           startIndexApplied.current = true;
-          // Each sequence item consumes 1 (likert) or 2 (pair) raw
-          // UserResponse rows — walk until we've accounted for everything
-          // the store says is already answered, landing on the first
-          // not-yet-answered item.
+          // Each page consumes 1-5 (Likert) or 2 (pair) raw UserResponse
+          // rows — walk until we've accounted for everything the store
+          // says is already answered, landing on the first not-yet-fully-
+          // answered page.
           let cumulative = 0;
           let startIndex = built.length > 0 ? built.length - 1 : 0;
           for (let i = 0; i < built.length; i++) {
-            const weight = built[i].kind === 'pair' ? 2 : 1;
+            const page = built[i];
+            const weight = page.kind === 'pair' ? 2 : page.questions.length;
             if (cumulative + weight > answeredCountFromStore) {
               startIndex = i;
               break;
@@ -76,7 +79,7 @@ export function useAssessment() {
             cumulative += weight;
             startIndex = i;
           }
-          setItemIndex(startIndex);
+          setPageIndex(startIndex);
           if (answeredCountFromStore >= questions.length) {
             // Likert+pairs phase already fully answered — motivation may
             // still be pending, so continue there rather than assuming the
@@ -126,19 +129,10 @@ export function useAssessment() {
   }, [assessmentId, retryCount]);
 
   useEffect(() => {
-    const item = sequence[itemIndex];
-    if (!item) {
-      setSelectedValue(null);
-      setSelectedPairOptionId(null);
-    } else if (item.kind === 'likert') {
-      setSelectedValue(likertAnswers[item.question.id] ?? null);
-      setSelectedPairOptionId(null);
-    } else {
-      setSelectedPairOptionId(pairAnswers[item.pair.pair_index] ?? null);
-      setSelectedValue(null);
-    }
+    const page = pages[pageIndex];
+    setSelectedPairOptionId(page?.kind === 'pair' ? (pairAnswers[page.pair.pair_index] ?? null) : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemIndex, sequence]);
+  }, [pageIndex, pages]);
 
   function handleStartIntro() {
     if (introTimerRef.current !== null) {
@@ -152,22 +146,32 @@ export function useAssessment() {
   }
 
   function handleBack() {
-    if (itemIndex === 0 || transitioning || saving) return;
-    setItemIndex(i => i - 1);
+    if (pageIndex === 0 || transitioning || saving) return;
+    setPageIndex(i => i - 1);
   }
 
-  function advance() {
-    const isLast = itemIndex >= sequence.length - 1;
+  /**
+   * Advances to the next page, recording `rawQuestionsJustAnswered` raw
+   * UserResponse rows against the "привал" (rest stop) cadence — every
+   * 10-12 raw questions across the whole run, see
+   * useAssessmentStore.recordQuestionAnswered. A Likert page can submit up
+   * to 5 at once, so this loops instead of a single call.
+   */
+  function advance(rawQuestionsJustAnswered: number) {
+    const isLast = pageIndex >= pages.length - 1;
     if (isLast) {
       navigate('/assessment/motivation');
       return;
     }
 
-    // "Привал" (rest stop) — every 10-12 raw questions answered across the
-    // whole assessment run, independent of block boundaries. See
-    // useAssessmentStore.recordQuestionAnswered for the cadence logic.
-    const { shouldShow, totalAnswered } = useAssessmentStore.getState().recordQuestionAnswered();
-    if (shouldShow) {
+    let restDue = false;
+    let totalAnswered = 0;
+    for (let i = 0; i < rawQuestionsJustAnswered; i++) {
+      const result = useAssessmentStore.getState().recordQuestionAnswered();
+      restDue = restDue || result.shouldShow;
+      totalAnswered = result.totalAnswered;
+    }
+    if (restDue) {
       navigate('/assessment/rest', {
         state: { returnTo: '/assessment', progress, totalAnswered } satisfies RestStopState,
       });
@@ -176,25 +180,29 @@ export function useAssessment() {
 
     setTransitioning(true);
     setTimeout(() => {
-      setItemIndex(i => i + 1);
+      setPageIndex(i => i + 1);
       setTransitioning(false);
     }, 250);
   }
 
-  async function handleAnswer(value: number) {
-    const item = sequence[itemIndex];
-    if (!item || item.kind !== 'likert' || saving || transitioning) return;
-    const question = item.question;
+  function handleLikertSelect(questionId: string, value: number) {
+    if (saving || transitioning) return;
+    setLikertAnswers(prev => ({ ...prev, [questionId]: value }));
+  }
 
-    setSelectedValue(value);
+  async function handleSubmitLikertPage() {
+    const page = pages[pageIndex];
+    if (!page || page.kind !== 'likert' || saving || transitioning) return;
+    const { questions } = page;
+    if (!questions.every(q => likertAnswers[q.id] !== undefined)) return;
+
     setSaving(true);
     setError(null);
 
     try {
       const response = await assessmentApi.saveAnswers(assessmentId!, {
-        answers: [{ question_id: question.id, value }],
+        answers: questions.map(q => ({ question_id: q.id, value: likertAnswers[q.id] })),
       });
-      setLikertAnswers(prev => ({ ...prev, [question.id]: value }));
       setProgress(response.answered_count, response.total);
 
       if (response.completed) {
@@ -203,7 +211,7 @@ export function useAssessment() {
         navigate('/assessment/motivation');
         return;
       }
-      advance();
+      advance(questions.length);
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {
@@ -212,9 +220,9 @@ export function useAssessment() {
   }
 
   async function handlePairAnswer(pickedQuestionId: string) {
-    const item = sequence[itemIndex];
-    if (!item || item.kind !== 'pair' || saving || transitioning) return;
-    const pair = item.pair;
+    const page = pages[pageIndex];
+    if (!page || page.kind !== 'pair' || saving || transitioning) return;
+    const { pair } = page;
 
     setSelectedPairOptionId(pickedQuestionId);
     setSaving(true);
@@ -231,7 +239,7 @@ export function useAssessment() {
         navigate('/assessment/motivation');
         return;
       }
-      advance();
+      advance(1);
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {
@@ -266,35 +274,35 @@ export function useAssessment() {
     setExitConfirmOpen(false);
   }
 
-  const currentItem = sequence[itemIndex];
-  const currentQuestion = currentItem?.kind === 'likert' ? currentItem.question : undefined;
-  const currentPair = currentItem?.kind === 'pair' ? currentItem.pair : undefined;
-  const totalItems = sequence.length;
-  const progress = totalItems > 0 ? ((itemIndex + 1) / totalItems) * 100 : 0;
-  const currentScale = useMemo(
-    () => (currentQuestion?.instrument === 'big_five' ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE),
-    [currentQuestion],
-  );
+  const currentPage = pages[pageIndex];
+  const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
+  const currentPair = currentPage?.kind === 'pair' ? currentPage.pair : undefined;
+  const totalPages = pages.length;
+  // "N вопросов" / time-estimate copy on the intro screen counts each
+  // question and each pair as one unit, same as before pagination.
+  const totalItems = pages.reduce((sum, p) => sum + (p.kind === 'pair' ? 1 : p.questions.length), 0);
+  const progress = totalQuestionsFromStore > 0 ? (answeredCountFromStore / totalQuestionsFromStore) * 100 : 0;
 
   return {
     phase,
-    itemIndex,
+    pageIndex,
+    totalPages,
     totalItems,
     rawQuestionCount,
-    selectedValue,
+    likertAnswers,
     selectedPairOptionId,
-    currentScale,
     transitioning,
     saving,
     error,
-    currentQuestion,
+    currentLikertQuestions,
     currentPair,
     progress,
     exitConfirmOpen,
     autofilling,
     handleBack,
     handleStartIntro,
-    handleAnswer,
+    handleLikertSelect,
+    handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
     handleExit,
