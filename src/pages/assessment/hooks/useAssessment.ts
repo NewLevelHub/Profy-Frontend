@@ -11,6 +11,31 @@ import type { RestStopState } from '../utils/restStop';
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
+// Likert/pair answers already saved to the server are only known to this
+// hook via local state — the questions endpoint doesn't echo previous
+// values back. A rest stop (or any other route change away from
+// /assessment) unmounts this hook and would otherwise wipe that buffer, so
+// going "Назад" past a rest-stop boundary made earlier selections vanish
+// even though they were saved fine. Mirroring these two maps into
+// sessionStorage (same pattern as the intro-seen flag below) survives
+// remounts within the same tab.
+function likertAnswersStorageKey(assessmentId: string) {
+  return `profy-assessment-likert-answers:${assessmentId}`;
+}
+function pairAnswersStorageKey(assessmentId: string) {
+  return `profy-assessment-pair-answers:${assessmentId}`;
+}
+
+function loadStoredAnswers<T>(key: string | null): T | null {
+  if (!key || typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function useAssessment() {
   const navigate = useNavigate();
 
@@ -25,8 +50,12 @@ export function useAssessment() {
   const [rawQuestionCount, setRawQuestionCount] = useState(0);
   const [pageIndex, setPageIndex] = useState(0);
   const [selectedPairOptionId, setSelectedPairOptionId] = useState<string | null>(null);
-  const [likertAnswers, setLikertAnswers] = useState<Record<string, number>>({});
-  const [pairAnswers, setPairAnswers] = useState<Record<number, string>>({});
+  const [likertAnswers, setLikertAnswers] = useState<Record<string, number>>(
+    () => loadStoredAnswers(assessmentId ? likertAnswersStorageKey(assessmentId) : null) ?? {},
+  );
+  const [pairAnswers, setPairAnswers] = useState<Record<number, string>>(
+    () => loadStoredAnswers(assessmentId ? pairAnswersStorageKey(assessmentId) : null) ?? {},
+  );
   const [transitioning, setTransitioning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +162,16 @@ export function useAssessment() {
     setSelectedPairOptionId(page?.kind === 'pair' ? (pairAnswers[page.pair.pair_index] ?? null) : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageIndex, pages]);
+
+  useEffect(() => {
+    if (!assessmentId || typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(likertAnswersStorageKey(assessmentId), JSON.stringify(likertAnswers));
+  }, [assessmentId, likertAnswers]);
+
+  useEffect(() => {
+    if (!assessmentId || typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(pairAnswersStorageKey(assessmentId), JSON.stringify(pairAnswers));
+  }, [assessmentId, pairAnswers]);
 
   function handleStartIntro() {
     if (introTimerRef.current !== null) {
