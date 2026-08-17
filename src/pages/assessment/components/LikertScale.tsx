@@ -62,7 +62,7 @@ export const LikertScale = React.memo(function LikertScale({
             className={cn(
               'relative flex-none flex items-center justify-center',
               'min-w-11 min-h-11',
-              'transition-transform duration-150 hover:scale-105',
+              'transition-transform duration-150 hover:scale-105 active:scale-95',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
             )}
             style={{ borderRadius: '50%' }}
@@ -82,7 +82,7 @@ export const LikertScale = React.memo(function LikertScale({
             >
               {isSelected && (
                 <Check
-                  className="w-[42%] h-[42%]"
+                  className="w-[42%] h-[42%] likert-check-pop"
                   strokeWidth={3}
                   color="#fff"
                   aria-hidden

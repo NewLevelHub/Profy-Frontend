@@ -403,6 +403,19 @@
   .otp-cell-pop { animation: none; }
 }
 
+/* Selected-dot checkmark — instant confirmation that the tap registered. */
+@keyframes likertCheckPop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.likert-check-pop {
+  animation: likertCheckPop 140ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .likert-check-pop { animation: none; }
+}
+
 /* ─── Onboarding step 1 (welcome) ────────────────────────────────────────── */
 /* The one deliberate exception to the product's standard 180ms transition
    tempo — "register changes tempo, not the technique": a single opacity

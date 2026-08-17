@@ -199,7 +199,20 @@ export function useAssessment() {
   function advance(rawQuestionsJustAnswered: number) {
     const isLast = pageIndex >= pages.length - 1;
     if (isLast) {
-      navigate('/assessment/motivation');
+      // advance() is only reached after the caller already checked
+      // response.completed === false, so the server is telling us this
+      // phase genuinely isn't done — yet we're out of pages to show. That
+      // means some raw question/pair is unanswered somewhere OTHER than
+      // where we currently are (e.g. a resume computed against a display
+      // order that changed since some answers were recorded, so its
+      // "first N are answered" assumption no longer holds). We have no way
+      // to know which item that is — there's no per-item answered flag in
+      // the API — so the only safe recovery is to walk the whole sequence
+      // again from the top: re-submitting already-answered items is a
+      // harmless no-op, and whatever was actually skipped will surface
+      // this pass.
+      setError('Кажется, несколько ответов не сохранились — пройдём вопросы ещё раз, чтобы найти пропущенные.');
+      setPageIndex(0);
       return;
     }
 
