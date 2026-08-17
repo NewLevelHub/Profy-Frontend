@@ -29,12 +29,19 @@ export interface ProfilePayload {
   subjects_dislike: string[];
   subjects_easy: string[];
   subjects_hard: string[];
+  /** Optional — POST /profile now accepts artifacts inline, saving profile
+   *  and artifacts together in one transaction. Omit to keep using the old
+   *  two-call flow (POST /profile, then POST /profile/artifacts). */
+  artifacts?: ArtifactItem[];
 }
 
 export interface ProfileResponse extends ProfilePayload {
   id: string;
   user_id: string;
   age_group: AgeGroup;
+  /** Always present on the response now, even if `artifacts` wasn't sent
+   *  in the request (empty array in that case). */
+  artifacts: ArtifactItem[];
 }
 
 // ─── Artifacts ─────────────────────────────────────────────────────────────────
@@ -532,23 +539,6 @@ export interface ProgramDetail extends ProgramBrief {
   created_at: string;
 }
 
-export type GapStatus = 'met' | 'not_met' | 'in_progress' | 'unknown';
-
-export interface GapItem {
-  requirement: string;
-  status: GapStatus;
-  comment: string;
-}
-
-export interface GapAnalysisResponse {
-  program_id: string;
-  met: GapItem[];
-  not_met: GapItem[];
-  in_progress: GapItem[];
-  unknown: GapItem[];
-  readiness_score: number;
-}
-
 // ─── Admin ─────────────────────────────────────────────────────────────────────
 
 export interface AdminUserListItem {
@@ -632,4 +622,77 @@ export interface AdminAssessmentDetail {
   motivation_responses: AdminMotivationResponseItem[];
   analysis_result: AnalysisResultResponse | null;
   roadmap: RoadmapResponse | null;
+}
+
+// ─── Admin roles & change-log ───────────────────────────────────────────────────
+//
+// NOTE (frontend-only gap): the backend has no two-tier admin role concept today —
+// `User.is_admin` / `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are
+// still plain booleans, with no `role` field anywhere in the API response shape.
+// `AdminRole` below is a frontend-only type used to render the Operator/Administrator
+// distinction from the design spec; see `deriveAdminRole` in `@/shared/lib/adminRole`
+// for how it is honestly derived from the existing boolean (never fabricated).
+
+/** Frontend-only role distinction. No third tier — binary by design. */
+export type AdminRole = 'operator' | 'administrator';
+
+/**
+ * One row of field-level edit history for an admin-editable record.
+ *
+ * NOTE (backend gap): there is no audit-log / change-history endpoint or type
+ * anywhere in the API today (`adminApi` only exposes read GETs). This shape is
+ * defined so `ChangeLogTable` has a real contract to render against; callers
+ * must source real entries once a backend endpoint exists — never fabricate rows.
+ */
+export interface ChangeLogEntry {
+  id: string;
+  /** Machine-readable identifier for the changed field, e.g. `alert-3.status`. */
+  field_id: string;
+  author: string;
+  timestamp: string;
+  old_value: string | null;
+  new_value: string | null;
+  /** Whether a real revert endpoint exists for this entry (currently always false). */
+  can_revert: boolean;
+}
+
+// ─── Profile — parent access & attempt history ──────────────────────────────────
+//
+// NOTE (backend gap, found 2026-08-15 auditing `/profile`): there is no `/parent`
+// route anywhere in `src/app/router.tsx`, no parent-access-request endpoint in
+// `src/shared/api/`, and no "СВЯЗЬ РОДИТЕЛЬ — РЕБЁНОК" block in
+// `AdminUserDetailPage.tsx`. The types below give `/profile`'s senior-variant
+// "ДОСТУП РОДИТЕЛЯ" section a real contract to render a genuine pending request
+// against; callers must never construct a fake `ParentAccessRequest` — render
+// nothing (or a static, non-per-request explainer) until a backend endpoint
+// exists to source one from.
+
+export type ParentAccessRequestStatus = 'pending' | 'approved' | 'declined';
+
+export interface ParentAccessRequest {
+  id: string;
+  parent_name: string;
+  requested_at: string;
+  status: ParentAccessRequestStatus;
+  /** Whether real approve/decline endpoints exist yet (currently always false). */
+  can_respond: boolean;
+}
+
+/**
+ * One past assessment attempt, for the "ИСТОРИЯ ПРОХОЖДЕНИЙ" timeline.
+ *
+ * NOTE (backend gap): there is no assessment-history-list endpoint anywhere in
+ * `src/shared/api/` — `useAssessmentStore` only ever tracks the single
+ * current/most-recent run (restarting overwrites it), so a plural "history" of
+ * past attempts cannot be honestly derived from any state this app has today.
+ * This shape exists so the attempt-history UI has a real contract; render a
+ * genuine empty state until a backend list endpoint exists — never fabricate rows.
+ */
+export interface AttemptHistoryEntry {
+  id: string;
+  completed_at: string;
+  instrument: Instrument;
+  goal: AssessmentGoal;
+  /** e.g. "Полная диагностика · 60 вопросов" — pre-formatted by the backend. */
+  description: string;
 }

@@ -1,33 +1,68 @@
-import { Card } from '@/shared/ui/Card';
+import { Mascot } from '@/shared/ui/Mascot';
 
 export interface ProfileHeroProps {
+  isJunior: boolean;
   displayName: string;
-  initial: string;
-  email?: string;
-  ageGroupLabel?: string;
+  age?: number;
+  grade?: number;
 }
 
-export function ProfileHero({ displayName, initial, email, ageGroupLabel }: ProfileHeroProps) {
-  return (
-    <Card className="flex flex-col items-center gap-3 py-6 lg:flex-row lg:items-center lg:gap-6 lg:py-7 lg:text-left" elevated>
+/**
+ * Identity header — one shared visual system for every age (Fog-bordered card,
+ * mono meta line, display headline, welcome Mascot), only the composition
+ * differs: junior gets "«МОИ ШТУКИ»" framing at 88px Mascot, senior/full
+ * account gets the age/grade meta line at 54px. `TopRail` already renders
+ * "Профиль" as the active nav tab — this card is page content, not chrome.
+ *
+ * The senior meta line omits a "· С {месяц} {год}" join-date clause the design
+ * spec calls for — `User` (the self-facing auth type) has no `created_at`
+ * field anywhere in the API contract (only the admin-only `AdminUserDetail`
+ * does), so there's no real data to show there. Noted as a gap, not faked.
+ */
+export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroProps) {
+  if (isJunior) {
+    return (
       <div
-        className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0"
-        style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', boxShadow: '0 10px 24px rgba(124,58,237,.32)', fontSize: 42, fontWeight: 900, color: '#fff', lineHeight: 1 }}
-        aria-hidden="true"
+        className="rounded-[var(--radius)] border border-default p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5"
+        style={{ background: 'var(--bg-page)' }}
       >
-        {initial}
+        <div className="flex-1 order-2 sm:order-1">
+          <p className="font-mono text-tiny font-bold uppercase tracking-[.06em] text-muted mb-2">
+            /profile{age ? ` · ${age} ЛЕТ` : ''} · «МОИ ШТУКИ»
+          </p>
+          <p
+            className="font-display text-primary"
+            style={{ fontSize: 34, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1.1 }}
+          >
+            {displayName}{age ? `, ${age} лет` : ''}
+          </p>
+        </div>
+        <div className="order-1 sm:order-2 flex-shrink-0 self-center">
+          <Mascot state="welcome" size={88} />
+        </div>
       </div>
-      <div className="text-center lg:text-left">
-        <p className="font-black text-primary text-h1">{displayName}</p>
-        {email && (
-          <p className="text-muted font-semibold mt-0.5 text-label">{email}</p>
-        )}
+    );
+  }
+
+  return (
+    <div
+      className="rounded-[var(--radius)] border border-default p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5"
+      style={{ background: 'var(--bg-page)' }}
+    >
+      <div className="flex-1 min-w-0 order-2 sm:order-1">
+        <p
+          className="font-display text-primary"
+          style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1.1 }}
+        >
+          {displayName}
+        </p>
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted mt-1.5">
+          {[age ? `${age} ЛЕТ` : null, grade ? `${grade} КЛАСС` : null].filter(Boolean).join(' · ')}
+        </p>
       </div>
-      {ageGroupLabel && (
-        <span className="inline-block bg-brand-subtle text-brand-text font-extrabold rounded-pill px-4 py-1.5 text-caption lg:ml-auto">
-          {ageGroupLabel}
-        </span>
-      )}
-    </Card>
+      <div className="order-1 sm:order-2 flex-shrink-0 self-center sm:self-auto">
+        <Mascot state="welcome" size={54} />
+      </div>
+    </div>
   );
 }

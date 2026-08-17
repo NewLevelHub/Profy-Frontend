@@ -16,7 +16,8 @@ export function SectionHeading({
   return (
     <Tag
       className={cn(
-        'font-black text-primary tracking-[-0.01em] text-[24px] leading-tight flex items-center gap-2 mb-4',
+        'font-display font-semibold tracking-[-0.025em] text-[24px] leading-tight flex items-center gap-2 mb-4',
+        'text-[color:var(--midnight)]',
         className,
       )}
     >

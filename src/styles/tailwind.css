@@ -5,7 +5,9 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 @keyframes slide-down-fade {

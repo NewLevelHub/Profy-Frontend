@@ -1,78 +1,82 @@
 import { useNavigate } from 'react-router';
+import { Clock, PauseCircle, Smile } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { Button, Spinner } from '@/shared/ui';
-import { useWelcome } from './hooks/useWelcome';
+import { Button, Mascot } from '@/shared/ui';
 
-const STEPS = [
-  { num: '1', emoji: '📝', label: 'Расскажи о себе', desc: 'Профиль, интересы и цели' },
-  { num: '2', emoji: '🧩', label: 'Пройди тест', desc: '7 коротких блоков вопросов' },
-  { num: '3', emoji: '🎯', label: 'Получи план', desc: 'Персональная дорожная карта' },
+// ── Pre-test intro ────────────────────────────────────────────────────────
+// Shown exactly once per account, right before a user's first-ever
+// assessment attempt — not right after registration (see useGoalSelection's
+// "wasFirstEver" check, which routes here instead of straight to
+// /assessment only the first time). By this point profile setup and
+// artifacts are already done, so this is purely "here's how the test
+// itself works," not a map of the rest of onboarding.
+
+const FEATURES = [
+  { Icon: Clock, title: 'Около 15 минут', sub: 'Спокойный темп, без секундомера' },
+  { Icon: PauseCircle, title: 'Можно прерваться', sub: 'Всё сохранится, продолжишь позже' },
+  { Icon: Smile, title: 'Никто не проверяет', sub: 'Нет правильных и неправильных ответов' },
 ] as const;
 
 export default function WelcomePage() {
   const navigate = useNavigate();
-  const { isLoading, firstName } = useWelcome();
-
-  const greeting = firstName ? `Привет, ${firstName}!` : 'Привет!';
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-page">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-page flex flex-col items-center justify-center px-5 py-12 lg:px-8">
-      <div className="w-full max-w-sm lg:max-w-3xl flex flex-col gap-8">
+    <div className="min-h-screen bg-page flex flex-col items-center px-4 py-10 lg:py-14">
+      <div className="w-full max-w-2xl flex flex-col gap-8">
 
-        {/* Header */}
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="text-6xl leading-none select-none" role="img" aria-label="приветствие">👋</span>
-          <h1 className="text-display font-black text-primary tracking-tight">
-            {greeting}
-          </h1>
-          <p className="text-body text-secondary leading-relaxed">
-            Рады, что ты с нами. Давай вместе<br />разберёмся, что тебе подходит.
-          </p>
-        </div>
-
-        {/* Steps */}
-        <div className="flex flex-col gap-3">
-          <p className="text-tiny font-extrabold text-muted uppercase tracking-widest">
-            Что тебя ждёт:
-          </p>
-          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-3 lg:gap-4">
-          {STEPS.map((step) => (
-            <div
-              key={step.num}
-              className={cn(
-                'flex items-center gap-4 px-4 py-4 rounded-[var(--radius)]',
-                'bg-surface border border-default shadow-card',
-              )}
-            >
-              <div className="w-9 h-9 rounded-full bg-brand-subtle flex items-center justify-center shrink-0">
-                <span className="text-label font-black text-brand">{step.num}</span>
-              </div>
-              <span className="text-2xl leading-none select-none" role="img">{step.emoji}</span>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-label font-extrabold text-primary">{step.label}</span>
-                <span className="text-small text-secondary">{step.desc}</span>
-              </div>
-            </div>
-          ))}
-          </div>
-        </div>
-
-        {/* CTA */}
-        <Button
-          size="lg"
-          className="w-full lg:max-w-sm lg:mx-auto h-14 rounded-pill text-base font-extrabold shadow-button"
-          onClick={() => navigate('/onboarding/profile')}
+        <div
+          className="onboarding-welcome-in flex flex-col gap-7 px-6 py-8 sm:px-10 sm:py-10"
+          style={{ background: 'var(--fog)', border: '1px solid var(--hairline)', borderRadius: 'var(--radius)' }}
         >
-          Поехали! 🚀
-        </Button>
+          <span className="font-mono text-[11px] tracking-[.1em] uppercase text-muted">
+            Перед тестом · Как это будет
+          </span>
+
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-8">
+            <Mascot state="welcome" size={124} className="shrink-0" />
+            <div className="flex flex-col gap-3">
+              <h1
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                  fontSize: 38,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.08,
+                  color: 'var(--midnight)',
+                }}
+              >
+                Привет, я Профи. Разберёмся, что тебе близко
+              </h1>
+              <p className="text-[17px] leading-relaxed" style={{ color: 'var(--ink)' }}>
+                Я буду задавать вопросы и смотреть, что тебе интересно. Правильных и
+                неправильных ответов здесь нет, и никто тебя не оценивает — ни я, ни школа,
+                ни родители.
+              </p>
+            </div>
+          </div>
+
+          {/* Feature bullets */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-4 pt-2">
+            {FEATURES.map(({ Icon, title, sub }) => (
+              <div key={title} className="flex flex-col gap-2">
+                <Icon size={26} strokeWidth={1.75} style={{ color: 'var(--pine)' }} aria-hidden="true" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[16px] font-semibold" style={{ color: 'var(--midnight)' }}>{title}</span>
+                  <span className="text-[15px]" style={{ color: 'var(--mute)' }}>{sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Button
+            variant="primary"
+            className={cn('w-full sm:w-auto sm:self-start')}
+            style={{ minHeight: 48 }}
+            onClick={() => navigate('/assessment')}
+          >
+            Хорошо, начнём
+          </Button>
+        </div>
 
       </div>
     </div>

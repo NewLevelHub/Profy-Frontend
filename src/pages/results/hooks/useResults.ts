@@ -31,6 +31,7 @@ export function useResults() {
     enabled: hasCompletedAssessment && !report && !!assessmentId,
     retry: (failureCount, err) => {
       if ((err as AxiosError)?.response?.status === 403) return false;
+      if (err instanceof Error && err.message === 'legacy_result_shape') return false;
       return failureCount < 2;
     },
   });
@@ -55,11 +56,20 @@ export function useResults() {
   // (there is no `code` in this contract at all).
   const isJunior = effectiveReport?.interest_instrument === 'mi';
 
+  // Backend returned the pre-v2 admin/raw AnalysisResult shape for this
+  // assessment (see resultApi.assertResultV2) — retrying won't help since
+  // `/result/generate` reuses the existing stored row rather than
+  // recomputing it; this needs a backend-side regeneration/backfill.
+  const isLegacyShape = error instanceof Error && error.message === 'legacy_result_shape';
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
-    error: (!is403 && error) ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
+    error: isLegacyShape
+      ? 'Отчёт сохранён в устаревшем формате и пока не может быть показан. Мы уже знаем об этом — попробуй зайти чуть позже.'
+      : (!is403 && error) ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
     hasCompletedAssessment,
+    assessmentId,
     goal,
     ageGroup,
     isJunior,

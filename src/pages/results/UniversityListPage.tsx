@@ -13,7 +13,7 @@ import { COUNTRY_FILTERS, useUniversityList } from '@/pages/results/hooks/useUni
 
 function ProgramCardSkeleton() {
   return (
-    <div className="bg-surface border border-[#EDE9FE] rounded-[22px] p-6 shadow-card flex flex-col gap-3">
+    <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card flex flex-col gap-3">
       <div className="flex justify-between gap-3">
         <Skeleton className="h-6 w-2/3" />
         <Skeleton className="h-6 w-16 rounded-full" />
@@ -39,10 +39,10 @@ interface ProgramCardProps {
 
 const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCardProps) {
   return (
-    <div className="bg-surface border border-[#EDE9FE] rounded-[22px] p-6 shadow-card flex flex-col h-full">
+    <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card flex flex-col h-full">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-[21px] font-black leading-snug text-primary m-0">{program.name}</h3>
-        <span className="shrink-0 bg-[#EDE9FE] text-[#5B21B6] text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
+        <span className="shrink-0 bg-brand-subtle text-brand text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
           {program.university.country}
         </span>
       </div>
@@ -62,7 +62,7 @@ const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCard
 
       <button
         onClick={() => onSelect(program.id)}
-        className="w-full h-[52px] border-[1.5px] border-[#DDD6FE] rounded-2xl bg-surface text-brand text-base font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors mt-auto"
+        className="w-full h-[52px] border-[1.5px] border-strong rounded-[var(--radius)] bg-surface text-brand text-base font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors mt-auto"
       >
         Посмотреть требования
       </button>
@@ -120,7 +120,7 @@ export default function UniversityListPage() {
             className={
               activeCountry === filter.value
                 ? 'px-5 py-2 rounded-pill text-sm font-bold bg-brand text-on-brand border-none cursor-pointer'
-                : 'px-5 py-2 rounded-pill text-sm font-bold bg-surface text-secondary border-[1.5px] border-[#DDD6FE] cursor-pointer hover:border-brand transition-colors'
+                : 'px-5 py-2 rounded-pill text-sm font-bold bg-surface text-secondary border-[1.5px] border-strong cursor-pointer hover:border-brand transition-colors'
             }
           >
             {filter.label}

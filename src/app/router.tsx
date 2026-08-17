@@ -6,6 +6,7 @@ import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
+import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
 
 // ── Auth (mobile: AuthNavigator) ──────────────────────────────────────────────
 import LoginPage from '@/pages/auth/LoginPage';
@@ -21,10 +22,12 @@ import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
 
 // ── Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
 import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
+import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
 import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
 import PraisePage from '@/pages/assessment/PraisePage';
+import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
@@ -37,7 +40,6 @@ import DirectionDetailPage from '@/pages/results/DirectionDetailPage';
 import DirectionInquiryPage from '@/pages/results/inquiry/DirectionInquiryPage';
 import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
-import GapAnalysisPage from '@/pages/results/GapAnalysisPage';
 import RoadmapPage from '@/pages/roadmap/RoadmapPage';
 import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
 
@@ -84,7 +86,9 @@ export const router = createBrowserRouter([
       { path: '/assessment/pairs', element: <PairAssessmentPage /> },
       { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
       { path: '/assessment/praise', element: <PraisePage /> },
+      { path: '/assessment/rest', element: <RestStopPage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
+      { path: '/assessment/goal-check', element: <GoalCheckPage /> },
 
       // Main app — guarded by profile; redirects to /welcome if profile not yet created
       {
@@ -107,18 +111,20 @@ export const router = createBrowserRouter([
                 path: '/results/directions/:slug/universities/:programId',
                 element: <ProgramDetailPage />,
               },
-              {
-                path: '/results/directions/:slug/universities/:programId/gap',
-                element: <GapAnalysisPage />,
-              },
 
               // Admin (inside main layout — sidebar stays visible)
               {
                 element: <RequireAdmin />,
                 children: [
                   { path: '/admin', element: <Navigate to="/admin/users" replace /> },
-                  { path: '/admin/users', element: <AdminUsersPage /> },
-                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                  {
+                    // Persistent admin chrome (role badge) for every admin page
+                    element: <AdminLayout />,
+                    children: [
+                      { path: '/admin/users', element: <AdminUsersPage /> },
+                      { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                    ],
+                  },
                 ],
               },
 

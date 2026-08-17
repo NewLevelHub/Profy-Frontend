@@ -32,9 +32,9 @@ function PairCard({
         'focus-visible:outline-none focus-visible:ring-brand',
         isSelected
           ? 'border-brand bg-active-tint'
-          : 'border-default bg-surface text-primary hover:border-[#C4B5FD]',
+          : 'border-default bg-surface text-primary hover:border-brand',
       )}
-      style={{ borderRadius: 18, boxShadow: '0 4px 14px rgba(30,27,75,.04)' }}
+      style={{ borderRadius: 18 }}
     >
       {option.icon && <span style={{ fontSize: 44, lineHeight: 1 }}>{option.icon}</span>}
       <span className="font-bold text-primary text-center leading-snug" style={{ fontSize: 17 }}>

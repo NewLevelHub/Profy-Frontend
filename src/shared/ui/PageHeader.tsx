@@ -30,7 +30,8 @@ export function PageHeader({
       <div className={cn(align === 'center' && 'w-full')}>
         <h1
           className={cn(
-            'font-black text-primary leading-tight tracking-[-0.01em] text-[30px]',
+            'font-display font-semibold leading-tight tracking-[-0.025em] text-[30px]',
+            'text-[color:var(--midnight)]',
             titleClassName,
           )}
         >

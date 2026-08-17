@@ -2,41 +2,59 @@ import { Navigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
 import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
-import type { AssessmentGoal } from '@/shared/types';
+import type { AssessmentGoal, AgeGroup } from '@/shared/types';
+
+// ── Step 4 — Goal selection ─────────────────────────────────────────────────
+// IMPORTANT DATA-MODEL NOTE: the design mockup this screen was ported from
+// shows "1 main goal + up to 2 additional goals," each card getting its own
+// "pick as main" / "pick as additional" button pair. `AssessmentGoal` is a
+// single-value enum ('explore' | 'profession' | 'university') everywhere in
+// this codebase — there is no multi-goal data model to back that, and
+// picking a goal here immediately starts the assessment (a one-shot action,
+// not a form with a submit step), so there's no persistent "selected" state
+// to render after the click either. Rather than fabricate a second button
+// per card that writes to nothing, this renders the mockup's *visual*
+// hierarchy (tag, title, note, a Pine left-border + filled Pine action on
+// the recommended card, equal-weight outline actions on the rest) over the
+// real single-select interaction. See useGoalSelection for the actual
+// mutation.
 
 interface GoalCard {
   goal: AssessmentGoal;
-  emoji: string;
+  tag: string;
   title: string;
   subtitle: string;
-  seniorOnly?: boolean;
+  /** Card is hidden below this age group — matches the age-gating already
+   *  used for the real goal switcher on /results (JuniorGoalLabel vs.
+   *  GoalSwitcher): an unavailable card is simply absent, never shown
+   *  disabled-with-explanation. */
+  minAgeGroup?: AgeGroup;
+  primary?: boolean;
 }
+
+const AGE_RANK: Record<AgeGroup, number> = { junior: 0, middle: 1, senior: 2 };
 
 const GOAL_CARDS: GoalCard[] = [
   {
     goal: 'explore',
-    emoji: '🔍',
+    tag: 'Исследовать',
     title: 'Понять себя',
-    subtitle: 'Узнай свои сильные стороны и интересы',
+    subtitle: 'Узнать свои сильные стороны и интересы — или ещё не знать, с чего начать. Это нормально, разберёмся вместе.',
+    primary: true,
   },
   {
     goal: 'profession',
-    emoji: '🎯',
+    tag: 'Профессия',
     title: 'Выбрать профессию',
     subtitle: 'Найди направление, которое тебе подойдёт',
+    minAgeGroup: 'middle',
   },
   {
     goal: 'university',
-    emoji: '🎓',
+    tag: 'Университет',
     title: 'Поступить в университет',
     subtitle: 'Построй путь к поступлению',
-    seniorOnly: true,
-  },
-  {
-    goal: 'explore',
-    emoji: '💬',
-    title: 'Пока не знаю',
-    subtitle: 'Начнём с начала, разберёмся вместе',
+    minAgeGroup: 'senior',
   },
 ];
 
@@ -63,7 +81,6 @@ function ResumeDialog({
         'flex flex-col gap-5',
       )}>
         <div className="flex flex-col gap-2">
-          <span className="text-3xl" role="img" aria-label="незавершённый тест">⏸️</span>
           <h2 id="resume-dialog-title" className="text-title font-black text-primary">
             У тебя есть незавершённый тест
           </h2>
@@ -117,7 +134,6 @@ function RestartDialog({
         'flex flex-col gap-5',
       )}>
         <div className="flex flex-col gap-2">
-          <span className="text-3xl" role="img" aria-label="результаты">🎉</span>
           <h2 id="restart-dialog-title" className="text-title font-black text-primary">
             У тебя уже есть результаты
           </h2>
@@ -171,7 +187,7 @@ export default function GoalSelectionPage() {
   }
 
   const visibleCards = GOAL_CARDS.filter(
-    card => !card.seniorOnly || ageGroup === 'senior',
+    card => !card.minAgeGroup || AGE_RANK[ageGroup] >= AGE_RANK[card.minAgeGroup],
   );
 
   return (
@@ -188,18 +204,21 @@ export default function GoalSelectionPage() {
       />
 
       <div className="min-h-screen bg-page flex flex-col">
-        <div className="flex-1 overflow-y-auto px-6 py-[70px] lg:py-12">
-          <div className="max-w-[620px] lg:max-w-4xl mx-auto flex flex-col">
+        <div className="flex-1 overflow-y-auto px-5 py-10 lg:py-14">
+          <div className="max-w-[680px] lg:max-w-5xl mx-auto flex flex-col">
 
-            <div className="mb-[30px]">
-              <div className="inline-flex items-center gap-[7px] bg-brand-subtle text-brand-text font-extrabold rounded-pill px-[14px] py-[6px] mb-[18px]" style={{ fontSize: 13 }}>
-                ✨ Шаг 1 · Знакомство
-              </div>
-              <h1 className="font-black text-primary tracking-[-0.01em] mb-2" style={{ fontSize: 38 }}>
-                Что ты хочешь узнать?
+            <div className="mb-8">
+              {/* <span className="font-mono text-[11px] tracking-[.1em] uppercase text-muted">
+                Шаг 4 · Цель · Выбери, что сейчас важнее
+              </span> */}
+              <h1
+                className="mt-2 mb-2"
+                style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 32, letterSpacing: '-0.02em', lineHeight: 1.12, color: 'var(--midnight)' }}
+              >
+                Чего ты хочешь от этого теста?
               </h1>
-              <p className="text-secondary font-semibold" style={{ fontSize: 17 }}>
-                Выбери то, что тебе сейчас важнее всего
+              <p className="text-body" style={{ color: 'var(--mute)' }}>
+                Выбери то, что тебе сейчас важнее всего — это можно изменить позже
               </p>
             </div>
 
@@ -208,46 +227,56 @@ export default function GoalSelectionPage() {
                 <Spinner size="lg" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
-                {visibleCards.map((card, i) => (
-                  <button
-                    key={card.title}
-                    type="button"
-                    onClick={() => handleGoalSelect(card.goal)}
-                    disabled={isLoading}
-                    className={cn(
-                      'flex items-center gap-[18px] px-[22px] py-5 text-left border-[1.5px] transition-all duration-[180ms]',
-                      'disabled:opacity-50 disabled:cursor-not-allowed',
-                      i === 0
-                        ? 'border-[#C4B5FD] bg-brand-subtle hover:border-[#A78BFA] hover:-translate-y-0.5'
-                        : 'border-default bg-surface hover:border-[#C4B5FD] hover:bg-hover hover:-translate-y-0.5',
-                    )}
-                    style={{ borderRadius: 20, boxShadow: '0 4px 14px rgba(30,27,75,.05)' }}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {visibleCards.map(card => (
+                  <div
+                    key={card.goal}
+                    className="flex flex-col gap-4 p-5"
+                    style={{
+                      background: 'var(--bg-surface)',
+                      borderRadius: 'var(--radius)',
+                      border: '1px solid var(--border)',
+                      borderLeft: card.primary ? '3px solid var(--pine)' : '1px solid var(--border)',
+                    }}
                   >
-                    <div
-                      className="w-[54px] h-[54px] flex items-center justify-center shrink-0"
-                      style={{ borderRadius: 15, background: i === 0 ? '#fff' : 'var(--bg-active)' }}
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] uppercase tracking-[.08em] text-muted">{card.tag}</span>
+                      {card.primary && (
+                        <span className="font-mono text-[10px] uppercase tracking-[.08em]" style={{ color: 'var(--pine)' }}>
+                          Основная цель
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em', color: 'var(--midnight)' }}>
+                        {card.title}
+                      </p>
+                      <p className="text-[15px]" style={{ color: 'var(--mute)' }}>{card.subtitle}</p>
+                    </div>
+
+                    <Button
+                      variant={card.primary ? 'primary' : 'ghost'}
+                      size="md"
+                      className="w-full mt-auto"
+                      disabled={isLoading}
+                      onClick={() => handleGoalSelect(card.goal)}
                     >
-                      <span className="text-[26px] leading-none" role="img">{card.emoji}</span>
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 19 }}>{card.title}</p>
-                      <p className="text-secondary font-semibold" style={{ fontSize: 14 }}>{card.subtitle}</p>
-                    </div>
-                    <span className="text-[22px] text-[#A78BFA] font-black shrink-0" aria-hidden="true">›</span>
-                  </button>
+                      Выбрать эту цель
+                    </Button>
+                  </div>
                 ))}
               </div>
             )}
 
             {isLoading && (
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-4">
                 <Spinner size="sm" />
               </div>
             )}
 
             {error && (
-              <p className="text-xs text-danger text-center">{error}</p>
+              <p className="text-xs text-danger text-center mt-4">{error}</p>
             )}
 
           </div>

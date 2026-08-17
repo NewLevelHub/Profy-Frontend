@@ -12,7 +12,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       ref={ref}
       className={cn(
         'bg-surface border border-default rounded-[var(--radius)]',
-        elevated ? 'shadow-pop' : 'shadow-card',
+        elevated && 'shadow-pop',
         'p-4 sm:p-6',
         className,
       )}

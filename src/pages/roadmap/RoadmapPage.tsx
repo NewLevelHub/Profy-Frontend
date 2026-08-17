@@ -17,7 +17,7 @@ function HorizonCard({
     <button
       type="button"
       onClick={() => onSelect(milestone.horizon)}
-      className="w-full text-left rounded-2xl p-4 transition-all active:scale-[0.98] bg-[#F5F3FF] border-[1.5px] border-[#EDE9FE] hover:border-brand/40"
+      className="w-full text-left rounded-[var(--radius)] p-4 transition-all active:scale-[0.98] bg-surface border-[1.5px] border-default hover:border-brand/40"
     >
       <div className="flex items-center justify-between mb-1">
         <span className="font-black text-brand text-[13px]">
@@ -34,7 +34,7 @@ function HorizonCard({
         {milestone.tasks.slice(0, 3).map((task, i) => (
           <span
             key={i}
-            className="font-semibold text-[11px] text-brand bg-[#EDE9FE] rounded-pill px-2 py-0.5"
+            className="font-semibold text-[11px] text-brand bg-brand-subtle rounded-pill px-2 py-0.5"
           >
             {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'}{' '}
             {task.text.length > 28 ? task.text.slice(0, 28) + '…' : task.text}
@@ -85,10 +85,10 @@ function MilestoneView({
           .map((task, i) => (
             <div
               key={i}
-              className="rounded-2xl p-4 bg-[#FAFAFA] border-[1.5px] border-[#F0F0F0]"
+              className="rounded-[var(--radius)] p-4 bg-raised border-[1.5px] border-default"
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 flex items-center justify-center rounded-full font-black text-white w-9 h-9 text-[15px] bg-gradient-to-br from-brand to-[#A78BFA]">
+                <div className="flex-shrink-0 flex items-center justify-center rounded-full font-black text-on-brand w-9 h-9 text-[15px] bg-brand">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -100,7 +100,7 @@ function MilestoneView({
                       {task.description}
                     </p>
                   )}
-                  <span className="inline-block mt-2 font-semibold text-[11px] text-brand bg-[#EDE9FE] rounded-pill px-2 py-0.5">
+                  <span className="inline-block mt-2 font-semibold text-[11px] text-brand bg-brand-subtle rounded-pill px-2 py-0.5">
                     {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'} {task.category}
                   </span>
                 </div>
@@ -139,14 +139,14 @@ function RoadmapEmptyState({
         <p className="text-muted font-medium text-sm max-w-md">{description}</p>
       )}
       {error && (
-        <p className="text-red-500 font-semibold text-sm">{error}</p>
+        <p className="text-danger font-semibold text-sm">{error}</p>
       )}
       {actionLabel && onAction && (
         <button
           type="button"
           onClick={onAction}
           disabled={disabled}
-          className="font-black text-white rounded-2xl px-6 py-3 bg-brand text-[15px] disabled:opacity-60"
+          className="font-black text-on-brand rounded-[var(--radius)] px-6 py-3 bg-brand text-[15px] disabled:opacity-60"
         >
           {actionLabel}
         </button>
@@ -172,7 +172,7 @@ export default function RoadmapPage() {
   if (isLoading) {
     return (
       <PageContainer className="flex flex-col items-center justify-center py-20 gap-3">
-        <div className="rounded-full animate-spin w-9 h-9 border-[3px] border-[#EDE9FE] border-t-brand" />
+        <div className="rounded-full animate-spin w-9 h-9 border-[3px] border-default border-t-brand" />
         <p className="font-semibold text-muted text-sm">Загружаем твой план...</p>
       </PageContainer>
     );

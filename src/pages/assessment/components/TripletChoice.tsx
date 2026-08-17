@@ -55,9 +55,9 @@ export const TripletChoice = React.memo(function TripletChoice({
                 ? 'border-brand bg-active-tint'
                 : isLeast
                   ? 'border-default bg-danger-subtle'
-                  : 'border-default bg-surface text-primary hover:border-[#C4B5FD]',
+                  : 'border-default bg-surface text-primary hover:border-brand',
             )}
-            style={{ borderRadius: 18, boxShadow: '0 4px 14px rgba(30,27,75,.04)' }}
+            style={{ borderRadius: 18 }}
           >
             <span className="font-bold text-primary leading-snug" style={{ fontSize: 16 }}>
               {statement.text}

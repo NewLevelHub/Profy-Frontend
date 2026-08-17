@@ -31,9 +31,9 @@ export const LikertScale = React.memo(function LikertScale({
               'focus-visible:outline-none focus-visible:ring-brand',
               isSelected
                 ? 'border-brand bg-active-tint'
-                : 'border-default bg-surface text-primary hover:border-[#C4B5FD]',
+                : 'border-default bg-surface text-primary hover:border-brand',
             )}
-            style={{ borderRadius: 18, boxShadow: '0 4px 14px rgba(30,27,75,.04)' }}
+            style={{ borderRadius: 18 }}
           >
             <span
               className="w-[34px] h-[34px] flex-none flex items-center justify-center font-black"

@@ -7,6 +7,7 @@ import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment } from '@/shared/dev/autofillAssessment';
 import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
 import { buildDisplaySequence, type DisplayItem } from '../utils/buildDisplaySequence';
+import type { RestStopState } from '../utils/restStop';
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
@@ -143,6 +144,18 @@ export function useAssessment() {
       navigate('/assessment/motivation');
       return;
     }
+
+    // "Привал" (rest stop) — every 10-12 raw questions answered across the
+    // whole assessment run, independent of block boundaries. See
+    // useAssessmentStore.recordQuestionAnswered for the cadence logic.
+    const { shouldShow, totalAnswered } = useAssessmentStore.getState().recordQuestionAnswered();
+    if (shouldShow) {
+      navigate('/assessment/rest', {
+        state: { returnTo: '/assessment', progress, totalAnswered } satisfies RestStopState,
+      });
+      return;
+    }
+
     setTransitioning(true);
     setTimeout(() => {
       setItemIndex(i => i + 1);

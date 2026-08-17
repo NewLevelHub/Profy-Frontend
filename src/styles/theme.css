@@ -1,115 +1,138 @@
 /* ─── Design Tokens ─── */
-/* Palette mirrors profi-mobile/src/constants/themes/themes.ts  */
-/* Primary: violet/indigo (#7C3AED)  |  Accent: orange (#EA580C) */
+/* "Тропа" — Profy visual system v2. One visual language for ages 6–18: */
+/* fog is the canvas the whole product sits on, pine is structure/action, */
+/* dawn marks a finding/current step, lake is data, clay is reserved for errors. */
 :root {
-  --font-size: 16px;
-  --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-size: 17px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  /* Page background — warm lavender (mobile: colors.bg) */
-  --bg-page:        #F5F3FF;
-  /* Card / panel surfaces (mobile: colors.surface) */
-  --bg-surface:     #FFFFFF;
-  /* Slightly elevated surface */
-  --bg-raised:      #EFECFF;
+  /* Raw palette */
+  --midnight: #131C1B;
+  --ink:      #26332F;
+  --mute:     #6B7671;
+  --fog:      #EDE9DF;
+  --paper:    #F7F5EF;
+  --line:     #D2CCBE;
+  --hairline: #BDB6A6;
+  --pine:     #0E4A41;
+  --dawn:     #DB7F2E;
+  --lake:     #2C6A8C;
+  --clay:     #A6572F;
+
+  /* Page background — Fog, the canvas the whole product sits on */
+  --bg-page:        var(--fog);
+  /* Card / panel surfaces — Paper, lighter than Fog so cards lift off the canvas without a shadow */
+  --bg-surface:     var(--paper);
+  /* Slightly elevated surface (hover rows, skeletons) */
+  --bg-raised:      #E7E2D5;
   /* Hover overlay */
-  --bg-hover:       #E9E5FF;
-  /* Active / selected state (mobile: colors.primarySoft) */
-  --bg-active:      #EDE9FE;
-  /* Sidebar */
-  --bg-sidebar:     #F0ECFF;
+  --bg-hover:       #EFEBE1;
+  /* Active / selected state — pine tint, not a new color */
+  --bg-active:      rgba(14, 74, 65, 0.07);
+  /* Nav rail */
+  --bg-sidebar:     var(--fog);
 
-  /* Borders (mobile: colors.border, colors.track) */
-  --border:         #EDE9FE;
-  --border-strong:  #DDD6FE;
-  --border-faint:   #F5F3FF;
+  /* Borders */
+  --border:         var(--line);
+  --border-strong:  var(--hairline);
+  --border-faint:   #E3DDCE;
 
-  /* Text (mobile: colors.text, textSecondary, textMuted) */
-  --text-primary:   #1E1B4B;
-  --text-secondary: #4B5563;
-  --text-muted:     #9CA3AF;
-  --text-subtle:    #C4C0DC;
-  --text-placeholder: #9CA3AF;
-  --text-on-brand:  #FFFFFF;
+  /* Text */
+  --text-primary:   var(--ink);
+  --text-secondary: var(--mute);
+  --text-muted:     var(--mute);
+  --text-subtle:    #9A9287;
+  --text-placeholder: var(--mute);
+  --text-on-brand:  var(--fog);
 
-  /* Brand — violet/indigo (mobile: colors.primary, primaryDeep, primarySoft, primaryDisabled) */
-  --brand:          #7C3AED;
-  --brand-hover:    #5B21B6;
-  --brand-subtle:   #EDE9FE;
-  --brand-text:     #5B21B6;
-  --brand-disabled: #A78BFA;
+  /* Brand — Pine (structure, action) */
+  --brand:          var(--pine);
+  --brand-hover:    #0B3B34;
+  --brand-subtle:   rgba(14, 74, 65, 0.07);
+  --brand-text:     var(--pine);
+  --brand-disabled: #6E9B93;
 
-  /* Accent — orange (mobile: colors.accent, accentSoft) */
-  --accent:         #EA580C;
-  --accent-soft:    #FFF7ED;
-  --accent-text:    #C2410C;
+  /* Accent — Dawn (finding, "aha") */
+  --accent:         var(--dawn);
+  --accent-soft:    rgba(219, 127, 46, 0.12);
+  --accent-text:    var(--dawn);
 
-  /* Status (mobile: colors.ok, colors.danger) */
-  --success:        #22C55E;
-  --success-bg:     #F0FDF4;
-  --success-text:   #166534;
-  --warning:        #D97706;
-  --warning-bg:     #FFFBEB;
-  --warning-text:   #92400E;
-  --danger:         #EF4444;
-  --danger-bg:      #FEF2F2;
-  --danger-text:    #B91C1C;
-  --info:           #0369A1;
+  /* Status — success stays pine-only; no dedicated warning color exists in the */
+  /* system, dawn is reused for it; clay is reserved for genuine errors/limits. */
+  --success:        var(--pine);
+  --success-bg:     rgba(14, 74, 65, 0.07);
+  --success-text:   var(--pine);
+  --warning:        var(--dawn);
+  --warning-bg:     rgba(219, 127, 46, 0.12);
+  --warning-text:   var(--dawn);
+  --danger:         var(--clay);
+  --danger-bg:      rgba(166, 87, 47, 0.10);
+  --danger-text:    var(--clay);
+  --info:           var(--lake);
 
   /* Nav */
-  --nav-active-bg:     #EDE9FE;
-  --nav-active-text:   #1E1B4B;
-  --nav-active-border: #7C3AED;
-  --nav-text:          #4B5563;
-  --nav-hover-bg:      #F0ECFF;
+  --nav-active-bg:     rgba(14, 74, 65, 0.07);
+  --nav-active-text:   var(--midnight);
+  --nav-active-border: var(--pine);
+  --nav-text:          var(--mute);
+  --nav-hover-bg:      var(--bg-hover);
 
-  /* Radius (mobile: radii.sm=10, radii.md=16, radii.lg=22, radii.pill=999) */
-  --radius-sm:  10px;
-  --radius:     16px;
-  --radius-lg:  22px;
+  /* Radius — one radius for the whole product */
+  --radius-sm:  8px;
+  --radius:     8px;
+  --radius-lg:  8px;
   --radius-pill: 9999px;
 
-  /* Shadows */
-  --shadow-card:   0 6px 18px rgba(30, 27, 75, 0.06);
-  --shadow-pop:    0 12px 32px rgba(124, 58, 237, 0.14), 0 0 0 1px var(--border);
-  --shadow-button: 0 8px 14px rgba(124, 58, 237, 0.28);
+  /* Shadows — hierarchy comes from density/line/fill, not blur. Elevated */
+  /* surfaces get a defined hairline edge instead of a drop shadow. */
+  --shadow-card:   none;
+  --shadow-pop:    0 0 0 1px var(--hairline);
+  --shadow-button: none;
 
   /* Layout */
   --header-h: 56px;
+  --tap: 48px;
 
-  /* Typography scale — named aliases exact from mobile fontSize.* */
-  --text-display:  1.875rem;   /* 30px — mobile: fontSize.display */
-  --text-h1:       1.6875rem;  /* 27px — mobile: fontSize.h1 */
-  --text-title:    1.375rem;   /* 22px — mobile: fontSize.title */
-  --text-subtitle: 1.1875rem;  /* 19px — mobile: fontSize.subtitle */
-  --text-body:     1rem;       /* 16px — mobile: fontSize.body */
-  --text-label:    0.9375rem;  /* 15px — mobile: fontSize.label */
-  --text-caption:  0.8125rem;  /* 13px — mobile: fontSize.caption */
-  --text-small:    0.75rem;    /* 12px — mobile: fontSize.small */
-  --text-tiny:     0.6875rem;  /* 11px — mobile: fontSize.tiny */
+  /* Typography scale — named aliases, in rem off the 17px root */
+  --text-display:  1.875rem;   /* ~32px */
+  --text-h1:       1.6875rem;  /* ~29px */
+  --text-title:    1.375rem;   /* ~23px */
+  --text-subtitle: 1.1875rem;  /* ~20px */
+  --text-body:     1rem;       /* 17px — the one body density, 6–18 */
+  --text-label:    0.9375rem;  /* ~16px */
+  --text-caption:  0.8125rem;  /* ~14px */
+  --text-small:    0.75rem;    /* ~13px */
+  --text-tiny:     0.6875rem;  /* ~12px */
 
   /* Standard web scale (Tailwind-compatible aliases) */
-  --text-xs:   0.75rem;    /* 12px */
-  --text-sm:   0.875rem;   /* 14px */
-  --text-base: 1rem;       /* 16px */
-  --text-lg:   1.125rem;   /* 18px */
-  --text-xl:   1.25rem;    /* 20px */
-  --text-2xl:  1.5rem;     /* 24px */
-  --text-3xl:  1.875rem;   /* 30px */
-  --text-4xl:  2.25rem;    /* 36px */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
 
-  /* Leading (line-height) — mirrors mobile lineHeight / fontSize ratios */
+  /* Leading (line-height) */
   --leading-tight:   1.1;
   --leading-snug:    1.25;
-  --leading-normal:  1.45;
+  --leading-normal:  1.55;
   --leading-relaxed: 1.6;
 
-  /* Font weights — mirrors mobile fontFamily.* */
+  /* Tracking */
+  --tracking-base:  -0.005em; /* body copy */
+  --tracking-tight: -0.025em; /* display headings */
+
+  /* Font weights */
   --font-normal:    400;
   --font-medium:    500;
   --font-semibold:  600;
   --font-bold:      700;
   --font-extrabold: 800;
-  --font-black:     900;
+  --font-black:     800;
 
   /* Canonical aliases matching Profy-Mobile token names */
   --color-primary: var(--brand);
@@ -119,52 +142,64 @@
 }
 
 .dark {
-  --bg-page:        #0D0B1A;
-  --bg-surface:     #13102A;
-  --bg-raised:      #1A163A;
-  --bg-hover:       #221D4A;
-  --bg-active:      #1E1850;
-  --bg-sidebar:     #100D22;
+  --midnight: #0A0F0E;
+  --ink:      #EDE9DF;
+  --mute:     #9A9287;
+  --fog:      #16211F;
+  --paper:    #1C2926;
+  --line:     #2C3A36;
+  --hairline: #3C4C47;
+  --pine:     #4FA093;
+  --dawn:     #E89654;
+  --lake:     #5B93B4;
+  --clay:     #C07850;
 
-  --border:         #2A2460;
-  --border-strong:  #3D3580;
-  --border-faint:   #1A163A;
+  --bg-page:        var(--fog);
+  --bg-surface:     var(--paper);
+  --bg-raised:      #223330;
+  --bg-hover:       #253935;
+  --bg-active:      rgba(79, 160, 147, 0.14);
+  --bg-sidebar:     var(--fog);
 
-  --text-primary:   #EAE8FF;
-  --text-secondary: #ABA8D0;
-  --text-muted:     #6B6890;
-  --text-subtle:    #4A4868;
-  --text-placeholder: #4A4868;
-  --text-on-brand:  #0D0B1A;
+  --border:         var(--line);
+  --border-strong:  var(--hairline);
+  --border-faint:   #1F2E2B;
 
-  --brand:          #9B59F0;
-  --brand-hover:    #A970F5;
-  --brand-subtle:   #2D1A70;
-  --brand-text:     #C4A8FF;
+  --text-primary:   var(--ink);
+  --text-secondary: var(--mute);
+  --text-muted:     var(--mute);
+  --text-subtle:    #6E7A73;
+  --text-placeholder: var(--mute);
+  --text-on-brand:  #0A0F0E;
 
-  --accent:         #F97316;
-  --accent-soft:    #2A1500;
-  --accent-text:    #FED7AA;
+  --brand:          var(--pine);
+  --brand-hover:    #62B3A5;
+  --brand-subtle:   rgba(79, 160, 147, 0.14);
+  --brand-text:     var(--pine);
 
-  --success:        #4ADE80;
-  --success-bg:     #052E16;
-  --success-text:   #86EFAC;
-  --warning:        #FBBF24;
-  --warning-bg:     #1C1200;
-  --warning-text:   #FDE68A;
-  --danger:         #F87171;
-  --danger-bg:      #1C0000;
-  --danger-text:    #FCA5A5;
-  --info:           #60A5FA;
+  --accent:         var(--dawn);
+  --accent-soft:    rgba(232, 150, 84, 0.16);
+  --accent-text:    var(--dawn);
 
-  --nav-active-bg:     #2D1A70;
-  --nav-active-text:   #EAE8FF;
-  --nav-active-border: #9B59F0;
-  --nav-text:          #ABA8D0;
-  --nav-hover-bg:      #1A163A;
+  --success:        var(--pine);
+  --success-bg:     rgba(79, 160, 147, 0.14);
+  --success-text:   var(--pine);
+  --warning:        var(--dawn);
+  --warning-bg:     rgba(232, 150, 84, 0.16);
+  --warning-text:   var(--dawn);
+  --danger:         var(--clay);
+  --danger-bg:      rgba(192, 120, 80, 0.16);
+  --danger-text:    var(--clay);
+  --info:           var(--lake);
 
-  --shadow-card: 0 0 0 1px var(--border);
-  --shadow-pop:  0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border);
+  --nav-active-bg:     rgba(79, 160, 147, 0.14);
+  --nav-active-text:   var(--ink);
+  --nav-active-border: var(--pine);
+  --nav-text:          var(--mute);
+  --nav-hover-bg:      var(--bg-hover);
+
+  --shadow-card: none;
+  --shadow-pop:  0 0 0 1px var(--hairline);
 }
 
 /* ─── Base Styles ─── */
@@ -179,10 +214,19 @@
   body {
     background-color: var(--bg-page);
     color: var(--text-primary);
+    letter-spacing: var(--tracking-base);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
+  }
+
+  a { color: var(--brand-text); }
+
+  :focus-visible {
+    outline: 2px solid var(--pine);
+    outline-offset: 3px;
+    border-radius: 2px;
   }
 }
 
@@ -215,8 +259,8 @@
   .text-white       { color: #ffffff; }
   .text-on-brand    { color: var(--text-on-brand); }
 
-  /* Brand buttons/links always use white label text (not theme-dependent). */
-  .bg-brand:is(button, a) { color: #ffffff; }
+  /* Brand buttons/links always use on-brand label text (not theme-dependent). */
+  .bg-brand:is(button, a) { color: var(--text-on-brand); }
   .text-accent      { color: var(--accent-text); }
   .text-success     { color: var(--success); }
   .text-warning     { color: var(--warning); }
@@ -266,10 +310,15 @@
   /* Pill radius */
   .rounded-pill { border-radius: var(--radius-pill); }
 
-  /* Named typography utilities — match mobile typography.* names */
-  .text-display  { font-size: var(--text-display);  line-height: var(--leading-tight); }
-  .text-h1       { font-size: var(--text-h1);       line-height: var(--leading-tight); }
-  .text-title    { font-size: var(--text-title);    line-height: var(--leading-snug);  }
+  /* Font-family utilities */
+  .font-display { font-family: var(--font-display); }
+  .font-mono    { font-family: var(--font-mono); }
+
+  /* Named typography utilities — match mobile typography.* names. Weight is left */
+  /* to the Tailwind font-* utility every call site already pairs these with. */
+  .text-display  { font-family: var(--font-display); letter-spacing: var(--tracking-tight); font-size: var(--text-display);  line-height: var(--leading-tight); }
+  .text-h1       { font-family: var(--font-display); letter-spacing: var(--tracking-tight); font-size: var(--text-h1);       line-height: var(--leading-tight); }
+  .text-title    { font-family: var(--font-display); letter-spacing: var(--tracking-tight); font-size: var(--text-title);    line-height: var(--leading-snug);  }
   .text-subtitle { font-size: var(--text-subtitle); line-height: var(--leading-snug);  }
   .text-body     { font-size: var(--text-body);     line-height: var(--leading-normal); }
   .text-label    { font-size: var(--text-label);    line-height: var(--leading-normal); }
@@ -281,4 +330,92 @@
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(40px); }
   to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Update-boundary content swap on /results (goal switcher) — deliberately
+   quick and opacity-only (no translate) so it reads as a content refresh,
+   not a new page arriving. */
+@keyframes resultsFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Auth screens ("spine of clarity" entry) ───────────────────────────── */
+/* One column on Fog, ported 1:1 from the approved auth spec. Typography
+   classes carry literal px values from that spec rather than the named
+   --text-* scale, since the spec calls out exact numbers (36/26/16px). */
+.auth-headline {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 36px;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  color: var(--midnight);
+}
+.auth-headline-sm {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  color: var(--midnight);
+}
+.auth-sub {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--mute);
+  margin-top: 10px;
+}
+
+/* Button tactile feedback (Emil Kowalski: instant press feedback on every
+   submit action). Lives here rather than a component-scoped stylesheet so it
+   can be shared by the OTP cells' input elements too. */
+.press-scale {
+  transition: transform 160ms ease-out;
+}
+.press-scale:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Field validation error entrance — subtle, since it fires often while a
+   form is being filled in (standard/subtle tier, not delight tier). */
+@keyframes fieldErrorIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.field-error-in {
+  animation: fieldErrorIn 170ms ease-out;
+}
+
+/* OTP digit cell fill feedback — a rare, one-time-per-session action, so a
+   little personality is fine (occasional-frequency tier), kept brief. */
+@keyframes otpCellPop {
+  from { transform: scale(0.95); }
+  to   { transform: scale(1); }
+}
+.otp-cell-pop {
+  animation: otpCellPop 140ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press-scale:active:not(:disabled) { transform: none; }
+  .field-error-in { animation: none; }
+  .otp-cell-pop { animation: none; }
+}
+
+/* ─── Onboarding step 1 (welcome) ────────────────────────────────────────── */
+/* The one deliberate exception to the product's standard 180ms transition
+   tempo — "register changes tempo, not the technique": a single opacity
+   fade, no positional shift, held to 500ms because this is an address-shift
+   moment (adult → child), not a routine content swap. Do not reuse this
+   class outside the welcome-step card entrance. */
+@keyframes onboardingWelcomeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.onboarding-welcome-in {
+  animation: onboardingWelcomeIn 500ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-welcome-in { animation: none; }
 }

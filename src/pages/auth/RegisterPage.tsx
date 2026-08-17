@@ -2,8 +2,9 @@ import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
-import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
 
 function validateEmail(email: string): string {
   return email.includes('@') ? '' : 'Введите корректный email';
@@ -62,72 +63,60 @@ export default function RegisterPage() {
 
   return (
     <>
-      <h1 className="text-h1 font-black text-primary mb-6">Регистрация</h1>
+      <h1 className="auth-headline mt-[26px]">Создать аккаунт</h1>
+      <p className="auth-sub">Займёт меньше минуты — профиль настроим на следующем шаге.</p>
 
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-        <div>
-          <input
-            className={cn(
-              'w-full h-12 px-4 rounded-[10px] bg-page border text-primary text-body font-semibold placeholder:text-placeholder focus:outline-none focus:border-brand ring-brand transition-colors',
-              emailError ? 'border-danger' : 'border-default',
-            )}
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="mt-[32px]">
+          <Input
+            label="Электронная почта"
             type="email"
-            placeholder="Электронная почта"
+            placeholder="you@example.com"
             value={email}
             onChange={e => { setEmail(e.target.value); setEmailError(''); }}
+            error={emailError}
             autoCapitalize="none"
             autoComplete="email"
           />
-          {emailError && <p className="text-small text-danger mt-1 px-1">{emailError}</p>}
         </div>
 
-        <div>
-          <div className="relative">
-            <input
-              ref={passwordRef}
-              className={cn(
-                'w-full h-12 px-4 pr-12 rounded-[10px] bg-page border text-primary text-body font-semibold placeholder:text-placeholder focus:outline-none focus:border-brand ring-brand transition-colors',
-                passwordError ? 'border-danger' : 'border-default',
-              )}
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Пароль"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          {passwordError && <p className="text-small text-danger mt-1 px-1">{passwordError}</p>}
+        <div className="mt-[24px] relative">
+          <Input
+            ref={passwordRef}
+            label="Пароль"
+            className="pr-10"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={password}
+            onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
+            error={passwordError}
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowPassword(v => !v)}
+            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
         </div>
 
-        {formError && <p className="text-caption text-danger text-center">{formError}</p>}
+        {formError && (
+          <p className="field-error-in text-[14px] text-danger text-center mt-[16px]">{formError}</p>
+        )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={cn(
-            'w-full h-12 bg-brand font-extrabold text-label rounded-pill shadow-button transition-opacity mt-1',
-            isLoading && 'opacity-60 cursor-not-allowed',
-          )}
-          style={{ color: '#FFFFFF' }}
-        >
+        <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[34px]">
           {isLoading ? 'Регистрируемся...' : 'Зарегистрироваться'}
-        </button>
-      </form>
+        </Button>
 
-      <p className="text-caption text-center text-secondary mt-5">
-        Уже есть аккаунт?{' '}
-        <Link to="/login" className="text-brand font-extrabold hover:text-brand-hover transition-colors">
-          Войти
-        </Link>
-      </p>
+        <div className="text-center mt-[20px] text-[14px]">
+          <span className="text-muted">Уже есть аккаунт? </span>
+          <Link to="/login" className="text-brand underline underline-offset-2 hover:opacity-70 transition-opacity">
+            Войти
+          </Link>
+        </div>
+      </form>
     </>
   );
 }

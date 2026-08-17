@@ -41,13 +41,20 @@ export const API = {
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
-    gapAnalysis: (programId: string) => `/universities/programs/${programId}/gap-analysis`,
   },
   inquiry: {
     questions: (assessmentId: string, slug: string) =>
       `/inquiry/${assessmentId}/directions/${slug}/questions`,
     verdict: (assessmentId: string, slug: string) =>
       `/inquiry/${assessmentId}/directions/${slug}/verdict`,
+  },
+  // No feedback-submission endpoint exists yet anywhere in this API surface
+  // (grepped the whole `src/shared/api/` tree — nothing named feedback/
+  // survey/nps). This path is proposed, not confirmed against the backend;
+  // see FeedbackSection.tsx / feedback.ts for how the UI surfaces a real
+  // failure instead of silently succeeding until a backend route exists.
+  results: {
+    feedback: '/results/feedback',
   },
   admin: {
     users: '/admin/users',

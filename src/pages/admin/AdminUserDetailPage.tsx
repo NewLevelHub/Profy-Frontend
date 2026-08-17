@@ -6,14 +6,30 @@ import { adminApi } from '@/shared/api/admin';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
-import { SectionHeading } from '@/shared/ui/SectionHeading';
+import { AdminSectionHeading } from '@/shared/ui/admin/AdminSectionHeading';
+import { Spine } from '@/shared/ui/Spine';
+import { ChangeLogTable } from '@/shared/ui/admin/ChangeLogTable';
+import { deriveAdminRole } from '@/shared/lib/adminRole';
+import { useAuthStore } from '@/shared/store/auth';
+import { DiagnosticSummaryBlock } from './components/DiagnosticSummaryBlock';
+import { AlertTicketCard } from './components/AlertTicketCard';
+import { RoadmapEventHistoryCard } from './components/RoadmapEventHistoryCard';
+import { ParentLinkCard } from './components/ParentLinkCard';
+import { PaymentBlockCard } from './components/PaymentBlockCard';
+import { SupportNotesCard } from './components/SupportNotesCard';
 import type {
   AdminAssessmentDetail,
   AdminMotivationResponseItem,
   AdminResponseItem,
   AdminUserDetail,
+  ChangeLogEntry,
 } from '@/shared/types';
+
+// BACKEND GAP: no audit-log / change-history endpoint exists for user records
+// yet (see `src/shared/api/admin.ts` — read-only GETs only). Rendering an
+// honest empty state via `ChangeLogTable` rather than fabricating rows; wire
+// this to real data (e.g. `adminApi.getUserChangeLog(userId)`) once it exists.
+const EMPTY_CHANGE_LOG: ChangeLogEntry[] = [];
 
 const GOAL_LABELS: Record<string, string> = {
   explore: 'Исследовать',
@@ -111,7 +127,7 @@ function profileSubjects(
 function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (!value && value !== 0) return null;
   return (
-    <div className="flex items-center justify-between py-2 border-b border-default last:border-b-0">
+    <div className="flex items-center justify-between py-1.5 text-[13px] leading-[1.35] border-b border-default last:border-b-0">
       <span className="text-secondary font-semibold">{label}</span>
       <span className="text-primary font-bold text-right ml-4">{value}</span>
     </div>
@@ -121,14 +137,14 @@ function InfoRow({ label, value }: { label: string; value: string | number | nul
 function ChipList({ label, items }: { label: string; items: string[] }) {
   if (!items.length) return null;
   return (
-    <div className="mb-4 last:mb-0">
-      <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>{label}</p>
-      <div className="flex flex-wrap gap-2">
+    <div className="mb-3 last:mb-0">
+      <p className="font-bold text-primary text-[13px] leading-[1.35] mb-1.5">{label}</p>
+      <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
           <span
             key={item}
-            className="px-3 py-1 rounded-pill font-extrabold text-sm"
-            style={{ background: 'var(--brand-subtle)', color: '#5B21B6' }}
+            className="px-2 py-0.5 rounded-[3px] font-semibold text-[12px] leading-[1.35]"
+            style={{ background: 'var(--brand-subtle)', color: 'var(--brand-text)' }}
           >
             {item}
           </span>
@@ -169,7 +185,7 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
             {items.map((item, index) => (
               <div
                 key={`${item.question_id}-${index}`}
-                className="p-3 rounded-[var(--radius)] bg-raised border border-default"
+                className="p-3 rounded-[3px] bg-raised border border-default"
               >
                 <p className="font-bold text-primary">{item.question_text}</p>
                 <p className="text-sm text-secondary mt-2">
@@ -194,7 +210,7 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
       {responses.map((item) => (
         <div
           key={item.triplet_index}
-          className="p-3 rounded-[var(--radius)] bg-raised border border-default space-y-1"
+          className="p-3 rounded-[3px] bg-raised border border-default space-y-1"
         >
           <p className="text-sm">
             <span className="font-extrabold text-brand">Важнее всего: </span>
@@ -232,10 +248,22 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
       )}
 
       {!compact && (
-        <>
-          <InfoRow label="Ответов" value={`${assessment.answered_count} / ${assessment.total_questions}`} />
-        </>
+        <div className="py-2 border-b border-default">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-secondary font-semibold">Ответов</span>
+            <span className="text-primary font-bold">
+              {assessment.answered_count} / {assessment.total_questions}
+            </span>
+          </div>
+          <Spine
+            value={assessment.total_questions > 0 ? (assessment.answered_count / assessment.total_questions) * 100 : 0}
+            thickness={0.85}
+            ariaLabel={`Отвечено ${assessment.answered_count} из ${assessment.total_questions} вопросов`}
+          />
+        </div>
       )}
+
+      <DiagnosticSummaryBlock assessment={assessment} />
 
       <div className="space-y-3">
         <h4 className="font-extrabold text-primary">Вопросы и ответы</h4>
@@ -259,7 +287,7 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
               <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>Направления</p>
               <div className="space-y-2">
                 {assessment.analysis_result.careers.map((career) => (
-                  <div key={career.slug} className="p-3 rounded-[var(--radius)] bg-raised border border-default">
+                  <div key={career.slug} className="p-3 rounded-[3px] bg-raised border border-default">
                     <p className="font-bold">{career.name}</p>
                     <p className="text-sm text-secondary mt-1">
                       Код {career.holland_code} · совпадение {career.match_score}/6
@@ -276,7 +304,7 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
         <div className="space-y-3 pt-2">
           <h4 className="font-extrabold text-primary">Roadmap</h4>
           {assessment.roadmap.milestones.map((milestone) => (
-            <div key={milestone.horizon} className="p-3 rounded-[var(--radius)] bg-raised border border-default">
+            <div key={milestone.horizon} className="p-3 rounded-[3px] bg-raised border border-default">
               <p className="font-bold">{milestone.title}</p>
               <ul className="mt-2 space-y-1 text-sm text-secondary">
                 {milestone.tasks.map((task) => (
@@ -293,6 +321,15 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
 
 export default function AdminUserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
+  // The role that gates every `RoleGatedAction`/`sc-if` on this page must be
+  // the CURRENTLY LOGGED-IN admin's role (the viewer), not the viewed user's
+  // `is_admin` — the previous code passed `deriveAdminRole(user.is_admin)`
+  // using the subject `AdminUserDetail`, which inverted every gate on this
+  // page (e.g. an Operator viewing an admin's own record would incorrectly
+  // unlock Administrator-only actions, and vice versa). `AdminLayout` already
+  // derives the viewer's role from `useAuthStore` the same way; mirrored here.
+  const viewer = useAuthStore((s) => s.user);
+  const viewerRole = deriveAdminRole(viewer?.is_admin);
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
   const [selectedAssessment, setSelectedAssessment] = useState<AdminAssessmentDetail | null>(null);
@@ -368,28 +405,37 @@ export default function AdminUserDetailPage() {
     <PageContainer className="space-y-5">
       <div className="flex items-center gap-3">
         <Link to="/admin/users">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" muteSound>
             <ArrowLeft size={16} />
             Назад
           </Button>
         </Link>
-        <PageHeader
-          title={user.email}
-          subtitle={`Зарегистрирован ${formatDate(user.created_at)}`}
-        />
+        <div>
+          <h1 className="font-display font-semibold text-[24px] text-primary tracking-[-0.01em]">
+            {user.profile?.name || user.email}
+          </h1>
+          <p className="font-mono text-[11px] text-muted mt-0.5">
+            {user.email} · Зарегистрирован {formatDate(user.created_at)}
+          </p>
+        </div>
       </div>
 
+      <Card className="rounded-[3px] p-3">
+        <AdminSectionHeading title="Тревога" className="mb-2.5" />
+        <AlertTicketCard role={viewerRole} />
+      </Card>
+
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <SectionHeading title="Аккаунт" className="mb-3" />
+        <Card className="rounded-[3px] p-3">
+          <AdminSectionHeading title="Аккаунт" className="mb-3" />
           <InfoRow label="Email" value={user.email} />
           <InfoRow label="Верифицирован" value={user.is_verified ? 'Да' : 'Нет'} />
           <InfoRow label="Активен" value={user.is_active ? 'Да' : 'Нет'} />
           <InfoRow label="Админ" value={user.is_admin ? 'Да' : 'Нет'} />
         </Card>
 
-        <Card>
-          <SectionHeading title="Профиль" className="mb-3" />
+        <Card className="rounded-[3px] p-3">
+          <AdminSectionHeading title="Профиль" className="mb-3" />
           {user.profile ? (
             <>
               <InfoRow label="Имя" value={user.profile.name} />
@@ -412,17 +458,39 @@ export default function AdminUserDetailPage() {
         </Card>
       </div>
 
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Card className="rounded-[3px] p-3">
+          <AdminSectionHeading title="Родитель · доступ" className="mb-3" />
+          <ParentLinkCard />
+        </Card>
+
+        <Card className="rounded-[3px] p-3">
+          <AdminSectionHeading title="Оплата" className="mb-3" />
+          <PaymentBlockCard role={viewerRole} />
+        </Card>
+      </div>
+
+      <Card className="rounded-[3px] p-3">
+        <AdminSectionHeading title="Roadmap: история событий" className="mb-3" />
+        <RoadmapEventHistoryCard />
+      </Card>
+
+      <Card className="rounded-[3px] p-3">
+        <AdminSectionHeading title="Заметки поддержки" className="mb-3" />
+        <SupportNotesCard role={viewerRole} />
+      </Card>
+
       {Object.keys(artifactsByType).length > 0 && (
-        <Card>
-          <SectionHeading title="Артефакты" className="mb-3" />
+        <Card className="rounded-[3px] p-3">
+          <AdminSectionHeading title="Артефакты" className="mb-3" />
           {Object.entries(artifactsByType).map(([type, values]) => (
             <ChipList key={type} label={ARTIFACT_LABELS[type] ?? type} items={values} />
           ))}
         </Card>
       )}
 
-      <Card>
-        <SectionHeading title="Тестирования" className="mb-3" />
+      <Card className="rounded-[3px] p-3">
+        <AdminSectionHeading title="Тестирования" className="mb-3" />
         {user.assessments.length === 0 ? (
           <p className="text-secondary font-semibold">Тесты не начинались</p>
         ) : (
@@ -433,7 +501,7 @@ export default function AdminUserDetailPage() {
                 <div
                   key={assessment.id}
                   className={cn(
-                    'rounded-[var(--radius)] border transition-colors',
+                    'rounded-[3px] border transition-colors',
                     isOpen ? 'border-brand bg-surface' : 'border-default bg-raised',
                   )}
                 >
@@ -482,6 +550,11 @@ export default function AdminUserDetailPage() {
             })}
           </div>
         )}
+      </Card>
+
+      <Card className="rounded-[3px] p-3">
+        <AdminSectionHeading title="История изменений" className="mb-3" />
+        <ChangeLogTable entries={EMPTY_CHANGE_LOG} role={viewerRole} />
       </Card>
     </PageContainer>
   );

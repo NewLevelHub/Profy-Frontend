@@ -4,6 +4,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
 import type { MotivationTriplet } from '@/shared/types';
+import type { RestStopState } from '../utils/restStop';
 
 export type MotivationPhase = 'loading' | 'intro' | 'question';
 
@@ -154,6 +155,20 @@ export function useMotivationAssessment() {
       if (isLast) {
         // Shouldn't normally happen (completed should be true), but guard anyway.
         navigate('/assessment/loading');
+        return;
+      }
+
+      // "Привал" (rest stop) — every 10-12 raw questions answered across the
+      // whole assessment run. See useAssessmentStore.recordQuestionAnswered.
+      const restCheck = useAssessmentStore.getState().recordQuestionAnswered();
+      if (restCheck.shouldShow) {
+        navigate('/assessment/rest', {
+          state: {
+            returnTo: '/assessment/motivation',
+            progress,
+            totalAnswered: restCheck.totalAnswered,
+          } satisfies RestStopState,
+        });
         return;
       }
 

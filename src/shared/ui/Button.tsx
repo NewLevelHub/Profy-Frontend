@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
 
-export type ButtonVariant = 'primary' | 'ghost';
+export type ButtonVariant = 'primary' | 'ghost' | 'text';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -26,21 +26,28 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           onClick?.(event);
         }}
         className={cn(
-          'inline-flex items-center justify-center gap-2 font-semibold rounded-[var(--radius)] transition-colors',
+          'inline-flex items-center justify-center gap-2 font-medium rounded-[var(--radius)] transition-colors',
           'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
+          // Instant tactile feedback on press (Emil Kowalski) — shared by every
+          // button in the product, not just auth submit buttons.
+          'press-scale',
 
-          size === 'sm' && 'px-3 py-1.5 text-sm',
-          size === 'md' && 'px-5 py-2.5 text-sm',
-          size === 'lg' && 'px-6 py-3 text-base',
+          size === 'sm' && 'min-h-9 px-4 py-2 text-sm',
+          size === 'md' && 'min-h-11 px-5 py-3 text-sm',
+          size === 'lg' && 'min-h-12 px-6 py-3.5 text-base',
 
           variant === 'primary' && [
             'bg-brand text-on-brand',
             'hover:bg-brand-hover',
           ],
           variant === 'ghost' && [
-            'bg-transparent text-brand border border-default',
-            'hover:bg-raised hover:border-strong',
+            'bg-transparent text-brand border border-brand',
+            'hover:bg-brand-subtle',
+          ],
+          variant === 'text' && [
+            'bg-transparent text-secondary underline underline-offset-4',
+            'hover:text-primary',
           ],
 
           className,

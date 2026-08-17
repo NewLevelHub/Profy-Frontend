@@ -1,0 +1,42 @@
+import { Mascot } from '@/shared/ui/Mascot';
+
+interface RoadmapHeaderCardProps {
+  directionName: string;
+  /** Calendar year the plan is aimed at — derived from `target.horizon_years`, not invented. */
+  targetYear: number;
+}
+
+/**
+ * Page header per spec 07: Fog-bordered card, 34/30/40 padding — left a
+ * display headline, right a mono "ЦЕЛЬ" meta line + transition-state mascot.
+ * `transition` (not `completion`) because arriving on the plan is a stage
+ * change, not a finished task — same reasoning as GoalCheckPage's mascot.
+ */
+export function RoadmapHeaderCard({ directionName, targetYear }: RoadmapHeaderCardProps) {
+  return (
+    <div
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pt-[34px] pr-[30px] pb-[40px] pl-[30px]"
+      style={{
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)',
+      }}
+    >
+      <h1
+        className="font-display font-semibold leading-tight tracking-[-0.025em] text-[30px]"
+        style={{ color: 'var(--midnight)' }}
+      >
+        Путь до {directionName}
+      </h1>
+
+      <div className="flex items-center gap-4 shrink-0">
+        <span
+          className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted whitespace-nowrap"
+        >
+          Цель: поступление {targetYear}
+        </span>
+        <Mascot state="transition" size={56} />
+      </div>
+    </div>
+  );
+}

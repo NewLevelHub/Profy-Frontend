@@ -18,7 +18,7 @@ function ProgramDetailSkeleton() {
         <Skeleton className="h-8 w-28 rounded-full" />
       </div>
       {[1, 2, 3].map(i => (
-        <div key={i} className="rounded-[20px] border border-[#EDE9FE] p-6 flex flex-col gap-2">
+        <div key={i} className="rounded-[var(--radius)] border border-default p-6 flex flex-col gap-2">
           <Skeleton className="h-5 w-36" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-5/6" />
@@ -38,11 +38,11 @@ function RequirementsTable({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
   if (entries.length === 0) return null;
   return (
-    <div className="bg-surface border border-[#EDE9FE] rounded-[20px] overflow-hidden shadow-card">
+    <div className="bg-surface border border-default rounded-[var(--radius)] overflow-hidden shadow-card">
       {entries.map(([key, value], i) => (
         <div
           key={key}
-          className={`flex items-center justify-between gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-[#EDE9FE]' : ''}`}
+          className={`flex items-center justify-between gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-default' : ''}`}
         >
           <span className="text-[15px] font-semibold text-secondary">{localizeKey(key)}</span>
           <span className="text-[15px] font-extrabold text-primary text-right">{toDisplayString(value)}</span>
@@ -60,7 +60,7 @@ function DeadlinesGrid({ data }: { data: Record<string, unknown> }) {
       {entries.map(([key, value]) => (
         <div
           key={key}
-          className="bg-surface border border-[#EDE9FE] rounded-2xl px-[18px] py-4 shadow-card"
+          className="bg-surface border border-default rounded-[var(--radius)] px-[18px] py-4 shadow-card"
         >
           <div className="text-[13px] font-bold text-muted mb-1">{localizeKey(key)}</div>
           <div className="text-[17px] font-black text-primary">{toDisplayString(value)}</div>
@@ -96,24 +96,24 @@ export default function ProgramDetailPage() {
           <PageHeader title={program.name} subtitle={program.university.name} />
 
           <div className="flex gap-2.5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 bg-[#EDE9FE] text-[#5B21B6] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
+            <span className="inline-flex items-center gap-1.5 bg-brand-subtle text-brand text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
               🌐 {program.language}
             </span>
-            <span className="inline-flex items-center gap-1.5 bg-[#FFF7ED] text-[#C2410C] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
+            <span className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
               💰 {formatCost(program.cost_per_year)}
             </span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {program.description && program.description.length > 0 && (
-              <div className="bg-surface border border-[#EDE9FE] rounded-[20px] p-6 shadow-card">
+              <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card">
                 <SectionHeadingLocal>📋 Описание</SectionHeadingLocal>
                 <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0">{program.description}</p>
               </div>
             )}
 
             {program.who_its_for && program.who_its_for.length > 0 && (
-              <div className="bg-[#EDE9FE] rounded-[20px] p-6">
+              <div className="bg-brand-subtle rounded-[var(--radius)] p-6">
                 <SectionHeadingLocal>🎯 Для кого</SectionHeadingLocal>
                 <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0">{program.who_its_for}</p>
               </div>
@@ -127,7 +127,7 @@ export default function ProgramDetailPage() {
                 {program.career_options.map((career, i) => (
                   <span
                     key={i}
-                    className="bg-[#EDE9FE] text-[#5B21B6] text-sm font-extrabold px-4 py-2 rounded-pill"
+                    className="bg-brand-subtle text-brand text-sm font-extrabold px-4 py-2 rounded-pill"
                   >
                     {toDisplayString(career)}
                   </span>
@@ -151,11 +151,11 @@ export default function ProgramDetailPage() {
           )}
 
           {(program.grants ?? []).length > 0 && (
-            <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-[20px] px-6 py-5 flex items-center gap-3.5">
+            <div className="bg-accent-soft border border-[color:var(--dawn)]/30 rounded-[var(--radius)] px-6 py-5 flex items-center gap-3.5">
               <span className="text-3xl">🎓</span>
               <div>
-                <div className="text-base font-black text-[#C2410C] mb-0.5">Гранты и стипендии</div>
-                <div className="text-sm font-semibold text-[#9A3412]">
+                <div className="text-base font-black text-accent mb-0.5">Гранты и стипендии</div>
+                <div className="text-sm font-semibold text-accent">
                   {program.grants.map(g => toDisplayString(g)).join(' · ')}
                 </div>
               </div>
@@ -165,13 +165,13 @@ export default function ProgramDetailPage() {
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               onClick={() => navigate(-1)}
-              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-gradient-to-br from-brand to-[#6D28D9] text-on-brand text-[17px] font-extrabold cursor-pointer shadow-[0_10px_22px_rgba(124,58,237,.3)] hover:opacity-95 transition-opacity"
+              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-brand text-on-brand text-[17px] font-extrabold cursor-pointer hover:bg-brand-hover transition-colors"
             >
               🎓 Посмотреть университеты
             </button>
             <button
               onClick={() => navigate('/results')}
-              className="flex-1 min-w-[200px] h-[58px] border-[1.5px] border-[#DDD6FE] rounded-pill bg-surface text-[#5B21B6] text-[17px] font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors"
+              className="flex-1 min-w-[200px] h-[58px] border-[1.5px] border-brand rounded-pill bg-surface text-brand text-[17px] font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors"
             >
               Назад к результатам
             </button>

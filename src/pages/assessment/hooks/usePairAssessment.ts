@@ -5,6 +5,7 @@ import { useProfileStore } from '@/shared/store/profile';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillPairAssessment } from '@/shared/dev/autofillPairAssessment';
 import type { QuestionPair } from '@/shared/types';
+import type { RestStopState } from '../utils/restStop';
 
 export type PairAssessmentPhase = 'loading' | 'intro' | 'question';
 
@@ -132,6 +133,20 @@ export function usePairAssessment() {
       const isLast = pairIndex >= pairs.length - 1;
       if (isLast) {
         navigate('/assessment/motivation');
+        return;
+      }
+
+      // "Привал" (rest stop) — every 10-12 raw questions answered across the
+      // whole assessment run. See useAssessmentStore.recordQuestionAnswered.
+      const restCheck = useAssessmentStore.getState().recordQuestionAnswered();
+      if (restCheck.shouldShow) {
+        navigate('/assessment/rest', {
+          state: {
+            returnTo: '/assessment/pairs',
+            progress,
+            totalAnswered: restCheck.totalAnswered,
+          } satisfies RestStopState,
+        });
         return;
       }
 

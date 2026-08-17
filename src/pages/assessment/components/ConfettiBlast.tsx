@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-const COLORS = ['#7C3AED', '#A78BFA', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#EF4444', '#F97316'];
+const COLORS = ['var(--brand)', '#A78BFA', '#EC4899', 'var(--accent)', '#10B981', '#3B82F6', '#EF4444', '#F97316'];
 const COUNT = 40;
 
 export function ConfettiBlast() {

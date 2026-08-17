@@ -11,7 +11,7 @@ export function Badge({ variant = 'default', className, children, ...props }: Ba
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold leading-tight',
+        'inline-flex items-center px-2.5 py-1 rounded-full font-mono text-[11px] tracking-[.06em] uppercase leading-tight',
         variant === 'default'  && 'bg-raised text-secondary',
         variant === 'brand'    && 'bg-brand-subtle text-brand',
         variant === 'accent'   && 'bg-accent-soft text-accent',

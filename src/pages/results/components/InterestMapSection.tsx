@@ -19,8 +19,8 @@ export function InterestMapSection({ items, note, isJunior }: InterestMapSection
   const icons = isJunior ? MI_ICONS : RIASEC_ICONS;
 
   return (
-    <section aria-label={isJunior ? 'Твоя карта интересов' : 'Твой профиль RIASEC'}>
-      <SectionHeading emoji="📊" title={isJunior ? 'Твоя карта интересов' : 'Твой профиль RIASEC'} />
+    <section aria-label={isJunior ? 'Твоя карта интересов' : 'Твой профиль интересов'}>
+      <SectionHeading emoji="📊" title={isJunior ? 'Твоя карта интересов' : 'Твой профиль интересов'} />
       {note && <p className="text-body text-secondary mb-3">{note}</p>}
       <Card className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {items.map((item) => (

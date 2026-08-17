@@ -1,36 +1,23 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
-import { useAuth } from '@/shared/hooks/useAuth';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
 import { playClick } from '@/shared/lib/sounds';
+import { useAuth } from '@/shared/hooks/useAuth';
+import { NAV_ITEMS, ADMIN_NAV_ITEM, isNavActive, type NavItem } from './navItems';
 
-const NAV_ITEMS = [
-  { label: 'Главная', path: '/home' },
-  { label: 'Результаты', path: '/results' },
-  { label: 'Профиль', path: '/profile' },
-] as const;
-
-const ADMIN_NAV_ITEM = { label: 'Админка', path: '/admin/users', matchPrefix: '/admin' } as const;
-
-type HeaderNavItem = (typeof NAV_ITEMS)[number] | typeof ADMIN_NAV_ITEM;
-
-function isNavActive(
-  matchPrefix: string | undefined,
-  pathname: string,
-  isActive: boolean,
-) {
-  if (matchPrefix) return pathname.startsWith(matchPrefix);
-  return isActive;
-}
-
-export function Header() {
+// TopRail replaces the old two-piece nav shell (a desktop-only left
+// <Sidebar> + a separate mobile-only top <Header> with its own duplicated
+// item list). It is the single nav implementation used at every viewport —
+// full inline nav row on md+ screens, a hamburger dropdown below that —
+// backed by one shared NAV_ITEMS source (./navItems.ts).
+export function TopRail() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navItems: HeaderNavItem[] = user?.is_admin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : [...NAV_ITEMS];
+  const navItems: NavItem[] = user?.is_admin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : [...NAV_ITEMS];
 
   function handleLogout() {
     logout();
@@ -40,12 +27,17 @@ export function Header() {
   const initial = user?.name?.trim()?.[0]?.toUpperCase() ?? 'P';
 
   return (
-    <header className="lg:hidden sticky top-0 z-40 bg-surface border-b border-default">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 flex-none bg-surface border-b border-default">
+      <div
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4"
+        style={{ height: 'var(--header-h)' }}
+      >
         {/* Logo */}
-        <span className="font-black text-lg tracking-tight text-primary">{env.APP_NAME}</span>
+        <span className="font-black text-lg tracking-tight text-primary flex-shrink-0">
+          {env.APP_NAME}
+        </span>
 
-        {/* Desktop nav */}
+        {/* Nav — inline on md+, collapses into the dropdown below md */}
         <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
             <NavLink
@@ -54,20 +46,21 @@ export function Header() {
               onClick={() => playClick()}
               className={({ isActive }) =>
                 cn(
-                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors',
                   isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
-                    ? 'bg-brand-subtle text-brand'
-                    : 'text-secondary hover:bg-hover hover:text-primary',
+                    ? 'bg-nav-active text-nav-active'
+                    : 'text-nav hover:bg-nav-hover hover:text-primary',
                 )
               }
             >
+              <span aria-hidden="true">{item.emoji}</span>
               {item.label}
             </NavLink>
           ))}
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full bg-brand grid place-items-center flex-shrink-0">
             <span className="text-on-brand text-xs font-black">{initial}</span>
@@ -90,6 +83,7 @@ export function Header() {
             onClick={() => setMobileOpen((o) => !o)}
             className="md:hidden p-2 rounded-lg hover:bg-hover text-secondary"
             aria-label="Меню"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -109,13 +103,14 @@ export function Header() {
               }}
               className={({ isActive }) =>
                 cn(
-                  'block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors',
                   isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
-                    ? 'bg-brand-subtle text-brand'
-                    : 'text-secondary hover:bg-hover hover:text-primary',
+                    ? 'bg-nav-active text-nav-active'
+                    : 'text-nav hover:bg-nav-hover hover:text-primary',
                 )
               }
             >
+              <span aria-hidden="true">{item.emoji}</span>
               {item.label}
             </NavLink>
           ))}

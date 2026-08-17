@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Button } from '@/shared/ui/Button';
+import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { ConfettiBlast } from './components/ConfettiBlast';
 
@@ -108,23 +109,23 @@ export default function PraisePage() {
           {showProgress && (
             <div
               className="w-full bg-surface rounded-[20px] p-[22px_26px]"
-              style={{ border: '1px solid #EDE9FE', boxShadow: '0 6px 18px rgba(30,27,75,.06)' }}
+              style={{ border: '1px solid var(--border)' }}
             >
-              <div className="flex items-center justify-between mb-[10px]">
-                <span className="font-extrabold" style={{ fontSize: 15, color: '#4B5563' }}>Прогресс диагностики</span>
-                <span className="font-black" style={{ fontSize: 15, color: '#7C3AED' }}>{completedCount} / {totalBlocks}</span>
+              <div className="flex items-center justify-between mb-[14px]">
+                <span className="font-extrabold text-secondary" style={{ fontSize: 15 }}>Прогресс диагностики</span>
+                <span className="font-black text-brand" style={{ fontSize: 15 }}>{completedCount} / {totalBlocks}</span>
               </div>
-              <div className="h-[14px] rounded-pill overflow-hidden" style={{ background: '#EDE9FE' }}>
-                <div
-                  className="h-full rounded-pill"
-                  style={{
-                    width: `${(completedCount! / totalBlocks!) * 100}%`,
-                    background: 'linear-gradient(90deg,#22C55E,#16A34A)',
-                  }}
-                />
-              </div>
+              <Spine
+                nodes={Array.from({ length: totalBlocks! }, (_, i): SpineNode => ({
+                  id: i,
+                  status: i < completedCount! ? 'done' : i === completedCount! ? 'current' : 'upcoming',
+                  goal: i === totalBlocks! - 1,
+                }))}
+                thickness={1.1}
+                ariaLabel={`Пройдено блоков: ${completedCount} из ${totalBlocks}`}
+              />
               {nextBlockName && (
-                <div className="flex items-center gap-2 mt-[14px] font-bold" style={{ fontSize: 14, color: '#7C3AED' }}>
+                <div className="flex items-center gap-2 mt-[14px] font-bold" style={{ fontSize: 14, color: 'var(--brand)' }}>
                   <span>{nextBlockEmoji ?? '🎯'}</span>
                   <span>Следующий блок: «{nextBlockName}»</span>
                 </div>
@@ -143,8 +144,7 @@ export default function PraisePage() {
             height: 60,
             fontSize: 18,
             fontWeight: 800,
-            background: 'linear-gradient(135deg,#7C3AED,#6D28D9)',
-            boxShadow: '0 10px 22px rgba(124,58,237,.32)',
+            background: 'var(--brand)',
             animation: 'pf-pulse 2.4s infinite',
           }}
         >

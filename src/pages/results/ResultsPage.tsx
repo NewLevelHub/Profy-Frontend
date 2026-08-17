@@ -7,14 +7,12 @@ import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { StudentCareer } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 import { SummaryCard } from './components/SummaryCard';
-import { StrengthCardsSection } from './components/StrengthCardsSection';
+import { SharedDiagnosticCard } from './components/SharedDiagnosticCard';
 import { CareerCard } from './components/CareerCard';
-import { InterestMapSection } from './components/InterestMapSection';
-import { PersonalitySection } from './components/PersonalitySection';
-import { ThinkingStyleSection } from './components/ThinkingStyleSection';
-import { MotivationSection } from './components/MotivationSection';
 import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
 import { FinalAnalysisSection } from './components/FinalAnalysisSection';
+import { GoalBranchSection } from './components/GoalBranchSection';
+import { FeedbackSection } from './components/FeedbackSection';
 
 function AnimatedBlock({ children }: { children: React.ReactNode }) {
   return (
@@ -45,6 +43,9 @@ export default function ResultsPage() {
     isLoading,
     error,
     hasCompletedAssessment,
+    assessmentId,
+    goal,
+    ageGroup,
     showUniversityBtn,
     isJunior,
     refetch,
@@ -89,37 +90,30 @@ export default function ResultsPage() {
 
       <PageHeader
         title="Что мы узнали о тебе"
-        subtitle={isJunior ? 'Что тебе интересно и что стоит попробовать' : 'Твой RIASEC-профиль и рекомендованное направление'}
+        subtitle={isJunior ? 'Что тебе интересно и что стоит попробовать' : 'Твой профиль интересов и рекомендованное направление'}
       />
 
       {/* Порядок разделов ниже — как в TZ_Profi.md §18.2 / result-report-
           redesign-plan.md "Флоу для нетехнического пользователя": резюме →
-          сильные стороны → карта интересов → характер → стиль мышления →
-          мотивация → "что делать дальше" (профессии/занятия) — последним,
-          не первым. */}
+          общая диагностика (сильные стороны/карта интересов/стиль мышления/
+          характер/мотивация, единым блоком — design spec §06) →
+          "что делать дальше" (профессии/занятия) — последним, не первым. */}
 
       <AnimatedBlock>
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
       </AnimatedBlock>
 
       <AnimatedBlock>
-        <StrengthCardsSection cards={report.strength_cards} />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <InterestMapSection items={report.interest_map} note={report.interest_map_note} isJunior={isJunior} />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <PersonalitySection notes={report.personality_notes} note={report.personality_note} />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <ThinkingStyleSection notes={report.thinking_style_notes} />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <MotivationSection highlights={report.motivation_highlights} />
+        <SharedDiagnosticCard
+          isJunior={isJunior}
+          interestMap={report.interest_map}
+          interestMapNote={report.interest_map_note}
+          strengthCards={report.strength_cards}
+          personalityNotes={report.personality_notes}
+          personalityNote={report.personality_note}
+          thinkingStyleNotes={report.thinking_style_notes}
+          motivationHighlights={report.motivation_highlights}
+        />
       </AnimatedBlock>
 
       {report.careers.length > 0 && (
@@ -147,6 +141,19 @@ export default function ResultsPage() {
 
       <AnimatedBlock>
         <FinalAnalysisSection text={report.final_analysis} />
+      </AnimatedBlock>
+
+      {/* ── Update boundary ──────────────────────────────────────────────
+          Everything above is the shared diagnostic block — identical
+          regardless of goal, and never re-rendered by the goal switcher
+          below (GoalBranchSection owns its own local state; nothing above
+          this line reads it). See GoalBranchSection.tsx. */}
+      <AnimatedBlock>
+        <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal} />
+      </AnimatedBlock>
+
+      <AnimatedBlock>
+        <FeedbackSection assessmentId={assessmentId} />
       </AnimatedBlock>
 
     </PageContainer>

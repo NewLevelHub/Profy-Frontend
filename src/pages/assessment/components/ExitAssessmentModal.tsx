@@ -1,0 +1,60 @@
+import { useEffect } from 'react';
+import { Button } from '@/shared/ui/Button';
+import { Mascot } from '@/shared/ui/Mascot';
+
+interface ExitAssessmentModalProps {
+  open: boolean;
+  /** Прогресс уже сохраняется после каждого ответа — эта кнопка просто уводит со страницы. */
+  onSaveAndExit: () => void;
+  /** Остаться и продолжить тест — то же действие, что Escape/клик по фону. */
+  onContinue: () => void;
+}
+
+// ТЗ 29.2: нельзя предлагать "выйти без сохранения" как основной путь — оба
+// действия должны быть равноценными и не деструктивными, поэтому обе кнопки
+// рендерятся ghost-вариантом (без заливки), без выделенного "primary" выхода.
+export function ExitAssessmentModal({ open, onSaveAndExit, onContinue }: ExitAssessmentModalProps) {
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onContinue();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onContinue]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="exit-dialog-title"
+      onClick={onContinue}
+    >
+      <div
+        className="w-full max-w-sm bg-surface rounded-[var(--radius-lg)] shadow-pop p-6 flex flex-col gap-5"
+        onClick={event => event.stopPropagation()}
+      >
+        <Mascot state="pause" size={96} className="mx-auto" />
+        <div className="flex flex-col gap-2">
+          <h2 id="exit-dialog-title" className="text-title font-black text-primary">
+            Сохранить и продолжить позже?
+          </h2>
+          <p className="text-body text-secondary">
+            Прогресс уже сохранён — можешь выйти сейчас и вернуться в любой момент
+          </p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Button variant="ghost" size="lg" className="w-full rounded-pill" onClick={onSaveAndExit}>
+            Сохранить и выйти
+          </Button>
+          <Button variant="ghost" size="lg" className="w-full rounded-pill" onClick={onContinue}>
+            Продолжить
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
