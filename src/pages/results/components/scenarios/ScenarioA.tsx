@@ -68,12 +68,12 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
         </div>
       )}
 
-      <RoadmapHorizons
+      {/* <RoadmapHorizons
         title="ИССЛЕДОВАТЕЛЬСКИЙ ROADMAP"
         horizons={EXPLORE_HORIZONS}
         ariaLabel="Исследовательский roadmap: 1 месяц, 3 месяца, 6 месяцев — без фиксированной цели"
         lastNodeStyle="open"
-      />
+      /> */}
     </div>
   );
 }

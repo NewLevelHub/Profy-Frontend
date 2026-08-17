@@ -45,10 +45,10 @@ export function AssessmentRail({
 
   return (
     <header
-      className="sticky top-0 z-10 px-7 pt-[18px] pb-4"
+      className="sticky top-0 z-10 px-3 pt-[18px] pb-4 sm:px-4 lg:px-6"
       style={{ background: 'color-mix(in srgb, var(--fog) 90%, transparent)', backdropFilter: 'blur(8px)' }}
     >
-      <div className="flex items-center justify-between max-w-[980px] mx-auto mb-[14px] gap-2">
+      <div className="flex items-center justify-between w-full max-w-7xl mx-auto mb-[14px] gap-2">
         {/* Slot 1: progress indicator (back + title fold in here) */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {showBack ? (
@@ -112,7 +112,7 @@ export function AssessmentRail({
         </div>
       </div>
 
-      <div className="max-w-[980px] mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
         <Spine value={progress} ariaLabel={progressAriaLabel} />
         <div className="flex justify-between mt-2 mx-0.5" style={{ fontSize: 12 }}>
           <span className="font-bold text-muted">{sectionLabel}</span>

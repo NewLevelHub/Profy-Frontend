@@ -58,14 +58,13 @@ export default function AssessmentPage() {
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col max-w-2xl lg:max-w-4xl mx-auto w-full">
+      <div className="flex-1 flex flex-col w-full max-w-7xl mx-auto">
 
         {phase === 'loading' && (
           <div className="flex-1 flex items-center justify-center">
             <Spinner size="lg" />
           </div>
         )}
-
         {phase === 'intro' && (
           <>
             <div
@@ -110,7 +109,7 @@ export default function AssessmentPage() {
 
         {phase === 'question' && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6">
 
               {error !== null && (
                 <div className="mb-4 p-3 rounded-xl bg-danger-subtle text-danger text-caption text-center">
@@ -124,16 +123,20 @@ export default function AssessmentPage() {
               {currentQuestion !== undefined && (
                 <div
                   className={cn(
-                    'transition-opacity duration-300',
+                    'flex flex-col gap-16 transition-opacity duration-300',
                     transitioning ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  <h2
-                    className="font-black text-primary mb-8 leading-snug tracking-[-0.01em] text-subtitle"
-                    style={{ fontSize: 28 }}
+                  <p
+                    className="font-semibold leading-snug tracking-[-0.02em]"
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 28,
+                      color: 'var(--midnight)',
+                    }}
                   >
                     {currentQuestion.text}
-                  </h2>
+                  </p>
                   <LikertScale selected={selectedValue} onSelect={handleAnswer} scale={currentScale} />
                 </div>
               )}
@@ -161,6 +164,14 @@ export default function AssessmentPage() {
                 </div>
               )}
             </div>
+
+            {currentQuestion !== undefined && (
+              <div className="px-3 py-5 sm:px-4 lg:px-6" style={{ borderTop: '1px solid var(--line)' }}>
+                <p className="text-[15px]" style={{ color: 'var(--mute)' }}>
+                  Нет неправильных ответов
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

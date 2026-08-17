@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
 import { playClick } from '@/shared/lib/sounds';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { useProfileStore } from '@/shared/store/profile';
 import { NAV_ITEMS, ADMIN_NAV_ITEM, isNavActive, type NavItem } from './navItems';
 
 // TopRail replaces the old two-piece nav shell (a desktop-only left
@@ -14,6 +15,7 @@ import { NAV_ITEMS, ADMIN_NAV_ITEM, isNavActive, type NavItem } from './navItems
 // backed by one shared NAV_ITEMS source (./navItems.ts).
 export function TopRail() {
   const { user, logout } = useAuth();
+  const profile = useProfileStore((s) => s.profile);
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -24,10 +26,10 @@ export function TopRail() {
     navigate('/login', { replace: true });
   }
 
-  const initial = user?.name?.trim()?.[0]?.toUpperCase() ?? 'P';
+  const identity = profile ? `${profile.name} · ${profile.age} лет` : null;
 
   return (
-    <header className="sticky top-0 z-40 flex-none bg-surface border-b border-default">
+    <header className="sticky top-0 z-40 flex-none bg-page border-b border-strong">
       <div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4"
         style={{ height: 'var(--header-h)' }}
@@ -38,7 +40,7 @@ export function TopRail() {
         </span>
 
         {/* Nav — inline on md+, collapses into the dropdown below md */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -46,35 +48,39 @@ export function TopRail() {
               onClick={() => playClick()}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors',
+                  'pb-1 text-sm font-bold transition-colors border-b-2 border-transparent',
                   isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
-                    ? 'bg-nav-active text-nav-active'
-                    : 'text-nav hover:bg-nav-hover hover:text-primary',
+                    ? 'text-nav-active'
+                    : 'text-nav hover:text-primary',
                 )
               }
+              style={({ isActive }) =>
+                isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
+                  ? { borderColor: 'var(--nav-active-border)' }
+                  : undefined
+              }
             >
-              <span aria-hidden="true">{item.emoji}</span>
               {item.label}
             </NavLink>
           ))}
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Avatar */}
-          <div className="w-8 h-8 rounded-full bg-brand grid place-items-center flex-shrink-0">
-            <span className="text-on-brand text-xs font-black">{initial}</span>
-          </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Name · age — the identity summary replacing an avatar */}
+          {identity && (
+            <span className="hidden sm:inline text-sm text-muted font-semibold">{identity}</span>
+          )}
 
-          {/* Logout */}
+          {/* Logout — icon-only, minimal footprint next to the identity text */}
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-secondary hover:bg-hover transition-colors"
+            className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:bg-hover hover:text-primary transition-colors"
+            aria-label="Выйти"
             title="Выйти"
           >
             <LogOut size={15} />
-            <span>Выйти</span>
           </button>
 
           {/* Mobile menu toggle */}
@@ -92,7 +98,10 @@ export function TopRail() {
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-default bg-surface px-4 py-3 space-y-1">
+        <div className="md:hidden border-t border-strong bg-page px-4 py-3 space-y-1">
+          {identity && (
+            <p className="px-3 py-1.5 text-sm text-muted font-semibold">{identity}</p>
+          )}
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -110,7 +119,6 @@ export function TopRail() {
                 )
               }
             >
-              <span aria-hidden="true">{item.emoji}</span>
               {item.label}
             </NavLink>
           ))}

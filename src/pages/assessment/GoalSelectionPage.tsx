@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Navigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
@@ -5,19 +6,10 @@ import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
 import type { AssessmentGoal, AgeGroup } from '@/shared/types';
 
 // ── Step 4 — Goal selection ─────────────────────────────────────────────────
-// IMPORTANT DATA-MODEL NOTE: the design mockup this screen was ported from
-// shows "1 main goal + up to 2 additional goals," each card getting its own
-// "pick as main" / "pick as additional" button pair. `AssessmentGoal` is a
-// single-value enum ('explore' | 'profession' | 'university') everywhere in
-// this codebase — there is no multi-goal data model to back that, and
-// picking a goal here immediately starts the assessment (a one-shot action,
-// not a form with a submit step), so there's no persistent "selected" state
-// to render after the click either. Rather than fabricate a second button
-// per card that writes to nothing, this renders the mockup's *visual*
-// hierarchy (tag, title, note, a Pine left-border + filled Pine action on
-// the recommended card, equal-weight outline actions on the rest) over the
-// real single-select interaction. See useGoalSelection for the actual
-// mutation.
+// IMPORTANT DATA-MODEL NOTE: each card here is a real assessment goal from
+// the product model (`AssessmentGoal`), and choosing one immediately starts
+// the flow. The UI should therefore present them as equal alternatives rather
+// than a "main" goal plus secondary ones.
 
 interface GoalCard {
   goal: AssessmentGoal;
@@ -29,7 +21,6 @@ interface GoalCard {
    *  GoalSwitcher): an unavailable card is simply absent, never shown
    *  disabled-with-explanation. */
   minAgeGroup?: AgeGroup;
-  primary?: boolean;
 }
 
 const AGE_RANK: Record<AgeGroup, number> = { junior: 0, middle: 1, senior: 2 };
@@ -40,7 +31,6 @@ const GOAL_CARDS: GoalCard[] = [
     tag: 'Исследовать',
     title: 'Понять себя',
     subtitle: 'Узнать свои сильные стороны и интересы — или ещё не знать, с чего начать. Это нормально, разберёмся вместе.',
-    primary: true,
   },
   {
     goal: 'profession',
@@ -167,6 +157,7 @@ function RestartDialog({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GoalSelectionPage() {
+  const [hoveredGoal, setHoveredGoal] = useState<AssessmentGoal | null>(null);
   const { shouldRedirect } = useGoalGuard();
   const {
     ageGroup,
@@ -204,8 +195,8 @@ export default function GoalSelectionPage() {
       />
 
       <div className="min-h-screen bg-page flex flex-col">
-        <div className="flex-1 overflow-y-auto px-5 py-10 lg:py-14">
-          <div className="max-w-[680px] lg:max-w-5xl mx-auto flex flex-col">
+        <div className="flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
+          <div className="w-full max-w-7xl mx-auto flex flex-col">
 
             <div className="mb-8">
               {/* <span className="font-mono text-[11px] tracking-[.1em] uppercase text-muted">
@@ -228,44 +219,45 @@ export default function GoalSelectionPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {visibleCards.map(card => (
-                  <div
-                    key={card.goal}
-                    className="flex flex-col gap-4 p-5"
-                    style={{
-                      background: 'var(--bg-surface)',
-                      borderRadius: 'var(--radius)',
-                      border: '1px solid var(--border)',
-                      borderLeft: card.primary ? '3px solid var(--pine)' : '1px solid var(--border)',
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] uppercase tracking-[.08em] text-muted">{card.tag}</span>
-                      {card.primary && (
-                        <span className="font-mono text-[10px] uppercase tracking-[.08em]" style={{ color: 'var(--pine)' }}>
-                          Основная цель
-                        </span>
-                      )}
-                    </div>
+                {visibleCards.map(card => {
+                  const isHovered = hoveredGoal === card.goal;
 
-                    <div className="flex flex-col gap-1.5">
-                      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em', color: 'var(--midnight)' }}>
-                        {card.title}
-                      </p>
-                      <p className="text-[15px]" style={{ color: 'var(--mute)' }}>{card.subtitle}</p>
-                    </div>
-
-                    <Button
-                      variant={card.primary ? 'primary' : 'ghost'}
-                      size="md"
-                      className="w-full mt-auto"
-                      disabled={isLoading}
-                      onClick={() => handleGoalSelect(card.goal)}
+                  return (
+                    <div
+                      key={card.goal}
+                      className="flex flex-col gap-4 p-5 transition-all duration-200"
+                      onMouseEnter={() => setHoveredGoal(card.goal)}
+                      onMouseLeave={() => setHoveredGoal(null)}
+                      style={{
+                        background: isHovered ? 'color-mix(in srgb, var(--brand) 6%, var(--bg-surface))' : 'var(--bg-surface)',
+                        borderRadius: 'var(--radius)',
+                        border: isHovered ? '1px solid var(--brand)' : '1px solid var(--border)',
+                        boxShadow: isHovered ? '0 18px 40px rgba(91, 71, 255, 0.12)' : 'none',
+                      }}
                     >
-                      Выбрать эту цель
-                    </Button>
-                  </div>
-                ))}
+                      <div className="flex items-center">
+                        <span className="font-mono text-[10px] uppercase tracking-[.08em] text-muted">{card.tag}</span>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em', color: 'var(--midnight)' }}>
+                          {card.title}
+                        </p>
+                        <p className="text-[15px]" style={{ color: 'var(--mute)' }}>{card.subtitle}</p>
+                      </div>
+
+                      <Button
+                        variant={isHovered ? 'primary' : 'ghost'}
+                        size="md"
+                        className="w-full mt-auto"
+                        disabled={isLoading}
+                        onClick={() => handleGoalSelect(card.goal)}
+                      >
+                        Выбрать эту цель
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             )}
 

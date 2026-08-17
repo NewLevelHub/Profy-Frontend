@@ -21,19 +21,19 @@ export default function WelcomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-page flex flex-col items-center px-4 py-10 lg:py-14">
-      <div className="w-full max-w-2xl flex flex-col gap-8">
+    <div className="min-h-screen bg-page flex flex-col">
+      <div className="flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
+        <div className="w-full max-w-7xl mx-auto flex flex-col gap-8">
 
         <div
           className="onboarding-welcome-in flex flex-col gap-7 px-6 py-8 sm:px-10 sm:py-10"
-          style={{ background: 'var(--fog)', border: '1px solid var(--hairline)', borderRadius: 'var(--radius)' }}
+          style={{ background: 'var(--fog)', borderRadius: 'var(--radius)' }}
         >
           <span className="font-mono text-[11px] tracking-[.1em] uppercase text-muted">
             Перед тестом · Как это будет
           </span>
 
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-8">
-            <Mascot state="welcome" size={124} className="shrink-0" />
             <div className="flex flex-col gap-3">
               <h1
                 style={{
@@ -45,7 +45,7 @@ export default function WelcomePage() {
                   color: 'var(--midnight)',
                 }}
               >
-                Привет, я Профи. Разберёмся, что тебе близко
+                Привет! Разберёмся, что тебе близко
               </h1>
               <p className="text-[17px] leading-relaxed" style={{ color: 'var(--ink)' }}>
                 Я буду задавать вопросы и смотреть, что тебе интересно. Правильных и
@@ -53,6 +53,7 @@ export default function WelcomePage() {
                 ни родители.
               </p>
             </div>
+            <Mascot state="welcome" size={124} className="shrink-0" />
           </div>
 
           {/* Feature bullets */}
@@ -70,7 +71,7 @@ export default function WelcomePage() {
 
           <Button
             variant="primary"
-            className={cn('w-full sm:w-auto sm:self-start')}
+            className={cn('w-full sm:w-auto sm:self-end')}
             style={{ minHeight: 48 }}
             onClick={() => navigate('/assessment')}
           >
@@ -78,6 +79,7 @@ export default function WelcomePage() {
           </Button>
         </div>
 
+        </div>
       </div>
     </div>
   );

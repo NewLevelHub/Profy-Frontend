@@ -86,10 +86,25 @@ export function useAssessment() {
           }
         }
 
-        setPhase('intro');
-        introTimerRef.current = setTimeout(() => {
-          if (!cancelled) setPhase('question');
-        }, 2000);
+        // Intro is a one-time "let's begin" moment — only on a genuinely
+        // fresh start. Reload / resume always has answeredCount > 0 (or the
+        // intro already dismissed this session), so skip straight to questions.
+        const introKey = `profy-assessment-intro-seen:${assessmentId}`;
+        const introAlreadySeen =
+          typeof sessionStorage !== 'undefined' && sessionStorage.getItem(introKey) === '1';
+        const testAlreadyStarted = answeredCountFromStore > 0 || introAlreadySeen;
+
+        if (testAlreadyStarted) {
+          setPhase('question');
+        } else {
+          setPhase('intro');
+          introTimerRef.current = setTimeout(() => {
+            if (!cancelled) {
+              sessionStorage.setItem(introKey, '1');
+              setPhase('question');
+            }
+          }, 2000);
+        }
       } catch {
         if (!cancelled) {
           setError('Не удалось загрузить вопросы. Попробуй ещё раз.');
@@ -129,6 +144,9 @@ export function useAssessment() {
     if (introTimerRef.current !== null) {
       clearTimeout(introTimerRef.current);
       introTimerRef.current = null;
+    }
+    if (assessmentId) {
+      sessionStorage.setItem(`profy-assessment-intro-seen:${assessmentId}`, '1');
     }
     setPhase('question');
   }

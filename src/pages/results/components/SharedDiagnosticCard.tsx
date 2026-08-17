@@ -1,3 +1,4 @@
+import { Sparkles, Layers, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Mascot } from '@/shared/ui/Mascot';
 import { RiasecIcon, type RiasecType } from '@/shared/ui/icons/RiasecIcon';
@@ -8,6 +9,11 @@ import type {
   StudentPersonalityNote,
   ThinkingStyleNote,
 } from '@/shared/types';
+
+// Decorative only — StrengthCard carries no category to map an icon to
+// meaningfully, so this just cycles for visual variety between cards, not
+// as a signal of what kind of strength each one is.
+const STRENGTH_ICONS = [Sparkles, Layers, Users];
 
 interface SharedDiagnosticCardProps {
   isJunior: boolean;
@@ -83,27 +89,20 @@ function buildSecondaryNote(items: InterestMapItem[], labels: Record<string, str
   return secondary.map((i) => labels[i.code] ?? i.sphere).join(', ');
 }
 
-interface FindingColumn {
-  key: string;
-  kicker: string;
-  accent?: boolean;
-  finding: string;
-  detail: string;
-}
-
 /**
  * The shared diagnostic block's card (design spec §06) — identical
  * regardless of goal, rendered once above the goal-branch update boundary.
  * Replaces what used to be five separate stacked full-width sections
  * (StrengthCardsSection/InterestMapSection/PersonalitySection/
- * ThinkingStyleSection/MotivationSection) with the spec's single
- * Fog-bordered card: kicker+headline header, a 6-column (8 for MI/junior)
- * type grid, and a 5-column strength-summary row. Each list field
- * (strength_cards, thinking_style_notes, personality_notes,
- * motivation_highlights) can carry more items than the compact row shows —
- * per contract these are already backend-ordered by relevance, so the first
- * item stands in as the row's "headline finding"; this is a deliberate
- * compression to a scannable at-a-glance strip, not a bug.
+ * ThinkingStyleSection/MotivationSection) with a single Fog-bordered card:
+ * kicker+headline header, a 6-column (8 for MI/junior) type grid, and one
+ * full-content block per finding domain below it. Every item in every list
+ * field (strength_cards, thinking_style_notes, personality_notes,
+ * motivation_highlights) is rendered — not just the first — and nothing is
+ * `line-clamp`-truncated; an earlier version compressed each domain to a
+ * single line-clamped "headline finding" as a scannable strip, but that
+ * read as cut-off/missing content rather than intentionally compact, so
+ * full lists it is.
  */
 export function SharedDiagnosticCard({
   isJunior,
@@ -118,41 +117,6 @@ export function SharedDiagnosticCard({
   const labels = isJunior ? MI_LABELS : RIASEC_LABELS;
   const headline = buildHeadline(interestMap, labels);
   const secondaryNote = buildSecondaryNote(interestMap, labels);
-  const leadingInterest = interestMap.find((i) => i.level === 'high') ?? interestMap[0];
-
-  const columns: FindingColumn[] = [
-    {
-      key: 'strength',
-      kicker: 'СИЛЬНАЯ СТОРОНА',
-      accent: true,
-      finding: strengthCards[0]?.title ?? 'Пока не выделено',
-      detail: strengthCards[0]?.description ?? 'Появится по мере новых ответов.',
-    },
-    {
-      key: 'interests',
-      kicker: 'КАРТА ИНТЕРЕСОВ',
-      finding: leadingInterest?.sphere ?? 'Пока не выделено',
-      detail: interestMapNote || 'Карта интересов пока формируется.',
-    },
-    {
-      key: 'thinking',
-      kicker: 'СТИЛЬ МЫШЛЕНИЯ',
-      finding: thinkingStyleNotes[0]?.title ?? 'Пока не выделено',
-      detail: thinkingStyleNotes[0]?.description ?? 'Появится по мере новых ответов.',
-    },
-    {
-      key: 'personality',
-      kicker: 'ЛИЧНОСТЬ',
-      finding: personalityNotes[0]?.label ?? 'Пока не выделено',
-      detail: personalityNote || personalityNotes[0]?.description || '',
-    },
-    {
-      key: 'motivation',
-      kicker: 'МОТИВАЦИЯ',
-      finding: motivationHighlights[0] ?? 'Пока не выделено',
-      detail: motivationHighlights[1] ?? '',
-    },
-  ];
 
   return (
     <div
@@ -184,45 +148,130 @@ export function SharedDiagnosticCard({
       </div>
 
       {interestMap.length > 0 && (
-        <div
-          className={cn(
-            'grid gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden',
-            isJunior ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
+        <div className="flex flex-col gap-3">
+          <div
+            className={cn(
+              'grid gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden',
+              isJunior ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
+            )}
+          >
+            {interestMap.map((item) => (
+              <TypeCell key={item.code} item={item} isJunior={isJunior} />
+            ))}
+          </div>
+          {interestMapNote && (
+            <p className="text-caption text-muted leading-relaxed">{interestMapNote}</p>
           )}
-        >
-          {interestMap.map((item) => (
-            <TypeCell key={item.code} item={item} isJunior={isJunior} />
-          ))}
         </div>
       )}
 
-      {/* 5 items don't divide evenly into 2 or 3 columns, so a mid-tier
-         grid-cols-2/3 step leaves an empty trailing cell that renders as a
-         bare hairline-colored box (looks like missing content) — jump
-         straight from a single column to the full 5-column row instead. */}
-      <div className="grid gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden grid-cols-1 lg:grid-cols-5">
-        {columns.map((col) => (
-          <div key={col.key} className="bg-surface p-4 flex flex-col gap-1.5">
-            <p
-              className={cn(
-                'font-mono text-[10px] font-bold uppercase tracking-[.06em]',
-                col.accent ? 'text-accent' : 'text-muted',
-              )}
-            >
-              {col.kicker}
-            </p>
-            <p
-              className="font-display font-semibold text-[color:var(--midnight)] leading-snug line-clamp-1"
-              style={{ fontSize: 17 }}
-            >
-              {col.finding}
-            </p>
-            {col.detail && (
-              <p className="text-caption text-muted leading-snug line-clamp-1">{col.detail}</p>
-            )}
-          </div>
-        ))}
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[.06em] text-accent">
+            СИЛЬНЫЕ СТОРОНЫ
+          </p>
+          {strengthCards.length === 0 ? (
+            <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4">
+              <p className="text-caption text-muted">Появится по мере новых ответов.</p>
+            </div>
+          ) : (
+            strengthCards.map((card, i) => {
+              const Icon = STRENGTH_ICONS[i % STRENGTH_ICONS.length];
+              return (
+                <div
+                  key={i}
+                  className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex flex-col gap-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <Icon size={22} strokeWidth={1.75} className="text-primary" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p
+                      className="font-display font-semibold text-[color:var(--midnight)] leading-snug"
+                      style={{ fontSize: 19 }}
+                    >
+                      {card.title}
+                    </p>
+                    <p className="text-body text-secondary leading-relaxed mt-1.5">{card.description}</p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <FindingBlock kicker="СТИЛЬ МЫШЛЕНИЯ" empty={thinkingStyleNotes.length === 0}>
+          {thinkingStyleNotes.map((note, i) => (
+            <FindingItem key={i} title={note.title} detail={note.description} />
+          ))}
+        </FindingBlock>
+
+        <FindingBlock kicker="ЛИЧНОСТЬ" empty={!personalityNote && personalityNotes.length === 0}>
+          {personalityNote && (
+            <p className="text-body text-primary leading-relaxed">{personalityNote}</p>
+          )}
+          {personalityNotes.map((note, i) => (
+            <FindingItem key={i} title={note.label} detail={note.description} />
+          ))}
+        </FindingBlock>
+
+        <FindingBlock kicker="МОТИВАЦИЯ" empty={motivationHighlights.length === 0}>
+          <ul className="flex flex-col gap-2">
+            {motivationHighlights.map((text, i) => (
+              <li key={i} className="text-body text-primary leading-relaxed">
+                {text}
+              </li>
+            ))}
+          </ul>
+        </FindingBlock>
       </div>
+    </div>
+  );
+}
+
+/** Kicker-labeled block wrapping one finding domain's full content (used
+ * instead of a fixed-height grid cell since list lengths vary per student —
+ * a grid would either clip or leave ragged empty space). */
+function FindingBlock({
+  kicker,
+  accent,
+  empty,
+  children,
+}: {
+  kicker: string;
+  accent?: boolean;
+  empty: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 flex flex-col gap-3">
+      <p
+        className={cn(
+          'font-mono text-[10px] font-bold uppercase tracking-[.06em]',
+          accent ? 'text-accent' : 'text-muted',
+        )}
+      >
+        {kicker}
+      </p>
+      {empty ? (
+        <p className="text-caption text-muted">Появится по мере новых ответов.</p>
+      ) : (
+        <div className="flex flex-col gap-3">{children}</div>
+      )}
+    </div>
+  );
+}
+
+function FindingItem({ title, detail }: { title: string; detail?: string }) {
+  return (
+    <div>
+      <p
+        className="font-display font-semibold text-[color:var(--midnight)] leading-snug"
+        style={{ fontSize: 17 }}
+      >
+        {title}
+      </p>
+      {detail && <p className="text-caption text-muted leading-relaxed mt-0.5">{detail}</p>}
     </div>
   );
 }

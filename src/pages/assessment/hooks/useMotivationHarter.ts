@@ -17,7 +17,6 @@ export function useMotivationHarter() {
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
-  const completeAssessment = useAssessmentStore(s => s.completeAssessment);
 
   const [phase, setPhase] = useState<MotivationHarterPhase>('loading');
   const [pairs, setPairs] = useState<MotivationPairItem[]>([]);
@@ -64,10 +63,18 @@ export function useMotivationHarter() {
           }
         }
 
-        setPhase('intro');
-        introTimerRef.current = setTimeout(() => {
-          if (!cancelled) setPhase('question');
-        }, 2000);
+        // Intro screen is a one-time "let's begin" moment — only show it on
+        // a genuinely fresh start (nothing answered yet). Resuming later
+        // (rest stop, closed tab, etc.) always has motivation_answered_count
+        // > 0 by then, so it goes straight to the question.
+        if (current.motivation_answered_count === 0) {
+          setPhase('intro');
+          introTimerRef.current = setTimeout(() => {
+            if (!cancelled) setPhase('question');
+          }, 2000);
+        } else {
+          setPhase('question');
+        }
       } catch {
         if (!cancelled) {
           setError('Не удалось загрузить вопросы. Попробуй ещё раз.');
@@ -127,7 +134,12 @@ export function useMotivationHarter() {
       setAnswers(prev => ({ ...prev, [pair.pair_index]: { side: chosenSide, intensity } }));
 
       if (response.completed) {
-        completeAssessment();
+        // Don't call completeAssessment() here — that flag means "report
+        // generated", not "questions answered". Setting it early makes
+        // ResultLoadingPage take its "already have a report" shortcut
+        // (straight to /results, skipping the loading animation and
+        // goal-check) before a report exists. ResultLoadingPage sets it
+        // itself once resultApi.generate() actually succeeds.
         navigate('/assessment/loading');
         return;
       }
@@ -176,7 +188,6 @@ export function useMotivationHarter() {
           intensity: Math.random() < 0.5 ? 'high' : 'medium',
         })),
       });
-      if (response.completed) completeAssessment();
       navigate('/assessment/loading');
     } catch {
       setError('Не удалось автозаполнить тест.');

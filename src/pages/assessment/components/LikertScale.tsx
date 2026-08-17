@@ -1,4 +1,5 @@
 import React from 'react';
+import { Check } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
 import { LIKERT_SCALE } from '@/shared/config/constants';
@@ -9,15 +10,47 @@ interface LikertScaleProps {
   scale?: { value: number; label: string }[];
 }
 
+const POLE_LEFT = '#6F8F6A';
+const POLE_RIGHT = '#7A5F7D';
+const POLE_NEUTRAL = 'var(--hairline)';
+
+function poleColor(index: number, count: number) {
+  const mid = (count - 1) / 2;
+  if (index < mid) return POLE_LEFT;
+  if (index > mid) return POLE_RIGHT;
+  return POLE_NEUTRAL;
+}
+
+function dotSize(index: number, count: number) {
+  const dist = Math.abs(index - (count - 1) / 2);
+  if (dist >= 2) return 'clamp(2rem, 4.8vw, 3.25rem)';
+  if (dist >= 1) return 'clamp(1.45rem, 3.4vw, 2.35rem)';
+  return 'clamp(1rem, 2.2vw, 1.5rem)';
+}
+
 export const LikertScale = React.memo(function LikertScale({
   selected,
   onSelect,
   scale = LIKERT_SCALE,
 }: LikertScaleProps) {
   return (
-    <div className="flex flex-col gap-[10px]">
-      {scale.map(({ value, label }) => {
+    <div
+      className="flex items-center justify-center w-full gap-[clamp(0.4rem,2vw,1.5rem)]"
+      role="radiogroup"
+      aria-label="Оцени по шкале"
+    >
+      <span
+        className="shrink-0 text-right font-semibold leading-tight"
+        style={{ color: POLE_LEFT, fontSize: 'clamp(0.75rem, 1.6vw, 1rem)', maxWidth: 'clamp(4.5rem, 14vw, 7.5rem)' }}
+      >
+        Совсем не моё
+      </span>
+
+      {scale.map(({ value, label }, index) => {
         const isSelected = selected === value;
+        const color = poleColor(index, scale.length);
+        const size = dotSize(index, scale.length);
+
         return (
           <button
             key={value}
@@ -27,31 +60,45 @@ export const LikertScale = React.memo(function LikertScale({
               onSelect(value);
             }}
             className={cn(
-              'w-full flex items-center gap-[14px] text-left border-2 px-5 py-[18px] transition-all duration-150',
-              'focus-visible:outline-none focus-visible:ring-brand',
-              isSelected
-                ? 'border-brand bg-active-tint'
-                : 'border-default bg-surface text-primary hover:border-brand',
+              'relative flex-none flex items-center justify-center',
+              'min-w-11 min-h-11',
+              'transition-transform duration-150 hover:scale-105',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
             )}
-            style={{ borderRadius: 18 }}
+            style={{ borderRadius: '50%' }}
+            role="radio"
+            aria-checked={isSelected}
+            aria-label={label}
           >
             <span
-              className="w-[34px] h-[34px] flex-none flex items-center justify-center font-black"
+              className="flex items-center justify-center transition-colors duration-150"
               style={{
-                borderRadius: 10,
-                fontSize: 15,
-                background: isSelected ? 'var(--brand)' : 'var(--bg-active)',
-                color: isSelected ? '#fff' : 'var(--brand)',
+                width: size,
+                height: size,
+                borderRadius: '50%',
+                background: isSelected ? color : 'transparent',
+                border: `clamp(1.5px, 0.18vw, 2px) solid ${color}`,
               }}
             >
-              {value}
-            </span>
-            <span className="flex-1 font-bold text-primary leading-snug" style={{ fontSize: 16 }}>
-              {label}
+              {isSelected && (
+                <Check
+                  className="w-[42%] h-[42%]"
+                  strokeWidth={3}
+                  color="#fff"
+                  aria-hidden
+                />
+              )}
             </span>
           </button>
         );
       })}
+
+      <span
+        className="shrink-0 text-left font-semibold leading-tight"
+        style={{ color: POLE_RIGHT, fontSize: 'clamp(0.75rem, 1.6vw, 1rem)', maxWidth: 'clamp(4.5rem, 14vw, 7.5rem)' }}
+      >
+        Точно моё
+      </span>
     </div>
   );
 });

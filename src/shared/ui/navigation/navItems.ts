@@ -2,15 +2,15 @@
 // between Sidebar.tsx (desktop) and Header.tsx (mobile). Both are now merged
 // into TopRail.tsx, which is the only consumer of this list.
 export const NAV_ITEMS = [
-  { label: 'Главная', path: '/home', emoji: '🏠' },
-  { label: 'Результаты', path: '/results', emoji: '📊' },
-  { label: 'Профиль', path: '/profile', emoji: '👤' },
+  { label: 'Обзор', path: '/home' },
+  { label: 'Результаты', path: '/results' },
+  { label: 'План', path: '/roadmap' },
+  { label: 'Профиль', path: '/profile' },
 ] as const;
 
 export const ADMIN_NAV_ITEM = {
   label: 'Админка',
   path: '/admin/users',
-  emoji: '⚙️',
   matchPrefix: '/admin',
 } as const;
 

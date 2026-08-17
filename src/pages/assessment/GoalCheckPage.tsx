@@ -30,9 +30,6 @@ export default function GoalCheckPage() {
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
             <Mascot state="transition" size={96} className="shrink-0" />
             <div>
-              <span className="font-mono text-[11px] tracking-[.1em] uppercase text-muted">
-                Шаг 5 · После диагностики, до отчёта · только для цели «пока не знаю»
-              </span>
               <h1
                 className="mt-2"
                 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 32, letterSpacing: '-0.02em', lineHeight: 1.12, color: 'var(--midnight)' }}
