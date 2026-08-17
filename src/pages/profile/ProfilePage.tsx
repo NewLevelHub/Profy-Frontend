@@ -5,11 +5,13 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { useProfile } from './hooks/useProfile';
+import { useChangeGoal } from '@/shared/hooks/useChangeGoal';
 import { getAgeGroupLabel } from './utils/ageGroupLabel';
 import { ProfileHero } from './sections/ProfileHero';
 import { PersonalInfoSection } from './sections/PersonalInfoSection';
 import { SubjectsSection } from './sections/SubjectsSection';
 import { RestartAssessmentSection } from './sections/RestartAssessmentSection';
+import { ChangeGoalSection } from './sections/ChangeGoalSection';
 import { SoundSettingsSection } from './sections/SoundSettingsSection';
 
 export default function ProfilePage() {
@@ -27,6 +29,18 @@ export default function ProfilePage() {
     handleRestartCancel,
   } = useProfile();
   const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
+  const {
+    canChangeGoal,
+    currentGoal,
+    availableGoals,
+    pickerOpen,
+    isPending: isChangingGoal,
+    limitReached: goalLimitReached,
+    errorMessage: goalErrorMessage,
+    handleOpenPicker,
+    handleClosePicker,
+    handleSelectGoal,
+  } = useChangeGoal();
 
   return (
     <PageContainer className="space-y-6 lg:space-y-8">
@@ -61,6 +75,19 @@ export default function ProfilePage() {
             toggleSound={toggleSound}
             prefersReducedMotion={prefersReducedMotion}
           />
+          {canChangeGoal && (
+            <ChangeGoalSection
+              currentGoal={currentGoal}
+              availableGoals={availableGoals}
+              pickerOpen={pickerOpen}
+              isPending={isChangingGoal}
+              limitReached={goalLimitReached}
+              errorMessage={goalErrorMessage}
+              onOpen={handleOpenPicker}
+              onClose={handleClosePicker}
+              onSelect={handleSelectGoal}
+            />
+          )}
           <RestartAssessmentSection
             confirmRestart={confirmRestart}
             onRequest={handleRestartRequest}

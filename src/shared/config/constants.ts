@@ -14,6 +14,17 @@ export const ASSESSMENT_GOAL_LABELS: Record<AssessmentGoal, string> = {
   [ASSESSMENT_GOALS.UNSURE]: 'Пока не знаю',
 };
 
+// Which age groups may select each goal — kept as the single source of
+// truth shared between the pre-test GoalSelectionPage and the post-test
+// goal-change UI, so the two never drift apart on who can pick `unsure`
+// or `university`.
+export const ASSESSMENT_GOAL_ALLOWED_AGE_GROUPS: Record<AssessmentGoal, ('junior' | 'middle' | 'senior')[]> = {
+  [ASSESSMENT_GOALS.EXPLORE]: ['junior', 'middle', 'senior'],
+  [ASSESSMENT_GOALS.PROFESSION]: ['middle', 'senior'],
+  [ASSESSMENT_GOALS.UNIVERSITY]: ['senior'],
+  [ASSESSMENT_GOALS.UNSURE]: ['middle'],
+};
+
 export const RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const;
 
 export const RIASEC_LABELS: Record<string, string> = {

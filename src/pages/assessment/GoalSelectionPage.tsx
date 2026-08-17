@@ -2,6 +2,7 @@ import { Navigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
 import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
+import { ASSESSMENT_GOAL_ALLOWED_AGE_GROUPS } from '@/shared/config/constants';
 import type { AssessmentGoal } from '@/shared/types';
 
 interface GoalCard {
@@ -9,7 +10,6 @@ interface GoalCard {
   emoji: string;
   title: string;
   subtitle: string;
-  allowedFor: ('junior' | 'middle' | 'senior')[];
 }
 
 const GOAL_CARDS: GoalCard[] = [
@@ -18,28 +18,24 @@ const GOAL_CARDS: GoalCard[] = [
     emoji: '🔍',
     title: 'Понять себя',
     subtitle: 'Узнай свои сильные стороны и интересы',
-    allowedFor: ['junior', 'middle', 'senior'],
   },
   {
     goal: 'profession',
     emoji: '🎯',
     title: 'Выбрать профессию',
     subtitle: 'Найди направление, которое тебе подойдёт',
-    allowedFor: ['middle', 'senior'],
   },
   {
     goal: 'university',
     emoji: '🎓',
     title: 'Поступить в университет',
     subtitle: 'Построй путь к поступлению',
-    allowedFor: ['senior'],
   },
   {
     goal: 'unsure',
     emoji: '💬',
     title: 'Пока не знаю',
     subtitle: 'Начнём с начала, разберёмся вместе',
-    allowedFor: ['middle', 'senior'],
   },
 ];
 
@@ -175,7 +171,7 @@ export default function GoalSelectionPage() {
   }
 
   const visibleCards = GOAL_CARDS.filter(
-    card => card.allowedFor.includes(ageGroup),
+    card => ASSESSMENT_GOAL_ALLOWED_AGE_GROUPS[card.goal].includes(ageGroup),
   );
 
   return (

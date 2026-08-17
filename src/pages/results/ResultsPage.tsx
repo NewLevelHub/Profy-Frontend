@@ -15,6 +15,7 @@ import { ThinkingStyleSection } from './components/ThinkingStyleSection';
 import { MotivationSection } from './components/MotivationSection';
 import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
 import { FinalAnalysisSection } from './components/FinalAnalysisSection';
+import { GoalOverlaySection } from './components/GoalOverlaySection';
 
 function AnimatedBlock({ children }: { children: React.ReactNode }) {
   return (
@@ -121,6 +122,12 @@ export default function ResultsPage() {
       <AnimatedBlock>
         <MotivationSection highlights={report.motivation_highlights} />
       </AnimatedBlock>
+
+      {!isJunior && (
+        <AnimatedBlock>
+          <GoalOverlaySection topCareerSlug={report.careers[0]?.slug ?? null} />
+        </AnimatedBlock>
+      )}
 
       {report.careers.length > 0 && (
         <AnimatedBlock>

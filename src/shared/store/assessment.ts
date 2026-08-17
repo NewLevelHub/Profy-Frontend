@@ -10,8 +10,10 @@ interface AssessmentState {
   totalQuestions: number;
   hasCompletedAssessment: boolean;
   syncDone: boolean;
+  goalChangedCount: number;
   setAssessment: (assessmentId: string, goal: AssessmentGoal, answeredCount: number, totalQuestions: number) => void;
   setProgress: (answeredCount: number, totalQuestions: number) => void;
+  setGoal: (goal: AssessmentGoal, goalChangedCount: number) => void;
   completeAssessment: () => void;
   resetAssessment: () => void;
   syncFromServer: (data: AssessmentResponse, userId: string) => void;
@@ -28,10 +30,12 @@ export const useAssessmentStore = create<AssessmentState>()(
       totalQuestions: 0,
       hasCompletedAssessment: false,
       syncDone: false,
+      goalChangedCount: 0,
       setAssessment: (assessmentId, goal, answeredCount, totalQuestions) =>
         set({ assessmentId, goal, answeredCount, totalQuestions }),
       setProgress: (answeredCount, totalQuestions) =>
         set({ answeredCount, totalQuestions }),
+      setGoal: (goal, goalChangedCount) => set({ goal, goalChangedCount }),
       completeAssessment: () => set({ hasCompletedAssessment: true }),
       resetAssessment: () =>
         set({
@@ -42,6 +46,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           totalQuestions: 0,
           hasCompletedAssessment: false,
           syncDone: true,
+          goalChangedCount: 0,
         }),
       syncFromServer: (data, userId) =>
         set({
@@ -52,6 +57,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           totalQuestions: data.total_questions,
           hasCompletedAssessment: data.status === 'completed',
           syncDone: true,
+          goalChangedCount: data.goal_changed_count,
         }),
       clearForUser: (userId) =>
         set({
@@ -62,6 +68,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           totalQuestions: 0,
           hasCompletedAssessment: false,
           syncDone: true,
+          goalChangedCount: 0,
         }),
     }),
     {
