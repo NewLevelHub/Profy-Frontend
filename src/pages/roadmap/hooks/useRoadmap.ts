@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { roadmapApi } from '@/shared/api/roadmap';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
-import type { RoadmapHorizonKey } from '@/shared/types';
 
 export function useRoadmap() {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
@@ -12,8 +11,6 @@ export function useRoadmap() {
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const clearReport = useResultStore(s => s.clearReport);
   const queryClient = useQueryClient();
-
-  const [selectedHorizon, setSelectedHorizon] = useState<RoadmapHorizonKey | null>(null);
 
   const { data: roadmap, isLoading, error, refetch } = useQuery({
     queryKey: ['roadmap', assessmentId] as const,
@@ -37,11 +34,6 @@ export function useRoadmap() {
     }
   }, [is403, resetAssessment, clearReport]);
 
-  // Reset horizon selection when roadmap changes
-  useEffect(() => {
-    setSelectedHorizon(null);
-  }, [roadmap?.id]);
-
   const loadError = error && !is404 && !is403 ? 'Не удалось загрузить роадмап. Попробуй ещё раз.' : null;
 
   const generateMutation = useMutation({
@@ -50,8 +42,6 @@ export function useRoadmap() {
       queryClient.setQueryData(['roadmap', assessmentId], data);
     },
   });
-
-  const activeMilestone = roadmap?.milestones.find(m => m.horizon === selectedHorizon) ?? null;
 
   return {
     roadmap: roadmap ?? null,
@@ -65,8 +55,5 @@ export function useRoadmap() {
     generate: (programId?: string) => generateMutation.mutate(programId),
     refetch,
     hasCompletedAssessment,
-    selectedHorizon,
-    setSelectedHorizon,
-    activeMilestone,
   };
 }

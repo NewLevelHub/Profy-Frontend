@@ -44,6 +44,9 @@ import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
+import AdminUniversitiesPage from '@/pages/admin/AdminUniversitiesPage';
+import AdminUniversityDetailPage from '@/pages/admin/AdminUniversityDetailPage';
+import AdminProgramEditPage from '@/pages/admin/AdminProgramEditPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -119,6 +122,9 @@ export const router = createBrowserRouter([
                   { path: '/admin', element: <Navigate to="/admin/users" replace /> },
                   { path: '/admin/users', element: <AdminUsersPage /> },
                   { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                  { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+                  { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+                  { path: '/admin/universities/:universityId/programs/:programId', element: <AdminProgramEditPage /> },
                 ],
               },
 

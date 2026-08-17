@@ -9,7 +9,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import type { GapItem } from '@/shared/types';
 import { localizeKey } from '@/pages/results/utils/programUtils';
 import { useGapAnalysis } from '@/pages/results/hooks/useGapAnalysis';
-import { GeneratingOverlay } from '@/pages/roadmap/direction/components/GeneratingOverlay';
+import { GeneratingOverlay } from '@/shared/ui/roadmap/GeneratingOverlay';
 
 // ── Readiness circle ──────────────────────────────────────────────────────────
 

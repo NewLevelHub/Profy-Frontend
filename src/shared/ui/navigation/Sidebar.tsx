@@ -10,9 +10,12 @@ const NAV_ITEMS = [
   { label: 'Профиль', path: '/profile', emoji: '👤' },
 ] as const;
 
-const ADMIN_NAV_ITEM = { label: 'Админка', path: '/admin/users', emoji: '⚙️', matchPrefix: '/admin' } as const;
+const ADMIN_NAV_ITEMS = [
+  { label: 'Пользователи', path: '/admin/users', emoji: '👥', matchPrefix: '/admin/users' },
+  { label: 'Университеты', path: '/admin/universities', emoji: '🏫', matchPrefix: '/admin/universities' },
+] as const;
 
-type SidebarNavItem = (typeof NAV_ITEMS)[number] | typeof ADMIN_NAV_ITEM;
+type SidebarNavItem = (typeof NAV_ITEMS)[number] | (typeof ADMIN_NAV_ITEMS)[number];
 
 function isNavActive(
   matchPrefix: string | undefined,
@@ -26,7 +29,7 @@ function isNavActive(
 export function Sidebar() {
   const isAdmin = useAuthStore((s) => s.user?.is_admin);
   const location = useLocation();
-  const navItems: SidebarNavItem[] = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : [...NAV_ITEMS];
+  const navItems: SidebarNavItem[] = isAdmin ? [...NAV_ITEMS, ...ADMIN_NAV_ITEMS] : [...NAV_ITEMS];
 
   return (
     <aside className="hidden lg:flex flex-col w-60 flex-none border-r border-default bg-sidebar h-full overflow-y-auto z-30" style={{ padding: '26px 18px' }}>

@@ -1,118 +1,17 @@
 import { useRoadmap } from './hooks/useRoadmap';
-import { ROADMAP_HORIZON_LABELS, ROADMAP_CATEGORY_EMOJIS } from '@/shared/config/constants';
+import {
+  ROADMAP_HORIZON_LABELS,
+  ROADMAP_CATEGORY_LABELS,
+  ROADMAP_CATEGORY_EMOJIS,
+} from '@/shared/config/constants';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import type { RoadmapHorizonKey, RoadmapMilestone } from '@/shared/types';
-
-// ─── Horizon selector ──────────────────────────────────────────────────────────
-
-function HorizonCard({
-  milestone,
-  onSelect,
-}: {
-  milestone: RoadmapMilestone;
-  onSelect: (h: RoadmapHorizonKey) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(milestone.horizon)}
-      className="w-full text-left rounded-2xl p-4 transition-all active:scale-[0.98] bg-[#F5F3FF] border-[1.5px] border-[#EDE9FE] hover:border-brand/40"
-    >
-      <div className="flex items-center justify-between mb-1">
-        <span className="font-black text-brand text-[13px]">
-          {ROADMAP_HORIZON_LABELS[milestone.horizon] ?? milestone.horizon}
-        </span>
-        <span className="font-semibold text-muted text-xs">
-          {milestone.tasks.length} задач
-        </span>
-      </div>
-      <p className="font-bold text-text text-[15px] leading-snug">
-        {milestone.title}
-      </p>
-      <div className="flex gap-1.5 mt-2 flex-wrap">
-        {milestone.tasks.slice(0, 3).map((task, i) => (
-          <span
-            key={i}
-            className="font-semibold text-[11px] text-brand bg-[#EDE9FE] rounded-pill px-2 py-0.5"
-          >
-            {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'}{' '}
-            {task.text.length > 28 ? task.text.slice(0, 28) + '…' : task.text}
-          </span>
-        ))}
-        {milestone.tasks.length > 3 && (
-          <span className="font-semibold text-muted text-[11px] px-2 py-0.5">
-            +{milestone.tasks.length - 3} ещё
-          </span>
-        )}
-      </div>
-    </button>
-  );
-}
-
-// ─── Active milestone view ──────────────────────────────────────────────────────
-
-function MilestoneView({
-  milestone,
-  onBack,
-}: {
-  milestone: RoadmapMilestone;
-  onBack: () => void;
-}) {
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-1.5 mb-4 font-bold text-brand text-sm"
-      >
-        <span className="text-lg leading-none">←</span>
-        Все горизонты
-      </button>
-
-      <div className="mb-1">
-        <span className="font-black text-brand text-xs uppercase tracking-widest">
-          {ROADMAP_HORIZON_LABELS[milestone.horizon] ?? milestone.horizon}
-        </span>
-      </div>
-      <h2 className="font-black text-text mb-5 text-[22px] leading-tight">
-        {milestone.title}
-      </h2>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {milestone.tasks
-          .sort((a, b) => a.priority - b.priority)
-          .map((task, i) => (
-            <div
-              key={i}
-              className="rounded-2xl p-4 bg-[#FAFAFA] border-[1.5px] border-[#F0F0F0]"
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 flex items-center justify-center rounded-full font-black text-white w-9 h-9 text-[15px] bg-gradient-to-br from-brand to-[#A78BFA]">
-                  {i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-text text-[15px] leading-snug mb-1">
-                    {task.text}
-                  </p>
-                  {task.description && (
-                    <p className="text-muted font-medium text-[13px] leading-relaxed">
-                      {task.description}
-                    </p>
-                  )}
-                  <span className="inline-block mt-2 font-semibold text-[11px] text-brand bg-[#EDE9FE] rounded-pill px-2 py-0.5">
-                    {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'} {task.category}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ──────────────────────────────────────────────────────────────────────
+import { SectionHeading } from '@/shared/ui/SectionHeading';
+import { Button } from '@/shared/ui/Button';
+import { RoadmapFocusCard } from '@/shared/ui/roadmap/RoadmapFocusCard';
+import { RoadmapStageCard } from '@/shared/ui/roadmap/RoadmapStageCard';
+import { RoadmapStepItem } from '@/shared/ui/roadmap/RoadmapStepItem';
+import { GeneratingOverlay } from '@/shared/ui/roadmap/GeneratingOverlay';
 
 function RoadmapEmptyState({
   icon,
@@ -142,14 +41,14 @@ function RoadmapEmptyState({
         <p className="text-red-500 font-semibold text-sm">{error}</p>
       )}
       {actionLabel && onAction && (
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="lg"
           onClick={onAction}
           disabled={disabled}
-          className="font-black text-white rounded-2xl px-6 py-3 bg-brand text-[15px] disabled:opacity-60"
         >
           {actionLabel}
-        </button>
+        </Button>
       )}
     </PageContainer>
   );
@@ -164,10 +63,11 @@ export default function RoadmapPage() {
     isGenerating,
     generateError,
     generate,
-    selectedHorizon,
-    setSelectedHorizon,
-    activeMilestone,
   } = useRoadmap();
+
+  if (isGenerating) {
+    return <GeneratingOverlay />;
+  }
 
   if (isLoading) {
     return (
@@ -203,32 +103,56 @@ export default function RoadmapPage() {
     );
   }
 
-  if (selectedHorizon && activeMilestone) {
-    return (
-      <PageContainer className="space-y-6">
-        <MilestoneView
-          milestone={activeMilestone}
-          onBack={() => setSelectedHorizon(null)}
-        />
-      </PageContainer>
-    );
-  }
-
   return (
     <PageContainer className="space-y-6">
       <PageHeader
         title="Твой план развития"
-        subtitle="Выбери горизонт — сколько у тебя есть времени"
+        subtitle="Индивидуальные шаги, которые помогут тебе достичь поставленной цели."
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {roadmap.milestones.map(milestone => (
-          <HorizonCard
-            key={milestone.horizon}
-            milestone={milestone}
-            onSelect={setSelectedHorizon}
-          />
-        ))}
+      <div className="flex flex-col gap-8">
+        {roadmap.focus_summary && (
+          <RoadmapFocusCard focusSummary={roadmap.focus_summary} />
+        )}
+
+        <div>
+          <SectionHeading title="Твой путь" className="mb-6" />
+          <ol className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8">
+            {roadmap.milestones.map((milestone, i) => (
+              <RoadmapStageCard
+                key={milestone.horizon}
+                horizonLabel={ROADMAP_HORIZON_LABELS[milestone.horizon] ?? milestone.horizon}
+                title={milestone.title}
+                outcome={milestone.outcome}
+                isLast={i === roadmap.milestones.length - 1}
+              >
+                <ol className="flex flex-col gap-5">
+                  {[...milestone.tasks]
+                    .sort((a, b) => a.priority - b.priority)
+                    .map((task, taskIdx) => {
+                      const badges = [
+                        {
+                          emoji: ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•',
+                          label: ROADMAP_CATEGORY_LABELS[task.category] ?? task.category,
+                          className: 'text-brand bg-brand-subtle',
+                        },
+                      ];
+                      return (
+                        <RoadmapStepItem
+                          key={`${task.text}-${taskIdx}`}
+                          index={taskIdx}
+                          text={task.text}
+                          description={task.description}
+                          badges={badges}
+                          bulletClassName="bg-brand"
+                        />
+                      );
+                    })}
+                </ol>
+              </RoadmapStageCard>
+            ))}
+          </ol>
+        </div>
       </div>
     </PageContainer>
   );

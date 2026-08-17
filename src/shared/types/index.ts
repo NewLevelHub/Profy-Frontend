@@ -466,6 +466,7 @@ export interface RoadmapTask {
 export interface RoadmapMilestone {
   horizon: RoadmapHorizonKey;
   title: string;
+  outcome: string;
   tasks: RoadmapTask[];
 }
 
@@ -474,6 +475,7 @@ export interface RoadmapResponse {
   assessment_id: string;
   goal: string;
   milestones: RoadmapMilestone[];
+  focus_summary: string | null;
 }
 
 // ─── Direction roadmap ─────────────────────────────────────────────────────────
@@ -704,4 +706,87 @@ export interface AdminAssessmentDetail {
   motivation_responses: AdminMotivationResponseItem[];
   analysis_result: AnalysisResultResponse | null;
   roadmap: RoadmapResponse | null;
+}
+
+// ─── Admin Universities & Programs ──────────────────────────────────────────
+
+export interface AdminUniversityListItem {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  ranking: number | null;
+  updated_at: string | null;
+  programs_count: number;
+}
+
+export interface AdminUniversityListResponse {
+  items: AdminUniversityListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminProgramBrief {
+  id: string;
+  name: string;
+  language: string;
+  cost_per_year: number | null;
+}
+
+export interface AdminUniversityDetail {
+  id: string;
+  name: string;
+  slug: string | null;
+  country: string;
+  city: string;
+  website: string | null;
+  ranking: number | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string | null;
+  source_url: string | null;
+  programs: AdminProgramBrief[];
+}
+
+export interface AdminUniversityUpdatePayload {
+  name?: string;
+  website?: string | null;
+  ranking?: number | null;
+  description?: string | null;
+  city?: string;
+  country?: string;
+  source_url?: string | null;
+}
+
+export interface AdminProgramDetail {
+  id: string;
+  university_id: string;
+  name: string;
+  language: string;
+  cost_per_year: number | null;
+  description: string | null;
+  who_its_for: string | null;
+  requirements: Record<string, unknown>;
+  deadlines: Record<string, unknown>;
+  grants: unknown[];
+  created_at: string;
+  updated_at: string | null;
+  source_url: string | null;
+  university: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface AdminProgramUpdatePayload {
+  name?: string;
+  language?: string;
+  cost_per_year?: number | null;
+  description?: string | null;
+  who_its_for?: string | null;
+  requirements?: Record<string, unknown>;
+  deadlines?: Record<string, unknown>;
+  grants?: unknown[];
+  source_url?: string | null;
 }

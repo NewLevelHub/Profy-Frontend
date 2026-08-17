@@ -9,6 +9,10 @@ import { ASSESSMENT_GOAL_LABELS } from '@/shared/config/constants';
 import { useGoalContext } from '../hooks/useGoalContext';
 import { useChangeGoal } from '@/shared/hooks/useChangeGoal';
 import type { AssessmentGoal, GoalAlignmentBlock, ScenarioAData, ScenarioBData, ScenarioCData } from '@/shared/types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
+import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
+import { AxiosError } from 'axios';
 
 const ALIGNMENT_LABELS: Record<GoalAlignmentBlock['alignment'], string> = {
   match: 'Отлично подходит',
@@ -86,6 +90,19 @@ export function GoalOverlaySection({ topCareerSlug }: GoalOverlaySectionProps) {
   const navigate = useNavigate();
   const { data: overlay, isLoading, isError } = useGoalContext();
   const { availableGoals, isPending: isChangingGoal, handleSelectGoal } = useChangeGoal();
+  const queryClient = useQueryClient();
+  const setRoadmap = useDirectionRoadmapStore(s => s.setRoadmap);
+
+  const assessmentId = overlay?.assessment_id;
+
+  const buildPlanMutation = useMutation({
+    mutationFn: (programId: string) => directionRoadmapApi.generateForProgram(assessmentId!, programId),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['direction-roadmap', assessmentId, data.direction_slug], data);
+      setRoadmap(data);
+      navigate(`/results/directions/${encodeURIComponent(data.direction_slug)}/roadmap`);
+    },
+  });
 
   if (isLoading) {
     return (
@@ -236,11 +253,27 @@ export function GoalOverlaySection({ topCareerSlug }: GoalOverlaySectionProps) {
                     Подробный анализ готовности
                   </Button>
                 )}
-                <Button variant="primary" size="md" className="gap-2" onClick={() => navigate('/roadmap')}>
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="gap-2"
+                  disabled={buildPlanMutation.isPending}
+                  onClick={() => {
+                    if (scenarioC.selected_program_id) {
+                      buildPlanMutation.mutate(scenarioC.selected_program_id);
+                    }
+                  }}
+                >
                   <Map className="w-4 h-4" />
-                  План поступления
+                  {buildPlanMutation.isPending ? 'Составляем план...' : 'План поступления'}
                 </Button>
               </div>
+              {buildPlanMutation.isError && (
+                <p className="text-red-500 text-caption font-semibold mt-1">
+                  {((buildPlanMutation.error as AxiosError<{ detail?: string }>).response?.data?.detail
+                    ?? 'Не удалось составить план. Попробуй ещё раз.')}
+                </p>
+              )}
             </>
           ) : (
             <>

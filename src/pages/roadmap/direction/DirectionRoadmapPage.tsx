@@ -6,13 +6,28 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
-import { GeneratingOverlay } from './components/GeneratingOverlay';
+import { GeneratingOverlay } from '@/shared/ui/roadmap/GeneratingOverlay';
 import { GrowthFocusCard } from './components/GrowthFocusCard';
 import { SkillsSection } from './components/SkillsSection';
-import { StageCard } from './components/StageCard';
 import { TargetCard } from './components/TargetCard';
 import { UniversityRequirementsCard } from './components/UniversityRequirementsCard';
 import { UniversityTrackSection } from './components/UniversityTrackSection';
+import { RoadmapStageCard } from '@/shared/ui/roadmap/RoadmapStageCard';
+import { RoadmapStepItem } from '@/shared/ui/roadmap/RoadmapStepItem';
+import {
+  DIRECTION_HORIZON_HINTS,
+  DIRECTION_HORIZON_LABELS,
+  DIRECTION_CATEGORY_EMOJIS,
+  DIRECTION_CATEGORY_LABELS,
+  STEP_TRACK_LABELS,
+} from '@/shared/config/constants';
+import type { StepTrack } from '@/shared/types';
+
+const TRACK_STYLES: Record<StepTrack, { badge: string; bullet: string; emoji: string }> = {
+  profile: { badge: 'bg-brand-subtle text-brand', bullet: 'bg-brand', emoji: '🎯' },
+  growth: { badge: 'bg-accent-soft text-accent', bullet: 'bg-accent', emoji: '🌱' },
+  integration: { badge: 'bg-raised text-secondary', bullet: 'bg-strong', emoji: '🔗' },
+};
 
 export default function DirectionRoadmapPage() {
   const { slug = '' } = useParams<{ slug: string }>();
@@ -88,11 +103,45 @@ export default function DirectionRoadmapPage() {
             </p>
             <ol className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8">
               {roadmap.stages.map((stage, i) => (
-                <StageCard
+                <RoadmapStageCard
                   key={stage.horizon}
-                  stage={stage}
+                  horizonLabel={DIRECTION_HORIZON_LABELS[stage.horizon] ?? stage.horizon}
+                  horizonHint={DIRECTION_HORIZON_HINTS[stage.horizon]}
+                  title={stage.title}
+                  outcome={stage.outcome}
+                  integrationProject={stage.integration_project}
                   isLast={i === roadmap.stages.length - 1}
-                />
+                >
+                  <ol className="flex flex-col gap-5">
+                    {[...stage.steps]
+                      .sort((a, b) => a.priority - b.priority)
+                      .map((step, stepIdx) => {
+                        const style = TRACK_STYLES[step.track] ?? TRACK_STYLES.profile;
+                        const badges = [
+                          {
+                            emoji: style.emoji,
+                            label: STEP_TRACK_LABELS[step.track] ?? step.track,
+                            className: style.badge,
+                          },
+                          {
+                            emoji: DIRECTION_CATEGORY_EMOJIS[step.category] ?? '•',
+                            label: DIRECTION_CATEGORY_LABELS[step.category] ?? step.category,
+                          },
+                        ];
+                        return (
+                          <RoadmapStepItem
+                            key={`${step.text}-${stepIdx}`}
+                            index={stepIdx}
+                            text={step.text}
+                            description={step.description}
+                            badges={badges}
+                            resources={step.resources}
+                            bulletClassName={style.bullet}
+                          />
+                        );
+                      })}
+                  </ol>
+                </RoadmapStageCard>
               ))}
             </ol>
           </div>

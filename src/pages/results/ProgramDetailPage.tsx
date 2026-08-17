@@ -1,11 +1,17 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Map } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { toDisplayString, formatCost, localizeKey } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
+import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
+import { useAssessmentStore } from '@/shared/store/assessment';
+import { GeneratingOverlay } from '@/shared/ui/roadmap/GeneratingOverlay';
+import { AxiosError } from 'axios';
 
 function ProgramDetailSkeleton() {
   return (
@@ -73,6 +79,22 @@ function DeadlinesGrid({ data }: { data: Record<string, unknown> }) {
 export default function ProgramDetailPage() {
   const navigate = useNavigate();
   const { program, isLoading, error } = useProgramDetail();
+  const assessmentId = useAssessmentStore(s => s.assessmentId);
+  const queryClient = useQueryClient();
+  const setRoadmap = useDirectionRoadmapStore(s => s.setRoadmap);
+
+  const buildPlanMutation = useMutation({
+    mutationFn: (progId: string) => directionRoadmapApi.generateForProgram(assessmentId!, progId),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['direction-roadmap', assessmentId, data.direction_slug], data);
+      setRoadmap(data);
+      navigate(`/results/directions/${encodeURIComponent(data.direction_slug)}/roadmap`);
+    },
+  });
+
+  if (buildPlanMutation.isPending) {
+    return <GeneratingOverlay />;
+  }
 
   return (
     <PageContainer className="space-y-6">
@@ -164,10 +186,16 @@ export default function ProgramDetailPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
-              onClick={() => navigate(-1)}
-              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-gradient-to-br from-brand to-[#6D28D9] text-on-brand text-[17px] font-extrabold cursor-pointer shadow-[0_10px_22px_rgba(124,58,237,.3)] hover:opacity-95 transition-opacity"
+              onClick={() => {
+                if (program?.id) {
+                  buildPlanMutation.mutate(program.id);
+                }
+              }}
+              disabled={buildPlanMutation.isPending}
+              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-gradient-to-br from-brand to-[#6D28D9] text-on-brand text-[17px] font-extrabold cursor-pointer shadow-[0_10px_22px_rgba(124,58,237,.3)] hover:opacity-95 transition-opacity flex items-center justify-center gap-2"
             >
-              🎓 Посмотреть университеты
+              <Map className="w-5 h-5" />
+              {buildPlanMutation.isPending ? 'Составляем план...' : 'Построить мой план'}
             </button>
             <button
               onClick={() => navigate('/results')}
@@ -176,6 +204,12 @@ export default function ProgramDetailPage() {
               Назад к результатам
             </button>
           </div>
+          {buildPlanMutation.isError && (
+            <p className="text-red-500 text-caption font-semibold mt-1">
+              {((buildPlanMutation.error as AxiosError<{ detail?: string }>).response?.data?.detail
+                ?? 'Не удалось построить план. Попробуй ещё раз.')}
+            </p>
+          )}
         </div>
       )}
     </PageContainer>

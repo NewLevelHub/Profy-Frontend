@@ -14,20 +14,10 @@ export function useProgramDetail() {
     enabled: !!programId,
   });
 
-  function handleCheckChances() {
-    navigate(`/results/directions/${slug}/universities/${programId}/gap`, {
-      state: {
-        programName: program?.name,
-        universityName: program?.university.name,
-      },
-    });
-  }
-
   return {
     program,
     isLoading,
     error: error ? 'Не удалось загрузить программу. Попробуй ещё раз.' : null,
     assessmentId,
-    handleCheckChances,
   };
 }

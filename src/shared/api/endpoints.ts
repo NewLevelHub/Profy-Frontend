@@ -56,5 +56,8 @@ export const API = {
     users: '/admin/users',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
+    universities: '/admin/universities',
+    universityDetail: (id: string) => `/admin/universities/${id}`,
+    programDetail: (id: string) => `/admin/programs/${id}`,
   },
 } as const;

@@ -1,23 +1,26 @@
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { Badge } from '@/shared/ui/Badge';
-import {
-  DIRECTION_HORIZON_HINTS,
-  DIRECTION_HORIZON_LABELS,
-} from '@/shared/config/constants';
-import type { DirectionStage } from '@/shared/types';
-import { StepItem } from './StepItem';
+import { cn } from '@/shared/lib/cn';
 
-interface StageCardProps {
-  stage: DirectionStage;
+interface RoadmapStageCardProps {
+  horizonLabel: string;
+  horizonHint?: string;
+  title: string;
+  outcome?: string | null;
+  integrationProject?: string | null;
   isLast: boolean;
+  children?: React.ReactNode;
 }
 
-export const StageCard = memo(function StageCard({ stage, isLast }: StageCardProps) {
-  const steps = useMemo(
-    () => [...stage.steps].sort((a, b) => a.priority - b.priority),
-    [stage.steps],
-  );
-
+export const RoadmapStageCard = memo(function RoadmapStageCard({
+  horizonLabel,
+  horizonHint,
+  title,
+  outcome,
+  integrationProject,
+  isLast,
+  children,
+}: RoadmapStageCardProps) {
   return (
     <li className="relative pl-6 sm:pl-8">
       {/* Timeline rail */}
@@ -35,36 +38,29 @@ export const StageCard = memo(function StageCard({ stage, isLast }: StageCardPro
       <div className="flex flex-col gap-4 pb-10">
         <header className="flex flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="brand">
-              {DIRECTION_HORIZON_LABELS[stage.horizon] ?? stage.horizon}
-            </Badge>
-            <span className="text-caption text-muted">
-              {DIRECTION_HORIZON_HINTS[stage.horizon] ?? ''}
-            </span>
+            <Badge variant="brand">{horizonLabel}</Badge>
+            {horizonHint && (
+              <span className="text-caption text-muted">{horizonHint}</span>
+            )}
           </div>
-          <h3 className="text-title font-extrabold text-primary leading-snug">{stage.title}</h3>
+          <h3 className="text-title font-extrabold text-primary leading-snug">{title}</h3>
         </header>
 
-        {stage.outcome && (
+        {outcome && (
           <div className="rounded-[var(--radius)] bg-raised border border-default p-4 flex items-start gap-3">
             <span className="text-lg select-none" aria-hidden="true">🏆</span>
             <div className="flex flex-col gap-1">
               <p className="text-caption font-semibold text-muted uppercase tracking-wide">
                 Что у тебя будет к концу этапа
               </p>
-              <p className="text-body text-primary leading-relaxed">{stage.outcome}</p>
+              <p className="text-body text-primary leading-relaxed">{outcome}</p>
             </div>
           </div>
         )}
 
-        {/* One ordered list of steps — how many are profile vs growth is up to the plan. */}
-        <ol className="flex flex-col gap-5">
-          {steps.map((step, i) => (
-            <StepItem key={`${step.text}-${i}`} step={step} index={i} />
-          ))}
-        </ol>
+        {children}
 
-        {stage.integration_project && (
+        {integrationProject && (
           <div className="rounded-[var(--radius)] border border-strong bg-surface p-4 flex items-start gap-3 shadow-card">
             <span className="text-xl select-none" aria-hidden="true">🔗</span>
             <div className="flex flex-col gap-1">
@@ -72,7 +68,7 @@ export const StageCard = memo(function StageCard({ stage, isLast }: StageCardPro
                 Проект, где всё сходится вместе
               </p>
               <p className="text-body text-secondary leading-relaxed">
-                {stage.integration_project}
+                {integrationProject}
               </p>
             </div>
           </div>
