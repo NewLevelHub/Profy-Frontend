@@ -3,17 +3,18 @@ import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { useMotivationAssessment } from '../hooks/useMotivationAssessment';
-import { TripletChoice } from '../components/TripletChoice';
+import { TripletRanking } from '../components/TripletRanking';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 
-// Senior's motivation format — 12 triplets, MOST/LEAST forced choice. Junior
-// and middle use MotivationHarterFlow.tsx instead (see MotivationAssessmentPage.tsx).
+// Senior's motivation format — 12 triplets, MOST/LEAST forced choice via
+// drag-and-drop ranking. Junior and middle use MotivationHarterFlow.tsx
+// instead (see MotivationAssessmentPage.tsx).
 export default function MotivationTripletFlow() {
   const {
     phase,
     tripletIndex,
     totalTriplets,
-    selection,
+    orderedStatements,
     transitioning,
     saving,
     error,
@@ -24,8 +25,7 @@ export default function MotivationTripletFlow() {
     autofilling,
     handleBack,
     handleStartIntro,
-    handleSelectMost,
-    handleSelectLeast,
+    handleReorder,
     handleNext,
     handleAutofill,
     handleExit,
@@ -135,14 +135,12 @@ export default function MotivationTripletFlow() {
                     Что из этого важнее, а что менее важно для тебя?
                   </h2>
                   <p className="text-caption text-secondary mb-6">
-                    Отметь одно как «важнее всего» и одно как «менее всего»
+                    Перетащи карточки: важнее всего — наверх, менее всего — вниз
                   </p>
-                  <TripletChoice
-                    statements={currentTriplet.statements}
-                    mostId={selection.most}
-                    leastId={selection.least}
-                    onSelectMost={handleSelectMost}
-                    onSelectLeast={handleSelectLeast}
+                  <TripletRanking
+                    statements={orderedStatements}
+                    onReorder={handleReorder}
+                    disabled={saving || transitioning}
                   />
                   <Button
                     onClick={handleNext}

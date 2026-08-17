@@ -8,13 +8,6 @@ import type { RestStopState } from '../utils/restStop';
 
 export type MotivationPhase = 'loading' | 'intro' | 'question';
 
-interface Selection {
-  most: string | null;
-  least: string | null;
-}
-
-const EMPTY_SELECTION: Selection = { most: null, least: null };
-
 export function useMotivationAssessment() {
   const navigate = useNavigate();
 
@@ -23,8 +16,14 @@ export function useMotivationAssessment() {
   const [phase, setPhase] = useState<MotivationPhase>('loading');
   const [triplets, setTriplets] = useState<MotivationTriplet[]>([]);
   const [tripletIndex, setTripletIndex] = useState(0);
-  const [selection, setSelection] = useState<Selection>(EMPTY_SELECTION);
-  const [answers, setAnswers] = useState<Record<number, Selection>>({});
+  // Current triplet's card order, ids top→bottom: [0] = most, [last] = least.
+  const [ranking, setRanking] = useState<string[]>([]);
+  // True only once the user has actually dragged/keyboard-moved a card on
+  // this triplet — a sortable list always has a syntactically valid order
+  // from the moment it renders (the server's default), so without this gate
+  // "Далее" could silently submit an order nobody actually chose.
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [transitioning, setTransitioning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,8 +98,17 @@ export function useMotivationAssessment() {
 
   useEffect(() => {
     const triplet = triplets[tripletIndex];
-    const saved = triplet ? answers[triplet.triplet_index] : undefined;
-    setSelection(saved ?? EMPTY_SELECTION);
+    if (!triplet) return;
+    const saved = answers[triplet.triplet_index];
+    if (saved) {
+      // Already answered — this order reflects a real decision, no need to
+      // force a redrag on revisit.
+      setRanking(saved);
+      setHasInteracted(true);
+    } else {
+      setRanking([...triplet.statements].sort((a, b) => a.order - b.order).map(s => s.id));
+      setHasInteracted(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripletIndex, triplets]);
 
@@ -117,25 +125,15 @@ export function useMotivationAssessment() {
     setTripletIndex(i => i - 1);
   }
 
-  function handleSelectMost(statementId: string) {
+  function handleReorder(newRanking: string[]) {
     if (saving || transitioning) return;
-    setSelection(prev => ({
-      most: prev.most === statementId ? null : statementId,
-      least: prev.least === statementId ? null : prev.least,
-    }));
-  }
-
-  function handleSelectLeast(statementId: string) {
-    if (saving || transitioning) return;
-    setSelection(prev => ({
-      least: prev.least === statementId ? null : statementId,
-      most: prev.most === statementId ? null : prev.most,
-    }));
+    setRanking(newRanking);
+    setHasInteracted(true);
   }
 
   async function handleNext() {
     const triplet = triplets[tripletIndex];
-    if (!triplet || !selection.most || !selection.least || saving || transitioning) return;
+    if (!triplet || !canProceed || saving || transitioning) return;
 
     setSaving(true);
     setError(null);
@@ -145,12 +143,12 @@ export function useMotivationAssessment() {
         answers: [
           {
             triplet_index: triplet.triplet_index,
-            most_statement_id: selection.most,
-            least_statement_id: selection.least,
+            most_statement_id: ranking[0],
+            least_statement_id: ranking[ranking.length - 1],
           },
         ],
       });
-      setAnswers(prev => ({ ...prev, [triplet.triplet_index]: selection }));
+      setAnswers(prev => ({ ...prev, [triplet.triplet_index]: ranking }));
 
       if (response.completed) {
         // Don't call completeAssessment() here — that flag means "report
@@ -203,8 +201,12 @@ export function useMotivationAssessment() {
     try {
       const response = await motivationApi.submitAnswers(assessmentId, {
         answers: triplets.map(t => {
-          const [most, least] = [...t.statements].sort(() => Math.random() - 0.5);
-          return { triplet_index: t.triplet_index, most_statement_id: most.id, least_statement_id: least.id };
+          const shuffled = [...t.statements].sort(() => Math.random() - 0.5);
+          return {
+            triplet_index: t.triplet_index,
+            most_statement_id: shuffled[0].id,
+            least_statement_id: shuffled[shuffled.length - 1].id,
+          };
         }),
       });
       navigate('/assessment/loading');
@@ -231,13 +233,20 @@ export function useMotivationAssessment() {
   const currentTriplet = triplets[tripletIndex];
   const totalTriplets = triplets.length;
   const progress = totalTriplets > 0 ? ((tripletIndex + 1) / totalTriplets) * 100 : 0;
-  const canProceed = selection.most !== null && selection.least !== null;
+  const canProceed = hasInteracted && ranking.length === 3;
+  const orderedStatements = currentTriplet
+    ? ranking
+        .map(id => currentTriplet.statements.find(s => s.id === id))
+        .filter((s): s is MotivationTriplet['statements'][number] => s !== undefined)
+    : [];
 
   return {
     phase,
     tripletIndex,
     totalTriplets,
-    selection,
+    ranking,
+    hasInteracted,
+    orderedStatements,
     transitioning,
     saving,
     error,
@@ -248,8 +257,7 @@ export function useMotivationAssessment() {
     autofilling,
     handleBack,
     handleStartIntro,
-    handleSelectMost,
-    handleSelectLeast,
+    handleReorder,
     handleNext,
     handleAutofill,
     handleExit,

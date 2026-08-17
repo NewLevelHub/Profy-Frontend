@@ -416,6 +416,18 @@
   .likert-check-pop { animation: none; }
 }
 
+/* Triplet drag-and-drop (senior motivation ranking) — the lifted card in
+   the DragOverlay gets a slight scale-up + shadow so it visually separates
+   from the list underneath while dragging. Transform/box-shadow only. */
+.triplet-drag-lift {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-pop), 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .triplet-drag-lift { transform: none; }
+}
+
 /* ─── Onboarding step 1 (welcome) ────────────────────────────────────────── */
 /* The one deliberate exception to the product's standard 180ms transition
    tempo — "register changes tempo, not the technique": a single opacity
