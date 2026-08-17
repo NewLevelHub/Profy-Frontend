@@ -9,6 +9,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import type { GapItem } from '@/shared/types';
 import { localizeKey } from '@/pages/results/utils/programUtils';
 import { useGapAnalysis } from '@/pages/results/hooks/useGapAnalysis';
+import { GeneratingOverlay } from '@/pages/roadmap/direction/components/GeneratingOverlay';
 
 // ── Readiness circle ──────────────────────────────────────────────────────────
 
@@ -122,8 +123,18 @@ export default function GapAnalysisPage() {
     programName,
     universityName,
     handleBuildPlan,
+    isBuildingPlan,
+    buildPlanError,
     refetch,
   } = useGapAnalysis();
+
+  if (isBuildingPlan) {
+    return (
+      <PageContainer>
+        <GeneratingOverlay />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="space-y-6">
@@ -207,11 +218,15 @@ export default function GapAnalysisPage() {
           </div>
 
           <div className="pt-2 lg:max-w-sm">
+            {buildPlanError && (
+              <p className="text-body text-danger mb-3">{buildPlanError}</p>
+            )}
             <Button
               size="lg"
               variant="primary"
               className="w-full gap-2"
               onClick={handleBuildPlan}
+              isLoading={isBuildingPlan}
             >
               <Map className="w-5 h-5" />
               Построить план подготовки

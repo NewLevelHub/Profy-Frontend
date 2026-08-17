@@ -12,6 +12,15 @@ export const directionRoadmapApi = {
       })
       .then(r => r.data),
 
+  /** Университетский сценарий (C): без опроса, направление резолвится на бэкенде из программы. */
+  generateForProgram: (assessmentId: string, programId: string) =>
+    apiClient
+      .post<DirectionRoadmapResponse>(API.roadmap.generateDirectionByProgram, {
+        assessment_id: assessmentId,
+        program_id: programId,
+      })
+      .then(r => r.data),
+
   get: (assessmentId: string, slug: string) =>
     apiClient
       .get<DirectionRoadmapResponse>(API.roadmap.getDirection(assessmentId, slug))

@@ -123,11 +123,12 @@ export default function ResultsPage() {
         <MotivationSection highlights={report.motivation_highlights} />
       </AnimatedBlock>
 
-      {!isJunior && (
-        <AnimatedBlock>
-          <GoalOverlaySection topCareerSlug={report.careers[0]?.slug ?? null} />
-        </AnimatedBlock>
-      )}
+      {/* Junior included too (scenario A only, careers empty for MI) — this is
+          the only path to the roadmap for that age group; scenario A doesn't
+          read topCareerSlug at all, so null here is fine. */}
+      <AnimatedBlock>
+        <GoalOverlaySection topCareerSlug={report.careers[0]?.slug ?? null} />
+      </AnimatedBlock>
 
       {report.careers.length > 0 && (
         <AnimatedBlock>

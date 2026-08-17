@@ -11,6 +11,7 @@ import { GrowthFocusCard } from './components/GrowthFocusCard';
 import { SkillsSection } from './components/SkillsSection';
 import { StageCard } from './components/StageCard';
 import { TargetCard } from './components/TargetCard';
+import { UniversityRequirementsCard } from './components/UniversityRequirementsCard';
 import { UniversityTrackSection } from './components/UniversityTrackSection';
 
 export default function DirectionRoadmapPage() {
@@ -100,6 +101,7 @@ export default function DirectionRoadmapPage() {
             skills={roadmap.skills_to_build}
             subjects={roadmap.subjects_to_focus}
           />
+          <UniversityRequirementsCard requirements={roadmap.university_requirements} />
           <UniversityTrackSection track={roadmap.university_track} />
 
           <div className="flex flex-col sm:flex-row gap-3 sm:justify-start">

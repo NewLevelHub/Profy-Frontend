@@ -540,6 +540,24 @@ export interface UniversityTrack {
   prepare: string[];
 }
 
+export interface ProgramGrant {
+  name: string;
+  amount: string | null;
+  conditions: string | null;
+}
+
+export interface UniversityRequirement {
+  program_name: string;
+  university_name: string;
+  city: string;
+  exams: string[];
+  application_deadline: string | null;
+  grants: ProgramGrant[];
+  language_level: string | null;
+  portfolio_needed: boolean | null;
+  required_documents: string[] | null;
+}
+
 export interface DirectionRoadmapResponse {
   id: string;
   assessment_id: string;
@@ -551,6 +569,9 @@ export interface DirectionRoadmapResponse {
   skills_to_build: string[];
   subjects_to_focus: string[];
   university_track: UniversityTrack;
+  university_requirements: UniversityRequirement[];
+  /** Set only for a plan built from a specific chosen program (сценарий C). */
+  program_id: string | null;
 }
 
 // ─── University / Gap-analysis ─────────────────────────────────────────────────

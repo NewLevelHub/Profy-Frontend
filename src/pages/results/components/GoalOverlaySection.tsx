@@ -186,7 +186,7 @@ export function GoalOverlaySection({ topCareerSlug }: GoalOverlaySectionProps) {
               <AlignmentBadge block={overlay.alignment_block} />
             ) : (
               <p className="text-caption text-secondary leading-relaxed">
-                Открой карточку направления ниже и пройди короткую проверку — узнаешь, насколько оно тебе подходит.
+                Открой карточку направления ниже, чтобы построить план развития.
               </p>
             )}
           </>

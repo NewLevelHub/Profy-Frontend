@@ -33,6 +33,12 @@ export default function DirectionDetailPage() {
     : undefined;
   const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
   const hasRoadmap = selectedDirectionSlug === slug;
+  // Прямой переход к генерации плана по направлению (сценарий B) — без
+  // ИИ-опроса ("Подходит ли мне это направление?"): опрос временно скрыт из
+  // потока (продуктовое решение, backend/страница опроса не удалены — см.
+  // roadmap_builder._INQUIRY_REQUIRED), но не убран из кода на случай
+  // возврата в будущем.
+  const showRoadmapBtn = goal === 'profession' && ageGroup !== 'junior';
 
   const skills = direction?.skills_needed ?? [];
   const subjects = direction?.subjects_to_develop ?? [];
@@ -146,17 +152,22 @@ export default function DirectionDetailPage() {
       </Card>
 
       {/* Action buttons */}
-      {(hasRoadmap || showUniversityBtn) && (
+      {(showRoadmapBtn || showUniversityBtn) && (
         <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-          {hasRoadmap && (
+          {showRoadmapBtn && (
             <Button
               variant="primary"
               size="lg"
               className="gap-2 sm:flex-1 lg:flex-none lg:min-w-[240px]"
-              onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/roadmap`)}
+              onClick={() =>
+                navigate(
+                  `/results/directions/${encodeURIComponent(slug!)}/roadmap`,
+                  hasRoadmap ? undefined : { state: { generate: true } },
+                )
+              }
             >
               <Map className="w-5 h-5" />
-              Мой план по направлению
+              {hasRoadmap ? 'Мой план по направлению' : 'Построить план по направлению'}
             </Button>
           )}
           {showUniversityBtn && (
