@@ -14,6 +14,7 @@ import { UniversityRequirementsCard } from './components/UniversityRequirementsC
 import { UniversityTrackSection } from './components/UniversityTrackSection';
 import { RoadmapStageCard } from '@/shared/ui/roadmap/RoadmapStageCard';
 import { RoadmapStepItem } from '@/shared/ui/roadmap/RoadmapStepItem';
+import { AdditionalResourcesSection } from '@/shared/ui/roadmap/AdditionalResourcesSection';
 import {
   DIRECTION_HORIZON_HINTS,
   DIRECTION_HORIZON_LABELS,
@@ -152,6 +153,7 @@ export default function DirectionRoadmapPage() {
           />
           <UniversityRequirementsCard requirements={roadmap.university_requirements} />
           <UniversityTrackSection track={roadmap.university_track} />
+          <AdditionalResourcesSection resources={roadmap.additional_resources} />
 
           <div className="flex flex-col sm:flex-row gap-3 sm:justify-start">
             <Button

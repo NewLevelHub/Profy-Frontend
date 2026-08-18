@@ -456,11 +456,24 @@ export type RoadmapTaskCategory =
   | 'admission'
   | 'application';
 
+/** A leading direction offered for goal=explore/unsure — up to 2, empty for
+ * profession/university (single direction already set by the goal). Tasks
+ * from months_3 onward tag which path they belong to via RoadmapTask.path. */
+export interface RecommendedPath {
+  key: string;
+  label: string;
+  why: string;
+  future_benefit: string;
+}
+
 export interface RoadmapTask {
   text: string;
   description: string | null;
   category: RoadmapTaskCategory;
   priority: number;
+  resources: RoadmapResource[];
+  /** RecommendedPath.key this task belongs to, or null for shared/common tasks. */
+  path: string | null;
 }
 
 export interface RoadmapMilestone {
@@ -476,6 +489,9 @@ export interface RoadmapResponse {
   goal: string;
   milestones: RoadmapMilestone[];
   focus_summary: string | null;
+  recommended_paths: RecommendedPath[];
+  /** Hand-verified catalogue links (e.g. Stepik) matched off the top direction. */
+  additional_resources: RoadmapResource[];
 }
 
 // ─── Direction roadmap ─────────────────────────────────────────────────────────
@@ -585,6 +601,8 @@ export interface DirectionRoadmapResponse {
   subjects_to_focus: string[];
   university_track: UniversityTrack;
   university_requirements: UniversityRequirement[];
+  /** Hand-verified catalogue links (e.g. Stepik) matched off this direction. */
+  additional_resources: RoadmapResource[];
   /** Set only for a plan built from a specific chosen program (сценарий C). */
   program_id: string | null;
 }

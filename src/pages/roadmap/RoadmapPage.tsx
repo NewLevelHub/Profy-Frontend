@@ -12,6 +12,8 @@ import { RoadmapFocusCard } from '@/shared/ui/roadmap/RoadmapFocusCard';
 import { RoadmapStageCard } from '@/shared/ui/roadmap/RoadmapStageCard';
 import { RoadmapStepItem } from '@/shared/ui/roadmap/RoadmapStepItem';
 import { GeneratingOverlay } from '@/shared/ui/roadmap/GeneratingOverlay';
+import { RecommendedPathsSection, pathBadgeStyle } from '@/shared/ui/roadmap/RecommendedPathsSection';
+import { AdditionalResourcesSection } from '@/shared/ui/roadmap/AdditionalResourcesSection';
 
 function RoadmapEmptyState({
   icon,
@@ -115,6 +117,8 @@ export default function RoadmapPage() {
           <RoadmapFocusCard focusSummary={roadmap.focus_summary} />
         )}
 
+        <RecommendedPathsSection paths={roadmap.recommended_paths} />
+
         <div>
           <SectionHeading title="Твой путь" className="mb-6" />
           <ol className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8">
@@ -130,12 +134,17 @@ export default function RoadmapPage() {
                   {[...milestone.tasks]
                     .sort((a, b) => a.priority - b.priority)
                     .map((task, taskIdx) => {
+                      const pathIndex = roadmap.recommended_paths.findIndex(p => p.key === task.path);
+                      const path = pathIndex >= 0 ? roadmap.recommended_paths[pathIndex] : null;
                       const badges = [
                         {
                           emoji: ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•',
                           label: ROADMAP_CATEGORY_LABELS[task.category] ?? task.category,
                           className: 'text-brand bg-brand-subtle',
                         },
+                        ...(path
+                          ? [{ label: path.label, className: pathBadgeStyle(pathIndex) }]
+                          : []),
                       ];
                       return (
                         <RoadmapStepItem
@@ -144,6 +153,7 @@ export default function RoadmapPage() {
                           text={task.text}
                           description={task.description}
                           badges={badges}
+                          resources={task.resources}
                           bulletClassName="bg-brand"
                         />
                       );
@@ -153,6 +163,8 @@ export default function RoadmapPage() {
             ))}
           </ol>
         </div>
+
+        <AdditionalResourcesSection resources={roadmap.additional_resources} />
       </div>
     </PageContainer>
   );
