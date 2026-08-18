@@ -33,6 +33,7 @@ export default function AdminProgramEditPage() {
   const [name, setName] = useState('');
   const [language, setLanguage] = useState('');
   const [costPerYear, setCostPerYear] = useState('');
+  const [costLabel, setCostLabel] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [description, setDescription] = useState('');
   const [whoItsFor, setWhoItsFor] = useState('');
@@ -61,6 +62,7 @@ export default function AdminProgramEditPage() {
         setName(p.name || '');
         setLanguage(p.language || '');
         setCostPerYear(p.cost_per_year !== null ? String(p.cost_per_year) : '');
+        setCostLabel(p.cost_label || '');
         setSourceUrl(p.source_url || '');
         setDescription(p.description || '');
         setWhoItsFor(p.who_its_for || '');
@@ -138,6 +140,7 @@ export default function AdminProgramEditPage() {
         name: name.trim(),
         language: language.trim(),
         cost_per_year: isNaN(Number(parsedCost)) ? null : parsedCost,
+        cost_label: costLabel.trim() || null,
         source_url: sourceUrl.trim() || null,
         description: description.trim() || null,
         who_its_for: whoItsFor.trim() || null,
@@ -224,6 +227,15 @@ export default function AdminProgramEditPage() {
               onChange={(e) => setCostPerYear(e.target.value)}
               placeholder="Например, 1200000"
             />
+            <Input
+              label="Стоимость текстом (если диапазон/другая валюта)"
+              value={costLabel}
+              onChange={(e) => setCostLabel(e.target.value)}
+              placeholder="Например, 2 000 – 6 000 EUR в семестр"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Ссылка на источник верификации"
               value={sourceUrl}

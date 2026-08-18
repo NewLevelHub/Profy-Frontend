@@ -552,13 +552,23 @@ export interface UniversityRequirement {
   program_name: string;
   university_name: string;
   city: string;
+  country: string;
+  website: string | null;
+  /** Actual language of instruction — always set. Not the same as `language_level` (IELTS band). */
+  program_language: string;
   exams: string[];
+  /** Inferred hint, not a confirmed fact for this program — only set when `exams` is empty. */
+  exam_hint_from_notes: string | null;
   application_deadline: string | null;
   grants: ProgramGrant[];
+  /** Required IELTS/TOEFL band — sparse/optional, not the instruction language. */
   language_level: string | null;
   portfolio_needed: boolean | null;
   required_documents: string[] | null;
   min_ent_threshold: number | null;
+  min_gpa: number | null;
+  min_sat: number | null;
+  extracurriculars: string[];
   admission_scores_2026: string[];
   notes: string[];
 }
@@ -584,10 +594,17 @@ export interface DirectionRoadmapResponse {
 export interface UniversityBrief {
   id: string;
   name: string;
+  short_name: string | null;
+  aliases: string[];
+  location: string | null;
   country: string;
   city: string;
   website: string | null;
   ranking: number | null;
+  ranking_label: string | null;
+  uniranks_kz_rank: number | null;
+  uniranks_world_rank: number | null;
+  uniranks_note: string | null;
 }
 
 export interface ProgramBrief {
@@ -596,6 +613,8 @@ export interface ProgramBrief {
   direction_slug: string;
   language: string;
   cost_per_year: number | null;
+  /** Free-text fallback for when cost is a range/mixed currency — shown when cost_per_year is null. */
+  cost_label: string | null;
   description: string | null;
   university: UniversityBrief;
 }
@@ -603,10 +622,13 @@ export interface ProgramBrief {
 export interface ProgramDetail extends ProgramBrief {
   who_its_for: string | null;
   career_options: unknown[];
+  /** Raw, kept for debugging — render from `requirements_summary` instead. */
   requirements: Record<string, unknown>;
   deadlines: Record<string, unknown>;
   grants: unknown[];
   created_at: string;
+  /** Clean, typed facts — same mapping the roadmap prompt uses. Always render from this. */
+  requirements_summary: UniversityRequirement;
 }
 
 export type GapStatus = 'met' | 'not_met' | 'in_progress' | 'unknown';
@@ -719,6 +741,8 @@ export interface AdminUniversityListItem {
   city: string;
   country: string;
   ranking: number | null;
+  uniranks_kz_rank: number | null;
+  uniranks_note: string | null;
   updated_at: string | null;
   programs_count: number;
 }
@@ -735,16 +759,24 @@ export interface AdminProgramBrief {
   name: string;
   language: string;
   cost_per_year: number | null;
+  cost_label: string | null;
 }
 
 export interface AdminUniversityDetail {
   id: string;
   name: string;
   slug: string | null;
+  short_name: string | null;
+  aliases: string[];
+  location: string | null;
   country: string;
   city: string;
   website: string | null;
   ranking: number | null;
+  ranking_label: string | null;
+  uniranks_kz_rank: number | null;
+  uniranks_world_rank: number | null;
+  uniranks_note: string | null;
   description: string | null;
   created_at: string;
   updated_at: string | null;
@@ -754,8 +786,15 @@ export interface AdminUniversityDetail {
 
 export interface AdminUniversityUpdatePayload {
   name?: string;
+  short_name?: string | null;
+  aliases?: string[];
+  location?: string | null;
   website?: string | null;
   ranking?: number | null;
+  ranking_label?: string | null;
+  uniranks_kz_rank?: number | null;
+  uniranks_world_rank?: number | null;
+  uniranks_note?: string | null;
   description?: string | null;
   city?: string;
   country?: string;
@@ -768,6 +807,7 @@ export interface AdminProgramDetail {
   name: string;
   language: string;
   cost_per_year: number | null;
+  cost_label: string | null;
   description: string | null;
   who_its_for: string | null;
   requirements: Record<string, unknown>;
@@ -786,6 +826,7 @@ export interface AdminProgramUpdatePayload {
   name?: string;
   language?: string;
   cost_per_year?: number | null;
+  cost_label?: string | null;
   description?: string | null;
   who_its_for?: string | null;
   requirements?: Record<string, unknown>;

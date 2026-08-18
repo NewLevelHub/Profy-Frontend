@@ -6,7 +6,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import type { ProgramBrief } from '@/shared/types';
-import { formatCost } from '@/pages/results/utils/programUtils';
+import { formatCost, truncateCost, getRankingBadge } from '@/pages/results/utils/programUtils';
 import { COUNTRY_FILTERS, useUniversityList } from '@/pages/results/hooks/useUniversityList';
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -38,16 +38,28 @@ interface ProgramCardProps {
 }
 
 const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCardProps) {
+  const rankingBadge = getRankingBadge(program.university);
+
   return (
     <div className="bg-surface border border-[#EDE9FE] rounded-[22px] p-6 shadow-card flex flex-col h-full">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-[21px] font-black leading-snug text-primary m-0">{program.name}</h3>
-        <span className="shrink-0 bg-[#EDE9FE] text-[#5B21B6] text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
-          {program.university.country}
-        </span>
+        <div className="shrink-0 flex flex-col items-end gap-1.5">
+          <span className="bg-[#EDE9FE] text-[#5B21B6] text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
+            {program.university.country}
+          </span>
+          {rankingBadge && (
+            <span className="bg-[#FFF7ED] text-[#C2410C] text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
+              🏆 {rankingBadge}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="text-base font-semibold text-muted mb-3">{program.university.name}</div>
+      <div className="text-base font-semibold text-muted mb-3">
+        {program.university.name}
+        {program.university.city && <span className="text-muted font-normal">, {program.university.city}</span>}
+      </div>
 
       {program.description && program.description.length > 0 && (
         <p className="text-[15px] font-semibold text-secondary leading-relaxed mb-4 flex-1">
@@ -57,7 +69,9 @@ const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCard
 
       <div className="flex gap-4 flex-wrap mb-4 text-[15px] font-bold text-secondary">
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">💰 {formatCost(program.cost_per_year)}</span>
+        {/* cost_label is free text (a full sentence for some sources) — truncate
+            on the card, ProgramDetailPage shows it in full. */}
+        <span className="inline-flex items-start gap-1.5">💰 {truncateCost(formatCost(program.cost_per_year, program.cost_label))}</span>
       </div>
 
       <button

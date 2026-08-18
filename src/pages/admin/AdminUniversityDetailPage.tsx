@@ -31,9 +31,16 @@ export default function AdminUniversityDetailPage() {
 
   // Form states
   const [name, setName] = useState('');
+  const [shortName, setShortName] = useState('');
+  const [aliases, setAliases] = useState('');
+  const [location, setLocation] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
   const [ranking, setRanking] = useState('');
+  const [rankingLabel, setRankingLabel] = useState('');
+  const [unirankKzRank, setUnirankKzRank] = useState('');
+  const [unirankWorldRank, setUnirankWorldRank] = useState('');
+  const [unirankNote, setUnirankNote] = useState('');
   const [website, setWebsite] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -50,9 +57,16 @@ export default function AdminUniversityDetailPage() {
         if (cancelled) return;
         setData(u);
         setName(u.name || '');
+        setShortName(u.short_name || '');
+        setAliases(u.aliases.join(', '));
+        setLocation(u.location || '');
         setCity(u.city || '');
         setCountry(u.country || '');
         setRanking(u.ranking !== null ? String(u.ranking) : '');
+        setRankingLabel(u.ranking_label || '');
+        setUnirankKzRank(u.uniranks_kz_rank !== null ? String(u.uniranks_kz_rank) : '');
+        setUnirankWorldRank(u.uniranks_world_rank !== null ? String(u.uniranks_world_rank) : '');
+        setUnirankNote(u.uniranks_note || '');
         setWebsite(u.website || '');
         setSourceUrl(u.source_url || '');
         setDescription(u.description || '');
@@ -76,12 +90,24 @@ export default function AdminUniversityDetailPage() {
     setSaving(true);
     setSuccessTime(null);
     try {
-      const parsedRanking = ranking.trim() === '' ? null : parseInt(ranking.trim(), 10);
+      const parseIntOrNull = (value: string) => {
+        const trimmed = value.trim();
+        if (trimmed === '') return null;
+        const parsed = parseInt(trimmed, 10);
+        return isNaN(parsed) ? null : parsed;
+      };
       const updated = await adminApi.updateUniversity(universityId, {
         name: name.trim(),
+        short_name: shortName.trim() || null,
+        aliases: aliases.split(',').map((a) => a.trim()).filter(Boolean),
+        location: location.trim() || null,
         city: city.trim(),
         country: country.trim(),
-        ranking: isNaN(Number(parsedRanking)) ? null : parsedRanking,
+        ranking: parseIntOrNull(ranking),
+        ranking_label: rankingLabel.trim() || null,
+        uniranks_kz_rank: parseIntOrNull(unirankKzRank),
+        uniranks_world_rank: parseIntOrNull(unirankWorldRank),
+        uniranks_note: unirankNote.trim() || null,
         website: website.trim() || null,
         source_url: sourceUrl.trim() || null,
         description: description.trim() || null,
@@ -145,11 +171,10 @@ export default function AdminUniversityDetailPage() {
               required
             />
             <Input
-              label="Рейтинг (ranking)"
-              type="number"
-              value={ranking}
-              onChange={(e) => setRanking(e.target.value)}
-              placeholder="Например, 10"
+              label="Короткое название"
+              value={shortName}
+              onChange={(e) => setShortName(e.target.value)}
+              placeholder="Например, КБТУ"
             />
           </div>
 
@@ -166,6 +191,62 @@ export default function AdminUniversityDetailPage() {
               onChange={(e) => setCountry(e.target.value)}
               required
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Адрес кампуса (location)"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Город, улица, дом"
+            />
+            <Input
+              label="Альтернативные названия (через запятую)"
+              value={aliases}
+              onChange={(e) => setAliases(e.target.value)}
+              placeholder="Например, KBTU, Kazakhstan-British Technical University"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="Рейтинг QS (число)"
+              type="number"
+              value={ranking}
+              onChange={(e) => setRanking(e.target.value)}
+              placeholder="Например, 10"
+            />
+            <Input
+              label="Рейтинг QS (метка)"
+              value={rankingLabel}
+              onChange={(e) => setRankingLabel(e.target.value)}
+              placeholder="Например, #651-700 (QS World)"
+            />
+            <Input
+              label="Место в Казахстане (Uniranks)"
+              type="number"
+              value={unirankKzRank}
+              onChange={(e) => setUnirankKzRank(e.target.value)}
+              placeholder="Например, 21"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="Мировое место (Uniranks)"
+              type="number"
+              value={unirankWorldRank}
+              onChange={(e) => setUnirankWorldRank(e.target.value)}
+              placeholder="Например, 7101"
+            />
+            <div className="md:col-span-2">
+              <Input
+                label="Примечание Uniranks (если не в рейтинге)"
+                value={unirankNote}
+                onChange={(e) => setUnirankNote(e.target.value)}
+                placeholder="Например, Н/Р"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -230,8 +311,10 @@ export default function AdminUniversityDetailPage() {
                     <tr key={prog.id} className="border-b border-default last:border-b-0">
                       <td className="px-4 py-3 font-bold text-primary">{prog.name}</td>
                       <td className="px-4 py-3 text-secondary">{prog.language}</td>
-                      <td className="px-4 py-3 text-secondary">
-                        {prog.cost_per_year !== null ? `${Number(prog.cost_per_year).toLocaleString('ru-RU')} ₸` : '—'}
+                      <td className="px-4 py-3 text-secondary max-w-[240px] truncate" title={prog.cost_label ?? undefined}>
+                        {prog.cost_per_year !== null
+                          ? `${Number(prog.cost_per_year).toLocaleString('ru-RU')} ₸`
+                          : prog.cost_label ?? '—'}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link

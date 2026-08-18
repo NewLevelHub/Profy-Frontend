@@ -103,6 +103,7 @@ export default function AdminUniversitiesPage() {
                   <th className="text-left px-4 py-3 font-extrabold">Город</th>
                   <th className="text-left px-4 py-3 font-extrabold">Страна</th>
                   <th className="text-left px-4 py-3 font-extrabold text-center">Рейтинг</th>
+                  <th className="text-left px-4 py-3 font-extrabold text-center">Uniranks KZ</th>
                   <th className="text-left px-4 py-3 font-extrabold text-center">Программы</th>
                   <th className="text-left px-4 py-3 font-extrabold">Проверен</th>
                 </tr>
@@ -121,6 +122,9 @@ export default function AdminUniversitiesPage() {
                     <td className="px-4 py-3">{item.city}</td>
                     <td className="px-4 py-3">{item.country}</td>
                     <td className="px-4 py-3 text-center">{item.ranking ?? '—'}</td>
+                    <td className="px-4 py-3 text-center">
+                      {item.uniranks_kz_rank !== null ? `#${item.uniranks_kz_rank}` : item.uniranks_note ?? '—'}
+                    </td>
                     <td className="px-4 py-3 text-center">{item.programs_count}</td>
                     <td className="px-4 py-3 text-secondary">{formatDate(item.updated_at)}</td>
                   </tr>

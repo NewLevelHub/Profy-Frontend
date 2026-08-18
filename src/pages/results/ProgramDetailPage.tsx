@@ -1,16 +1,17 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Map } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Map } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { toDisplayString, formatCost, localizeKey } from '@/pages/results/utils/programUtils';
+import { toDisplayString, formatCost, localizeKey, getRankingBadge } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { GeneratingOverlay } from '@/shared/ui/roadmap/GeneratingOverlay';
+import { UniversityRequirementsCard } from '@/pages/roadmap/direction/components/UniversityRequirementsCard';
 import { AxiosError } from 'axios';
 
 function ProgramDetailSkeleton() {
@@ -37,24 +38,6 @@ function ProgramDetailSkeleton() {
 function SectionHeadingLocal({ children }: { children: string }) {
   return (
     <h3 className="text-[18px] font-black text-primary mb-2.5">{children}</h3>
-  );
-}
-
-function RequirementsTable({ data }: { data: Record<string, unknown> }) {
-  const entries = Object.entries(data);
-  if (entries.length === 0) return null;
-  return (
-    <div className="bg-surface border border-[#EDE9FE] rounded-[20px] overflow-hidden shadow-card">
-      {entries.map(([key, value], i) => (
-        <div
-          key={key}
-          className={`flex items-center justify-between gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-[#EDE9FE]' : ''}`}
-        >
-          <span className="text-[15px] font-semibold text-secondary">{localizeKey(key)}</span>
-          <span className="text-[15px] font-extrabold text-primary text-right">{toDisplayString(value)}</span>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -122,8 +105,24 @@ export default function ProgramDetailPage() {
               🌐 {program.language}
             </span>
             <span className="inline-flex items-center gap-1.5 bg-[#FFF7ED] text-[#C2410C] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
-              💰 {formatCost(program.cost_per_year)}
+              💰 {formatCost(program.cost_per_year, program.cost_label)}
             </span>
+            {getRankingBadge(program.university) && (
+              <span className="inline-flex items-center gap-1.5 bg-[#ECFDF5] text-[#047857] text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
+                🏆 {getRankingBadge(program.university)}
+              </span>
+            )}
+            {program.university.website && (
+              <a
+                href={program.university.website}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 bg-surface border border-[#DDD6FE] text-[#5B21B6] text-sm font-extrabold px-3.5 py-1.5 rounded-pill hover:bg-brand-subtle transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Сайт вуза
+              </a>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -158,12 +157,7 @@ export default function ProgramDetailPage() {
             </div>
           )}
 
-          {Object.keys(program.requirements ?? {}).length > 0 && (
-            <div>
-              <SectionHeadingLocal>📝 Требования</SectionHeadingLocal>
-              <RequirementsTable data={program.requirements ?? {}} />
-            </div>
-          )}
+          <UniversityRequirementsCard requirements={[program.requirements_summary]} />
 
           {Object.keys(program.deadlines ?? {}).length > 0 && (
             <div>
