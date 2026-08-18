@@ -20,7 +20,7 @@ import { cn } from '@/shared/lib/cn';
  */
 
 export type SpineNodeStatus = 'done' | 'current' | 'upcoming';
-export type SpineSegmentStyle = 'filled' | 'dashed' | 'dashed-heavy' | 'none';
+export type SpineSegmentStyle = 'filled' | 'dashed' | 'dashed-heavy' | 'none' | 'track';
 
 export interface SpineNode {
   /** Stable key for the node. */
@@ -91,6 +91,13 @@ export interface SpineProps {
   showLabels?: boolean;
   ariaLabel?: string;
   className?: string;
+  /**
+   * Continuous mode only. Renders a plain two-tone line — solid pine/green
+   * fill up to `value`, solid neutral track for the remainder — with no
+   * current/goal node markers and no dashing. For headers where progress
+   * should read as "how far through," not "where's the next milestone."
+   */
+  flat?: boolean;
 }
 
 const LINE_H = 3; // px, thickness = 1
@@ -161,11 +168,23 @@ function resolveDiscreteNodes(nodes: SpineNode[], thickness: number): ResolvedNo
   });
 }
 
-function resolveContinuousNodes(value: number, thickness: number): ResolvedNode[] {
+function resolveContinuousNodes(value: number, thickness: number, flat: boolean): ResolvedNode[] {
   const clamped = Math.max(0, Math.min(100, value));
   const anchor: ResolvedNode = {
     id: 'start', position: 0, diameter: 0, filled: true, color: 'var(--pine)', segment: 'filled', strokeStyle: 'solid',
   };
+
+  if (flat) {
+    // No node markers (all diameters 0 — filled nodes render without a
+    // border regardless, so they stay fully invisible) and no dashing —
+    // just the two-tone line itself.
+    return [
+      anchor,
+      { id: 'progress', position: clamped, diameter: 0, filled: true, color: 'var(--pine)', segment: 'filled', strokeStyle: 'solid' },
+      { id: 'end', position: 100, diameter: 0, filled: true, color: 'var(--hairline)', segment: 'track', strokeStyle: 'solid' },
+    ];
+  }
+
   const goalVisual = nodeVisual('upcoming', true, thickness);
 
   if (clamped >= 100) {
@@ -194,6 +213,8 @@ function segmentStyle(style: SpineSegmentStyle): CSSProperties {
         backgroundImage:
           'repeating-linear-gradient(to right, var(--mute) 0, var(--mute) 6px, transparent 6px, transparent 11px)',
       };
+    case 'track':
+      return { background: 'var(--hairline)' };
     case 'dashed':
     default:
       return {
@@ -203,8 +224,8 @@ function segmentStyle(style: SpineSegmentStyle): CSSProperties {
   }
 }
 
-export function Spine({ nodes, value, thickness = 1, showLabels = false, ariaLabel, className }: SpineProps) {
-  const resolved = nodes ? resolveDiscreteNodes(nodes, thickness) : resolveContinuousNodes(value ?? 0, thickness);
+export function Spine({ nodes, value, thickness = 1, showLabels = false, ariaLabel, className, flat = false }: SpineProps) {
+  const resolved = nodes ? resolveDiscreteNodes(nodes, thickness) : resolveContinuousNodes(value ?? 0, thickness, flat);
   const lineH = LINE_H * thickness;
   const trackHeight = Math.max(lineH, ...resolved.map((n) => n.diameter));
 
@@ -223,7 +244,12 @@ export function Spine({ nodes, value, thickness = 1, showLabels = false, ariaLab
         {/* Track */}
         <div
           className="absolute left-0 right-0 flex overflow-hidden"
-          style={{ top: '50%', height: lineH, transform: 'translateY(-50%)' }}
+          style={{
+            top: '50%',
+            height: lineH,
+            transform: 'translateY(-50%)',
+            borderRadius: flat ? lineH : 0,
+          }}
         >
           {resolved.slice(1).map((n, i) => (
             <span

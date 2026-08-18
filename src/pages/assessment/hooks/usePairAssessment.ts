@@ -136,8 +136,8 @@ export function usePairAssessment() {
         return;
       }
 
-      // "Привал" (rest stop) — every 10-12 raw questions answered across the
-      // whole assessment run. See useAssessmentStore.recordQuestionAnswered.
+      // "Привал" (rest stop) — at 25/50/75% of the whole assessment run.
+      // See useAssessmentStore.recordQuestionAnswered.
       const restCheck = useAssessmentStore.getState().recordQuestionAnswered();
       if (restCheck.shouldShow) {
         navigate('/assessment/rest', {

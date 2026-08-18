@@ -2,24 +2,18 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AssessmentGoal, AssessmentResponse } from '@/shared/types';
 
-// "Привал" (rest stop) cadence — ТЗ: appears every 10-12 RAW questions
-// answered, across the whole assessment run (likert+pairs AND motivation
-// phases combined), independent of block boundaries. Capped at 5 stops
-// per full test run. Picking a fresh random 10-12 threshold after each
-// stop is what produces the "every 10-12" cadence rather than a fixed one.
-const MAX_REST_STOPS = 5;
-const REST_STOP_MIN_GAP = 10;
-const REST_STOP_MAX_GAP = 12;
-
-function randomRestStopThreshold(): number {
-  return REST_STOP_MIN_GAP + Math.floor(Math.random() * (REST_STOP_MAX_GAP - REST_STOP_MIN_GAP + 1));
-}
+// "Привал" (rest stop) cadence — appears at 25/50/75% of the way through
+// the WHOLE assessment run (likert+pairs AND motivation phases combined,
+// against their combined total), independent of block boundaries. 100% is
+// completion, not a rest stop, so there are at most 3 per run.
+const REST_STOP_THRESHOLDS = [25, 50, 75] as const;
 
 export interface RestStopCheckResult {
   shouldShow: boolean;
-  /** Running count of questions answered so far this run — used for the
-   *  neutral-fallback copy ("Прошли N, идём ровно") when no real
-   *  behavioral signal exists to back a genuine micro-insight. */
+  /** Running count of questions answered so far this run (both phases
+   *  combined) — used for the neutral-fallback copy ("Прошли N, идём
+   *  ровно") when no real behavioral signal exists to back a genuine
+   *  micro-insight. */
   totalAnswered: number;
 }
 
@@ -29,36 +23,48 @@ interface AssessmentState {
   goal: AssessmentGoal | null;
   answeredCount: number;
   totalQuestions: number;
+  // Motivation phase counts — tracked separately because it's a distinct
+  // set of endpoints/resources, but combined with the fields above for the
+  // run-wide percentage the rest-stop cadence and grand total are based on.
+  motivationAnsweredCount: number;
+  motivationTotal: number;
   hasCompletedAssessment: boolean;
   syncDone: boolean;
 
   // ── Привал (rest stop) cadence state ────────────────────────────────────
-  restStopsShown: number;
-  questionsSinceRestStop: number;
-  nextRestStopThreshold: number;
-  totalRawAnswered: number;
+  /** Which of REST_STOP_THRESHOLDS have already been shown this run. */
+  restStopThresholdsShown: number[];
 
-  setAssessment: (assessmentId: string, goal: AssessmentGoal, answeredCount: number, totalQuestions: number) => void;
+  setAssessment: (
+    assessmentId: string,
+    goal: AssessmentGoal,
+    answeredCount: number,
+    totalQuestions: number,
+    motivationAnsweredCount?: number,
+    motivationTotal?: number,
+  ) => void;
   setProgress: (answeredCount: number, totalQuestions: number) => void;
+  setMotivationProgress: (motivationAnsweredCount: number, motivationTotal: number) => void;
   completeAssessment: () => void;
   resetAssessment: () => void;
   syncFromServer: (data: AssessmentResponse, userId: string) => void;
   clearForUser: (userId: string) => void;
 
   /**
-   * Call once per raw question answered (any of the 4 assessment flows).
-   * Advances the rest-stop cadence counter and reports whether a rest
-   * stop should be shown now — real, client-observable counting, not a
-   * fabricated signal.
+   * Call after every answer (any of the 4 assessment flows), once the
+   * relevant progress setter above has already recorded the fresh
+   * answered/total counts. Checks the combined run-wide percentage against
+   * REST_STOP_THRESHOLDS and reports whether a rest stop should be shown
+   * now — real, client-observable state, not a fabricated signal. If a
+   * single update crosses more than one threshold at once (e.g. a batched
+   * Likert page submit), all crossed thresholds are marked shown but only
+   * one rest stop fires — no back-to-back interstitials for one jump.
    */
   recordQuestionAnswered: () => RestStopCheckResult;
 }
 
 const REST_STOP_INITIAL_STATE = {
-  restStopsShown: 0,
-  questionsSinceRestStop: 0,
-  nextRestStopThreshold: randomRestStopThreshold(),
-  totalRawAnswered: 0,
+  restStopThresholdsShown: [] as number[],
 };
 
 export const useAssessmentStore = create<AssessmentState>()(
@@ -69,13 +75,25 @@ export const useAssessmentStore = create<AssessmentState>()(
       goal: null,
       answeredCount: 0,
       totalQuestions: 0,
+      motivationAnsweredCount: 0,
+      motivationTotal: 0,
       hasCompletedAssessment: false,
       syncDone: false,
       ...REST_STOP_INITIAL_STATE,
-      setAssessment: (assessmentId, goal, answeredCount, totalQuestions) =>
-        set({ assessmentId, goal, answeredCount, totalQuestions, ...REST_STOP_INITIAL_STATE }),
+      setAssessment: (assessmentId, goal, answeredCount, totalQuestions, motivationAnsweredCount = 0, motivationTotal = 0) =>
+        set({
+          assessmentId,
+          goal,
+          answeredCount,
+          totalQuestions,
+          motivationAnsweredCount,
+          motivationTotal,
+          ...REST_STOP_INITIAL_STATE,
+        }),
       setProgress: (answeredCount, totalQuestions) =>
         set({ answeredCount, totalQuestions }),
+      setMotivationProgress: (motivationAnsweredCount, motivationTotal) =>
+        set({ motivationAnsweredCount, motivationTotal }),
       completeAssessment: () => set({ hasCompletedAssessment: true }),
       resetAssessment: () =>
         set({
@@ -84,6 +102,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           goal: null,
           answeredCount: 0,
           totalQuestions: 0,
+          motivationAnsweredCount: 0,
+          motivationTotal: 0,
           hasCompletedAssessment: false,
           syncDone: true,
           ...REST_STOP_INITIAL_STATE,
@@ -95,6 +115,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           goal: data.goal,
           answeredCount: data.answered_count,
           totalQuestions: data.total_questions,
+          motivationAnsweredCount: data.motivation_answered_count,
+          motivationTotal: data.motivation_total,
           hasCompletedAssessment: data.status === 'completed',
           syncDone: true,
         }),
@@ -105,29 +127,27 @@ export const useAssessmentStore = create<AssessmentState>()(
           goal: null,
           answeredCount: 0,
           totalQuestions: 0,
+          motivationAnsweredCount: 0,
+          motivationTotal: 0,
           hasCompletedAssessment: false,
           syncDone: true,
           ...REST_STOP_INITIAL_STATE,
         }),
       recordQuestionAnswered: () => {
         const state = get();
-        const totalRawAnswered = state.totalRawAnswered + 1;
-        const questionsSinceRestStop = state.questionsSinceRestStop + 1;
-        const shouldShow =
-          state.restStopsShown < MAX_REST_STOPS && questionsSinceRestStop >= state.nextRestStopThreshold;
+        const totalAnswered = state.answeredCount + state.motivationAnsweredCount;
+        const grandTotal = state.totalQuestions + state.motivationTotal;
+        const percent = grandTotal > 0 ? (totalAnswered / grandTotal) * 100 : 0;
 
-        if (shouldShow) {
-          set({
-            totalRawAnswered,
-            questionsSinceRestStop: 0,
-            restStopsShown: state.restStopsShown + 1,
-            nextRestStopThreshold: randomRestStopThreshold(),
-          });
-        } else {
-          set({ totalRawAnswered, questionsSinceRestStop });
+        const newlyCrossed = REST_STOP_THRESHOLDS.filter(
+          t => percent >= t && !state.restStopThresholdsShown.includes(t),
+        );
+
+        if (newlyCrossed.length > 0) {
+          set({ restStopThresholdsShown: [...state.restStopThresholdsShown, ...newlyCrossed] });
         }
 
-        return { shouldShow, totalAnswered: totalRawAnswered };
+        return { shouldShow: newlyCrossed.length > 0, totalAnswered };
       },
     }),
     {

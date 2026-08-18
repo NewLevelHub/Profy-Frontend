@@ -149,6 +149,7 @@ export function useMotivationAssessment() {
         ],
       });
       setAnswers(prev => ({ ...prev, [triplet.triplet_index]: ranking }));
+      useAssessmentStore.getState().setMotivationProgress(response.answered_count, response.total);
 
       if (response.completed) {
         // Don't call completeAssessment() here — that flag means "report
@@ -168,8 +169,8 @@ export function useMotivationAssessment() {
         return;
       }
 
-      // "Привал" (rest stop) — every 10-12 raw questions answered across the
-      // whole assessment run. See useAssessmentStore.recordQuestionAnswered.
+      // "Привал" (rest stop) — at 25/50/75% of the whole assessment run.
+      // See useAssessmentStore.recordQuestionAnswered.
       const restCheck = useAssessmentStore.getState().recordQuestionAnswered();
       if (restCheck.shouldShow) {
         navigate('/assessment/rest', {

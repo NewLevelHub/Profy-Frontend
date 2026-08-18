@@ -23,9 +23,10 @@ export type { RestStopState };
 //    simply by this being a single optional field, not a list.
 
 /**
- * "Привал" (rest stop) — a mid-assessment interstitial that appears every
- * 10-12 RAW questions answered (see useAssessmentStore.recordQuestionAnswered),
- * independent of whether a question-block has closed. Visually the same card
+ * "Привал" (rest stop) — a mid-assessment interstitial that appears at
+ * 25/50/75% of the way through the whole run (see
+ * useAssessmentStore.recordQuestionAnswered), independent of whether a
+ * question-block has closed. Visually the same card
  * family as PraisePage/ExitAssessmentModal/ResultLoadingPage (Paper card on
  * Fog background, hairline border via shadow-pop, Mascot, Spine progress),
  * but semantically different from PraisePage: PraisePage is a fact statement

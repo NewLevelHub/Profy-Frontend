@@ -190,13 +190,13 @@ export function useAssessment() {
   }
 
   /**
-   * Advances to the next page, recording `rawQuestionsJustAnswered` raw
-   * UserResponse rows against the "привал" (rest stop) cadence — every
-   * 10-12 raw questions across the whole run, see
-   * useAssessmentStore.recordQuestionAnswered. A Likert page can submit up
-   * to 5 at once, so this loops instead of a single call.
+   * Advances to the next page. Caller must have already updated the store's
+   * progress (setProgress) for this submission — recordQuestionAnswered
+   * checks the run-wide percentage against the 25/50/75% rest-stop
+   * thresholds using whatever the store currently holds, see
+   * useAssessmentStore.recordQuestionAnswered.
    */
-  function advance(rawQuestionsJustAnswered: number) {
+  function advance() {
     const isLast = pageIndex >= pages.length - 1;
     if (isLast) {
       // advance() is only reached after the caller already checked
@@ -216,14 +216,8 @@ export function useAssessment() {
       return;
     }
 
-    let restDue = false;
-    let totalAnswered = 0;
-    for (let i = 0; i < rawQuestionsJustAnswered; i++) {
-      const result = useAssessmentStore.getState().recordQuestionAnswered();
-      restDue = restDue || result.shouldShow;
-      totalAnswered = result.totalAnswered;
-    }
-    if (restDue) {
+    const { shouldShow, totalAnswered } = useAssessmentStore.getState().recordQuestionAnswered();
+    if (shouldShow) {
       navigate('/assessment/rest', {
         state: { returnTo: '/assessment', progress, totalAnswered } satisfies RestStopState,
       });
@@ -263,7 +257,7 @@ export function useAssessment() {
         navigate('/assessment/motivation');
         return;
       }
-      advance(questions.length);
+      advance();
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {
@@ -291,7 +285,7 @@ export function useAssessment() {
         navigate('/assessment/motivation');
         return;
       }
-      advance(1);
+      advance();
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {

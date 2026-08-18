@@ -167,7 +167,7 @@ export function SharedDiagnosticCard({
 
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[.06em] text-accent">
+          <p className="font-mono text-[20px] font-bold uppercase tracking-[.06em] text-accent">
             СИЛЬНЫЕ СТОРОНЫ
           </p>
           {strengthCards.length === 0 ? (

@@ -132,6 +132,7 @@ export function useMotivationHarter() {
         answers: [{ pair_index: pair.pair_index, chosen_side: chosenSide, intensity }],
       });
       setAnswers(prev => ({ ...prev, [pair.pair_index]: { side: chosenSide, intensity } }));
+      useAssessmentStore.getState().setMotivationProgress(response.answered_count, response.total);
 
       if (response.completed) {
         // Don't call completeAssessment() here — that flag means "report
@@ -150,8 +151,8 @@ export function useMotivationHarter() {
         return;
       }
 
-      // "Привал" (rest stop) — every 10-12 raw questions answered across the
-      // whole assessment run. See useAssessmentStore.recordQuestionAnswered.
+      // "Привал" (rest stop) — at 25/50/75% of the whole assessment run.
+      // See useAssessmentStore.recordQuestionAnswered.
       const restCheck = useAssessmentStore.getState().recordQuestionAnswered();
       if (restCheck.shouldShow) {
         navigate('/assessment/rest', {

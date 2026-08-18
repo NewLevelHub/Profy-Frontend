@@ -56,7 +56,14 @@ export function useGoalSelection() {
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),
     onSuccess: (assessment) => {
       resetAssessment();
-      setAssessment(assessment.id, assessment.goal, assessment.answered_count, assessment.total_questions);
+      setAssessment(
+        assessment.id,
+        assessment.goal,
+        assessment.answered_count,
+        assessment.total_questions,
+        assessment.motivation_answered_count,
+        assessment.motivation_total,
+      );
       // Junior answers MI as plain Likert now (product override — ipsative
       // pair choices between unrelated MI categories made an already-weak
       // construct less reliable) woven with Big Five pair cards, same mixed
@@ -77,7 +84,14 @@ export function useGoalSelection() {
       // Sync full assessment data into the store before entering the assessment flow.
       const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
-      setAssessment(current.id, current.goal, current.answered_count, current.total_questions);
+      setAssessment(
+        current.id,
+        current.goal,
+        current.answered_count,
+        current.total_questions,
+        current.motivation_answered_count,
+        current.motivation_total,
+      );
       navigate('/assessment');
     }
   }

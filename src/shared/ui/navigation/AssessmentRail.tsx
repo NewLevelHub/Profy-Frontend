@@ -113,7 +113,7 @@ export function AssessmentRail({
       </div>
 
       <div className="w-full max-w-7xl mx-auto">
-        <Spine value={progress} ariaLabel={progressAriaLabel} />
+        <Spine value={progress} ariaLabel={progressAriaLabel} flat />
         <div className="flex justify-between mt-2 mx-0.5" style={{ fontSize: 12 }}>
           <span className="font-bold text-muted">{sectionLabel}</span>
           <span className="font-bold text-muted">{Math.round(progress)}%</span>
