@@ -25,7 +25,11 @@ export function useUniversityList() {
   const ageGroup = useProfileStore(s => s.profile?.age_group);
   const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
 
-  const isAllowed = goal === 'university' && ageGroup === 'senior';
+  // Senior no longer has a separate "university" goal card — picking
+  // "Выбрать профессию" already includes university access (see
+  // useResults.showUniversityBtn / GoalOverlaySection); `goal === 'university'`
+  // stays valid for any pre-existing assessment that still carries it.
+  const isAllowed = ageGroup === 'senior' && (goal === 'profession' || goal === 'university');
 
   // Program.profession_slugs directly lists which professions a specialty
   // prepares someone for, so the university search keys off the profession's

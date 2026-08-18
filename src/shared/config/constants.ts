@@ -16,13 +16,22 @@ export const ASSESSMENT_GOAL_LABELS: Record<AssessmentGoal, string> = {
 
 // Which age groups may select each goal — kept as the single source of
 // truth shared between the pre-test GoalSelectionPage and the post-test
-// goal-change UI, so the two never drift apart on who can pick `unsure`
-// or `university`.
+// goal-change UI, so the two never drift apart.
+//
+// Product decision 2026-08-17: every age group gets exactly the goal cards
+// it needs and no more — junior: explore only; middle: explore + profession
+// (no `unsure` card); senior: explore + profession (no separate `university`
+// card — for senior, picking "profession" also surfaces universities/gap-
+// analysis right there, see useResults.showUniversityBtn and
+// GoalOverlaySection). `university`/`unsure` stay valid AssessmentGoal
+// values (old assessments may still carry them, and the backend goal-change
+// endpoint still accepts them) — they're just not offered as a pickable
+// card anywhere in the UI anymore.
 export const ASSESSMENT_GOAL_ALLOWED_AGE_GROUPS: Record<AssessmentGoal, ('junior' | 'middle' | 'senior')[]> = {
   [ASSESSMENT_GOALS.EXPLORE]: ['junior', 'middle', 'senior'],
   [ASSESSMENT_GOALS.PROFESSION]: ['middle', 'senior'],
-  [ASSESSMENT_GOALS.UNIVERSITY]: ['senior'],
-  [ASSESSMENT_GOALS.UNSURE]: ['middle'],
+  [ASSESSMENT_GOALS.UNIVERSITY]: [],
+  [ASSESSMENT_GOALS.UNSURE]: [],
 };
 
 export const RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const;

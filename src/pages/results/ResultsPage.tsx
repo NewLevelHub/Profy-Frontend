@@ -48,6 +48,7 @@ export default function ResultsPage() {
     hasCompletedAssessment,
     showUniversityBtn,
     isJunior,
+    ageGroup,
     refetch,
   } = useResults();
 
@@ -127,7 +128,7 @@ export default function ResultsPage() {
           the only path to the roadmap for that age group; scenario A doesn't
           read topCareerSlug at all, so null here is fine. */}
       <AnimatedBlock>
-        <GoalOverlaySection topCareerSlug={report.careers[0]?.slug ?? null} />
+        <GoalOverlaySection topCareerSlug={report.careers[0]?.slug ?? null} isSenior={ageGroup === 'senior'} />
       </AnimatedBlock>
 
       {report.careers.length > 0 && (

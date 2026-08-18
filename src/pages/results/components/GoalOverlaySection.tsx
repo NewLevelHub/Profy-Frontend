@@ -84,9 +84,13 @@ function AlignmentBadge({ block }: { block: GoalAlignmentBlock }) {
 
 export interface GoalOverlaySectionProps {
   topCareerSlug: string | null;
+  /** Senior no longer has a separate "university" goal card — "Выбрать
+   * профессию" folds both in, so scenario B additionally surfaces a
+   * "browse universities" path here, matching scenario C's own CTA. */
+  isSenior: boolean;
 }
 
-export function GoalOverlaySection({ topCareerSlug }: GoalOverlaySectionProps) {
+export function GoalOverlaySection({ topCareerSlug, isSenior }: GoalOverlaySectionProps) {
   const navigate = useNavigate();
   const { data: overlay, isLoading, isError } = useGoalContext();
   const { availableGoals, isPending: isChangingGoal, handleSelectGoal } = useChangeGoal();
@@ -205,6 +209,17 @@ export function GoalOverlaySection({ topCareerSlug }: GoalOverlaySectionProps) {
               <p className="text-caption text-secondary leading-relaxed">
                 Открой карточку направления ниже, чтобы построить план развития.
               </p>
+            )}
+            {isSenior && topCareerSlug && (
+              <Button
+                variant="ghost"
+                size="md"
+                className="self-start gap-2"
+                onClick={() => navigate(`/results/directions/${encodeURIComponent(topCareerSlug)}/universities`)}
+              >
+                <GraduationCap className="w-4 h-4" />
+                Подобрать вуз под это направление
+              </Button>
             )}
           </>
         )}

@@ -31,7 +31,9 @@ export default function DirectionDetailPage() {
   const direction = report && report.interest_instrument === 'riasec'
     ? report.careers.find(d => d.slug === slug)
     : undefined;
-  const showUniversityBtn = goal === 'university' && ageGroup === 'senior';
+  // Senior no longer has a separate "university" goal card — "Выбрать
+  // профессию" already includes university access (see useResults.ts).
+  const showUniversityBtn = ageGroup === 'senior' && (goal === 'profession' || goal === 'university');
   const hasRoadmap = selectedDirectionSlug === slug;
   // Прямой переход к генерации плана по направлению (сценарий B) — без
   // ИИ-опроса ("Подходит ли мне это направление?"): опрос временно скрыт из

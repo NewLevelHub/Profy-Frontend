@@ -63,7 +63,11 @@ export function useResults() {
     goal,
     ageGroup,
     isJunior,
-    showUniversityBtn: goal === 'university' && ageGroup === 'senior',
+    // Senior no longer has a separate "university" goal card — picking
+    // "Выбрать профессию" already includes university/gap-analysis access,
+    // so the button shows for either goal value (see ASSESSMENT_GOAL_
+    // ALLOWED_AGE_GROUPS — `university` itself just isn't pickable anymore).
+    showUniversityBtn: ageGroup === 'senior' && (goal === 'profession' || goal === 'university'),
     refetch,
   };
 }
