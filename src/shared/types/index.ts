@@ -456,24 +456,12 @@ export type RoadmapTaskCategory =
   | 'admission'
   | 'application';
 
-/** A leading direction offered for goal=explore/unsure — up to 2, empty for
- * profession/university (single direction already set by the goal). Tasks
- * from months_3 onward tag which path they belong to via RoadmapTask.path. */
-export interface RecommendedPath {
-  key: string;
-  label: string;
-  why: string;
-  future_benefit: string;
-}
-
 export interface RoadmapTask {
   text: string;
   description: string | null;
   category: RoadmapTaskCategory;
   priority: number;
   resources: RoadmapResource[];
-  /** RecommendedPath.key this task belongs to, or null for shared/common tasks. */
-  path: string | null;
 }
 
 export interface RoadmapMilestone {
@@ -483,10 +471,24 @@ export interface RoadmapMilestone {
   tasks: RoadmapTask[];
 }
 
+/** A leading direction offered for goal=explore/unsure — up to 2, empty for
+ * profession/university (single direction already set by the goal). Each one
+ * carries its OWN complete, independent 5-milestone plan — when there are 2,
+ * render them as separate tabs, never merged into one list. */
+export interface RecommendedPath {
+  key: string;
+  label: string;
+  why: string;
+  future_benefit: string;
+  milestones: RoadmapMilestone[];
+}
+
 export interface RoadmapResponse {
   id: string;
   assessment_id: string;
   goal: string;
+  /** The plan when there's one direction. Mirrors recommended_paths[0].milestones
+   * when there are 2 — render recommended_paths as tabs instead once there's more than one. */
   milestones: RoadmapMilestone[];
   focus_summary: string | null;
   recommended_paths: RecommendedPath[];
@@ -582,10 +584,19 @@ export interface UniversityRequirement {
   portfolio_needed: boolean | null;
   required_documents: string[] | null;
   min_ent_threshold: number | null;
+  min_ent_paid: number | null;
   min_gpa: number | null;
   min_sat: number | null;
   extracurriculars: string[];
   admission_scores_2026: string[];
+  grant_scores: Record<string, string>;
+  grants_allocated_count: number | null;
+  duration_years: number | null;
+  has_dual_degree: boolean | null;
+  has_dormitory: boolean | null;
+  dormitory_cost_label: string | null;
+  has_military_department: boolean | null;
+  admissions_contacts: Record<string, string>;
   notes: string[];
 }
 

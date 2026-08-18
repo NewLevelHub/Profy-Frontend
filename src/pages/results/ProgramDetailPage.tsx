@@ -126,7 +126,7 @@ export default function ProgramDetailPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {program.description && program.description.length > 0 && (
+            {program.description && program.description.trim().length > 0 && program.description.trim().toLowerCase() !== 'направления' && (
               <div className="bg-surface border border-[#EDE9FE] rounded-[20px] p-6 shadow-card">
                 <SectionHeadingLocal>📋 Описание</SectionHeadingLocal>
                 <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0">{program.description}</p>

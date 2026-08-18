@@ -8,7 +8,8 @@ interface UniversityRequirementsCardProps {
 
 const DASH = '—';
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value }: { label: string; value?: string | null }) {
+  if (!value || value === DASH) return null;
   return (
     <div>
       <p className="text-caption font-semibold text-muted uppercase tracking-wide mb-1">{label}</p>
@@ -17,22 +18,17 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ListField({ label, items, caveat }: { label: string; items: string[]; caveat?: string }) {
+function ListField({ label, items, caveat }: { label: string; items?: string[] | null; caveat?: string }) {
+  if (!items || items.length === 0) return null;
   return (
     <div>
       <p className="text-caption font-semibold text-muted uppercase tracking-wide mb-1">{label}</p>
-      {items.length === 0 ? (
-        <p className="text-body text-secondary">{DASH}</p>
-      ) : (
-        <>
-          {caveat && <p className="text-caption text-muted mb-1.5">{caveat}</p>}
-          <ul className="flex flex-col gap-1">
-            {items.map((item, i) => (
-              <li key={i} className="text-body text-secondary">{item}</li>
-            ))}
-          </ul>
-        </>
-      )}
+      {caveat && <p className="text-caption text-muted mb-1.5">{caveat}</p>}
+      <ul className="flex flex-col gap-1">
+        {items.map((item, i) => (
+          <li key={i} className="text-body text-secondary">{item}</li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -92,19 +88,25 @@ export function UniversityRequirementsCard({ requirements }: UniversityRequireme
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Экзамены" value={examsValue} />
         <Field label="Язык обучения" value={req.program_language} />
-        {req.language_level && <Field label="Требуемый уровень английского" value={req.language_level} />}
-        <Field label="Дедлайн подачи" value={req.application_deadline ?? DASH} />
+        <Field label="Срок обучения" value={req.duration_years ? `${req.duration_years} года` : null} />
+        <Field label="Требуемый уровень английского" value={req.language_level} />
+        <Field label="Двойной диплом" value={req.has_dual_degree === true ? 'Есть' : req.has_dual_degree === false ? 'Нет' : null} />
+        <Field label="Дедлайн подачи" value={req.application_deadline} />
         <Field label="Портфолио" value={portfolio} />
         {isKazakhstan && (
-          <Field label="Минимальный балл на грант (ЕНТ)" value={req.min_ent_threshold?.toString() ?? DASH} />
+          <>
+            <Field label="Мин. балл ЕНТ (Платное)" value={req.min_ent_paid?.toString()} />
+            <Field label="Допуск к конкурсу на грант (ЕНТ)" value={req.min_ent_threshold?.toString()} />
+            <Field label="Количество грантов" value={req.grants_allocated_count?.toString()} />
+          </>
         )}
-        <Field label="Минимальный GPA" value={req.min_gpa?.toString() ?? DASH} />
-        <Field label="Минимальный балл SAT" value={req.min_sat?.toString() ?? DASH} />
+        <Field label="Минимальный GPA" value={req.min_gpa?.toString()} />
+        <Field label="Минимальный балл SAT" value={req.min_sat?.toString()} />
         <Field
           label="Документы"
           value={req.required_documents && req.required_documents.length > 0
             ? req.required_documents.join(', ')
-            : DASH}
+            : null}
         />
       </div>
 
@@ -113,7 +115,14 @@ export function UniversityRequirementsCard({ requirements }: UniversityRequireme
       {isKazakhstan && (
         <ListField
           label="Проходные баллы на грант 2026–2027"
-          items={req.admission_scores_2026}
+          items={req.grant_scores ? Object.entries(req.grant_scores).map(([k, v]) => `${k}: ${v}`) : req.admission_scores_2026}
+        />
+      )}
+
+      {req.admissions_contacts && Object.keys(req.admissions_contacts).length > 0 && (
+        <ListField
+          label="Контакты приемной комиссии"
+          items={Object.entries(req.admissions_contacts).map(([k, v]) => `${k === 'phone' ? '📞' : k === 'email' ? '✉️' : k === 'instagram' ? '📷' : ''} ${v}`.trim())}
         />
       )}
 
