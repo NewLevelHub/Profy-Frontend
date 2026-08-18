@@ -558,6 +558,9 @@ export interface UniversityRequirement {
   language_level: string | null;
   portfolio_needed: boolean | null;
   required_documents: string[] | null;
+  min_ent_threshold: number | null;
+  admission_scores_2026: string[];
+  notes: string[];
 }
 
 export interface DirectionRoadmapResponse {

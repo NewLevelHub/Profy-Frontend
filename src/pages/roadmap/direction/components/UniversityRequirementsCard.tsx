@@ -49,7 +49,37 @@ export function UniversityRequirementsCard({ requirements }: UniversityRequireme
             <p className="text-body text-secondary">{req.portfolio_needed ? 'Нужно' : 'Не требуется'}</p>
           </div>
         )}
+        {req.min_ent_threshold !== null && (
+          <div>
+            <p className="text-caption font-semibold text-muted uppercase tracking-wide mb-1">Минимальный порог ЕНТ</p>
+            <p className="text-body text-secondary">{req.min_ent_threshold}</p>
+          </div>
+        )}
       </div>
+
+      {req.admission_scores_2026.length > 0 && (
+        <div>
+          <p className="text-caption font-semibold text-muted uppercase tracking-wide mb-1">
+            Проходные баллы на грант 2026–2027
+          </p>
+          <ul className="flex flex-col gap-1">
+            {req.admission_scores_2026.map((line, i) => (
+              <li key={i} className="text-body text-secondary">{line}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {req.notes.length > 0 && (
+        <div>
+          <p className="text-caption font-semibold text-muted uppercase tracking-wide mb-1">На заметку</p>
+          <ul className="flex flex-col gap-1">
+            {req.notes.map((note, i) => (
+              <li key={i} className="text-body text-secondary">{note}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {req.required_documents && req.required_documents.length > 0 && (
         <div>
