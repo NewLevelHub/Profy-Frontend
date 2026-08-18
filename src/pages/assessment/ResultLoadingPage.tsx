@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { resultApi } from '@/shared/api/result';
-import { shouldShowGoalCheck } from './hooks/useGoalCheck';
 import { Button } from '@/shared/ui/Button';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Mascot } from '@/shared/ui/Mascot';
@@ -23,14 +22,13 @@ export default function ResultLoadingPage() {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const completeAssessment = useAssessmentStore(s => s.completeAssessment);
-  const goal = useAssessmentStore(s => s.goal);
   const setReport = useResultStore(s => s.setReport);
 
-  // Diagnostic just finished and the goal was "explore" (no specific
-  // target stated) — route through the "not sure yet" interstitial
-  // (step 5 of the onboarding→assessment journey) before the results
-  // report itself, per its own age/goal-agnostic suggestion logic.
-  const postResultPath = shouldShowGoalCheck(goal) ? '/assessment/goal-check' : '/results';
+  // Diagnostic just finished — always route through the "here's what fits
+  // you" interstitial (step 5 of the onboarding→assessment journey) before
+  // the results report itself; its own goal-aware suggestion logic decides
+  // what to show (careers vs. self-understanding), so every goal lands here.
+  const postResultPath = '/assessment/goal-check';
 
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);

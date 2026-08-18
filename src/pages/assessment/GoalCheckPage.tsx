@@ -3,10 +3,13 @@ import { Button, Mascot } from '@/shared/ui';
 import { useGoalCheck } from './hooks/useGoalCheck';
 
 // Step 5 of the onboarding→assessment journey: shown right after the
-// diagnostic finishes generating a result, but before the results report
-// itself — only for students whose goal was "explore" (i.e. they didn't
-// have one specific target). Offers a few directions grounded in the
-// diagnostic result that was just computed, not invented defaults.
+// diagnostic finishes generating a result, for every goal, but before the
+// results report itself. Content adapts to the stated goal (see
+// useGoalCheck's `showsCareers`): 'profession'/'university' get concrete
+// career matches, junior students and 'explore' get a profession-agnostic
+// self-understanding read — showing job titles to someone whose goal was
+// just "understand myself" would contradict that goal. Always grounded in
+// the diagnostic result that was just computed, never invented defaults.
 //
 // Mascot state is deliberately `transition`, not `completion`: nothing is
 // "done" from the student's perspective yet (the report hasn't been shown),
@@ -16,7 +19,7 @@ import { useGoalCheck } from './hooks/useGoalCheck';
 // "stage changed, moving to the next section" — the same state /roadmap
 // uses for its goal-switch banners.
 export default function GoalCheckPage() {
-  const { hasReport, isJunior, suggestions, handleContinue } = useGoalCheck();
+  const { hasReport, showsCareers, suggestions, handleContinue } = useGoalCheck();
 
   if (!hasReport) {
     return <Navigate to="/results" replace />;
@@ -37,9 +40,9 @@ export default function GoalCheckPage() {
                 Кажется, я понял, что тебе близко
               </h1>
               <p className="text-body mt-2" style={{ color: 'var(--mute)' }}>
-                {isJunior
-                  ? 'По твоим ответам вот что тебе особенно интересно'
-                  : 'По твоим ответам эти направления подходят тебе больше всего'}
+                {showsCareers
+                  ? 'По твоим ответам эти направления подходят тебе больше всего'
+                  : 'По твоим ответам вот что тебе особенно интересно'}
               </p>
             </div>
           </div>
@@ -49,7 +52,11 @@ export default function GoalCheckPage() {
               <div
                 key={suggestions[0].key}
                 className="flex flex-col gap-1.5 px-5 py-4"
-                style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', borderLeft: '3px solid var(--pine)' }}
+                style={{
+                  background: 'color-mix(in srgb, var(--pine) 5%, var(--bg-surface))',
+                  borderRadius: 'var(--radius)',
+                  border: '1px solid color-mix(in srgb, var(--pine) 35%, var(--border))',
+                }}
               >
                 <span className="font-mono text-[10px] uppercase tracking-[.08em]" style={{ color: 'var(--pine)' }}>
                   Похоже больше всего

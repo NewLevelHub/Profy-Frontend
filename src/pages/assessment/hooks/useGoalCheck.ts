@@ -2,24 +2,13 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
-import type { InterestMapItem, StudentCareer } from '@/shared/types';
+import type { InterestMapItem, ResultResponse, StrengthCard, StudentCareer } from '@/shared/types';
 
 export interface GoalSuggestion {
   key: string;
   icon: string;
   title: string;
   subtitle: string;
-}
-
-// The "not sure yet" interstitial only makes sense for students whose
-// stated goal was uncertain — the data model has no separate "uncertain"
-// flag (AssessmentGoal is just 'explore' | 'profession' | 'university'),
-// so 'explore' is the real, stored signal for "wants to explore rather
-// than chase one already-known target" (both explore-flavored cards on
-// GoalSelectionPage — "Понять себя" and "Пока не знаю" — write this same
-// value). We don't invent a second signal that isn't actually persisted.
-export function shouldShowGoalCheck(goal: string | null): boolean {
-  return goal === 'explore';
 }
 
 // Only 2 real suggestion slots — the design's 3rd card is the fixed
@@ -37,7 +26,7 @@ function buildRiasecSuggestions(careers: StudentCareer[]): GoalSuggestion[] {
     }));
 }
 
-function buildMiSuggestions(items: InterestMapItem[]): GoalSuggestion[] {
+function buildInterestMapSuggestions(items: InterestMapItem[]): GoalSuggestion[] {
   // Prefer clearly-expressed interests; only reach into medium-level ones
   // if there aren't at least 2 high ones — still real diagnostic data,
   // just a lower confidence tier, never a fabricated default.
@@ -51,6 +40,27 @@ function buildMiSuggestions(items: InterestMapItem[]): GoalSuggestion[] {
   }));
 }
 
+function buildStrengthSuggestions(cards: StrengthCard[]): GoalSuggestion[] {
+  return cards.slice(0, 2).map(c => ({
+    key: c.title,
+    icon: '✨',
+    title: c.title,
+    subtitle: c.description,
+  }));
+}
+
+// Profession-agnostic version of this screen — used whenever the goal isn't
+// specifically "pick a profession". Draws on the parts of the report that
+// describe the student themself (strengths, then interest spheres as a
+// fallback), never on `careers`/job titles — those would contradict a goal
+// that's about self-understanding, not career matching.
+function buildSelfInsightSuggestions(report: ResultResponse): GoalSuggestion[] {
+  if (report.strength_cards.length >= 2) {
+    return buildStrengthSuggestions(report.strength_cards);
+  }
+  return buildInterestMapSuggestions(report.interest_map);
+}
+
 export function useGoalCheck() {
   const navigate = useNavigate();
   const report = useResultStore(s => s.report);
@@ -58,12 +68,19 @@ export function useGoalCheck() {
 
   const isJunior = report?.interest_instrument === 'mi';
 
+  // Mirrors the /results goal branch (GoalBranchSection): junior students
+  // and the 'explore' goal always get the self-understanding read regardless
+  // of instrument — careers only surface for 'profession'/'university',
+  // and only when there's actually a RIASEC career list to draw from.
+  const showsCareers = !isJunior && (goal === 'profession' || goal === 'university');
+
   const suggestions = useMemo<GoalSuggestion[]>(() => {
     if (!report) return [];
-    return isJunior
-      ? buildMiSuggestions(report.interest_map)
-      : buildRiasecSuggestions(report.careers);
-  }, [report, isJunior]);
+    if (showsCareers && report.interest_instrument === 'riasec') {
+      return buildRiasecSuggestions(report.careers);
+    }
+    return buildSelfInsightSuggestions(report);
+  }, [report, showsCareers]);
 
   function handleContinue() {
     navigate('/results', { replace: true });
@@ -73,6 +90,7 @@ export function useGoalCheck() {
     hasReport: report !== null,
     goal,
     isJunior,
+    showsCareers,
     suggestions,
     handleContinue,
   };
