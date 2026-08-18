@@ -1,0 +1,20 @@
+---
+description: Profy typography system — role tokens, not ad-hoc sizes
+globs: **/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# Typography
+
+Three roles. Pick by **authorship**, not taste.
+
+| Role | Token / component | Use for |
+|---|---|---|
+| Display | `<Heading level="display-lg\|md\|sm">` or `type.display*` | Page title, diagnostic step name, brand moment. **Max 1–2 per screen.** Never body copy, buttons, or repeating card titles. |
+| Body | `<Text variant="body-lg\|md\|sm\|caption">` or `type.body*` / `type.caption` | Questions, descriptions, names, UI labels, section titles. Default for everything a person wrote. |
+| Mono | `<Mono variant="label\|sm\|md">` or `type.mono*` | Ids, dates, statuses, codes, admin column headers. Machine/system content only. |
+
+- Do not set `font-size`, `line-height`, or `letter-spacing` inline or as `text-[Npx]`. Add a named token in `src/styles/tailwind.css` `@theme` if a new size is needed.
+- Do not use `font-display` outside `Heading`, `AuthLayout` wordmark, or `AdminLayout` wordmark.
+- One scale for all ages. Age differences live in copy, not type size/weight.
+- Exceptions (do not "fix"): Spine step numerals, OTP cell digits, emoji/icon sizes, Likert pole-label clamp. See `src/shared/ui/typography/tokens.ts`.

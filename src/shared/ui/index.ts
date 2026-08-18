@@ -35,6 +35,8 @@ export { PageStub } from './PageStub';
 export { PageContainer } from './PageContainer';
 export { PageHeader } from './PageHeader';
 export { SectionHeading } from './SectionHeading';
+export { Heading, Text, Mono, typeClass } from './typography';
+export type { HeadingLevel, TextVariant, MonoVariant, TypeRole } from './typography';
 export { AppLayout } from './layouts/AppLayout';
 export { AuthLayout } from './layouts/AuthLayout';
 export { TopRail } from './navigation/TopRail';

@@ -26,16 +26,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           onClick?.(event);
         }}
         className={cn(
-          'inline-flex items-center justify-center gap-2 font-medium rounded-[var(--radius)] transition-colors',
+          'inline-flex items-center justify-center gap-2 font-medium font-sans rounded-[var(--radius)] transition-colors',
           'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
           // Instant tactile feedback on press (Emil Kowalski) — shared by every
           // button in the product, not just auth submit buttons.
           'press-scale',
 
-          size === 'sm' && 'min-h-9 px-4 py-2 text-sm',
-          size === 'md' && 'min-h-11 px-5 py-3 text-sm',
-          size === 'lg' && 'min-h-12 px-6 py-3.5 text-base',
+          size === 'sm' && 'min-h-9 px-4 py-2 text-body-sm',
+          size === 'md' && 'min-h-11 px-5 py-3 text-body-sm',
+          size === 'lg' && 'min-h-12 px-6 py-3.5 text-body-md',
 
           variant === 'primary' && [
             'bg-brand text-on-brand',

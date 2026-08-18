@@ -129,7 +129,7 @@ export default function LoginPage() {
         </div>
 
         {formError && (
-          <p className="field-error-in text-[14px] text-danger text-center mt-[16px]">{formError}</p>
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
         )}
 
         {needsVerification && (
@@ -164,7 +164,7 @@ export default function LoginPage() {
           {isLoading ? 'Входим...' : 'Войти'}
         </Button>
 
-        <div className="flex items-center justify-between mt-[20px] text-[14px]">
+        <div className="flex items-center justify-between mt-[20px] text-body-sm">
           <Link
             to="/forgot-password"
             className="text-muted underline underline-offset-2 hover:opacity-70 transition-opacity"

@@ -32,7 +32,7 @@ export function AuthLayout() {
         }}
       >
         {isPrimary && (
-          <span className="font-display font-semibold text-[18px] text-[color:var(--midnight)]">
+          <span className="font-display text-display-sm font-semibold text-[color:var(--midnight)]">
             {env.APP_NAME}
           </span>
         )}

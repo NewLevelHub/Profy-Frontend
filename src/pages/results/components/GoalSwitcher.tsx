@@ -46,7 +46,7 @@ export function GoalSwitcher({ value, onChange }: GoalSwitcherProps) {
  */
 export function JuniorGoalLabel() {
   return (
-    <span className="inline-flex items-center font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted">
+    <span className="inline-flex items-center font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
       JUNIOR · 6–11
     </span>
   );

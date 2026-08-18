@@ -68,7 +68,7 @@ export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchS
     <div className="flex flex-col gap-6">
       <div className="border-t border-default pt-6 flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted">
+          <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
             ДАЛЬШЕ · ПО ТВОЕЙ ЦЕЛИ
           </p>
           {isJunior ? (

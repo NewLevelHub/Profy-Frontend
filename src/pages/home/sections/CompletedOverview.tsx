@@ -5,6 +5,9 @@ import { RiasecIcon, type RiasecType } from '@/shared/ui/icons/RiasecIcon';
 import { RIASEC_TYPES, MI_ICONS, CAREER_TIER_LABELS } from '@/shared/config/constants';
 import type { InterestLevel, ResultResponse } from '@/shared/types';
 import { formatDiagnosisDate, formatUpdatedAgo, pluralizeRu } from '../utils/format';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
+import { type as typeClass } from '@/shared/ui/typography/tokens';
 import { KICKER_CLASS } from './HomeFrame';
 
 const RIASEC_CODE_SET = new Set<string>(RIASEC_TYPES);
@@ -107,21 +110,12 @@ export function CompletedOverview({ report, isJunior, onRetake }: CompletedOverv
 
       {/* ── Top row: headline + updated-ago meta ─────────────────────── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 600,
-            fontSize: 34,
-            letterSpacing: 'var(--tracking-tight)',
-            lineHeight: 'var(--leading-tight)',
-            color: 'var(--midnight)',
-          }}
-        >
+        <Heading level="display-lg" className="text-[color:var(--midnight)]">
           {headline}
-        </h1>
+        </Heading>
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <span className={KICKER_CLASS}>{formatUpdatedAgo(report.created_at)}</span>
-          <Button variant="text" size="sm" className="!p-0 !min-h-0 text-[12px]" onClick={onRetake}>
+          <Button variant="text" size="sm" className="!p-0 !min-h-0 text-mono-sm" onClick={onRetake}>
             Пройти заново
           </Button>
         </div>
@@ -151,9 +145,9 @@ export function CompletedOverview({ report, isJunior, onRetake }: CompletedOverv
             }}
           >
             <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-              <p style={{ fontSize: 17, lineHeight: 'var(--leading-normal)', color: 'var(--midnight)' }}>
+              <Text variant="body-md" className="text-[color:var(--midnight)]">
                 {nextStepText}
-              </p>
+              </Text>
               {nextStepMeta && <span className={KICKER_CLASS}>{nextStepMeta}</span>}
             </div>
             <Button variant="primary" size="sm" className="w-full sm:w-auto flex-shrink-0" onClick={handleOpenNextStep}>
@@ -184,14 +178,14 @@ export function CompletedOverview({ report, isJunior, onRetake }: CompletedOverv
                         <span className="text-lg leading-none" aria-hidden="true">{MI_ICONS[item.code] ?? '🧭'}</span>
                       )}
                     </span>
-                    <span className="truncate sm:max-w-none" style={{ fontSize: 15, color: 'var(--text-primary)' }}>{item.sphere}</span>
+                    <span className="truncate sm:max-w-none text-body-sm font-book text-primary">{item.sphere}</span>
                   </div>
                   {/* Below sm, the status word sits under the sphere name (indented
                      to align with it) instead of sharing the row — at narrow widths
                      a long mono status like "ПОЧТИ НЕ ПРОЯВИЛОСЬ" otherwise eats
                      most of the row and truncates even short sphere names. */}
                   <span
-                    className="font-mono text-[11px] tracking-[.06em] uppercase flex-shrink-0 pl-[40px] sm:pl-0"
+                    className={`${typeClass.monoLabel} flex-shrink-0 pl-[40px] sm:pl-0`}
                     style={{ color: meta.color }}
                   >
                     {meta.label}
@@ -216,11 +210,8 @@ function StatCell({
       className={cn('flex flex-col gap-1.5 p-4 sm:p-5', !isLast && 'border-b sm:border-b-0 sm:border-r')}
       style={{ background: 'var(--bg-surface)', borderColor: 'var(--hairline)' }}
     >
-      <span className="font-mono text-[11px] tracking-[.1em] uppercase text-muted">{label}</span>
-      <span
-        className="truncate"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, letterSpacing: 'var(--tracking-tight)', color: valueColor }}
-      >
+      <span className={KICKER_CLASS}>{label}</span>
+      <span className={`${typeClass.bodyLg} truncate font-semibold`} style={{ color: valueColor }}>
         {value}
       </span>
     </div>

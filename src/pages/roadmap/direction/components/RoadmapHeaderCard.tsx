@@ -1,4 +1,5 @@
 import { Mascot } from '@/shared/ui/Mascot';
+import { Heading } from '@/shared/ui/typography/Heading';
 
 interface RoadmapHeaderCardProps {
   directionName: string;
@@ -22,16 +23,13 @@ export function RoadmapHeaderCard({ directionName, targetYear }: RoadmapHeaderCa
         borderRadius: 'var(--radius)',
       }}
     >
-      <h1
-        className="font-display font-semibold leading-tight tracking-[-0.025em] text-[30px]"
-        style={{ color: 'var(--midnight)' }}
-      >
+      <Heading level="display-md" className="text-[color:var(--midnight)]">
         Путь до {directionName}
-      </h1>
+      </Heading>
 
       <div className="flex items-center gap-4 shrink-0">
         <span
-          className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted whitespace-nowrap"
+          className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted whitespace-nowrap"
         >
           Цель: поступление {targetYear}
         </span>

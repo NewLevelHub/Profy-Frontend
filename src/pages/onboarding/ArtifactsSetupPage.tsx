@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { Button, Mascot, Spinner } from '@/shared/ui';
+import { Heading } from '@/shared/ui/typography/Heading';
 import { useArtifactsSetup, ARTIFACT_SECTIONS, type ArtifactSection } from './hooks/useArtifactsSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { PROFILE_STEP_COUNT, TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
@@ -56,18 +57,6 @@ const TARGETS = [
   'Германия', 'Турция', 'ОАЭ', 'Южная Корея',
 ];
 
-// Same heading treatment as every other onboarding step (ProfileSetupPage's
-// HEADING_STYLE) — a group's headline is that step's h1, not a smaller
-// in-card h2.
-const HEADING_STYLE = {
-  fontFamily: 'var(--font-display)',
-  fontWeight: 600,
-  fontSize: 28,
-  letterSpacing: '-0.02em',
-  lineHeight: 1.15,
-  color: 'var(--midnight)',
-} as const;
-
 // Matches MASCOT_WELCOME_SIZE in ProfileSetupPage — same calibrated "welcome"
 // pose size, so the mascot reads at the same scale across all 9 steps.
 const MASCOT_SIZE = 76;
@@ -86,7 +75,7 @@ function SectionTabs({ active, onChange }: { active: ArtifactSection; onChange: 
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(section)}
-            className="px-3 py-2 rounded-pill font-mono text-[11px] tracking-[.04em] uppercase transition-colors"
+            className="px-3 py-2 rounded-pill font-mono text-mono-xs tracking-label uppercase transition-colors"
             style={{
               background: isActive ? 'var(--pine)' : 'transparent',
               color: isActive ? 'var(--text-on-brand)' : 'var(--mute)',
@@ -277,7 +266,7 @@ export default function ArtifactsSetupPage() {
           placeholder="Например: хочу однажды поехать на настоящие раскопки"
           rows={2}
           className={cn(
-            'w-full rounded-[var(--radius-sm)] px-4 py-3 text-[16px] resize-none',
+            'w-full rounded-[var(--radius-sm)] px-4 py-3 text-body-md resize-none',
             'placeholder:text-placeholder focus:outline-none transition-colors',
           )}
           style={{ background: 'var(--bg-page)', border: '1.5px solid var(--line)', color: 'var(--ink)' }}
@@ -310,12 +299,10 @@ export default function ArtifactsSetupPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <h2
-                    style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 26, letterSpacing: '-0.02em', lineHeight: 1.15, color: 'var(--midnight)' }}
-                  >
+                  <Heading level="display-md" as="h2">
                     {copy.headline}
-                  </h2>
-                  <p className="text-[16px]" style={{ color: 'var(--mute)' }}>{copy.note}</p>
+                  </Heading>
+                  <p className="text-body-md" style={{ color: 'var(--mute)' }}>{copy.note}</p>
                 </div>
                 <Mascot state="welcome" size={64} className="shrink-0" />
               </div>
@@ -345,7 +332,7 @@ export default function ArtifactsSetupPage() {
                 >
                   Пропустить эту группу
                 </Button>
-                <span className="ml-auto font-mono text-[11px] uppercase tracking-[.06em] text-muted">
+                <span className="ml-auto font-mono text-mono-xs uppercase tracking-label text-muted">
                   Группа {sectionIndex + 1} из {ARTIFACT_SECTIONS.length}
                 </span>
               </div>
@@ -370,7 +357,7 @@ export default function ArtifactsSetupPage() {
         <div className="flex flex-col gap-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 style={HEADING_STYLE}>{copy.headline}</h1>
+              <Heading level="display-md">{copy.headline}</Heading>
               <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{copy.note}</p>
             </div>
             <Mascot state="welcome" size={MASCOT_SIZE} className="shrink-0" />

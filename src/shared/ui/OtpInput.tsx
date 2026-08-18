@@ -170,8 +170,7 @@ export function OtpInput({
               onFocus={(e) => { setFocusedIndex(i); e.target.select(); }}
               onBlur={() => setFocusedIndex((cur) => (cur === i ? null : cur))}
               aria-label={`Цифра ${i + 1} из ${length}`}
-              className="w-full h-full text-center bg-transparent border-0 outline-none font-mono disabled:opacity-50"
-              style={{ fontSize: 22, color: 'var(--midnight)' }}
+              className="w-full h-full text-center bg-transparent border-0 outline-none font-mono text-display-sm text-[color:var(--midnight)] disabled:opacity-50"
             />
           </div>
         );

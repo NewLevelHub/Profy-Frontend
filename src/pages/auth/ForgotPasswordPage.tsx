@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {formError && (
-          <p className="field-error-in text-[14px] text-danger text-center mt-[16px]">{formError}</p>
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
         )}
 
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[28px]">
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
 
-      <p className="text-[13px] text-muted mt-[16px]">
+      <p className="text-caption text-muted mt-[16px]">
         Код действует 30 минут. Прогресс ребёнка и результаты диагностики при смене пароля не теряются.
       </p>
 

@@ -6,6 +6,7 @@ import { adminApi } from '@/shared/api/admin';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { Heading } from '@/shared/ui/typography/Heading';
 import { AdminSectionHeading } from '@/shared/ui/admin/AdminSectionHeading';
 import { Spine } from '@/shared/ui/Spine';
 import { ChangeLogTable } from '@/shared/ui/admin/ChangeLogTable';
@@ -127,7 +128,7 @@ function profileSubjects(
 function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (!value && value !== 0) return null;
   return (
-    <div className="flex items-center justify-between py-1.5 text-[13px] leading-[1.35] border-b border-default last:border-b-0">
+    <div className="flex items-center justify-between py-1.5 text-caption leading-[1.35] border-b border-default last:border-b-0">
       <span className="text-secondary font-semibold">{label}</span>
       <span className="text-primary font-bold text-right ml-4">{value}</span>
     </div>
@@ -138,12 +139,12 @@ function ChipList({ label, items }: { label: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div className="mb-3 last:mb-0">
-      <p className="font-bold text-primary text-[13px] leading-[1.35] mb-1.5">{label}</p>
+      <p className="font-bold text-primary text-caption leading-[1.35] mb-1.5">{label}</p>
       <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
           <span
             key={item}
-            className="px-2 py-0.5 rounded-[3px] font-semibold text-[12px] leading-[1.35]"
+            className="px-2 py-0.5 rounded-[3px] font-semibold text-mono-sm leading-[1.35]"
             style={{ background: 'var(--brand-subtle)', color: 'var(--brand-text)' }}
           >
             {item}
@@ -411,10 +412,10 @@ export default function AdminUserDetailPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="font-display font-semibold text-[24px] text-primary tracking-[-0.01em]">
+          <Heading level="display-sm" className="text-primary">
             {user.profile?.name || user.email}
-          </h1>
-          <p className="font-mono text-[11px] text-muted mt-0.5">
+          </Heading>
+          <p className="font-mono text-mono-xs text-muted mt-0.5">
             {user.email} · Зарегистрирован {formatDate(user.created_at)}
           </p>
         </div>

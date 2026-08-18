@@ -52,7 +52,7 @@ export function SelfDescriptionSection() {
   return (
     <Card className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
-        <p className="font-mono text-tiny font-bold uppercase tracking-[.06em] text-accent">
+        <p className="font-mono text-tiny font-bold uppercase tracking-label text-accent">
           ТЫ РАССКАЗАЛ О СЕБЕ
         </p>
         <Button variant="ghost" size="sm" onClick={() => navigate('/onboarding/artifacts')}>

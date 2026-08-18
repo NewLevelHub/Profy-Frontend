@@ -17,7 +17,7 @@ export interface StrengthsSectionProps {
 export function StrengthsSection({ cards }: StrengthsSectionProps) {
   return (
     <div>
-      <p className="font-mono text-tiny font-bold uppercase tracking-[.06em] text-muted mb-3">
+      <p className="font-mono text-tiny font-bold uppercase tracking-label text-muted mb-3">
         ТВОИ СИЛЬНЫЕ СТОРОНЫ
       </p>
 

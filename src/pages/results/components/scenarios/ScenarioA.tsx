@@ -38,7 +38,7 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
           {spheres.map((sphere, i) => (
             <Card key={sphere.code} className="flex flex-col gap-3">
               <div>
-                <p className="text-tiny font-mono font-bold uppercase tracking-[.06em] text-muted mb-1">
+                <p className="text-tiny font-mono font-bold uppercase tracking-label text-muted mb-1">
                   СФЕРА {String(i + 1).padStart(2, '0')}
                 </p>
                 <p className="font-extrabold text-primary" style={{ fontSize: 17 }}>{sphere.title}</p>
@@ -46,7 +46,7 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
               <div className="flex flex-col gap-2">
                 <div className="flex items-start gap-2">
                   <span
-                    className="text-tiny font-mono font-bold uppercase tracking-[.04em] flex-shrink-0 mt-0.5"
+                    className="text-tiny font-mono font-bold uppercase tracking-label flex-shrink-0 mt-0.5"
                     style={{ color: 'var(--pine)' }}
                   >
                     ПОПРОБОВАТЬ
@@ -55,7 +55,7 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
                 </div>
                 <div className="flex items-start gap-2">
                   <span
-                    className="text-tiny font-mono font-bold uppercase tracking-[.04em] flex-shrink-0 mt-0.5"
+                    className="text-tiny font-mono font-bold uppercase tracking-label flex-shrink-0 mt-0.5"
                     style={{ color: 'var(--lake)' }}
                   >
                     ПОНАБЛЮДАТЬ

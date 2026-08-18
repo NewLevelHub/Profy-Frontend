@@ -1,6 +1,7 @@
 import { Sparkles, Layers, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Mascot } from '@/shared/ui/Mascot';
+import { Heading } from '@/shared/ui/typography/Heading';
 import { RiasecIcon, type RiasecType } from '@/shared/ui/icons/RiasecIcon';
 import { RIASEC_LABELS, MI_LABELS, MI_ICONS } from '@/shared/config/constants';
 import type {
@@ -125,21 +126,18 @@ export function SharedDiagnosticCard({
     >
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted mb-2">
+          <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mb-2">
             {isJunior ? 'ОБЩАЯ ДИАГНОСТИКА' : 'ОБЩАЯ ДИАГНОСТИКА · ОДИНАКОВА ВО ВСЕХ ТРЁХ СЦЕНАРИЯХ'}
           </p>
           {headline && (
-            <h2
-              className="font-display font-semibold tracking-[-0.025em] text-[color:var(--midnight)] leading-tight"
-              style={{ fontSize: 32 }}
-            >
+            <Heading level="display-md" as="h2" className="text-[color:var(--midnight)]">
               {headline}
-            </h2>
+            </Heading>
           )}
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           {secondaryNote && (
-            <p className="font-mono text-[11px] text-muted text-right leading-snug max-w-[220px]">
+            <p className="font-mono text-mono-xs text-muted text-right leading-snug max-w-[220px]">
               также заметно: {secondaryNote}
             </p>
           )}
@@ -167,7 +165,7 @@ export function SharedDiagnosticCard({
 
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[20px] font-bold uppercase tracking-[.06em] text-accent">
+          <p className="font-mono text-body-lg font-bold uppercase tracking-label text-accent">
             СИЛЬНЫЕ СТОРОНЫ
           </p>
           {strengthCards.length === 0 ? (
@@ -186,10 +184,7 @@ export function SharedDiagnosticCard({
                     <Icon size={22} strokeWidth={1.75} className="text-primary" aria-hidden="true" />
                   </div>
                   <div>
-                    <p
-                      className="font-display font-semibold text-[color:var(--midnight)] leading-snug"
-                      style={{ fontSize: 19 }}
-                    >
+                    <p className="font-sans font-semibold text-body-lg text-[color:var(--midnight)] leading-snug">
                       {card.title}
                     </p>
                     <p className="text-body text-secondary leading-relaxed mt-1.5">{card.description}</p>
@@ -247,7 +242,7 @@ function FindingBlock({
     <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 flex flex-col gap-3">
       <p
         className={cn(
-          'font-mono text-[10px] font-bold uppercase tracking-[.06em]',
+          'font-mono text-mono-xs font-bold uppercase tracking-label',
           accent ? 'text-accent' : 'text-muted',
         )}
       >
@@ -265,10 +260,7 @@ function FindingBlock({
 function FindingItem({ title, detail }: { title: string; detail?: string }) {
   return (
     <div>
-      <p
-        className="font-display font-semibold text-[color:var(--midnight)] leading-snug"
-        style={{ fontSize: 17 }}
-      >
+      <p className="font-sans font-semibold text-body-md text-[color:var(--midnight)] leading-snug">
         {title}
       </p>
       {detail && <p className="text-caption text-muted leading-relaxed mt-0.5">{detail}</p>}
@@ -280,11 +272,11 @@ function TypeCell({ item, isJunior }: { item: InterestMapItem; isJunior: boolean
   return (
     <div className="bg-surface p-3 sm:p-4 flex flex-col items-center text-center gap-1.5">
       <TypeIcon item={item} isJunior={isJunior} />
-      <p className="text-[14px] font-semibold text-[color:var(--midnight)] leading-snug line-clamp-2">
+      <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug line-clamp-2">
         {item.sphere}
       </p>
       <p
-        className="font-mono uppercase tracking-[.06em]"
+        className="font-mono uppercase tracking-label"
         style={{ fontSize: 10, color: STATUS_COLOR[item.level] }}
       >
         {STATUS_LABEL[item.level]}

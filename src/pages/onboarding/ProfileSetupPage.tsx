@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { Button, Input, Mascot } from '@/shared/ui';
+import { Heading } from '@/shared/ui/typography/Heading';
 import { useProfileSetup, PROFILE_STEPS } from './hooks/useProfileSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
@@ -12,18 +13,6 @@ const SUBJECTS = [
 ];
 
 const AGES = Array.from({ length: 13 }, (_, i) => 6 + i); // 6–18
-
-// One heading size for every step — including the second question inside a
-// screen where two mobile steps were merged into one, so nothing implies
-// the merged question is a lesser sub-heading.
-const HEADING_STYLE = {
-  fontFamily: 'var(--font-display)',
-  fontWeight: 600,
-  fontSize: 28,
-  letterSpacing: '-0.02em',
-  lineHeight: 1.15,
-  color: 'var(--midnight)',
-} as const;
 
 // Each mascot pose is a separate PNG with its own canvas size and padding
 // around the character (measured via each sprite's alpha bounding box:
@@ -181,9 +170,9 @@ export default function ProfileSetupPage() {
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-6">
               <div className="flex items-start justify-between gap-4">
-                <h1 style={HEADING_STYLE}>
+                <Heading level="display-md">
                   Как тебя зовут?
-                </h1>
+                </Heading>
                 <Mascot state="welcome" size={MASCOT_WELCOME_SIZE} className="shrink-0" />
               </div>
 
@@ -200,9 +189,9 @@ export default function ProfileSetupPage() {
 
             <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
-                <h2 style={HEADING_STYLE}>
+                <Heading level="display-md" as="h2">
                   Сколько тебе лет?
-                </h2>
+                </Heading>
               </div>
 
               {/* Age picker — button row, 6–18 */}
@@ -235,9 +224,9 @@ export default function ProfileSetupPage() {
           <div className="flex flex-col gap-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 style={HEADING_STYLE}>
+                <Heading level="display-md">
                   Где ты учишься?
-                </h1>
+                </Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Класс и город — поможет точнее подобрать вопросы и рекомендации</p>
               </div>
               <Mascot state="transition" size={MASCOT_TRANSITION_SIZE} className="shrink-0" />
@@ -280,9 +269,9 @@ export default function ProfileSetupPage() {
           <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 style={HEADING_STYLE}>
+                <Heading level="display-md">
                   Какие предметы тебе нравятся?
-                </h1>
+                </Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Сколько хочешь — или ни одного</p>
               </div>
               <Mascot state="waiting" size={MASCOT_WAITING_SIZE} className="shrink-0" />
@@ -301,9 +290,9 @@ export default function ProfileSetupPage() {
           <div className="flex flex-col gap-8">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 style={HEADING_STYLE}>
+                <Heading level="display-md">
                   А как с остальными предметами?
-                </h1>
+                </Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Необязательно — но поможет точнее</p>
               </div>
               <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />

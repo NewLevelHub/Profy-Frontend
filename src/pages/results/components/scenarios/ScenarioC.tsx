@@ -55,7 +55,7 @@ export function ScenarioC({ careers, grade, subjectsEasy }: ScenarioCProps) {
       <Card className="flex items-start justify-between gap-4 flex-wrap bg-brand-subtle">
         <div>
           <span
-            className="inline-block font-mono text-[11px] font-bold uppercase tracking-[.06em] text-brand bg-surface rounded-pill px-3 py-1 mb-2"
+            className="inline-block font-mono text-mono-xs font-bold uppercase tracking-label text-brand bg-surface rounded-pill px-3 py-1 mb-2"
           >
             ПОСТУПИТЬ · {top.name}{admissionYear ? ` · ПРИЁМ ${admissionYear}` : ''}
           </span>
@@ -66,14 +66,14 @@ export function ScenarioC({ careers, grade, subjectsEasy }: ScenarioCProps) {
       </Card>
 
       <section aria-label="Направления под цель">
-        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-[.04em]">
+        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-label">
           01 · НАПРАВЛЕНИЯ ПОД ЦЕЛЬ
         </h3>
         <DirectionMatchList careers={sorted} excludeSlugs={[top.slug]} />
       </section>
 
       <section aria-label="Программы и вузы">
-        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-[.04em]">
+        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-label">
           02 · ПРОГРАММЫ И ВУЗЫ
         </h3>
         <Card className="flex items-center justify-between gap-4 flex-wrap">
@@ -90,7 +90,7 @@ export function ScenarioC({ careers, grade, subjectsEasy }: ScenarioCProps) {
       </section>
 
       <section aria-label="Предметы направления">
-        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-[.04em]">
+        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-label">
           03 · ПРЕДМЕТЫ НАПРАВЛЕНИЯ
         </h3>
         <SubjectsGapSection subjects={top.subjects_to_develop} subjectsEasy={subjectsEasy} />

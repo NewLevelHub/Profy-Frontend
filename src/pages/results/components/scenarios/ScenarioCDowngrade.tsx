@@ -32,7 +32,7 @@ export function ScenarioCDowngrade() {
     >
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <span
-          className="inline-block font-mono text-[11px] font-bold uppercase tracking-[.06em] rounded-pill px-3 py-1"
+          className="inline-block font-mono text-mono-xs font-bold uppercase tracking-label rounded-pill px-3 py-1"
           style={{ border: '1px dashed var(--lake)', color: 'var(--lake)' }}
         >
           СОКРАЩЁННАЯ ВЕРСИЯ · ПОЛНАЯ С 15 ЛЕТ
@@ -47,14 +47,14 @@ export function ScenarioCDowngrade() {
         {STEPS.map((step, i) => (
           <li key={step.title} className="flex items-start gap-3">
             <span
-              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-mono font-bold text-[13px]"
+              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-mono font-bold text-caption"
               style={{ border: '1.5px solid var(--lake)', color: 'var(--lake)' }}
               aria-hidden="true"
             >
               {i + 1}
             </span>
             <div>
-              <p className="text-tiny font-mono font-bold uppercase tracking-[.04em] text-muted">{step.when}</p>
+              <p className="text-tiny font-mono font-bold uppercase tracking-label text-muted">{step.when}</p>
               <p className="font-extrabold text-primary" style={{ fontSize: 15 }}>{step.title}</p>
               <p className="text-caption text-secondary leading-snug mt-0.5">{step.text}</p>
             </div>

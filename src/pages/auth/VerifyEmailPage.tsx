@@ -155,14 +155,14 @@ function OtpVerify({ email }: { email: string }) {
             aria-label="Код из письма"
           />
           {codeError && (
-            <p className="field-error-in text-[14px] text-danger mt-[8px]" role="alert">
+            <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
               {codeError}
             </p>
           )}
         </div>
 
         {formError && (
-          <p className="field-error-in text-[14px] text-danger text-center mt-[16px]">{formError}</p>
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
         )}
 
         <Button type="submit" isLoading={isLoading} disabled={!CODE_COMPLETE.test(code)} size="lg" className="w-full mt-[28px]">
@@ -172,14 +172,14 @@ function OtpVerify({ email }: { email: string }) {
 
       <div className="flex flex-col items-center gap-2 mt-[24px]">
         {resendCountdown > 0 ? (
-          <p className="font-mono text-[11px] tracking-[.08em] uppercase text-muted">
+          <p className="font-mono text-mono-xs tracking-label uppercase text-muted">
             Отправить заново через {resendCountdown}
           </p>
         ) : (
           <button
             type="button"
             onClick={handleResend}
-            className="font-mono text-[11px] tracking-[.08em] uppercase text-brand hover:opacity-70 transition-opacity"
+            className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity"
           >
             Отправить код повторно
           </button>
@@ -187,7 +187,7 @@ function OtpVerify({ email }: { email: string }) {
         {resendMessage && (
           <p className="text-small text-secondary text-center">{resendMessage}</p>
         )}
-        <p className="text-[13px] text-muted text-center mt-1">
+        <p className="text-caption text-muted text-center mt-1">
           Не пришло письмо? Проверьте папку «Спам».
         </p>
         <Link

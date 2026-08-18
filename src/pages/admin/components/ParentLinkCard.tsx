@@ -20,14 +20,14 @@ import { MONO_MUTE } from '@/shared/ui/admin/density';
 export function ParentLinkCard() {
   return (
     <div className="space-y-1.5">
-      <p className="text-[13px] leading-[1.35] text-secondary font-semibold">
+      <p className="text-caption leading-[1.35] text-secondary font-semibold">
         Связь с аккаунтом родителя не отдаётся ни одним admin-эндпоинтом сегодня —
         ни имени, ни email, ни id родителя, ни уровня доступа.
       </p>
       <p className={MONO_MUTE}>
         ДОСТУП РОДИТЕЛЯ: НЕТ ДАННЫХ
       </p>
-      <p className="text-[11px] text-muted leading-[1.35]">
+      <p className="text-mono-xs text-muted leading-[1.35]">
         Канонический список из 4 пунктов ("ДОСТУП РОДИТЕЛЯ") также ещё не существует
         на `/profile` — сверять здесь пока не с чем.
       </p>

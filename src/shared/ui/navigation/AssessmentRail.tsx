@@ -56,7 +56,7 @@ export function AssessmentRail({
               type="button"
               onClick={onBack}
               aria-label="Назад"
-              className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-secondary text-[18px] transition-colors hover:bg-brand-subtle flex-shrink-0"
+              className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-secondary text-body-lg leading-none transition-colors hover:bg-brand-subtle flex-shrink-0"
               style={{ boxShadow: 'var(--shadow-pop)' }}
             >
               ←
@@ -64,7 +64,7 @@ export function AssessmentRail({
           ) : (
             <div className="w-[38px] h-[38px] flex-shrink-0" />
           )}
-          <span className="font-extrabold text-primary truncate" style={{ fontSize: 15 }}>
+          <span className="font-extrabold text-primary truncate text-body-sm">
             {title}
           </span>
         </div>
@@ -78,7 +78,7 @@ export function AssessmentRail({
               disabled={devAutofill.loading}
               aria-label="Автозаполнить тест (dev)"
               title="Автозаполнить тест случайными ответами (только в dev)"
-              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-[13px] font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-caption font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
               style={{ boxShadow: 'var(--shadow-pop)' }}
             >
               {devAutofill.loading ? '…' : '⚡ Автозаполнить'}
@@ -104,8 +104,8 @@ export function AssessmentRail({
             type="button"
             onClick={onExit}
             aria-label="Выйти из теста"
-            className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
-            style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)', fontSize: 16 }}
+            className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
+            style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)' }}
           >
             ✕
           </button>
@@ -114,7 +114,7 @@ export function AssessmentRail({
 
       <div className="w-full max-w-7xl mx-auto">
         <Spine value={progress} ariaLabel={progressAriaLabel} flat />
-        <div className="flex justify-between mt-2 mx-0.5" style={{ fontSize: 12 }}>
+        <div className="flex justify-between mt-2 mx-0.5 text-mono-sm">
           <span className="font-bold text-muted">{sectionLabel}</span>
           <span className="font-bold text-muted">{Math.round(progress)}%</span>
         </div>

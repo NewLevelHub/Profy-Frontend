@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { Button } from '@/shared/ui/Button';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { ConfettiBlast } from './components/ConfettiBlast';
 
@@ -87,8 +89,12 @@ export default function PraisePage() {
             {isLast ? '🏆' : '⭐'}
           </span>
 
-          <h1 className="font-black text-primary mb-2 tracking-[-0.01em]" style={{ fontSize: 44 }}>{title}</h1>
-          <p className="font-semibold mb-[14px]" style={{ fontSize: 18, color: '#6B7280' }}>{subtitle}</p>
+          <Heading level="display-lg" className="text-primary mb-2">
+            {title}
+          </Heading>
+          <Text variant="body-lg" className="font-semibold text-secondary mb-[14px]">
+            {subtitle}
+          </Text>
 
           {/* Будущая интеграция: бейдж с начисленными XP после каждого блока */}
           {/* {!isLast && (

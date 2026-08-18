@@ -29,7 +29,7 @@ export function DirectionVerdictCard({ directionName, inquiryPath }: DirectionVe
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted">
+      <span className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
         Подходит ли тебе это — вердикт
       </span>
 
@@ -43,12 +43,12 @@ export function DirectionVerdictCard({ directionName, inquiryPath }: DirectionVe
         }}
       >
         <p
-          className="font-display font-semibold text-[24px] leading-snug"
+          className="font-sans font-semibold text-body-lg leading-snug"
           style={{ color: 'var(--pine)' }}
         >
           Сверься с направлением
         </p>
-        <p className="text-[16px] text-primary leading-relaxed">
+        <p className="text-body-md text-primary leading-relaxed">
           Ты уже проходил опрос по «{directionName}» — вывод показывается сразу после ответов
           и не сохраняется здесь. Пройди его ещё раз за пару минут, если хочешь свежий взгляд
           на то, что совпадает, а что расходится.

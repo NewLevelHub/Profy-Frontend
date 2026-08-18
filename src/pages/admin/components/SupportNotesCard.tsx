@@ -29,7 +29,7 @@ export function SupportNotesCard({ role }: { role: AdminRole }) {
 
   return (
     <div className="space-y-2.5">
-      <p className="text-[13px] leading-[1.35] text-secondary font-semibold">
+      <p className="text-caption leading-[1.35] text-secondary font-semibold">
         Заметок пока нет — история заметок по пользователю не ведётся бэкендом.
       </p>
       {role === 'administrator' ? (

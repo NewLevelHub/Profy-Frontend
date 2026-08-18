@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <label
             htmlFor={inputId}
             className={cn(
-              'font-mono text-[11px] tracking-[.1em] uppercase transition-colors mb-1',
+              'font-mono text-mono-xs tracking-label uppercase transition-colors mb-1',
               error ? 'text-danger' : 'text-muted',
             )}
           >
@@ -29,7 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            'w-full bg-transparent border-0 border-b-[1.5px] px-0 py-[9px] text-[16px] text-primary rounded-none',
+            'w-full bg-transparent border-0 border-b-[1.5px] px-0 py-[9px] text-body-md font-book text-primary rounded-none',
             'placeholder:text-placeholder',
             'focus:outline-none',
             'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -42,7 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <p id={`${inputId}-error`} className="field-error-in text-[14px] text-danger mt-[8px]" role="alert">
+          <p id={`${inputId}-error`} className="field-error-in text-body-sm font-book text-danger mt-[8px]" role="alert">
             {error}
           </p>
         )}

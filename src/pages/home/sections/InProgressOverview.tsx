@@ -1,6 +1,8 @@
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Spine } from '@/shared/ui/Spine';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 import { KICKER_CLASS } from './HomeFrame';
 
 interface InProgressOverviewProps {
@@ -25,17 +27,12 @@ export function InProgressOverview({ answeredCount, totalQuestions, onContinue }
       <div className="flex items-start justify-between gap-5 flex-wrap">
         <div className="flex flex-col gap-2 min-w-0 flex-1">
           <span className={KICKER_CLASS}>ДИАГНОСТИКА · В ПРОЦЕССЕ</span>
-          <h1
-            style={{
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 34,
-              letterSpacing: 'var(--tracking-tight)', lineHeight: 'var(--leading-tight)', color: 'var(--midnight)',
-            }}
-          >
+          <Heading level="display-lg" className="text-[color:var(--midnight)]">
             Ты уже в пути
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--mute)', maxWidth: '52ch' }}>
+          </Heading>
+          <Text variant="body-sm" className="text-muted max-w-[52ch]">
             Отвечено {answeredCount} из {totalQuestions} вопросов — можно продолжить в любой момент
-          </p>
+          </Text>
         </div>
         <Mascot state="transition" size={88} className="flex-shrink-0" />
       </div>

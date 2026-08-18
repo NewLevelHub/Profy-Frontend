@@ -108,7 +108,7 @@ function SortableCard({ statement, index, disabled }: SortableCardProps) {
         {index + 1}
       </span>
       <span className="flex-1 flex flex-col gap-2">
-        <span className="font-bold text-primary leading-snug" style={{ fontSize: 16 }}>
+        <span className="font-bold text-primary leading-snug text-body-md">
           {statement.text}
         </span>
         {role.pill && (
@@ -205,7 +205,7 @@ export const TripletRanking = React.memo(function TripletRanking({
             >
               {activeIndex + 1}
             </span>
-            <span className="flex-1 font-bold text-primary leading-snug" style={{ fontSize: 16 }}>
+            <span className="flex-1 font-bold text-primary leading-snug text-body-md">
               {activeStatement.text}
             </span>
             <GripVertical className="w-5 h-5 flex-none" style={{ color: 'var(--text-subtle)' }} aria-hidden />

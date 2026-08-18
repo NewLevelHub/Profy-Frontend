@@ -11,7 +11,7 @@ import { useProfileStore } from '@/shared/store/profile';
 
 function SectionTitle({ icon, children }: { icon: string; children: string }) {
   return (
-    <h3 className="text-[15px] font-bold text-primary flex items-center gap-2 mb-3">
+    <h3 className="text-body-sm font-bold text-primary flex items-center gap-2 mb-3">
       <span aria-hidden="true">{icon}</span>
       {children}
     </h3>

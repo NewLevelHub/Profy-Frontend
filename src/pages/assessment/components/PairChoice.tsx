@@ -37,7 +37,7 @@ function PairCard({
       style={{ borderRadius: 18 }}
     >
       {option.icon && <span style={{ fontSize: 44, lineHeight: 1 }}>{option.icon}</span>}
-      <span className="font-bold text-primary text-center leading-snug" style={{ fontSize: 17 }}>
+      <span className="font-bold text-primary text-center text-body-md">
         {option.text}
       </span>
     </button>
@@ -54,7 +54,7 @@ export const PairChoice = React.memo(function PairChoice({
   return (
     <div className="flex flex-col gap-5">
       {frame && (
-        <p className="font-semibold text-secondary text-center leading-snug" style={{ fontSize: 15 }}>
+        <p className="font-semibold text-secondary text-center text-body-sm">
           {frame}
         </p>
       )}

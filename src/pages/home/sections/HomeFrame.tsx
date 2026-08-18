@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { type as typeClass } from '@/shared/ui/typography/tokens';
 
 /**
  * "/home" — spec §04. ONE unified home page for every age; age differences
@@ -30,4 +31,4 @@ export function HomeFrame({ children }: { children: ReactNode }) {
 
 /** Shared mono kicker style for section labels ("БЛИЖАЙШИЙ ШАГ" etc.) — matches the
  *  convention already established on GoalSelectionPage/GoalCheckPage/RestStopPage. */
-export const KICKER_CLASS = 'font-mono text-[11px] tracking-[.1em] uppercase text-muted';
+export const KICKER_CLASS = `${typeClass.monoLabel} text-muted`;

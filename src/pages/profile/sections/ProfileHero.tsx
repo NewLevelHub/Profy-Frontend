@@ -1,4 +1,6 @@
 import { Mascot } from '@/shared/ui/Mascot';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { type as typeClass } from '@/shared/ui/typography/tokens';
 
 export interface ProfileHeroProps {
   isJunior: boolean;
@@ -27,15 +29,12 @@ export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroPr
         style={{ background: 'var(--bg-page)' }}
       >
         <div className="flex-1 order-2 sm:order-1">
-          <p className="font-mono text-tiny font-bold uppercase tracking-[.06em] text-muted mb-2">
+          <p className={`${typeClass.monoLabel} text-muted mb-2`}>
             /profile{age ? ` · ${age} ЛЕТ` : ''} · «МОИ ШТУКИ»
           </p>
-          <p
-            className="font-display text-primary"
-            style={{ fontSize: 34, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1.1 }}
-          >
+          <Heading level="display-lg" as="p" className="text-primary">
             {displayName}{age ? `, ${age} лет` : ''}
-          </p>
+          </Heading>
         </div>
         <div className="order-1 sm:order-2 flex-shrink-0 self-center">
           <Mascot state="welcome" size={88} />
@@ -50,13 +49,10 @@ export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroPr
       style={{ background: 'var(--bg-page)' }}
     >
       <div className="flex-1 min-w-0 order-2 sm:order-1">
-        <p
-          className="font-display text-primary"
-          style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1.1 }}
-        >
+        <Heading level="display-md" as="p" className="text-primary">
           {displayName}
-        </p>
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted mt-1.5">
+        </Heading>
+        <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mt-1.5">
           {[age ? `${age} ЛЕТ` : null, grade ? `${grade} КЛАСС` : null].filter(Boolean).join(' · ')}
         </p>
       </div>

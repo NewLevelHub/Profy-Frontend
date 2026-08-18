@@ -32,7 +32,7 @@ export function AdminLayout() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-5">
-          <span className="font-display font-semibold text-[15px] text-primary tracking-[-0.01em]">
+          <span className="font-display text-caption font-semibold text-primary">
             Profy
           </span>
           <nav className="flex items-center gap-1">

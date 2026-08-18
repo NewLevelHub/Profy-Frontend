@@ -1,11 +1,13 @@
 import { cn } from '@/shared/lib/cn';
-import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 import { useAssessment } from './hooks/useAssessment';
 import { LikertPage } from './components/LikertPage';
 import { PairChoice } from './components/PairChoice';
 import { ExitAssessmentModal } from './components/ExitAssessmentModal';
+import { AssessmentIntro } from './components/AssessmentIntro';
 
 export default function AssessmentPage() {
   const {
@@ -67,45 +69,16 @@ export default function AssessmentPage() {
           </div>
         )}
         {phase === 'intro' && (
-          <>
-            <div
-              className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-[130px] lg:pb-8"
-              style={{ animation: 'fade-in-up 0.5s ease both' }}
-            >
-              <span className="inline-block mb-[18px]" role="img" aria-hidden style={{ fontSize: 74, animation: 'pf-float 3s ease-in-out infinite' }}>🧭</span>
-              <span className="inline-block bg-brand-subtle text-brand font-extrabold px-[18px] py-[7px] rounded-pill mb-[22px]" style={{ fontSize: 14 }}>
-                Диагностика
-              </span>
-              <h2 className="font-black text-primary mb-[14px] tracking-[-0.02em]" style={{ fontSize: 44 }}>
-                Узнаем твои склонности
-              </h2>
-              <p className="font-semibold leading-relaxed mb-[30px]" style={{ fontSize: 19, color: '#6B7280' }}>
-                Отвечай честно: правильных и неправильных ответов здесь нет
-              </p>
-              <div className="flex items-center justify-center gap-[18px] font-bold" style={{ fontSize: 14, color: '#9CA3AF' }}>
-                <span className="inline-flex items-center gap-[6px]">📝 {totalItems} вопросов</span>
-                <span className="w-[4px] h-[4px] rounded-full" style={{ background: 'var(--hairline)' }} />
-                <span className="inline-flex items-center gap-[6px]">⏱ ~{Math.max(1, Math.ceil(totalItems / 20))} мин</span>
-              </div>
-            </div>
-
-            <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center lg:static lg:px-8 lg:pb-8">
-              <Button
-                onClick={handleStartIntro}
-                size="lg"
-                className="w-full max-w-[560px] lg:max-w-md rounded-pill"
-                style={{
-                  height: 60,
-                  fontSize: 18,
-                  fontWeight: 800,
-                  background: 'var(--brand)',
-                  animation: 'pf-pulse 2.4s infinite',
-                }}
-              >
-                Начать тест
-              </Button>
-            </div>
-          </>
+          <AssessmentIntro
+            emoji="🧭"
+            kicker="Диагностика"
+            title="Узнаем твои склонности"
+            subtitle="Отвечай честно: правильных и неправильных ответов здесь нет"
+            itemCountLabel={`📝 ${totalItems} вопросов`}
+            durationLabel={`⏱ ~${Math.max(1, Math.ceil(totalItems / 20))} мин`}
+            ctaLabel="Начать тест"
+            onStart={handleStartIntro}
+          />
         )}
 
         {phase === 'question' && (
@@ -145,12 +118,9 @@ export default function AssessmentPage() {
                     transitioning ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  <h2
-                    className="font-black text-primary mb-8 leading-snug tracking-[-0.01em] text-subtitle text-center"
-                    style={{ fontSize: 28 }}
-                  >
+                  <Heading level="display-md" as="h2" className="text-primary mb-8 text-center">
                     Что тебе ближе?
-                  </h2>
+                  </Heading>
                   <PairChoice
                     frame={currentPair.frame}
                     optionA={currentPair.option_a}
@@ -164,9 +134,9 @@ export default function AssessmentPage() {
 
             {currentLikertQuestions !== undefined && (
               <div className="px-3 py-5 sm:px-4 lg:px-6" style={{ borderTop: '1px solid var(--line)' }}>
-                <p className="text-[15px]" style={{ color: 'var(--mute)' }}>
+                <Text variant="body-sm" className="text-muted">
                   Нет неправильных ответов
-                </p>
+                </Text>
               </div>
             )}
           </div>

@@ -144,7 +144,7 @@ export default function ResetPasswordPage() {
             aria-label="Код из письма"
           />
           {codeError && (
-            <p className="field-error-in text-[14px] text-danger mt-[8px]" role="alert">
+            <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
               {codeError}
             </p>
           )}
@@ -194,7 +194,7 @@ export default function ResetPasswordPage() {
         </div>
 
         {formError && (
-          <p className="field-error-in text-[14px] text-danger text-center mt-[16px]">{formError}</p>
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
         )}
 
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[28px]">
@@ -207,7 +207,7 @@ export default function ResetPasswordPage() {
           type="button"
           onClick={handleResend}
           disabled={resendDisabled}
-          className="font-mono text-[11px] tracking-[.08em] uppercase text-brand hover:opacity-70 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Отправить код повторно
         </button>

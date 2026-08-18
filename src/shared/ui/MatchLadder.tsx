@@ -86,8 +86,8 @@ export function MatchLadder({ level, showLabel = true, size = 'md', className }:
       {showLabel && (
         <span
           className={cn(
-            'font-mono uppercase tracking-[.04em] font-bold whitespace-nowrap',
-            size === 'sm' ? 'text-[10px]' : 'text-[11px]',
+            'font-mono uppercase tracking-label font-bold whitespace-nowrap',
+            size === 'sm' ? 'text-mono-xs' : 'text-mono-xs',
           )}
           style={{ color: filledColor }}
         >

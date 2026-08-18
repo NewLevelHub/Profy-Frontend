@@ -30,7 +30,7 @@ function ProgramDetailSkeleton() {
 
 function SectionHeadingLocal({ children }: { children: string }) {
   return (
-    <h3 className="text-[18px] font-black text-primary mb-2.5">{children}</h3>
+    <h3 className="text-body-lg font-black text-primary mb-2.5">{children}</h3>
   );
 }
 
@@ -44,8 +44,8 @@ function RequirementsTable({ data }: { data: Record<string, unknown> }) {
           key={key}
           className={`flex items-center justify-between gap-4 px-5 py-3.5 ${i > 0 ? 'border-t border-default' : ''}`}
         >
-          <span className="text-[15px] font-semibold text-secondary">{localizeKey(key)}</span>
-          <span className="text-[15px] font-extrabold text-primary text-right">{toDisplayString(value)}</span>
+          <span className="text-body-sm font-semibold text-secondary">{localizeKey(key)}</span>
+          <span className="text-body-sm font-extrabold text-primary text-right">{toDisplayString(value)}</span>
         </div>
       ))}
     </div>
@@ -62,8 +62,8 @@ function DeadlinesGrid({ data }: { data: Record<string, unknown> }) {
           key={key}
           className="bg-surface border border-default rounded-[var(--radius)] px-[18px] py-4 shadow-card"
         >
-          <div className="text-[13px] font-bold text-muted mb-1">{localizeKey(key)}</div>
-          <div className="text-[17px] font-black text-primary">{toDisplayString(value)}</div>
+          <div className="text-caption font-bold text-muted mb-1">{localizeKey(key)}</div>
+          <div className="text-body-md font-black text-primary">{toDisplayString(value)}</div>
         </div>
       ))}
     </div>
@@ -78,7 +78,7 @@ export default function ProgramDetailPage() {
     <PageContainer className="space-y-6">
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-brand text-[15px] font-extrabold hover:opacity-70 transition-opacity"
+        className="inline-flex items-center gap-2 text-brand text-body-sm font-extrabold hover:opacity-70 transition-opacity"
       >
         <ArrowLeft className="w-4 h-4" />
         Назад
@@ -108,14 +108,14 @@ export default function ProgramDetailPage() {
             {program.description && program.description.length > 0 && (
               <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card">
                 <SectionHeadingLocal>📋 Описание</SectionHeadingLocal>
-                <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0">{program.description}</p>
+                <p className="text-body-sm text-secondary font-semibold leading-relaxed m-0">{program.description}</p>
               </div>
             )}
 
             {program.who_its_for && program.who_its_for.length > 0 && (
               <div className="bg-brand-subtle rounded-[var(--radius)] p-6">
                 <SectionHeadingLocal>🎯 Для кого</SectionHeadingLocal>
-                <p className="text-[15px] text-secondary font-semibold leading-relaxed m-0">{program.who_its_for}</p>
+                <p className="text-body-sm text-secondary font-semibold leading-relaxed m-0">{program.who_its_for}</p>
               </div>
             )}
           </div>
@@ -165,13 +165,13 @@ export default function ProgramDetailPage() {
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               onClick={() => navigate(-1)}
-              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-brand text-on-brand text-[17px] font-extrabold cursor-pointer hover:bg-brand-hover transition-colors"
+              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-brand text-on-brand text-body-md font-extrabold cursor-pointer hover:bg-brand-hover transition-colors"
             >
               🎓 Посмотреть университеты
             </button>
             <button
               onClick={() => navigate('/results')}
-              className="flex-1 min-w-[200px] h-[58px] border-[1.5px] border-brand rounded-pill bg-surface text-brand text-[17px] font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors"
+              className="flex-1 min-w-[200px] h-[58px] border-[1.5px] border-brand rounded-pill bg-surface text-brand text-body-md font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors"
             >
               Назад к результатам
             </button>

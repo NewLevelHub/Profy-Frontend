@@ -154,11 +154,11 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
                     style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
                   />
                 </div>
-                <span className="font-mono text-[11px] text-secondary w-8 text-right">{Math.round(value)}</span>
+                <span className="font-mono text-mono-xs text-secondary w-8 text-right">{Math.round(value)}</span>
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-muted leading-[1.35]">
+          <p className="text-mono-xs text-muted leading-[1.35]">
             Необработанные баллы и буквы RIASEC показываются только здесь — ни `/home` ("ЧТО ТЕБЕ БЛИЖЕ"),
             ни `/results` не должны раскрывать эти значения (см. frontend-result-api-contract.md).
           </p>

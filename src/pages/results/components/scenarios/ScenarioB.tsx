@@ -84,7 +84,7 @@ export function ScenarioB({ careers }: ScenarioBProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <p
-                className="text-tiny font-mono font-bold uppercase tracking-[.04em] mb-2"
+                className="text-tiny font-mono font-bold uppercase tracking-label mb-2"
                 style={{ color: 'var(--pine)' }}
               >
                 УЖЕ РАБОТАЕТ В ПОЛЬЗУ ЦЕЛИ
@@ -97,7 +97,7 @@ export function ScenarioB({ careers }: ScenarioBProps) {
             </div>
             <div>
               <p
-                className="text-tiny font-mono font-bold uppercase tracking-[.04em] mb-2"
+                className="text-tiny font-mono font-bold uppercase tracking-label mb-2"
                 style={{ color: 'var(--dawn)' }}
               >
                 ПРОВЕРИТЬ ДЕЙСТВИЕМ
@@ -109,7 +109,7 @@ export function ScenarioB({ careers }: ScenarioBProps) {
             </div>
             <div>
               <p
-                className="text-tiny font-mono font-bold uppercase tracking-[.04em] mb-2"
+                className="text-tiny font-mono font-bold uppercase tracking-label mb-2"
                 style={{ color: 'var(--lake)' }}
               >
                 РЯДОМ С ЦЕЛЬЮ · ТА ЖЕ СИЛЬНАЯ СТОРОНА
@@ -139,7 +139,7 @@ export function ScenarioB({ careers }: ScenarioBProps) {
       )}
 
       <section aria-label="Направления и профессии под цель">
-        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-[.04em]">
+        <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-label">
           НАПРАВЛЕНИЯ И ПРОФЕССИИ ПОД ЦЕЛЬ
         </h3>
         <DirectionMatchList careers={sorted} excludeSlugs={[top.slug]} />

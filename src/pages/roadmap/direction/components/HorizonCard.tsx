@@ -42,14 +42,14 @@ export const HorizonCard = memo(function HorizonCard({
     >
       <span
         className={cn(
-          'font-mono text-[11px] font-bold uppercase tracking-[.06em]',
+          'font-mono text-mono-xs font-bold uppercase tracking-label',
           isFirst ? 'text-accent' : isLast ? 'text-brand' : 'text-muted',
         )}
       >
         {kicker}
       </span>
 
-      <h3 className="font-display font-medium text-body leading-snug text-primary">
+      <h3 className="font-sans font-semibold text-body-lg leading-snug text-primary">
         {stage.title}
       </h3>
 

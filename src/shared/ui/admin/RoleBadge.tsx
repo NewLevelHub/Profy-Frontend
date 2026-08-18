@@ -22,7 +22,7 @@ export function RoleBadge({ role, className }: RoleBadgeProps) {
       <span
         tabIndex={0}
         className={cn(
-          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill font-mono text-[11px] font-extrabold uppercase tracking-[.06em] leading-tight',
+          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill font-mono text-mono-xs font-extrabold uppercase tracking-label leading-tight',
           'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
           isAdministrator ? 'bg-brand-subtle text-brand' : 'bg-warning-subtle text-warning',
           className,

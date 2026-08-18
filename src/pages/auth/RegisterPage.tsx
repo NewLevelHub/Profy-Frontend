@@ -103,14 +103,14 @@ export default function RegisterPage() {
         </div>
 
         {formError && (
-          <p className="field-error-in text-[14px] text-danger text-center mt-[16px]">{formError}</p>
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
         )}
 
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[34px]">
           {isLoading ? 'Регистрируемся...' : 'Зарегистрироваться'}
         </Button>
 
-        <div className="text-center mt-[20px] text-[14px]">
+        <div className="text-center mt-[20px] text-body-sm">
           <span className="text-muted">Уже есть аккаунт? </span>
           <Link to="/login" className="text-brand underline underline-offset-2 hover:opacity-70 transition-opacity">
             Войти

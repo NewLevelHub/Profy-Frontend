@@ -41,7 +41,7 @@ const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCard
   return (
     <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card flex flex-col h-full">
       <div className="flex items-start justify-between gap-3 mb-1">
-        <h3 className="text-[21px] font-black leading-snug text-primary m-0">{program.name}</h3>
+        <h3 className="text-display-sm font-black leading-snug text-primary m-0">{program.name}</h3>
         <span className="shrink-0 bg-brand-subtle text-brand text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
           {program.university.country}
         </span>
@@ -50,12 +50,12 @@ const ProgramCard = memo(function ProgramCard({ program, onSelect }: ProgramCard
       <div className="text-base font-semibold text-muted mb-3">{program.university.name}</div>
 
       {program.description && program.description.length > 0 && (
-        <p className="text-[15px] font-semibold text-secondary leading-relaxed mb-4 flex-1">
+        <p className="text-body-sm font-semibold text-secondary leading-relaxed mb-4 flex-1">
           {program.description.length > 120 ? program.description.slice(0, 120) + '...' : program.description}
         </p>
       )}
 
-      <div className="flex gap-4 flex-wrap mb-4 text-[15px] font-bold text-secondary">
+      <div className="flex gap-4 flex-wrap mb-4 text-body-sm font-bold text-secondary">
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">💰 {formatCost(program.cost_per_year)}</span>
       </div>

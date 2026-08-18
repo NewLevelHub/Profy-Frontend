@@ -22,7 +22,7 @@ export function AlertTicketCard({ role }: { role: AdminRole }) {
         <AlertTriangle size={14} className="text-[color:var(--dawn)]" />
         <span className={MONO_MUTE}>ТРЕВОГА</span>
       </div>
-      <p className="text-[13px] leading-[1.35] text-secondary font-semibold">
+      <p className="text-caption leading-[1.35] text-secondary font-semibold">
         Открытых тикетов нет — бэкенд ещё не отдаёт alert-тикеты по пользователю
         (нет ни эндпоинта, ни данных для id/статуса/исполнителя).
       </p>
@@ -42,7 +42,7 @@ export function AlertTicketCard({ role }: { role: AdminRole }) {
           </span>
         </Tooltip>
       </div>
-      <p className="text-[11px] text-muted leading-[1.35]">
+      <p className="text-mono-xs text-muted leading-[1.35]">
         {role === 'operator' ? 'Доступно вашей роли (Оператор): ' : ''}
         Комментарий к закрытию попадёт в журнал изменений («История изменений» ниже) —
         как только появится реальный тикет и эндпоинт.

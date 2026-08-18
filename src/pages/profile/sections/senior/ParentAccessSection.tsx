@@ -38,7 +38,7 @@ export function ParentAccessSection() {
   return (
     <Card className="border-l-4 p-0 overflow-hidden" style={{ borderLeftColor: 'var(--dawn)' }}>
       <div className="p-4 sm:p-6">
-        <p className="font-mono text-tiny font-bold uppercase tracking-[.06em] text-muted mb-2">
+        <p className="font-mono text-tiny font-bold uppercase tracking-label text-muted mb-2">
           ДОСТУП РОДИТЕЛЯ · УПРАВЛЯЕШЬ ТОЛЬКО ТЫ
         </p>
         <p className="text-caption text-secondary leading-relaxed">

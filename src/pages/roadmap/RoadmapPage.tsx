@@ -20,28 +20,28 @@ function HorizonCard({
       className="w-full text-left rounded-[var(--radius)] p-4 transition-all active:scale-[0.98] bg-surface border-[1.5px] border-default hover:border-brand/40"
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="font-black text-brand text-[13px]">
+        <span className="font-black text-brand text-caption">
           {ROADMAP_HORIZON_LABELS[milestone.horizon] ?? milestone.horizon}
         </span>
         <span className="font-semibold text-muted text-xs">
           {milestone.tasks.length} задач
         </span>
       </div>
-      <p className="font-bold text-text text-[15px] leading-snug">
+      <p className="font-bold text-text text-body-sm leading-snug">
         {milestone.title}
       </p>
       <div className="flex gap-1.5 mt-2 flex-wrap">
         {milestone.tasks.slice(0, 3).map((task, i) => (
           <span
             key={i}
-            className="font-semibold text-[11px] text-brand bg-brand-subtle rounded-pill px-2 py-0.5"
+            className="font-semibold text-mono-xs text-brand bg-brand-subtle rounded-pill px-2 py-0.5"
           >
             {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'}{' '}
             {task.text.length > 28 ? task.text.slice(0, 28) + '…' : task.text}
           </span>
         ))}
         {milestone.tasks.length > 3 && (
-          <span className="font-semibold text-muted text-[11px] px-2 py-0.5">
+          <span className="font-semibold text-muted text-mono-xs px-2 py-0.5">
             +{milestone.tasks.length - 3} ещё
           </span>
         )}
@@ -75,7 +75,7 @@ function MilestoneView({
           {ROADMAP_HORIZON_LABELS[milestone.horizon] ?? milestone.horizon}
         </span>
       </div>
-      <h2 className="font-black text-text mb-5 text-[22px] leading-tight">
+      <h2 className="font-black text-text mb-5 text-display-sm leading-tight">
         {milestone.title}
       </h2>
 
@@ -88,19 +88,19 @@ function MilestoneView({
               className="rounded-[var(--radius)] p-4 bg-raised border-[1.5px] border-default"
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 flex items-center justify-center rounded-full font-black text-on-brand w-9 h-9 text-[15px] bg-brand">
+                <div className="flex-shrink-0 flex items-center justify-center rounded-full font-black text-on-brand w-9 h-9 text-body-sm bg-brand">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-text text-[15px] leading-snug mb-1">
+                  <p className="font-black text-text text-body-sm leading-snug mb-1">
                     {task.text}
                   </p>
                   {task.description && (
-                    <p className="text-muted font-medium text-[13px] leading-relaxed">
+                    <p className="text-muted font-medium text-caption leading-relaxed">
                       {task.description}
                     </p>
                   )}
-                  <span className="inline-block mt-2 font-semibold text-[11px] text-brand bg-brand-subtle rounded-pill px-2 py-0.5">
+                  <span className="inline-block mt-2 font-semibold text-mono-xs text-brand bg-brand-subtle rounded-pill px-2 py-0.5">
                     {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'} {task.category}
                   </span>
                 </div>
@@ -146,7 +146,7 @@ function RoadmapEmptyState({
           type="button"
           onClick={onAction}
           disabled={disabled}
-          className="font-black text-on-brand rounded-[var(--radius)] px-6 py-3 bg-brand text-[15px] disabled:opacity-60"
+          className="font-black text-on-brand rounded-[var(--radius)] px-6 py-3 bg-brand text-body-sm disabled:opacity-60"
         >
           {actionLabel}
         </button>

@@ -44,7 +44,7 @@ export function AccountAccessSection({ email, grade }: AccountAccessSectionProps
 
   return (
     <div>
-      <p className="font-mono text-tiny font-bold uppercase tracking-[.06em] text-muted mb-3">
+      <p className="font-mono text-tiny font-bold uppercase tracking-label text-muted mb-3">
         ДАННЫЕ И ВХОД
       </p>
       <Card className="p-0 overflow-hidden">
@@ -97,7 +97,7 @@ function Row({
       style={divider ? { borderTop: '1px solid var(--hairline)' } : undefined}
     >
       <div>
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted mb-0.5">
+        <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mb-0.5">
           {label}
         </p>
         <p className="text-label font-medium" style={{ color: 'var(--midnight)' }}>

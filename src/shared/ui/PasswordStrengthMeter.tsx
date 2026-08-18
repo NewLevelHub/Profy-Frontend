@@ -51,7 +51,7 @@ export function PasswordStrengthMeter({ password, className }: PasswordStrengthM
           />
         ))}
       </div>
-      <p className="font-mono text-[11px] tracking-[.08em] uppercase text-muted mt-1.5">
+      <p className="font-mono text-mono-xs tracking-label uppercase text-muted mt-1.5">
         {label} · {password.length} {pluralCharacters(password.length)}
       </p>
     </div>

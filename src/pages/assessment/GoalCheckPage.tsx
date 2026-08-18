@@ -1,5 +1,8 @@
 import { Navigate } from 'react-router';
 import { Button, Mascot } from '@/shared/ui';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
+import { type as typeClass } from '@/shared/ui/typography/tokens';
 import { useGoalCheck } from './hooks/useGoalCheck';
 
 // Step 5 of the onboarding→assessment journey: shown right after the
@@ -33,17 +36,14 @@ export default function GoalCheckPage() {
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
             <Mascot state="transition" size={96} className="shrink-0" />
             <div>
-              <h1
-                className="mt-2"
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 32, letterSpacing: '-0.02em', lineHeight: 1.12, color: 'var(--midnight)' }}
-              >
+              <Heading level="display-md" className="mt-2 text-[color:var(--midnight)]">
                 Кажется, я понял, что тебе близко
-              </h1>
-              <p className="text-body mt-2" style={{ color: 'var(--mute)' }}>
+              </Heading>
+              <Text variant="body-md" className="text-muted mt-2">
                 {showsCareers
                   ? 'По твоим ответам эти направления подходят тебе больше всего'
                   : 'По твоим ответам вот что тебе особенно интересно'}
-              </p>
+              </Text>
             </div>
           </div>
 
@@ -58,13 +58,13 @@ export default function GoalCheckPage() {
                   border: '1px solid color-mix(in srgb, var(--pine) 35%, var(--border))',
                 }}
               >
-                <span className="font-mono text-[10px] uppercase tracking-[.08em]" style={{ color: 'var(--pine)' }}>
+                <span className={typeClass.monoLabel} style={{ color: 'var(--pine)' }}>
                   Похоже больше всего
                 </span>
-                <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 19, color: 'var(--midnight)' }}>
+                <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
                   {suggestions[0].title}
                 </p>
-                <p className="text-[15px]" style={{ color: 'var(--mute)' }}>{suggestions[0].subtitle}</p>
+                <p className={`${typeClass.bodySm} text-muted`}>{suggestions[0].subtitle}</p>
               </div>
             )}
 
@@ -74,13 +74,13 @@ export default function GoalCheckPage() {
                 className="flex flex-col gap-1.5 px-5 py-4"
                 style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
               >
-                <span className="font-mono text-[10px] uppercase tracking-[.08em] text-muted">
+                <span className={`${typeClass.monoLabel} text-muted`}>
                   Тоже подходит
                 </span>
-                <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 19, color: 'var(--midnight)' }}>
+                <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
                   {suggestions[1].title}
                 </p>
-                <p className="text-[15px]" style={{ color: 'var(--mute)' }}>{suggestions[1].subtitle}</p>
+                <p className={`${typeClass.bodySm} text-muted`}>{suggestions[1].subtitle}</p>
               </div>
             )}
 
@@ -92,19 +92,19 @@ export default function GoalCheckPage() {
               className="flex flex-col gap-1.5 px-5 py-4 text-left transition-colors hover:bg-hover"
               style={{ background: 'transparent', borderRadius: 'var(--radius)', border: '1.5px dashed var(--hairline)' }}
             >
-              <span className="font-mono text-[10px] uppercase tracking-[.08em] text-muted">
+              <span className={`${typeClass.monoLabel} text-muted`}>
                 Если ни то, ни другое
               </span>
-              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, color: 'var(--midnight)' }}>
+              <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
                 Пока не знаю — и это нормально
               </p>
-              <p className="text-[15px]" style={{ color: 'var(--mute)' }}>
+              <p className={`${typeClass.bodySm} text-muted`}>
                 Ничего страшного, оставайся на «пока не знаю» — открой отчёт, там будет подробнее
               </p>
             </button>
 
             {suggestions.length === 0 && (
-              <p className="text-secondary font-medium text-[15px]">
+              <p className={`${typeClass.bodySm} text-secondary font-medium`}>
                 Твой полный результат уже готов — открой его, там будет подробнее.
               </p>
             )}

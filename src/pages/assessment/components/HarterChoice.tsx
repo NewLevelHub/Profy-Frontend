@@ -35,7 +35,7 @@ function HarterCard({
       )}
       style={{ borderRadius: 18 }}
     >
-      <span className="font-bold text-primary leading-snug" style={{ fontSize: 16 }}>
+      <span className="font-bold text-primary leading-snug text-body-md">
         {text}
       </span>
     </button>

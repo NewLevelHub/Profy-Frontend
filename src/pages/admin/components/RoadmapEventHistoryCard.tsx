@@ -16,7 +16,7 @@ export function RoadmapEventHistoryCard() {
   return (
     <div className="space-y-2">
       <div className="overflow-x-auto">
-        <table className="w-full text-[13px] leading-[1.35]">
+        <table className="w-full text-caption leading-[1.35]">
           <thead className="bg-raised border-b border-default">
             <tr>
               <th className={`px-2 py-1.5 text-left ${MONO_LABEL} text-muted`}>ДАТА</th>

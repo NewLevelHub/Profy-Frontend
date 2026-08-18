@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Navigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
+import { type as typeClass } from '@/shared/ui/typography/tokens';
 import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
 import type { AssessmentGoal, AgeGroup } from '@/shared/types';
 
@@ -199,18 +202,15 @@ export default function GoalSelectionPage() {
           <div className="w-full max-w-7xl mx-auto flex flex-col">
 
             <div className="mb-8">
-              {/* <span className="font-mono text-[11px] tracking-[.1em] uppercase text-muted">
+              {/* <span className="font-mono text-mono-xs tracking-label uppercase text-muted">
                 Шаг 4 · Цель · Выбери, что сейчас важнее
               </span> */}
-              <h1
-                className="mt-2 mb-2"
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 32, letterSpacing: '-0.02em', lineHeight: 1.12, color: 'var(--midnight)' }}
-              >
+              <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--midnight)]">
                 Чего ты хочешь от этого теста?
-              </h1>
-              <p className="text-body" style={{ color: 'var(--mute)' }}>
+              </Heading>
+              <Text variant="body-md" className="text-muted">
                 Выбери то, что тебе сейчас важнее всего — это можно изменить позже
-              </p>
+              </Text>
             </div>
 
             {isCheckingCurrent || restartOpen ? (
@@ -236,14 +236,14 @@ export default function GoalSelectionPage() {
                       }}
                     >
                       <div className="flex items-center">
-                        <span className="font-mono text-[10px] uppercase tracking-[.08em] text-muted">{card.tag}</span>
+                        <span className={`${typeClass.monoLabel} text-muted`}>{card.tag}</span>
                       </div>
 
                       <div className="flex flex-col gap-1.5">
-                        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em', color: 'var(--midnight)' }}>
+                        <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
                           {card.title}
                         </p>
-                        <p className="text-[15px]" style={{ color: 'var(--mute)' }}>{card.subtitle}</p>
+                        <p className={`${typeClass.bodySm} text-muted`}>{card.subtitle}</p>
                       </div>
 
                       <Button

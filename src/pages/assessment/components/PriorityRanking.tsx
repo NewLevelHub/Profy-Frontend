@@ -125,7 +125,7 @@ export const PriorityRanking = React.memo(function PriorityRanking({
               >
                 {isRanked ? position + 1 : ''}
               </span>
-              <span className="flex-1 font-bold text-primary leading-snug" style={{ fontSize: 16 }}>
+              <span className="flex-1 font-bold text-primary leading-snug text-body-md">
                 {option.text}
               </span>
             </button>
@@ -138,8 +138,7 @@ export const PriorityRanking = React.memo(function PriorityRanking({
           type="button"
           onClick={handleReset}
           disabled={explicit.length === 0}
-          className="font-semibold text-secondary underline underline-offset-4 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ fontSize: 14 }}
+          className="font-semibold text-secondary text-body-sm underline underline-offset-4 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
           сбросить
         </button>

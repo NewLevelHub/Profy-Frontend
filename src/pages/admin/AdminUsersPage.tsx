@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Plus, X } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { Heading } from '@/shared/ui/typography/Heading';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_CARD, ADMIN_CELL, ADMIN_RADIUS, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
@@ -132,9 +133,9 @@ export default function AdminUsersPage() {
   return (
     <PageContainer className="space-y-4">
       <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <h1 className="font-display font-semibold text-[24px] text-primary tracking-[-0.01em]">
+        <Heading level="display-sm" className="text-primary">
           Пользователи
-        </h1>
+        </Heading>
         {/*
           Real aggregate: `total` comes straight from `AdminUserListResponse.total`.
           "ЗА 7 ДНЕЙ" from the mockup is NOT rendered — the list endpoint has no
@@ -250,7 +251,7 @@ export default function AdminUsersPage() {
                 <tbody>
                   {items.map((item) => (
                     <tr key={item.id} className="border-b border-default last:border-b-0 hover:bg-hover transition-colors">
-                      <td className={cn(ADMIN_CELL, 'font-mono text-[12px] text-muted align-top')}>
+                      <td className={cn(ADMIN_CELL, 'font-mono text-mono-sm text-muted align-top')}>
                         {item.id.slice(0, 8)}
                       </td>
                       <td className={cn(ADMIN_CELL, 'align-top')}>
@@ -266,7 +267,7 @@ export default function AdminUsersPage() {
                           real gap: the list endpoint needs age/grade added to
                           AdminUserListItem for this to render honestly.
                         */}
-                        <div className="font-mono text-[11px] text-muted mt-0.5">{item.email}</div>
+                        <div className="font-mono text-mono-xs text-muted mt-0.5">{item.email}</div>
                         {item.is_admin && (
                           <span className={cn(MONO_LABEL, 'text-brand')}>ADMIN</span>
                         )}
@@ -303,7 +304,7 @@ export default function AdminUsersPage() {
                       >
                         {item.has_profile && item.profile_name ? item.profile_name : item.email}
                       </Link>
-                      <div className="font-mono text-[11px] text-muted mt-0.5 truncate">{item.email}</div>
+                      <div className="font-mono text-mono-xs text-muted mt-0.5 truncate">{item.email}</div>
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
                       <span className={MONO_MUTE}>{item.id.slice(0, 8)}</span>

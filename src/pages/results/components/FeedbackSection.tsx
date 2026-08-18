@@ -51,7 +51,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
   if (state === 'sent') {
     return (
       <Card className="flex flex-col gap-1.5">
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-brand">
+        <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-brand">
           ОТЗЫВ ПОЛУЧЕН
         </p>
         <p className="text-body text-secondary leading-relaxed">
@@ -64,7 +64,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
   return (
     <Card className="flex flex-col gap-4">
       <div>
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[.06em] text-muted mb-1.5">
+        <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mb-1.5">
           ОТЗЫВ КОМАНДЕ · НЕОБЯЗАТЕЛЬНО
         </p>
         <p className="text-label font-bold text-primary">Что думаешь о результате?</p>

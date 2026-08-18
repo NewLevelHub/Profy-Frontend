@@ -88,13 +88,13 @@ export const BipolarLikertScale = React.memo(function BipolarLikertScale({
       </div>
       <div className="flex items-start justify-between gap-3">
         <span
-          className="font-mono text-tiny font-bold uppercase tracking-[.04em] text-muted text-left"
+          className="font-mono text-tiny font-bold uppercase tracking-label text-muted text-left"
           style={{ maxWidth: 130 }}
         >
           {poleLeft}
         </span>
         <span
-          className="font-mono text-tiny font-bold uppercase tracking-[.04em] text-muted text-right"
+          className="font-mono text-tiny font-bold uppercase tracking-label text-muted text-right"
           style={{ maxWidth: 130 }}
         >
           {poleRight}

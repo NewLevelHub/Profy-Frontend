@@ -2,9 +2,12 @@ import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 import { useMotivationAssessment } from '../hooks/useMotivationAssessment';
 import { TripletRanking } from '../components/TripletRanking';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
+import { AssessmentIntro } from '../components/AssessmentIntro';
 
 // Senior's motivation format — 12 triplets, MOST/LEAST forced choice via
 // drag-and-drop ranking. Junior and middle use MotivationHarterFlow.tsx
@@ -67,45 +70,16 @@ export default function MotivationTripletFlow() {
         )}
 
         {phase === 'intro' && (
-          <>
-            <div
-              className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-[130px] lg:pb-8"
-              style={{ animation: 'fade-in-up 0.5s ease both' }}
-            >
-              <span className="inline-block mb-[18px]" role="img" aria-hidden style={{ fontSize: 74, animation: 'pf-float 3s ease-in-out infinite' }}>🔥</span>
-              <span className="inline-block bg-brand-subtle text-brand font-extrabold px-[18px] py-[7px] rounded-pill mb-[22px]" style={{ fontSize: 14 }}>
-                Последний блок
-              </span>
-              <h2 className="font-black text-primary mb-[14px] tracking-[-0.02em]" style={{ fontSize: 44 }}>
-                Что тебя драйвит
-              </h2>
-              <p className="font-semibold leading-relaxed mb-[30px]" style={{ fontSize: 19, color: '#6B7280' }}>
-                В каждом вопросе выбери, что для тебя важнее всего, а что — меньше всего
-              </p>
-              <div className="flex items-center justify-center gap-[18px] font-bold" style={{ fontSize: 14, color: '#9CA3AF' }}>
-                <span className="inline-flex items-center gap-[6px]">📝 {totalTriplets} вопросов</span>
-                <span className="w-[4px] h-[4px] rounded-full" style={{ background: 'var(--hairline)' }} />
-                <span className="inline-flex items-center gap-[6px]">⏱ ~2 мин</span>
-              </div>
-            </div>
-
-            <div className="fixed left-0 right-0 bottom-0 px-6 pb-[22px] pt-[18px] flex justify-center lg:static lg:px-8 lg:pb-8">
-              <Button
-                onClick={handleStartIntro}
-                size="lg"
-                className="w-full max-w-[560px] lg:max-w-md rounded-pill"
-                style={{
-                  height: 60,
-                  fontSize: 18,
-                  fontWeight: 800,
-                  background: 'var(--brand)',
-                  animation: 'pf-pulse 2.4s infinite',
-                }}
-              >
-                Начать
-              </Button>
-            </div>
-          </>
+          <AssessmentIntro
+            emoji="🔥"
+            kicker="Последний блок"
+            title="Что тебя драйвит"
+            subtitle="В каждом вопросе выбери, что для тебя важнее всего, а что — меньше всего"
+            itemCountLabel={`📝 ${totalTriplets} вопросов`}
+            durationLabel="⏱ ~2 мин"
+            ctaLabel="Начать"
+            onStart={handleStartIntro}
+          />
         )}
 
         {phase === 'question' && (
@@ -128,15 +102,12 @@ export default function MotivationTripletFlow() {
                     transitioning ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  <h2
-                    className="font-black text-primary mb-2 leading-snug tracking-[-0.01em] text-subtitle"
-                    style={{ fontSize: 24 }}
-                  >
+                  <Heading level="display-sm" as="h2" className="text-primary mb-2">
                     Что из этого важнее, а что менее важно для тебя?
-                  </h2>
-                  <p className="text-caption text-secondary mb-6">
+                  </Heading>
+                  <Text variant="caption" className="text-secondary mb-6">
                     Перетащи карточки: важнее всего — наверх, менее всего — вниз
-                  </p>
+                  </Text>
                   <TripletRanking
                     statements={orderedStatements}
                     onReorder={handleReorder}

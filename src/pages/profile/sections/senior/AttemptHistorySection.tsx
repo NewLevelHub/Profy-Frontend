@@ -18,7 +18,7 @@ export interface AttemptHistorySectionProps {
 export function AttemptHistorySection({ entries }: AttemptHistorySectionProps) {
   return (
     <div>
-      <p className="font-mono text-tiny font-bold uppercase tracking-[.06em] text-muted mb-3">
+      <p className="font-mono text-tiny font-bold uppercase tracking-label text-muted mb-3">
         ИСТОРИЯ ПРОХОЖДЕНИЙ
       </p>
 
