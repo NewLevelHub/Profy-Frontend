@@ -10,7 +10,7 @@ export interface PersonalInfoSectionProps {
 
 export function PersonalInfoSection({ profile, onEdit }: PersonalInfoSectionProps) {
   return (
-    <Card>
+    <Card className="bg-transparent">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-mono text-tiny font-bold uppercase tracking-label text-muted">Личные данные</h2>
         <button

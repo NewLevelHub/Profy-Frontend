@@ -4,6 +4,7 @@ import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
+import { useOnboardingDraftStore } from '@/pages/onboarding/onboardingDraftStore';
 import { useProfile } from './hooks/useProfile';
 import { ProfileHero } from './sections/ProfileHero';
 import { PersonalInfoSection } from './sections/PersonalInfoSection';
@@ -13,7 +14,6 @@ import { RestartAssessmentSection } from './sections/RestartAssessmentSection';
 import { SoundSettingsSection } from './sections/SoundSettingsSection';
 import { SelfDescriptionSection } from './sections/junior/SelfDescriptionSection';
 import { StrengthsSection } from './sections/junior/StrengthsSection';
-import { AccountAccessSection } from './sections/senior/AccountAccessSection';
 
 // Same layout scale/radii/grid for every age — the difference is in block
 // composition and access, not the visual system (design spec §12). Junior
@@ -29,7 +29,6 @@ import { AccountAccessSection } from './sections/senior/AccountAccessSection';
 export default function ProfilePage() {
   const navigate = useNavigate();
   const {
-    user,
     profile,
     displayName,
     isJunior,
@@ -43,6 +42,31 @@ export default function ProfilePage() {
     handleRestartCancel,
   } = useProfile();
   const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
+  const setProfileDraft = useOnboardingDraftStore(s => s.setProfileDraft);
+
+  // "Изменить"/"Добавить" on artifacts used to drop straight onto the
+  // standalone tabbed editor. Parking a draft here first makes
+  // useArtifactsSetup treat this the same as arriving from ProfileSetupPage
+  // (isLinearFlow) — same onboarding-style shell, landing on the merged
+  // "activities" screen (step 3 of 4), not a separate boxed page. Personal
+  // fields go along unchanged (PUT re-sends the same values), only the
+  // artifacts actually change.
+  function handleEditArtifacts() {
+    if (!profile) return;
+    setProfileDraft({
+      name: profile.name,
+      age: String(profile.age),
+      grade: String(profile.grade),
+      city: profile.city,
+      country: profile.country,
+      language: profile.language,
+      subjectsLike: profile.subjects_liked,
+      subjectsDislike: profile.subjects_disliked,
+      subjectsEasy: profile.subjects_easy,
+      subjectsHard: profile.subjects_hard,
+    });
+    navigate('/onboarding/artifacts');
+  }
 
   return (
     <PageContainer className="space-y-6 lg:space-y-8">
@@ -56,7 +80,7 @@ export default function ProfilePage() {
       />
 
       {!profile ? (
-        <Card className="flex flex-col items-center py-10 text-center">
+        <Card className="flex flex-col items-center py-10 text-center bg-transparent">
           <span className="text-5xl mb-3" aria-hidden="true">📝</span>
           <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
           <p className="text-body text-secondary">
@@ -73,10 +97,14 @@ export default function ProfilePage() {
         </>
       ) : (
         <>
-          <AccountAccessSection email={user?.email} />
-          <PersonalInfoSection profile={profile} onEdit={() => navigate('/onboarding/profile', { state: { fromSettings: true } })} />
-          {hasSubjects && <SubjectsSection profile={profile} />}
-          <ArtifactsSection artifacts={artifacts} onEdit={() => navigate('/onboarding/artifacts')} />
+          <PersonalInfoSection profile={profile} onEdit={() => navigate('/onboarding/profile')} />
+          {hasSubjects && (
+            <SubjectsSection
+              profile={profile}
+              onEdit={() => navigate('/onboarding/profile', { state: { resumeAtLastStep: true } })}
+            />
+          )}
+          <ArtifactsSection artifacts={artifacts} onEdit={handleEditArtifacts} />
         </>
       )}
 

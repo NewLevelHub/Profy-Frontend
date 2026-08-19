@@ -22,7 +22,7 @@ export function StrengthsSection({ cards }: StrengthsSectionProps) {
       </p>
 
       {cards.length === 0 ? (
-        <Card>
+        <Card className="bg-transparent">
           <p className="text-body text-secondary">
             Пройди тест — тогда здесь появятся твои сильные стороны.
           </p>
@@ -30,7 +30,7 @@ export function StrengthsSection({ cards }: StrengthsSectionProps) {
       ) : (
         <div className="flex flex-col gap-2.5">
           {cards.map((card, i) => (
-            <Card key={i} className="flex items-center gap-3 py-3.5">
+            <Card key={i} className="flex items-center gap-3 py-3.5 bg-transparent">
               <span
                 className="flex-shrink-0 w-9 h-9 rounded-full grid place-items-center"
                 style={{ background: 'var(--brand-subtle)', color: 'var(--pine)' }}

@@ -57,7 +57,7 @@ export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroPr
         </p>
       </div>
       <div className="order-1 sm:order-2 flex-shrink-0 self-center sm:self-auto">
-        <Mascot state="welcome" size={54} />
+        <Mascot state="welcome" size={68} />
       </div>
     </div>
   );

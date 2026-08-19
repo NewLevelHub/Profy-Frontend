@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib/cn';
-import { Button, Mascot, Spinner } from '@/shared/ui';
+import { Button, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { useArtifactsSetup, ARTIFACT_SECTIONS, type ArtifactSection } from './hooks/useArtifactsSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
@@ -192,7 +192,7 @@ const SECTION_COPY: Record<ArtifactSection, { headline: string; note: string }> 
 export default function ArtifactsSetupPage() {
   const {
     activeSection, setActiveSection, sectionIndex, isLastSection,
-    isEditMode, isLoadingExisting,
+    isLinearFlow,
     hobbies, setHobbies,
     clubs, setClubs,
     achievements, setAchievements,
@@ -205,17 +205,6 @@ export default function ArtifactsSetupPage() {
   } = useArtifactsSetup();
 
   const copy = SECTION_COPY[activeSection];
-
-  // Wait for the existing-artifacts check before rendering — otherwise a
-  // returning user (opened from Profile settings) briefly sees empty groups
-  // that then jump to pre-filled once the fetch resolves.
-  if (isLoadingExisting) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-page">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
 
   // Extracted per-section so onboarding can render four of these stacked on
   // one merged screen (see below) while edit mode still shows exactly one
@@ -291,10 +280,10 @@ export default function ArtifactsSetupPage() {
     </>
   );
 
-  // ── Edit mode (opened from Profile settings) — tabbed single-screen editor,
-  // not a "step". Kept close to the original boxed layout since jumping
-  // freely between groups is the point here.
-  if (isEditMode) {
+  // ── Artifacts-only shortcut (opened directly from ArtifactsSection) —
+  // tabbed single-screen editor, not a "step". Kept close to the original
+  // boxed layout since jumping freely between groups is the point here.
+  if (!isLinearFlow) {
     return (
       <div className="min-h-screen bg-page flex flex-col">
         <div className="flex-1 overflow-y-auto px-5 py-8 lg:py-12">

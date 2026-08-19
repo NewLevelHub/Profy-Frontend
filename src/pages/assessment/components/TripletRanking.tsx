@@ -38,11 +38,9 @@ interface TripletRankingProps {
   disabled?: boolean;
 }
 
-const ROLE_BY_INDEX = [
-  { badgeBg: 'var(--pine)', badgeColor: '#fff', border: 'border-brand', bg: 'bg-active-tint', pill: 'Важнее всего', pillClass: 'text-brand bg-brand-subtle' },
-  { badgeBg: 'var(--bg-surface)', badgeColor: 'var(--text-subtle)', border: 'border-default', bg: 'bg-surface', pill: null, pillClass: '' },
-  { badgeBg: 'var(--bg-surface)', badgeColor: 'var(--text-subtle)', border: 'border-default', bg: 'bg-danger-subtle', pill: 'Менее всего', pillClass: 'text-danger' },
-] as const;
+// Neutral, uniform styling across all three positions — only the number
+// badge communicates rank now, no most/least framing or color coding.
+const CARD_STYLE = { badgeBg: 'var(--bg-surface)', badgeColor: 'var(--text-subtle)', border: 'border-default', bg: 'bg-surface' } as const;
 
 const screenReaderInstructions: ScreenReaderInstructions = {
   draggable:
@@ -70,7 +68,6 @@ function SortableCard({ statement, index, disabled }: SortableCardProps) {
     id: statement.id,
     disabled,
   });
-  const role = ROLE_BY_INDEX[index];
 
   return (
     <div
@@ -87,8 +84,8 @@ function SortableCard({ statement, index, disabled }: SortableCardProps) {
       className={cn(
         'w-full flex items-center gap-3 border-2 px-5 py-[18px] cursor-grab active:cursor-grabbing transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
-        role.border,
-        role.bg,
+        CARD_STYLE.border,
+        CARD_STYLE.bg,
       )}
       role="button"
       tabIndex={disabled ? -1 : 0}
@@ -100,22 +97,19 @@ function SortableCard({ statement, index, disabled }: SortableCardProps) {
         style={{
           borderRadius: '50%',
           fontSize: 15,
-          background: role.badgeBg,
-          color: role.badgeColor,
-          border: index === 0 ? 'none' : '1.5px solid var(--hairline)',
+          background: CARD_STYLE.badgeBg,
+          color: CARD_STYLE.badgeColor,
+          border: '1.5px solid var(--hairline)',
         }}
       >
-        {index + 1}
+        {/* Fixed to the card's own original order, not its current slot —
+            renumbering every card as they shuffle past each other mid-drag
+            read as confusing. Actual rank is communicated by position
+            (top → bottom) and the aria-label below, not this badge. */}
+        {statement.order + 1}
       </span>
-      <span className="flex-1 flex flex-col gap-2">
-        <span className="font-bold text-primary leading-snug text-body-md">
-          {statement.text}
-        </span>
-        {role.pill && (
-          <span className={cn('self-start font-extrabold rounded-pill px-3 py-1', role.pillClass)} style={{ fontSize: 12 }}>
-            {role.pill}
-          </span>
-        )}
+      <span className="flex-1 font-bold text-primary leading-snug text-body-md">
+        {statement.text}
       </span>
       <GripVertical className="w-5 h-5 flex-none" style={{ color: 'var(--text-subtle)' }} aria-hidden />
     </div>
@@ -188,8 +182,8 @@ export const TripletRanking = React.memo(function TripletRanking({
           <div
             className={cn(
               'w-full flex items-center gap-3 border-2 px-5 py-[18px]',
-              ROLE_BY_INDEX[activeIndex].border,
-              ROLE_BY_INDEX[activeIndex].bg,
+              CARD_STYLE.border,
+              CARD_STYLE.bg,
               'triplet-drag-lift',
             )}
             style={{ borderRadius: 18 }}
@@ -199,11 +193,11 @@ export const TripletRanking = React.memo(function TripletRanking({
               style={{
                 borderRadius: '50%',
                 fontSize: 15,
-                background: ROLE_BY_INDEX[activeIndex].badgeBg,
-                color: ROLE_BY_INDEX[activeIndex].badgeColor,
+                background: CARD_STYLE.badgeBg,
+                color: CARD_STYLE.badgeColor,
               }}
             >
-              {activeIndex + 1}
+              {activeStatement.order + 1}
             </span>
             <span className="flex-1 font-bold text-primary leading-snug text-body-md">
               {activeStatement.text}

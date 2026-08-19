@@ -74,7 +74,7 @@ export default function MotivationTripletFlow() {
             emoji="🔥"
             kicker="Последний блок"
             title="Что тебя драйвит"
-            subtitle="В каждом вопросе выбери, что для тебя важнее всего, а что — меньше всего"
+            subtitle="В каждом вопросе расставь варианты по приоритету — от самого важного до наименее важного"
             itemCountLabel={`📝 ${totalTriplets} вопросов`}
             durationLabel="⏱ ~2 мин"
             ctaLabel="Начать"
@@ -103,10 +103,10 @@ export default function MotivationTripletFlow() {
                   )}
                 >
                   <Heading level="display-sm" as="h2" className="text-primary mb-2">
-                    Что из этого важнее, а что менее важно для тебя?
+                    Расставь эти варианты по приоритету
                   </Heading>
                   <Text variant="caption" className="text-secondary mb-6">
-                    Перетащи карточки: важнее всего — наверх, менее всего — вниз
+                    Перетащи карточки, чтобы поставить самое важное для тебя наверх
                   </Text>
                   <TripletRanking
                     statements={orderedStatements}

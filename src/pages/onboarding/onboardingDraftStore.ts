@@ -9,10 +9,13 @@ import { create } from 'zustand';
 //
 // Not persisted — this only needs to survive the client-side route change
 // between the two onboarding pages within one session, same lifetime as
-// useProfileStore. Settings-based edits (editing an already-onboarded
-// profile, or artifacts, from Profile settings) never touch this — they
-// keep using the old separate PUT /profile and POST /profile/artifacts
-// calls untouched by this change.
+// useProfileStore. Settings-based personal-info edits (from Profile
+// settings' "Изменить") go through this same handoff now too — the only
+// difference is ArtifactsSetupPage sends PUT instead of POST at the end,
+// decided by whether a profile already exists (see useArtifactsSetup.ts's
+// hasExistingProfile). Editing artifacts alone (ArtifactsSection's own
+// "Изменить"/"Добавить") is the one flow that still skips this store
+// entirely and calls POST /profile/artifacts directly.
 export interface OnboardingProfileDraft {
   name: string;
   age: string;

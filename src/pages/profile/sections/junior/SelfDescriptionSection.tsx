@@ -50,7 +50,7 @@ export function SelfDescriptionSection() {
   const grouped = groupByType(artifacts);
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Card className="flex flex-col gap-4 bg-transparent">
       <div className="flex items-start justify-between gap-3">
         <p className="font-mono text-tiny font-bold uppercase tracking-label text-accent">
           ТЫ РАССКАЗАЛ О СЕБЕ

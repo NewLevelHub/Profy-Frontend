@@ -150,9 +150,8 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
         </p>
       )}
 
-      <div>
+      <div className="flex justify-end">
         <Button
-          variant="ghost"
           onClick={handleSubmit}
           disabled={!assessmentId || relevanceScore === null}
           isLoading={state === 'submitting'}

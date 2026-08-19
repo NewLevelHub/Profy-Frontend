@@ -18,10 +18,10 @@ export function useMotivationAssessment() {
   const [tripletIndex, setTripletIndex] = useState(0);
   // Current triplet's card order, ids top→bottom: [0] = most, [last] = least.
   const [ranking, setRanking] = useState<string[]>([]);
-  // True only once the user has actually dragged/keyboard-moved a card on
-  // this triplet — a sortable list always has a syntactically valid order
-  // from the moment it renders (the server's default), so without this gate
-  // "Далее" could silently submit an order nobody actually chose.
+  // Tracks whether the user has actually dragged/keyboard-moved a card on
+  // this triplet vs. still showing the server's default order — kept for
+  // bookkeeping, but no longer gates "Далее": if the default order already
+  // matches what they'd pick, they can move on without touching it.
   const [hasInteracted, setHasInteracted] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [transitioning, setTransitioning] = useState(false);
@@ -234,7 +234,7 @@ export function useMotivationAssessment() {
   const currentTriplet = triplets[tripletIndex];
   const totalTriplets = triplets.length;
   const progress = totalTriplets > 0 ? ((tripletIndex + 1) / totalTriplets) * 100 : 0;
-  const canProceed = hasInteracted && ranking.length === 3;
+  const canProceed = ranking.length === 3;
   const orderedStatements = currentTriplet
     ? ranking
         .map(id => currentTriplet.statements.find(s => s.id === id))

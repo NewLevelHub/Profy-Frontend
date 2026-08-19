@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
-import { artifactsApi } from '@/shared/api/artifacts';
 
 export function useProfile() {
   const navigate = useNavigate();
@@ -40,16 +37,9 @@ export function useProfile() {
 
   // Onboarding's "Твои увлечения и цели" step — surfaced here too so it can
   // be changed or filled in later (not just once, during onboarding).
-  const { data: artifacts } = useQuery({
-    queryKey: ['artifacts'],
-    queryFn: () =>
-      artifactsApi.get().catch((err: AxiosError) => {
-        if (err.response?.status === 404) return [];
-        throw err;
-      }),
-    enabled: Boolean(profile) && !isJunior,
-    retry: false,
-  });
+  // Sourced straight off the profile the store already fetched (GET /profile
+  // returns artifacts embedded) rather than a separate request.
+  const artifacts = profile?.artifacts ?? [];
 
   function handleLogout() {
     logout();
@@ -72,13 +62,12 @@ export function useProfile() {
   }
 
   return {
-    user,
     profile,
     displayName,
     initial,
     isJunior,
     hasSubjects,
-    artifacts: artifacts ?? [],
+    artifacts,
     strengthCards: report?.strength_cards ?? [],
     confirmRestart,
     handleLogout,

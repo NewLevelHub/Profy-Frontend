@@ -20,7 +20,7 @@ export function ArtifactsSection({ artifacts, onEdit }: ArtifactsSectionProps) {
   const dream = artifacts.find(i => i.type === 'goal')?.value;
 
   return (
-    <Card>
+    <Card className="bg-transparent">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-mono text-tiny font-bold uppercase tracking-label text-muted">Увлечения и цели</h2>
         <button

@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
-import { profileApi } from '@/shared/api/profile';
 import { useProfileStore } from '@/shared/store/profile';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
-import type { ProfilePayload } from '@/shared/types';
 
 type FieldErrors = Partial<Record<'name' | 'age' | 'grade', string>>;
 
@@ -30,24 +27,21 @@ function toggle(list: string[], item: string): string[] {
 export function useProfileSetup() {
   const navigate = useNavigate();
   const location = useLocation();
-  const setProfile = useProfileStore(s => s.setProfile);
-  const existing = useProfileStore(s => s.profile);
   // A real, already-onboarded profile exists server-side — this is a
-  // Profile-settings edit (PUT), not fresh onboarding. Backend's combined
-  // POST /profile (profile + artifacts in one call) only applies to
-  // *creating* a profile, so edit mode keeps the old, untouched PUT flow.
-  const isEditMode = existing !== null;
+  // Profile-settings edit, not fresh onboarding. Both cases now flow through
+  // the same handoff to ArtifactsSetupPage, which picks PUT vs POST based on
+  // this same store (see useArtifactsSetup.ts's hasExistingProfile).
+  const existing = useProfileStore(s => s.profile);
 
   const draft = useOnboardingDraftStore(s => s.profileDraft);
   const setProfileDraft = useOnboardingDraftStore(s => s.setProfileDraft);
 
-  const locationState = location.state as { resumeAtLastStep?: boolean; fromSettings?: boolean } | null;
+  const locationState = location.state as { resumeAtLastStep?: boolean } | null;
   // Arriving back here via "Назад" from artifacts' first group (see
   // useArtifactsSetup.handleBack) resumes at the last step instead of
   // restarting the whole form — from the student's point of view they never
   // left this flow, just stepped back one screen.
   const resumeAtLastStep = Boolean(locationState?.resumeAtLastStep);
-  const cameFromSettings = Boolean(locationState?.fromSettings);
   const [step, setStep] = useState(resumeAtLastStep ? TOTAL_STEPS : 1);
   // Field values come from (in priority order): an already-onboarded server
   // profile (settings edit), a draft parked here on a previous pass through
@@ -71,16 +65,6 @@ export function useProfileSetup() {
   const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? draft?.subjectsEasy ?? []);
   const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? draft?.subjectsHard ?? []);
   const [errors, setErrors] = useState<FieldErrors>({});
-
-  // Only used in edit mode — fresh onboarding never calls the API from this
-  // screen anymore (see handleSubmit below).
-  const mutation = useMutation({
-    mutationFn: (payload: ProfilePayload) => profileApi.update(payload),
-    onSuccess: (profile) => {
-      setProfile(profile);
-      navigate(cameFromSettings ? '/profile' : '/onboarding/artifacts', { replace: true });
-    },
-  });
 
   function clearError(field: keyof FieldErrors) {
     setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -122,27 +106,11 @@ export function useProfileSetup() {
   }
 
   function handleSubmit() {
-    if (isEditMode) {
-      // Settings edit — unchanged PUT flow, no artifacts involved here.
-      mutation.mutate({
-        name: name.trim(),
-        age: Number(age),
-        grade: Number(grade),
-        city: city.trim(),
-        country: country.trim(),
-        language,
-        subjects_liked: subjectsLike,
-        subjects_disliked: subjectsDislike,
-        subjects_easy: subjectsEasy,
-        subjects_hard: subjectsHard,
-      });
-      return;
-    }
-
-    // Fresh onboarding — the actual POST /profile happens once, at the end
-    // of the whole sequence (steps 3-4, in ArtifactsSetupPage), combining
-    // this data with whatever artifacts get collected there. Just park the
-    // fields and move on; no network call from this screen anymore.
+    // The actual save (POST for a new profile, PUT for an existing one)
+    // happens once, at the end of the whole sequence (steps 3-4, in
+    // ArtifactsSetupPage), combining this data with whatever artifacts get
+    // collected there. Just park the fields and move on; no network call
+    // from this screen anymore, for either fresh onboarding or an edit.
     setProfileDraft({
       name: name.trim(),
       age,
@@ -174,8 +142,6 @@ export function useProfileSetup() {
     subjectsHard, setSubjectsHard,
     errors,
     clearError,
-    isLoading: mutation.isPending,
-    submitError: mutation.isError ? 'Не удалось сохранить. Попробуй ещё раз.' : null,
     handleNext,
     handleBack,
     handleSubmit,

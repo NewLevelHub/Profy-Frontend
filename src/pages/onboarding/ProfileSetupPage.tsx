@@ -151,7 +151,6 @@ export default function ProfileSetupPage() {
     subjectsEasy, setSubjectsEasy,
     subjectsHard, setSubjectsHard,
     errors, clearError,
-    isLoading, submitError,
     handleNext, handleBack, handleSubmit, toggle,
   } = useProfileSetup();
 
@@ -319,9 +318,6 @@ export default function ProfileSetupPage() {
               </div>
             </div>
 
-            {submitError && (
-              <p className="text-xs text-danger text-center">{submitError}</p>
-            )}
           </div>
         )}
       </div>
@@ -353,7 +349,6 @@ export default function ProfileSetupPage() {
         ) : (
           <Button
             size="lg"
-            isLoading={isLoading}
             className="ml-auto h-14 px-10 rounded-pill font-extrabold shadow-button"
             onClick={handleSubmit}
           >

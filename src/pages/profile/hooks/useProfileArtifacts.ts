@@ -1,24 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
-import { artifactsApi } from '@/shared/api/artifacts';
+import { useProfileStore } from '@/shared/store/profile';
 
 /**
  * Real backing data for the junior "ТЫ РАССКАЗАЛ О СЕБЕ" card — `ProfileResponse`
  * has no free-text bio field, so the closest honest analog is the artifacts the
- * child already picked during onboarding (`ArtifactsSetupPage` → `/profile/artifacts`):
- * hobbies, games, books, dreams, etc. Fetched only when the junior variant
- * actually renders this section.
+ * child already picked during onboarding (`ArtifactsSetupPage` → `/onboarding/artifacts`):
+ * hobbies, games, books, dreams, etc. Sourced straight off the profile the
+ * store already fetched (GET /profile returns artifacts embedded) rather than
+ * a separate request.
  */
 export function useProfileArtifacts(enabled: boolean) {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['profile-artifacts'] as const,
-    queryFn: () => artifactsApi.get(),
-    enabled,
-    staleTime: 60_000,
-  });
+  const profile = useProfileStore(s => s.profile);
+  const isLoaded = useProfileStore(s => s.isLoaded);
 
   return {
-    artifacts: Array.isArray(data) ? data : [],
-    isLoading: enabled && isLoading,
-    isError,
+    artifacts: enabled ? (profile?.artifacts ?? []) : [],
+    isLoading: enabled && !isLoaded,
+    isError: false,
   };
 }
