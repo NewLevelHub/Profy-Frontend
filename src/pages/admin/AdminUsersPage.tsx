@@ -4,7 +4,6 @@ import { Plus, X } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Heading } from '@/shared/ui/typography/Heading';
-import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_CARD, ADMIN_CELL, ADMIN_RADIUS, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
 import type { AdminUserListItem, AssessmentStatus } from '@/shared/types';
@@ -16,9 +15,30 @@ const STATUS_LABELS: Record<AssessmentStatus, string> = {
   completed: 'Завершена',
 };
 
+// Same display order as DiagnosticSummaryBlock's RIASEC bars (spec order,
+// not alphabetical) — kept consistent between the compact table cell here
+// and the full detail view. Big Five has no such spec order yet, so the
+// standard OCEAN mnemonic order is used.
+const RIASEC_DISPLAY_ORDER = ['I', 'A', 'E', 'R', 'S', 'C'];
+const BIG_FIVE_DISPLAY_ORDER = ['O', 'C', 'E', 'A', 'N'];
+
 /**
- * ДИАГНОСТИКА cell: compact Spine (already built at 0.75 thickness for this
- * exact table use case — reused, not rebuilt) plus a mono status line.
+ * Compact RIASEC/Big Five cell for the users table — admin-only raw
+ * percentages (TZ_Profi.md §18.3). Row space is tight, so this is a plain
+ * mono string rather than DiagnosticSummaryBlock's per-category bars; the
+ * full bar breakdown stays the one place with `DiagnosticSummaryBlock`'s
+ * fuller "ТОЛЬКО ДЛЯ АДМИНИСТРАТОРА" treatment.
+ */
+function ResultsCell({ values, order }: { values: Record<string, number> | null; order: string[] }) {
+  if (!values) {
+    return <span className={MONO_MUTE}>—</span>;
+  }
+  const parts = order.filter((letter) => letter in values).map((letter) => `${letter}${Math.round(values[letter])}`);
+  return <span className="font-mono text-mono-xs text-secondary whitespace-nowrap">{parts.join(' ')}</span>;
+}
+
+/**
+ * ДИАГНОСТИКА cell: plain mono status line.
  *
  * BACKEND GAP: `AdminUserListItem.latest_assessment_status` only distinguishes
  * `in_progress` / `completed` (see `AssessmentStatus` in shared/types) — there
@@ -34,21 +54,10 @@ function DiagnosticsCell({ status }: { status: AssessmentStatus | null }) {
     return <span className={MONO_MUTE}>—</span>;
   }
 
-  const nodes: SpineNode[] = [
-    { id: 'start', status: 'done' },
-    { id: 'mid', status: status === 'completed' ? 'done' : 'current' },
-    { id: 'end', status: status === 'completed' ? 'done' : 'upcoming', goal: true },
-  ];
-
   return (
-    <div className="flex flex-col gap-1 min-w-[104px]">
-      <Spine nodes={nodes} thickness={0.75} ariaLabel={STATUS_LABELS[status]} />
-      <span
-        className={cn(MONO_LABEL, status === 'in_progress' ? 'text-[color:var(--dawn)]' : 'text-muted')}
-      >
-        {status === 'completed' ? 'ЗАВЕРШЕНА' : 'В ПРОЦЕССЕ'}
-      </span>
-    </div>
+    <span className={cn(MONO_LABEL, status === 'in_progress' ? 'text-[color:var(--dawn)]' : 'text-muted')}>
+      {status === 'completed' ? 'ЗАВЕРШЕНА' : 'В ПРОЦЕССЕ'}
+    </span>
   );
 }
 
@@ -229,11 +238,11 @@ export default function AdminUsersPage() {
         ) : (
           <>
             {/*
-              7 real+placeholder columns is too dense to read even with the
-              table's own horizontal scroll below lg — the two most
-              glanceable facts (who, diagnostic status) end up scrolled
-              off-screen on a phone. Card-per-row below lg, unchanged table
-              at lg+ where there's room for all seven columns at once.
+              Even with placeholder columns trimmed, the table is still too
+              dense to read on the table's own horizontal scroll below lg —
+              the two most glanceable facts (who, diagnostic status) end up
+              scrolled off-screen on a phone. Card-per-row below lg,
+              unchanged table at lg+ where there's room for all columns at once.
             */}
             <div className="hidden lg:block overflow-x-auto">
               <table className={cn('w-full', ADMIN_TEXT)}>
@@ -241,10 +250,9 @@ export default function AdminUsersPage() {
                   <tr>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ID</th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ПОЛЬЗОВАТЕЛЬ</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ВОЗРАСТ</th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ДИАГНОСТИКА</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>РОДИТЕЛЬ · ДОСТУП</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ROADMAP</th>
+                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>RIASEC</th>
+                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>BIG 5</th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>АКТИВНОСТЬ</th>
                   </tr>
                 </thead>
@@ -272,17 +280,14 @@ export default function AdminUsersPage() {
                           <span className={cn(MONO_LABEL, 'text-brand')}>ADMIN</span>
                         )}
                       </td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')} title="Возрастной/целевой tier-код не приходит с бэкенда">
-                        —
-                      </td>
                       <td className={cn(ADMIN_CELL, 'align-top')}>
                         <DiagnosticsCell status={item.latest_assessment_status} />
                       </td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')} title="Связь ребёнок—родитель не приходит с бэкенда ни в одном admin-эндпоинте">
-                        —
+                      <td className={cn(ADMIN_CELL, 'align-top')} title="RIASEC пусто для junior (MI-тест) и до завершения диагностики">
+                        <ResultsCell values={item.riasec} order={RIASEC_DISPLAY_ORDER} />
                       </td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')} title="Список не отдаёт долю пройденных этапов roadmap">
-                        —
+                      <td className={cn(ADMIN_CELL, 'align-top')} title="До завершения диагностики — пусто">
+                        <ResultsCell values={item.big_five} order={BIG_FIVE_DISPLAY_ORDER} />
                       </td>
                       <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')} title="Только дата регистрации — поле «последняя активность» отсутствует">
                         {formatRelative(item.created_at)}
@@ -316,14 +321,26 @@ export default function AdminUsersPage() {
 
                   <div className="grid grid-cols-2 gap-x-3 gap-y-2 pt-2 border-t border-default">
                     <AdminCardField
-                      label="РОДИТЕЛЬ · ДОСТУП"
-                      value="—"
-                      title="Связь ребёнок—родитель не приходит с бэкенда ни в одном admin-эндпоинте"
+                      label="RIASEC"
+                      value={
+                        item.riasec
+                          ? RIASEC_DISPLAY_ORDER.filter((l) => l in item.riasec!)
+                              .map((l) => `${l}${Math.round(item.riasec![l])}`)
+                              .join(' ')
+                          : '—'
+                      }
+                      title="Пусто для junior (MI-тест) и до завершения диагностики"
                     />
                     <AdminCardField
-                      label="ROADMAP"
-                      value="—"
-                      title="Список не отдаёт долю пройденных этапов roadmap"
+                      label="BIG 5"
+                      value={
+                        item.big_five
+                          ? BIG_FIVE_DISPLAY_ORDER.filter((l) => l in item.big_five!)
+                              .map((l) => `${l}${Math.round(item.big_five![l])}`)
+                              .join(' ')
+                          : '—'
+                      }
+                      title="До завершения диагностики — пусто"
                     />
                     <AdminCardField
                       label="АКТИВНОСТЬ"

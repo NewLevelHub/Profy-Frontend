@@ -271,9 +271,8 @@ export default function ArtifactsSetupPage() {
       value={dreams}
       onChange={e => setDreams(e.target.value)}
       placeholder="Например: хочу однажды поехать на настоящие раскопки"
-      rows={2}
       className={cn(
-        'w-full rounded-[var(--radius-sm)] px-4 py-3 text-body-md resize-none',
+        'w-full max-w-2xl aspect-[2/1] mx-auto rounded-[var(--radius-sm)] px-4 py-3 text-body-md resize-none',
         'placeholder:text-placeholder focus:outline-none transition-colors',
       )}
       style={{ background: 'var(--bg-page)', border: '1.5px solid var(--line)', color: 'var(--ink)' }}
@@ -378,13 +377,13 @@ export default function ArtifactsSetupPage() {
 
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-40 lg:pb-8">
         {isDreamsStep ? (
-          <div className="flex flex-col gap-6">
-            <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
               <div>
                 <Heading level="display-md">{copy.headline}</Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{copy.note}</p>
               </div>
-              <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
             </div>
 
             {dreamsBody}

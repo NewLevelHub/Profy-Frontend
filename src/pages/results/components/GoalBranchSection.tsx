@@ -1,6 +1,4 @@
-import { useProfileStore } from '@/shared/store/profile';
 import type { AgeGroup, AssessmentGoal, ResultResponse } from '@/shared/types';
-import { GoalBadge } from './GoalBadge';
 import { ScenarioA } from './scenarios/ScenarioA';
 import { ScenarioProfessional } from './scenarios/ScenarioProfessional';
 
@@ -25,8 +23,6 @@ interface GoalBranchSectionProps {
  * network requests happen on this page after initial load.
  */
 export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchSectionProps) {
-  const profile = useProfileStore((s) => s.profile);
-
   const isJunior = ageGroup === 'junior';
   const goal: AssessmentGoal = initialGoal ?? 'explore';
 
@@ -44,20 +40,12 @@ export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchS
       <ScenarioProfessional
         careers={report.careers}
         ageGroup={ageGroup ?? 'middle'}
-        grade={profile?.grade}
       />
     );
 
   return (
     <div className="flex flex-col gap-6">
       <div className="border-t border-default pt-6 flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
-            ДАЛЬШЕ · ПО ТВОЕЙ ЦЕЛИ
-          </p>
-          <GoalBadge isJunior={isJunior} goal={goal} />
-        </div>
-
         {content}
       </div>
     </div>

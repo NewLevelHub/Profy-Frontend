@@ -1,24 +1,40 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 
-export type FeedbackTag = 'agree' | 'off' | 'just_writing';
+// Frontend-owned list, not a backend enum — the backend stores whatever
+// strings are sent (see app/models/product_feedback.py comment), so this
+// list can gain/rename sections without a migration. Keep in sync with the
+// sections actually shown on /results.
+export const REPORT_SECTIONS: { value: string; label: string }[] = [
+  { value: 'interests', label: 'Карта интересов' },
+  { value: 'personality', label: 'Характер' },
+  { value: 'careers', label: 'Профессии и направления' },
+  { value: 'thinking_style', label: 'Стиль мышления' },
+  { value: 'motivation', label: 'Мотивация' },
+  // 'roadmap' ("План действий") hidden for now — that section isn't shown
+  // on /results yet, so it shouldn't be pickable as "useful" here either.
+];
 
 export interface FeedbackPayload {
   assessment_id: string;
-  tags: FeedbackTag[];
-  text: string;
+  /** "Насколько это про тебя?" — 1-5. */
+  relevance_score: number;
+  /** "Что оказалось самым полезным?" — multi-pick from REPORT_SECTIONS. */
+  helpful_sections: string[];
+  /** "Что было непонятно или не подошло?" — optional. */
+  comment: string | null;
 }
 
-/**
- * GAP: no feedback-submission endpoint exists on the backend as of this
- * investigation (see endpoints.ts). `API.results.feedback` is a proposed
- * path, not a confirmed one. This function makes a real request against it
- * rather than faking success — until the backend implements the route this
- * will reject (404/network error), and FeedbackSection surfaces that as a
- * normal retry-able error state, the same pattern used for every other
- * failed request in this app. Do not change this to a silent no-op.
- */
+export interface FeedbackSubmitResponse {
+  id: string;
+  assessment_id: string | null;
+  relevance_score: number;
+  helpful_sections: string[];
+  comment: string | null;
+  created_at: string;
+}
+
 export const feedbackApi = {
   submit: (payload: FeedbackPayload) =>
-    apiClient.post<void>(API.results.feedback, payload).then(() => undefined),
+    apiClient.post<FeedbackSubmitResponse>(API.result.feedback, payload).then((r) => r.data),
 };

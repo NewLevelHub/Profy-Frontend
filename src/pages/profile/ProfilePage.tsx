@@ -13,8 +13,6 @@ import { RestartAssessmentSection } from './sections/RestartAssessmentSection';
 import { SoundSettingsSection } from './sections/SoundSettingsSection';
 import { SelfDescriptionSection } from './sections/junior/SelfDescriptionSection';
 import { StrengthsSection } from './sections/junior/StrengthsSection';
-import { ParentAccessSection } from './sections/senior/ParentAccessSection';
-import { AttemptHistorySection } from './sections/senior/AttemptHistorySection';
 import { AccountAccessSection } from './sections/senior/AccountAccessSection';
 
 // Same layout scale/radii/grid for every age — the difference is in block
@@ -47,7 +45,7 @@ export default function ProfilePage() {
   const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
 
   return (
-    <PageContainer size="narrow" className="space-y-6 lg:space-y-8">
+    <PageContainer className="space-y-6 lg:space-y-8">
       <PageHeader title="Профиль" />
 
       <ProfileHero
@@ -75,9 +73,7 @@ export default function ProfilePage() {
         </>
       ) : (
         <>
-          <ParentAccessSection />
-          <AttemptHistorySection entries={[]} />
-          <AccountAccessSection email={user?.email} grade={profile?.grade} />
+          <AccountAccessSection email={user?.email} />
           <PersonalInfoSection profile={profile} onEdit={() => navigate('/onboarding/profile', { state: { fromSettings: true } })} />
           {hasSubjects && <SubjectsSection profile={profile} />}
           <ArtifactsSection artifacts={artifacts} onEdit={() => navigate('/onboarding/artifacts')} />

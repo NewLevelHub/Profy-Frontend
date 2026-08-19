@@ -297,17 +297,20 @@ export interface ThinkingStyleNote {
   description: string;
 }
 
+export type InterestLevel = 'low' | 'medium' | 'high';
+
 // One card per Big Five domain, always exactly 5, same order, for every
 // age group/instrument (Big Five is answered identically by all three —
 // only the wording differs: junior gets simplified phrasing). Deterministic
 // server text, not LLM-generated — see frontend-result-api-contract.md §4.3a.
+// `level` was added alongside interest_map's field of the same name — how
+// pronounced this trait is, same opaque low/medium/high enum, no raw score.
 export interface StudentPersonalityNote {
   trait: PersonalityTrait;
   label: string;
   description: string;
+  level: InterestLevel;
 }
-
-export type InterestLevel = 'low' | 'medium' | 'high';
 
 export interface InterestMapItem {
   code: string;
@@ -552,6 +555,11 @@ export interface AdminUserListItem {
   profile_name: string | null;
   assessments_count: number;
   latest_assessment_status: AssessmentStatus | null;
+  /** Admin-only raw percentages from the latest COMPLETED assessment
+   *  (TZ_Profi.md §18.3). `riasec` is null for junior (MI instrument, not
+   *  RIASEC) and for users with no completed assessment yet. */
+  riasec: Record<string, number> | null;
+  big_five: Record<string, number> | null;
 }
 
 export interface AdminUserListResponse {
@@ -622,6 +630,47 @@ export interface AdminAssessmentDetail {
   motivation_responses: AdminMotivationResponseItem[];
   analysis_result: AnalysisResultResponse | null;
   roadmap: RoadmapResponse | null;
+}
+
+// ─── Admin feedback (TZ_Profi.md §28.4) ──────────────────────────────────────────
+
+export interface AdminFeedbackListItem {
+  id: string;
+  user_id: string;
+  user_email: string;
+  profile_name: string | null;
+  assessment_id: string | null;
+  age_group: string | null;
+  /** Effective scenario A/B/C, see goal_overlay_service — null if the
+   *  assessment or its profile no longer exists. */
+  scenario: string | null;
+  top_direction_name: string | null;
+  relevance_score: number;
+  helpful_sections: string[];
+  comment: string | null;
+  created_at: string;
+}
+
+export interface AdminFeedbackListResponse {
+  items: AdminFeedbackListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface FeedbackBreakdownItem {
+  key: string;
+  count: number;
+  avg_relevance_score: number;
+}
+
+export interface AdminFeedbackStatsResponse {
+  total: number;
+  avg_relevance_score: number | null;
+  by_age_group: FeedbackBreakdownItem[];
+  by_scenario: FeedbackBreakdownItem[];
+  by_top_direction: FeedbackBreakdownItem[];
+  helpful_section_counts: Record<string, number>;
 }
 
 // ─── Admin roles & change-log ───────────────────────────────────────────────────

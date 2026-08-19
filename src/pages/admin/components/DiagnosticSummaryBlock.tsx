@@ -1,7 +1,7 @@
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { cn } from '@/shared/lib/cn';
 import { MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminAssessmentDetail, AdminResponseItem, HollandType } from '@/shared/types';
+import type { AdminAssessmentDetail, AdminResponseItem, BigFiveDomain, HollandType } from '@/shared/types';
 
 const CONSISTENCY_LABELS: Record<'high' | 'medium' | 'low', string> = {
   high: 'высокая',
@@ -12,6 +12,10 @@ const CONSISTENCY_LABELS: Record<'high' | 'medium' | 'low', string> = {
 // Spec order is I/A/E/R/S/C (not the usual RIASEC reading order) — followed
 // literally here since that's the exact sequence called out in the design spec.
 const RIASEC_DISPLAY_ORDER: HollandType[] = ['I', 'A', 'E', 'R', 'S', 'C'];
+
+// No spec order exists yet for Big Five (unlike RIASEC above) — standard
+// OCEAN mnemonic order, same as the compact table cell in AdminUsersPage.tsx.
+const BIG_FIVE_DISPLAY_ORDER: BigFiveDomain[] = ['O', 'C', 'E', 'A', 'N'];
 
 function formatDuration(ms: number): string {
   if (!Number.isFinite(ms) || ms <= 0) return '—';
@@ -111,6 +115,12 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
     : [];
   const isRiasecProfile = riasecEntries.length === RIASEC_DISPLAY_ORDER.length;
 
+  // Big Five is unconditionally the right shape regardless of instrument
+  // (unlike `profile` above, which is MI for junior) — no guard needed.
+  const bigFiveEntries = analysis
+    ? BIG_FIVE_DISPLAY_ORDER.map((letter) => ({ letter, value: analysis.big_five[letter] }))
+    : [];
+
   const totalDurationMs =
     assessment.completed_at && assessment.created_at
       ? new Date(assessment.completed_at).getTime() - new Date(assessment.created_at).getTime()
@@ -161,6 +171,31 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
           <p className="text-mono-xs text-muted leading-[1.35]">
             Необработанные баллы и буквы RIASEC показываются только здесь — `/results` не должен
             раскрывать эти значения (см. frontend-result-api-contract.md).
+          </p>
+        </div>
+      )}
+
+      {bigFiveEntries.length > 0 && (
+        <div className="space-y-2">
+          <p className={MONO_MUTE}>
+            BIG FIVE — ТОЛЬКО ДЛЯ АДМИНИСТРАТОРА
+          </p>
+          <div className="space-y-1.5">
+            {bigFiveEntries.map(({ letter, value }) => (
+              <div key={letter} className="flex items-center gap-2">
+                <span className={cn(MONO_LABEL, 'w-4 text-primary')}>{letter}</span>
+                <div className="flex-1 h-2 rounded-[2px] bg-raised overflow-hidden">
+                  <div
+                    className="h-full bg-[color:var(--lake)] rounded-[2px]"
+                    style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+                  />
+                </div>
+                <span className="font-mono text-mono-xs text-secondary w-8 text-right">{Math.round(value)}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-mono-xs text-muted leading-[1.35]">
+            Необработанные баллы Big Five (N/E/O/A/C) показываются только здесь, как и RIASEC выше.
           </p>
         </div>
       )}

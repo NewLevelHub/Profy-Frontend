@@ -23,6 +23,9 @@ interface GoalCard {
    *  used for the goal badge on /results (GoalBadge): an unavailable card
    *  is simply absent, never shown disabled-with-explanation. */
   minAgeGroup?: AgeGroup;
+  /** Temporarily hidden while in testing — 'explore' is switched off for now
+   *  so only the profession-choice goal is selectable; flip back to show it. */
+  hidden?: boolean;
 }
 
 const AGE_RANK: Record<AgeGroup, number> = { junior: 0, middle: 1, senior: 2 };
@@ -33,6 +36,7 @@ const GOAL_CARDS: GoalCard[] = [
     tag: 'Исследовать',
     title: 'Понять себя',
     subtitle: 'Узнать свои сильные стороны и интересы — или ещё не знать, с чего начать. Это нормально, разберёмся вместе.',
+    hidden: true,
   },
   {
     // Sends 'university' to the backend, not 'profession' — see
@@ -176,7 +180,7 @@ export default function GoalSelectionPage() {
   }
 
   const visibleCards = GOAL_CARDS.filter(
-    card => !card.minAgeGroup || AGE_RANK[ageGroup] >= AGE_RANK[card.minAgeGroup],
+    card => !card.hidden && (!card.minAgeGroup || AGE_RANK[ageGroup] >= AGE_RANK[card.minAgeGroup]),
   );
 
   return (
@@ -213,7 +217,10 @@ export default function GoalSelectionPage() {
                 <Spinner size="lg" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className={cn(
+                'grid grid-cols-1 gap-4',
+                visibleCards.length > 1 ? 'md:grid-cols-3' : 'max-w-sm mx-auto',
+              )}>
                 {visibleCards.map(card => {
                   const isHovered = hoveredGoal === card.goal;
 

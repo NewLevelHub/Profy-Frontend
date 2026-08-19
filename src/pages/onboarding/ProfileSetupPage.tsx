@@ -12,7 +12,7 @@ const SUBJECTS = [
   'Английский язык', 'Информатика', 'Физкультура', 'Рисование', 'Музыка',
 ];
 
-const AGES = Array.from({ length: 13 }, (_, i) => 6 + i); // 6–18
+const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 6–18
 
 // One mascot per step, top-right, each a different pose so the 4 onboarding
 // screens read as distinct moments rather than a repeated icon. Sizes are
@@ -168,13 +168,14 @@ export default function ProfileSetupPage() {
 
         {step === PROFILE_STEPS.NAME_SCHOOL && (
           <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               <div className="flex items-start justify-between gap-4">
                 <Heading level="display-md">
                   Как тебя зовут?
                 </Heading>
                 <Mascot state="welcome" size={MASCOT_WELCOME_SIZE} className="shrink-0" />
               </div>
+              
 
               <Input
                 label="Имя"

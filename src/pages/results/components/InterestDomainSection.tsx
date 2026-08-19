@@ -10,7 +10,7 @@ import {
   MI_DESCRIPTIONS,
 } from '@/shared/config/constants';
 import type { InterestMapItem } from '@/shared/types';
-import { DomainCardFrame, DomainKicker, DomainGrid, DomainCell } from './DomainCardParts';
+import { DomainCardFrame, DomainKicker, DomainGrid, DomainCell, LEVEL_STATUS_LABEL } from './DomainCardParts';
 
 interface InterestDomainSectionProps {
   isJunior: boolean;
@@ -20,32 +20,14 @@ interface InterestDomainSectionProps {
 
 type Level = InterestMapItem['level'];
 
-// Status word under each type-grid cell (design spec §06). Deliberately its
-// own vocabulary, not a reuse of INTEREST_LEVEL_LABELS (used elsewhere on
-// this page for the same low/medium/high enum with different copy) — this
-// component owns the exact strings the spec calls for.
-const STATUS_LABEL: Record<Level, string> = {
-  high: 'ВЕДУЩЕЕ',
-  medium: 'ЗАМЕТНО',
-  low: 'ПОЧТИ НЕ ПРОЯВИЛОСЬ',
-};
-
-// Status-word color — Pine for leading, ink for noticeable, the standard
-// "mute" text token for barely-present (spec: "(mute)", generic).
-const STATUS_COLOR: Record<Level, string> = {
-  high: 'var(--pine)',
-  medium: 'var(--ink)',
-  low: 'var(--text-muted)',
-};
-
-// Icon color — a different mapping than the status word (spec: "colored
-// Dawn+bold-stroke for the leading type, ink for other noticeable types,
-// muted #9A9287 for barely-present"). #9A9287 is var(--text-subtle)'s exact
-// light-mode value — using the token instead of the literal hex keeps this
-// correct in dark mode too.
+// Icon color — the fill-contrast cell goes solid Pine at `high` and solid
+// Dawn at `medium`, so both flip to --text-on-brand (readable on either
+// fill) instead of a color-on-same-color icon. Muted #9A9287 (--text-
+// subtle's exact light-mode value, dark-mode-safe via the token) for
+// barely-present — the cell's own opacity-45 does the rest of the dimming.
 const ICON_COLOR: Record<Level, string> = {
-  high: 'var(--dawn)',
-  medium: 'var(--ink)',
+  high: 'var(--text-on-brand)',
+  medium: 'var(--text-on-brand)',
   low: 'var(--text-subtle)',
 };
 
@@ -98,7 +80,6 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
   const descriptions = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
   const headline = buildHeadline(interestMap, labels);
   const secondaryNote = buildSecondaryNote(interestMap, labels);
-  const leadingCodes = new Set(pickHeadlineItems(interestMap).map((i) => i.code));
 
   return (
     <DomainCardFrame ariaLabel={isJunior ? 'Ведущие способности' : 'Карьерные интересы'}>
@@ -116,7 +97,7 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
         <div className="flex items-center gap-3 flex-shrink-0">
           {secondaryNote && (
             <p className="font-mono text-mono-xs text-right leading-snug max-w-[220px]" style={{ color: 'var(--ink)' }}>
-              также заметно: {secondaryNote}
+              Также заметно: {secondaryNote}
             </p>
           )}
           <Mascot state="completion" size={46} />
@@ -138,10 +119,9 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
                 key={item.code}
                 icon={<TypeIcon item={item} isJunior={isJunior} />}
                 title={item.sphere}
-                status={STATUS_LABEL[item.level]}
-                statusColor={STATUS_COLOR[item.level]}
+                status={LEVEL_STATUS_LABEL[item.level]}
                 description={descriptions[item.code]}
-                isLeading={leadingCodes.has(item.code)}
+                level={item.level}
               />
             ))}
           </DomainGrid>
@@ -158,16 +138,17 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
 // (MI_ICONS) is the junior-appropriate icon per the earlier MI work, not a
 // literal RIASEC re-skin. Since emoji glyphs carry their own fixed color,
 // the leading/noticeable/barely-present distinction is expressed via the
-// badge background instead of recoloring the glyph itself.
+// badge background instead of recoloring the glyph itself. `high`/`medium`
+// both get a translucent white badge now — their cells are solid Pine/Dawn
+// fills, so a same-hue badge would disappear into the fill.
 function TypeIcon({ item, isJunior }: { item: InterestMapItem; isJunior: boolean }) {
   if (isJunior) {
     return (
       <span
         className={cn(
           'w-9 h-9 rounded-full flex items-center justify-center text-lg select-none',
-          item.level === 'high' && 'bg-accent-soft',
-          item.level === 'medium' && 'bg-brand-subtle',
-          item.level === 'low' && 'bg-surface border border-default opacity-60',
+          (item.level === 'high' || item.level === 'medium') && 'bg-white/25',
+          item.level === 'low' && 'bg-surface border border-default',
         )}
         aria-hidden="true"
       >

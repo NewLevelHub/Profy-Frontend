@@ -2,47 +2,56 @@ import { useState } from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
-import { feedbackApi, type FeedbackTag } from '@/shared/api/feedback';
+import { feedbackApi, REPORT_SECTIONS } from '@/shared/api/feedback';
 
 interface FeedbackSectionProps {
   assessmentId: string | null;
 }
 
-const TAGS: { value: FeedbackTag; label: string }[] = [
-  { value: 'agree', label: 'скорее согласен' },
-  { value: 'off', label: 'что-то не так' },
-  { value: 'just_writing', label: 'просто хочу написать' },
-];
+const RELEVANCE_SCALE = [1, 2, 3, 4, 5];
 
 type SubmitState = 'idle' | 'submitting' | 'sent' | 'error';
 
 /**
  * Quiet, optional feedback block — renders after the goal-dependent section,
  * still part of /results. Explicitly does not promise a personal reply.
- * See src/shared/api/feedback.ts for the backend-endpoint gap this is built
- * against: this component attempts a real submit and shows a real error
- * state on failure rather than faking a "sent" confirmation.
+ * 3-question shape per TZ_Profi.md §28.4: 1-5 relevance score (required),
+ * multi-pick "what was useful" from the report's own sections, and an
+ * optional free-text note — not the earlier tags+freetext shape this
+ * component used before the backend existed.
  */
 export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
-  const [tags, setTags] = useState<Set<FeedbackTag>>(new Set());
-  const [text, setText] = useState('');
+  const [relevanceScore, setRelevanceScore] = useState<number | null>(null);
+  const [sections, setSections] = useState<Set<string>>(new Set());
+  const [comment, setComment] = useState('');
   const [state, setState] = useState<SubmitState>('idle');
 
-  function toggleTag(tag: FeedbackTag) {
-    setTags((prev) => {
+  function toggleSection(value: string) {
+    setSections((prev) => {
       const next = new Set(prev);
-      if (next.has(tag)) next.delete(tag);
-      else next.add(tag);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
       return next;
     });
   }
 
   async function handleSubmit() {
-    if (!assessmentId) return;
+    if (!assessmentId || relevanceScore === null) return;
     setState('submitting');
     try {
-      await feedbackApi.submit({ assessment_id: assessmentId, tags: Array.from(tags), text });
+      await feedbackApi.submit({
+        assessment_id: assessmentId,
+        relevance_score: relevanceScore,
+        helpful_sections: Array.from(sections),
+        comment: comment.trim() || null,
+      });
       setState('sent');
+      setTimeout(() => {
+        setRelevanceScore(null);
+        setSections(new Set());
+        setComment('');
+        setState('idle');
+      }, 2000);
     } catch {
       setState('error');
     }
@@ -62,7 +71,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
   }
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Card className="flex flex-col gap-5">
       <div>
         <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mb-1.5">
           ОТЗЫВ КОМАНДЕ · НЕОБЯЗАТЕЛЬНО
@@ -73,36 +82,67 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {TAGS.map((tag) => (
-          <button
-            key={tag.value}
-            type="button"
-            onClick={() => toggleTag(tag.value)}
-            aria-pressed={tags.has(tag.value)}
-            className={cn(
-              'px-3.5 py-1.5 rounded-pill text-caption font-semibold border-[1.5px] transition-colors cursor-pointer',
-              tags.has(tag.value)
-                ? 'bg-brand text-on-brand border-brand'
-                : 'bg-surface text-secondary border-default hover:border-brand',
-            )}
-          >
-            {tag.label}
-          </button>
-        ))}
+      <div className="flex flex-col gap-2">
+        <p className="text-caption font-semibold text-primary">Насколько это про тебя?</p>
+        <div className="flex gap-2" role="radiogroup" aria-label="Насколько это про тебя, от 1 до 5">
+          {RELEVANCE_SCALE.map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={relevanceScore === value}
+              onClick={() => setRelevanceScore(value)}
+              className={cn(
+                'w-10 h-10 rounded-full text-caption font-bold border-[1.5px] transition-colors cursor-pointer',
+                relevanceScore === value
+                  ? 'bg-brand text-on-brand border-brand'
+                  : 'bg-surface text-secondary border-default hover:border-brand',
+              )}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Необязательно — что угодно, коротко или подробно"
-        rows={3}
-        className={cn(
-          'w-full bg-transparent border-[1.5px] border-default rounded-[var(--radius)] px-3 py-2.5',
-          'text-body text-primary placeholder:text-placeholder resize-none transition-colors',
-          'focus:outline-none focus:border-brand',
-        )}
-      />
+      <div className="flex flex-col gap-2">
+        <p className="text-caption font-semibold text-primary">Что оказалось самым полезным?</p>
+        <div className="flex flex-wrap gap-2">
+          {REPORT_SECTIONS.map((section) => (
+            <button
+              key={section.value}
+              type="button"
+              onClick={() => toggleSection(section.value)}
+              aria-pressed={sections.has(section.value)}
+              className={cn(
+                'px-3.5 py-1.5 rounded-pill text-caption font-semibold border-[1.5px] transition-colors cursor-pointer',
+                sections.has(section.value)
+                  ? 'bg-brand text-on-brand border-brand'
+                  : 'bg-surface text-secondary border-default hover:border-brand',
+              )}
+            >
+              {section.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-caption font-semibold text-primary">
+          Что было непонятно или не подошло? <span className="font-normal text-muted">— необязательно</span>
+        </p>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Необязательно — что угодно, коротко или подробно"
+          rows={3}
+          className={cn(
+            'w-full bg-transparent border-[1.5px] border-default rounded-[var(--radius)] px-3 py-2.5',
+            'text-body text-primary placeholder:text-placeholder resize-none transition-colors',
+            'focus:outline-none focus:border-brand',
+          )}
+        />
+      </div>
 
       {state === 'error' && (
         <p className="text-caption text-danger" role="alert">
@@ -114,7 +154,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
         <Button
           variant="ghost"
           onClick={handleSubmit}
-          disabled={!assessmentId || (tags.size === 0 && text.trim().length === 0)}
+          disabled={!assessmentId || relevanceScore === null}
           isLoading={state === 'submitting'}
         >
           Отправить отзыв

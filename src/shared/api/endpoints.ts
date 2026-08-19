@@ -30,6 +30,7 @@ export const API = {
   result: {
     generate: '/result/generate',
     get: (assessmentId: string) => `/result/${assessmentId}`,
+    feedback: '/result/feedback',
   },
   roadmap: {
     generate: '/roadmap/generate',
@@ -48,17 +49,11 @@ export const API = {
     verdict: (assessmentId: string, slug: string) =>
       `/inquiry/${assessmentId}/directions/${slug}/verdict`,
   },
-  // No feedback-submission endpoint exists yet anywhere in this API surface
-  // (grepped the whole `src/shared/api/` tree — nothing named feedback/
-  // survey/nps). This path is proposed, not confirmed against the backend;
-  // see FeedbackSection.tsx / feedback.ts for how the UI surfaces a real
-  // failure instead of silently succeeding until a backend route exists.
-  results: {
-    feedback: '/results/feedback',
-  },
   admin: {
     users: '/admin/users',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
+    feedback: '/admin/feedback',
+    feedbackStats: '/admin/feedback/stats',
   },
 } as const;

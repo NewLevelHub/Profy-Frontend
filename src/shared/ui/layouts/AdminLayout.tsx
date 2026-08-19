@@ -7,13 +7,17 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
 
 /**
  * Nav tabs the spec asks for: users / assessments / directions / "содержание
- * писем". Only `/admin/users` (and its `:userId` detail sub-route) actually
- * exists in the router today — the other three have no page, no route, no
- * backend behind them. Per the investigate-before-fabricating rule for this
- * pass, we don't render placeholder tabs for routes that 404; add entries
- * here only once the corresponding route lands in `app/router.tsx`.
+ * писем". Only `/admin/users` (and its `:userId` detail sub-route) and
+ * `/admin/feedback` actually exist in the router today — the rest have no
+ * page, no route, no backend behind them. Per the investigate-before-
+ * fabricating rule for this pass, we don't render placeholder tabs for
+ * routes that 404; add entries here only once the corresponding route lands
+ * in `app/router.tsx`.
  */
-const ADMIN_NAV_ITEMS = [{ to: '/admin/users', label: 'Пользователи' }] as const;
+const ADMIN_NAV_ITEMS = [
+  { to: '/admin/users', label: 'Пользователи' },
+  { to: '/admin/feedback', label: 'Фидбэк' },
+] as const;
 
 /**
  * Persistent chrome shared by every `/admin/*` page: wordmark + role

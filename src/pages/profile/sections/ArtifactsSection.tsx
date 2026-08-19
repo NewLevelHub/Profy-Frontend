@@ -22,7 +22,7 @@ export function ArtifactsSection({ artifacts, onEdit }: ArtifactsSectionProps) {
   return (
     <Card>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-black text-primary text-subtitle">Увлечения и цели</h2>
+        <h2 className="font-mono text-tiny font-bold uppercase tracking-label text-muted">Увлечения и цели</h2>
         <button
           type="button"
           onClick={onEdit}

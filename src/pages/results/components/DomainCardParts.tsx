@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import type { InterestLevel } from '@/shared/types';
 
 /**
  * Shared visual vocabulary for every "domain" section at the top of the
@@ -8,6 +9,17 @@ import { cn } from '@/shared/lib/cn';
  * by convention. Originated in InterestDomainSection; extracted once a
  * second/third/fourth/fifth section needed the exact same look.
  */
+
+// Status word under a level-ranked cell (design spec §06 — "fill contrast"
+// variant) — shared by every section keyed on the same opaque low/medium/
+// high enum (interest_map, personality_notes). `high`'s wording is domain-
+// specific ("ВЕДУЩИЙ" for a type, "СИЛЬНАЯ СТОРОНА" for a trait) — callers
+// spread this and override just that key.
+export const LEVEL_STATUS_LABEL: Record<InterestLevel, string> = {
+  high: 'ВЕДУЩИЙ',
+  medium: 'ЗАМЕТНО',
+  low: 'ПОЧТИ НЕ ПРОЯВЛЕН',
+};
 
 export function DomainCardFrame({
   ariaLabel,
@@ -63,42 +75,64 @@ export function DomainGrid({
   );
 }
 
+// Fill color per level — high is Pine (green, structure/success), medium is
+// Dawn (orange, the interface's "finding" accent), low has no fill at all.
+const LEVEL_FILL: Record<InterestLevel, string | undefined> = {
+  high: 'var(--pine)',
+  medium: 'var(--dawn)',
+  low: undefined,
+};
+
 /** Centered grid cell — for short, enumerable items (interest types,
- * personality traits, strengths, thinking-style notes). */
+ * personality traits, strengths, thinking-style notes).
+ *
+ * "Fill contrast" variant: when `level` is given, it — not the caller — owns
+ * background/text/icon color. Borders stay the grid's plain hairline in all
+ * three cases, only the fill changes:
+ *   low    — background goes transparent (page shows through), whole cell
+ *            dims to ~45% so it visibly recedes.
+ *   medium — fills solid Dawn; text/icon flip to --text-on-brand.
+ *   high   — fills solid Pine; text/icon flip to --text-on-brand.
+ * Cells with no `level` (strengths, thinking-style) render exactly as
+ * before — plain surface, ink text, no dimming. */
 export function DomainCell({
   icon,
   title,
   status,
-  statusColor,
   description,
-  isLeading,
+  level,
 }: {
   icon?: React.ReactNode;
   title: string;
   status?: string;
-  statusColor?: string;
   description?: string;
-  isLeading?: boolean;
+  level?: InterestLevel;
 }) {
+  const fill = level ? LEVEL_FILL[level] : undefined;
+  const isFilled = fill !== undefined;
+  const isLow = level === 'low';
+  const fg = isFilled ? 'var(--text-on-brand)' : 'var(--midnight)';
+  const descFg = isFilled ? 'var(--text-on-brand)' : 'var(--ink)';
+  const statusFg = isFilled ? 'var(--text-on-brand)' : 'var(--text-muted)';
   return (
     <div
-      className="p-3 sm:p-4 flex flex-col items-center text-center gap-1.5"
-      style={{ background: isLeading ? 'color-mix(in srgb, var(--pine) 6%, var(--bg-surface))' : 'var(--bg-surface)' }}
+      className={cn('p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-colors', isLow && 'opacity-45')}
+      style={{ background: fill ?? (isLow ? 'transparent' : 'var(--bg-surface)') }}
     >
       {icon}
-      <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug line-clamp-2">
+      <p className="text-body-sm font-semibold leading-snug line-clamp-2" style={{ color: fg }}>
         {title}
       </p>
       {status && (
         <p
-          className="font-mono text-mono-xs uppercase tracking-label"
-          style={{ color: statusColor ?? 'var(--ink)' }}
+          className={cn('font-mono uppercase tracking-label', isLow ? 'text-tiny' : 'text-mono-xs')}
+          style={{ color: statusFg }}
         >
           {status}
         </p>
       )}
       {description && (
-        <p className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
+        <p className="text-caption leading-snug" style={{ color: descFg }}>
           {description}
         </p>
       )}

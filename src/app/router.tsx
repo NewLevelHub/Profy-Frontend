@@ -45,6 +45,7 @@ import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
+import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -121,6 +122,7 @@ export const router = createBrowserRouter([
                     children: [
                       { path: '/admin/users', element: <AdminUsersPage /> },
                       { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                      { path: '/admin/feedback', element: <AdminFeedbackPage /> },
                     ],
                   },
                 ],
