@@ -49,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <button
             onClick={() => {
               this.setState({ error: null });
-              window.location.replace('/home');
+              window.location.replace('/results');
             }}
             className="px-6 py-3 bg-transparent text-brand font-semibold rounded-pill text-base border border-default transition-colors hover:bg-raised"
           >

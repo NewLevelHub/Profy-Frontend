@@ -21,6 +21,7 @@ export interface OnboardingProfileDraft {
   country: string;
   language: string;
   subjectsLike: string[];
+  subjectsDislike: string[];
   subjectsEasy: string[];
   subjectsHard: string[];
 }

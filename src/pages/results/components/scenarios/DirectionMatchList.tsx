@@ -43,9 +43,6 @@ export const DirectionMatchList = memo(function DirectionMatchList({
             <p className="text-body-md font-semibold text-[color:var(--midnight)] leading-snug truncate">
               {career.name}
             </p>
-            <p className="text-caption leading-snug truncate" style={{ color: 'var(--ink)' }}>
-              {career.why}
-            </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <CareerMatchLadder tier={career.tier} showLabel={false} />

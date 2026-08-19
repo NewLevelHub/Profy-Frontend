@@ -2,9 +2,8 @@
 // between Sidebar.tsx (desktop) and Header.tsx (mobile). Both are now merged
 // into TopRail.tsx, which is the only consumer of this list.
 export const NAV_ITEMS = [
-  { label: 'Обзор', path: '/home' },
   { label: 'Результаты', path: '/results' },
-  { label: 'План', path: '/roadmap' },
+  // 'План' (/roadmap) hidden from nav for now — route still exists, just not linked.
   { label: 'Профиль', path: '/profile' },
 ] as const;
 

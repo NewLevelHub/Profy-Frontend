@@ -49,7 +49,7 @@ export default function ResultLoadingPage() {
 
   useEffect(() => {
     if (!assessmentId) {
-      navigate('/home', { replace: true });
+      navigate('/results', { replace: true });
       return;
     }
 

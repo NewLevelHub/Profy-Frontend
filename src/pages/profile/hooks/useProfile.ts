@@ -33,8 +33,8 @@ export function useProfile() {
   const isJunior = profile?.age_group === 'junior';
 
   const hasSubjects =
-    (profile?.subjects_like?.length ?? 0) > 0 ||
-    (profile?.subjects_dislike?.length ?? 0) > 0 ||
+    (profile?.subjects_liked?.length ?? 0) > 0 ||
+    (profile?.subjects_disliked?.length ?? 0) > 0 ||
     (profile?.subjects_easy?.length ?? 0) > 0 ||
     (profile?.subjects_hard?.length ?? 0) > 0;
 

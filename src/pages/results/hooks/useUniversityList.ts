@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { universityApi } from '@/shared/api/university';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { canSeeUniversities } from '@/shared/lib/assessmentGoal';
 
 export const COUNTRY_FILTERS: { label: string; value: string | undefined }[] = [
   { label: 'Все', value: undefined },
@@ -25,7 +26,7 @@ export function useUniversityList() {
   const ageGroup = useProfileStore(s => s.profile?.age_group);
   const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
 
-  const isAllowed = goal === 'university' && ageGroup === 'senior';
+  const isAllowed = canSeeUniversities(goal, ageGroup);
 
   // Program.profession_slugs directly lists which professions a specialty
   // prepares someone for, so the university search keys off the profession's

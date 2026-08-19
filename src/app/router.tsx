@@ -31,7 +31,6 @@ import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
-import HomePage from '@/pages/home/HomePage';
 import ResultsPage from '@/pages/results/ResultsPage';
 import ProfilePage from '@/pages/profile/ProfilePage';
 
@@ -51,8 +50,8 @@ import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
-  // Root redirect — RequireProfile will handle the profile check at /home
-  { path: '/', element: <Navigate to="/home" replace /> },
+  // Root redirect — RequireProfile will handle the profile check at /results
+  { path: '/', element: <Navigate to="/results" replace /> },
 
   // ── Guest-only: AuthLayout (mobile: AuthNavigator) ─────────────────────────
   {
@@ -97,7 +96,6 @@ export const router = createBrowserRouter([
           {
             element: <AppLayout />,
             children: [
-              { path: '/home', element: <HomePage /> },
               { path: '/results', element: <ResultsPage /> },
               { path: '/profile', element: <ProfilePage /> },
               { path: '/roadmap', element: <RoadmapPage /> },

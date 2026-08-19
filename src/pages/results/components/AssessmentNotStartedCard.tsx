@@ -1,24 +1,23 @@
+import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
-import { KICKER_CLASS } from './HomeFrame';
+import { type as typeClass } from '@/shared/ui/typography/tokens';
 
-interface NotStartedOverviewProps {
+interface AssessmentNotStartedCardProps {
   onStart: () => void;
 }
 
-/**
- * No assessment started yet — not covered by the spec §04 excerpt (which
- * only shows the completed state), so this reuses the same visual language
- * as the other two /home states rather than inventing a new one.
- */
-export function NotStartedOverview({ onStart }: NotStartedOverviewProps) {
+/** Shown on /results before any assessment has been started — results have
+ *  nothing to display yet, so this replaces the old separate /home screen
+ *  (which showed the exact same "nothing to see" state as a detour). */
+export function AssessmentNotStartedCard({ onStart }: AssessmentNotStartedCardProps) {
   return (
-    <div className="flex flex-col gap-6">
+    <Card className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-5 flex-wrap">
         <div className="flex flex-col gap-2 min-w-0 flex-1">
-          <span className={KICKER_CLASS}>ДИАГНОСТИКА · ЕЩЁ НЕ НАЧАТА</span>
+          <span className={`${typeClass.monoLabel} text-muted`}>ДИАГНОСТИКА · ЕЩЁ НЕ НАЧАТА</span>
           <Heading level="display-lg" className="text-[color:var(--midnight)]">
             Готов начать диагностику?
           </Heading>
@@ -32,6 +31,6 @@ export function NotStartedOverview({ onStart }: NotStartedOverviewProps) {
       <Button variant="primary" size="lg" className="rounded-pill self-start" onClick={onStart}>
         Начать тест
       </Button>
-    </div>
+    </Card>
   );
 }

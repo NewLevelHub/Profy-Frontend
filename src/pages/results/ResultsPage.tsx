@@ -6,6 +6,8 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { StudentCareer } from '@/shared/types';
 import { useResults } from './hooks/useResults';
+import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
+import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
 import { SummaryCard } from './components/SummaryCard';
 import { InterestDomainSection } from './components/InterestDomainSection';
 import { StrengthsDomainSection } from './components/StrengthsDomainSection';
@@ -49,21 +51,26 @@ export default function ResultsPage() {
     assessmentId,
     goal,
     ageGroup,
-    showUniversityBtn,
     isJunior,
     refetch,
+    inProgress,
+    answeredCount,
+    totalQuestions,
   } = useResults();
 
   if (!hasCompletedAssessment) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <span className="text-5xl select-none" aria-hidden="true">📋</span>
-        <h2 className="text-h1 font-extrabold text-primary">Результатов пока нет</h2>
-        <p className="text-body text-secondary max-w-xs">
-          Сначала пройди диагностику, чтобы увидеть свои результаты
-        </p>
-        <Button onClick={() => navigate('/home')}>Перейти на главную</Button>
-      </div>
+      <PageContainer>
+        {inProgress ? (
+          <AssessmentInProgressCard
+            answeredCount={answeredCount}
+            totalQuestions={totalQuestions}
+            onContinue={() => navigate('/assessment')}
+          />
+        ) : (
+          <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />
+        )}
+      </PageContainer>
     );
   }
 

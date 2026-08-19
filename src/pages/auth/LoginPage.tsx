@@ -50,9 +50,9 @@ export default function LoginPage() {
       const from = (location.state as { from?: string })?.from;
       // /welcome no longer doubles as the "just authenticated" landing spot
       // (it now only shows once, right before a user's first assessment —
-      // see useGoalSelection) — RequireProfile at /home decides from here
+      // see useGoalSelection) — RequireProfile at /results decides from here
       // whether onboarding is still needed.
-      navigate(from ?? '/home', { replace: true });
+      navigate(from ?? '/results', { replace: true });
     } catch (err) {
       setPassword('');
       if (axios.isAxiosError(err)) {

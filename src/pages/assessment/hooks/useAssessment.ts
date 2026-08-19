@@ -313,7 +313,7 @@ export function useAssessment() {
 
   function confirmExit() {
     setExitConfirmOpen(false);
-    navigate('/home');
+    navigate('/results');
   }
 
   function cancelExit() {

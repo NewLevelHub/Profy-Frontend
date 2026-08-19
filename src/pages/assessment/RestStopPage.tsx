@@ -70,7 +70,7 @@ export default function RestStopPage() {
   function handlePause() {
     // Progress is already saved after every answer (same guarantee
     // ExitAssessmentModal relies on) — pausing is just leaving.
-    navigate('/home');
+    navigate('/results');
   }
 
   const kicker = isSpeedVariant || hasInsight ? 'Замечаю по ходу' : 'Привал';

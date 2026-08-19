@@ -14,12 +14,12 @@ export function RequireGuest() {
   }
 
   if (token) {
-    // RequireProfile (guarding /home and the rest of the main app) is what
+    // RequireProfile (guarding /results and the rest of the main app) is what
     // decides whether onboarding is still needed — this just hands off to
     // the app root rather than hardcoding /welcome, which is no longer the
     // universal "just logged in" landing spot (it now only shows once,
     // right before a user's first assessment — see useGoalSelection).
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/results" replace />;
   }
 
   return <Outlet />;

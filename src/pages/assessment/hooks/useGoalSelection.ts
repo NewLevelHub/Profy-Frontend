@@ -11,7 +11,7 @@ import type { AxiosError } from 'axios';
 export function useGoalGuard() {
   const syncDone = useAssessmentStore(s => s.syncDone);
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
-  // Redirect to home if user already has completed assessment (guard fires from store)
+  // Redirect to results if user already has completed assessment (guard fires from store)
   const shouldRedirect = syncDone && hasCompletedAssessment;
   return { syncDone, shouldRedirect };
 }

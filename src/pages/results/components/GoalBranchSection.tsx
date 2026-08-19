@@ -2,9 +2,7 @@ import { useProfileStore } from '@/shared/store/profile';
 import type { AgeGroup, AssessmentGoal, ResultResponse } from '@/shared/types';
 import { GoalBadge } from './GoalBadge';
 import { ScenarioA } from './scenarios/ScenarioA';
-import { ScenarioB } from './scenarios/ScenarioB';
-import { ScenarioC } from './scenarios/ScenarioC';
-import { ScenarioCDowngrade } from './scenarios/ScenarioCDowngrade';
+import { ScenarioProfessional } from './scenarios/ScenarioProfessional';
 
 interface GoalBranchSectionProps {
   report: ResultResponse;
@@ -30,34 +28,25 @@ export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchS
   const profile = useProfileStore((s) => s.profile);
 
   const isJunior = ageGroup === 'junior';
-  const isMiddle = ageGroup === 'middle';
   const goal: AssessmentGoal = initialGoal ?? 'explore';
 
-  let content: React.ReactNode;
-  if (isJunior) {
-    content = <ScenarioA interestMap={report.interest_map} />;
-  } else if (goal === 'explore') {
-    content = <ScenarioA interestMap={report.interest_map} />;
-  } else if (goal === 'profession') {
-    content = <ScenarioB careers={report.careers} />;
-  } else if (isMiddle) {
-    // Middle tier picking "university": full ScenarioB content plus the
-    // downgrade card below it, per spec — not a replacement.
-    content = (
-      <div className="flex flex-col gap-6">
-        <ScenarioB careers={report.careers} />
-        <ScenarioCDowngrade />
-      </div>
-    );
-  } else {
-    content = (
-      <ScenarioC
+  // 'profession' and 'university' used to be two separate goals with two
+  // separate scenario trees — they're merged now (GoalSelectionPage's
+  // "Выбрать профессию" card sends 'university'), so anything that isn't
+  // explore/junior falls straight into the one merged scenario. Old
+  // assessments can still have `goal: 'profession'` stored (immutable
+  // historical data) and must keep landing here too — see
+  // ScenarioProfessional for the age-based (not goal-based) tiering that
+  // replaces the old goal-based split.
+  const content = (isJunior || goal === 'explore')
+    ? <ScenarioA interestMap={report.interest_map} />
+    : (
+      <ScenarioProfessional
         careers={report.careers}
+        ageGroup={ageGroup ?? 'middle'}
         grade={profile?.grade}
-        subjectsEasy={profile?.subjects_easy ?? []}
       />
     );
-  }
 
   return (
     <div className="flex flex-col gap-6">

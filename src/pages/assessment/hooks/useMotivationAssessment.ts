@@ -224,7 +224,7 @@ export function useMotivationAssessment() {
 
   function confirmExit() {
     setExitConfirmOpen(false);
-    navigate('/home');
+    navigate('/results');
   }
 
   function cancelExit() {

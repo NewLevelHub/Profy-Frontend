@@ -57,9 +57,15 @@ const TARGETS = [
   'Германия', 'Турция', 'ОАЭ', 'Южная Корея',
 ];
 
-// Matches MASCOT_WELCOME_SIZE in ProfileSetupPage — same calibrated "welcome"
-// pose size, so the mascot reads at the same scale across all 9 steps.
-const MASCOT_SIZE = 76;
+// One mascot per step, top-right, a different pose from the other 3
+// onboarding steps (see ProfileSetupPage's own MASCOT_*_SIZE constants for
+// 'welcome'/'waiting') — sizes calibrated per pose to a common ~73px
+// rendered character height, same rationale as ProfileSetupPage.
+const MASCOT_TRANSITION_SIZE = 63;
+const MASCOT_PAUSE_SIZE = 79;
+// Edit mode (opened from Profile settings) isn't one of the 4 onboarding
+// steps — kept at its own pre-existing fixed size, unaffected by the above.
+const MASCOT_EDIT_SIZE = 64;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -211,69 +217,78 @@ export default function ArtifactsSetupPage() {
     );
   }
 
+  // Extracted per-section so onboarding can render four of these stacked on
+  // one merged screen (see below) while edit mode still shows exactly one
+  // at a time via sectionContent, unchanged.
+  const activitiesBody = (
+    <div className="flex flex-col gap-5">
+      <ChipGrid
+        subtitle="Хобби и занятия"
+        options={HOBBIES}
+        selected={hobbies}
+        onToggle={h => setHobbies(prev => toggle(prev, h))}
+        onAddCustom={h => setHobbies(prev => (prev.includes(h) ? prev : [...prev, h]))}
+      />
+      <ChipGrid
+        subtitle="Кружки и секции"
+        options={CLUBS}
+        selected={clubs}
+        onToggle={c => setClubs(prev => toggle(prev, c))}
+        onAddCustom={c => setClubs(prev => (prev.includes(c) ? prev : [...prev, c]))}
+      />
+    </div>
+  );
+
+  const achievementsBody = (
+    <ChipGrid
+      options={ACHIEVEMENTS}
+      selected={achievements}
+      onToggle={a => setAchievements(prev => toggle(prev, a))}
+      onAddCustom={a => setAchievements(prev => (prev.includes(a) ? prev : [...prev, a]))}
+    />
+  );
+
+  const professionsBody = (
+    <ChipGrid
+      options={PROFESSIONS}
+      selected={professions}
+      onToggle={p => setProfessions(prev => toggle(prev, p))}
+      onAddCustom={p => setProfessions(prev => (prev.includes(p) ? prev : [...prev, p]))}
+    />
+  );
+
+  const targetsBody = (
+    <ChipGrid
+      options={TARGETS}
+      selected={targets}
+      onToggle={t => setTargets(prev => toggle(prev, t))}
+      onAddCustom={t => setTargets(prev => (prev.includes(t) ? prev : [...prev, t]))}
+    />
+  );
+
+  const dreamsBody = (
+    <textarea
+      value={dreams}
+      onChange={e => setDreams(e.target.value)}
+      placeholder="Например: хочу однажды поехать на настоящие раскопки"
+      rows={2}
+      className={cn(
+        'w-full rounded-[var(--radius-sm)] px-4 py-3 text-body-md resize-none',
+        'placeholder:text-placeholder focus:outline-none transition-colors',
+      )}
+      style={{ background: 'var(--bg-page)', border: '1.5px solid var(--line)', color: 'var(--ink)' }}
+      onFocus={e => { e.currentTarget.style.borderColor = 'var(--pine)'; }}
+      onBlur={e => { e.currentTarget.style.borderColor = 'var(--line)'; }}
+    />
+  );
+
   const sectionContent = (
     <>
-      {activeSection === 'activities' && (
-        <div className="flex flex-col gap-5">
-          <ChipGrid
-            subtitle="Хобби и занятия"
-            options={HOBBIES}
-            selected={hobbies}
-            onToggle={h => setHobbies(prev => toggle(prev, h))}
-            onAddCustom={h => setHobbies(prev => (prev.includes(h) ? prev : [...prev, h]))}
-          />
-          <ChipGrid
-            subtitle="Кружки и секции"
-            options={CLUBS}
-            selected={clubs}
-            onToggle={c => setClubs(prev => toggle(prev, c))}
-            onAddCustom={c => setClubs(prev => (prev.includes(c) ? prev : [...prev, c]))}
-          />
-        </div>
-      )}
-
-      {activeSection === 'achievements' && (
-        <ChipGrid
-          options={ACHIEVEMENTS}
-          selected={achievements}
-          onToggle={a => setAchievements(prev => toggle(prev, a))}
-          onAddCustom={a => setAchievements(prev => (prev.includes(a) ? prev : [...prev, a]))}
-        />
-      )}
-
-      {activeSection === 'professions' && (
-        <ChipGrid
-          options={PROFESSIONS}
-          selected={professions}
-          onToggle={p => setProfessions(prev => toggle(prev, p))}
-          onAddCustom={p => setProfessions(prev => (prev.includes(p) ? prev : [...prev, p]))}
-        />
-      )}
-
-      {activeSection === 'targets' && (
-        <ChipGrid
-          options={TARGETS}
-          selected={targets}
-          onToggle={t => setTargets(prev => toggle(prev, t))}
-          onAddCustom={t => setTargets(prev => (prev.includes(t) ? prev : [...prev, t]))}
-        />
-      )}
-
-      {activeSection === 'dreams' && (
-        <textarea
-          value={dreams}
-          onChange={e => setDreams(e.target.value)}
-          placeholder="Например: хочу однажды поехать на настоящие раскопки"
-          rows={2}
-          className={cn(
-            'w-full rounded-[var(--radius-sm)] px-4 py-3 text-body-md resize-none',
-            'placeholder:text-placeholder focus:outline-none transition-colors',
-          )}
-          style={{ background: 'var(--bg-page)', border: '1.5px solid var(--line)', color: 'var(--ink)' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'var(--pine)'; }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'var(--line)'; }}
-        />
-      )}
+      {activeSection === 'activities' && activitiesBody}
+      {activeSection === 'achievements' && achievementsBody}
+      {activeSection === 'professions' && professionsBody}
+      {activeSection === 'targets' && targetsBody}
+      {activeSection === 'dreams' && dreamsBody}
     </>
   );
 
@@ -304,7 +319,7 @@ export default function ArtifactsSetupPage() {
                   </Heading>
                   <p className="text-body-md" style={{ color: 'var(--mute)' }}>{copy.note}</p>
                 </div>
-                <Mascot state="welcome" size={64} className="shrink-0" />
+                <Mascot state="welcome" size={MASCOT_EDIT_SIZE} className="shrink-0" />
               </div>
 
               {sectionContent}
@@ -344,31 +359,76 @@ export default function ArtifactsSetupPage() {
     );
   }
 
-  // ── Onboarding — steps 5-9, identical shell to ProfileSetupPage's steps
-  // 1-4: sticky progress bar, plain full-width content, fixed footer.
+  // ── Onboarding — steps 3-4, identical shell to ProfileSetupPage's steps
+  // 1-2: sticky progress bar, plain full-width content, fixed footer. The
+  // first four groups render merged onto one screen (step 3); 'dreams'
+  // gets its own screen alone (step 4) — see useArtifactsSetup.advance/
+  // handleBack for the matching two-screen navigation.
+  const isDreamsStep = activeSection === 'dreams';
+
   return (
     <div className="min-h-screen bg-page flex flex-col">
 
       <div className="sticky top-0 z-10 bg-page px-5 pt-5 pb-4 flex flex-col gap-2">
-        <OnboardingProgress current={PROFILE_STEP_COUNT + sectionIndex + 1} total={TOTAL_ONBOARDING_STEPS} />
+        <OnboardingProgress
+          current={PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1)}
+          total={TOTAL_ONBOARDING_STEPS}
+        />
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-40 lg:pb-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <Heading level="display-md">{copy.headline}</Heading>
-              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{copy.note}</p>
+        {isDreamsStep ? (
+          <div className="flex flex-col gap-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Heading level="display-md">{copy.headline}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{copy.note}</p>
+              </div>
+              <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
             </div>
-            <Mascot state="welcome" size={MASCOT_SIZE} className="shrink-0" />
+
+            {dreamsBody}
           </div>
+        ) : (
+          <div className="flex flex-col gap-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Heading level="display-md">{SECTION_COPY.activities.headline}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.activities.note}</p>
+              </div>
+              <Mascot state="transition" size={MASCOT_TRANSITION_SIZE} className="shrink-0" />
+            </div>
+            {activitiesBody}
 
-          {sectionContent}
+            <div className="flex flex-col gap-5 pt-2 border-t border-default">
+              <div className="pt-2">
+                <Heading level="display-md" as="h2">{SECTION_COPY.achievements.headline}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.achievements.note}</p>
+              </div>
+              {achievementsBody}
+            </div>
 
-          {saveError && (
-            <p className="text-xs text-danger text-center">Не удалось сохранить. Попробуй ещё раз.</p>
-          )}
-        </div>
+            <div className="flex flex-col gap-5 pt-2 border-t border-default">
+              <div className="pt-2">
+                <Heading level="display-md" as="h2">{SECTION_COPY.professions.headline}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.professions.note}</p>
+              </div>
+              {professionsBody}
+            </div>
+
+            <div className="flex flex-col gap-5 pt-2 border-t border-default">
+              <div className="pt-2">
+                <Heading level="display-md" as="h2">{SECTION_COPY.targets.headline}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.targets.note}</p>
+              </div>
+              {targetsBody}
+            </div>
+          </div>
+        )}
+
+        {saveError && (
+          <p className="text-xs text-danger text-center mt-6">Не удалось сохранить. Попробуй ещё раз.</p>
+        )}
       </div>
 
       <div className={cn(

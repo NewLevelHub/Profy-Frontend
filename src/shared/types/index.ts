@@ -25,8 +25,8 @@ export interface ProfilePayload {
   city: string;
   country: string;
   language: string;
-  subjects_like: string[];
-  subjects_dislike: string[];
+  subjects_liked: string[];
+  subjects_disliked: string[];
   subjects_easy: string[];
   subjects_hard: string[];
   /** Optional — POST /profile now accepts artifacts inline, saving profile

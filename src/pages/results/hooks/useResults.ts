@@ -14,7 +14,16 @@ export function useResults() {
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const goal = useAssessmentStore(s => s.goal);
+  const answeredCount = useAssessmentStore(s => s.answeredCount);
+  const totalQuestions = useAssessmentStore(s => s.totalQuestions);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
+
+  // No completed report yet — either no assessment was ever started, or one
+  // is started but not finished. /results is now the only screen for both
+  // states (the old separate /home "overview" showed nothing useful before
+  // the report existed anyway).
+  const hasAssessment = assessmentId !== null && goal !== null;
+  const inProgress = hasAssessment && !hasCompletedAssessment;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['result', assessmentId] as const,
@@ -73,7 +82,10 @@ export function useResults() {
     goal,
     ageGroup,
     isJunior,
-    showUniversityBtn: goal === 'university' && ageGroup === 'senior',
     refetch,
+    hasAssessment,
+    inProgress,
+    answeredCount,
+    totalQuestions,
   };
 }

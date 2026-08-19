@@ -27,7 +27,7 @@ export default function PraisePage() {
   const {
     title = 'Молодец!',
     subtitle = '',
-    nextPath = '/home',
+    nextPath = '/results',
     completedCount,
     totalBlocks,
     nextBlockName,

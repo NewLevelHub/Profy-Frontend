@@ -58,7 +58,7 @@ export function RequireAdmin() {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/results" replace />;
   }
 
   return <Outlet />;

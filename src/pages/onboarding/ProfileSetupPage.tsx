@@ -14,17 +14,16 @@ const SUBJECTS = [
 
 const AGES = Array.from({ length: 13 }, (_, i) => 6 + i); // 6–18
 
-// Each mascot pose is a separate PNG with its own canvas size and padding
-// around the character (measured via each sprite's alpha bounding box:
-// greeting 461/480h, notepad 462/399h, book 467/430h, pause 398/430h) — so
-// the same `size` prop renders visibly different character heights per
-// pose, up to ~25% off between the tallest (notepad) and shortest (pause).
-// These sizes are calibrated per pose to a common ~73px rendered character
-// height instead of a common bounding-box width.
+// One mascot per step, top-right, each a different pose so the 4 onboarding
+// screens read as distinct moments rather than a repeated icon. Sizes are
+// calibrated per pose to a common ~73px rendered character height — each
+// pose is a separate PNG with its own canvas padding (measured via each
+// sprite's alpha bounding box: greeting 461/480h, book 467/430h), so the
+// same `size` prop would otherwise render visibly different heights.
+// 'transition'/'pause' (the other two calibrated poses) are used on
+// ArtifactsSetupPage's two steps — see its own MASCOT_*_SIZE constants.
 const MASCOT_WELCOME_SIZE = 76;
-const MASCOT_TRANSITION_SIZE = 63;
 const MASCOT_WAITING_SIZE = 67;
-const MASCOT_PAUSE_SIZE = 79;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -148,6 +147,7 @@ export default function ProfileSetupPage() {
     city, setCity,
     country, setCountry,
     subjectsLike, setSubjectsLike,
+    subjectsDislike, setSubjectsDislike,
     subjectsEasy, setSubjectsEasy,
     subjectsHard, setSubjectsHard,
     errors, clearError,
@@ -166,7 +166,7 @@ export default function ProfileSetupPage() {
       {/* ── Scrollable content ────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-40 lg:pb-8">
 
-        {step === PROFILE_STEPS.NAME_AGE && (
+        {step === PROFILE_STEPS.NAME_SCHOOL && (
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-6">
               <div className="flex items-start justify-between gap-4">
@@ -217,56 +217,50 @@ export default function ProfileSetupPage() {
               </div>
               {errors.age && <p className="text-small text-danger">{errors.age}</p>}
             </div>
-          </div>
-        )}
 
-        {step === PROFILE_STEPS.SCHOOL_LANGUAGE && (
-          <div className="flex flex-col gap-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Heading level="display-md">
+            <div className="flex flex-col gap-6 pt-2 border-t border-default">
+              <div className="pt-2">
+                <Heading level="display-md" as="h2">
                   Где ты учишься?
                 </Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Класс и город — поможет точнее подобрать вопросы и рекомендации</p>
               </div>
-              <Mascot state="transition" size={MASCOT_TRANSITION_SIZE} className="shrink-0" />
+
+              <Input
+                label="Класс"
+                type="number"
+                inputMode="numeric"
+                value={grade}
+                onChange={e => { setGrade(e.target.value); clearError('grade'); }}
+                placeholder="от 1 до 12"
+                error={errors.grade}
+                min={1}
+                max={12}
+              />
+
+              {/* No real city dataset/API exists in this codebase — a plain text
+                  field is the honest fallback rather than a fabricated
+                  autocomplete list. See onboarding rebuild notes. */}
+              <Input
+                label="Город"
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                placeholder="Например, Алматы"
+                hint="Пока без подсказок — просто впиши город"
+              />
+
+              <Input
+                label="Страна"
+                value={country}
+                onChange={e => setCountry(e.target.value)}
+                placeholder="Например, Казахстан"
+              />
             </div>
-
-            <Input
-              label="Класс"
-              type="number"
-              inputMode="numeric"
-              value={grade}
-              onChange={e => { setGrade(e.target.value); clearError('grade'); }}
-              placeholder="от 1 до 12"
-              error={errors.grade}
-              min={1}
-              max={12}
-              autoFocus
-            />
-
-            {/* No real city dataset/API exists in this codebase — a plain text
-                field is the honest fallback rather than a fabricated
-                autocomplete list. See onboarding rebuild notes. */}
-            <Input
-              label="Город"
-              value={city}
-              onChange={e => setCity(e.target.value)}
-              placeholder="Например, Алматы"
-              hint="Пока без подсказок — просто впиши город"
-            />
-
-            <Input
-              label="Страна"
-              value={country}
-              onChange={e => setCountry(e.target.value)}
-              placeholder="Например, Казахстан"
-            />
           </div>
         )}
 
-        {step === PROFILE_STEPS.SUBJECTS_LIKE && (
-          <div className="flex flex-col gap-4">
+        {step === PROFILE_STEPS.SUBJECTS && (
+          <div className="flex flex-col gap-8">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Heading level="display-md">
@@ -277,43 +271,51 @@ export default function ProfileSetupPage() {
               <Mascot state="waiting" size={MASCOT_WAITING_SIZE} className="shrink-0" />
             </div>
 
-            <SubjectGroup
-              title="Предметы"
-              selected={subjectsLike}
-              onToggle={s => setSubjectsLike(prev => toggle(prev, s))}
-              onAddCustom={s => setSubjectsLike(prev => (prev.includes(s) ? prev : [...prev, s]))}
-            />
-          </div>
-        )}
+            {/* Same neutral chip styling and mutual-exclusion pattern as
+                the easy/hard group below — a subject can't be both liked and
+                disliked at once. */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <SubjectGroup
+                title="Нравятся"
+                selected={subjectsLike}
+                onToggle={s => setSubjectsLike(prev => toggle(prev, s))}
+                onAddCustom={s => setSubjectsLike(prev => (prev.includes(s) ? prev : [...prev, s]))}
+                otherSelected={subjectsDislike}
+              />
+              <SubjectGroup
+                title="Не нравятся"
+                selected={subjectsDislike}
+                onToggle={s => setSubjectsDislike(prev => toggle(prev, s))}
+                onAddCustom={s => setSubjectsDislike(prev => (prev.includes(s) ? prev : [...prev, s]))}
+                otherSelected={subjectsLike}
+              />
+            </div>
 
-        {step === PROFILE_STEPS.SUBJECTS_STRUGGLE && (
-          <div className="flex flex-col gap-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Heading level="display-md">
+            <div className="flex flex-col gap-8 pt-2 border-t border-default">
+              <div className="pt-2">
+                <Heading level="display-md" as="h2">
                   А как с остальными предметами?
                 </Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Необязательно — но поможет точнее</p>
               </div>
-              <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
-            </div>
 
-            {/* Deliberately neutral: both columns use the identical chip style.
-                Dawn only ever marks "selected", never "good" vs. "bad" — the
-                framing is carried by wording alone. */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <SubjectGroup
-                title="А что из предметов даётся легко?"
-                selected={subjectsEasy}
-                onToggle={s => setSubjectsEasy(prev => toggle(prev, s))}
-                otherSelected={subjectsHard}
-              />
-              <SubjectGroup
-                title="А где приходится стараться больше?"
-                selected={subjectsHard}
-                onToggle={s => setSubjectsHard(prev => toggle(prev, s))}
-                otherSelected={subjectsEasy}
-              />
+              {/* Deliberately neutral: both columns use the identical chip style.
+                  Dawn only ever marks "selected", never "good" vs. "bad" — the
+                  framing is carried by wording alone. */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <SubjectGroup
+                  title="А что из предметов даётся легко?"
+                  selected={subjectsEasy}
+                  onToggle={s => setSubjectsEasy(prev => toggle(prev, s))}
+                  otherSelected={subjectsHard}
+                />
+                <SubjectGroup
+                  title="А где приходится стараться больше?"
+                  selected={subjectsHard}
+                  onToggle={s => setSubjectsHard(prev => toggle(prev, s))}
+                  otherSelected={subjectsEasy}
+                />
+              </div>
             </div>
 
             {submitError && (
@@ -354,7 +356,7 @@ export default function ProfileSetupPage() {
             className="ml-auto h-14 px-10 rounded-pill font-extrabold shadow-button"
             onClick={handleSubmit}
           >
-            {/* Saves the profile and moves on to artifacts (steps 5-9 of the
+            {/* Saves the profile and moves on to artifacts (steps 3-4 of the
                 same onboarding flow) — "Далее", not "Готово", since this
                 isn't the end of onboarding. */}
             Далее

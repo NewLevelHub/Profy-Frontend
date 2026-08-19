@@ -35,7 +35,10 @@ const GOAL_CARDS: GoalCard[] = [
     subtitle: 'Узнать свои сильные стороны и интересы — или ещё не знать, с чего начать. Это нормально, разберёмся вместе.',
   },
   {
-    goal: 'profession',
+    // Sends 'university' to the backend, not 'profession' — see
+    // GoalBadge.tsx's comment for why the two values are treated as fully
+    // equivalent everywhere they're read.
+    goal: 'university',
     tag: 'Профессия',
     title: 'Выбрать профессию',
     subtitle: 'Найди направление, которое тебе подойдёт — и путь к поступлению в вуз',
@@ -169,7 +172,7 @@ export default function GoalSelectionPage() {
   } = useGoalSelection();
 
   if (shouldRedirect) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/results" replace />;
   }
 
   const visibleCards = GOAL_CARDS.filter(

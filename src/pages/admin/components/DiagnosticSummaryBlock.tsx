@@ -159,8 +159,8 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
             ))}
           </div>
           <p className="text-mono-xs text-muted leading-[1.35]">
-            Необработанные баллы и буквы RIASEC показываются только здесь — ни `/home` ("ЧТО ТЕБЕ БЛИЖЕ"),
-            ни `/results` не должны раскрывать эти значения (см. frontend-result-api-contract.md).
+            Необработанные баллы и буквы RIASEC показываются только здесь — `/results` не должен
+            раскрывать эти значения (см. frontend-result-api-contract.md).
           </p>
         </div>
       )}

@@ -8,23 +8,19 @@ import type { ProfilePayload } from '@/shared/types';
 
 type FieldErrors = Partial<Record<'name' | 'age' | 'grade', string>>;
 
-// 4 screens ("диалог, не форма"):
-//  1. имя + возраст
-//  2. класс + город (+ страна)
-//  3. предметы, которые нравятся
-//  4. предметы: легко / где приходится стараться больше (neutral framing —
-//     see ProfileSetupPage's SUBJECTS_STRUGGLE copy)
-const TOTAL_STEPS = 4;
-const STEP_NAME_AGE = 1;
-const STEP_SCHOOL_LANGUAGE = 2;
-const STEP_SUBJECTS_LIKE = 3;
-const STEP_SUBJECTS_STRUGGLE = 4;
+// 2 screens ("диалог, не форма"), each merging what used to be two separate
+// steps onto one scrollable screen (same pattern NAME_SCHOOL already used
+// internally for имя+возраст — just extended to a second merged pair):
+//  1. имя + возраст, класс + город (+ страна)
+//  2. предметы: нравятся / не нравятся, легко / где приходится стараться
+//     больше (neutral framing — see ProfileSetupPage's SUBJECTS copy)
+const TOTAL_STEPS = 2;
+const STEP_NAME_SCHOOL = 1;
+const STEP_SUBJECTS = 2;
 
 export const PROFILE_STEPS = {
-  NAME_AGE: STEP_NAME_AGE,
-  SCHOOL_LANGUAGE: STEP_SCHOOL_LANGUAGE,
-  SUBJECTS_LIKE: STEP_SUBJECTS_LIKE,
-  SUBJECTS_STRUGGLE: STEP_SUBJECTS_STRUGGLE,
+  NAME_SCHOOL: STEP_NAME_SCHOOL,
+  SUBJECTS: STEP_SUBJECTS,
 } as const;
 
 function toggle(list: string[], item: string): string[] {
@@ -67,15 +63,13 @@ export function useProfileSetup() {
   // set doesn't lose it on save, and so the required ProfilePayload field
   // still gets submitted (empty string for new profiles).
   const [language, setLanguage] = useState(existing?.language ?? draft?.language ?? '');
-  const [subjectsLike, setSubjectsLike] = useState<string[]>(existing?.subjects_like ?? draft?.subjectsLike ?? []);
+  const [subjectsLike, setSubjectsLike] = useState<string[]>(existing?.subjects_liked ?? draft?.subjectsLike ?? []);
+  // "Не нравятся" — a preference axis (paired with subjectsLike), collected
+  // on the same SUBJECTS_LIKE screen, distinct from the easy/hard
+  // difficulty axis below.
+  const [subjectsDislike, setSubjectsDislike] = useState<string[]>(existing?.subjects_disliked ?? draft?.subjectsDislike ?? []);
   const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? draft?.subjectsEasy ?? []);
-  // "Где приходится стараться больше" — a difficulty question (paired with
-  // subjectsEasy), so it maps to subjects_hard, not subjects_dislike (which
-  // is a *preference* field — "не нравится" — that this flow has no screen
-  // for at all). Passed through unedited from an existing profile rather
-  // than silently dropped from the payload contract.
   const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? draft?.subjectsHard ?? []);
-  const [subjectsDislike] = useState<string[]>(existing?.subjects_dislike ?? []);
   const [errors, setErrors] = useState<FieldErrors>({});
 
   // Only used in edit mode — fresh onboarding never calls the API from this
@@ -92,26 +86,34 @@ export function useProfileSetup() {
     setErrors(prev => ({ ...prev, [field]: undefined }));
   }
 
+  // Both merge into the shared `errors` object (rather than replacing it
+  // outright) since step 1 now shows name/age and grade together — running
+  // both validations must surface both sets of errors at once, not have
+  // the second call's setErrors wipe out the first's.
   function validateNameAge(): boolean {
-    const next: FieldErrors = {};
-    if (!name.trim()) next.name = 'Введи своё имя';
+    const name_ = !name.trim() ? 'Введи своё имя' : undefined;
     const ageNum = Number(age);
-    if (!age || isNaN(ageNum) || ageNum < 6 || ageNum > 18) next.age = 'Возраст: от 6 до 18';
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    const age_ = (!age || isNaN(ageNum) || ageNum < 6 || ageNum > 18) ? 'Возраст: от 6 до 18' : undefined;
+    setErrors(prev => ({ ...prev, name: name_, age: age_ }));
+    return !name_ && !age_;
   }
 
   function validateSchool(): boolean {
-    const next: FieldErrors = {};
     const gradeNum = Number(grade);
-    if (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) next.grade = 'Класс: от 1 до 12';
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    const grade_ = (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) ? 'Класс: от 1 до 12' : undefined;
+    setErrors(prev => ({ ...prev, grade: grade_ }));
+    return !grade_;
   }
 
   function handleNext() {
-    if (step === STEP_NAME_AGE && !validateNameAge()) return;
-    if (step === STEP_SCHOOL_LANGUAGE && !validateSchool()) return;
+    // Both merged sub-screens' fields live on step 1 now — run both
+    // validations (not short-circuited) so both sets of errors show up
+    // together when both are invalid.
+    if (step === STEP_NAME_SCHOOL) {
+      const nameAgeOk = validateNameAge();
+      const schoolOk = validateSchool();
+      if (!nameAgeOk || !schoolOk) return;
+    }
     setStep(s => s + 1);
   }
 
@@ -129,8 +131,8 @@ export function useProfileSetup() {
         city: city.trim(),
         country: country.trim(),
         language,
-        subjects_like: subjectsLike,
-        subjects_dislike: subjectsDislike,
+        subjects_liked: subjectsLike,
+        subjects_disliked: subjectsDislike,
         subjects_easy: subjectsEasy,
         subjects_hard: subjectsHard,
       });
@@ -138,7 +140,7 @@ export function useProfileSetup() {
     }
 
     // Fresh onboarding — the actual POST /profile happens once, at the end
-    // of the whole sequence (steps 5-9, in ArtifactsSetupPage), combining
+    // of the whole sequence (steps 3-4, in ArtifactsSetupPage), combining
     // this data with whatever artifacts get collected there. Just park the
     // fields and move on; no network call from this screen anymore.
     setProfileDraft({
@@ -149,6 +151,7 @@ export function useProfileSetup() {
       country: country.trim(),
       language,
       subjectsLike,
+      subjectsDislike,
       subjectsEasy,
       subjectsHard,
     });
@@ -166,6 +169,7 @@ export function useProfileSetup() {
     country, setCountry,
     language, setLanguage,
     subjectsLike, setSubjectsLike,
+    subjectsDislike, setSubjectsDislike,
     subjectsEasy, setSubjectsEasy,
     subjectsHard, setSubjectsHard,
     errors,

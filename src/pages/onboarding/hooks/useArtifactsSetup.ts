@@ -8,12 +8,13 @@ import { useProfileStore } from '@/shared/store/profile';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
 import type { ArtifactItem, ArtifactType } from '@/shared/types';
 
-// 5 groups. During onboarding these render as steps 5-9 of the same linear
-// flow ProfileSetupPage starts (see ArtifactsSetupPage) — advancing through
-// them one at a time, same as any other onboarding step. Reopened later
-// from Profile settings (edit mode), they switch via tabs on one screen
-// instead, since free jump-to-any-group is more useful there than a forced
-// sequence. Order matches the section list either way.
+// 5 groups. During onboarding these render as steps 3-4 of the same linear
+// flow ProfileSetupPage starts (see ArtifactsSetupPage): the first four
+// groups merged onto one screen, 'dreams' alone on the last — not one
+// screen per group anymore. Reopened later from Profile settings (edit
+// mode), they still switch via tabs on one screen, one group at a time,
+// since free jump-to-any-group is more useful there than a forced sequence.
+// Order matches the section list either way.
 export const ARTIFACT_SECTIONS = ['activities', 'achievements', 'professions', 'targets', 'dreams'] as const;
 export type ArtifactSection = (typeof ARTIFACT_SECTIONS)[number];
 
@@ -91,11 +92,8 @@ export function useArtifactsSetup() {
         city: profileDraft.city,
         country: profileDraft.country,
         language: profileDraft.language,
-        subjects_like: profileDraft.subjectsLike,
-        // No screen collects this during onboarding (it's a preference —
-        // "не нравится" — separate from the difficulty axis this flow
-        // actually asks about; see useProfileSetup for subjectsHard).
-        subjects_dislike: [],
+        subjects_liked: profileDraft.subjectsLike,
+        subjects_disliked: profileDraft.subjectsDislike,
         subjects_easy: profileDraft.subjectsEasy,
         subjects_hard: profileDraft.subjectsHard,
         artifacts: items,
@@ -175,20 +173,38 @@ export function useArtifactsSetup() {
   // "I filled this in" and "I'm skipping it." Both are offered with equal
   // weight per spec so a student never feels obligated to fill a group in
   // to keep going.
+  // Onboarding only ever shows two screens here (see ArtifactsSetupPage):
+  // the first four sections merged onto one "group" screen (activeSection
+  // stays at its initial 'activities' the whole time it's showing — just the
+  // group's representative marker, not a currently-displayed single
+  // section), then 'dreams' alone. Edit mode (opened from Profile settings)
+  // still steps through all 5 tabs one at a time, unchanged.
   function advance() {
     if (isLastSection) {
       submitAll();
-    } else {
-      setActiveSection(ARTIFACT_SECTIONS[sectionIndex + 1]);
+      return;
     }
+    if (!isEditMode) {
+      setActiveSection('dreams');
+      return;
+    }
+    setActiveSection(ARTIFACT_SECTIONS[sectionIndex + 1]);
   }
 
   // Only wired up during onboarding's linear step flow (edit mode uses free
   // tab-jumping instead, no back button at all). Mirrors ProfileSetupPage's
-  // own handleBack one section at a time — and on the very first group,
-  // steps back across the page boundary into profile setup's last step,
-  // since from the student's point of view this is still one flow.
+  // own handleBack — and on the very first group, steps back across the
+  // page boundary into profile setup's last step, since from the student's
+  // point of view this is still one flow.
   function handleBack() {
+    if (!isEditMode) {
+      if (activeSection === 'dreams') {
+        setActiveSection('activities');
+      } else {
+        navigate('/onboarding/profile', { state: { resumeAtLastStep: true } });
+      }
+      return;
+    }
     if (sectionIndex > 0) {
       setActiveSection(ARTIFACT_SECTIONS[sectionIndex - 1]);
     } else {

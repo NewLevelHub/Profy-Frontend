@@ -203,7 +203,7 @@ export function useMotivationHarter() {
 
   function confirmExit() {
     setExitConfirmOpen(false);
-    navigate('/home');
+    navigate('/results');
   }
 
   function cancelExit() {

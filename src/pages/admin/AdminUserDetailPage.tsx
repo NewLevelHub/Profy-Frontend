@@ -120,9 +120,7 @@ function profileSubjects(
 ): string[] {
   if (!profile) return [];
   const record = profile as unknown as Record<string, string[] | undefined>;
-  const backendKey = `subjects_${kind}`;
-  const frontendKey = kind === 'liked' ? 'subjects_like' : kind === 'disliked' ? 'subjects_dislike' : `subjects_${kind}`;
-  return record[backendKey] ?? record[frontendKey] ?? [];
+  return record[`subjects_${kind}`] ?? [];
 }
 
 function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {

@@ -15,11 +15,19 @@ interface GoalBadgeProps {
  * label since junior is always pinned to explore/ScenarioA regardless of
  * the stored goal (see GoalBranchSection) — a goal label would claim a
  * choice that was never actually offered.
+ *
+ * 'profession' and 'university' are a merged goal now (GoalSelectionPage
+ * sends 'university', but the card's own copy is titled "Выбрать
+ * профессию") — always display the 'profession' label text regardless of
+ * which raw value is stored, so the badge matches what the student actually
+ * saw and clicked, for both old ('profession') and new ('university')
+ * assessments alike. Do not "fix" this into showing the raw value's own label.
  */
 export function GoalBadge({ isJunior, goal }: GoalBadgeProps) {
+  const label = ASSESSMENT_GOAL_LABELS[goal === 'university' ? 'profession' : goal];
   return (
     <span className="inline-flex items-center font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
-      {isJunior ? AGE_GROUP_LABELS[AGE_GROUPS.JUNIOR] : ASSESSMENT_GOAL_LABELS[goal]}
+      {isJunior ? AGE_GROUP_LABELS[AGE_GROUPS.JUNIOR] : label}
     </span>
   );
 }

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '@/shared/ui/Button';
-import { Text } from '@/shared/ui/typography/Text';
 import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
 import type { Question } from '@/shared/types';
 import { LikertScale } from './LikertScale';
@@ -47,11 +46,14 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving }: L
           ref={el => {
             questionRefs.current[question.id] = el;
           }}
-          className="flex flex-col gap-6 scroll-mt-24"
+          className="flex flex-col gap-6 scroll-mt-24 text-center"
         >
-          <Text variant="body-lg" as="p" className="font-semibold text-[color:var(--midnight)]">
+          <p
+            className="font-sans font-semibold text-[color:var(--midnight)]"
+            style={{ fontSize: '1.375rem', lineHeight: 1.55 }}
+          >
             {question.text}
-          </Text>
+          </p>
           <LikertScale
             selected={answers[question.id] ?? null}
             onSelect={value => onSelect(question.id, value)}
