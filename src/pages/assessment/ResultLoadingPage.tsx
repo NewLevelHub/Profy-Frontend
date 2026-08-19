@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { resultApi } from '@/shared/api/result';
-import { playCelebration } from '@/shared/lib/sounds';
+import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { Button } from '@/shared/ui/Button';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Mascot } from '@/shared/ui/Mascot';
@@ -72,11 +72,9 @@ export default function ResultLoadingPage() {
         if (!cancelled) {
           setReport(result);
           completeAssessment();
-          // First time this assessment's report is ready — the "successful
-          // completion" moment, distinct from PraisePage's per-block sounds.
-          // Same celebration system/user preference as everywhere else, just
-          // the finale variant (matches playBlockFinishAudio's isFinal branch).
-          playCelebration({ finale: true });
+          // Full assessment completion should use the shipped finale audio
+          // file, same as other final-completion moments.
+          playBlockFinishAudio(1, 1);
           navigate(postResultPath, { replace: true });
         }
       } catch {
@@ -87,7 +85,7 @@ export default function ResultLoadingPage() {
             if (!cancelled) {
               setReport(existing);
               completeAssessment();
-              playCelebration({ finale: true });
+              playBlockFinishAudio(1, 1);
               navigate(postResultPath, { replace: true });
             }
           } catch {

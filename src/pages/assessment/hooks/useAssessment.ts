@@ -5,6 +5,7 @@ import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment } from '@/shared/dev/autofillAssessment';
+import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
@@ -261,6 +262,7 @@ export function useAssessment() {
       if (response.completed) {
         // Likert+pairs phase done — seamlessly continue into the
         // motivation triplets, no results screen in between.
+        playBlockFinishAudio(1, 1);
         navigate('/assessment/motivation');
         return;
       }
@@ -290,6 +292,7 @@ export function useAssessment() {
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
+        playBlockFinishAudio(1, 1);
         navigate('/assessment/motivation');
         return;
       }
