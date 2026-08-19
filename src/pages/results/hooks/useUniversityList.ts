@@ -19,12 +19,27 @@ export const COUNTRY_FILTERS: { label: string; value: string | undefined }[] = [
 const EUROPE_COUNTRIES = new Set(['Нидерланды', 'Германия', 'Швейцария', 'Франция', 'Италия', 'Испания', 'Польша', 'Чехия', 'Австрия', 'Бельгия', 'Португалия', 'Швеция', 'Норвегия', 'Дания', 'Финляндия']);
 const ASIA_COUNTRIES = new Set(['Сингапур', 'Южная Корея', 'Япония', 'Китай', 'Индия', 'Малайзия', 'Гонконг']);
 
+function getProgramRankScore(p: any): number {
+  const uni = p.university;
+  if (uni.ranking !== null && uni.ranking !== undefined && uni.ranking > 0) {
+    return uni.ranking;
+  }
+  if (uni.uniranks_kz_rank !== null && uni.uniranks_kz_rank !== undefined && uni.uniranks_kz_rank > 0) {
+    return uni.uniranks_kz_rank;
+  }
+  if (uni.uniranks_world_rank !== null && uni.uniranks_world_rank !== undefined && uni.uniranks_world_rank > 0) {
+    return uni.uniranks_world_rank;
+  }
+  return 9999999;
+}
+
 export function useUniversityList() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
   const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const isAllowed = canSeeUniversities(goal, ageGroup);
 
@@ -37,12 +52,32 @@ export function useUniversityList() {
     enabled: !!slug && isAllowed,
   });
 
+  const handleCountryChange = (country: string | undefined) => {
+    setActiveCountry(country);
+    // If country is undefined ('Все'), default to 'asc' (best to worst). Else default to 'desc' (worst to best).
+    setSortDirection(country === undefined ? 'asc' : 'desc');
+  };
+
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
   const programs = useMemo(() => {
-    if (!activeCountry) return allPrograms;
-    if (activeCountry === '__europe__') return allPrograms.filter(p => EUROPE_COUNTRIES.has(p.university.country));
-    if (activeCountry === '__asia__') return allPrograms.filter(p => ASIA_COUNTRIES.has(p.university.country));
-    return allPrograms.filter(p => p.university.country === activeCountry);
-  }, [allPrograms, activeCountry]);
+    let filtered = allPrograms;
+    if (activeCountry === '__europe__') {
+      filtered = allPrograms.filter(p => EUROPE_COUNTRIES.has(p.university.country));
+    } else if (activeCountry === '__asia__') {
+      filtered = allPrograms.filter(p => ASIA_COUNTRIES.has(p.university.country));
+    } else if (activeCountry) {
+      filtered = allPrograms.filter(p => p.university.country === activeCountry);
+    }
+
+    return [...filtered].sort((a, b) => {
+      const scoreA = getProgramRankScore(a);
+      const scoreB = getProgramRankScore(b);
+      return sortDirection === 'asc' ? scoreA - scoreB : scoreB - scoreA;
+    });
+  }, [allPrograms, activeCountry, sortDirection]);
 
   function handleProgramClick(programId: string) {
     navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
@@ -54,7 +89,9 @@ export function useUniversityList() {
     isLoading,
     error: error ? 'Не удалось загрузить программы. Попробуй ещё раз.' : null,
     activeCountry,
-    setActiveCountry,
+    setActiveCountry: handleCountryChange,
+    sortDirection,
+    toggleSortDirection,
     isAllowed,
     handleProgramClick,
     refetch,

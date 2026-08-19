@@ -3,6 +3,97 @@ export function formatCost(cost: number | null): string {
   return `${cost.toLocaleString()} $/год`;
 }
 
+export function convertLabelCurrenciesToUsd(label: string | null): string {
+  if (!label) return 'Стоимость не указана';
+
+  let currency: string | null = null;
+  let rate = 1.0;
+  let currencyWordPattern: RegExp | null = null;
+
+  const lowLabel = label.toLowerCase();
+
+  if (lowLabel.includes('kzt') || lowLabel.includes('тенге')) {
+    currency = 'KZT';
+    rate = 1 / 480;
+    currencyWordPattern = /\bKZT\b|тенге/gi;
+  } else if (lowLabel.includes('eur') || lowLabel.includes('евро')) {
+    currency = 'EUR';
+    rate = 1.09;
+    currencyWordPattern = /\bEUR\b|евро/gi;
+  } else if (lowLabel.includes('gbp') || lowLabel.includes('фунт')) {
+    currency = 'GBP';
+    rate = 1.30;
+    currencyWordPattern = /\bGBP\b|фунт[а-я]*/gi;
+  } else if (lowLabel.includes('cny') || lowLabel.includes('юан')) {
+    currency = 'CNY';
+    rate = 0.14;
+    currencyWordPattern = /\bCNY\b|юан[а-я]*/gi;
+  } else if (lowLabel.includes('cad')) {
+    currency = 'CAD';
+    rate = 0.73;
+    currencyWordPattern = /\bCAD\b/gi;
+  } else if (lowLabel.includes('sgd')) {
+    currency = 'SGD';
+    rate = 0.74;
+    currencyWordPattern = /\bSGD\b/gi;
+  } else if (lowLabel.includes('hkd')) {
+    currency = 'HKD';
+    rate = 0.13;
+    currencyWordPattern = /\bHKD\b/gi;
+  } else if (lowLabel.includes('krw') || lowLabel.includes('вон')) {
+    currency = 'KRW';
+    rate = 0.00075;
+    currencyWordPattern = /\bKRW\b|вон[а-я]*/gi;
+  } else if (lowLabel.includes('aud')) {
+    currency = 'AUD';
+    rate = 0.65;
+    currencyWordPattern = /\bAUD\b/gi;
+  } else if (lowLabel.includes('sek') || lowLabel.includes('крон')) {
+    currency = 'SEK';
+    rate = 0.095;
+    currencyWordPattern = /\bSEK\b|крон[а-я]*/gi;
+  } else if (lowLabel.includes('nok')) {
+    currency = 'NOK';
+    rate = 0.093;
+    currencyWordPattern = /\bNOK\b/gi;
+  } else if (lowLabel.includes('chf') || lowLabel.includes('франк')) {
+    currency = 'CHF';
+    rate = 1.14;
+    currencyWordPattern = /\bCHF\b|франк[а-я]*/gi;
+  } else if (lowLabel.includes('jpy') || lowLabel.includes('иен') || lowLabel.includes('йен')) {
+    currency = 'JPY';
+    rate = 0.0068;
+    currencyWordPattern = /\bJPY\b|иен[а-я]*|йен[а-я]*/gi;
+  } else if (lowLabel.includes('zar') || lowLabel.includes('рэнд') || lowLabel.includes('ранд')) {
+    currency = 'ZAR';
+    rate = 0.055;
+    currencyWordPattern = /\bZAR\b|рэнд[а-я]*|ранд[а-я]*/gi;
+  } else if (lowLabel.includes('brl') || lowLabel.includes('реал')) {
+    currency = 'BRL';
+    rate = 0.18;
+    currencyWordPattern = /\bBRL\b|реал[а-я]*/gi;
+  } else if (lowLabel.includes('usd') || lowLabel.includes('доллар')) {
+    return label;
+  }
+
+  if (!currency || !currencyWordPattern) {
+    return label;
+  }
+
+  const numberPattern = /\b\d[\d\s,.]*\b/g;
+
+  let result = label.replace(numberPattern, (match) => {
+    const cleaned = match.replace(/[\s,]/g, '');
+    const num = parseFloat(cleaned);
+    if (isNaN(num)) return match;
+    const usd = Math.round(num * rate);
+    return usd.toLocaleString('ru-RU');
+  });
+
+  result = result.replace(currencyWordPattern, 'USD');
+  return result;
+}
+
 const KEY_LABELS: Record<string, string> = {
   // Requirements
   exams: 'Вступительные экзамены',
