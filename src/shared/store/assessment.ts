@@ -8,6 +8,17 @@ import type { AssessmentGoal, AssessmentResponse } from '@/shared/types';
 // completion, not a rest stop, so there are at most 3 per run.
 const REST_STOP_THRESHOLDS = [25, 50, 75] as const;
 
+// "Too fast" per-answer cutoff and the run-wide ratio band that triggers a
+// one-time speed nudge — matches RestStopPage's speed-flag copy ("Ты идёшь
+// быстрее, чем успеваешь прочитать"), shown once per run when 15-35% of
+// answers so far (across all 4 assessment flows) landed under the cutoff.
+// Below MIN_SAMPLE the ratio isn't meaningful yet (e.g. 1/1 = 100% off a
+// single quick answer), so it's never evaluated that early.
+const SPEED_FLAG_TOO_FAST_MS = 2000;
+const SPEED_FLAG_MIN_RATIO = 15;
+const SPEED_FLAG_MAX_RATIO = 35;
+const SPEED_FLAG_MIN_SAMPLE = 4;
+
 export interface RestStopCheckResult {
   shouldShow: boolean;
   /** Running count of questions answered so far this run (both phases
@@ -35,6 +46,17 @@ interface AssessmentState {
   /** Which of REST_STOP_THRESHOLDS have already been shown this run. */
   restStopThresholdsShown: number[];
 
+  // ── Speed-flag state ─────────────────────────────────────────────────────
+  /** Answers so far this run (any of the 4 flows) that landed under
+   *  SPEED_FLAG_TOO_FAST_MS. */
+  fastAnswerCount: number;
+  /** Total answers this run that have had their timing recorded — a plain
+   *  running denominator, independent of answeredCount/motivationAnsweredCount
+   *  (which track server-confirmed progress per phase, not timing). */
+  timedAnswerCount: number;
+  /** The speed nudge is shown at most once per run. */
+  speedFlagShown: boolean;
+
   setAssessment: (
     assessmentId: string,
     goal: AssessmentGoal,
@@ -61,10 +83,27 @@ interface AssessmentState {
    * one rest stop fires — no back-to-back interstitials for one jump.
    */
   recordQuestionAnswered: () => RestStopCheckResult;
+
+  /**
+   * Call once per answer, right after it's saved, with how long the student
+   * spent on it (ms from when the item was shown to when they answered) —
+   * any of the 4 assessment flows. Returns true the moment the run-wide
+   * "too fast" ratio first lands in [SPEED_FLAG_MIN_RATIO,
+   * SPEED_FLAG_MAX_RATIO]%, at which point the caller should show the
+   * speed-flag rest stop instead of (or alongside) the normal cadence one —
+   * always false after the first true this run.
+   */
+  recordAnswerTiming: (elapsedMs: number) => boolean;
 }
 
 const REST_STOP_INITIAL_STATE = {
   restStopThresholdsShown: [] as number[],
+};
+
+const SPEED_FLAG_INITIAL_STATE = {
+  fastAnswerCount: 0,
+  timedAnswerCount: 0,
+  speedFlagShown: false,
 };
 
 export const useAssessmentStore = create<AssessmentState>()(
@@ -80,6 +119,7 @@ export const useAssessmentStore = create<AssessmentState>()(
       hasCompletedAssessment: false,
       syncDone: false,
       ...REST_STOP_INITIAL_STATE,
+      ...SPEED_FLAG_INITIAL_STATE,
       setAssessment: (assessmentId, goal, answeredCount, totalQuestions, motivationAnsweredCount = 0, motivationTotal = 0) =>
         set({
           assessmentId,
@@ -89,6 +129,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           motivationAnsweredCount,
           motivationTotal,
           ...REST_STOP_INITIAL_STATE,
+          ...SPEED_FLAG_INITIAL_STATE,
         }),
       setProgress: (answeredCount, totalQuestions) =>
         set({ answeredCount, totalQuestions }),
@@ -107,6 +148,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           hasCompletedAssessment: false,
           syncDone: true,
           ...REST_STOP_INITIAL_STATE,
+          ...SPEED_FLAG_INITIAL_STATE,
         }),
       syncFromServer: (data, userId) =>
         set({
@@ -132,6 +174,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           hasCompletedAssessment: false,
           syncDone: true,
           ...REST_STOP_INITIAL_STATE,
+          ...SPEED_FLAG_INITIAL_STATE,
         }),
       recordQuestionAnswered: () => {
         const state = get();
@@ -148,6 +191,21 @@ export const useAssessmentStore = create<AssessmentState>()(
         }
 
         return { shouldShow: newlyCrossed.length > 0, totalAnswered };
+      },
+      recordAnswerTiming: (elapsedMs) => {
+        const state = get();
+        const fastAnswerCount = state.fastAnswerCount + (elapsedMs < SPEED_FLAG_TOO_FAST_MS ? 1 : 0);
+        const timedAnswerCount = state.timedAnswerCount + 1;
+        set({ fastAnswerCount, timedAnswerCount });
+
+        if (state.speedFlagShown || timedAnswerCount < SPEED_FLAG_MIN_SAMPLE) return false;
+
+        const ratio = (fastAnswerCount / timedAnswerCount) * 100;
+        if (ratio >= SPEED_FLAG_MIN_RATIO && ratio <= SPEED_FLAG_MAX_RATIO) {
+          set({ speedFlagShown: true });
+          return true;
+        }
+        return false;
       },
     }),
     {

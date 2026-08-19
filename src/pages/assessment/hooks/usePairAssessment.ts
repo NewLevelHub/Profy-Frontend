@@ -31,6 +31,9 @@ export function usePairAssessment() {
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
+  // Reset whenever the current pair changes (see the effect below) —
+  // elapsed time from here to handleAnswer feeds the speed-flag rest stop.
+  const itemShownAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (!assessmentId) {
@@ -93,6 +96,7 @@ export function usePairAssessment() {
 
   useEffect(() => {
     const pair = pairs[pairIndex];
+    itemShownAtRef.current = Date.now();
     setSelectedId(pair ? (answers[pair.pair_index] ?? null) : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pairIndex, pairs]);
@@ -124,6 +128,7 @@ export function usePairAssessment() {
       });
       setAnswers(prev => ({ ...prev, [pair.pair_index]: pickedQuestionId }));
       setProgress(response.answered_count, response.total);
+      const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
         navigate('/assessment/motivation');
@@ -136,15 +141,17 @@ export function usePairAssessment() {
         return;
       }
 
-      // "Привал" (rest stop) — at 25/50/75% of the whole assessment run.
-      // See useAssessmentStore.recordQuestionAnswered.
+      // "Привал" (rest stop) — at 25/50/75% of the whole assessment run, or
+      // as soon as the run-wide "too fast" ratio flags (see
+      // recordAnswerTiming above). See useAssessmentStore.recordQuestionAnswered.
       const restCheck = useAssessmentStore.getState().recordQuestionAnswered();
-      if (restCheck.shouldShow) {
+      if (restCheck.shouldShow || isSpeedFlag) {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/pairs',
             progress,
             totalAnswered: restCheck.totalAnswered,
+            isSpeedFlag,
           } satisfies RestStopState,
         });
         return;

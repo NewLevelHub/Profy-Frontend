@@ -40,13 +40,13 @@ export type { RestStopState };
  *    ("Прошли N, идём ровно") with NO insight claim. See `RestStopState`
  *    doc above for why a real insight is never available yet.
  *  - Speed-flag — ТЗ: shown once per test run when 15-35% of answers so far
- *    were "too fast". That detection needs real per-answer response-time
- *    data, which also doesn't exist anywhere in the API layer yet (checked
- *    SaveAnswersPayload/SubmitMotivationPayload/SubmitMotivationPairPayload —
- *    none carry a timestamp). So this variant is never triggered by real
- *    logic in production; it's fully built and reachable only via the
- *    `?variant=speed` query param, a QA/dev preview escape hatch, clearly
- *    not a production trigger path. Uses `welcome` mascot per spec, not `rest`.
+ *    were "too fast". Timed entirely client-side (no backend signal needed):
+ *    each of the 4 assessment hooks measures ms-from-item-shown to
+ *    ms-at-submit and reports it via useAssessmentStore.recordAnswerTiming,
+ *    which flags this in `RestStopState.isSpeedFlag` the first time the
+ *    run-wide ratio lands in that band. `?variant=speed` still works as a
+ *    QA/dev preview that bypasses the real signal. Uses `welcome` mascot
+ *    per spec, not `rest`.
  */
 export default function RestStopPage() {
   const navigate = useNavigate();
@@ -58,9 +58,9 @@ export default function RestStopPage() {
   const progress = state.progress ?? 0;
   const totalAnswered = state.totalAnswered ?? 0;
 
-  // QA/dev-only preview of the speed-flag shell — see doc comment above for
-  // why this can't be driven by a real signal yet.
-  const isSpeedVariant = searchParams.get('variant') === 'speed';
+  // Real signal from useAssessmentStore.recordAnswerTiming, or the
+  // `?variant=speed` QA/dev preview escape hatch — see doc comment above.
+  const isSpeedVariant = state.isSpeedFlag === true || searchParams.get('variant') === 'speed';
   const hasInsight = !isSpeedVariant && Boolean(state.microInsight);
 
   function handleContinue() {

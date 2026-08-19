@@ -11,4 +11,9 @@ export interface RestStopState {
   progress: number;
   totalAnswered: number;
   microInsight?: string;
+  /** True when this stop was triggered by useAssessmentStore.recordAnswerTiming
+   *  (15-35% of answers so far were under the "too fast" cutoff), not the
+   *  25/50/75% progress cadence — RestStopPage shows the speed-nudge copy
+   *  instead of the normal privál. */
+  isSpeedFlag?: boolean;
 }

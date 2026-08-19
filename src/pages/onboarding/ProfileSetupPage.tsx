@@ -14,16 +14,21 @@ const SUBJECTS = [
 
 const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 6–18
 
-// One mascot per step, top-right, each a different pose so the 4 onboarding
-// screens read as distinct moments rather than a repeated icon. Sizes are
-// calibrated per pose to a common ~73px rendered character height — each
-// pose is a separate PNG with its own canvas padding (measured via each
-// sprite's alpha bounding box: greeting 461/480h, book 467/430h), so the
-// same `size` prop would otherwise render visibly different heights.
+// One mascot per step, `position: fixed` to the viewport's bottom-right
+// corner (not inline with the heading anymore — content/buttons stay
+// centered in their own column, the mascot floats independently of that
+// axis) — a different pose per step so the 4 onboarding screens read as
+// distinct moments rather than a repeated icon. Sizes are calibrated per
+// pose to a common ~182px rendered character height (all 4 onboarding
+// poses scaled up ~2.5x together from the original ~73px calibration, so
+// the relative proportions between poses stay intact) — each pose is a
+// separate PNG with its own canvas padding (measured via each sprite's
+// alpha bounding box: greeting 461/480h, book 467/430h), so the same
+// `size` prop would otherwise render visibly different heights.
 // 'transition'/'pause' (the other two calibrated poses) are used on
 // ArtifactsSetupPage's two steps — see its own MASCOT_*_SIZE constants.
-const MASCOT_WELCOME_SIZE = 76;
-const MASCOT_WAITING_SIZE = 67;
+const MASCOT_WELCOME_SIZE = 192;
+const MASCOT_WAITING_SIZE = 168;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -154,8 +159,20 @@ export default function ProfileSetupPage() {
     handleNext, handleBack, handleSubmit, toggle,
   } = useProfileSetup();
 
+  const currentStepMascot = step === PROFILE_STEPS.NAME_SCHOOL
+    ? { state: 'welcome' as const, size: MASCOT_WELCOME_SIZE }
+    : { state: 'waiting' as const, size: MASCOT_WAITING_SIZE };
+
   return (
     <div className="min-h-screen bg-page flex flex-col">
+      {/* Pinned to the viewport corner, independent of the centered content
+          column — hidden below `sm` so it doesn't cover form fields on
+          narrow phones. */}
+      <Mascot
+        state={currentStepMascot.state}
+        size={currentStepMascot.size}
+        className="hidden sm:block fixed bottom-24 right-4 sm:right-8 lg:right-10 lg:bottom-10 z-30 pointer-events-none"
+      />
 
       {/* ── Progress header ───────────────────────────────────────────────── */}
       <div className="sticky top-0 z-10 bg-page px-5 pt-5 pb-4 flex flex-col gap-2">
@@ -163,18 +180,15 @@ export default function ProfileSetupPage() {
       </div>
 
       {/* ── Scrollable content ────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-40 lg:pb-8">
+      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
+        <div className="max-w-2xl mx-auto">
 
         {step === PROFILE_STEPS.NAME_SCHOOL && (
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-4">
-                <Heading level="display-md">
-                  Как тебя зовут?
-                </Heading>
-                <Mascot state="welcome" size={MASCOT_WELCOME_SIZE} className="shrink-0" />
-              </div>
-              
+              <Heading level="display-md">
+                Как тебя зовут?
+              </Heading>
 
               <Input
                 label="Имя"
@@ -260,21 +274,18 @@ export default function ProfileSetupPage() {
         )}
 
         {step === PROFILE_STEPS.SUBJECTS && (
-          <div className="flex flex-col gap-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Heading level="display-md">
-                  Какие предметы тебе нравятся?
-                </Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Сколько хочешь — или ни одного</p>
-              </div>
-              <Mascot state="waiting" size={MASCOT_WAITING_SIZE} className="shrink-0" />
+          <div className="flex flex-col gap-6">
+            <div>
+              <Heading level="display-md">
+                Какие предметы тебе нравятся?
+              </Heading>
+              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Сколько хочешь — или ни одного</p>
             </div>
 
             {/* Same neutral chip styling and mutual-exclusion pattern as
                 the easy/hard group below — a subject can't be both liked and
                 disliked at once. */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <SubjectGroup
                 title="Нравятся"
                 selected={subjectsLike}
@@ -291,7 +302,7 @@ export default function ProfileSetupPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-8 pt-2 border-t border-default">
+            <div className="flex flex-col gap-6 pt-2 border-t border-default">
               <div className="pt-2">
                 <Heading level="display-md" as="h2">
                   А как с остальными предметами?
@@ -302,7 +313,7 @@ export default function ProfileSetupPage() {
               {/* Deliberately neutral: both columns use the identical chip style.
                   Dawn only ever marks "selected", never "good" vs. "bad" — the
                   framing is carried by wording alone. */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <SubjectGroup
                   title="А что из предметов даётся легко?"
                   selected={subjectsEasy}
@@ -320,13 +331,19 @@ export default function ProfileSetupPage() {
 
           </div>
         )}
+        </div>
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
+      {/* Surface/shadow/rounding live on the inner, centered bar (not this
+          outer full-width one) so the visible "card" wraps tightly around
+          the buttons instead of spanning edge-to-edge into the corner where
+          the fixed mascot sits — it was painting over the mascot before. */}
       <div className={cn(
-        'bg-page px-5 py-4 flex items-center gap-3 z-20',
-        'fixed bottom-0 inset-x-0 lg:static lg:mb-6 lg:rounded-[var(--radius)] lg:bg-surface lg:shadow-card',
+        'bg-page sm:bg-transparent px-5 py-4 z-20',
+        'fixed bottom-0 inset-x-0 lg:static',
       )}>
+        <div className="max-w-2xl mx-auto w-full flex items-center gap-3 lg:mb-6 lg:p-3 lg:rounded-[var(--radius)] lg:bg-surface lg:shadow-card">
         {step > 1 && (
           <Button
             variant="ghost"
@@ -358,6 +375,7 @@ export default function ProfileSetupPage() {
             Далее
           </Button>
         )}
+        </div>
       </div>
 
     </div>

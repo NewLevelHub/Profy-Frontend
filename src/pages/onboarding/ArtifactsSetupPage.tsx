@@ -57,12 +57,15 @@ const TARGETS = [
   'Германия', 'Турция', 'ОАЭ', 'Южная Корея',
 ];
 
-// One mascot per step, top-right, a different pose from the other 3
-// onboarding steps (see ProfileSetupPage's own MASCOT_*_SIZE constants for
-// 'welcome'/'waiting') — sizes calibrated per pose to a common ~73px
-// rendered character height, same rationale as ProfileSetupPage.
-const MASCOT_TRANSITION_SIZE = 63;
-const MASCOT_PAUSE_SIZE = 79;
+// One mascot per step, `position: fixed` to the viewport's bottom-right
+// corner (see the single <Mascot> rendered near the top of the JSX below,
+// picked by isDreamsStep) — a different pose from the other 3 onboarding
+// steps (see ProfileSetupPage's own MASCOT_*_SIZE constants for
+// 'welcome'/'waiting') — sizes calibrated per pose to a common ~182px
+// rendered character height, same ~2.5x scale-up and rationale as
+// ProfileSetupPage.
+const MASCOT_TRANSITION_SIZE = 158;
+const MASCOT_PAUSE_SIZE = 198;
 // Edit mode (opened from Profile settings) isn't one of the 4 onboarding
 // steps — kept at its own pre-existing fixed size, unaffected by the above.
 const MASCOT_EDIT_SIZE = 64;
@@ -356,6 +359,17 @@ export default function ArtifactsSetupPage() {
 
   return (
     <div className="min-h-screen bg-page flex flex-col">
+      {/* Pinned to the viewport corner, independent of the centered content
+          column — hidden below `sm` so it doesn't cover form fields on
+          narrow phones. Step 4 (dreams) keeps its own inline mascot above
+          the headline instead — see below. */}
+      {!isDreamsStep && (
+        <Mascot
+          state="transition"
+          size={MASCOT_TRANSITION_SIZE}
+          className="hidden sm:block fixed bottom-24 right-4 sm:right-8 lg:right-10 lg:bottom-10 z-30 pointer-events-none"
+        />
+      )}
 
       <div className="sticky top-0 z-10 bg-page px-5 pt-5 pb-4 flex flex-col gap-2">
         <OnboardingProgress
@@ -364,9 +378,10 @@ export default function ArtifactsSetupPage() {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-40 lg:pb-8">
+      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
+        <div className="max-w-2xl mx-auto">
         {isDreamsStep ? (
-          <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-5">
             <div className="flex flex-col items-center gap-3 text-center">
               <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
               <div>
@@ -378,17 +393,14 @@ export default function ArtifactsSetupPage() {
             {dreamsBody}
           </div>
         ) : (
-          <div className="flex flex-col gap-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Heading level="display-md">{SECTION_COPY.activities.headline}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.activities.note}</p>
-              </div>
-              <Mascot state="transition" size={MASCOT_TRANSITION_SIZE} className="shrink-0" />
+          <div className="flex flex-col gap-6">
+            <div>
+              <Heading level="display-md">{SECTION_COPY.activities.headline}</Heading>
+              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.activities.note}</p>
             </div>
             {activitiesBody}
 
-            <div className="flex flex-col gap-5 pt-2 border-t border-default">
+            <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
                 <Heading level="display-md" as="h2">{SECTION_COPY.achievements.headline}</Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.achievements.note}</p>
@@ -396,7 +408,7 @@ export default function ArtifactsSetupPage() {
               {achievementsBody}
             </div>
 
-            <div className="flex flex-col gap-5 pt-2 border-t border-default">
+            <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
                 <Heading level="display-md" as="h2">{SECTION_COPY.professions.headline}</Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.professions.note}</p>
@@ -404,7 +416,7 @@ export default function ArtifactsSetupPage() {
               {professionsBody}
             </div>
 
-            <div className="flex flex-col gap-5 pt-2 border-t border-default">
+            <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
                 <Heading level="display-md" as="h2">{SECTION_COPY.targets.headline}</Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.targets.note}</p>
@@ -417,12 +429,18 @@ export default function ArtifactsSetupPage() {
         {saveError && (
           <p className="text-xs text-danger text-center mt-6">Не удалось сохранить. Попробуй ещё раз.</p>
         )}
+        </div>
       </div>
 
+      {/* Surface/shadow/rounding live on the inner, centered bar (not this
+          outer full-width one) so the visible "card" wraps tightly around
+          the buttons instead of spanning edge-to-edge into the corner where
+          the fixed mascot sits — it was painting over the mascot before. */}
       <div className={cn(
-        'bg-page px-5 py-4 flex items-center gap-3 z-20',
-        'fixed bottom-0 inset-x-0 lg:static lg:mb-6 lg:rounded-[var(--radius)] lg:bg-surface lg:shadow-card',
+        'bg-page sm:bg-transparent px-5 py-4 z-20',
+        'fixed bottom-0 inset-x-0 lg:static',
       )}>
+        <div className="max-w-2xl mx-auto w-full flex items-center gap-3 lg:mb-6 lg:p-3 lg:rounded-[var(--radius)] lg:bg-surface lg:shadow-card">
         {/* Always shown here — on the first group this steps back across the
             page boundary into profile setup's last step (see
             useArtifactsSetup.handleBack), not just between artifact groups. */}
@@ -443,6 +461,7 @@ export default function ArtifactsSetupPage() {
         >
           {isLastSection ? 'Готово ✓' : 'Далее'}
         </Button>
+        </div>
       </div>
 
     </div>

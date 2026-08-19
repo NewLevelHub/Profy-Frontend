@@ -32,6 +32,10 @@ export function useMotivationHarter() {
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
+  // Reset whenever the current pair changes (see the effect below) —
+  // elapsed time from here to handleSelectIntensity feeds the speed-flag
+  // rest stop.
+  const itemShownAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (!assessmentId) {
@@ -97,6 +101,7 @@ export function useMotivationHarter() {
 
   useEffect(() => {
     const pair = pairs[pairIndex];
+    itemShownAtRef.current = Date.now();
     const saved = pair ? answers[pair.pair_index] : undefined;
     setChosenSide(saved?.side ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,6 +138,7 @@ export function useMotivationHarter() {
       });
       setAnswers(prev => ({ ...prev, [pair.pair_index]: { side: chosenSide, intensity } }));
       useAssessmentStore.getState().setMotivationProgress(response.answered_count, response.total);
+      const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
         // Don't call completeAssessment() here — that flag means "report
@@ -151,15 +157,17 @@ export function useMotivationHarter() {
         return;
       }
 
-      // "Привал" (rest stop) — at 25/50/75% of the whole assessment run.
-      // See useAssessmentStore.recordQuestionAnswered.
+      // "Привал" (rest stop) — at 25/50/75% of the whole assessment run, or
+      // as soon as the run-wide "too fast" ratio flags (see
+      // recordAnswerTiming above). See useAssessmentStore.recordQuestionAnswered.
       const restCheck = useAssessmentStore.getState().recordQuestionAnswered();
-      if (restCheck.shouldShow) {
+      if (restCheck.shouldShow || isSpeedFlag) {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/motivation',
             progress,
             totalAnswered: restCheck.totalAnswered,
+            isSpeedFlag,
           } satisfies RestStopState,
         });
         return;

@@ -65,6 +65,9 @@ export function useAssessment() {
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
+  // Reset whenever the current page changes (see the effect below) —
+  // elapsed time from here to submit feeds the speed-flag rest stop.
+  const itemShownAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (!assessmentId) {
@@ -159,6 +162,7 @@ export function useAssessment() {
 
   useEffect(() => {
     const page = pages[pageIndex];
+    itemShownAtRef.current = Date.now();
     setSelectedPairOptionId(page?.kind === 'pair' ? (pairAnswers[page.pair.pair_index] ?? null) : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageIndex, pages]);
@@ -194,9 +198,11 @@ export function useAssessment() {
    * progress (setProgress) for this submission — recordQuestionAnswered
    * checks the run-wide percentage against the 25/50/75% rest-stop
    * thresholds using whatever the store currently holds, see
-   * useAssessmentStore.recordQuestionAnswered.
+   * useAssessmentStore.recordQuestionAnswered. `isSpeedFlag` is the result
+   * of the caller's own recordAnswerTiming call for this same submission —
+   * threaded through rather than recomputed here.
    */
-  function advance() {
+  function advance(isSpeedFlag = false) {
     const isLast = pageIndex >= pages.length - 1;
     if (isLast) {
       // advance() is only reached after the caller already checked
@@ -217,9 +223,9 @@ export function useAssessment() {
     }
 
     const { shouldShow, totalAnswered } = useAssessmentStore.getState().recordQuestionAnswered();
-    if (shouldShow) {
+    if (shouldShow || isSpeedFlag) {
       navigate('/assessment/rest', {
-        state: { returnTo: '/assessment', progress, totalAnswered } satisfies RestStopState,
+        state: { returnTo: '/assessment', progress, totalAnswered, isSpeedFlag } satisfies RestStopState,
       });
       return;
     }
@@ -250,6 +256,7 @@ export function useAssessment() {
         answers: questions.map(q => ({ question_id: q.id, value: likertAnswers[q.id] })),
       });
       setProgress(response.answered_count, response.total);
+      const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
         // Likert+pairs phase done — seamlessly continue into the
@@ -257,7 +264,7 @@ export function useAssessment() {
         navigate('/assessment/motivation');
         return;
       }
-      advance();
+      advance(isSpeedFlag);
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {
@@ -280,12 +287,13 @@ export function useAssessment() {
       });
       setPairAnswers(prev => ({ ...prev, [pair.pair_index]: pickedQuestionId }));
       setProgress(response.answered_count, response.total);
+      const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
         navigate('/assessment/motivation');
         return;
       }
-      advance();
+      advance(isSpeedFlag);
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {

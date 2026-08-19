@@ -219,7 +219,7 @@ export default function GoalSelectionPage() {
             ) : (
               <div className={cn(
                 'grid grid-cols-1 gap-4',
-                visibleCards.length > 1 ? 'md:grid-cols-3' : 'max-w-sm mx-auto',
+                visibleCards.length > 1 ? 'md:grid-cols-3' : 'max-w-sm',
               )}>
                 {visibleCards.map(card => {
                   const isHovered = hoveredGoal === card.goal;
