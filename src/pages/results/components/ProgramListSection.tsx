@@ -1,20 +1,9 @@
 import { memo } from 'react';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
-import type { ProgramBrief, UniversityBrief } from '@/shared/types';
-import { formatCost, convertLabelCurrenciesToUsd } from '@/pages/results/utils/programUtils';
+import type { ProgramBrief } from '@/shared/types';
+import { formatCost, convertLabelCurrenciesToUsd, getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
 import { COUNTRY_FILTERS } from '@/pages/results/hooks/useUniversityList';
-
-function getUniversityRankingText(uni: UniversityBrief): string | null {
-  if (uni.ranking_label) return uni.ranking_label;
-  if (uni.uniranks_kz_rank) {
-    if (uni.uniranks_world_rank) {
-      return `№${uni.uniranks_kz_rank} в РК / №${uni.uniranks_world_rank} в мире`;
-    }
-    return `№${uni.uniranks_kz_rank} в РК`;
-  }
-  return null;
-}
 
 function ProgramCardSkeleton() {
   return (
@@ -70,15 +59,14 @@ const ProgramCard = memo(function ProgramCard({ program, index, onSelect, select
 
       <div className="text-base font-semibold text-muted mb-3 flex flex-wrap items-center gap-2">
         <span>{program.university.name}</span>
-        {(() => {
-          const rankText = getUniversityRankingText(program.university);
-          if (!rankText) return null;
-          return (
-            <span className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-xs font-extrabold px-2.5 py-0.5 rounded-pill whitespace-nowrap">
-              🏆 {rankText}
-            </span>
-          );
-        })()}
+        {getUniversityRankingLabels(program.university).map((rankText, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-xs font-extrabold px-2.5 py-0.5 rounded-pill whitespace-nowrap"
+          >
+            🏆 {rankText}
+          </span>
+        ))}
       </div>
 
       {(() => {
@@ -95,7 +83,10 @@ const ProgramCard = memo(function ProgramCard({ program, index, onSelect, select
 
       <div className="flex gap-4 flex-wrap mb-4 text-body-sm font-bold text-secondary">
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">💰 {program.cost_per_year !== null ? formatCost(program.cost_per_year) : convertLabelCurrenciesToUsd(program.cost_label)}</span>
+        {/* No whitespace-nowrap here — converted free-text cost_label (e.g.
+            "2 180–3 270 USD за семестр (бакалавриат) для студентов вне ЕС")
+            can be long; it must wrap inside the card, not overflow it. */}
+        <span className="inline-flex items-start gap-1.5">💰 {program.cost_per_year !== null ? formatCost(program.cost_per_year) : convertLabelCurrenciesToUsd(program.cost_label)}</span>
       </div>
 
       {onViewDetail ? (

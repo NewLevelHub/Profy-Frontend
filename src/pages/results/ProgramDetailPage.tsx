@@ -5,20 +5,9 @@ import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { toDisplayString, formatCost, convertLabelCurrenciesToUsd } from '@/pages/results/utils/programUtils';
+import { toDisplayString, formatCost, convertLabelCurrenciesToUsd, splitRequirementNotes, getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
-import type { ProgramDetail, UniversityRequirement, UniversityBrief } from '@/shared/types';
-
-function getUniversityRankingText(uni: UniversityBrief): string | null {
-  if (uni.ranking_label) return uni.ranking_label;
-  if (uni.uniranks_kz_rank) {
-    if (uni.uniranks_world_rank) {
-      return `Рейтинг UniRanks: №${uni.uniranks_kz_rank} в РК / №${uni.uniranks_world_rank} в мире`;
-    }
-    return `Рейтинг UniRanks: №${uni.uniranks_kz_rank} в РК`;
-  }
-  return null;
-}
+import type { ProgramDetail, UniversityRequirement } from '@/shared/types';
 
 function ProgramDetailSkeleton() {
   return (
@@ -192,15 +181,22 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
       {/* International Track View */}
       {activeTab === 'intl' && (
         <div className="flex flex-col gap-4">
-          {/* General requirements notes */}
+          {/* General requirements notes — source text packs several distinct
+              requirements into one paragraph (see splitRequirementNotes),
+              so each is rendered as its own small card, not one text block. */}
           {req.notes && req.notes.length > 0 && (
             <div>
               <div className="text-caption font-bold text-muted mb-1.5">Общие требования вуза</div>
-              <ul className="m-0 pl-5 text-body-sm text-secondary font-semibold space-y-1.5">
-                {req.notes.map((note, i) => (
-                  <li key={i}>{note}</li>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {splitRequirementNotes(req.notes).map((part, i) => (
+                  <div
+                    key={i}
+                    className="bg-default/20 border border-default rounded-[var(--radius)] px-3.5 py-2.5 text-body-sm text-secondary font-semibold leading-snug"
+                  >
+                    {part}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
@@ -229,18 +225,24 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
           )}
 
 
-          {/* Outbound program website link */}
-          {(req.website || program.university.website) && (
-            <a
-              href={req.website || program.university.website!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 h-11 px-5 bg-brand text-on-brand text-xs font-extrabold rounded-pill hover:bg-brand-hover transition-colors self-start decoration-none"
-            >
-              Перейти на сайт программы ↗
-            </a>
-          )}
         </div>
+      )}
+
+      {/* Website link — was previously only rendered inside the intl-track
+          view, so it never showed for KZ universities at all (they don't
+          get the tab switcher, showTabs is unconditionally false for them)
+          even though University.website is populated for nearly all of
+          them. Hoisted out so it's visible regardless of which track is
+          active or which country the university is in. */}
+      {(req.website || program.university.website) && (
+        <a
+          href={req.website || program.university.website!}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 h-11 px-5 bg-brand text-on-brand text-xs font-extrabold rounded-pill hover:bg-brand-hover transition-colors self-start decoration-none"
+        >
+          Перейти на сайт вуза ↗
+        </a>
       )}
     </div>
   );
@@ -269,34 +271,44 @@ export default function ProgramDetailPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-6 animate-fade-in">
-          <PageHeader 
-            title={program.name} 
-            subtitle={
-              (() => {
-                const rankText = getUniversityRankingText(program.university);
-                return rankText 
-                  ? `${program.university.name} (${rankText})`
-                  : program.university.name;
-              })()
-            } 
+          <PageHeader
+            title={program.name}
+            subtitle={program.university.name}
           />
 
-          <div className="flex gap-2.5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 bg-brand-subtle text-brand text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
-              🌐 {program.language}
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
-              💰 {program.cost_per_year !== null ? formatCost(program.cost_per_year) : convertLabelCurrenciesToUsd(program.cost_label)}
-            </span>
-          </div>
+          {/* Rating rendered as its own row of chips, one per rating scale
+              the university actually has — never merged into one string
+              (a single ranking_label can carry both a general and a
+              subject-specific rank, e.g. Georgia Tech's US News entry). */}
+          {getUniversityRankingLabels(program.university).length > 0 && (
+            <div className="flex gap-2.5 flex-wrap">
+              {getUniversityRankingLabels(program.university).map((rankText, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-sm font-extrabold px-3.5 py-1.5 rounded-pill"
+                >
+                  🏆 {rankText}
+                </span>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {program.description && program.description.length > 0 && (
-              <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card">
-                <SectionHeadingLocal>📋 Описание</SectionHeadingLocal>
-                <p className="text-body-sm text-secondary font-semibold leading-relaxed m-0">{program.description}</p>
-              </div>
-            )}
+            {(() => {
+              // program.description is intentionally null for programs whose
+              // seed data had no real per-program description (see
+              // university-cards-ux-fix-plan.md §7) — fall back to the
+              // university's own description instead of showing nothing,
+              // same fallback ProgramListSection.tsx's card already uses.
+              const desc = program.description || program.university.description;
+              if (!desc) return null;
+              return (
+                <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card">
+                  <SectionHeadingLocal>📋 Описание</SectionHeadingLocal>
+                  <p className="text-body-sm text-secondary font-semibold leading-relaxed m-0">{desc}</p>
+                </div>
+              );
+            })()}
 
             {program.who_its_for && program.who_its_for.length > 0 && (
               <div className="bg-brand-subtle rounded-[var(--radius)] p-6">
@@ -304,6 +316,22 @@ export default function ProgramDetailPage() {
                 <p className="text-body-sm text-secondary font-semibold leading-relaxed m-0">{program.who_its_for}</p>
               </div>
             )}
+          </div>
+
+          {/* Program characteristics — language moved down here from the top
+              block (between title and description) so it doesn't clutter
+              that area; grouped with cost since both are per-program
+              characteristics rather than headline info. */}
+          <div className="flex gap-2.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 bg-brand-subtle text-brand text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
+              🌐 {program.language}
+            </span>
+            {/* No max-width/nowrap constraint — converted free-text cost
+                labels can run long and must wrap inside the pill, not
+                overflow the card (see university-cards-ux-fix-plan.md §1/§10). */}
+            <span className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-sm font-extrabold px-3.5 py-1.5 rounded-pill text-left">
+              💰 {program.cost_per_year !== null ? formatCost(program.cost_per_year) : convertLabelCurrenciesToUsd(program.cost_label)}
+            </span>
           </div>
 
           {(program.career_options ?? []).length > 0 && (
@@ -326,13 +354,20 @@ export default function ProgramDetailPage() {
           <ProgramRequirementsCard program={program} />
 
           {(program.grants ?? []).length > 0 && (
-            <div className="bg-accent-soft border border-[color:var(--dawn)]/30 rounded-[var(--radius)] px-6 py-5 flex items-center gap-3.5 shadow-card">
-              <span className="text-3xl">🎓</span>
-              <div>
-                <div className="text-base font-black text-accent mb-0.5">Гранты и стипендии</div>
-                <div className="text-sm font-semibold text-accent">
-                  {program.grants.map(g => toDisplayString(g)).join(' · ')}
-                </div>
+            <div className="bg-accent-soft border border-[color:var(--dawn)]/30 rounded-[var(--radius)] px-6 py-5 shadow-card">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">🎓</span>
+                <div className="text-base font-black text-accent">Гранты и стипендии</div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {program.grants.map((grant, i) => (
+                  <span
+                    key={i}
+                    className="bg-surface text-accent text-sm font-extrabold px-4 py-2 rounded-pill"
+                  >
+                    {toDisplayString(grant)}
+                  </span>
+                ))}
               </div>
             </div>
           )}
