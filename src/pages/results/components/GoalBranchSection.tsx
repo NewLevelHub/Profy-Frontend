@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { useProfileStore } from '@/shared/store/profile';
 import type { AgeGroup, AssessmentGoal, ResultResponse } from '@/shared/types';
-import { GoalSwitcher, JuniorGoalLabel } from './GoalSwitcher';
+import { GoalBadge } from './GoalBadge';
 import { ScenarioA } from './scenarios/ScenarioA';
 import { ScenarioB } from './scenarios/ScenarioB';
 import { ScenarioC } from './scenarios/ScenarioC';
@@ -10,40 +9,36 @@ import { ScenarioCDowngrade } from './scenarios/ScenarioCDowngrade';
 interface GoalBranchSectionProps {
   report: ResultResponse;
   ageGroup: AgeGroup | undefined;
-  /** The assessment's actual stated goal — used only to seed the switcher's initial selection. */
+  /** The goal actually chosen at GoalSelectionPage, before the assessment
+   *  started — the sole source of which scenario renders here. Not a
+   *  switcher seed: there is no runtime way to change it from this page. */
   initialGoal: AssessmentGoal | null;
-}
-
-function defaultGoalFor(ageGroup: AgeGroup | undefined, initialGoal: AssessmentGoal | null): AssessmentGoal {
-  if (initialGoal) return initialGoal;
-  return 'explore';
 }
 
 /**
  * The "update boundary" — everything above this (SummaryCard through
  * FinalAnalysisSection in ResultsPage) is the shared diagnostic block and
- * must never re-render when the goal switches. This component owns the
- * switcher's local state entirely by itself: because that state never gets
- * lifted into ResultsPage, and the diagnostic-block components above never
- * receive props derived from it, React's reconciliation naturally leaves
- * them untouched when `selectedGoal` changes — no memoization or manual
- * fetch-splitting needed. Everything rendered here also comes from the
- * already-fetched `report` (plus the already-loaded profile store); goal
- * switching triggers zero network requests.
+ * must never re-render based on goal. This component derives its content
+ * purely from `initialGoal`/`ageGroup` (both already-fetched, no local
+ * state, no re-render trigger) — because nothing above ever received
+ * props derived from a goal choice, React's reconciliation naturally
+ * leaves them untouched. Everything rendered here comes from the
+ * already-fetched `report` (plus the already-loaded profile store); no
+ * network requests happen on this page after initial load.
  */
 export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchSectionProps) {
-  const [selectedGoal, setSelectedGoal] = useState<AssessmentGoal>(() => defaultGoalFor(ageGroup, initialGoal));
   const profile = useProfileStore((s) => s.profile);
 
   const isJunior = ageGroup === 'junior';
   const isMiddle = ageGroup === 'middle';
+  const goal: AssessmentGoal = initialGoal ?? 'explore';
 
   let content: React.ReactNode;
   if (isJunior) {
     content = <ScenarioA interestMap={report.interest_map} />;
-  } else if (selectedGoal === 'explore') {
+  } else if (goal === 'explore') {
     content = <ScenarioA interestMap={report.interest_map} />;
-  } else if (selectedGoal === 'profession') {
+  } else if (goal === 'profession') {
     content = <ScenarioB careers={report.careers} />;
   } else if (isMiddle) {
     // Middle tier picking "university": full ScenarioB content plus the
@@ -71,16 +66,10 @@ export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchS
           <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
             ДАЛЬШЕ · ПО ТВОЕЙ ЦЕЛИ
           </p>
-          {isJunior ? (
-            <JuniorGoalLabel />
-          ) : (
-            <GoalSwitcher value={selectedGoal} onChange={setSelectedGoal} />
-          )}
+          <GoalBadge isJunior={isJunior} goal={goal} />
         </div>
 
-        <div key={isJunior ? 'junior' : selectedGoal} style={{ animation: 'resultsFadeIn 180ms ease both' }}>
-          {content}
-        </div>
+        {content}
       </div>
     </div>
   );

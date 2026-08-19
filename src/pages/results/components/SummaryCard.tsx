@@ -12,7 +12,6 @@ interface SummaryCardProps {
 export function SummaryCard({ summary, disclaimer }: SummaryCardProps) {
   return (
     <section aria-label="Резюме">
-      <SectionHeading emoji="📋" title="Резюме" />
       <Card className="bg-brand-subtle flex flex-col gap-3">
         <p className="text-body text-primary leading-relaxed">{summary}</p>
         <p className="text-caption text-secondary border-t border-default pt-3">{disclaimer}</p>

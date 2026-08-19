@@ -12,7 +12,6 @@ export function FinalAnalysisSection({ text }: FinalAnalysisSectionProps) {
 
   return (
     <section aria-label="Итог">
-      <SectionHeading emoji="🧩" title="Итог" />
       <Card className="bg-brand-subtle">
         <p className="text-body text-primary leading-relaxed">{text}</p>
       </Card>

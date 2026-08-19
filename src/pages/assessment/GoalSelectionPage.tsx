@@ -20,9 +20,8 @@ interface GoalCard {
   title: string;
   subtitle: string;
   /** Card is hidden below this age group — matches the age-gating already
-   *  used for the real goal switcher on /results (JuniorGoalLabel vs.
-   *  GoalSwitcher): an unavailable card is simply absent, never shown
-   *  disabled-with-explanation. */
+   *  used for the goal badge on /results (GoalBadge): an unavailable card
+   *  is simply absent, never shown disabled-with-explanation. */
   minAgeGroup?: AgeGroup;
 }
 
@@ -39,15 +38,8 @@ const GOAL_CARDS: GoalCard[] = [
     goal: 'profession',
     tag: 'Профессия',
     title: 'Выбрать профессию',
-    subtitle: 'Найди направление, которое тебе подойдёт',
+    subtitle: 'Найди направление, которое тебе подойдёт — и путь к поступлению в вуз',
     minAgeGroup: 'middle',
-  },
-  {
-    goal: 'university',
-    tag: 'Университет',
-    title: 'Поступить в университет',
-    subtitle: 'Построй путь к поступлению',
-    minAgeGroup: 'senior',
   },
 ];
 

@@ -28,8 +28,8 @@ export const CareerCard = memo(function CareerCard({
         <CareerMatchLadder tier={career.tier} size="sm" />
       </div>
       <div>
-        <p className="font-extrabold text-primary mb-[3px]" style={{ fontSize: 16 }}>{career.name}</p>
-        <p className="text-muted font-medium leading-snug" style={{ fontSize: 13 }}>{career.why}</p>
+        <p className="font-extrabold text-primary text-body-md mb-[3px]">{career.name}</p>
+        <p className="text-muted font-medium leading-snug text-caption">{career.why}</p>
       </div>
       {showUniversityBtn && (
         <button
@@ -44,8 +44,8 @@ export const CareerCard = memo(function CareerCard({
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onDetail(career); }}
-        className="font-extrabold text-center hover:opacity-75 transition-opacity"
-        style={{ fontSize: 12.5, color: 'var(--brand)', padding: 4 }}
+        className="font-extrabold text-center text-caption hover:opacity-75 transition-opacity"
+        style={{ color: 'var(--brand)', padding: 4 }}
       >
         Подробнее о направлении →
       </button>

@@ -1,54 +1,58 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router';
-import { Card } from '@/shared/ui/Card';
 import { CareerMatchLadder } from '@/shared/ui/MatchLadder';
-import { getIconForCareer } from '../../utils/careerIcon';
 import type { StudentCareer } from '@/shared/types';
 
 interface DirectionMatchListProps {
   careers: StudentCareer[];
-  /** Slugs to leave out (e.g. the direction already shown as the goal-card above). */
-  excludeSlugs?: string[];
   emptyText?: string;
 }
 
 /**
- * Shared "direction + match ladder" list — used by scenario B's "НАПРАВЛЕНИЯ
- * И ПРОФЕССИИ ПОД ЦЕЛЬ" and scenario C's step 01 "Направления под цель".
- * Deliberately the same row pattern in both places per spec.
+ * Shared "direction + match ladder" table — used by scenario B's
+ * "НАПРАВЛЕНИЯ И ПРОФЕССИИ ПОД ЦЕЛЬ" and scenario C's step 01 "Направления
+ * под цель". A single hairline-bordered list, not individually-bordered
+ * cards — every row is a real `<button>` (native keyboard/focus support,
+ * no synthetic click-div) that navigates to the direction detail page.
+ * Always the complete list, including the top-ranked direction already
+ * headlined above it — this table is meant to be the full reference, not
+ * "everything except the one already shown." Deeper follow-through beyond
+ * the detail page (comparison, filtering, "show more") is intentionally
+ * out of scope here — this is the table itself, not the next step after it.
  */
 export const DirectionMatchList = memo(function DirectionMatchList({
   careers,
-  excludeSlugs = [],
   emptyText = 'Подходящих направлений пока нет.',
 }: DirectionMatchListProps) {
   const navigate = useNavigate();
-  const excluded = new Set(excludeSlugs);
-  const items = careers.filter((c) => !excluded.has(c.slug));
 
-  if (items.length === 0) {
+  if (careers.length === 0) {
     return <p className="text-caption text-muted">{emptyText}</p>;
   }
 
   return (
-    <ul className="flex flex-col gap-2.5">
-      {items.map((career) => (
-        <li key={career.slug}>
-          <Card
-            onClick={() => navigate(`/results/directions/${encodeURIComponent(career.slug)}`)}
-            className="!p-4 flex items-center gap-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-pop"
-          >
-            <span className="text-xl select-none flex-shrink-0" aria-hidden="true">
-              {getIconForCareer(career.name)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-extrabold text-primary truncate" style={{ fontSize: 14.5 }}>{career.name}</p>
-              <p className="text-caption text-muted truncate">{career.why}</p>
-            </div>
+    <div className="grid grid-cols-1 gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden">
+      {careers.map((career) => (
+        <button
+          key={career.slug}
+          type="button"
+          onClick={() => navigate(`/results/directions/${encodeURIComponent(career.slug)}`)}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left bg-surface hover:bg-hover transition-colors cursor-pointer"
+        >
+          <div className="min-w-0">
+            <p className="text-body-md font-semibold text-[color:var(--midnight)] leading-snug truncate">
+              {career.name}
+            </p>
+            <p className="text-caption leading-snug truncate" style={{ color: 'var(--ink)' }}>
+              {career.why}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
             <CareerMatchLadder tier={career.tier} showLabel={false} />
-          </Card>
-        </li>
+            <span aria-hidden="true" className="text-muted">→</span>
+          </div>
+        </button>
       ))}
-    </ul>
+    </div>
   );
 });

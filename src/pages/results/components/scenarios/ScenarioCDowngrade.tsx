@@ -55,7 +55,7 @@ export function ScenarioCDowngrade() {
             </span>
             <div>
               <p className="text-tiny font-mono font-bold uppercase tracking-label text-muted">{step.when}</p>
-              <p className="font-extrabold text-primary" style={{ fontSize: 15 }}>{step.title}</p>
+              <p className="font-extrabold text-primary text-body-sm">{step.title}</p>
               <p className="text-caption text-secondary leading-snug mt-0.5">{step.text}</p>
             </div>
           </li>

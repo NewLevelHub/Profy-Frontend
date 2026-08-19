@@ -7,7 +7,10 @@ import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { StudentCareer } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 import { SummaryCard } from './components/SummaryCard';
-import { SharedDiagnosticCard } from './components/SharedDiagnosticCard';
+import { InterestDomainSection } from './components/InterestDomainSection';
+import { StrengthsDomainSection } from './components/StrengthsDomainSection';
+import { PersonalityDomainSection } from './components/PersonalityDomainSection';
+import { ThinkingStyleMotivationSection } from './components/ThinkingStyleMotivationSection';
 import { CareerCard } from './components/CareerCard';
 import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
 import { FinalAnalysisSection } from './components/FinalAnalysisSection';
@@ -25,7 +28,7 @@ function AnimatedBlock({ children }: { children: React.ReactNode }) {
 function ResultsSkeleton() {
   return (
     <PageContainer className="flex flex-col gap-6">
-      {Array.from({ length: 4 }, (_, i) => (
+      {Array.from({ length: 7 }, (_, i) => (
         <div key={i} className="flex flex-col gap-4">
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-28 w-full" />
@@ -95,28 +98,43 @@ export default function ResultsPage() {
 
       {/* Порядок разделов ниже — как в TZ_Profi.md §18.2 / result-report-
           redesign-plan.md "Флоу для нетехнического пользователя": резюме →
-          общая диагностика (сильные стороны/карта интересов/стиль мышления/
-          характер/мотивация, единым блоком — design spec §06) →
-          "что делать дальше" (профессии/занятия) — последним, не первым. */}
+          общая диагностика, теперь как отдельно озаглавленные домены, все в
+          одной визуальной системе (DomainCardParts) — карьерные интересы/
+          ведущие способности → сильные стороны → личностный профиль →
+          стиль мышления и мотивация (один card) → "что делать дальше"
+          (профессии/занятия) — последним, не первым. */}
 
       <AnimatedBlock>
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
       </AnimatedBlock>
 
       <AnimatedBlock>
-        <SharedDiagnosticCard
+        <InterestDomainSection
           isJunior={isJunior}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
-          strengthCards={report.strength_cards}
+        />
+      </AnimatedBlock>
+
+      <AnimatedBlock>
+        <StrengthsDomainSection strengthCards={report.strength_cards} />
+      </AnimatedBlock>
+
+      <AnimatedBlock>
+        <PersonalityDomainSection
           personalityNotes={report.personality_notes}
           personalityNote={report.personality_note}
+        />
+      </AnimatedBlock>
+
+      <AnimatedBlock>
+        <ThinkingStyleMotivationSection
           thinkingStyleNotes={report.thinking_style_notes}
           motivationHighlights={report.motivation_highlights}
         />
       </AnimatedBlock>
 
-      {report.careers.length > 0 && (
+      {/* {report.careers.length > 0 && (
         <AnimatedBlock>
           <section aria-label="Подходящие направления">
             <SectionHeading emoji="👥" title="Подходящие профессии" />
@@ -133,7 +151,7 @@ export default function ResultsPage() {
             </div>
           </section>
         </AnimatedBlock>
-      )}
+      )} */}
 
       <AnimatedBlock>
         <ExplorationActivitiesSection activities={report.exploration_activities} note={report.exploration_note} />

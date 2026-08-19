@@ -69,7 +69,7 @@ export function ScenarioC({ careers, grade, subjectsEasy }: ScenarioCProps) {
         <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-label">
           01 · НАПРАВЛЕНИЯ ПОД ЦЕЛЬ
         </h3>
-        <DirectionMatchList careers={sorted} excludeSlugs={[top.slug]} />
+        <DirectionMatchList careers={sorted} />
       </section>
 
       <section aria-label="Программы и вузы">

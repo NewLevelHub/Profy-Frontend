@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { Card } from '@/shared/ui/Card';
+import { Heading } from '@/shared/ui/typography/Heading';
 import { CareerMatchLadder, careerTierToLevel } from '@/shared/ui/MatchLadder';
-import { getIconForCareer } from '../../utils/careerIcon';
 import type { StudentCareer } from '@/shared/types';
 import { DirectionMatchList } from './DirectionMatchList';
 import { RoadmapHorizons } from './RoadmapHorizons';
@@ -48,27 +48,23 @@ export function ScenarioB({ careers }: ScenarioBProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className={isBridge ? 'border-l-4' : 'bg-brand-subtle border-l-4'} style={{ borderLeftColor: 'var(--lake)' }}>
+      <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-2xl select-none" aria-hidden="true">{getIconForCareer(top.name)}</span>
-              <h2 className="text-title font-extrabold text-primary leading-snug">
-                {isBridge
-                  ? <>«{top.name}» совпадает одной стороной — и эта сторона сильная</>
-                  : <>«{top.name}» хорошо совпадает с тем, что видно в профиле</>}
-              </h2>
-            </div>
-            <p className="text-body text-secondary leading-relaxed max-w-2xl">{top.why}</p>
-            {isBridge && (
-              <p className="text-caption text-secondary leading-snug mt-2 max-w-2xl">
-                Цель не понижается и не отмечается как «не подходит» — она остаётся заявленной целью.
-              </p>
-            )}
-          </div>
+          <Heading level="display-md" as="h2" className="text-[color:var(--midnight)] flex-1 min-w-0">
+            {isBridge
+              ? <>«{top.name}» совпадает одной стороной — и эта сторона сильная</>
+              : <>«{top.name}» хорошо совпадает с тем, что видно в профиле</>}
+          </Heading>
           <CareerMatchLadder tier={top.tier} className="flex-shrink-0" />
         </div>
-      </Card>
+        <p className="text-body text-primary leading-relaxed max-w-2xl">{top.why}</p>
+        {isBridge && (
+          <p className="text-caption leading-snug max-w-2xl" style={{ color: 'var(--ink)' }}>
+            Цель не понижается и не отмечается как «не подходит» — она остаётся заявленной целью.
+          </p>
+        )}
+        <div className="border-t border-[var(--hairline)]" />
+      </div>
 
       {isBridge && (
         <Card style={{ borderColor: 'var(--lake)', background: 'color-mix(in srgb, var(--lake) 6%, transparent)' }}>
@@ -142,7 +138,7 @@ export function ScenarioB({ careers }: ScenarioBProps) {
         <h3 className="text-label font-bold text-primary mb-3 font-mono uppercase tracking-label">
           НАПРАВЛЕНИЯ И ПРОФЕССИИ ПОД ЦЕЛЬ
         </h3>
-        <DirectionMatchList careers={sorted} excludeSlugs={[top.slug]} />
+        <DirectionMatchList careers={sorted} />
       </section>
 
       <RoadmapHorizons

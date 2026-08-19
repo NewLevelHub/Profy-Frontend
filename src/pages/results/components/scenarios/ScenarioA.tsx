@@ -41,7 +41,7 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
                 <p className="text-tiny font-mono font-bold uppercase tracking-label text-muted mb-1">
                   СФЕРА {String(i + 1).padStart(2, '0')}
                 </p>
-                <p className="font-extrabold text-primary" style={{ fontSize: 17 }}>{sphere.title}</p>
+                <p className="font-extrabold text-primary text-body-md">{sphere.title}</p>
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-start gap-2">

@@ -32,6 +32,18 @@ export const RIASEC_ICONS: Record<string, string> = {
   C: '📋',
 };
 
+// Plain-language, one-sentence gloss for each RIASEC letter — the label
+// alone ("Реалистичный", "Конвенциональный") is Holland-code jargon that
+// doesn't explain itself to a student, so the type grid pairs it with this.
+export const RIASEC_DESCRIPTIONS: Record<string, string> = {
+  R: 'Нравится работать руками — техника, инструменты, что-то практическое',
+  I: 'Нравится разбираться, как всё устроено, и искать ответы',
+  A: 'Нравится придумывать и создавать своё — рисовать, писать, сочинять',
+  S: 'Нравится помогать людям и быть рядом, когда нужна поддержка',
+  E: 'Нравится вести за собой, убеждать и запускать свои идеи',
+  C: 'Нравится порядок, чёткие правила и понятная структура',
+};
+
 // Junior's (6-9) interest instrument, replacing RIASEC — see MIType.
 export const MI_TYPES = [
   'verbal', 'logical', 'musical', 'visual', 'bodily',
@@ -58,6 +70,20 @@ export const MI_ICONS: Record<string, string> = {
   interpersonal: '🤝',
   intrapersonal: '💭',
   naturalistic: '🌿',
+};
+
+// One-sentence gloss per MI type — MI_LABELS are already plain Russian
+// (unlike RIASEC's single-word jargon), but a short explanation still helps
+// a junior student connect the label to what it actually looks like.
+export const MI_DESCRIPTIONS: Record<string, string> = {
+  verbal: 'Легко подбираешь слова, любишь читать и рассказывать истории',
+  logical: 'Любишь считать, искать закономерности и решать задачи',
+  musical: 'Чувствуешь ритм и мелодию лучше многих',
+  visual: 'Мыслишь картинками — любишь рисовать и представлять образы',
+  bodily: 'Легче учишься через движение, руками, на практике',
+  interpersonal: 'Легко находишь общий язык и заряжаешься от компании',
+  intrapersonal: 'Хорошо понимаешь себя и свои чувства',
+  naturalistic: 'Замечаешь природу и то, что происходит вокруг',
 };
 
 export const LIKERT_SCALE: { value: number; label: string }[] = [

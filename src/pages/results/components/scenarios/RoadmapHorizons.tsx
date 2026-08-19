@@ -47,7 +47,7 @@ export function RoadmapHorizons({ title, horizons, ariaLabel, lastNodeStyle }: R
         {horizons.map((h) => (
           <Card key={h.id} className="!p-4 flex flex-col gap-1">
             <p className="text-tiny font-mono font-bold uppercase tracking-label text-muted">{h.label}</p>
-            <p className="font-extrabold text-primary" style={{ fontSize: 14.5 }}>{h.title}</p>
+            <p className="font-extrabold text-primary text-body-sm">{h.title}</p>
             <p className="text-caption text-secondary leading-snug">{h.description}</p>
           </Card>
         ))}
