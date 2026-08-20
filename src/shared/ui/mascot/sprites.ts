@@ -31,7 +31,8 @@ export type MascotFunctionalState =
   | 'rest'
   | 'completion'
   | 'waiting'
-  | 'pause';
+  | 'pause'
+  | 'graduate';
 
 export const SPRITES: Record<MascotFunctionalState, MascotSpriteEntry> = {
   welcome: {
@@ -83,6 +84,16 @@ export const SPRITES: Record<MascotFunctionalState, MascotSpriteEntry> = {
       [49.31, 33.73, 6.5, 9.03],
     ],
     head: [42.14, 24.45],
+  },
+  // Not part of the original ТЗ 14.3 six — added for university/program
+  // pages (mortarboard + gown + backpack reads as "off to study"). Eyes
+  // already drawn open on the sprite with no distinct closed-lid art, so
+  // blink stays disabled like `completion`/`waiting`.
+  graduate: {
+    file: 'univer.png',
+    alt: 'Маскот Profy · университет',
+    eyes: null,
+    head: [50, 22],
   },
 };
 
