@@ -1,13 +1,24 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
-import { profileApi } from '@/shared/api/profile';
+import { useNavigate, useLocation } from 'react-router';
 import { useProfileStore } from '@/shared/store/profile';
-import type { ProfilePayload } from '@/shared/types';
+import { useOnboardingDraftStore } from '../onboardingDraftStore';
 
 type FieldErrors = Partial<Record<'name' | 'age' | 'grade', string>>;
 
-const TOTAL_STEPS = 3;
+// 2 screens ("диалог, не форма"), each merging what used to be two separate
+// steps onto one scrollable screen (same pattern NAME_SCHOOL already used
+// internally for имя+возраст — just extended to a second merged pair):
+//  1. имя + возраст, класс + город (+ страна)
+//  2. предметы: нравятся / не нравятся, легко / где приходится стараться
+//     больше (neutral framing — see ProfileSetupPage's SUBJECTS copy)
+const TOTAL_STEPS = 2;
+const STEP_NAME_SCHOOL = 1;
+const STEP_SUBJECTS = 2;
+
+export const PROFILE_STEPS = {
+  NAME_SCHOOL: STEP_NAME_SCHOOL,
+  SUBJECTS: STEP_SUBJECTS,
+} as const;
 
 function toggle(list: string[], item: string): string[] {
   return list.includes(item) ? list.filter(s => s !== item) : [...list, item];
@@ -15,49 +26,78 @@ function toggle(list: string[], item: string): string[] {
 
 export function useProfileSetup() {
   const navigate = useNavigate();
-  const setProfile = useProfileStore(s => s.setProfile);
+  const location = useLocation();
+  // A real, already-onboarded profile exists server-side — this is a
+  // Profile-settings edit, not fresh onboarding. Both cases now flow through
+  // the same handoff to ArtifactsSetupPage, which picks PUT vs POST based on
+  // this same store (see useArtifactsSetup.ts's hasExistingProfile).
   const existing = useProfileStore(s => s.profile);
-  const isEditMode = existing !== null;
 
-  const [step, setStep] = useState(1);
-  const [name, setName] = useState(existing?.name ?? '');
-  const [age, setAge] = useState(existing?.age ? String(existing.age) : '');
-  const [grade, setGrade] = useState(existing?.grade ? String(existing.grade) : '');
-  const [city, setCity] = useState(existing?.city ?? '');
-  const [country, setCountry] = useState(existing?.country ?? '');
-  const [language, setLanguage] = useState(existing?.language ?? '');
-  const [subjectsLike, setSubjectsLike] = useState<string[]>(existing?.subjects_like ?? []);
-  const [subjectsDislike, setSubjectsDislike] = useState<string[]>(existing?.subjects_dislike ?? []);
-  const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? []);
-  const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? []);
+  const draft = useOnboardingDraftStore(s => s.profileDraft);
+  const setProfileDraft = useOnboardingDraftStore(s => s.setProfileDraft);
+
+  const locationState = location.state as { resumeAtLastStep?: boolean } | null;
+  // Arriving back here via "Назад" from artifacts' first group (see
+  // useArtifactsSetup.handleBack) resumes at the last step instead of
+  // restarting the whole form — from the student's point of view they never
+  // left this flow, just stepped back one screen.
+  const resumeAtLastStep = Boolean(locationState?.resumeAtLastStep);
+  const [step, setStep] = useState(resumeAtLastStep ? TOTAL_STEPS : 1);
+  // Field values come from (in priority order): an already-onboarded server
+  // profile (settings edit), a draft parked here on a previous pass through
+  // this screen during onboarding (resumed via "Назад" from artifacts), or
+  // blank for a brand-new pass.
+  const [name, setName] = useState(existing?.name ?? draft?.name ?? '');
+  const [age, setAge] = useState(existing?.age ? String(existing.age) : draft?.age ?? '');
+  const [grade, setGrade] = useState(existing?.grade ? String(existing.grade) : draft?.grade ?? '');
+  const [city, setCity] = useState(existing?.city ?? draft?.city ?? '');
+  const [country, setCountry] = useState(existing?.country ?? draft?.country ?? '');
+  // No onboarding screen collects this right now (removed as not-needed-yet) —
+  // kept in state purely so an edit-mode profile that already has a language
+  // set doesn't lose it on save, and so the required ProfilePayload field
+  // still gets submitted (empty string for new profiles).
+  const [language, setLanguage] = useState(existing?.language ?? draft?.language ?? '');
+  const [subjectsLike, setSubjectsLike] = useState<string[]>(existing?.subjects_liked ?? draft?.subjectsLike ?? []);
+  // "Не нравятся" — a preference axis (paired with subjectsLike), collected
+  // on the same SUBJECTS_LIKE screen, distinct from the easy/hard
+  // difficulty axis below.
+  const [subjectsDislike, setSubjectsDislike] = useState<string[]>(existing?.subjects_disliked ?? draft?.subjectsDislike ?? []);
+  const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? draft?.subjectsEasy ?? []);
+  const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? draft?.subjectsHard ?? []);
   const [errors, setErrors] = useState<FieldErrors>({});
-
-  const mutation = useMutation({
-    mutationFn: (payload: ProfilePayload) =>
-      isEditMode ? profileApi.update(payload) : profileApi.create(payload),
-    onSuccess: (profile) => {
-      setProfile(profile);
-      navigate(isEditMode ? '/profile' : '/onboarding/artifacts', { replace: true });
-    },
-  });
 
   function clearError(field: keyof FieldErrors) {
     setErrors(prev => ({ ...prev, [field]: undefined }));
   }
 
-  function validateStep1(): boolean {
-    const next: FieldErrors = {};
-    if (!name.trim()) next.name = 'Введи своё имя';
+  // Both merge into the shared `errors` object (rather than replacing it
+  // outright) since step 1 now shows name/age and grade together — running
+  // both validations must surface both sets of errors at once, not have
+  // the second call's setErrors wipe out the first's.
+  function validateNameAge(): boolean {
+    const name_ = !name.trim() ? 'Введи своё имя' : undefined;
     const ageNum = Number(age);
-    if (!age || isNaN(ageNum) || ageNum < 6 || ageNum > 18) next.age = 'Возраст: от 6 до 18';
+    const age_ = (!age || isNaN(ageNum) || ageNum < 6 || ageNum > 18) ? 'Возраст: от 6 до 18' : undefined;
+    setErrors(prev => ({ ...prev, name: name_, age: age_ }));
+    return !name_ && !age_;
+  }
+
+  function validateSchool(): boolean {
     const gradeNum = Number(grade);
-    if (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) next.grade = 'Класс: от 1 до 12';
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    const grade_ = (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) ? 'Класс: от 1 до 12' : undefined;
+    setErrors(prev => ({ ...prev, grade: grade_ }));
+    return !grade_;
   }
 
   function handleNext() {
-    if (step === 1 && !validateStep1()) return;
+    // Both merged sub-screens' fields live on step 1 now — run both
+    // validations (not short-circuited) so both sets of errors show up
+    // together when both are invalid.
+    if (step === STEP_NAME_SCHOOL) {
+      const nameAgeOk = validateNameAge();
+      const schoolOk = validateSchool();
+      if (!nameAgeOk || !schoolOk) return;
+    }
     setStep(s => s + 1);
   }
 
@@ -66,18 +106,24 @@ export function useProfileSetup() {
   }
 
   function handleSubmit() {
-    mutation.mutate({
+    // The actual save (POST for a new profile, PUT for an existing one)
+    // happens once, at the end of the whole sequence (steps 3-4, in
+    // ArtifactsSetupPage), combining this data with whatever artifacts get
+    // collected there. Just park the fields and move on; no network call
+    // from this screen anymore, for either fresh onboarding or an edit.
+    setProfileDraft({
       name: name.trim(),
-      age: Number(age),
-      grade: Number(grade),
+      age,
+      grade,
       city: city.trim(),
       country: country.trim(),
       language,
-      subjects_like: subjectsLike,
-      subjects_dislike: subjectsDislike,
-      subjects_easy: subjectsEasy,
-      subjects_hard: subjectsHard,
+      subjectsLike,
+      subjectsDislike,
+      subjectsEasy,
+      subjectsHard,
     });
+    navigate('/onboarding/artifacts', { replace: true });
   }
 
   return {
@@ -96,8 +142,6 @@ export function useProfileSetup() {
     subjectsHard, setSubjectsHard,
     errors,
     clearError,
-    isLoading: mutation.isPending,
-    submitError: mutation.isError ? 'Не удалось сохранить. Попробуй ещё раз.' : null,
     handleNext,
     handleBack,
     handleSubmit,

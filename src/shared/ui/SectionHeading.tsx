@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { Text } from './typography/Text';
 
 interface SectionHeadingProps {
   title: string;
@@ -7,6 +8,10 @@ interface SectionHeadingProps {
   as?: 'h2' | 'h3';
 }
 
+/**
+ * Repeating section title — body role, not display. Bricolage is reserved
+ * for the page <h1> (see Heading). Card/section titles stay Instrument Sans.
+ */
 export function SectionHeading({
   title,
   emoji,
@@ -14,9 +19,11 @@ export function SectionHeading({
   as: Tag = 'h2',
 }: SectionHeadingProps) {
   return (
-    <Tag
+    <Text
+      variant="body-lg"
+      as={Tag}
       className={cn(
-        'font-black text-primary tracking-[-0.01em] text-[24px] leading-tight flex items-center gap-2 mb-4',
+        'font-semibold flex items-center gap-2 mb-4 text-[color:var(--midnight)]',
         className,
       )}
     >
@@ -26,6 +33,6 @@ export function SectionHeading({
         </span>
       )}
       {title}
-    </Tag>
+    </Text>
   );
 }

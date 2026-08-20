@@ -2,9 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 import { useAuthStore } from '@/shared/store/auth';
+import { Button } from '@/shared/ui/Button';
+import { OtpInput } from '@/shared/ui/OtpInput';
+
+const RESEND_SECONDS = 60;
+// OtpInput pads not-yet-filled cells with a space to preserve gap position —
+// a complete code has no spaces, so length alone can't tell "done" from
+// "mid-edit with a gap".
+const CODE_COMPLETE = /^\d{6}$/;
 
 // ─── Token mode (link from email) ────────────────────────────────────────────
 
@@ -51,17 +58,17 @@ function TokenVerify({ token }: { token: string }) {
   return (
     <div className="flex flex-col items-center text-center gap-4 py-6">
       <XCircle size={40} className="text-danger" />
-      <h1 className="text-h1 font-black text-primary">Ссылка устарела</h1>
+      <h1 className="auth-headline-sm">Ссылка устарела</h1>
       <p className="text-body text-secondary">
         Ссылка недействительна или срок её действия истёк.
       </p>
       <Link
         to="/register"
-        className="mt-1 inline-block w-full text-center h-12 leading-[3rem] bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button"
+        className="mt-1 inline-flex items-center justify-center w-full min-h-12 px-6 bg-brand text-on-brand font-medium text-label rounded-[var(--radius)] hover:bg-brand-hover transition-colors press-scale"
       >
         Зарегистрироваться заново
       </Link>
-      <Link to="/login" className="text-caption text-muted hover:text-secondary transition-colors">
+      <Link to="/login" className="text-caption text-muted hover:opacity-70 transition-opacity">
         ← Вернуться ко входу
       </Link>
     </div>
@@ -77,12 +84,18 @@ function OtpVerify({ email }: { email: string }) {
   const [codeError, setCodeError] = useState('');
   const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [resendDisabled, setResendDisabled] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [resendMessage, setResendMessage] = useState('');
+
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const id = window.setTimeout(() => setResendCountdown(s => Math.max(0, s - 1)), 1000);
+    return () => window.clearTimeout(id);
+  }, [resendCountdown]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (code.length !== 6) {
+    if (!CODE_COMPLETE.test(code)) {
       setCodeError('Введите 6-значный код');
       return;
     }
@@ -93,7 +106,7 @@ function OtpVerify({ email }: { email: string }) {
       const { access_token, user } = await authApi.verifyEmailByCode(email, code.trim());
       storeLogin(access_token, user);
       // Navigation is handled by RequireGuest — it detects the token
-      // and renders <Navigate to="/welcome" replace /> declaratively.
+      // and renders <Navigate to="/results" replace /> declaratively.
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
@@ -111,84 +124,75 @@ function OtpVerify({ email }: { email: string }) {
 
   async function handleResend() {
     setResendMessage('');
-    setResendDisabled(true);
+    setResendCountdown(RESEND_SECONDS);
     try {
       await authApi.resendVerification(email);
       setResendMessage('Новый код отправлен на почту');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
-        setResendMessage('Подождите 60 секунд перед повторной отправкой');
+        setResendMessage('Подождите перед повторной отправкой');
       } else {
         setResendMessage('Не удалось отправить код. Попробуйте позже');
       }
-    } finally {
-      setTimeout(() => setResendDisabled(false), 60_000);
     }
   }
 
   return (
     <>
-      <h1 className="text-h1 font-black text-primary mb-2">Подтверждение почты</h1>
-      <p className="text-caption text-secondary mb-6">
-        Мы отправили 6-значный код на{' '}
-        <span className="text-brand font-semibold">{email}</span>
-      </p>
+      <h1 className="auth-headline-sm mt-[20px]">
+        Код отправлен на {email}
+      </h1>
 
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-        <div>
-          <input
-            className={cn(
-              'w-full h-12 px-4 rounded-[10px] bg-page border text-primary text-body font-semibold tracking-[0.25em] text-center placeholder:text-placeholder placeholder:tracking-normal focus:outline-none focus:border-brand ring-brand transition-colors',
-              codeError ? 'border-danger' : 'border-default',
-            )}
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="000000"
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="mt-[32px]">
+          <OtpInput
+            length={6}
             value={code}
-            onChange={e => {
-              const v = e.target.value.replace(/\D/g, '').slice(0, 6);
-              setCode(v);
-              setCodeError('');
-            }}
-            autoComplete="one-time-code"
+            onChange={(v) => { setCode(v); setCodeError(''); }}
+            error={!!codeError}
+            disabled={isLoading}
             autoFocus
+            aria-label="Код из письма"
           />
-          {codeError && <p className="text-small text-danger mt-1 px-1">{codeError}</p>}
+          {codeError && (
+            <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
+              {codeError}
+            </p>
+          )}
         </div>
 
-        {formError && <p className="text-caption text-danger text-center">{formError}</p>}
+        {formError && (
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
+        )}
 
-        <button
-          type="submit"
-          disabled={isLoading || code.length !== 6}
-          className={cn(
-            'w-full h-12 bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button transition-opacity mt-1',
-            (isLoading || code.length !== 6) && 'opacity-50 cursor-not-allowed',
-          )}
-        >
+        <Button type="submit" isLoading={isLoading} disabled={!CODE_COMPLETE.test(code)} size="lg" className="w-full mt-[28px]">
           {isLoading ? 'Проверяем...' : 'Подтвердить'}
-        </button>
+        </Button>
       </form>
 
-      <div className="flex flex-col items-center gap-1 mt-5">
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={resendDisabled}
-          className={cn(
-            'text-caption text-brand font-semibold hover:text-brand-hover transition-colors',
-            resendDisabled && 'opacity-40 cursor-not-allowed',
-          )}
-        >
-          Отправить код повторно
-        </button>
+      <div className="flex flex-col items-center gap-2 mt-[24px]">
+        {resendCountdown > 0 ? (
+          <p className="font-mono text-mono-xs tracking-label uppercase text-muted">
+            Отправить заново через {resendCountdown}
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={handleResend}
+            className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity"
+          >
+            Отправить код повторно
+          </button>
+        )}
         {resendMessage && (
           <p className="text-small text-secondary text-center">{resendMessage}</p>
         )}
+        <p className="text-caption text-muted text-center mt-1">
+          Не пришло письмо? Проверьте папку «Спам».
+        </p>
         <Link
           to="/login"
-          className="text-caption text-muted hover:text-secondary transition-colors mt-2"
+          className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
         >
           ← Вернуться ко входу
         </Link>
@@ -211,11 +215,11 @@ export default function VerifyEmailPage() {
   return (
     <div className="flex flex-col items-center text-center gap-4 py-6">
       <XCircle size={40} className="text-danger" />
-      <h1 className="text-h1 font-black text-primary">Ссылка недействительна</h1>
+      <h1 className="auth-headline-sm">Ссылка недействительна</h1>
       <p className="text-body text-secondary">
         Проверьте письмо или зарегистрируйтесь заново.
       </p>
-      <Link to="/login" className="text-caption text-brand font-semibold hover:text-brand-hover transition-colors">
+      <Link to="/login" className="text-caption text-brand hover:opacity-70 transition-opacity">
         ← Вернуться ко входу
       </Link>
     </div>

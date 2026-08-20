@@ -4,12 +4,18 @@ import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
+import { Spine, type SpineNode } from '@/shared/ui/Spine';
+import { useProfileStore } from '@/shared/store/profile';
+import { DIRECTION_HORIZON_LABELS } from '@/shared/config/constants';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
+import { DirectionVerdictCard } from './components/DirectionVerdictCard';
 import { GeneratingOverlay } from './components/GeneratingOverlay';
 import { GrowthFocusCard } from './components/GrowthFocusCard';
+import { HorizonCard } from './components/HorizonCard';
+import { RoadmapHeaderCard } from './components/RoadmapHeaderCard';
 import { SkillsSection } from './components/SkillsSection';
-import { StageCard } from './components/StageCard';
+import { SubjectsGapSection } from './components/SubjectsGapSection';
 import { TargetCard } from './components/TargetCard';
 import { UniversityTrackSection } from './components/UniversityTrackSection';
 
@@ -20,8 +26,14 @@ export default function DirectionRoadmapPage() {
     roadmap, isLoading, isGenerating, notGenerated,
     errorKind, errorMessage, generate,
   } = useDirectionRoadmap(slug);
+  const subjectsEasy = useProfileStore(s => s.profile?.subjects_easy ?? []);
 
   const inquiryPath = `/results/directions/${encodeURIComponent(slug)}/inquiry`;
+  // "ЦЕЛЬ: ПОСТУПЛЕНИЕ {year}" — derived from the real `target.horizon_years`
+  // the plan was generated with, not a hardcoded or guessed admission date.
+  const targetYear = roadmap
+    ? new Date().getFullYear() + roadmap.target.horizon_years
+    : new Date().getFullYear();
 
   return (
     <PageContainer className="space-y-6">
@@ -75,6 +87,8 @@ export default function DirectionRoadmapPage() {
         </div>
       ) : roadmap ? (
         <div className="flex flex-col gap-8">
+          <RoadmapHeaderCard directionName={roadmap.direction_name} targetYear={targetYear} />
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TargetCard target={roadmap.target} directionName={roadmap.direction_name} />
             <GrowthFocusCard growthFocus={roadmap.growth_focus} />
@@ -85,15 +99,49 @@ export default function DirectionRoadmapPage() {
             <p className="text-body text-secondary mb-6">
               Каждый месяц — шаги в профиль и в твою точку роста.
             </p>
-            <ol className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8">
+            <Spine
+              nodes={roadmap.stages.map((stage, i): SpineNode => ({
+                id: stage.horizon,
+                status: i === 0 ? 'current' : 'upcoming',
+                goal: i === roadmap.stages.length - 1,
+                label: DIRECTION_HORIZON_LABELS[stage.horizon] ?? stage.horizon,
+              }))}
+              showLabels
+              className="mb-10"
+              ariaLabel="Горизонты плана: сейчас, до цели через 12 месяцев"
+            />
+
+            {/* Horizon grid per spec 07 — hairline-divided Paper cells, one
+             *  per stage. No milestone-complete banner is rendered below it:
+             *  `DirectionStage`/`RoadmapStep` (shared/types) carry no
+             *  completion timestamp or checklist-progress field, so there is
+             *  no real "a horizon just closed" event to key a banner off.
+             *  Building one here would mean either a static always-shown
+             *  banner or a fabricated "just completed" state — both against
+             *  the brief, so it's left out until the API exposes real
+             *  horizon-completion data. */}
+            <div
+              className="grid grid-cols-1 lg:grid-cols-4 rounded-[var(--radius)] overflow-hidden"
+              style={{ border: '1px solid var(--border)' }}
+            >
               {roadmap.stages.map((stage, i) => (
-                <StageCard
+                <HorizonCard
                   key={stage.horizon}
                   stage={stage}
+                  isFirst={i === 0}
                   isLast={i === roadmap.stages.length - 1}
+                  targetYear={targetYear}
                 />
               ))}
-            </ol>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <DirectionVerdictCard directionName={roadmap.direction_name} inquiryPath={inquiryPath} />
+            <SubjectsGapSection
+              subjects={roadmap.subjects_to_focus}
+              subjectsEasy={subjectsEasy}
+            />
           </div>
 
           <SkillsSection

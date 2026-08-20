@@ -33,7 +33,7 @@ export function RestartAssessmentSection({ confirmRestart, onRequest, onConfirm,
     <button
       type="button"
       onClick={onRequest}
-      className="w-full min-h-14 flex items-center justify-center gap-2 rounded-[var(--radius)] border-[1.5px] border-default bg-surface text-brand font-extrabold transition-colors hover:bg-hover text-body"
+      className="w-full min-h-14 flex items-center justify-center gap-2 rounded-[var(--radius)] border-[1.5px] border-default bg-transparent text-brand font-extrabold transition-colors hover:bg-hover text-body"
     >
       <RotateCcw size={16} />
       Начать тестирование заново

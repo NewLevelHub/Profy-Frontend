@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Spinner } from '@/shared/ui/Spinner';
+import { Spine, type SpineNode } from '@/shared/ui/Spine';
+import { Mascot } from '@/shared/ui/Mascot';
 
 /** Generation takes up to ~60s — rotate the copy so it never looks frozen. */
 const STEPS = [
@@ -29,14 +31,27 @@ export function GeneratingOverlay() {
       role="status"
       aria-live="polite"
     >
-      <span className="text-5xl select-none" aria-hidden="true">🧭</span>
+      <Mascot state="waiting" size={140} />
       <Spinner size="lg" />
 
       <div className="flex flex-col gap-2">
         <h2 className="text-title font-extrabold text-primary">Собираю твой план</h2>
         <p className="text-body text-secondary">{STEPS[step]}</p>
-        <p className="text-caption text-muted">Это займёт до минуты — не закрывай страницу</p>
       </div>
+
+      <div className="w-full max-w-xs">
+        <Spine
+          nodes={STEPS.map((_, i): SpineNode => ({
+            id: i,
+            status: i < step ? 'done' : i === step ? 'current' : 'upcoming',
+            goal: i === STEPS.length - 1,
+          }))}
+          thickness={0.85}
+          ariaLabel={`Шаг ${step + 1} из ${STEPS.length}`}
+        />
+      </div>
+
+      <p className="text-caption text-muted">Это займёт до минуты — не закрывай страницу</p>
     </div>
   );
 }

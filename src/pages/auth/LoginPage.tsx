@@ -2,9 +2,10 @@ import { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff, Mail } from 'lucide-react';
-import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
 import { useAuthStore } from '@/shared/store/auth';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
 
 function validateEmail(email: string): string {
   return email.includes('@') ? '' : 'Введите корректный email';
@@ -47,7 +48,11 @@ export default function LoginPage() {
       const { access_token, user } = await authApi.login(email.trim(), password);
       storeLogin(access_token, user);
       const from = (location.state as { from?: string })?.from;
-      navigate(from ?? '/welcome', { replace: true });
+      // /welcome no longer doubles as the "just authenticated" landing spot
+      // (it now only shows once, right before a user's first assessment —
+      // see useGoalSelection) — RequireProfile at /results decides from here
+      // whether onboarding is still needed.
+      navigate(from ?? '/results', { replace: true });
     } catch (err) {
       setPassword('');
       if (axios.isAxiosError(err)) {
@@ -84,64 +89,51 @@ export default function LoginPage() {
 
   return (
     <>
-      <h2 className="font-black text-primary mb-1.5 tracking-[-0.01em]" style={{ fontSize: 30 }}>Вход</h2>
-      <p className="text-muted font-semibold mb-[26px]" style={{ fontSize: 14 }}>С возвращением! Продолжим путь 🎯</p>
+      <h1 className="auth-headline mt-[26px]">С возвращением</h1>
+      <p className="auth-sub">Продолжим с того места, где остановились.</p>
 
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-        <div>
-          <label className="block font-extrabold text-secondary mb-[7px]" style={{ fontSize: 13 }}>
-            Электронная почта
-          </label>
-          <input
-            className={cn(
-              'w-full h-[52px] px-4 text-primary font-semibold placeholder:text-placeholder focus:outline-none transition-colors',
-              emailError ? 'border-danger' : 'border-default focus:border-brand',
-            )}
-            style={{ border: '1.5px solid', borderRadius: 14, background: 'var(--bg-page)', fontSize: 15 }}
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="mt-[32px]">
+          <Input
+            label="Email"
             type="email"
             placeholder="you@example.com"
             value={email}
             onChange={e => { setEmail(e.target.value); setEmailError(''); }}
+            error={emailError}
             autoCapitalize="none"
             autoComplete="email"
           />
-          {emailError && <p className="text-small text-danger mt-1 px-1">{emailError}</p>}
         </div>
 
-        <div>
-          <label className="block font-extrabold text-secondary mb-[7px]" style={{ fontSize: 13 }}>
-            Пароль
-          </label>
-          <div className="relative">
-            <input
-              ref={passwordRef}
-              className={cn(
-                'w-full h-[52px] pl-4 pr-12 text-primary font-semibold placeholder:text-placeholder focus:outline-none transition-colors',
-                passwordError ? 'border-danger' : 'border-default focus:border-brand',
-              )}
-              style={{ border: '1.5px solid', borderRadius: 14, background: 'var(--bg-page)', fontSize: 15 }}
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
-              autoComplete="current-password"
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          {passwordError && <p className="text-small text-danger mt-1 px-1">{passwordError}</p>}
+        <div className="mt-[24px] relative">
+          <Input
+            ref={passwordRef}
+            label="Пароль"
+            className="pr-10"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={password}
+            onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
+            error={passwordError}
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowPassword(v => !v)}
+            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
         </div>
 
-        {formError && <p className="text-caption text-danger text-center">{formError}</p>}
+        {formError && (
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
+        )}
 
         {needsVerification && (
-          <div className="rounded-xl border border-default bg-raised p-4 flex flex-col gap-3">
+          <div className="rounded-[var(--radius)] border border-default bg-raised p-4 flex flex-col gap-3 mt-[16px]">
             <div className="flex items-start gap-3">
               <Mail size={18} className="text-brand flex-shrink-0 mt-0.5" />
               <div>
@@ -155,50 +147,38 @@ export default function LoginPage() {
             {resendDone ? (
               <p className="text-small text-danger text-center">Не удалось отправить код. Попробуйте позже</p>
             ) : (
-              <button
+              <Button
                 type="button"
                 onClick={handleResendVerification}
-                disabled={resendLoading}
-                className={cn(
-                  'w-full h-10 bg-brand text-on-brand font-semibold text-caption rounded-[10px] transition-opacity',
-                  resendLoading && 'opacity-60 cursor-not-allowed',
-                )}
+                isLoading={resendLoading}
+                className="w-full"
+                size="sm"
               >
                 {resendLoading ? 'Отправляем...' : 'Выслать код подтверждения'}
-              </button>
+              </Button>
             )}
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={cn(
-            'w-full h-[54px] text-on-brand font-extrabold rounded-pill border-none transition-opacity mt-1',
-            isLoading && 'opacity-60 cursor-not-allowed',
-          )}
-          style={{ background: 'linear-gradient(135deg,#7C3AED,#6D28D9)', fontSize: 17, boxShadow: '0 8px 18px rgba(124,58,237,.32)' }}
-        >
+        <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[34px]">
           {isLoading ? 'Входим...' : 'Войти'}
-        </button>
+        </Button>
 
-        <div className="text-center mt-1">
+        <div className="flex items-center justify-between mt-[20px] text-body-sm">
           <Link
             to="/forgot-password"
-            className="font-extrabold text-brand hover:text-brand-hover transition-colors"
-            style={{ fontSize: 14 }}
+            className="text-muted underline underline-offset-2 hover:opacity-70 transition-opacity"
           >
             Забыли пароль?
           </Link>
+          <Link
+            to="/register"
+            className="text-brand underline underline-offset-2 hover:opacity-70 transition-opacity"
+          >
+            Создать аккаунт
+          </Link>
         </div>
       </form>
-
-      <p className="text-center text-muted font-semibold mt-5 pt-[18px] border-t border-default" style={{ fontSize: 14 }}>
-        Нет аккаунта?{' '}
-        <Link to="/register" className="text-brand font-extrabold hover:text-brand-hover transition-colors">
-          Зарегистрироваться
-        </Link>
-      </p>
     </>
   );
 }

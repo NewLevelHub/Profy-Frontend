@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
+import { Heading } from './typography/Heading';
+import { Text } from './typography/Text';
 
 interface PageHeaderProps {
   title: ReactNode;
@@ -28,16 +30,13 @@ export function PageHeader({
     >
       {leading}
       <div className={cn(align === 'center' && 'w-full')}>
-        <h1
-          className={cn(
-            'font-black text-primary leading-tight tracking-[-0.01em] text-[30px]',
-            titleClassName,
-          )}
-        >
+        <Heading level="display-md" className={cn('text-[color:var(--midnight)]', titleClassName)}>
           {title}
-        </h1>
+        </Heading>
         {subtitle && (
-          <p className="text-secondary font-semibold text-[15px] mt-[3px]">{subtitle}</p>
+          <Text variant="body-sm" className="text-secondary font-semibold mt-[3px]">
+            {subtitle}
+          </Text>
         )}
       </div>
     </div>

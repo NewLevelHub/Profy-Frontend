@@ -29,8 +29,8 @@
 }
 
 @keyframes pf-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,.45); }
-  70%       { box-shadow: 0 0 0 14px rgba(124,58,237,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(14,74,65,.45); }
+  70%       { box-shadow: 0 0 0 14px rgba(14,74,65,0); }
 }
 
 @layer base {

@@ -12,52 +12,145 @@ export const ASSESSMENT_GOAL_LABELS: Record<AssessmentGoal, string> = {
   [ASSESSMENT_GOALS.UNIVERSITY]: 'Выбрать университет',
 };
 
-export const ASSESSMENT_BLOCKS = [
-  'interests',
-  'thinking',
-  'personality',
-  'motivation',
-  'academic',
-  'directions',
-  'goal_clarification',
-  'university',
-  'wellbeing',
+export const RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const;
+
+export const RIASEC_LABELS: Record<string, string> = {
+  R: 'Реалистичный',
+  I: 'Исследовательский',
+  A: 'Артистичный',
+  S: 'Социальный',
+  E: 'Предприимчивый',
+  C: 'Конвенциональный',
+};
+
+export const RIASEC_ICONS: Record<string, string> = {
+  R: '🔧',
+  I: '🔬',
+  A: '🎨',
+  S: '🤝',
+  E: '🚀',
+  C: '📋',
+};
+
+// Plain-language, one-sentence gloss for each RIASEC letter — the label
+// alone ("Реалистичный", "Конвенциональный") is Holland-code jargon that
+// doesn't explain itself to a student, so the type grid pairs it with this.
+export const RIASEC_DESCRIPTIONS: Record<string, string> = {
+  R: 'Нравится работать руками — техника, инструменты, что-то практическое',
+  I: 'Нравится разбираться, как всё устроено, и искать ответы',
+  A: 'Нравится придумывать и создавать своё — рисовать, писать, сочинять',
+  S: 'Нравится помогать людям и быть рядом, когда нужна поддержка',
+  E: 'Нравится вести за собой, убеждать и запускать свои идеи',
+  C: 'Нравится порядок, чёткие правила и понятная структура',
+};
+
+// Junior's (6-9) interest instrument, replacing RIASEC — see MIType.
+export const MI_TYPES = [
+  'verbal', 'logical', 'musical', 'visual', 'bodily',
+  'interpersonal', 'intrapersonal', 'naturalistic',
 ] as const;
 
-export const BLOCK_NAMES: Record<string, string> = {
-  interests: 'Интересы',
-  thinking: 'Стиль мышления',
-  personality: 'Личность',
-  motivation: 'Мотивация',
-  academic: 'Учебные склонности',
-  directions: 'Направления',
-  goal_clarification: 'Твоя цель',
-  university: 'Университет',
-  wellbeing: 'Самочувствие',
+export const MI_LABELS: Record<string, string> = {
+  verbal: 'Слова и истории',
+  logical: 'Логика и счёт',
+  musical: 'Музыка и ритм',
+  visual: 'Картинки и образы',
+  bodily: 'Движение и руки',
+  interpersonal: 'Дружба и команда',
+  intrapersonal: 'Своё мнение',
+  naturalistic: 'Природа и животные',
 };
 
-export const BLOCK_DESCRIPTIONS: Record<string, string> = {
-  interests: 'Узнаем, что тебя по-настоящему интересует',
-  thinking: 'Разберёмся, как ты думаешь и решаешь задачи',
-  personality: 'Поймём твои сильные стороны характера',
-  motivation: 'Выясним, что тебя вдохновляет и движет',
-  academic: 'Посмотрим, какие предметы тебе ближе всего',
-  directions: 'Определим подходящие профессиональные пути',
-  goal_clarification: 'Уточним твою главную цель',
-  university: 'Подберём университеты под твой профиль',
-  wellbeing: 'Немного о том, как ты себя чувствуешь в последнее время',
+export const MI_ICONS: Record<string, string> = {
+  verbal: '📚',
+  logical: '🧩',
+  musical: '🎵',
+  visual: '🎨',
+  bodily: '🤸',
+  interpersonal: '🤝',
+  intrapersonal: '💭',
+  naturalistic: '🌿',
 };
 
-export const BLOCK_EMOJIS: Record<string, string> = {
-  interests: '✨',
-  thinking: '🧩',
-  personality: '🦋',
-  motivation: '🚀',
-  academic: '📚',
-  directions: '🧭',
-  goal_clarification: '🎯',
-  university: '🎓',
-  wellbeing: '🌿',
+// One-sentence gloss per MI type — MI_LABELS are already plain Russian
+// (unlike RIASEC's single-word jargon), but a short explanation still helps
+// a junior student connect the label to what it actually looks like.
+export const MI_DESCRIPTIONS: Record<string, string> = {
+  verbal: 'Легко подбираешь слова, любишь читать и рассказывать истории',
+  logical: 'Любишь считать, искать закономерности и решать задачи',
+  musical: 'Чувствуешь ритм и мелодию лучше многих',
+  visual: 'Мыслишь картинками — любишь рисовать и представлять образы',
+  bodily: 'Легче учишься через движение, руками, на практике',
+  interpersonal: 'Легко находишь общий язык и заряжаешься от компании',
+  intrapersonal: 'Хорошо понимаешь себя и свои чувства',
+  naturalistic: 'Замечаешь природу и то, что происходит вокруг',
+};
+
+export const LIKERT_SCALE: { value: number; label: string }[] = [
+  { value: 1, label: 'Очень не нравится' },
+  { value: 2, label: 'Скорее не нравится' },
+  { value: 3, label: 'Нейтрально' },
+  { value: 4, label: 'Скорее нравится' },
+  { value: 5, label: 'Очень нравится' },
+];
+
+export const BIGFIVE_LIKERT_SCALE: { value: number; label: string }[] = [
+  { value: 1, label: 'Очень Неточно' },
+  { value: 2, label: 'Умеренно Неточно' },
+  { value: 3, label: 'Ни Точно, Ни Неточно' },
+  { value: 4, label: 'Умеренно Точно' },
+  { value: 5, label: 'Очень Точно' },
+];
+
+export const THINKING_STYLE_LABELS: Record<string, string> = {
+  creative_think: 'Творческое мышление',
+  systematic: 'Системность',
+  strategic: 'Стратегическое видение',
+  practical: 'Практичность',
+};
+
+export const THINKING_STYLE_ICONS: Record<string, string> = {
+  creative_think: '💡',
+  systematic: '🗂️',
+  strategic: '🧭',
+  practical: '🔨',
+};
+
+export const PERSONALITY_LABELS: Record<string, string> = {
+  openness: 'Открытость новому',
+  conscientiousness: 'Организованность',
+  extraversion: 'Общительность',
+  agreeableness: 'Доброжелательность',
+  emotional_stability: 'Эмоциональная устойчивость',
+};
+
+export const PERSONALITY_ICONS: Record<string, string> = {
+  openness: '🌱',
+  conscientiousness: '🗂️',
+  extraversion: '🎉',
+  agreeableness: '🤝',
+  emotional_stability: '🧘',
+};
+
+export const PERSONALITY_ORDER: string[] = [
+  'openness', 'conscientiousness', 'extraversion', 'agreeableness', 'emotional_stability',
+];
+
+// interest_map[].level (result-v2 contract §5) — opaque enum, never a
+// percentage: the backend deliberately doesn't expose the score it was
+// computed from, so this is display-only.
+export const INTEREST_LEVEL_LABELS: Record<'low' | 'medium' | 'high', string> = {
+  low: 'Слабо выражено',
+  medium: 'Средне выражено',
+  high: 'Ярко выражено',
+};
+
+// careers[].tier (result-v2 contract §6) — three-tier match instead of a
+// score, per TZ §18.3 (no percentages shown to the student).
+export const CAREER_TIER_LABELS: Record<'strong' | 'good' | 'worth_trying', string> = {
+  strong: 'Сильное совпадение',
+  good: 'Хорошее совпадение',
+  worth_trying: 'Стоит попробовать',
 };
 
 export const AGE_GROUPS = {

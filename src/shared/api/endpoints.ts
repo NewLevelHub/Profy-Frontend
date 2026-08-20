@@ -18,13 +18,19 @@ export const API = {
   assessment: {
     start: '/assessment/start',
     current: '/assessment/current',
-    questions: (assessmentId: string, block: string) =>
-      `/assessment/${assessmentId}/questions/${block}`,
+    questions: (assessmentId: string) => `/assessment/${assessmentId}/questions`,
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
+    motivationTriplets: (assessmentId: string) => `/assessment/${assessmentId}/motivation-triplets`,
+    motivationAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-answers`,
+    motivationPairs: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pairs`,
+    motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
+    pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
+    pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
   },
   result: {
     generate: '/result/generate',
     get: (assessmentId: string) => `/result/${assessmentId}`,
+    feedback: '/result/feedback',
   },
   roadmap: {
     generate: '/roadmap/generate',
@@ -36,7 +42,6 @@ export const API = {
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
-    gapAnalysis: (programId: string) => `/universities/programs/${programId}/gap-analysis`,
   },
   inquiry: {
     questions: (assessmentId: string, slug: string) =>
@@ -48,5 +53,7 @@ export const API = {
     users: '/admin/users',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
+    feedback: '/admin/feedback',
+    feedbackStats: '/admin/feedback/stats',
   },
 } as const;

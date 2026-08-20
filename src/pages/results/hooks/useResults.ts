@@ -14,7 +14,16 @@ export function useResults() {
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const goal = useAssessmentStore(s => s.goal);
+  const answeredCount = useAssessmentStore(s => s.answeredCount);
+  const totalQuestions = useAssessmentStore(s => s.totalQuestions);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
+
+  // No completed report yet — either no assessment was ever started, or one
+  // is started but not finished. /results is now the only screen for both
+  // states (the old separate /home "overview" showed nothing useful before
+  // the report existed anyway).
+  const hasAssessment = assessmentId !== null && goal !== null;
+  const inProgress = hasAssessment && !hasCompletedAssessment;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['result', assessmentId] as const,
@@ -31,6 +40,7 @@ export function useResults() {
     enabled: hasCompletedAssessment && !report && !!assessmentId,
     retry: (failureCount, err) => {
       if ((err as AxiosError)?.response?.status === 403) return false;
+      if (err instanceof Error && err.message === 'legacy_result_shape') return false;
       return failureCount < 2;
     },
   });
@@ -50,24 +60,32 @@ export function useResults() {
 
   const effectiveReport = report ?? data ?? null;
 
-  const topInterests = Object.entries(effectiveReport?.interests_map ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 7);
+  // interest_instrument is the ONLY field the result-v2 contract (§3) allows
+  // for branching mi/riasec — never age group, array length, or `code`
+  // (there is no `code` in this contract at all).
+  const isJunior = effectiveReport?.interest_instrument === 'mi';
 
-  const topThinking = Object.entries(effectiveReport?.thinking_style ?? {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 4);
+  // Backend returned the pre-v2 admin/raw AnalysisResult shape for this
+  // assessment (see resultApi.assertResultV2) — retrying won't help since
+  // `/result/generate` reuses the existing stored row rather than
+  // recomputing it; this needs a backend-side regeneration/backfill.
+  const isLegacyShape = error instanceof Error && error.message === 'legacy_result_shape';
 
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
-    error: (!is403 && error) ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
+    error: isLegacyShape
+      ? 'Отчёт сохранён в устаревшем формате и пока не может быть показан. Мы уже знаем об этом — попробуй зайти чуть позже.'
+      : (!is403 && error) ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
     hasCompletedAssessment,
+    assessmentId,
     goal,
     ageGroup,
-    showUniversityBtn: goal === 'university' && ageGroup === 'senior',
-    topInterests,
-    topThinking,
+    isJunior,
     refetch,
+    hasAssessment,
+    inProgress,
+    answeredCount,
+    totalQuestions,
   };
 }

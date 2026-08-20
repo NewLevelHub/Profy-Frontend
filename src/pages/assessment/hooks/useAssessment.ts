@@ -1,50 +1,74 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { assessmentApi } from '@/shared/api/assessment';
-import { BLOCK_NAMES, BLOCK_EMOJIS } from '@/shared/config/constants';
-import type { AnswerPayload, AssessmentBlock, Question } from '@/shared/types';
-import { getAssessmentBlocks } from '../utils/assessmentBlocks';
+import { pairsApi } from '@/shared/api/pairs';
+import { autofillAssessment } from '@/shared/dev/autofillAssessment';
+import { playBlockFinishAudio } from '@/shared/lib/sounds';
+import { buildDisplaySequence } from '../utils/buildDisplaySequence';
+import { buildPages, type Page } from '../utils/buildPages';
+import type { RestStopState } from '../utils/restStop';
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
+// Likert/pair answers already saved to the server are only known to this
+// hook via local state — the questions endpoint doesn't echo previous
+// values back. A rest stop (or any other route change away from
+// /assessment) unmounts this hook and would otherwise wipe that buffer, so
+// going "Назад" past a rest-stop boundary made earlier selections vanish
+// even though they were saved fine. Mirroring these two maps into
+// sessionStorage (same pattern as the intro-seen flag below) survives
+// remounts within the same tab.
+function likertAnswersStorageKey(assessmentId: string) {
+  return `profy-assessment-likert-answers:${assessmentId}`;
+}
+function pairAnswersStorageKey(assessmentId: string) {
+  return `profy-assessment-pair-answers:${assessmentId}`;
+}
+
+function loadStoredAnswers<T>(key: string | null): T | null {
+  if (!key || typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function useAssessment() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
-  const goal = useAssessmentStore(s => s.goal);
-  const currentBlock = useAssessmentStore(s => s.currentBlock);
-  const completedBlocks = useAssessmentStore(s => s.completedBlocks);
-  const advanceBlock = useAssessmentStore(s => s.advanceBlock);
-  const markBlockCompleted = useAssessmentStore(s => s.markBlockCompleted);
-  const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
-
-  // Retake mode: /assessment?retake=<blockIndex>
-  const retakeParam = searchParams.get('retake');
-  const retakeIndex = retakeParam !== null ? parseInt(retakeParam, 10) : null;
-  const isRetakeMode = retakeIndex !== null && !isNaN(retakeIndex) && retakeIndex >= 0;
-
-  const activeBlocks = getAssessmentBlocks(ageGroup, goal);
-  const totalBlocks = activeBlocks.length;
-
-  // In retake mode use the retake block, otherwise use the store's currentBlock
-  const effectiveBlock = isRetakeMode ? retakeIndex! : currentBlock;
-  const currentBlockKey = activeBlocks[effectiveBlock] as AssessmentBlock | undefined;
+  const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
+  const totalQuestionsFromStore = useAssessmentStore(s => s.totalQuestions);
+  const setProgress = useAssessmentStore(s => s.setProgress);
+  const ageGroup = useProfileStore(s => s.profile?.age_group);
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [blockAnswers, setBlockAnswers] = useState<AnswerPayload[]>([]);
+  const [pages, setPages] = useState<Page[]>([]);
+  const [rawQuestionCount, setRawQuestionCount] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [selectedPairOptionId, setSelectedPairOptionId] = useState<string | null>(null);
+  const [likertAnswers, setLikertAnswers] = useState<Record<string, number>>(
+    () => loadStoredAnswers(assessmentId ? likertAnswersStorageKey(assessmentId) : null) ?? {},
+  );
+  const [pairAnswers, setPairAnswers] = useState<Record<number, string>>(
+    () => loadStoredAnswers(assessmentId ? pairAnswersStorageKey(assessmentId) : null) ?? {},
+  );
   const [transitioning, setTransitioning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startIndexApplied = useRef(false);
+  // Reset whenever the current page changes (see the effect below) —
+  // elapsed time from here to submit feeds the speed-flag rest stop.
+  const itemShownAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (!assessmentId) {
@@ -52,31 +76,71 @@ export function useAssessment() {
       return;
     }
 
-    // Normal mode: redirect to loading if all blocks done
-    if (!isRetakeMode && currentBlock >= totalBlocks) {
-      navigate('/assessment/loading', { replace: true });
-      return;
-    }
-
-    if (!currentBlockKey) return;
-
     let cancelled = false;
 
-    async function loadBlock() {
+    async function loadSequence() {
       setPhase('loading');
       setError(null);
       try {
-        const data = await assessmentApi.getQuestions(assessmentId!, currentBlockKey!);
+        const [questions, pairs] = await Promise.all([
+          assessmentApi.getQuestions(assessmentId!),
+          pairsApi.getPairs(assessmentId!),
+        ]);
         if (cancelled) return;
-        if (data.length === 0) throw new Error('empty_questions');
-        setQuestions(data);
-        setQuestionIndex(0);
-        setSelectedIndex(null);
-        setBlockAnswers([]);
-        setPhase('intro');
-        introTimerRef.current = setTimeout(() => {
-          if (!cancelled) setPhase('question');
-        }, 2000);
+        if (questions.length === 0) throw new Error('empty_questions');
+        setRawQuestionCount(questions.length);
+        // All Likert questions first, then all pairs (buildDisplaySequence),
+        // then grouped into pages of up to 5 Likert questions / 1 pair each.
+        const built = buildPages(buildDisplaySequence(questions, pairs));
+        setPages(built);
+
+        if (!startIndexApplied.current) {
+          startIndexApplied.current = true;
+          // Each page consumes 1-5 (Likert) or 2 (pair) raw UserResponse
+          // rows — walk until we've accounted for everything the store
+          // says is already answered, landing on the first not-yet-fully-
+          // answered page.
+          let cumulative = 0;
+          let startIndex = built.length > 0 ? built.length - 1 : 0;
+          for (let i = 0; i < built.length; i++) {
+            const page = built[i];
+            const weight = page.kind === 'pair' ? 2 : page.questions.length;
+            if (cumulative + weight > answeredCountFromStore) {
+              startIndex = i;
+              break;
+            }
+            cumulative += weight;
+            startIndex = i;
+          }
+          setPageIndex(startIndex);
+          if (answeredCountFromStore >= questions.length) {
+            // Likert+pairs phase already fully answered — motivation may
+            // still be pending, so continue there rather than assuming the
+            // whole test is done.
+            navigate('/assessment/motivation', { replace: true });
+            return;
+          }
+        }
+
+        // Intro is a one-time "let's begin" moment — only on a genuinely
+        // fresh start. Reload / resume always has answeredCount > 0 (or the
+        // intro already dismissed this session), so skip straight to questions.
+        const introKey = `profy-assessment-intro-seen:${assessmentId}`;
+        const introAlreadySeen =
+          typeof sessionStorage !== 'undefined' && sessionStorage.getItem(introKey) === '1';
+        const testAlreadyStarted = answeredCountFromStore > 0 || introAlreadySeen;
+
+        if (testAlreadyStarted) {
+          setPhase('question');
+        } else {
+          setPhase('intro');
+          introTimerRef.current = setTimeout(() => {
+            if (!cancelled) {
+              sessionStorage.setItem(introKey, '1');
+              setPhase('question');
+            }
+          }, 2000);
+        }
       } catch {
         if (!cancelled) {
           setError('Не удалось загрузить вопросы. Попробуй ещё раз.');
@@ -85,7 +149,7 @@ export function useAssessment() {
       }
     }
 
-    loadBlock();
+    loadSequence();
 
     return () => {
       cancelled = true;
@@ -94,114 +158,163 @@ export function useAssessment() {
         introTimerRef.current = null;
       }
     };
-    // effectiveBlock captures both currentBlock (normal) and retakeIndex (retake)
-    // assessmentId ensures fresh fetch when a new assessment is started at the same block index
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveBlock, retryCount, assessmentId]);
+  }, [assessmentId, retryCount]);
 
-  function handleStartBlock() {
+  useEffect(() => {
+    const page = pages[pageIndex];
+    itemShownAtRef.current = Date.now();
+    setSelectedPairOptionId(page?.kind === 'pair' ? (pairAnswers[page.pair.pair_index] ?? null) : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageIndex, pages]);
+
+  useEffect(() => {
+    if (!assessmentId || typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(likertAnswersStorageKey(assessmentId), JSON.stringify(likertAnswers));
+  }, [assessmentId, likertAnswers]);
+
+  useEffect(() => {
+    if (!assessmentId || typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(pairAnswersStorageKey(assessmentId), JSON.stringify(pairAnswers));
+  }, [assessmentId, pairAnswers]);
+
+  function handleStartIntro() {
     if (introTimerRef.current !== null) {
       clearTimeout(introTimerRef.current);
       introTimerRef.current = null;
+    }
+    if (assessmentId) {
+      sessionStorage.setItem(`profy-assessment-intro-seen:${assessmentId}`, '1');
     }
     setPhase('question');
   }
 
   function handleBack() {
-    if (questionIndex === 0 || transitioning) return;
-    setBlockAnswers(prev => prev.slice(0, questionIndex - 1));
-    setQuestionIndex(i => i - 1);
-    setSelectedIndex(null);
+    if (pageIndex === 0 || transitioning || saving) return;
+    setPageIndex(i => i - 1);
   }
 
-  function handleOptionSelect(questionId: string, optionIndex: number) {
-    if (transitioning) return;
-    const isLast = questionIndex === questions.length - 1;
-
-    if (!isLast && selectedIndex !== null) return;
-
-    setSelectedIndex(optionIndex);
-
+  /**
+   * Advances to the next page. Caller must have already updated the store's
+   * progress (setProgress) for this submission — recordQuestionAnswered
+   * checks the run-wide percentage against the 25/50/75% rest-stop
+   * thresholds using whatever the store currently holds, see
+   * useAssessmentStore.recordQuestionAnswered. `isSpeedFlag` is the result
+   * of the caller's own recordAnswerTiming call for this same submission —
+   * threaded through rather than recomputed here.
+   */
+  function advance(isSpeedFlag = false) {
+    const isLast = pageIndex >= pages.length - 1;
     if (isLast) {
-      setBlockAnswers(prev => {
-        const idx = prev.findIndex(a => a.question_id === questionId);
-        if (idx >= 0) {
-          const copy = [...prev];
-          copy[idx] = { question_id: questionId, selected_option_index: optionIndex };
-          return copy;
-        }
-        return [...prev, { question_id: questionId, selected_option_index: optionIndex }];
+      // advance() is only reached after the caller already checked
+      // response.completed === false, so the server is telling us this
+      // phase genuinely isn't done — yet we're out of pages to show. That
+      // means some raw question/pair is unanswered somewhere OTHER than
+      // where we currently are (e.g. a resume computed against a display
+      // order that changed since some answers were recorded, so its
+      // "first N are answered" assumption no longer holds). We have no way
+      // to know which item that is — there's no per-item answered flag in
+      // the API — so the only safe recovery is to walk the whole sequence
+      // again from the top: re-submitting already-answered items is a
+      // harmless no-op, and whatever was actually skipped will surface
+      // this pass.
+      setError('Кажется, несколько ответов не сохранились — пройдём вопросы ещё раз, чтобы найти пропущенные.');
+      setPageIndex(0);
+      return;
+    }
+
+    const { shouldShow, totalAnswered } = useAssessmentStore.getState().recordQuestionAnswered();
+    if (shouldShow || isSpeedFlag) {
+      navigate('/assessment/rest', {
+        state: { returnTo: '/assessment', progress, totalAnswered, isSpeedFlag } satisfies RestStopState,
       });
       return;
     }
 
-    setBlockAnswers(prev => [
-      ...prev,
-      { question_id: questionId, selected_option_index: optionIndex },
-    ]);
-
     setTransitioning(true);
     setTimeout(() => {
-      setQuestionIndex(i => i + 1);
-      setSelectedIndex(null);
+      setPageIndex(i => i + 1);
       setTransitioning(false);
-    }, 300);
+    }, 250);
   }
 
-  async function handleNextBlock() {
-    if (saving || selectedIndex === null || !currentBlockKey || !assessmentId) return;
+  function handleLikertSelect(questionId: string, value: number) {
+    if (saving || transitioning) return;
+    setLikertAnswers(prev => ({ ...prev, [questionId]: value }));
+  }
+
+  async function handleSubmitLikertPage() {
+    const page = pages[pageIndex];
+    if (!page || page.kind !== 'likert' || saving || transitioning) return;
+    const { questions } = page;
+    if (!questions.every(q => likertAnswers[q.id] !== undefined)) return;
+
     setSaving(true);
     setError(null);
-    try {
-      await assessmentApi.saveAnswers(assessmentId, {
-        block: currentBlockKey,
-        answers: blockAnswers,
-      });
-      markBlockCompleted(currentBlockKey);
 
-      if (isRetakeMode) {
-        // Retake: only one block — go straight to result regeneration
-        navigate('/assessment/praise', {
-          state: {
-            title: 'Готово!',
-            subtitle: `Блок «${BLOCK_NAMES[currentBlockKey]}» обновлён`,
-            nextPath: '/assessment/loading?retake=1',
-            completedCount: totalBlocks,
-            totalBlocks,
-          },
-        });
+    try {
+      const response = await assessmentApi.saveAnswers(assessmentId!, {
+        answers: questions.map(q => ({ question_id: q.id, value: likertAnswers[q.id] })),
+      });
+      setProgress(response.answered_count, response.total);
+      const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
+
+      if (response.completed) {
+        // Likert+pairs phase done — seamlessly continue into the
+        // motivation triplets, no results screen in between.
+        playBlockFinishAudio(1, 1);
+        navigate('/assessment/motivation');
         return;
       }
-
-      const nextIndex = currentBlock + 1;
-      const isLast = nextIndex >= totalBlocks;
-      const nextBlockKey = activeBlocks[nextIndex];
-      const nextBlockName = nextBlockKey ? BLOCK_NAMES[nextBlockKey] : undefined;
-      const nextBlockEmoji = nextBlockKey ? BLOCK_EMOJIS[nextBlockKey] : undefined;
-      // IMPORTANT:
-      // Do not advance the local block index on the last block before navigating to PraisePage.
-      // Otherwise the "currentBlock >= totalBlocks" guard effect can race and immediately redirect
-      // to loading/results, skipping the final congratulations screen.
-      if (!isLast) {
-        advanceBlock();
-      }
-      navigate('/assessment/praise', {
-        state: {
-          title: isLast ? 'Ты справился!' : 'Молодец!',
-          subtitle: isLast
-            ? 'Считаем результат...'
-            : `Блок «${BLOCK_NAMES[currentBlockKey]}» пройден`,
-          nextPath: isLast ? '/assessment/loading' : '/assessment',
-          completedCount: nextIndex,
-          totalBlocks,
-          nextBlockName,
-          nextBlockEmoji,
-        },
-      });
+      advance(isSpeedFlag);
     } catch {
-      setError('Не удалось сохранить ответы. Попробуй ещё раз.');
+      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handlePairAnswer(pickedQuestionId: string) {
+    const page = pages[pageIndex];
+    if (!page || page.kind !== 'pair' || saving || transitioning) return;
+    const { pair } = page;
+
+    setSelectedPairOptionId(pickedQuestionId);
+    setSaving(true);
+    setError(null);
+
+    try {
+      const response = await pairsApi.submitAnswers(assessmentId!, {
+        answers: [{ pair_index: pair.pair_index, picked_question_id: pickedQuestionId }],
+      });
+      setPairAnswers(prev => ({ ...prev, [pair.pair_index]: pickedQuestionId }));
+      setProgress(response.answered_count, response.total);
+      const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
+
+      if (response.completed) {
+        playBlockFinishAudio(1, 1);
+        navigate('/assessment/motivation');
+        return;
+      }
+      advance(isSpeedFlag);
+    } catch {
+      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleAutofill() {
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      await autofillAssessment(assessmentId, ageGroup);
+      navigate('/assessment/loading');
+    } catch {
+      setError('Не удалось автозаполнить тест.');
+    } finally {
+      setAutofilling(false);
     }
   }
 
@@ -211,45 +324,44 @@ export function useAssessment() {
 
   function confirmExit() {
     setExitConfirmOpen(false);
-    navigate('/home');
+    navigate('/results');
   }
 
   function cancelExit() {
     setExitConfirmOpen(false);
   }
 
-  const currentQuestion = questions[questionIndex];
-  const isLastQuestion = questions.length > 0 && questionIndex === questions.length - 1;
-  const showNextButton = isLastQuestion && selectedIndex !== null;
-  const questionProgress =
-    questions.length > 0 ? ((questionIndex + 1) / questions.length) * 100 : 0;
-  const overallProgress = totalBlocks > 0 ? (effectiveBlock / totalBlocks) * 100 : 0;
+  const currentPage = pages[pageIndex];
+  const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
+  const currentPair = currentPage?.kind === 'pair' ? currentPage.pair : undefined;
+  const totalPages = pages.length;
+  // "N вопросов" / time-estimate copy on the intro screen counts each
+  // question and each pair as one unit, same as before pagination.
+  const totalItems = pages.reduce((sum, p) => sum + (p.kind === 'pair' ? 1 : p.questions.length), 0);
+  const progress = totalQuestionsFromStore > 0 ? (answeredCountFromStore / totalQuestionsFromStore) * 100 : 0;
 
   return {
     phase,
-    questions,
-    questionIndex,
-    selectedIndex,
+    pageIndex,
+    totalPages,
+    totalItems,
+    rawQuestionCount,
+    likertAnswers,
+    selectedPairOptionId,
     transitioning,
     saving,
     error,
-    currentBlock: effectiveBlock,
-    currentBlockKey,
-    totalBlocks,
-    activeBlocks,
-    ageGroup,
-    completedBlocks,
-    currentQuestion,
-    isLastQuestion,
-    showNextButton,
-    questionProgress,
-    overallProgress,
-    isRetakeMode,
+    currentLikertQuestions,
+    currentPair,
+    progress,
     exitConfirmOpen,
+    autofilling,
     handleBack,
-    handleStartBlock,
-    handleOptionSelect,
-    handleNextBlock,
+    handleStartIntro,
+    handleLikertSelect,
+    handleSubmitLikertPage,
+    handlePairAnswer,
+    handleAutofill,
     handleExit,
     confirmExit,
     cancelExit,

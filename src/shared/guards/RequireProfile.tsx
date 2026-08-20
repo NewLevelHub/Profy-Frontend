@@ -48,7 +48,7 @@ export function RequireProfile() {
     );
   }
 
-  if (data === null) return <Navigate to="/welcome" replace />;
+  if (data === null) return <Navigate to="/onboarding/profile" replace />;
 
   return <Outlet />;
 }

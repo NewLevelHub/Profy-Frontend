@@ -3,7 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { resultApi } from '@/shared/api/result';
+import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { Button } from '@/shared/ui/Button';
+import { Spine, type SpineNode } from '@/shared/ui/Spine';
+import { Mascot } from '@/shared/ui/Mascot';
 
 const MESSAGES = [
   'Анализируем твои ответы...',
@@ -21,6 +24,12 @@ export default function ResultLoadingPage() {
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const completeAssessment = useAssessmentStore(s => s.completeAssessment);
   const setReport = useResultStore(s => s.setReport);
+
+  // Diagnostic just finished — always route through the "here's what fits
+  // you" interstitial (step 5 of the onboarding→assessment journey) before
+  // the results report itself; its own goal-aware suggestion logic decides
+  // what to show (careers vs. self-understanding), so every goal lands here.
+  const postResultPath = '/assessment/goal-check';
 
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -41,7 +50,7 @@ export default function ResultLoadingPage() {
 
   useEffect(() => {
     if (!assessmentId) {
-      navigate('/home', { replace: true });
+      navigate('/results', { replace: true });
       return;
     }
 
@@ -63,7 +72,10 @@ export default function ResultLoadingPage() {
         if (!cancelled) {
           setReport(result);
           completeAssessment();
-          navigate('/results', { replace: true });
+          // Full assessment completion should use the shipped finale audio
+          // file, same as other final-completion moments.
+          playBlockFinishAudio(1, 1);
+          navigate(postResultPath, { replace: true });
         }
       } catch {
         if (!cancelled) {
@@ -73,7 +85,8 @@ export default function ResultLoadingPage() {
             if (!cancelled) {
               setReport(existing);
               completeAssessment();
-              navigate('/results', { replace: true });
+              playBlockFinishAudio(1, 1);
+              navigate(postResultPath, { replace: true });
             }
           } catch {
             if (!cancelled) {
@@ -94,7 +107,7 @@ export default function ResultLoadingPage() {
       <div className="w-full max-w-lg mx-auto text-center flex flex-col gap-6">
       {error === null ? (
         <>
-          <span className="text-5xl select-none" aria-hidden="true">✨</span>
+          <Mascot state="waiting" size={140} className="mx-auto" />
           <div
             className="transition-opacity duration-[250ms]"
             style={{ opacity: msgVisible ? 1 : 0 }}
@@ -103,6 +116,15 @@ export default function ResultLoadingPage() {
               {MESSAGES[messageIndex]}
             </p>
           </div>
+          <Spine
+            nodes={MESSAGES.map((_, i): SpineNode => ({
+              id: i,
+              status: i < messageIndex ? 'done' : i === messageIndex ? 'current' : 'upcoming',
+              goal: i === MESSAGES.length - 1,
+            }))}
+            thickness={0.85}
+            ariaLabel={`Шаг ${messageIndex + 1} из ${MESSAGES.length}`}
+          />
           <p className="text-body text-secondary">Это займёт несколько секунд...</p>
         </>
       ) : (

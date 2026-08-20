@@ -14,15 +14,32 @@ export function useProfile() {
   const profile = useProfileStore((s) => s.profile);
   const resetAssessment = useAssessmentStore((s) => s.resetAssessment);
   const clearReport = useResultStore((s) => s.clearReport);
+  // Passive read only — the profile page never triggers a report
+  // generate/fetch as a side effect of just being viewed (that belongs to
+  // /results). If nothing's been completed yet, the junior strengths section
+  // shows a real empty state instead.
+  const report = useResultStore((s) => s.report);
 
   const displayName = profile?.name?.trim() || user?.name?.trim() || 'Пользователь';
   const initial = displayName[0]?.toUpperCase() ?? '?';
 
+  // Only two real layout variants exist per spec — 'junior' (under-12,
+  // "Мои штуки") vs. everyone else (full account). There's no third variant
+  // described for 'middle' (11-14), so it renders the full/senior layout —
+  // a judgment call, not a documented product decision.
+  const isJunior = profile?.age_group === 'junior';
+
   const hasSubjects =
-    (profile?.subjects_like?.length ?? 0) > 0 ||
-    (profile?.subjects_dislike?.length ?? 0) > 0 ||
+    (profile?.subjects_liked?.length ?? 0) > 0 ||
+    (profile?.subjects_disliked?.length ?? 0) > 0 ||
     (profile?.subjects_easy?.length ?? 0) > 0 ||
     (profile?.subjects_hard?.length ?? 0) > 0;
+
+  // Onboarding's "Твои увлечения и цели" step — surfaced here too so it can
+  // be changed or filled in later (not just once, during onboarding).
+  // Sourced straight off the profile the store already fetched (GET /profile
+  // returns artifacts embedded) rather than a separate request.
+  const artifacts = profile?.artifacts ?? [];
 
   function handleLogout() {
     logout();
@@ -45,11 +62,13 @@ export function useProfile() {
   }
 
   return {
-    user,
     profile,
     displayName,
     initial,
+    isJunior,
     hasSubjects,
+    artifacts,
+    strengthCards: report?.strength_cards ?? [],
     confirmRestart,
     handleLogout,
     handleRestartRequest,

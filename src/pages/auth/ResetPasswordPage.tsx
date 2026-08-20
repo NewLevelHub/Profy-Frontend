@@ -2,8 +2,17 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff, XCircle } from 'lucide-react';
-import { cn } from '@/shared/lib/cn';
 import { authApi } from '@/shared/api/auth';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
+import { OtpInput } from '@/shared/ui/OtpInput';
+import { PasswordStrengthMeter } from '@/shared/ui/PasswordStrengthMeter';
+
+const RESEND_SECONDS = 60;
+// OtpInput pads not-yet-filled cells with a space to preserve gap position —
+// a complete code has no spaces, so length alone can't tell "done" from
+// "mid-edit with a gap".
+const CODE_COMPLETE = /^\d{6}$/;
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -25,7 +34,7 @@ export default function ResetPasswordPage() {
 
   function validate(): boolean {
     let valid = true;
-    if (code.length !== 6) {
+    if (!CODE_COMPLETE.test(code)) {
       setCodeError('Введите 6-значный код');
       valid = false;
     } else {
@@ -90,7 +99,7 @@ export default function ResetPasswordPage() {
         setResendMessage('Не удалось отправить код. Попробуйте позже');
       }
     } finally {
-      setTimeout(() => setResendDisabled(false), 60_000);
+      setTimeout(() => setResendDisabled(false), RESEND_SECONDS * 1000);
     }
   }
 
@@ -98,17 +107,17 @@ export default function ResetPasswordPage() {
     return (
       <div className="flex flex-col items-center text-center gap-4 py-6">
         <XCircle size={40} className="text-danger" />
-        <h1 className="text-h1 font-black text-primary">Что-то пошло не так</h1>
+        <h1 className="auth-headline-sm">Что-то пошло не так</h1>
         <p className="text-body text-secondary">
           Запросите код для сброса пароля заново.
         </p>
         <Link
           to="/forgot-password"
-          className="mt-1 inline-block w-full text-center h-12 leading-[3rem] bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button"
+          className="mt-1 inline-flex items-center justify-center w-full min-h-12 px-6 bg-brand text-on-brand font-medium text-label rounded-[var(--radius)] hover:bg-brand-hover transition-colors press-scale"
         >
           Запросить код заново
         </Link>
-        <Link to="/login" className="text-caption text-muted hover:text-secondary transition-colors">
+        <Link to="/login" className="text-caption text-muted hover:opacity-70 transition-opacity">
           ← Вернуться ко входу
         </Link>
       </div>
@@ -117,109 +126,88 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <h1 className="text-h1 font-black text-primary mb-2">Новый пароль</h1>
-      <p className="text-caption text-secondary mb-6">
-        Мы отправили 6-значный код на{' '}
-        <span className="text-brand font-semibold">{email}</span>.
-        {' '}Введите его и придумайте новый пароль.
+      <h1 className="auth-headline-sm mt-[20px]">Новый пароль</h1>
+      <p className="auth-sub">
+        Введите код, отправленный на <span className="font-semibold text-primary">{email}</span>,
+        {' '}и придумайте новый пароль.
       </p>
 
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-        <div>
-          <input
-            className={cn(
-              'w-full h-12 px-4 rounded-[10px] bg-page border text-primary text-body font-semibold tracking-[0.25em] text-center placeholder:text-placeholder placeholder:tracking-normal focus:outline-none focus:border-brand ring-brand transition-colors',
-              codeError ? 'border-danger' : 'border-default',
-            )}
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="000000"
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="mt-[32px]">
+          <OtpInput
+            length={6}
             value={code}
-            onChange={e => {
-              const v = e.target.value.replace(/\D/g, '').slice(0, 6);
-              setCode(v);
-              setCodeError('');
-            }}
-            autoComplete="one-time-code"
+            onChange={(v) => { setCode(v); setCodeError(''); }}
+            error={!!codeError}
+            disabled={isLoading}
             autoFocus
+            aria-label="Код из письма"
           />
-          {codeError && <p className="text-small text-danger mt-1 px-1">{codeError}</p>}
-        </div>
-
-        <div>
-          <div className="relative">
-            <input
-              className={cn(
-                'w-full h-12 px-4 pr-12 rounded-[10px] bg-page border text-primary text-body font-semibold placeholder:text-placeholder focus:outline-none focus:border-brand ring-brand transition-colors',
-                passwordError ? 'border-danger' : 'border-default',
-              )}
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Новый пароль"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setPasswordError(''); setConfirmError(''); }}
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          {passwordError && <p className="text-small text-danger mt-1 px-1">{passwordError}</p>}
-        </div>
-
-        <div>
-          <div className="relative">
-            <input
-              className={cn(
-                'w-full h-12 px-4 pr-12 rounded-[10px] bg-page border text-primary text-body font-semibold placeholder:text-placeholder focus:outline-none focus:border-brand ring-brand transition-colors',
-                confirmError ? 'border-danger' : 'border-default',
-              )}
-              type={showConfirm ? 'text' : 'password'}
-              placeholder="Повторите пароль"
-              value={confirm}
-              onChange={e => { setConfirm(e.target.value); setConfirmError(''); }}
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowConfirm(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors"
-            >
-              {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          {confirmError && <p className="text-small text-danger mt-1 px-1">{confirmError}</p>}
-        </div>
-
-        {formError && <p className="text-caption text-danger text-center">{formError}</p>}
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={cn(
-            'w-full h-12 bg-brand text-on-brand font-extrabold text-label rounded-pill shadow-button transition-opacity mt-1',
-            isLoading && 'opacity-60 cursor-not-allowed',
+          {codeError && (
+            <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
+              {codeError}
+            </p>
           )}
-        >
+        </div>
+
+        <div className="mt-[24px] relative">
+          <Input
+            label="Новый пароль"
+            className="pr-10"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={password}
+            onChange={e => { setPassword(e.target.value); setPasswordError(''); setConfirmError(''); }}
+            error={passwordError}
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowPassword(v => !v)}
+            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          {!passwordError && <PasswordStrengthMeter password={password} />}
+        </div>
+
+        <div className="mt-[24px] relative">
+          <Input
+            label="Повторите пароль"
+            className="pr-10"
+            type={showConfirm ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={confirm}
+            onChange={e => { setConfirm(e.target.value); setConfirmError(''); }}
+            error={confirmError}
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowConfirm(v => !v)}
+            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
+          >
+            {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+
+        {formError && (
+          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
+        )}
+
+        <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[28px]">
           {isLoading ? 'Сохраняем...' : 'Сохранить пароль'}
-        </button>
+        </Button>
       </form>
 
-      <div className="flex flex-col items-center gap-1 mt-5">
+      <div className="flex flex-col items-center gap-1 mt-[24px]">
         <button
           type="button"
           onClick={handleResend}
           disabled={resendDisabled}
-          className={cn(
-            'text-caption text-brand font-semibold hover:text-brand-hover transition-colors',
-            resendDisabled && 'opacity-40 cursor-not-allowed',
-          )}
+          className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Отправить код повторно
         </button>
@@ -228,7 +216,7 @@ export default function ResetPasswordPage() {
         )}
         <Link
           to="/login"
-          className="text-caption text-muted hover:text-secondary transition-colors mt-2"
+          className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
         >
           ← Вернуться ко входу
         </Link>
