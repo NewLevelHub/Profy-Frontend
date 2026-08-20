@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Globe, GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
+import { GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
