@@ -14,6 +14,7 @@ export default function UniversityListPage() {
     error,
     activeCountry,
     setActiveCountry,
+    countryFilters,
     sortDirection,
     toggleSortDirection,
     isAllowed,
@@ -53,8 +54,9 @@ export default function UniversityListPage() {
         error={error}
         activeCountry={activeCountry}
         onCountryChange={setActiveCountry}
+        countryFilters={countryFilters}
         refetch={refetch}
-        onSelectProgram={handleProgramClick}
+        onViewDetail={handleProgramClick}
         sortDirection={sortDirection}
         onToggleSort={toggleSortDirection}
       />

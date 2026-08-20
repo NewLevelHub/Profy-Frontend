@@ -4,7 +4,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import type { ProgramBrief } from '@/shared/types';
-import { COUNTRY_FILTERS } from '@/pages/results/hooks/useUniversityList';
+import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 import { UniversityRankBadges } from './UniversityRankBadges';
 
 function ProgramCardSkeleton() {
@@ -29,20 +29,15 @@ function ProgramCardSkeleton() {
 interface ProgramCardProps {
   program: ProgramBrief;
   index?: number;
-  onSelect: (id: string) => void;
-  /** Visually marks this card as the chosen one — only meaningful when the
-   *  caller has a "pick one" concept (inline usage on the direction page);
-   *  standalone list-browsing (UniversityListPage) never passes this. */
-  selected?: boolean;
-  /** When provided, the card's own click becomes "select" (not navigate),
-   *  and this renders a separate button for the navigate-to-detail action.
-   *  Omit it to keep the original single-click-to-detail behavior. */
-  onViewDetail?: (id: string) => void;
+  onViewDetail: (id: string) => void;
 }
 
-const ProgramCard = memo(function ProgramCard({ program, index, onSelect, selected, onViewDetail }: ProgramCardProps) {
+// Single action now — no separate "select" state. "Подробнее" is a plain
+// visible button; the hover feedback lives on that button itself (Button's
+// own ghost hover state), not a whole-card overlay.
+const ProgramCard = memo(function ProgramCard({ program, index, onViewDetail }: ProgramCardProps) {
   return (
-    <Card selected={selected} className="!p-6 flex flex-col h-full transition-colors">
+    <Card className="!p-6 flex flex-col h-full transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-display-sm font-black leading-snug text-primary m-0">
           {index && `${index}. `}{program.name}
@@ -69,38 +64,13 @@ const ProgramCard = memo(function ProgramCard({ program, index, onSelect, select
         );
       })()}
 
-      <div className="flex gap-4 flex-wrap mb-4 text-body-sm font-bold text-secondary">
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><Globe className="w-4 h-4 shrink-0" /> {program.language}</span>
-      </div>
-
-      {onViewDetail ? (
-        <div className="flex gap-2 mt-auto">
-          <button
-            onClick={() => onSelect(program.id)}
-            className={
-              selected
-                ? 'flex-1 h-[52px] border-[1.5px] border-brand rounded-[var(--radius)] bg-brand text-on-brand text-base font-extrabold cursor-pointer transition-colors'
-                : 'flex-1 h-[52px] border-[1.5px] border-strong rounded-[var(--radius)] bg-surface text-brand text-base font-extrabold cursor-pointer transition-colors'
-            }
-          >
-            {selected ? 'Выбрано' : 'Выбрать'}
-          </button>
-          <Button
-            variant="ghost"
-            className="h-[52px] px-4 border border-default rounded-[var(--radius)]"
-            onClick={() => onViewDetail(program.id)}
-          >
-            Подробнее
-          </Button>
-        </div>
-      ) : (
-        <button
-          onClick={() => onSelect(program.id)}
-          className="w-full h-[52px] border-[1.5px] border-strong rounded-[var(--radius)] bg-surface text-brand text-base font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors mt-auto"
-        >
-          Посмотреть требования
-        </button>
-      )}
+      <Button
+        variant="ghost"
+        className="w-full h-[52px] rounded-[var(--radius)] mt-auto cursor-pointer"
+        onClick={() => onViewDetail(program.id)}
+      >
+        Подробнее
+      </Button>
     </Card>
   );
 });
@@ -111,20 +81,19 @@ interface ProgramListSectionProps {
   error: string | null;
   activeCountry: string | undefined;
   onCountryChange: (country: string | undefined) => void;
+  countryFilters: CountryFilter[];
   refetch: () => void;
-  onSelectProgram: (id: string) => void;
-  selectedProgramId?: string;
-  onViewDetail?: (id: string) => void;
+  onViewDetail: (id: string) => void;
   sortDirection?: 'asc' | 'desc';
   onToggleSort?: () => void;
 }
 
 /**
  * Shared program list — country filter row + loading/error/empty states +
- * grid of ProgramCard. Used both by the standalone `/universities` page
- * (click a card → navigate to detail) and inline on `DirectionDetailPage`
- * (click a card → select it locally, "Подробнее" navigates separately) —
- * one implementation, not duplicated markup.
+ * grid of ProgramCard. Used both by the standalone `/universities` page and
+ * inline on `DirectionDetailPage` — one implementation, not duplicated
+ * markup. Every card is a single click-through to detail; "Подробнее" only
+ * appears as a hover overlay (see ProgramCard).
  */
 export function ProgramListSection({
   programs,
@@ -132,9 +101,8 @@ export function ProgramListSection({
   error,
   activeCountry,
   onCountryChange,
+  countryFilters,
   refetch,
-  onSelectProgram,
-  selectedProgramId,
   onViewDetail,
   sortDirection,
   onToggleSort,
@@ -142,7 +110,7 @@ export function ProgramListSection({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-2.5 flex-wrap" role="group" aria-label="Фильтр по стране">
-        {COUNTRY_FILTERS.map(filter => (
+        {countryFilters.map(filter => (
           <button
             key={filter.label}
             onClick={() => onCountryChange(filter.value)}
@@ -198,8 +166,6 @@ export function ProgramListSection({
                 key={program.id}
                 program={program}
                 index={index + 1}
-                onSelect={onSelectProgram}
-                selected={program.id === selectedProgramId}
                 onViewDetail={onViewDetail}
               />
             ))}

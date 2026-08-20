@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Map } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
@@ -36,7 +35,6 @@ export default function DirectionDetailPage() {
 
   const { report, isLoading, error, refetch } = useResults();
   const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
-  const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>(undefined);
 
   const {
     programs,
@@ -44,6 +42,7 @@ export default function DirectionDetailPage() {
     error: programsError,
     activeCountry,
     setActiveCountry,
+    countryFilters,
     isAllowed: showUniversities,
     refetch: refetchPrograms,
   } = useUniversityList();
@@ -180,9 +179,8 @@ export default function DirectionDetailPage() {
             error={programsError}
             activeCountry={activeCountry}
             onCountryChange={setActiveCountry}
+            countryFilters={countryFilters}
             refetch={refetchPrograms}
-            onSelectProgram={setSelectedProgramId}
-            selectedProgramId={selectedProgramId}
             onViewDetail={(id) => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${id}`)}
           />
         </div>

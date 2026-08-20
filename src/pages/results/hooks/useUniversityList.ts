@@ -7,18 +7,10 @@ import { useProfileStore } from '@/shared/store/profile';
 import { canSeeUniversities } from '@/shared/lib/assessmentGoal';
 import type { ProgramBrief } from '@/shared/types';
 
-export const COUNTRY_FILTERS: { label: string; value: string | undefined }[] = [
-  { label: 'Все', value: undefined },
-  { label: 'Казахстан', value: 'Казахстан' },
-  { label: 'США', value: 'США' },
-  { label: 'Великобритания', value: 'Великобритания' },
-  { label: 'Европа', value: '__europe__' },
-  { label: 'Канада', value: 'Канада' },
-  { label: 'Азия', value: '__asia__' },
-];
-
-const EUROPE_COUNTRIES = new Set(['Нидерланды', 'Германия', 'Швейцария', 'Франция', 'Италия', 'Испания', 'Польша', 'Чехия', 'Австрия', 'Бельгия', 'Португалия', 'Швеция', 'Норвегия', 'Дания', 'Финляндия']);
-const ASIA_COUNTRIES = new Set(['Сингапур', 'Южная Корея', 'Япония', 'Китай', 'Индия', 'Малайзия', 'Гонконг']);
+export interface CountryFilter {
+  label: string;
+  value: string | undefined;
+}
 
 // `ranking` (general, cross-country) and `uniranks_kz_rank` (KZ-only pool)
 // are different rating systems with different pools of universities — they
@@ -88,15 +80,20 @@ export function useUniversityList() {
     setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
+  // Only countries actually present in this direction's programs — a static
+  // predefined list would show filters with nothing behind them (or miss
+  // countries the static list never anticipated).
+  const countryFilters = useMemo((): CountryFilter[] => {
+    const countries = Array.from(new Set(allPrograms.map(p => p.university.country))).sort((a, b) =>
+      a.localeCompare(b, 'ru'),
+    );
+    return [{ label: 'Все', value: undefined }, ...countries.map(country => ({ label: country, value: country }))];
+  }, [allPrograms]);
+
   const programs = useMemo(() => {
-    let filtered = allPrograms;
-    if (activeCountry === '__europe__') {
-      filtered = allPrograms.filter(p => EUROPE_COUNTRIES.has(p.university.country));
-    } else if (activeCountry === '__asia__') {
-      filtered = allPrograms.filter(p => ASIA_COUNTRIES.has(p.university.country));
-    } else if (activeCountry) {
-      filtered = allPrograms.filter(p => p.university.country === activeCountry);
-    }
+    const filtered = activeCountry
+      ? allPrograms.filter(p => p.university.country === activeCountry)
+      : allPrograms;
 
     // Country filter decides which ranking scale is meaningful to sort by:
     // "Все" (no filter) → the general cross-country `ranking`; "Казахстан"
@@ -117,6 +114,7 @@ export function useUniversityList() {
     error: error ? 'Не удалось загрузить программы. Попробуй ещё раз.' : null,
     activeCountry,
     setActiveCountry: handleCountryChange,
+    countryFilters,
     sortDirection,
     toggleSortDirection,
     isAllowed,
