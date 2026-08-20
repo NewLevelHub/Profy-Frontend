@@ -514,6 +514,16 @@ export interface DirectionRoadmapResponse {
 
 // ─── University / Gap-analysis ─────────────────────────────────────────────────
 
+export interface AdmissionScoreItem {
+  ovpo: string;
+  specialty_code: string;
+  specialty_name: string;
+  quota: string;
+  min_score: number;
+  max_score: number;
+  year: string;
+}
+
 export interface UniversityBrief {
   id: string;
   name: string;
@@ -521,6 +531,49 @@ export interface UniversityBrief {
   city: string;
   website: string | null;
   ranking: number | null;
+  short_name: string | null;
+  location: string | null;
+  ranking_label: string | null;
+  uniranks_kz_rank: number | null;
+  uniranks_world_rank: number | null;
+  description: string | null;
+}
+
+export interface ProgramGrant {
+  name: string;
+  amount: string | null;
+  conditions: string | null;
+}
+
+export interface UniversityRequirement {
+  program_name: string;
+  university_name: string;
+  city: string;
+  country: string;
+  website: string | null;
+  program_language: string;
+  exams: string[];
+  exam_hint_from_notes: string | null;
+  application_deadline: string | null;
+  grants: ProgramGrant[];
+  language_level: string | null;
+  portfolio_needed: boolean | null;
+  required_documents: string[] | null;
+  min_ent_threshold: number | null;
+  min_ent_paid: number | null;
+  min_gpa: number | null;
+  min_sat: number | null;
+  extracurriculars: string[];
+  admission_scores_2026: string[];
+  grant_scores: Record<string, string>;
+  grants_allocated_count: number | null;
+  duration_years: number | null;
+  has_dual_degree: boolean | null;
+  has_dormitory: boolean | null;
+  dormitory_cost_label: string | null;
+  has_military_department: boolean | null;
+  admissions_contacts: Record<string, string>;
+  notes: string[];
 }
 
 export interface ProgramBrief {
@@ -529,6 +582,7 @@ export interface ProgramBrief {
   direction_slug: string;
   language: string;
   cost_per_year: number | null;
+  cost_label: string | null;
   description: string | null;
   university: UniversityBrief;
 }
@@ -539,6 +593,7 @@ export interface ProgramDetail extends ProgramBrief {
   requirements: Record<string, unknown>;
   deadlines: Record<string, unknown>;
   grants: unknown[];
+  requirements_summary: UniversityRequirement;
   created_at: string;
 }
 
