@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { artifactsApi } from '@/shared/api/artifacts';
 import { profileApi } from '@/shared/api/profile';
+import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
 import type { ArtifactItem, ArtifactType } from '@/shared/types';
@@ -27,6 +28,8 @@ function valuesOf(items: ArtifactItem[], type: ArtifactType): string[] {
 
 export function useArtifactsSetup() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const userId = useAuthStore(s => s.user?.id);
   const profile = useProfileStore(s => s.profile);
   const setProfile = useProfileStore(s => s.setProfile);
   const profileDraft = useOnboardingDraftStore(s => s.profileDraft);
@@ -92,6 +95,12 @@ export function useArtifactsSetup() {
     },
     onSuccess: (profile) => {
       setProfile(profile);
+      // RequireProfile's ['profile', userId] query may still hold a cached
+      // 404 (null) from before this profile existed — e.g. the guard ran
+      // once right after registration. Without this, that stale null can
+      // outlive the mutation and later clobber the store, bouncing the user
+      // back to onboarding (see RequireProfile.tsx).
+      if (userId) queryClient.setQueryData(['profile', userId], profile);
       clearProfileDraft();
       navigate(hasExistingProfile ? '/profile' : '/assessment/goal', { replace: true });
     },

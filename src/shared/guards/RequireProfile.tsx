@@ -35,8 +35,13 @@ export function RequireProfile() {
   useEffect(() => {
     if (!userId) return;
     if (data) setProfile(data);
-    if (data === null) clearProfile();
-  }, [data, userId, setProfile, clearProfile]);
+    // A cached `null` can be stale — e.g. fetched right after registration,
+    // before onboarding created the profile. Onboarding writes straight to
+    // this store without updating the query cache, so if the store already
+    // has a profile for this user, trust it over a stale 404 result instead
+    // of clobbering it and bouncing the user back to onboarding.
+    if (data === null && !profileMatchesUser) clearProfile();
+  }, [data, userId, profileMatchesUser, setProfile, clearProfile]);
 
   if (profileMatchesUser || data) return <Outlet />;
 
