@@ -2,8 +2,7 @@ import { memo } from 'react';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
 import type { ProgramBrief } from '@/shared/types';
-import { formatCost } from '@/pages/results/utils/programUtils';
-import { COUNTRY_FILTERS } from '@/pages/results/hooks/useUniversityList';
+import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 
 function ProgramCardSkeleton() {
   return (
@@ -26,27 +25,17 @@ function ProgramCardSkeleton() {
 
 interface ProgramCardProps {
   program: ProgramBrief;
-  onSelect: (id: string) => void;
-  /** Visually marks this card as the chosen one — only meaningful when the
-   *  caller has a "pick one" concept (inline usage on the direction page);
-   *  standalone list-browsing (UniversityListPage) never passes this. */
-  selected?: boolean;
-  /** When provided, the card's own click becomes "select" (not navigate),
-   *  and this renders a separate button for the navigate-to-detail action.
+  /** Only needed for the single-button (no onViewDetail) flow — standalone
+   *  list-browsing (UniversityListPage) uses it to navigate on click. */
+  onSelect?: (id: string) => void;
+  /** When provided, renders a "Подробнее" button that navigates to detail.
    *  Omit it to keep the original single-click-to-detail behavior. */
   onViewDetail?: (id: string) => void;
 }
 
-const ProgramCard = memo(function ProgramCard({ program, onSelect, selected, onViewDetail }: ProgramCardProps) {
+const ProgramCard = memo(function ProgramCard({ program, onSelect, onViewDetail }: ProgramCardProps) {
   return (
-    <div
-      className="bg-surface border rounded-[var(--radius)] p-6 shadow-card flex flex-col h-full transition-colors"
-      style={{
-        borderColor: selected ? 'var(--brand)' : 'var(--border)',
-        borderWidth: selected ? 2 : 1,
-        background: selected ? 'color-mix(in srgb, var(--brand) 5%, var(--bg-surface))' : undefined,
-      }}
-    >
+    <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card flex flex-col h-full transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-display-sm font-black leading-snug text-primary m-0">{program.name}</h3>
         <span className="shrink-0 bg-brand-subtle text-brand text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
@@ -62,35 +51,17 @@ const ProgramCard = memo(function ProgramCard({ program, onSelect, selected, onV
         </p>
       )}
 
-      <div className="flex gap-4 flex-wrap mb-4 text-body-sm font-bold text-secondary">
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">💰 {formatCost(program.cost_per_year)}</span>
-      </div>
-
       {onViewDetail ? (
-        <div className="flex gap-2 mt-auto">
-          <button
-            onClick={() => onSelect(program.id)}
-            className="flex-1 h-[52px] border-[1.5px] rounded-[var(--radius)] text-base font-extrabold cursor-pointer transition-colors"
-            style={{
-              borderColor: selected ? 'var(--brand)' : 'var(--border-strong)',
-              background: selected ? 'var(--brand)' : 'var(--bg-surface)',
-              color: selected ? 'var(--text-on-brand)' : 'var(--brand)',
-            }}
-          >
-            {selected ? 'Выбрано' : 'Выбрать'}
-          </button>
-          <Button
-            variant="ghost"
-            className="h-[52px] px-4 border border-default rounded-[var(--radius)]"
-            onClick={() => onViewDetail(program.id)}
-          >
-            Подробнее
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          className="w-full h-[52px] border border-default rounded-[var(--radius)] mt-auto"
+          onClick={() => onViewDetail(program.id)}
+        >
+          Подробнее
+        </Button>
       ) : (
         <button
-          onClick={() => onSelect(program.id)}
+          onClick={() => onSelect?.(program.id)}
           className="w-full h-[52px] border-[1.5px] border-strong rounded-[var(--radius)] bg-surface text-brand text-base font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors mt-auto"
         >
           Посмотреть требования
@@ -106,9 +77,9 @@ interface ProgramListSectionProps {
   error: string | null;
   activeCountry: string | undefined;
   onCountryChange: (country: string | undefined) => void;
+  countryFilters: CountryFilter[];
   refetch: () => void;
-  onSelectProgram: (id: string) => void;
-  selectedProgramId?: string;
+  onSelectProgram?: (id: string) => void;
   onViewDetail?: (id: string) => void;
 }
 
@@ -116,8 +87,8 @@ interface ProgramListSectionProps {
  * Shared program list — country filter row + loading/error/empty states +
  * grid of ProgramCard. Used both by the standalone `/universities` page
  * (click a card → navigate to detail) and inline on `DirectionDetailPage`
- * (click a card → select it locally, "Подробнее" navigates separately) —
- * one implementation, not duplicated markup.
+ * (click a card → navigate to detail via "Подробнее") — one implementation,
+ * not duplicated markup.
  */
 export function ProgramListSection({
   programs,
@@ -125,15 +96,15 @@ export function ProgramListSection({
   error,
   activeCountry,
   onCountryChange,
+  countryFilters,
   refetch,
   onSelectProgram,
-  selectedProgramId,
   onViewDetail,
 }: ProgramListSectionProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-2.5 flex-wrap" role="group" aria-label="Фильтр по стране">
-        {COUNTRY_FILTERS.map(filter => (
+        {countryFilters.map(filter => (
           <button
             key={filter.label}
             onClick={() => onCountryChange(filter.value)}
@@ -178,7 +149,6 @@ export function ProgramListSection({
                 key={program.id}
                 program={program}
                 onSelect={onSelectProgram}
-                selected={program.id === selectedProgramId}
                 onViewDetail={onViewDetail}
               />
             ))}

@@ -1,22 +1,40 @@
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Map } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { useResultStore } from '@/shared/store/result';
+import { Skeleton } from '@/shared/ui/Skeleton';
+import { Mascot } from '@/shared/ui/Mascot';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
+import { useResults } from '@/pages/results/hooks/useResults';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 import { DomainCardFrame, DomainKicker } from '@/pages/results/components/DomainCardParts';
+
+function capitalizeFirst(text: string): string {
+  return text.length > 0 ? text[0].toUpperCase() + text.slice(1) : text;
+}
+
+function DirectionDetailSkeleton() {
+  return (
+    <PageContainer className="flex flex-col gap-6">
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="flex flex-col gap-4">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+      ))}
+    </PageContainer>
+  );
+}
 
 export default function DirectionDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const report = useResultStore(s => s.report);
+  const { report, isLoading, error, refetch } = useResults();
   const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
-  const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>(undefined);
 
   const {
     programs,
@@ -24,6 +42,7 @@ export default function DirectionDetailPage() {
     error: programsError,
     activeCountry,
     setActiveCountry,
+    countryFilters,
     isAllowed: showUniversities,
     refetch: refetchPrograms,
   } = useUniversityList();
@@ -35,6 +54,21 @@ export default function DirectionDetailPage() {
 
   const skills = direction?.skills_needed ?? [];
   const subjects = direction?.subjects_to_develop ?? [];
+
+  if (isLoading) {
+    return <DirectionDetailSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
+        <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
+        <h2 className="text-h1 font-extrabold text-primary">Что-то пошло не так</h2>
+        <p className="text-body text-secondary">{error}</p>
+        <Button onClick={() => refetch()}>Повторить</Button>
+      </div>
+    );
+  }
 
   if (!direction) {
     return (
@@ -57,67 +91,79 @@ export default function DirectionDetailPage() {
         Назад к результатам
       </button>
 
-      <div className="flex flex-col gap-2">
-        <PageHeader title={direction.name} />
-        {direction.description && direction.description.length > 0 && (
-          <p className="text-body text-secondary leading-relaxed">{direction.description}</p>
-        )}
-      </div>
+      <PageHeader title={direction.name} />
 
-      <DomainCardFrame ariaLabel="Почему тебе подходит">
-        <DomainKicker>Почему тебе подходит</DomainKicker>
-        <p className="text-body text-primary leading-relaxed">{direction.why}</p>
+      {direction.description && direction.description.length > 0 && (
+        <section aria-label="Описание">
+          <Card className="bg-brand-subtle flex flex-col gap-3">
+            <p className="text-body text-primary leading-relaxed">{direction.description}</p>
+          </Card>
+        </section>
+      )}
+
+      {(skills.length > 0 || subjects.length > 0) && (
+        <DomainCardFrame ariaLabel="Навыки и предметы для развития">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0 flex flex-col gap-2">
+              <DomainKicker>Навыки и предметы для развития</DomainKicker>
+              <p className="text-body text-primary leading-relaxed">
+                Прокачивай их постепенно — они пригодятся и в учёбе, и в будущей профессии.
+              </p>
+            </div>
+            <Mascot state="transition" size={68} className="flex-shrink-0" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {skills.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">Навыки</p>
+                <div className="flex flex-col gap-2">
+                  {skills.map((skill, i) => (
+                    <div
+                      key={i}
+                      className="px-3 py-2.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-surface text-body-sm font-semibold text-primary"
+                    >
+                      {skill}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {subjects.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">Предметы</p>
+                <div className="flex flex-col gap-2">
+                  {subjects.map((subj, i) => (
+                    <div
+                      key={i}
+                      className="px-3 py-2.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-surface text-body-sm font-semibold text-primary"
+                    >
+                      {subj}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </DomainCardFrame>
+      )}
+
+      {/* Always present — contract guarantees non-empty try_now; matched_strengths above it is optional */}
+      <DomainCardFrame ariaLabel="Почему тебе подходит и попробуй прямо сейчас">
         {direction.matched_strengths.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {direction.matched_strengths.map((strength, i) => (
-              <span
-                key={i}
-                className="px-2.5 py-1 rounded-pill text-caption font-semibold bg-surface text-brand"
-              >
-                {strength}
-              </span>
-            ))}
+          <div className="flex flex-col gap-3">
+            <DomainKicker>Почему тебе подходит</DomainKicker>
+            <p className="text-body text-primary leading-relaxed">
+              {direction.matched_strengths.join(', ')}
+            </p>
           </div>
         )}
-      </DomainCardFrame>
 
-      {skills.length > 0 && (
-        <DomainCardFrame ariaLabel="Навыки для развития">
-          <DomainKicker>Навыки для развития</DomainKicker>
-          <ul className="flex flex-col gap-2.5">
-            {skills.map((skill, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-body text-primary">
-                <span
-                  className="w-1.5 h-1.5 rounded-full bg-brand mt-2 flex-shrink-0"
-                  aria-hidden="true"
-                />
-                {skill}
-              </li>
-            ))}
-          </ul>
-        </DomainCardFrame>
-      )}
-
-      {subjects.length > 0 && (
-        <DomainCardFrame ariaLabel="Предметы для изучения">
-          <DomainKicker>Предметы для изучения</DomainKicker>
-          <div className="flex flex-wrap gap-2">
-            {subjects.map((subj, i) => (
-              <span
-                key={i}
-                className="px-3 py-1.5 rounded-pill text-caption font-semibold text-secondary bg-surface border border-default"
-              >
-                {subj}
-              </span>
-            ))}
-          </div>
-        </DomainCardFrame>
-      )}
-
-      {/* Always present — contract guarantees non-empty try_now */}
-      <DomainCardFrame ariaLabel="Попробуй прямо сейчас">
-        <DomainKicker>Попробуй прямо сейчас</DomainKicker>
-        <p className="text-body text-primary leading-relaxed">{direction.try_now}</p>
+        <div className="flex flex-col gap-3">
+          <DomainKicker>Попробуй прямо сейчас</DomainKicker>
+          <p className="text-body text-primary leading-relaxed">{capitalizeFirst(direction.try_now)}</p>
+        </div>
       </DomainCardFrame>
 
       {/* Universities/programs — inline, not behind a separate click-through
@@ -133,9 +179,8 @@ export default function DirectionDetailPage() {
             error={programsError}
             activeCountry={activeCountry}
             onCountryChange={setActiveCountry}
+            countryFilters={countryFilters}
             refetch={refetchPrograms}
-            onSelectProgram={setSelectedProgramId}
-            selectedProgramId={selectedProgramId}
             onViewDetail={(id) => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${id}`)}
           />
         </div>

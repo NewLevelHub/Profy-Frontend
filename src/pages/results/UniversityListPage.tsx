@@ -14,6 +14,7 @@ export default function UniversityListPage() {
     error,
     activeCountry,
     setActiveCountry,
+    countryFilters,
     isAllowed,
     handleProgramClick,
     refetch,
@@ -51,6 +52,7 @@ export default function UniversityListPage() {
         error={error}
         activeCountry={activeCountry}
         onCountryChange={setActiveCountry}
+        countryFilters={countryFilters}
         refetch={refetch}
         onSelectProgram={handleProgramClick}
       />
