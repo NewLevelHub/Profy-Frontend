@@ -1,8 +1,11 @@
 import { memo } from 'react';
+import { Globe, GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
 import type { ProgramBrief } from '@/shared/types';
-import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
+import { COUNTRY_FILTERS } from '@/pages/results/hooks/useUniversityList';
+import { UniversityRankBadges } from './UniversityRankBadges';
 
 function ProgramCardSkeleton() {
   return (
@@ -25,49 +28,80 @@ function ProgramCardSkeleton() {
 
 interface ProgramCardProps {
   program: ProgramBrief;
-  /** Only needed for the single-button (no onViewDetail) flow — standalone
-   *  list-browsing (UniversityListPage) uses it to navigate on click. */
-  onSelect?: (id: string) => void;
-  /** When provided, renders a "Подробнее" button that navigates to detail.
+  index?: number;
+  onSelect: (id: string) => void;
+  /** Visually marks this card as the chosen one — only meaningful when the
+   *  caller has a "pick one" concept (inline usage on the direction page);
+   *  standalone list-browsing (UniversityListPage) never passes this. */
+  selected?: boolean;
+  /** When provided, the card's own click becomes "select" (not navigate),
+   *  and this renders a separate button for the navigate-to-detail action.
    *  Omit it to keep the original single-click-to-detail behavior. */
   onViewDetail?: (id: string) => void;
 }
 
-const ProgramCard = memo(function ProgramCard({ program, onSelect, onViewDetail }: ProgramCardProps) {
+const ProgramCard = memo(function ProgramCard({ program, index, onSelect, selected, onViewDetail }: ProgramCardProps) {
   return (
-    <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card flex flex-col h-full transition-colors">
+    <Card selected={selected} className="!p-6 flex flex-col h-full transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">
-        <h3 className="text-display-sm font-black leading-snug text-primary m-0">{program.name}</h3>
+        <h3 className="text-display-sm font-black leading-snug text-primary m-0">
+          {index && `${index}. `}{program.name}
+        </h3>
         <span className="shrink-0 bg-brand-subtle text-brand text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
           {program.university.country}
         </span>
       </div>
 
-      <div className="text-base font-semibold text-muted mb-3">{program.university.name}</div>
+      <div className="text-base font-semibold text-muted mb-3 flex flex-col gap-2">
+        <span>{program.university.name}</span>
+        <UniversityRankBadges university={program.university} size="sm" />
+      </div>
 
-      {program.description && program.description.length > 0 && (
-        <p className="text-body-sm font-semibold text-secondary leading-relaxed mb-4 flex-1">
-          {program.description.length > 120 ? program.description.slice(0, 120) + '...' : program.description}
-        </p>
-      )}
+      {(() => {
+        const desc = (program.description && program.description.length > 40)
+          ? program.description
+          : (program.university.description || program.description);
+        if (!desc) return null;
+        return (
+          <p className="text-body-sm font-semibold text-secondary leading-relaxed mb-4 flex-1">
+            {desc.length > 120 ? desc.slice(0, 120) + '...' : desc}
+          </p>
+        );
+      })()}
+
+      <div className="flex gap-4 flex-wrap mb-4 text-body-sm font-bold text-secondary">
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><Globe className="w-4 h-4 shrink-0" /> {program.language}</span>
+      </div>
 
       {onViewDetail ? (
-        <Button
-          variant="ghost"
-          className="w-full h-[52px] border border-default rounded-[var(--radius)] mt-auto"
-          onClick={() => onViewDetail(program.id)}
-        >
-          Подробнее
-        </Button>
+        <div className="flex gap-2 mt-auto">
+          <button
+            onClick={() => onSelect(program.id)}
+            className={
+              selected
+                ? 'flex-1 h-[52px] border-[1.5px] border-brand rounded-[var(--radius)] bg-brand text-on-brand text-base font-extrabold cursor-pointer transition-colors'
+                : 'flex-1 h-[52px] border-[1.5px] border-strong rounded-[var(--radius)] bg-surface text-brand text-base font-extrabold cursor-pointer transition-colors'
+            }
+          >
+            {selected ? 'Выбрано' : 'Выбрать'}
+          </button>
+          <Button
+            variant="ghost"
+            className="h-[52px] px-4 border border-default rounded-[var(--radius)]"
+            onClick={() => onViewDetail(program.id)}
+          >
+            Подробнее
+          </Button>
+        </div>
       ) : (
         <button
-          onClick={() => onSelect?.(program.id)}
+          onClick={() => onSelect(program.id)}
           className="w-full h-[52px] border-[1.5px] border-strong rounded-[var(--radius)] bg-surface text-brand text-base font-extrabold cursor-pointer hover:bg-brand-subtle transition-colors mt-auto"
         >
           Посмотреть требования
         </button>
       )}
-    </div>
+    </Card>
   );
 });
 
@@ -77,18 +111,20 @@ interface ProgramListSectionProps {
   error: string | null;
   activeCountry: string | undefined;
   onCountryChange: (country: string | undefined) => void;
-  countryFilters: CountryFilter[];
   refetch: () => void;
-  onSelectProgram?: (id: string) => void;
+  onSelectProgram: (id: string) => void;
+  selectedProgramId?: string;
   onViewDetail?: (id: string) => void;
+  sortDirection?: 'asc' | 'desc';
+  onToggleSort?: () => void;
 }
 
 /**
  * Shared program list — country filter row + loading/error/empty states +
  * grid of ProgramCard. Used both by the standalone `/universities` page
  * (click a card → navigate to detail) and inline on `DirectionDetailPage`
- * (click a card → navigate to detail via "Подробнее") — one implementation,
- * not duplicated markup.
+ * (click a card → select it locally, "Подробнее" navigates separately) —
+ * one implementation, not duplicated markup.
  */
 export function ProgramListSection({
   programs,
@@ -96,15 +132,17 @@ export function ProgramListSection({
   error,
   activeCountry,
   onCountryChange,
-  countryFilters,
   refetch,
   onSelectProgram,
+  selectedProgramId,
   onViewDetail,
+  sortDirection,
+  onToggleSort,
 }: ProgramListSectionProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-2.5 flex-wrap" role="group" aria-label="Фильтр по стране">
-        {countryFilters.map(filter => (
+        {COUNTRY_FILTERS.map(filter => (
           <button
             key={filter.label}
             onClick={() => onCountryChange(filter.value)}
@@ -134,21 +172,34 @@ export function ProgramListSection({
         </div>
       ) : programs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <span className="text-5xl select-none" aria-hidden="true">🎓</span>
+          <GraduationCap className="w-12 h-12 text-muted" aria-hidden="true" />
           <p className="text-label font-bold text-primary">Программы не найдены</p>
           <p className="text-body text-secondary">Попробуй выбрать другую страну</p>
         </div>
       ) : (
         <>
-          <div className="text-sm font-bold text-muted">
-            {programs.length} программ
+          <div className="flex justify-between items-center text-sm font-bold text-muted">
+            <span>{programs.length} программ</span>
+            {onToggleSort && sortDirection && (
+              <button
+                onClick={onToggleSort}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill bg-default/40 hover:bg-default/70 text-secondary text-xs font-extrabold border-none cursor-pointer transition-colors"
+              >
+                Сортировка: {sortDirection === 'asc' ? 'по убыванию рейтинга' : 'по возрастанию рейтинга'}
+                {sortDirection === 'asc'
+                  ? <ArrowDownWideNarrow className="w-3.5 h-3.5" />
+                  : <ArrowUpWideNarrow className="w-3.5 h-3.5" />}
+              </button>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-            {programs.map(program => (
+            {programs.map((program, index) => (
               <ProgramCard
                 key={program.id}
                 program={program}
+                index={index + 1}
                 onSelect={onSelectProgram}
+                selected={program.id === selectedProgramId}
                 onViewDetail={onViewDetail}
               />
             ))}
