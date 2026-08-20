@@ -28,19 +28,18 @@ function ProgramCardSkeleton() {
 
 interface ProgramCardProps {
   program: ProgramBrief;
-  index?: number;
   onViewDetail: (id: string) => void;
 }
 
 // Single action now — no separate "select" state. "Подробнее" is a plain
 // visible button; the hover feedback lives on that button itself (Button's
 // own ghost hover state), not a whole-card overlay.
-const ProgramCard = memo(function ProgramCard({ program, index, onViewDetail }: ProgramCardProps) {
+const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: ProgramCardProps) {
   return (
     <Card className="!p-6 flex flex-col h-full transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-display-sm font-black leading-snug text-primary m-0">
-          {index && `${index}. `}{program.name}
+          {program.name}
         </h3>
         <span className="shrink-0 bg-brand-subtle text-brand text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
           {program.university.country}
@@ -161,11 +160,10 @@ export function ProgramListSection({
             )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-            {programs.map((program, index) => (
+            {programs.map((program) => (
               <ProgramCard
                 key={program.id}
                 program={program}
-                index={index + 1}
                 onViewDetail={onViewDetail}
               />
             ))}
