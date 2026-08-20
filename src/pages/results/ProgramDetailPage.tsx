@@ -1,12 +1,16 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Check, X } from 'lucide-react';
+import {
+  ArrowLeft, Check, X, ClipboardList, Target, BookOpen, Calculator, Eye,
+  Globe, Briefcase, FileText, GraduationCap,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { toDisplayString, formatCost, convertLabelCurrenciesToUsd, splitRequirementNotes, getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
+import { toDisplayString, splitRequirementNotes } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
+import { UniversityRankBadges } from '@/pages/results/components/UniversityRankBadges';
 import type { ProgramDetail, UniversityRequirement } from '@/shared/types';
 
 function ProgramDetailSkeleton() {
@@ -30,9 +34,12 @@ function ProgramDetailSkeleton() {
   );
 }
 
-function SectionHeadingLocal({ children }: { children: string }) {
+function SectionHeadingLocal({ icon: Icon, children }: { icon: LucideIcon; children: string }) {
   return (
-    <h3 className="text-body-lg font-black text-primary mb-2.5">{children}</h3>
+    <h3 className="text-body-lg font-black text-primary mb-2.5 flex items-center gap-2">
+      <Icon className="w-4 h-4 text-muted shrink-0" />
+      {children}
+    </h3>
   );
 }
 
@@ -49,62 +56,19 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
   const req = program.requirements_summary;
   if (!req) return null;
 
-  const hasKzData = !!(
-    (req.exams && req.exams.length > 0) ||
-    req.min_ent_threshold ||
-    (req.admission_scores_2026 && req.admission_scores_2026.length > 0) ||
-    req.exam_hint_from_notes
-  );
-  
-  const hasIntlData = !!(
-    req.language_level ||
-    req.portfolio_needed !== null ||
-    req.min_sat !== null ||
-    req.min_gpa !== null ||
-    (req.required_documents && req.required_documents.length > 0) ||
-    (req.extracurriculars && req.extracurriculars.length > 0) ||
-    req.website
-  );
-
   const isKzUni = program.university.country === 'Казахстан';
-  const showTabs = !isKzUni && hasKzData && hasIntlData;
-  const defaultTab = isKzUni ? 'kz' : (hasKzData ? 'kz' : 'intl');
-  const [activeTab, setActiveTab] = useState<'kz' | 'intl'>(defaultTab);
+  // Foreign universities never have an ENT/grant track — only KZ universities do.
+  const activeTab: 'kz' | 'intl' = isKzUni ? 'kz' : 'intl';
 
   return (
     <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card flex flex-col gap-5">
       {/* Header */}
       <div className="border-b border-default pb-4">
         <h3 className="text-body-lg font-black text-primary m-0 flex items-center gap-2">
-          📝 Требования к поступлению
+          <ClipboardList className="w-4 h-4 text-muted shrink-0" />
+          Требования к поступлению
         </h3>
       </div>
-
-      {/* Tab Switcher */}
-      {showTabs && (
-        <div className="flex bg-default/40 p-1 rounded-pill gap-1 self-start">
-          <button
-            onClick={() => setActiveTab('kz')}
-            className={`px-4 py-2 rounded-pill text-xs font-extrabold transition-all ${
-              activeTab === 'kz'
-                ? 'bg-surface text-brand shadow-sm'
-                : 'text-muted hover:text-primary'
-            }`}
-          >
-            Казахстан (ЕНТ и Гранты)
-          </button>
-          <button
-            onClick={() => setActiveTab('intl')}
-            className={`px-4 py-2 rounded-pill text-xs font-extrabold transition-all ${
-              activeTab === 'intl'
-                ? 'bg-surface text-brand shadow-sm'
-                : 'text-muted hover:text-primary'
-            }`}
-          >
-            Международный трек
-          </button>
-        </div>
-      )}
 
       {/* KZ Track View */}
       {activeTab === 'kz' && (
@@ -115,8 +79,9 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
             {req.exams && req.exams.length > 0 ? (
               <div className="flex gap-2 flex-wrap">
                 {req.exams.map((exam, i) => (
-                  <span key={i} className="bg-brand-subtle text-brand text-sm font-extrabold px-3 py-1.5 rounded-pill">
-                    🎯 {exam}
+                  <span key={i} className="inline-flex items-center gap-1.5 bg-brand-subtle text-brand text-sm font-extrabold px-3 py-1.5 rounded-pill">
+                    <Target className="w-3.5 h-3.5 shrink-0" />
+                    {exam}
                   </span>
                 ))}
               </div>
@@ -135,13 +100,16 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
               <div className="text-caption font-bold text-muted mb-2">Обязательные предметы ЕНТ (минимальные пороги)</div>
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex items-center gap-1.5 bg-default/40 text-secondary text-xs font-extrabold px-3.5 py-2 rounded-pill">
-                  📖 История Казахстана: от 5 баллов
+                  <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                  История Казахстана: от 5 баллов
                 </span>
                 <span className="inline-flex items-center gap-1.5 bg-default/40 text-secondary text-xs font-extrabold px-3.5 py-2 rounded-pill">
-                  🧮 Математическая грамотность: от 3 баллов
+                  <Calculator className="w-3.5 h-3.5 shrink-0" />
+                  Математическая грамотность: от 3 баллов
                 </span>
                 <span className="inline-flex items-center gap-1.5 bg-default/40 text-secondary text-xs font-extrabold px-3.5 py-2 rounded-pill">
-                  👁️ Грамотность чтения: от 3 баллов
+                  <Eye className="w-3.5 h-3.5 shrink-0" />
+                  Грамотность чтения: от 3 баллов
                 </span>
               </div>
             </div>
@@ -228,12 +196,9 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
         </div>
       )}
 
-      {/* Website link — was previously only rendered inside the intl-track
-          view, so it never showed for KZ universities at all (they don't
-          get the tab switcher, showTabs is unconditionally false for them)
-          even though University.website is populated for nearly all of
-          them. Hoisted out so it's visible regardless of which track is
-          active or which country the university is in. */}
+      {/* Website link — hoisted out of the intl-track view so it's visible
+          regardless of which track is active or which country the
+          university is in. */}
       {(req.website || program.university.website) && (
         <a
           href={req.website || program.university.website!}
@@ -280,18 +245,7 @@ export default function ProgramDetailPage() {
               the university actually has — never merged into one string
               (a single ranking_label can carry both a general and a
               subject-specific rank, e.g. Georgia Tech's US News entry). */}
-          {getUniversityRankingLabels(program.university).length > 0 && (
-            <div className="flex gap-2.5 flex-wrap">
-              {getUniversityRankingLabels(program.university).map((rankText, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-sm font-extrabold px-3.5 py-1.5 rounded-pill"
-                >
-                  🏆 {rankText}
-                </span>
-              ))}
-            </div>
-          )}
+          <UniversityRankBadges university={program.university} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {(() => {
@@ -304,7 +258,7 @@ export default function ProgramDetailPage() {
               if (!desc) return null;
               return (
                 <div className="bg-surface border border-default rounded-[var(--radius)] p-6 shadow-card">
-                  <SectionHeadingLocal>📋 Описание</SectionHeadingLocal>
+                  <SectionHeadingLocal icon={FileText}>Описание</SectionHeadingLocal>
                   <p className="text-body-sm text-secondary font-semibold leading-relaxed m-0">{desc}</p>
                 </div>
               );
@@ -312,7 +266,7 @@ export default function ProgramDetailPage() {
 
             {program.who_its_for && program.who_its_for.length > 0 && (
               <div className="bg-brand-subtle rounded-[var(--radius)] p-6">
-                <SectionHeadingLocal>🎯 Для кого</SectionHeadingLocal>
+                <SectionHeadingLocal icon={Target}>Для кого</SectionHeadingLocal>
                 <p className="text-body-sm text-secondary font-semibold leading-relaxed m-0">{program.who_its_for}</p>
               </div>
             )}
@@ -320,23 +274,17 @@ export default function ProgramDetailPage() {
 
           {/* Program characteristics — language moved down here from the top
               block (between title and description) so it doesn't clutter
-              that area; grouped with cost since both are per-program
-              characteristics rather than headline info. */}
+              that area. */}
           <div className="flex gap-2.5 flex-wrap">
             <span className="inline-flex items-center gap-1.5 bg-brand-subtle text-brand text-sm font-extrabold px-3.5 py-1.5 rounded-pill">
-              🌐 {program.language}
-            </span>
-            {/* No max-width/nowrap constraint — converted free-text cost
-                labels can run long and must wrap inside the pill, not
-                overflow the card (see university-cards-ux-fix-plan.md §1/§10). */}
-            <span className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-sm font-extrabold px-3.5 py-1.5 rounded-pill text-left">
-              💰 {program.cost_per_year !== null ? formatCost(program.cost_per_year) : convertLabelCurrenciesToUsd(program.cost_label)}
+              <Globe className="w-3.5 h-3.5 shrink-0" />
+              {program.language}
             </span>
           </div>
 
           {(program.career_options ?? []).length > 0 && (
             <div>
-              <SectionHeadingLocal>💼 Карьерные пути</SectionHeadingLocal>
+              <SectionHeadingLocal icon={Briefcase}>Карьерные пути</SectionHeadingLocal>
               <div className="flex gap-2 flex-wrap">
                 {program.career_options.map((career, i) => (
                   <span
@@ -356,7 +304,7 @@ export default function ProgramDetailPage() {
           {(program.grants ?? []).length > 0 && (
             <div className="bg-accent-soft border border-[color:var(--dawn)]/30 rounded-[var(--radius)] px-6 py-5 shadow-card">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">🎓</span>
+                <GraduationCap className="w-6 h-6 text-accent shrink-0" />
                 <div className="text-base font-black text-accent">Гранты и стипендии</div>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -375,9 +323,10 @@ export default function ProgramDetailPage() {
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               onClick={() => navigate(-1)}
-              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-brand text-on-brand text-body-md font-extrabold cursor-pointer hover:bg-brand-hover transition-all"
+              className="flex-1 min-w-[200px] h-[58px] border-none rounded-pill bg-brand text-on-brand text-body-md font-extrabold cursor-pointer hover:bg-brand-hover transition-all inline-flex items-center justify-center gap-2"
             >
-              🎓 Посмотреть университеты
+              <GraduationCap className="w-4 h-4 shrink-0" />
+              Посмотреть университеты
             </button>
             <button
               onClick={() => navigate('/results')}

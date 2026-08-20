@@ -1,9 +1,11 @@
 import { memo } from 'react';
+import { Globe, GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
 import type { ProgramBrief } from '@/shared/types';
-import { formatCost, convertLabelCurrenciesToUsd, getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
 import { COUNTRY_FILTERS } from '@/pages/results/hooks/useUniversityList';
+import { UniversityRankBadges } from './UniversityRankBadges';
 
 function ProgramCardSkeleton() {
   return (
@@ -40,14 +42,7 @@ interface ProgramCardProps {
 
 const ProgramCard = memo(function ProgramCard({ program, index, onSelect, selected, onViewDetail }: ProgramCardProps) {
   return (
-    <div
-      className="bg-surface border rounded-[var(--radius)] p-6 shadow-card flex flex-col h-full transition-colors"
-      style={{
-        borderColor: selected ? 'var(--brand)' : 'var(--border)',
-        borderWidth: selected ? 2 : 1,
-        background: selected ? 'color-mix(in srgb, var(--brand) 5%, var(--bg-surface))' : undefined,
-      }}
-    >
+    <Card selected={selected} className="!p-6 flex flex-col h-full transition-colors">
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-display-sm font-black leading-snug text-primary m-0">
           {index && `${index}. `}{program.name}
@@ -57,16 +52,9 @@ const ProgramCard = memo(function ProgramCard({ program, index, onSelect, select
         </span>
       </div>
 
-      <div className="text-base font-semibold text-muted mb-3 flex flex-wrap items-center gap-2">
+      <div className="text-base font-semibold text-muted mb-3 flex flex-col gap-2">
         <span>{program.university.name}</span>
-        {getUniversityRankingLabels(program.university).map((rankText, i) => (
-          <span
-            key={i}
-            className="inline-flex items-center gap-1.5 bg-accent-soft text-accent text-xs font-extrabold px-2.5 py-0.5 rounded-pill whitespace-nowrap"
-          >
-            🏆 {rankText}
-          </span>
-        ))}
+        <UniversityRankBadges university={program.university} size="sm" />
       </div>
 
       {(() => {
@@ -82,23 +70,18 @@ const ProgramCard = memo(function ProgramCard({ program, index, onSelect, select
       })()}
 
       <div className="flex gap-4 flex-wrap mb-4 text-body-sm font-bold text-secondary">
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">🌐 {program.language}</span>
-        {/* No whitespace-nowrap here — converted free-text cost_label (e.g.
-            "2 180–3 270 USD за семестр (бакалавриат) для студентов вне ЕС")
-            can be long; it must wrap inside the card, not overflow it. */}
-        <span className="inline-flex items-start gap-1.5">💰 {program.cost_per_year !== null ? formatCost(program.cost_per_year) : convertLabelCurrenciesToUsd(program.cost_label)}</span>
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><Globe className="w-4 h-4 shrink-0" /> {program.language}</span>
       </div>
 
       {onViewDetail ? (
         <div className="flex gap-2 mt-auto">
           <button
             onClick={() => onSelect(program.id)}
-            className="flex-1 h-[52px] border-[1.5px] rounded-[var(--radius)] text-base font-extrabold cursor-pointer transition-colors"
-            style={{
-              borderColor: selected ? 'var(--brand)' : 'var(--border-strong)',
-              background: selected ? 'var(--brand)' : 'var(--bg-surface)',
-              color: selected ? 'var(--text-on-brand)' : 'var(--brand)',
-            }}
+            className={
+              selected
+                ? 'flex-1 h-[52px] border-[1.5px] border-brand rounded-[var(--radius)] bg-brand text-on-brand text-base font-extrabold cursor-pointer transition-colors'
+                : 'flex-1 h-[52px] border-[1.5px] border-strong rounded-[var(--radius)] bg-surface text-brand text-base font-extrabold cursor-pointer transition-colors'
+            }
           >
             {selected ? 'Выбрано' : 'Выбрать'}
           </button>
@@ -118,7 +101,7 @@ const ProgramCard = memo(function ProgramCard({ program, index, onSelect, select
           Посмотреть требования
         </button>
       )}
-    </div>
+    </Card>
   );
 });
 
@@ -189,7 +172,7 @@ export function ProgramListSection({
         </div>
       ) : programs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <span className="text-5xl select-none" aria-hidden="true">🎓</span>
+          <GraduationCap className="w-12 h-12 text-muted" aria-hidden="true" />
           <p className="text-label font-bold text-primary">Программы не найдены</p>
           <p className="text-body text-secondary">Попробуй выбрать другую страну</p>
         </div>
@@ -202,7 +185,10 @@ export function ProgramListSection({
                 onClick={onToggleSort}
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill bg-default/40 hover:bg-default/70 text-secondary text-xs font-extrabold border-none cursor-pointer transition-colors"
               >
-                Сортировка: {sortDirection === 'asc' ? 'по убыванию рейтинга ⬇️' : 'по возрастанию рейтинга ⬆️'}
+                Сортировка: {sortDirection === 'asc' ? 'по убыванию рейтинга' : 'по возрастанию рейтинга'}
+                {sortDirection === 'asc'
+                  ? <ArrowDownWideNarrow className="w-3.5 h-3.5" />
+                  : <ArrowUpWideNarrow className="w-3.5 h-3.5" />}
               </button>
             )}
           </div>
