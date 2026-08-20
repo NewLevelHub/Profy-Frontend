@@ -8,7 +8,11 @@
   /* ── Font roles (Duolingo-style: one family per job) ───────────────── */
   --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-display: 'Bricolage Grotesque', Georgia, serif;
+  /* Bricolage Grotesque has no Cyrillic glyphs (latin/latin-ext/vietnamese
+     only) — Georgia as a fallback made every Cyrillic heading silently
+     render as serif instead of sans. Fall back through the same sans chain
+     as --font-sans so Cyrillic headings stay sans, just not branded. */
+  --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --font-weight-book: 450;

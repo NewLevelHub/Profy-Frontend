@@ -6,7 +6,13 @@
   --font-size: 16px;
   --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-display: 'Bricolage Grotesque', Georgia, serif;
+  /* Bricolage Grotesque ships latin/latin-ext/vietnamese only — no Cyrillic
+     glyphs (confirmed via Google Fonts metadata). Georgia used to be the
+     fallback, which meant every Cyrillic heading silently rendered as a
+     serif face instead of a sans one — a jarring mismatch against the rest
+     of the sans-serif UI. Same sans fallback chain as --font-sans instead,
+     so Cyrillic headings degrade to the OS sans, not a serif. */
+  --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   /* Raw palette */

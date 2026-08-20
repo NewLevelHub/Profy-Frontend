@@ -26,14 +26,14 @@ export function getUniversityRankingLabels(
         .filter(Boolean)
     );
   } else if (uni.ranking !== null && uni.ranking !== undefined && uni.ranking > 0) {
-    labels.push(`№${uni.ranking} в общем рейтинге`);
+    labels.push(`#${uni.ranking} в общем рейтинге`);
   }
 
   if (uni.uniranks_kz_rank !== null && uni.uniranks_kz_rank !== undefined && uni.uniranks_kz_rank > 0) {
     labels.push(
       uni.uniranks_world_rank
-        ? `№${uni.uniranks_kz_rank} в РК / №${uni.uniranks_world_rank} в мире`
-        : `№${uni.uniranks_kz_rank} в РК`
+        ? `#${uni.uniranks_kz_rank} в РК / #${uni.uniranks_world_rank} в мире`
+        : `#${uni.uniranks_kz_rank} в РК`
     );
   }
 
