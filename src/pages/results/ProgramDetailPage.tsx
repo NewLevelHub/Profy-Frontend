@@ -318,18 +318,9 @@ export default function ProgramDetailPage() {
           {/* Requirements + grants (merged in — see ProgramRequirementsCard) */}
           <ProgramRequirementsCard program={program} />
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Button
-              variant="ghost"
-              size="lg"
-              className="flex-1 min-w-[200px]"
-              onClick={() => navigate(-1)}
-            >
-              Посмотреть университеты
-            </Button>
-            {/* Primary slot — visiting the university's own site is this
-                page's actual goal action (return-to-browse is secondary),
-                so it gets the solid brand treatment. Still an <a>, not a
+          <div className="flex flex-col gap-3 pt-2">
+            {/* Sole bottom action now — visiting the university's own site
+                is this page's actual goal action. Still an <a>, not a
                 Button, since it's an external link (Button only renders a
                 <button>, which can't get real link semantics like
                 target="_blank", right-click "open in new tab", etc). */}
@@ -341,7 +332,7 @@ export default function ProgramDetailPage() {
                   href={websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 min-h-12 px-6 py-3.5 text-body-md font-medium font-sans rounded-[var(--radius)] bg-brand text-on-brand hover:bg-brand-hover transition-colors press-scale focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]"
+                  className="w-full inline-flex items-center justify-center gap-2 min-h-12 px-6 py-3.5 text-body-md font-medium font-sans rounded-[var(--radius)] bg-brand text-on-brand hover:bg-brand-hover transition-colors press-scale focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]"
                 >
                   Перейти на сайт вуза
                 </a>
