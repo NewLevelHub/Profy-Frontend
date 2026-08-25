@@ -41,6 +41,12 @@ export function useProfile() {
   // returns artifacts embedded) rather than a separate request.
   const artifacts = profile?.artifacts ?? [];
 
+  // Same sourcing as `artifacts` above — GET /profile embeds certificates
+  // and gpa_value/gpa_scale directly, no separate fetch needed.
+  const certificates = profile?.certificates ?? [];
+  const gpaValue = profile?.gpa_value ?? null;
+  const gpaScale = profile?.gpa_scale ?? null;
+
   function handleLogout() {
     logout();
     navigate('/login', { replace: true });
@@ -68,6 +74,9 @@ export function useProfile() {
     isJunior,
     hasSubjects,
     artifacts,
+    certificates,
+    gpaValue,
+    gpaScale,
     strengthCards: report?.strength_cards ?? [],
     confirmRestart,
     handleLogout,

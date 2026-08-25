@@ -10,6 +10,7 @@ import { ProfileHero } from './sections/ProfileHero';
 import { PersonalInfoSection } from './sections/PersonalInfoSection';
 import { SubjectsSection } from './sections/SubjectsSection';
 import { ArtifactsSection } from './sections/ArtifactsSection';
+import { CertificatesSection } from './sections/CertificatesSection';
 import { RestartAssessmentSection } from './sections/RestartAssessmentSection';
 import { SoundSettingsSection } from './sections/SoundSettingsSection';
 import { SelfDescriptionSection } from './sections/junior/SelfDescriptionSection';
@@ -34,6 +35,9 @@ export default function ProfilePage() {
     isJunior,
     hasSubjects,
     artifacts,
+    certificates,
+    gpaValue,
+    gpaScale,
     strengthCards,
     confirmRestart,
     handleLogout,
@@ -105,6 +109,12 @@ export default function ProfilePage() {
             />
           )}
           <ArtifactsSection artifacts={artifacts} onEdit={handleEditArtifacts} />
+          <CertificatesSection
+            certificates={certificates}
+            gpaValue={gpaValue}
+            gpaScale={gpaScale}
+            onEdit={() => navigate('/profile/certificates')}
+          />
         </>
       )}
 
