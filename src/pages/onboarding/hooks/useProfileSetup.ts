@@ -104,7 +104,7 @@ export function useProfileSetup() {
             ? 'Имя может содержать только буквы'
             : undefined;
     const ageNum = Number(age);
-    const age_ = (!age || isNaN(ageNum) || ageNum < 6 || ageNum > 18) ? 'Возраст: от 6 до 18' : undefined;
+    const age_ = (!age || isNaN(ageNum) || ageNum < 14 || ageNum > 18) ? 'Возраст: от 14 до 18' : undefined;
     setErrors(prev => ({ ...prev, name: name_, age: age_ }));
     return !name_ && !age_;
   }
