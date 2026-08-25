@@ -63,14 +63,25 @@ export default function WelcomePage() {
             ))}
           </div>
 
-          <Button
-            variant="primary"
-            className={cn('w-full sm:w-auto sm:self-end')}
-            style={{ minHeight: 48 }}
-            onClick={() => navigate('/assessment')}
-          >
-            Хорошо, начнём
-          </Button>
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:self-end">
+            {/* Assessment record already exists at this point (goal picked,
+                0 answered) — leaving here is the same "continue later" state
+                as exiting mid-quiz, just before the first question. */}
+            <Button
+              variant="text"
+              onClick={() => navigate('/results')}
+            >
+              Не сейчас
+            </Button>
+            <Button
+              variant="primary"
+              className={cn('w-full sm:w-auto')}
+              style={{ minHeight: 48 }}
+              onClick={() => navigate('/assessment')}
+            >
+              Хорошо, начнём
+            </Button>
+          </div>
         </div>
 
         </div>
