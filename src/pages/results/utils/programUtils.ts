@@ -7,24 +7,48 @@ import type { UniversityBrief } from '@/shared/types';
  * KZ-only UniRanks position), so callers should render each entry as its own
  * chip rather than joining them. `ranking_label` itself also routinely packs
  * multiple ranking claims into one free-text string, comma/semicolon
- * separated (e.g. "#7 (QS World Rankings 2026), #3 в мире по инженерии и
+ * separated (e.g. "#7 (QS World Rankings, 2026), #3 в мире по инженерии и
  * технологиям" — a global rank and a subject-specific one in the same
  * field), which both overflows the card as one chip and hides that these are
  * two different, non-comparable facts — so it's split into one chip per
- * clause. See university-cards-ux-fix-plan.md §1/§3.
+ * clause. The split only fires at paren-depth 0, so the comma between a
+ * rating name and its year inside "(QS World Rankings, 2026)" stays part of
+ * the same clause instead of becoming its own chip. See
+ * university-cards-ux-fix-plan.md §1/§3.
  */
+/**
+ * Splits on top-level `,`/`;` only — a separator *inside* parentheses (e.g.
+ * the ", 2026" in "#3 (QS World University Rankings, 2026)") stays attached
+ * to its clause instead of becoming its own chip.
+ */
+function splitClausesOutsideParens(text: string): string[] {
+  const clauses: string[] = [];
+  let depth = 0;
+  let current = '';
+
+  for (const char of text) {
+    if (char === '(') depth++;
+    else if (char === ')') depth = Math.max(0, depth - 1);
+
+    if ((char === ',' || char === ';') && depth === 0) {
+      clauses.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  clauses.push(current);
+
+  return clauses.map(clause => clause.trim()).filter(Boolean);
+}
+
 export function getUniversityRankingLabels(
   uni: Pick<UniversityBrief, 'ranking' | 'ranking_label' | 'uniranks_kz_rank' | 'uniranks_world_rank'>
 ): string[] {
   const labels: string[] = [];
 
   if (uni.ranking_label) {
-    labels.push(
-      ...uni.ranking_label
-        .split(/[,;]/)
-        .map(clause => clause.trim())
-        .filter(Boolean)
-    );
+    labels.push(...splitClausesOutsideParens(uni.ranking_label));
   } else if (uni.ranking !== null && uni.ranking !== undefined && uni.ranking > 0) {
     labels.push(`#${uni.ranking} в общем рейтинге`);
   }
