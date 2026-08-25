@@ -9,10 +9,18 @@ interface LikertPageProps {
   answers: Record<string, number>;
   onSelect: (questionId: string, value: number) => void;
   onSubmit: () => void;
+  /** Blocks input immediately on click — a save is in flight, however fast. */
   saving: boolean;
+  /**
+   * Delayed mirror of `saving` (see useDelayedFlag) — only turns true once
+   * the save has actually taken a while. Drives the spinner, separately from
+   * `saving`, so a normal fast save just presses and moves on instead of
+   * flashing a loading state no human could read in time.
+   */
+  savingVisible: boolean;
 }
 
-export function LikertPage({ questions, answers, onSelect, onSubmit, saving }: LikertPageProps) {
+export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
 
   // The next unanswered question on this page — answering one "cuts" to
@@ -64,8 +72,8 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving }: L
 
       <Button
         onClick={onSubmit}
-        disabled={!allAnswered}
-        isLoading={saving}
+        disabled={!allAnswered || saving}
+        isLoading={savingVisible}
         size="lg"
         className="w-full max-w-[560px] mx-auto rounded-pill text-body-lg font-extrabold"
         style={{ height: 60 }}

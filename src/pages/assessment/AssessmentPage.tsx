@@ -19,6 +19,7 @@ export default function AssessmentPage() {
     selectedPairOptionId,
     transitioning,
     saving,
+    savingVisible,
     error,
     currentLikertQuestions,
     currentPair,
@@ -106,6 +107,7 @@ export default function AssessmentPage() {
                     onSelect={handleLikertSelect}
                     onSubmit={handleSubmitLikertPage}
                     saving={saving}
+                    savingVisible={savingVisible}
                   />
                 </div>
               )}
