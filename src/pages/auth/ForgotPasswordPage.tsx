@@ -30,6 +30,8 @@ export default function ForgotPasswordPage() {
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setFormError('Слишком много запросов. Попробуйте позже');
+      } else if (axios.isAxiosError(err) && err.response?.status === 404) {
+        setFormError('Аккаунт с таким email не найден');
       } else {
         setFormError('Ошибка. Попробуйте позже');
       }
@@ -70,7 +72,7 @@ export default function ForgotPasswordPage() {
       </form>
 
       <p className="text-caption text-muted mt-[16px]">
-        Код действует 30 минут. Прогресс ребёнка и результаты диагностики при смене пароля не теряются.
+        Код действует 15 минут. Прогресс ребёнка и результаты диагностики при смене пароля не теряются.
       </p>
 
       <div className="text-center mt-[20px]">
