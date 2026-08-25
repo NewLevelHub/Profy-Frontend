@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { Button, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
-import { useProfileSetup, PROFILE_STEPS } from './hooks/useProfileSetup';
+import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
@@ -193,11 +193,12 @@ export default function ProfileSetupPage() {
               <Input
                 label="Имя"
                 value={name}
-                onChange={e => { setName(e.target.value); clearError('name'); }}
+                onChange={e => { setName(sanitizeName(e.target.value)); clearError('name'); }}
                 placeholder="Например, Арман"
                 error={errors.name}
                 hint={!errors.name ? 'Так я буду к тебе обращаться. Можно поменять потом.' : undefined}
                 autoFocus
+                maxLength={NAME_MAX_LENGTH}
               />
             </div>
 

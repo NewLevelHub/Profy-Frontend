@@ -173,6 +173,7 @@ export default function GoalSelectionPage() {
     handleStartNew,
     handleViewResults,
     handleConfirmRestart,
+    handleSkip,
   } = useGoalSelection();
 
   if (shouldRedirect) {
@@ -200,16 +201,25 @@ export default function GoalSelectionPage() {
         <div className="flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
           <div className="w-full max-w-7xl mx-auto flex flex-col">
 
-            <div className="mb-8">
-              {/* <span className="font-mono text-mono-xs tracking-label uppercase text-muted">
-                Шаг 4 · Цель · Выбери, что сейчас важнее
-              </span> */}
-              <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--midnight)]">
-                Чего ты хочешь от этого теста?
-              </Heading>
-              <Text variant="body-md" className="text-muted">
-                Выбери то, что тебе сейчас важнее всего — это можно изменить позже
-              </Text>
+            <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                {/* <span className="font-mono text-mono-xs tracking-label uppercase text-muted">
+                  Шаг 4 · Цель · Выбери, что сейчас важнее
+                </span> */}
+                <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--midnight)]">
+                  Чего ты хочешь от этого теста?
+                </Heading>
+                <Text variant="body-md" className="text-muted">
+                  Выбери то, что тебе сейчас важнее всего — это можно изменить позже
+                </Text>
+              </div>
+
+              {/* Test is optional — a student can leave before picking a goal
+                  (which is what actually starts an assessment) and come back
+                  to it anytime from /results. */}
+              <Button variant="text" size="sm" className="mt-2" onClick={handleSkip}>
+                Не сейчас
+              </Button>
             </div>
 
             {isCheckingCurrent || restartOpen ? (
