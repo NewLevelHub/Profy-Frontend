@@ -561,6 +561,7 @@ export interface UniversityBrief {
   uniranks_kz_rank: number | null;
   uniranks_world_rank: number | null;
   description: string | null;
+  image_url: string | null;
 }
 
 export interface ProgramGrant {
@@ -598,6 +599,10 @@ export interface UniversityRequirement {
   has_military_department: boolean | null;
   admissions_contacts: Record<string, string>;
   notes: string[];
+  // null = not specifically researched; false = confirmed this university
+  // doesn't require ENT at all (show "не требуется", not "не установлен");
+  // true = confirmed it does (plus its own additional test, see notes).
+  requires_ent: boolean | null;
 }
 
 export interface ProgramBrief {

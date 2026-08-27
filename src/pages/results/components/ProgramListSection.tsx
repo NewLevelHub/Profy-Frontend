@@ -37,6 +37,19 @@ interface ProgramCardProps {
 const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: ProgramCardProps) {
   return (
     <Card className="!p-6 flex flex-col h-full transition-colors">
+      {program.university.image_url ? (
+        <img
+          src={program.university.image_url}
+          alt={program.university.name}
+          className="w-full h-32 object-cover rounded-2xl mb-4"
+          loading="lazy"
+        />
+      ) : (
+        <div className="w-full h-32 rounded-2xl mb-4 bg-default/40 flex items-center justify-center">
+          <GraduationCap className="w-8 h-8 text-muted" aria-hidden="true" />
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-display-sm font-black leading-snug text-primary m-0">
           {program.name}
