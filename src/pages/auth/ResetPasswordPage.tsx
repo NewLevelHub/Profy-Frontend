@@ -19,6 +19,10 @@ export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email');
 
+  // Код подтверждается отдельным шагом (/verify-reset-code) до того, как
+  // пользователь вообще увидит форму нового пароля — иначе он мог набрать
+  // пароль и только на сабмите узнать, что код уже не тот.
+  const [step, setStep] = useState<'code' | 'password'>('code');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -28,18 +32,13 @@ export default function ResetPasswordPage() {
   const [passwordError, setPasswordError] = useState('');
   const [confirmError, setConfirmError] = useState('');
   const [formError, setFormError] = useState('');
+  const [isCodeLoading, setIsCodeLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resendDisabled, setResendDisabled] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
 
-  function validate(): boolean {
+  function validatePassword(): boolean {
     let valid = true;
-    if (!CODE_COMPLETE.test(code)) {
-      setCodeError('Введите 6-значный код');
-      valid = false;
-    } else {
-      setCodeError('');
-    }
     const pwdErr = (() => {
       if (password.length < 8) return 'Минимум 8 символов';
       if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву';
@@ -61,9 +60,31 @@ export default function ResetPasswordPage() {
     return valid;
   }
 
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    if (!CODE_COMPLETE.test(code)) {
+      setCodeError('Введите 6-значный код');
+      return;
+    }
+    setCodeError('');
+    setIsCodeLoading(true);
+    try {
+      await authApi.verifyResetCode(email!, code.trim());
+      setStep('password');
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 429) {
+        setCodeError('Слишком много попыток. Подождите и попробуйте снова');
+      } else {
+        setCodeError('Неверный или истёкший код');
+      }
+    } finally {
+      setIsCodeLoading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validatePassword()) return;
 
     setFormError('');
     setIsLoading(true);
@@ -71,14 +92,14 @@ export default function ResetPasswordPage() {
       await authApi.resetPassword(email!, code.trim(), password);
       navigate('/login', { replace: true });
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 429) {
-          setFormError('Слишком много попыток. Подождите и попробуйте снова');
-        } else {
-          setCodeError('Неверный или истёкший код');
-        }
+      if (axios.isAxiosError(err) && err.response?.status === 429) {
+        setFormError('Слишком много попыток. Подождите и попробуйте снова');
       } else {
-        setFormError('Ошибка. Попробуйте позже');
+        // Код прошёл проверку на шаге 1, но успел истечь (>15 минут) или был
+        // погашен параллельной попыткой — возвращаем на ввод кода, а не
+        // показываем ошибку в форме пароля, где пользователь её не ждёт.
+        setStep('code');
+        setCodeError('Код истёк. Запросите новый и попробуйте снова');
       }
     } finally {
       setIsLoading(false);
@@ -126,33 +147,73 @@ export default function ResetPasswordPage() {
     );
   }
 
+  if (step === 'code') {
+    return (
+      <>
+        <h1 className="auth-headline-sm mt-[20px]">Введите код</h1>
+        <p className="auth-sub">
+          Код отправлен на <span className="font-semibold text-primary">{email}</span>.
+        </p>
+
+        <form onSubmit={handleVerifyCode} noValidate>
+          <div className="mt-[32px]">
+            <OtpInput
+              length={6}
+              value={code}
+              onChange={(v) => { setCode(v); setCodeError(''); }}
+              error={!!codeError}
+              disabled={isCodeLoading}
+              autoFocus
+              aria-label="Код из письма"
+            />
+            {codeError && (
+              <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
+                {codeError}
+              </p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            isLoading={isCodeLoading}
+            disabled={!CODE_COMPLETE.test(code)}
+            size="lg"
+            className="w-full mt-[28px]"
+          >
+            {isCodeLoading ? 'Проверяем...' : 'Подтвердить код'}
+          </Button>
+        </form>
+
+        <div className="flex flex-col items-center gap-1 mt-[24px]">
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendDisabled}
+            className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Отправить код повторно
+          </button>
+          {resendMessage && (
+            <p className="text-small text-secondary text-center">{resendMessage}</p>
+          )}
+          <Link
+            to="/login"
+            className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
+          >
+            ← Вернуться ко входу
+          </Link>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <h1 className="auth-headline-sm mt-[20px]">Новый пароль</h1>
-      <p className="auth-sub">
-        Введите код, отправленный на <span className="font-semibold text-primary">{email}</span>,
-        {' '}и придумайте новый пароль.
-      </p>
+      <p className="auth-sub">Придумайте новый пароль для входа.</p>
 
       <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[32px]">
-          <OtpInput
-            length={6}
-            value={code}
-            onChange={(v) => { setCode(v); setCodeError(''); }}
-            error={!!codeError}
-            disabled={isLoading}
-            autoFocus
-            aria-label="Код из письма"
-          />
-          {codeError && (
-            <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
-              {codeError}
-            </p>
-          )}
-        </div>
-
-        <div className="mt-[24px] relative">
+        <div className="mt-[32px] relative">
           <Input
             label="Новый пароль"
             className="pr-10"
@@ -162,6 +223,7 @@ export default function ResetPasswordPage() {
             onChange={e => { setPassword(e.target.value); setPasswordError(''); setConfirmError(''); }}
             error={passwordError}
             autoComplete="new-password"
+            autoFocus
           />
           <button
             type="button"
@@ -205,14 +267,6 @@ export default function ResetPasswordPage() {
       </form>
 
       <div className="flex flex-col items-center gap-1 mt-[24px]">
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={resendDisabled}
-          className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Отправить код повторно
-        </button>
         {resendMessage && (
           <p className="text-small text-secondary text-center">{resendMessage}</p>
         )}
