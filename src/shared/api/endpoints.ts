@@ -14,6 +14,7 @@ export const API = {
     create: '/profile',
     update: '/profile',
     artifacts: '/profile/artifacts',
+    certificates: '/profile/certificates',
   },
   assessment: {
     start: '/assessment/start',

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment } from '@/shared/dev/autofillAssessment';
@@ -9,6 +10,11 @@ import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
+
+// Below this, a save reads as instant — showing a spinner for it would be
+// the flash the button was glitching with, not a fix for it. Only a request
+// that's actually slow crosses this and earns a spinner; see useDelayedFlag.
+const SAVING_SPINNER_DELAY_MS = 250;
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
@@ -220,11 +226,13 @@ export function useAssessment() {
       // this pass.
       setError('Кажется, несколько ответов не сохранились — пройдём вопросы ещё раз, чтобы найти пропущенные.');
       setPageIndex(0);
+      setSaving(false);
       return;
     }
 
     const { shouldShow, totalAnswered } = useAssessmentStore.getState().recordQuestionAnswered();
     if (shouldShow || isSpeedFlag) {
+      // Route change unmounts this page, taking `saving` with it — no reset needed.
       navigate('/assessment/rest', {
         state: { returnTo: '/assessment', progress, totalAnswered, isSpeedFlag } satisfies RestStopState,
       });
@@ -232,10 +240,20 @@ export function useAssessment() {
     }
 
     setTransitioning(true);
+    // Matches the wrapper's `transition-opacity duration-300` in
+    // AssessmentPage.tsx — firing this before the CSS fade actually finishes
+    // swapped in the next question while the old one was still ~1/6
+    // visible, reading as a snap instead of a cross-fade.
     setTimeout(() => {
       setPageIndex(i => i + 1);
       setTransitioning(false);
-    }, 250);
+      // Held true since the click, through the fade-out and the page swap —
+      // releasing it earlier (e.g. right after the save request resolves,
+      // as a `finally` on the caller used to) let the button flash back to
+      // its idle state mid-transition, well before the next question was
+      // actually on screen.
+      setSaving(false);
+    }, 300);
   }
 
   function handleLikertSelect(questionId: string, value: number) {
@@ -269,7 +287,6 @@ export function useAssessment() {
       advance(isSpeedFlag);
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
-    } finally {
       setSaving(false);
     }
   }
@@ -299,7 +316,6 @@ export function useAssessment() {
       advance(isSpeedFlag);
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
-    } finally {
       setSaving(false);
     }
   }
@@ -339,6 +355,9 @@ export function useAssessment() {
   // question and each pair as one unit, same as before pagination.
   const totalItems = pages.reduce((sum, p) => sum + (p.kind === 'pair' ? 1 : p.questions.length), 0);
   const progress = totalQuestionsFromStore > 0 ? (answeredCountFromStore / totalQuestionsFromStore) * 100 : 0;
+  // `saving` itself still gates input immediately (see handleLikertSelect /
+  // handleBack above) — this is only for what the Button visually shows.
+  const savingVisible = useDelayedFlag(saving, SAVING_SPINNER_DELAY_MS);
 
   return {
     phase,
@@ -350,6 +369,7 @@ export function useAssessment() {
     selectedPairOptionId,
     transitioning,
     saving,
+    savingVisible,
     error,
     currentLikertQuestions,
     currentPair,

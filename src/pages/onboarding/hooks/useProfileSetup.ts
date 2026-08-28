@@ -20,6 +20,24 @@ export const PROFILE_STEPS = {
   SUBJECTS: STEP_SUBJECTS,
 } as const;
 
+// Mirror the backend's ProfileCreateRequest/ProfileUpdateRequest `name`
+// constraint (app/schemas/profile.py) — max stays well under the DB
+// column's String(255) cap so a rejected name never reaches that layer.
+export const NAME_MIN_LENGTH = 3;
+export const NAME_MAX_LENGTH = 60;
+
+// Letters (any script) plus space/hyphen/apostrophe for names like
+// "Анна-Мария" or "O'Brien" — no digits, no other symbols. Mirrors the
+// backend's Field(pattern=...) on name.
+const NAME_ALLOWED_CHARS = /[^\p{L}\s'-]/gu;
+const NAME_PATTERN = /^[\p{L}\s'-]+$/u;
+
+/** Strips disallowed characters as the user types, so digits/symbols never
+ *  land in the field to begin with rather than being caught after submit. */
+export function sanitizeName(value: string): string {
+  return value.replace(NAME_ALLOWED_CHARS, '');
+}
+
 function toggle(list: string[], item: string): string[] {
   return list.includes(item) ? list.filter(s => s !== item) : [...list, item];
 }
@@ -75,9 +93,18 @@ export function useProfileSetup() {
   // both validations must surface both sets of errors at once, not have
   // the second call's setErrors wipe out the first's.
   function validateNameAge(): boolean {
-    const name_ = !name.trim() ? 'Введи своё имя' : undefined;
+    const trimmedName = name.trim();
+    const name_ = !trimmedName
+      ? 'Введи своё имя'
+      : trimmedName.length < NAME_MIN_LENGTH
+        ? `Имя слишком короткое (мин. ${NAME_MIN_LENGTH} символа)`
+        : trimmedName.length > NAME_MAX_LENGTH
+          ? `Имя слишком длинное (макс. ${NAME_MAX_LENGTH} символов)`
+          : !NAME_PATTERN.test(trimmedName)
+            ? 'Имя может содержать только буквы'
+            : undefined;
     const ageNum = Number(age);
-    const age_ = (!age || isNaN(ageNum) || ageNum < 6 || ageNum > 18) ? 'Возраст: от 6 до 18' : undefined;
+    const age_ = (!age || isNaN(ageNum) || ageNum < 14 || ageNum > 18) ? 'Возраст: от 14 до 18' : undefined;
     setErrors(prev => ({ ...prev, name: name_, age: age_ }));
     return !name_ && !age_;
   }

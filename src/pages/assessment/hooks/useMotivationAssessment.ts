@@ -191,13 +191,19 @@ export function useMotivationAssessment() {
       }
 
       setTransitioning(true);
+      // Matches the wrapper's `transition-opacity duration-300` in
+      // MotivationTripletFlow.tsx — see useAssessment.ts's advance() for why
+      // this needs to match the CSS duration exactly.
       setTimeout(() => {
         setTripletIndex(i => i + 1);
         setTransitioning(false);
-      }, 250);
+        // Held true from the click through the fade-out and the triplet
+        // swap — releasing it right after the save request resolved (the
+        // old `finally`) let the button flash back to idle mid-transition.
+        setSaving(false);
+      }, 300);
     } catch {
       setError('Не удалось сохранить ответ. Попробуй ещё раз.');
-    } finally {
       setSaving(false);
     }
   }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { Button, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
-import { useProfileSetup, PROFILE_STEPS } from './hooks/useProfileSetup';
+import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
@@ -12,7 +12,7 @@ const SUBJECTS = [
   'Английский язык', 'Информатика', 'Физкультура', 'Рисование', 'Музыка',
 ];
 
-const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 6–18
+const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 14–18
 
 // One mascot per step, `position: fixed` to the viewport's bottom-right
 // corner (not inline with the heading anymore — content/buttons stay
@@ -193,11 +193,12 @@ export default function ProfileSetupPage() {
               <Input
                 label="Имя"
                 value={name}
-                onChange={e => { setName(e.target.value); clearError('name'); }}
+                onChange={e => { setName(sanitizeName(e.target.value)); clearError('name'); }}
                 placeholder="Например, Арман"
                 error={errors.name}
                 hint={!errors.name ? 'Так я буду к тебе обращаться. Можно поменять потом.' : undefined}
                 autoFocus
+                maxLength={NAME_MAX_LENGTH}
               />
             </div>
 
@@ -208,7 +209,7 @@ export default function ProfileSetupPage() {
                 </Heading>
               </div>
 
-              {/* Age picker — button row, 6–18 */}
+              {/* Age picker — button row, 14–18 */}
               <div className="flex flex-wrap gap-2" role="group" aria-label="Выбери возраст">
                 {AGES.map(a => {
                   const selected = age === String(a);

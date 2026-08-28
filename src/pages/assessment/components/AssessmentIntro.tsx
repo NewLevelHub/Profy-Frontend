@@ -1,11 +1,12 @@
+import { FileText, Clock } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { type as typeClass } from '@/shared/ui/typography/tokens';
 import { cn } from '@/shared/lib/cn';
 
 interface AssessmentIntroProps {
-  emoji: string;
   kicker: string;
   title: string;
   subtitle: string;
@@ -17,7 +18,6 @@ interface AssessmentIntroProps {
 
 /** One-time phase intro — the single display heading on this screen. */
 export function AssessmentIntro({
-  emoji,
   kicker,
   title,
   subtitle,
@@ -32,9 +32,9 @@ export function AssessmentIntro({
         className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-[130px] lg:pb-8"
         style={{ animation: 'fade-in-up 0.5s ease both' }}
       >
-        <span className="inline-block mb-[18px]" role="img" aria-hidden style={{ fontSize: 74, animation: 'pf-float 3s ease-in-out infinite' }}>
-          {emoji}
-        </span>
+        <div className="mb-[18px]" style={{ animation: 'pf-float 3s ease-in-out infinite' }}>
+          <Mascot state="transition" size={132} />
+        </div>
         <span className={cn(typeClass.caption, 'inline-block bg-brand-subtle text-brand font-extrabold px-[18px] py-[7px] rounded-pill mb-[22px]')}>
           {kicker}
         </span>
@@ -45,9 +45,15 @@ export function AssessmentIntro({
           {subtitle}
         </Text>
         <div className={cn(typeClass.bodySm, 'flex items-center justify-center gap-[18px] font-bold text-subtle')}>
-          <span className="inline-flex items-center gap-[6px]">{itemCountLabel}</span>
+          <span className="inline-flex items-center gap-[6px]">
+            <FileText size={15} strokeWidth={1.75} aria-hidden="true" />
+            {itemCountLabel}
+          </span>
           <span className="w-[4px] h-[4px] rounded-full bg-[var(--hairline)]" />
-          <span className="inline-flex items-center gap-[6px]">{durationLabel}</span>
+          <span className="inline-flex items-center gap-[6px]">
+            <Clock size={15} strokeWidth={1.75} aria-hidden="true" />
+            {durationLabel}
+          </span>
         </div>
       </div>
 

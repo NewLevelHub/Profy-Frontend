@@ -1,56 +1,71 @@
-import { Pencil } from 'lucide-react';
 import type { ArtifactItem, ArtifactType } from '@/shared/types';
-import { Card } from '@/shared/ui/Card';
-import { ChipList } from '../components/ChipList';
+import { LedgerSection } from '../components/LedgerSection';
 
 export interface ArtifactsSectionProps {
   artifacts: ArtifactItem[];
   onEdit: () => void;
 }
 
-function valuesOf(items: ArtifactItem[], type: ArtifactType): string[] {
-  return items.filter(i => i.type === type).map(i => i.value);
+const GROUPS: { type: ArtifactType; label: string }[] = [
+  { type: 'hobby', label: 'Хобби' },
+  { type: 'club', label: 'Клубы' },
+  { type: 'achievement', label: 'Достижения' },
+  { type: 'profession', label: 'Интересные профессии' },
+  { type: 'university', label: 'Страны и университеты' },
+];
+
+function joinValues(items: ArtifactItem[], type: ArtifactType): string | null {
+  const values = items.filter((i) => i.type === type).map((i) => i.value);
+  return values.length ? values.join(', ') : null;
 }
 
-// Mirrors the onboarding "Твои увлечения и цели" step's own groups
-// (see ArtifactsSetupPage) so this reads as the same data, not a re-sorted
-// view of it.
+// Mirrors the onboarding "Твои увлечения и цели" step's own groups (see
+// ArtifactsSetupPage) so this reads as the same data, laid out as the
+// ledger reference's label/value rows instead of a chip list.
 export function ArtifactsSection({ artifacts, onEdit }: ArtifactsSectionProps) {
   const hasAny = artifacts.length > 0;
-  const dream = artifacts.find(i => i.type === 'goal')?.value;
+  const dream = joinValues(artifacts, 'goal');
+  const rows = GROUPS.map((g) => ({ ...g, value: joinValues(artifacts, g.type) })).filter((r) => r.value);
 
   return (
-    <Card className="bg-transparent">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-mono text-tiny font-bold uppercase tracking-label text-muted">Увлечения и цели</h2>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="flex items-center gap-[6px] text-brand font-extrabold hover:opacity-75 transition-opacity text-sm"
-          aria-label={hasAny ? 'Редактировать увлечения и цели' : 'Добавить увлечения и цели'}
-        >
-          <Pencil size={13} />
-          {hasAny ? 'Изменить' : 'Добавить'}
-        </button>
-      </div>
-
+    <LedgerSection
+      id="artifacts"
+      number="03"
+      title="УВЛЕЧЕНИЯ"
+      editLabel={hasAny ? 'Изменить' : 'Добавить'}
+      editAriaLabel={hasAny ? 'Редактировать увлечения и цели' : 'Добавить увлечения и цели'}
+      onEdit={onEdit}
+    >
       {hasAny ? (
-        <>
-          <ChipList label="Хобби и занятия" items={valuesOf(artifacts, 'hobby')} />
-          <ChipList label="Кружки и секции" items={valuesOf(artifacts, 'club')} />
-          <ChipList label="Достижения" items={valuesOf(artifacts, 'achievement')} />
-          <ChipList label="Интересные профессии" items={valuesOf(artifacts, 'profession')} />
-          <ChipList label="Страны и университеты" items={valuesOf(artifacts, 'university')} />
-          {dream && (
-            <div className="mb-4 last:mb-0">
-              <p className="font-extrabold text-primary text-sm mb-2.5">Мечта</p>
-              <p className="text-secondary text-sm">{dream}</p>
+        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+          {rows.map((r) => (
+            <div key={r.type} className="flex flex-col gap-1">
+              <p className="text-caption text-secondary">{r.label}</p>
+              <p className="text-body-md text-primary">{r.value}</p>
             </div>
-          )}
-        </>
+          ))}
+          <div className="flex flex-col gap-1">
+            <p className="text-caption text-secondary">Мечта</p>
+            {dream ? (
+              <p className="text-body-md text-primary">{dream}</p>
+            ) : (
+              <p className="text-body-sm text-secondary flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent flex-none" aria-hidden="true" />
+                Пока пусто —{' '}
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="text-brand font-bold hover:opacity-75 transition-opacity"
+                >
+                  рассказать
+                </button>
+              </p>
+            )}
+          </div>
+        </div>
       ) : (
-        <p className="text-secondary text-sm">Пока пусто — можно рассказать о своих увлечениях и целях</p>
+        <p className="text-body-sm text-secondary">Пока пусто — можно рассказать о своих увлечениях и целях</p>
       )}
-    </Card>
+    </LedgerSection>
   );
 }

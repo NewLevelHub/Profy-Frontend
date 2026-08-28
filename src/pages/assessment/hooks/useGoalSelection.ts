@@ -114,6 +114,14 @@ export function useGoalSelection() {
     setRestartOpen(false);
   }
 
+  // No assessment has been started yet at this point (picking a goal is
+  // what starts one) — leaving here is a plain navigation, nothing to save
+  // or confirm. Back to /results, which shows the "not started" prompt
+  // again so the test stays one tap away whenever the student is ready.
+  function handleSkip() {
+    navigate('/results');
+  }
+
   return {
     ageGroup,
     isLoading: startMutation.isPending,
@@ -127,5 +135,6 @@ export function useGoalSelection() {
     handleStartNew,
     handleViewResults,
     handleConfirmRestart,
+    handleSkip,
   };
 }

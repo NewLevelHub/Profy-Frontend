@@ -64,12 +64,11 @@ export default function PairAssessmentPage() {
 
         {phase === 'intro' && (
           <AssessmentIntro
-            emoji="🧭"
             kicker="Узнаём тебя"
             title="Выбирай, что тебе ближе"
             subtitle="Правильных и неправильных ответов здесь нет"
-            itemCountLabel={`📝 ${totalPairs} вопросов`}
-            durationLabel={`⏱ ~${Math.max(1, Math.ceil(totalPairs / 20))} мин`}
+            itemCountLabel={`${totalPairs} вопросов`}
+            durationLabel={`~${Math.max(1, Math.ceil(totalPairs / 20))} мин`}
             ctaLabel="Начать тест"
             onStart={handleStartIntro}
           />

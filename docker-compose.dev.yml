@@ -1,0 +1,19 @@
+services:
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    pull_policy: always
+    container_name: profy_frontend_dev
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - profi_network_dev
+      - profi_edge
+
+networks:
+  profi_network_dev:
+    external: true
+    name: profi_network_dev
+  profi_edge:
+    external: true
+    name: ${PROFI_EDGE_NETWORK_NAME:-profi-backend_profi_network}

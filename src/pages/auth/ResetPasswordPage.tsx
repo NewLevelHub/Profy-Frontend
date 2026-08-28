@@ -95,6 +95,8 @@ export default function ResetPasswordPage() {
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setResendMessage('Подождите перед повторной отправкой');
+      } else if (axios.isAxiosError(err) && err.response?.status === 404) {
+        setResendMessage('Аккаунт с таким email не найден');
       } else {
         setResendMessage('Не удалось отправить код. Попробуйте позже');
       }

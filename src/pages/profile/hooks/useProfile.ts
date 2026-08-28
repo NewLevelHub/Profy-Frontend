@@ -4,6 +4,8 @@ import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
+import { useOnboardingDraftStore } from '@/pages/onboarding/onboardingDraftStore';
+import type { IdentityRailSection } from '../sections/IdentityRail';
 
 export function useProfile() {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ export function useProfile() {
   // /results). If nothing's been completed yet, the junior strengths section
   // shows a real empty state instead.
   const report = useResultStore((s) => s.report);
+  const setProfileDraft = useOnboardingDraftStore((s) => s.setProfileDraft);
 
   const displayName = profile?.name?.trim() || user?.name?.trim() || 'Пользователь';
   const initial = displayName[0]?.toUpperCase() ?? '?';
@@ -41,6 +44,23 @@ export function useProfile() {
   // returns artifacts embedded) rather than a separate request.
   const artifacts = profile?.artifacts ?? [];
 
+  // Same sourcing as `artifacts` above — GET /profile embeds certificates
+  // and gpa_value/gpa_scale directly, no separate fetch needed.
+  const certificates = profile?.certificates ?? [];
+  const gpaValue = profile?.gpa_value ?? null;
+  const gpaScale = profile?.gpa_scale ?? null;
+  const hasCertificates = certificates.length > 0 || (gpaValue != null && gpaScale != null);
+
+  const railSections: IdentityRailSection[] = profile
+    ? [
+        { id: 'personal', number: '01', label: 'Личные данные' },
+        ...(hasSubjects ? [{ id: 'subjects', number: '02', label: 'Предметы' }] : []),
+        { id: 'artifacts', number: '03', label: 'Увлечения и цели' },
+        { id: 'certificates', number: '04', label: 'Сертификаты и GPA', status: hasCertificates ? undefined : '—' },
+        { id: 'settings', number: '05', label: 'Настройки' },
+      ]
+    : [];
+
   function handleLogout() {
     logout();
     navigate('/login', { replace: true });
@@ -61,6 +81,42 @@ export function useProfile() {
     setConfirmRestart(false);
   }
 
+  function handleEditPersonal() {
+    navigate('/onboarding/profile');
+  }
+
+  function handleEditSubjects() {
+    navigate('/onboarding/profile', { state: { resumeAtLastStep: true } });
+  }
+
+  // "Изменить"/"Добавить" on artifacts used to drop straight onto the
+  // standalone tabbed editor. Parking a draft here first makes
+  // useArtifactsSetup treat this the same as arriving from ProfileSetupPage
+  // (isLinearFlow) — same onboarding-style shell, landing on the merged
+  // "activities" screen (step 3 of 4), not a separate boxed page. Personal
+  // fields go along unchanged (PUT re-sends the same values), only the
+  // artifacts actually change.
+  function handleEditArtifacts() {
+    if (!profile) return;
+    setProfileDraft({
+      name: profile.name,
+      age: String(profile.age),
+      grade: String(profile.grade),
+      city: profile.city,
+      country: profile.country,
+      language: profile.language,
+      subjectsLike: profile.subjects_liked,
+      subjectsDislike: profile.subjects_disliked,
+      subjectsEasy: profile.subjects_easy,
+      subjectsHard: profile.subjects_hard,
+    });
+    navigate('/onboarding/artifacts');
+  }
+
+  function handleEditCertificates() {
+    navigate('/profile/certificates');
+  }
+
   return {
     profile,
     displayName,
@@ -68,11 +124,19 @@ export function useProfile() {
     isJunior,
     hasSubjects,
     artifacts,
+    certificates,
+    gpaValue,
+    gpaScale,
+    railSections,
     strengthCards: report?.strength_cards ?? [],
     confirmRestart,
     handleLogout,
     handleRestartRequest,
     handleRestartConfirm,
     handleRestartCancel,
+    handleEditPersonal,
+    handleEditSubjects,
+    handleEditArtifacts,
+    handleEditCertificates,
   };
 }

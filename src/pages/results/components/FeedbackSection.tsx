@@ -9,6 +9,10 @@ interface FeedbackSectionProps {
 }
 
 const RELEVANCE_SCALE = [1, 2, 3, 4, 5];
+// Mirrors the backend's ProductFeedbackCreate.comment (app/schemas/feedback.py) —
+// a character cap, not a word cap. Enforced here via maxLength so typing/pasting
+// past it is simply impossible, instead of failing with a 422 on submit.
+const COMMENT_MAX_LENGTH = 2000;
 
 type SubmitState = 'idle' | 'submitting' | 'sent' | 'error';
 
@@ -136,12 +140,18 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
           onChange={(e) => setComment(e.target.value)}
           placeholder="Необязательно — что угодно, коротко или подробно"
           rows={3}
+          maxLength={COMMENT_MAX_LENGTH}
           className={cn(
             'w-full bg-transparent border-[1.5px] border-default rounded-[var(--radius)] px-3 py-2.5',
             'text-body text-primary placeholder:text-placeholder resize-none transition-colors',
             'focus:outline-none focus:border-brand',
           )}
         />
+        {comment.length > COMMENT_MAX_LENGTH * 0.9 && (
+          <p className="text-caption text-muted self-end">
+            {comment.length} / {COMMENT_MAX_LENGTH}
+          </p>
+        )}
       </div>
 
       {state === 'error' && (
