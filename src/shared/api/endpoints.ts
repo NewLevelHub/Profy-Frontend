@@ -3,6 +3,7 @@ export const API = {
     me: '/auth/me',
     register: '/auth/register',
     login: '/auth/login',
+    google: '/auth/google',
     verifyEmail: '/auth/verify-email',
     resendVerification: '/auth/resend-verification',
     forgotPassword: '/auth/forgot-password',
