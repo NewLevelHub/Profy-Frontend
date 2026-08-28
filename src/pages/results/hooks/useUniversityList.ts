@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
 import { universityApi } from '@/shared/api/university';
@@ -70,15 +70,19 @@ export function useUniversityList() {
     enabled: !!slug && isAllowed,
   });
 
-  const handleCountryChange = (country: string | undefined) => {
+  // Stable identities: these are passed down through ProgramListSection to
+  // every memo'd ProgramCard. A fresh closure each render would defeat the
+  // memo and re-render all 50 cards (and re-run their image logic) on any
+  // parent update — e.g. a React Query background refetch.
+  const handleCountryChange = useCallback((country: string | undefined) => {
     setActiveCountry(country);
     // If country is undefined ('Все'), default to 'asc' (best to worst). Else default to 'desc' (worst to best).
     setSortDirection(country === undefined ? 'asc' : 'desc');
-  };
+  }, []);
 
-  const toggleSortDirection = () => {
+  const toggleSortDirection = useCallback(() => {
     setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-  };
+  }, []);
 
   // Only countries actually present in this direction's programs — a static
   // predefined list would show filters with nothing behind them (or miss
@@ -103,9 +107,9 @@ export function useUniversityList() {
     return [...filtered].sort((a, b) => compareByRank(a, b, getScore, sortDirection));
   }, [allPrograms, activeCountry, sortDirection]);
 
-  function handleProgramClick(programId: string) {
+  const handleProgramClick = useCallback((programId: string) => {
     navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
-  }
+  }, [navigate, slug]);
 
   return {
     slug,

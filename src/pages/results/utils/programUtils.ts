@@ -1,67 +1,66 @@
 import type { UniversityBrief } from '@/shared/types';
 
+const KZ_COUNTRY_NAMES = new Set(['Казахстан', 'Kazakhstan', 'KZ', 'Қазақстан']);
+
 /**
- * Returns one label per rating scale the university actually has data for —
- * never merged into a single string. A university can legitimately appear on
- * two incomparable scales at once (a general cross-country ranking and a
- * KZ-only UniRanks position), so callers should render each entry as its own
- * chip rather than joining them. `ranking_label` itself also routinely packs
- * multiple ranking claims into one free-text string, comma/semicolon
- * separated (e.g. "#7 (QS World Rankings, 2026), #3 в мире по инженерии и
- * технологиям" — a global rank and a subject-specific one in the same
- * field), which both overflows the card as one chip and hides that these are
- * two different, non-comparable facts — so it's split into one chip per
- * clause. The split only fires at paren-depth 0, so the comma between a
- * rating name and its year inside "(QS World Rankings, 2026)" stays part of
- * the same clause instead of becoming its own chip. See
- * university-cards-ux-fix-plan.md §1/§3.
+ * The card grid shows `university.image_url` in a ~380x128 box, but that URL
+ * points at the full export (up to 1600px / ~2 MP). Compositing a dozen of
+ * those per scroll tick is what makes the list stutter. `scripts/
+ * generate_card_thumbnails.py` writes a `<slug>.card.webp` variant (~560px)
+ * next to every `<slug>.webp`; this rewrites the URL to ask for it. The
+ * caller must keep the original as an onError fallback so a missing variant
+ * (thumbnail script not yet run, or a future S3 backend) degrades to the
+ * full image instead of a broken one. When the API grows a real
+ * `card_image_url` field, delete this and read the field.
  */
-/**
- * Splits on top-level `,`/`;` only — a separator *inside* parentheses (e.g.
- * the ", 2026" in "#3 (QS World University Rankings, 2026)") stays attached
- * to its clause instead of becoming its own chip.
- */
-function splitClausesOutsideParens(text: string): string[] {
-  const clauses: string[] = [];
-  let depth = 0;
-  let current = '';
-
-  for (const char of text) {
-    if (char === '(') depth++;
-    else if (char === ')') depth = Math.max(0, depth - 1);
-
-    if ((char === ',' || char === ';') && depth === 0) {
-      clauses.push(current);
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  clauses.push(current);
-
-  return clauses.map(clause => clause.trim()).filter(Boolean);
+export function cardImageUrl(imageUrl: string): string {
+  return imageUrl.replace(/\/universities\/([^/]+)\.webp$/, '/universities/$1.card.webp');
 }
 
+/**
+ * One ranking chip, in a single unified shape for every university, so a card
+ * never shows two differently-worded rank numbers side by side (the old code
+ * could render "#8 (QS World Rankings 2026)" from `ranking_label` next to
+ * "#12 в мире (UNIRANKS)" from `uniranks_world_rank` — two global ranks on two
+ * incomparable scales, written two different ways).
+ *
+ * Product rule (chosen 2026-08-28): every displayed number comes from ONE
+ * rating system, UniRanks, so the chips are actually comparable across
+ * universities —
+ *   - Kazakhstani university → its position inside the country
+ *     ("UniRanks · #N в Казахстане");
+ *   - foreign university → its world position ("UniRanks · #N в мире").
+ * `uniranks_world_rank` is used first for a foreign university; the parsed
+ * QS World number (`ranking`) is only a fallback so a card isn't left with no
+ * rank at all when UniRanks has no entry for it — and even then it's rendered
+ * in the same "система · #N в мире" shape, never as raw `ranking_label` text.
+ * The free-text `ranking_label` (subject ranks, THE, "#1 в Азии", prose like
+ * "Спец. вуз МО РК") is deliberately not shown here any more — it was the
+ * main source of the mixed-format confusion.
+ *
+ * Returns an array (0 or 1 entries) so the existing call sites
+ * (UniversityRankBadges, ProgramDetailPage) don't need to change shape.
+ */
 export function getUniversityRankingLabels(
-  uni: Pick<UniversityBrief, 'ranking' | 'ranking_label' | 'uniranks_kz_rank' | 'uniranks_world_rank'>
+  uni: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>
 ): string[] {
-  const labels: string[] = [];
+  const positive = (v: number | null | undefined): number | null =>
+    v !== null && v !== undefined && v > 0 ? v : null;
 
-  if (uni.ranking_label) {
-    labels.push(...splitClausesOutsideParens(uni.ranking_label));
-  } else if (uni.ranking !== null && uni.ranking !== undefined && uni.ranking > 0) {
-    labels.push(`#${uni.ranking} в общем рейтинге`);
+  const kzRank = positive(uni.uniranks_kz_rank);
+  const worldRank = positive(uni.uniranks_world_rank);
+  const qsWorld = positive(uni.ranking);
+  const isKz = KZ_COUNTRY_NAMES.has((uni.country ?? '').trim());
+
+  if (isKz) {
+    if (kzRank !== null) return [`UniRanks · #${kzRank} в Казахстане`];
+    if (worldRank !== null) return [`UniRanks · #${worldRank} в мире`];
+    return [];
   }
 
-  if (uni.uniranks_kz_rank !== null && uni.uniranks_kz_rank !== undefined && uni.uniranks_kz_rank > 0) {
-    labels.push(
-      uni.uniranks_world_rank
-        ? `#${uni.uniranks_kz_rank} в РК / #${uni.uniranks_world_rank} в мире`
-        : `#${uni.uniranks_kz_rank} в РК`
-    );
-  }
-
-  return labels;
+  if (worldRank !== null) return [`UniRanks · #${worldRank} в мире`];
+  if (qsWorld !== null) return [`QS World · #${qsWorld} в мире`];
+  return [];
 }
 
 /**
