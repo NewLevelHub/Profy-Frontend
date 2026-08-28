@@ -7,6 +7,8 @@ export type { InputProps } from './Input';
 export { Card } from './Card';
 export type { CardProps } from './Card';
 
+export { LazyMedia } from './LazyMedia';
+
 export { ProgressBar } from './ProgressBar';
 export type { ProgressBarProps, ProgressBarVariant } from './ProgressBar';
 

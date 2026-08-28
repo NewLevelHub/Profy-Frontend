@@ -55,6 +55,7 @@ jobs:
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL || '/api/v1' }}
             VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'Profy' }}
+            VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

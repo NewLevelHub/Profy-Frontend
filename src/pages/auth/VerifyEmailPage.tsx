@@ -127,7 +127,9 @@ function OtpVerify({ email }: { email: string }) {
     setResendCountdown(RESEND_SECONDS);
     try {
       await authApi.resendVerification(email);
-      setResendMessage('Новый код отправлен на почту');
+      // Бэкенд всегда отвечает 204 независимо от того, существует ли
+      // аккаунт с этим email — не утверждаем, что письмо точно ушло.
+      setResendMessage('Если аккаунт существует — письмо с кодом уже отправлено');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setResendMessage('Подождите перед повторной отправкой');

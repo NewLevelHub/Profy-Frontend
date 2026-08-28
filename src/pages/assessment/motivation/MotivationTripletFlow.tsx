@@ -71,12 +71,11 @@ export default function MotivationTripletFlow() {
 
         {phase === 'intro' && (
           <AssessmentIntro
-            emoji="🔥"
             kicker="Последний блок"
             title="Что тебя драйвит"
             subtitle="В каждом вопросе расставь варианты по приоритету — от самого важного до наименее важного"
-            itemCountLabel={`📝 ${totalTriplets} вопросов`}
-            durationLabel="⏱ ~2 мин"
+            itemCountLabel={`${totalTriplets} вопросов`}
+            durationLabel="~2 мин"
             ctaLabel="Начать"
             onStart={handleStartIntro}
           />

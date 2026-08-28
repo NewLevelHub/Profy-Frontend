@@ -1,134 +1,69 @@
-import { useNavigate } from 'react-router';
-import { LogOut } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
-import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
-import { useOnboardingDraftStore } from '@/pages/onboarding/onboardingDraftStore';
 import { useProfile } from './hooks/useProfile';
 import { ProfileHero } from './sections/ProfileHero';
-import { PersonalInfoSection } from './sections/PersonalInfoSection';
-import { SubjectsSection } from './sections/SubjectsSection';
-import { ArtifactsSection } from './sections/ArtifactsSection';
-import { RestartAssessmentSection } from './sections/RestartAssessmentSection';
-import { SoundSettingsSection } from './sections/SoundSettingsSection';
+import { ProfileLedger } from './sections/ProfileLedger';
 import { SelfDescriptionSection } from './sections/junior/SelfDescriptionSection';
 import { StrengthsSection } from './sections/junior/StrengthsSection';
+
+// Same entrance animation as ResultsPage's AnimatedBlock (results-report
+// "opening" feel, reused here per request) — kept page-local to match that
+// precedent rather than extracting a shared wrapper for a single reuse.
+function AnimatedBlock({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ animation: 'fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both' }}>
+      {children}
+    </div>
+  );
+}
 
 // Same layout scale/radii/grid for every age — the difference is in block
 // composition and access, not the visual system (design spec §12). Junior
 // (under-12, "Мои штуки") gets a lighter, content-only page: what they told
-// us about themselves + their strengths. Everything settings/account-shaped
-// (password, email, parent access, attempt history) is explicitly withheld —
-// there is no `/parent` surface anywhere in this app yet (see
-// ParentAccessSection's header comment), so the footer just tells the child
-// where that lives conceptually rather than linking to a page that doesn't
-// exist. Restart/sound/logout stay available to every age — those are real
-// device-level affordances a child still needs, not "settings" in the
-// parent-only sense the spec withholds.
+// us about themselves + their strengths. Everyone else gets the full
+// "vedomost" ledger — identity rail + numbered sections (see ProfileLedger).
+// Settings/account-shaped affordances (password, email, parent access,
+// attempt history) stay withheld for junior — there is no `/parent` surface
+// anywhere in this app yet (see ParentAccessSection's header comment), so
+// the footer just tells the child where that lives conceptually rather than
+// linking to a page that doesn't exist.
 export default function ProfilePage() {
-  const navigate = useNavigate();
-  const {
-    profile,
-    displayName,
-    isJunior,
-    hasSubjects,
-    artifacts,
-    strengthCards,
-    confirmRestart,
-    handleLogout,
-    handleRestartRequest,
-    handleRestartConfirm,
-    handleRestartCancel,
-  } = useProfile();
-  const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
-  const setProfileDraft = useOnboardingDraftStore(s => s.setProfileDraft);
-
-  // "Изменить"/"Добавить" on artifacts used to drop straight onto the
-  // standalone tabbed editor. Parking a draft here first makes
-  // useArtifactsSetup treat this the same as arriving from ProfileSetupPage
-  // (isLinearFlow) — same onboarding-style shell, landing on the merged
-  // "activities" screen (step 3 of 4), not a separate boxed page. Personal
-  // fields go along unchanged (PUT re-sends the same values), only the
-  // artifacts actually change.
-  function handleEditArtifacts() {
-    if (!profile) return;
-    setProfileDraft({
-      name: profile.name,
-      age: String(profile.age),
-      grade: String(profile.grade),
-      city: profile.city,
-      country: profile.country,
-      language: profile.language,
-      subjectsLike: profile.subjects_liked,
-      subjectsDislike: profile.subjects_disliked,
-      subjectsEasy: profile.subjects_easy,
-      subjectsHard: profile.subjects_hard,
-    });
-    navigate('/onboarding/artifacts');
-  }
+  const { profile, displayName, isJunior, strengthCards } = useProfile();
 
   return (
     <PageContainer className="space-y-6 lg:space-y-8">
-      <PageHeader title="Профиль" />
-
-      <ProfileHero
-        isJunior={isJunior}
-        displayName={displayName}
-        age={profile?.age}
-        grade={profile?.grade}
-      />
-
       {!profile ? (
-        <Card className="flex flex-col items-center py-10 text-center bg-transparent">
-          <span className="text-5xl mb-3" aria-hidden="true">📝</span>
-          <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
-          <p className="text-body text-secondary">
-            Данные появятся после прохождения настройки профиля
-          </p>
-        </Card>
+        <AnimatedBlock>
+          <Card className="flex flex-col items-center py-10 text-center bg-transparent">
+            <span className="text-5xl mb-3" aria-hidden="true">📝</span>
+            <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
+            <p className="text-body text-secondary">
+              Данные появятся после прохождения настройки профиля
+            </p>
+          </Card>
+        </AnimatedBlock>
       ) : isJunior ? (
         <>
-          <SelfDescriptionSection />
-          <StrengthsSection cards={strengthCards} />
-          <p className="text-secondary text-center" style={{ fontSize: 15 }}>
-            Настройки и почта — у мамы. Если что-то нужно поменять, скажи ей.
-          </p>
+          <AnimatedBlock>
+            <ProfileHero isJunior displayName={displayName} age={profile.age} grade={profile.grade} />
+          </AnimatedBlock>
+          <AnimatedBlock>
+            <SelfDescriptionSection />
+          </AnimatedBlock>
+          <AnimatedBlock>
+            <StrengthsSection cards={strengthCards} />
+          </AnimatedBlock>
+          <AnimatedBlock>
+            <p className="text-secondary text-center" style={{ fontSize: 15 }}>
+              Настройки и почта — у мамы. Если что-то нужно поменять, скажи ей.
+            </p>
+          </AnimatedBlock>
         </>
       ) : (
-        <>
-          <PersonalInfoSection profile={profile} onEdit={() => navigate('/onboarding/profile')} />
-          {hasSubjects && (
-            <SubjectsSection
-              profile={profile}
-              onEdit={() => navigate('/onboarding/profile', { state: { resumeAtLastStep: true } })}
-            />
-          )}
-          <ArtifactsSection artifacts={artifacts} onEdit={handleEditArtifacts} />
-        </>
+        <AnimatedBlock>
+          <ProfileLedger />
+        </AnimatedBlock>
       )}
-
-      <div className="flex flex-col gap-4">
-        <SoundSettingsSection
-          soundEnabled={soundEnabled}
-          toggleSound={toggleSound}
-          prefersReducedMotion={prefersReducedMotion}
-        />
-        <RestartAssessmentSection
-          confirmRestart={confirmRestart}
-          onRequest={handleRestartRequest}
-          onConfirm={handleRestartConfirm}
-          onCancel={handleRestartCancel}
-        />
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="w-full h-[50px] flex items-center justify-center gap-2 text-muted font-extrabold transition-colors hover:text-danger text-label"
-        >
-          <LogOut size={14} />
-          Выйти из аккаунта
-        </button>
-      </div>
     </PageContainer>
   );
 }
