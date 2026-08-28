@@ -30,8 +30,6 @@ export default function ForgotPasswordPage() {
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setFormError('Слишком много запросов. Попробуйте позже');
-      } else if (axios.isAxiosError(err) && err.response?.status === 404) {
-        setFormError('Аккаунт с таким email не найден');
       } else {
         setFormError('Ошибка. Попробуйте позже');
       }
