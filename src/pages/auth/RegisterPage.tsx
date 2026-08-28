@@ -3,7 +3,10 @@ import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
+import { env } from '@/shared/config/env';
+import { useAuthStore } from '@/shared/store/auth';
 import { Button } from '@/shared/ui/Button';
+import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
 
 function validateEmail(email: string): string {
@@ -19,6 +22,7 @@ function validatePassword(password: string): string {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const storeLogin = useAuthStore(s => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,6 +30,7 @@ export default function RegisterPage() {
   const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -58,6 +63,20 @@ export default function RegisterPage() {
       }
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGoogleCredential(idToken: string) {
+    setFormError('');
+    setGoogleSubmitting(true);
+    try {
+      const { access_token, user } = await authApi.googleLogin(idToken);
+      storeLogin(access_token, user);
+      navigate('/results', { replace: true });
+    } catch {
+      setFormError('Не удалось зарегистрироваться через Google. Попробуйте ещё раз');
+    } finally {
+      setGoogleSubmitting(false);
     }
   }
 
@@ -113,6 +132,24 @@ export default function RegisterPage() {
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[34px]">
           {isLoading ? 'Регистрируемся...' : 'Зарегистрироваться'}
         </Button>
+
+        {env.GOOGLE_CLIENT_ID && (
+          <>
+            <div className="flex items-center gap-3 mt-[24px]">
+              <div className="h-px flex-1 bg-[var(--hairline)]" />
+              <span className="text-body-sm text-muted">или</span>
+              <div className="h-px flex-1 bg-[var(--hairline)]" />
+            </div>
+
+            <div className="mt-[16px]">
+              <GoogleSignInButton
+                text="signup_with"
+                disabled={isLoading || googleSubmitting}
+                onCredential={handleGoogleCredential}
+              />
+            </div>
+          </>
+        )}
 
         <div className="text-center mt-[20px] text-body-sm">
           <span className="text-muted">Уже есть аккаунт? </span>

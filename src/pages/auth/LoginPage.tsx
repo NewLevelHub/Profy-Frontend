@@ -3,8 +3,10 @@ import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
+import { env } from '@/shared/config/env';
 import { useAuthStore } from '@/shared/store/auth';
 import { Button } from '@/shared/ui/Button';
+import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
 
 function validateEmail(email: string): string {
@@ -30,6 +32,7 @@ export default function LoginPage() {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendDone, setResendDone] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -61,7 +64,13 @@ export default function LoginPage() {
           setFormError('Неверный email или пароль');
           setTimeout(() => passwordRef.current?.focus(), 0);
         } else if (status === 403) {
-          setNeedsVerification(true);
+          const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
+          if (typeof detail === 'object' && detail !== null && (detail as { detail?: string }).detail === 'google_account') {
+            setFormError('Этот аккаунт зарегистрирован через Google — войдите через кнопку Google ниже');
+            setTimeout(() => passwordRef.current?.focus(), 0);
+          } else {
+            setNeedsVerification(true);
+          }
         } else {
           setFormError('Ошибка. Попробуйте позже');
           setTimeout(() => passwordRef.current?.focus(), 0);
@@ -72,6 +81,23 @@ export default function LoginPage() {
       }
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGoogleCredential(idToken: string) {
+    setFormError('');
+    setNeedsVerification(false);
+    setResendDone(false);
+    setGoogleSubmitting(true);
+    try {
+      const { access_token, user } = await authApi.googleLogin(idToken);
+      storeLogin(access_token, user);
+      const from = (location.state as { from?: string })?.from;
+      navigate(from ?? '/results', { replace: true });
+    } catch {
+      setFormError('Не удалось войти через Google. Попробуйте ещё раз');
+    } finally {
+      setGoogleSubmitting(false);
     }
   }
 
@@ -168,6 +194,24 @@ export default function LoginPage() {
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[34px]">
           {isLoading ? 'Входим...' : 'Войти'}
         </Button>
+
+        {env.GOOGLE_CLIENT_ID && (
+          <>
+            <div className="flex items-center gap-3 mt-[24px]">
+              <div className="h-px flex-1 bg-[var(--hairline)]" />
+              <span className="text-body-sm text-muted">или</span>
+              <div className="h-px flex-1 bg-[var(--hairline)]" />
+            </div>
+
+            <div className="mt-[16px]">
+              <GoogleSignInButton
+                text="signin_with"
+                disabled={isLoading || googleSubmitting}
+                onCredential={handleGoogleCredential}
+              />
+            </div>
+          </>
+        )}
 
         <div className="flex items-center justify-between mt-[20px] text-body-sm">
           <Link
