@@ -82,11 +82,11 @@ export default function RegisterPage() {
 
   return (
     <>
-      <h1 className="auth-headline mt-[26px]">Создать аккаунт</h1>
-      <p className="auth-sub">Займёт меньше минуты — профиль настроим на следующем шаге.</p>
+      <h1 className="auth-card-title">Создать аккаунт</h1>
+      <p className="auth-card-sub">Займёт меньше минуты — профиль настроим на следующем шаге.</p>
 
       <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[32px]">
+        <div className="mt-[28px]">
           <Input
             label="Электронная почта"
             type="email"
@@ -96,10 +96,11 @@ export default function RegisterPage() {
             error={emailError}
             autoCapitalize="none"
             autoComplete="email"
+            autoFocus
           />
         </div>
 
-        <div className="mt-[24px] relative">
+        <div className="mt-[24px]">
           <Input
             ref={passwordRef}
             label="Пароль"
@@ -110,15 +111,18 @@ export default function RegisterPage() {
             onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
             error={passwordError}
             autoComplete="new-password"
+            rightSlot={
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword(v => !v)}
+                className="text-muted hover:text-secondary transition-colors"
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            }
           />
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => setShowPassword(v => !v)}
-            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
         </div>
 
         {formError && (

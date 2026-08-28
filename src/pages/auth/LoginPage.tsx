@@ -115,11 +115,12 @@ export default function LoginPage() {
 
   return (
     <>
-      <h1 className="auth-headline mt-[26px]">С возвращением</h1>
-      <p className="auth-sub">Продолжим с того места, где остановились.</p>
+      <h1 className="auth-card-title">Вход</h1>
+      {/* Дублирует мысль левой колонки — она нужна на телефоне, где колонка скрыта. */}
+      <p className="auth-card-sub">Продолжим с того места, где остановились.</p>
 
       <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[32px]">
+        <div className="mt-[28px]">
           <Input
             label="Email"
             type="email"
@@ -129,10 +130,11 @@ export default function LoginPage() {
             error={emailError}
             autoCapitalize="none"
             autoComplete="email"
+            autoFocus
           />
         </div>
 
-        <div className="mt-[24px] relative">
+        <div className="mt-[24px]">
           <Input
             ref={passwordRef}
             label="Пароль"
@@ -143,15 +145,18 @@ export default function LoginPage() {
             onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
             error={passwordError}
             autoComplete="current-password"
+            rightSlot={
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword(v => !v)}
+                className="text-muted hover:text-secondary transition-colors"
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            }
           />
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => setShowPassword(v => !v)}
-            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
         </div>
 
         {formError && (

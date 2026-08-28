@@ -348,6 +348,85 @@
 }
 
 /* ─── Auth screens ("spine of clarity" entry) ───────────────────────────── */
+/* Появление экрана входа. Раньше анимации не было вовсе: содержимое возникало
+   рывком, а поверх этого веб-шрифты догружались и переверстывали текст — со
+   стороны читалось как дёрганый выезд сбоку. Движение то же, что у .reveal на
+   лендинге: приходит сверху и оседает. `both` держит элемент скрытым до старта,
+   поэтому подмена шрифта происходит, пока блок ещё прозрачный. */
+@keyframes auth-enter {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.auth-enter {
+  animation: auth-enter 620ms cubic-bezier(0.22, 0.68, 0.24, 1) both;
+}
+.auth-enter-2 { animation-delay: 70ms; }
+.auth-enter-3 { animation-delay: 140ms; }
+/* Каскад по образцу .reveal-d1..d6 на лендинге. Колонка, едущая одним куском,
+   читается рывком: 16px разом смещают полтысячи пикселей текста. Когда части
+   приходят по очереди, то же движение воспринимается плавным. */
+.auth-enter-d1 { animation-delay: 70ms; }
+.auth-enter-d2 { animation-delay: 140ms; }
+.auth-enter-d3 { animation-delay: 210ms; }
+.auth-enter-d4 { animation-delay: 280ms; }
+.auth-enter-d5 { animation-delay: 350ms; }
+.auth-enter-d6 { animation-delay: 420ms; }
+@media (prefers-reduced-motion: reduce) {
+  .auth-enter { animation: none; }
+}
+
+/* Фирменный знак — ровно тот же, что в шапке лендинга (.logo): дисплейная
+   гарнитура 700, 1.22rem, трекинг -.045em и точка цветом --dawn. Раньше во
+   входе стоял безымянный span на 22px/600 без точки, и один и тот же логотип
+   выглядел на двух поверхностях по-разному. Точка — единственное место, где
+   тёплый акцент уместен на утилитарном экране: по DESIGN.md dawn помечает
+   находку или текущий шаг, а не украшает форму. */
+.brand-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.22rem;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--midnight);
+}
+.brand-wordmark .brand-dot {
+  color: var(--dawn);
+  margin-left: 0.04em;
+}
+
+/* Та же точечная текстура холста, что на лендинге (body::before) — один приём
+   на обеих поверхностях. Маска гасит её книзу, поэтому она не спорит с
+   карточкой, а только снимает ощущение пустой заливки. */
+/* Мягкий перелив двух оттенков собственной палитры — тот же приём, что уже
+   работает у .pv-glow на лендинге: намёк --pine-light сверху справа и --dawn
+   снизу слева поверх перехода сливки -> беж. Контраст низкий; фон перестаёт
+   быть плоской заливкой, но не спорит с карточкой. Все три остановки —
+   токены, поэтому тёмная тема пересчитывается сама. */
+.auth-page {
+  background:
+    radial-gradient(1100px 620px at 88% 6%, rgba(79, 160, 147, 0.13), transparent 62%),
+    radial-gradient(900px 520px at 6% 96%, rgba(219, 127, 46, 0.09), transparent 60%),
+    linear-gradient(158deg, var(--paper) 0%, var(--fog) 52%, var(--bg-raised) 100%);
+}
+.auth-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(19, 28, 27, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  /* Приглушено с 0.6: поверх перелива прежняя плотность точек мутит фон. */
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: radial-gradient(ellipse 100% 55% at 50% 0%, black 35%, transparent 90%);
+}
+/* В тёмной теме тёмные точки на тёмном фоне не видны — светлим их. */
+.dark .auth-page::before {
+  background-image: radial-gradient(rgba(237, 233, 223, 0.06) 1px, transparent 1px);
+}
+
 /* One column on Fog. Headlines use the display tokens (one display heading
    per auth screen); body copy uses body-md. */
 .auth-headline {
@@ -366,6 +445,78 @@
   line-height: 1.2;
   color: var(--midnight);
 }
+/* Заголовок внутри карточки: на двухколоночном входе крупный заголовок живёт
+   в левой колонке, карточке остаётся короткое имя шага. */
+.auth-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-display-md);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--midnight);
+}
+.auth-card-sub {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  font-weight: 450;
+  color: var(--mute);
+  margin-top: 8px;
+}
+
+/* Левая колонка входа: надзаголовок со штрихом --dawn, как .eyebrow лендинга. */
+.auth-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.auth-eyebrow::before {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 1.5px;
+  background: var(--dawn);
+}
+.auth-aside-headline {
+  margin-top: 20px;
+  /* Резерв под две строки. Заголовки у экранов разной длины: «Вернём доступ —
+     за пару минут» укладывается в одну строку, «Продолжим с того места, где
+     остановились» — в две. Без резерва колонка меняла высоту, и при
+     вертикальном центрировании весь блок подпрыгивал на переходе. Ограничение
+     мягкое: заголовок длиннее двух строк просто вырастет. */
+  min-height: calc(2 * 1.16 * 2.5rem);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.16;
+  color: var(--midnight);
+  text-wrap: balance;
+}
+/* --dawn на кегле заголовка даёт лишь 2.4:1; --dawn-deep — 3.2:1 (см. лендинг). */
+.auth-aside-accent { color: #C06A1E; }
+.auth-block {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.auth-block-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
 .auth-sub {
   font-family: var(--font-sans);
   font-size: var(--text-body-md);

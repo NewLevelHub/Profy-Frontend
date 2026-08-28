@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff, XCircle } from 'lucide-react';
@@ -34,8 +34,14 @@ export default function ResetPasswordPage() {
   const [formError, setFormError] = useState('');
   const [isCodeLoading, setIsCodeLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [resendDisabled, setResendDisabled] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [resendMessage, setResendMessage] = useState('');
+
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const id = window.setTimeout(() => setResendCountdown(s => Math.max(0, s - 1)), 1000);
+    return () => window.clearTimeout(id);
+  }, [resendCountdown]);
 
   function validatePassword(): boolean {
     let valid = true;
@@ -94,12 +100,19 @@ export default function ResetPasswordPage() {
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setFormError('Слишком много попыток. Подождите и попробуйте снова');
-      } else {
+      } else if (axios.isAxiosError(err) && err.response?.status === 400) {
         // Код прошёл проверку на шаге 1, но успел истечь (>15 минут) или был
         // погашен параллельной попыткой — возвращаем на ввод кода, а не
         // показываем ошибку в форме пароля, где пользователь её не ждёт.
+        // Поле чистим: старые цифры уже недействительны, а кнопка шага 1
+        // активна по заполненности — иначе повторный сабмит даст ту же ошибку.
         setStep('code');
+        setCode('');
         setCodeError('Код истёк. Запросите новый и попробуйте снова');
+      } else {
+        // Сеть или 5xx — код тут ни при чём. Не выбрасываем с шага пароля:
+        // введённый пароль сохраняется, человек просто повторяет отправку.
+        setFormError('Ошибка. Попробуйте позже');
       }
     } finally {
       setIsLoading(false);
@@ -109,20 +122,19 @@ export default function ResetPasswordPage() {
   async function handleResend() {
     if (!email) return;
     setResendMessage('');
-    setResendDisabled(true);
+    setResendCountdown(RESEND_SECONDS);
+    // Прошлый код бэкенд гасит при выдаче нового — не оставляем его в поле.
+    setCode('');
+    setCodeError('');
     try {
       await authApi.forgotPassword(email);
-      setResendMessage('Новый код отправлен на почту');
+      setResendMessage('Если аккаунт существует — новый код уже отправлен');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setResendMessage('Подождите перед повторной отправкой');
-      } else if (axios.isAxiosError(err) && err.response?.status === 404) {
-        setResendMessage('Аккаунт с таким email не найден');
       } else {
         setResendMessage('Не удалось отправить код. Попробуйте позже');
       }
-    } finally {
-      setTimeout(() => setResendDisabled(false), RESEND_SECONDS * 1000);
     }
   }
 
@@ -152,7 +164,8 @@ export default function ResetPasswordPage() {
       <>
         <h1 className="auth-headline-sm mt-[20px]">Введите код</h1>
         <p className="auth-sub">
-          Код отправлен на <span className="font-semibold text-primary">{email}</span>.
+          Если аккаунт с адресом <span className="font-semibold text-primary">{email}</span> существует,
+          {' '}код уже отправлен на эту почту.
         </p>
 
         <form onSubmit={handleVerifyCode} noValidate>
@@ -185,17 +198,25 @@ export default function ResetPasswordPage() {
         </form>
 
         <div className="flex flex-col items-center gap-1 mt-[24px]">
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={resendDisabled}
-            className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Отправить код повторно
-          </button>
+          {resendCountdown > 0 ? (
+            <p className="font-mono text-mono-xs tracking-label uppercase text-muted">
+              Отправить заново через {resendCountdown}
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity"
+            >
+              Отправить код повторно
+            </button>
+          )}
           {resendMessage && (
             <p className="text-small text-secondary text-center">{resendMessage}</p>
           )}
+          <p className="text-caption text-muted text-center mt-1">
+            Не пришло письмо? Проверьте папку «Спам» и правильность адреса.
+          </p>
           <Link
             to="/login"
             className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
@@ -213,7 +234,7 @@ export default function ResetPasswordPage() {
       <p className="auth-sub">Придумайте новый пароль для входа.</p>
 
       <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[32px] relative">
+        <div className="mt-[32px]">
           <Input
             label="Новый пароль"
             className="pr-10"
@@ -224,19 +245,22 @@ export default function ResetPasswordPage() {
             error={passwordError}
             autoComplete="new-password"
             autoFocus
+            rightSlot={
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword(v => !v)}
+                className="text-muted hover:text-secondary transition-colors"
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            }
           />
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => setShowPassword(v => !v)}
-            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
           {!passwordError && <PasswordStrengthMeter password={password} />}
         </div>
 
-        <div className="mt-[24px] relative">
+        <div className="mt-[24px]">
           <Input
             label="Повторите пароль"
             className="pr-10"
@@ -246,15 +270,18 @@ export default function ResetPasswordPage() {
             onChange={e => { setConfirm(e.target.value); setConfirmError(''); }}
             error={confirmError}
             autoComplete="new-password"
+            rightSlot={
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowConfirm(v => !v)}
+                className="text-muted hover:text-secondary transition-colors"
+                aria-label={showConfirm ? 'Скрыть пароль' : 'Показать пароль'}
+              >
+                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            }
           />
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => setShowConfirm(v => !v)}
-            className="absolute right-0 bottom-[11px] text-muted hover:text-secondary transition-colors"
-          >
-            {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
         </div>
 
         {formError && (
@@ -267,9 +294,6 @@ export default function ResetPasswordPage() {
       </form>
 
       <div className="flex flex-col items-center gap-1 mt-[24px]">
-        {resendMessage && (
-          <p className="text-small text-secondary text-center">{resendMessage}</p>
-        )}
         <Link
           to="/login"
           className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
