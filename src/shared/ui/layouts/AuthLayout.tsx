@@ -153,13 +153,16 @@ export function AuthLayout() {
       {/* Логотип живёт внутри той же колонки шириной 1180, что и содержимое:
           так он встаёт ровно над левым краем текста, а не жмётся к углу окна. */}
       <div className="relative z-[1] w-full mx-auto" style={{ maxWidth: 1180 }}>
-        {/* Пока не ссылка: лендинг приезжает следующим тикетом, и до его мержа
-            переход по env.LANDING_URL упирался бы в 404. Адрес уже настроен —
-            останется обернуть знак в <a href={env.LANDING_URL}>. */}
-        <span className="brand-wordmark auth-enter inline-flex mb-8 lg:mb-0">
+        {/* Обычная <a>, а не <Link>: лендинг — статическая страница из public/,
+            она живёт вне SPA и требует полной перезагрузки. */}
+        <a
+          href={env.LANDING_URL}
+          className="brand-wordmark auth-enter inline-flex mb-8 lg:mb-0 hover:opacity-70 transition-opacity"
+          aria-label="На главную"
+        >
           {env.APP_NAME}
           <span className="brand-dot" aria-hidden="true">.</span>
-        </span>
+        </a>
       </div>
 
       <div className="relative z-[1] flex-1 flex items-center justify-center">
