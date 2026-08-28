@@ -33,6 +33,14 @@ export interface ProfilePayload {
    *  and artifacts together in one transaction. Omit to keep using the old
    *  two-call flow (POST /profile, then POST /profile/artifacts). */
   artifacts?: ArtifactItem[];
+  /** Same optional/atomic-write contract as `artifacts`, backed by
+   *  POST/PUT /profile/certificates when sent standalone. */
+  certificates?: CertificateItem[];
+  /** A single scalar pair (unlike artifacts/certificates, which are lists).
+   *  `null`/omitted means "no GPA recorded yet" on create, or "leave
+   *  untouched" on update — see profileApi.update and useCertificatesEdit. */
+  gpa_value?: number | null;
+  gpa_scale?: GpaScale | null;
 }
 
 export interface ProfileResponse extends ProfilePayload {
@@ -42,6 +50,8 @@ export interface ProfileResponse extends ProfilePayload {
   /** Always present on the response now, even if `artifacts` wasn't sent
    *  in the request (empty array in that case). */
   artifacts: ArtifactItem[];
+  /** Same semantics as `artifacts`, backed by certificate_service instead. */
+  certificates: CertificateItem[];
 }
 
 // ─── Artifacts ─────────────────────────────────────────────────────────────────
@@ -63,6 +73,20 @@ export interface ArtifactItem {
   type: ArtifactType;
   value: string;
 }
+
+// ─── Certificates & GPA ──────────────────────────────────────────────────────────
+
+export type CertificateType = 'ielts' | 'unt' | 'sat' | 'toefl';
+
+export interface CertificateItem {
+  type: CertificateType;
+  score: number;
+}
+
+/** The grading scale a profile's `gpa_value` is expressed on — the label IS
+ *  the scale's max (e.g. '4' = 4.0-point scale). Mirrors the backend's
+ *  GpaScale (app/models/profile.py). */
+export type GpaScale = '4' | '5' | '10' | '100';
 
 // ─── Assessment ────────────────────────────────────────────────────────────────
 
@@ -537,6 +561,7 @@ export interface UniversityBrief {
   uniranks_kz_rank: number | null;
   uniranks_world_rank: number | null;
   description: string | null;
+  image_url: string | null;
 }
 
 export interface ProgramGrant {
@@ -574,6 +599,10 @@ export interface UniversityRequirement {
   has_military_department: boolean | null;
   admissions_contacts: Record<string, string>;
   notes: string[];
+  // null = not specifically researched; false = confirmed this university
+  // doesn't require ENT at all (show "не требуется", not "не установлен");
+  // true = confirmed it does (plus its own additional test, see notes).
+  requires_ent: boolean | null;
 }
 
 export interface ProgramBrief {

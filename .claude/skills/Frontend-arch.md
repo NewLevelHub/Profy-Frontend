@@ -118,7 +118,7 @@ export default function FeaturePage() {
 
 **Artifact types:** `hobby` · `club` · `sport` · `achievement` · `goal` · `book` · `game` · `topic` · `profession` · `university` · `dream`
 
-**Routes:** `/login` `/register` `/verify-email` `/forgot-password` `/reset-password` `/welcome` `/onboarding/profile` `/onboarding/artifacts` `/assessment/goal` `/assessment` `/assessment/praise` `/assessment/loading` `/home` `/results` `/profile` `/roadmap` `/results/directions/:slug` → universities → program → gap
+**Routes:** `/login` `/register` `/verify-email` `/forgot-password` `/reset-password` `/welcome` `/onboarding/profile` `/onboarding/artifacts` `/assessment/goal` `/assessment` `/assessment/praise` `/assessment/loading` `/home` `/results` `/profile` `/profile/certificates` `/roadmap` `/results/directions/:slug` → universities → program → gap
 
 ---
 
