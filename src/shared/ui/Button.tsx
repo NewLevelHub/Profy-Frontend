@@ -26,7 +26,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           onClick?.(event);
         }}
         className={cn(
-          'inline-flex items-center justify-center gap-2 font-medium font-sans rounded-[var(--radius)] transition-colors',
+          // 600, как у .btn на лендинге: на заливке --pine вес 500 читался бледнее
+          // той же кнопки на посадочной странице.
+          'inline-flex items-center justify-center gap-2 font-semibold font-sans rounded-[var(--radius)] transition-colors',
           'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
           // Instant tactile feedback on press (Emil Kowalski) — shared by every

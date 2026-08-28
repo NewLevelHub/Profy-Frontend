@@ -15,6 +15,10 @@ jobs:
   build_and_push:
     name: Build and push production image
     runs-on: ubuntu-latest
+    # Required for `vars.*` below to resolve environment-scoped variables
+    # (e.g. VITE_GOOGLE_CLIENT_ID) — without this the job only sees
+    # repository-level vars, and environment ones silently resolve empty.
+    environment: production
 
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +59,7 @@ jobs:
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL || '/api/v1' }}
             VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'Profy' }}
+            VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

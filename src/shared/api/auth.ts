@@ -12,6 +12,9 @@ export const authApi = {
   login: (email: string, password: string) =>
     apiClient.post<TokenResponse>(API.auth.login, { email, password }).then(r => r.data),
 
+  googleLogin: (idToken: string) =>
+    apiClient.post<TokenResponse>(API.auth.google, { id_token: idToken }).then(r => r.data),
+
   verifyEmailByCode: (email: string, code: string) =>
     apiClient.post<TokenResponse>(API.auth.verifyEmail, { email, code }).then(r => r.data),
 
