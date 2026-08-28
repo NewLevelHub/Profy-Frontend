@@ -6,6 +6,17 @@ import { ProfileLedger } from './sections/ProfileLedger';
 import { SelfDescriptionSection } from './sections/junior/SelfDescriptionSection';
 import { StrengthsSection } from './sections/junior/StrengthsSection';
 
+// Same entrance animation as ResultsPage's AnimatedBlock (results-report
+// "opening" feel, reused here per request) — kept page-local to match that
+// precedent rather than extracting a shared wrapper for a single reuse.
+function AnimatedBlock({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ animation: 'fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both' }}>
+      {children}
+    </div>
+  );
+}
+
 // Same layout scale/radii/grid for every age — the difference is in block
 // composition and access, not the visual system (design spec §12). Junior
 // (under-12, "Мои штуки") gets a lighter, content-only page: what they told
@@ -22,24 +33,36 @@ export default function ProfilePage() {
   return (
     <PageContainer className="space-y-6 lg:space-y-8">
       {!profile ? (
-        <Card className="flex flex-col items-center py-10 text-center bg-transparent">
-          <span className="text-5xl mb-3" aria-hidden="true">📝</span>
-          <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
-          <p className="text-body text-secondary">
-            Данные появятся после прохождения настройки профиля
-          </p>
-        </Card>
+        <AnimatedBlock>
+          <Card className="flex flex-col items-center py-10 text-center bg-transparent">
+            <span className="text-5xl mb-3" aria-hidden="true">📝</span>
+            <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
+            <p className="text-body text-secondary">
+              Данные появятся после прохождения настройки профиля
+            </p>
+          </Card>
+        </AnimatedBlock>
       ) : isJunior ? (
         <>
-          <ProfileHero isJunior displayName={displayName} age={profile.age} grade={profile.grade} />
-          <SelfDescriptionSection />
-          <StrengthsSection cards={strengthCards} />
-          <p className="text-secondary text-center" style={{ fontSize: 15 }}>
-            Настройки и почта — у мамы. Если что-то нужно поменять, скажи ей.
-          </p>
+          <AnimatedBlock>
+            <ProfileHero isJunior displayName={displayName} age={profile.age} grade={profile.grade} />
+          </AnimatedBlock>
+          <AnimatedBlock>
+            <SelfDescriptionSection />
+          </AnimatedBlock>
+          <AnimatedBlock>
+            <StrengthsSection cards={strengthCards} />
+          </AnimatedBlock>
+          <AnimatedBlock>
+            <p className="text-secondary text-center" style={{ fontSize: 15 }}>
+              Настройки и почта — у мамы. Если что-то нужно поменять, скажи ей.
+            </p>
+          </AnimatedBlock>
         </>
       ) : (
-        <ProfileLedger />
+        <AnimatedBlock>
+          <ProfileLedger />
+        </AnimatedBlock>
       )}
     </PageContainer>
   );

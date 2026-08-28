@@ -14,7 +14,7 @@ type AsideCopy = { eyebrow: string; head: string; accent: string; sub: string };
 
 const ROUTE_ASIDE: Record<string, AsideCopy> = {
   '/login': {
-    eyebrow: 'Личный кабинет',
+    eyebrow: 'Вход',
     head: 'Продолжим с того места, где',
     accent: 'остановились',
     sub: 'Результаты тестов, подобранные направления и план поступления ждут тебя в кабинете.',
