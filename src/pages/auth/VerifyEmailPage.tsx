@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { AuthStepper } from '@/shared/ui/AuthStepper';
 import axios from 'axios';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
@@ -78,7 +77,7 @@ function TokenVerify({ token }: { token: string }) {
 
 // ─── OTP mode (code from email, after registration) ───────────────────────────
 
-function OtpVerify({ email, showStepper }: { email: string; showStepper: boolean }) {
+function OtpVerify({ email }: { email: string }) {
   const storeLogin = useAuthStore(s => s.login);
 
   const [code, setCode] = useState('');
@@ -142,9 +141,6 @@ function OtpVerify({ email, showStepper }: { email: string; showStepper: boolean
 
   return (
     <>
-      {/* Индикатор только когда пришли из регистрации: на этот же экран
-          попадают со входа, если почта не подтверждена, — там мастера нет. */}
-      {showStepper && <AuthStepper current={3} />}
       <h1 className="auth-headline-sm mt-[20px]">
         Код отправлен на {email}
       </h1>
@@ -216,7 +212,7 @@ export default function VerifyEmailPage() {
 
   if (token) return <TokenVerify token={token} />;
 
-  if (email) return <OtpVerify email={email} showStepper={searchParams.get('step') === '3'} />;
+  if (email) return <OtpVerify email={email} />;
 
   return (
     <div className="flex flex-col items-center text-center gap-4 py-6">
