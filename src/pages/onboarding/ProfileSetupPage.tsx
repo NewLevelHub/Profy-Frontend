@@ -12,7 +12,7 @@ const SUBJECTS = [
   'Английский язык', 'Информатика', 'Физкультура', 'Рисование', 'Музыка',
 ];
 
-const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 6–18
+const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 14–18
 
 // One mascot per step, `position: fixed` to the viewport's bottom-right
 // corner (not inline with the heading anymore — content/buttons stay
@@ -209,7 +209,7 @@ export default function ProfileSetupPage() {
                 </Heading>
               </div>
 
-              {/* Age picker — button row, 6–18 */}
+              {/* Age picker — button row, 14–18 */}
               <div className="flex flex-wrap gap-2" role="group" aria-label="Выбери возраст">
                 {AGES.map(a => {
                   const selected = age === String(a);

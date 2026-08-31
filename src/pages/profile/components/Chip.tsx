@@ -1,19 +1,22 @@
 import { memo } from 'react';
+import { cn } from '@/shared/lib/cn';
+
+export type ChipVariant = 'solid' | 'outline' | 'muted';
 
 export interface ChipProps {
   label: string;
-  accent?: 'green' | 'orange';
+  variant?: ChipVariant;
 }
 
-function ChipBase({ label, accent }: ChipProps) {
-  const style = accent === 'green'
-    ? { background: 'var(--brand-subtle)', color: '#5B21B6' }
-    : accent === 'orange'
-    ? { background: 'var(--accent-soft)', color: 'var(--accent-text)' }
-    : { background: 'var(--brand-subtle)', color: '#5B21B6' };
+const VARIANT_CLASS: Record<ChipVariant, string> = {
+  solid: 'bg-brand text-on-brand',
+  outline: 'border border-brand text-brand bg-transparent',
+  muted: 'border border-default text-secondary bg-surface',
+};
 
+function ChipBase({ label, variant = 'solid' }: ChipProps) {
   return (
-    <span className="px-[15px] py-[7px] rounded-pill font-extrabold text-sm" style={style}>
+    <span className={cn('px-3 py-1 rounded-pill font-semibold text-body-sm', VARIANT_CLASS[variant])}>
       {label}
     </span>
   );

@@ -19,6 +19,7 @@ export default function AssessmentPage() {
     selectedPairOptionId,
     transitioning,
     saving,
+    savingVisible,
     error,
     currentLikertQuestions,
     currentPair,
@@ -70,12 +71,11 @@ export default function AssessmentPage() {
         )}
         {phase === 'intro' && (
           <AssessmentIntro
-            emoji="🧭"
             kicker="Диагностика"
             title="Узнаем твои склонности"
             subtitle="Отвечай честно: правильных и неправильных ответов здесь нет"
-            itemCountLabel={`📝 ${totalItems} вопросов`}
-            durationLabel={`⏱ ~${Math.max(1, Math.ceil(totalItems / 20))} мин`}
+            itemCountLabel={`${totalItems} вопросов`}
+            durationLabel={`~${Math.max(1, Math.ceil(totalItems / 20))} мин`}
             ctaLabel="Начать тест"
             onStart={handleStartIntro}
           />
@@ -107,6 +107,7 @@ export default function AssessmentPage() {
                     onSelect={handleLikertSelect}
                     onSubmit={handleSubmitLikertPage}
                     saving={saving}
+                    savingVisible={savingVisible}
                   />
                 </div>
               )}

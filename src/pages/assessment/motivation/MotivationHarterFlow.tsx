@@ -69,12 +69,11 @@ export default function MotivationHarterFlow() {
 
         {phase === 'intro' && (
           <AssessmentIntro
-            emoji="🔥"
             kicker="Последний блок"
             title="Что тебя драйвит"
             subtitle="Выбери, какие ребята тебе ближе — а потом уточни, насколько точно"
-            itemCountLabel={`📝 ${totalPairs} вопросов`}
-            durationLabel="⏱ ~2 мин"
+            itemCountLabel={`${totalPairs} вопросов`}
+            durationLabel="~2 мин"
             ctaLabel="Начать"
             onStart={handleStartIntro}
           />

@@ -119,32 +119,43 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
 
           <div className="border-t border-[var(--hairline)]" />
 
-          {/* Passing Thresholds */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Passing Thresholds — for a university confirmed to not use ENT
+              at all (requires_ent === false), the two ЕНТ/grant boxes would
+              just read as an empty-looking "Не установлен" pair, which
+              reads as missing data rather than "genuinely not applicable
+              here". One clear message replaces them instead. */}
+          {req.requires_ent === false ? (
             <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-              <div className="text-caption font-bold text-muted mb-1">Пороговый балл ЕНТ (участие в конкурсе и платное)</div>
-              <div className="text-body-lg font-bold text-brand">
-                {req.min_ent_threshold !== null && req.min_ent_threshold !== undefined ? `от ${req.min_ent_threshold} баллов` : 'Не установлен'}
+              <div className="text-caption font-bold text-muted mb-1">ЕНТ</div>
+              <div className="text-body-lg font-bold text-secondary">Не требуется — свои вступительные требования (см. выше)</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
+                <div className="text-caption font-bold text-muted mb-1">Пороговый балл ЕНТ</div>
+                <div className="text-body-lg font-bold text-brand">
+                  {req.min_ent_threshold !== null && req.min_ent_threshold !== undefined ? `от ${req.min_ent_threshold} баллов` : 'Не установлен'}
+                </div>
+              </div>
+              <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
+                <div className="text-caption font-bold text-muted mb-1">Проходной балл на грант (конкурс 2026–2027 гг.)</div>
+                <div className="text-body-lg font-bold text-secondary">
+                  {(() => {
+                    const range = extractGrantScoreRange(req.admission_scores_2026);
+                    if (!range) return 'Не установлен';
+                    const parts = range.split(/[–-]/);
+                    if (parts.length === 2 && parts[0].trim() === parts[1].trim()) {
+                      return `от ${parts[0].trim()} баллов`;
+                    }
+                    if (range.includes('–') || range.includes('-')) {
+                      return `${range} баллов`;
+                    }
+                    return `от ${range} баллов`;
+                  })()}
+                </div>
               </div>
             </div>
-            <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-              <div className="text-caption font-bold text-muted mb-1">Проходной балл на грант (конкурс 2026–2027 гг.)</div>
-              <div className="text-body-lg font-bold text-secondary">
-                {(() => {
-                  const range = extractGrantScoreRange(req.admission_scores_2026);
-                  if (!range) return 'Не установлен';
-                  const parts = range.split(/[–-]/);
-                  if (parts.length === 2 && parts[0].trim() === parts[1].trim()) {
-                    return `от ${parts[0].trim()} баллов`;
-                  }
-                  if (range.includes('–') || range.includes('-')) {
-                    return `${range} баллов`;
-                  }
-                  return `от ${range} баллов`;
-                })()}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       )}
 

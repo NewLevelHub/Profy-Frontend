@@ -36,6 +36,7 @@ import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
 import ResultsPage from '@/pages/results/ResultsPage';
 import ProfilePage from '@/pages/profile/ProfilePage';
+import CertificatesEditPage from '@/pages/profile/certificates/CertificatesEditPage';
 
 // ── Detail screens (mobile: App stack) ───────────────────────────────────────
 import DirectionDetailPage from '@/pages/results/DirectionDetailPage';
@@ -99,6 +100,12 @@ export const router = createBrowserRouter([
       {
         element: <RequireProfile />,
         children: [
+          // Chrome-free, own full-screen shell — same reasoning as
+          // /onboarding/artifacts's edit-mode branch: a focused edit screen,
+          // not a tab inside AppLayout. Sits under RequireProfile (unlike
+          // /onboarding/artifacts) because editing certificates only makes
+          // sense once a profile already exists.
+          { path: '/profile/certificates', element: <CertificatesEditPage /> },
           {
             element: <AppLayout />,
             children: [

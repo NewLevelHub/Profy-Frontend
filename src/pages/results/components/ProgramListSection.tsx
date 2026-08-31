@@ -3,9 +3,21 @@ import { GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-re
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
+import { LazyMedia } from '@/shared/ui/LazyMedia';
 import type { ProgramBrief } from '@/shared/types';
 import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 import { UniversityRankBadges } from './UniversityRankBadges';
+import { cardImageUrl } from '@/pages/results/utils/programUtils';
+
+const IMAGE_BOX = 'w-full h-32 rounded-2xl mb-4 overflow-hidden';
+
+function ImagePlaceholder() {
+  return (
+    <div className="w-full h-full bg-default/40 flex items-center justify-center">
+      <GraduationCap className="w-8 h-8 text-muted" aria-hidden="true" />
+    </div>
+  );
+}
 
 function ProgramCardSkeleton() {
   return (
@@ -34,9 +46,33 @@ interface ProgramCardProps {
 // Single action now — no separate "select" state. "Подробнее" is a plain
 // visible button; the hover feedback lives on that button itself (Button's
 // own ghost hover state), not a whole-card overlay.
+//
+// `content-visibility:auto` + `contain-intrinsic-size` let the browser skip
+// layout/paint *and* image decode for cards that aren't near the viewport.
+// The university photos are served at up to 1600px wide; each one decodes to
+// ~8 MB of bitmap and is then resampled into a 128px-tall box. Doing that for
+// all 50 cards as they scroll into view is what makes the list stutter (an
+// empty list with just the icon placeholder stayed smooth). `auto` in the
+// intrinsic size means "remember the last real height" so the scrollbar
+// doesn't jump as cards virtualize in and out.
 const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: ProgramCardProps) {
   return (
-    <Card className="!p-6 flex flex-col h-full transition-colors">
+    <Card className="!p-6 flex flex-col h-full transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
+      {program.university.image_url ? (
+        <LazyMedia
+          src={cardImageUrl(program.university.image_url)}
+          fallbackSrc={program.university.image_url}
+          alt={program.university.name}
+          className={IMAGE_BOX}
+          imgClassName="w-full h-full object-cover"
+          fallback={<ImagePlaceholder />}
+        />
+      ) : (
+        <div className={IMAGE_BOX}>
+          <ImagePlaceholder />
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-display-sm font-black leading-snug text-primary m-0">
           {program.name}

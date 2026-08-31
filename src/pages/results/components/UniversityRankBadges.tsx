@@ -3,15 +3,18 @@ import { getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
 import type { UniversityBrief } from '@/shared/types';
 
 interface UniversityRankBadgesProps {
-  university: Pick<UniversityBrief, 'ranking' | 'ranking_label' | 'uniranks_kz_rank' | 'uniranks_world_rank'>;
+  university: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>;
   size?: 'sm' | 'md';
 }
 
 /**
- * One chip per rating scale the university has data for (see
- * getUniversityRankingLabels) — shared between the card grid and the detail
- * page so the rendering (and the font-weight-per-script caveat below) lives
- * in one place instead of two copies drifting apart.
+ * The university's single ranking chip, in the one unified format
+ * getUniversityRankingLabels produces (KZ → in-country position, foreign →
+ * world position, always "система · #N …") — shared between the card grid and
+ * the detail page so the rendering (and the font-weight-per-script caveat
+ * below) lives in one place instead of two copies drifting apart. Still maps
+ * over the returned array (0 or 1 entries) so an empty result renders
+ * nothing.
  */
 export function UniversityRankBadges({ university, size = 'md' }: UniversityRankBadgesProps) {
   const labels = getUniversityRankingLabels(university);

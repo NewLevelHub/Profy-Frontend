@@ -1,19 +1,21 @@
-import { Chip } from './Chip';
+import { Chip, type ChipVariant } from './Chip';
 
 export interface ChipListProps {
   label: string;
   items: string[];
-  accent?: 'green' | 'orange';
+  variant?: ChipVariant;
 }
 
-export function ChipList({ label, items, accent }: ChipListProps) {
+// Label + chip row — stacked on narrow screens, a fixed label column beside
+// the chips from sm up, mirroring the ledger reference's subject rows.
+export function ChipList({ label, items, variant }: ChipListProps) {
   if (!items?.length) return null;
   return (
-    <div className="mb-4 last:mb-0">
-      <p className="font-extrabold text-primary text-sm mb-2.5">{label}</p>
-      <div className="flex flex-wrap gap-[9px]">
+    <div className="flex flex-col gap-1.5 sm:grid sm:grid-cols-[132px_1fr] sm:items-start sm:gap-4">
+      <p className="text-body-sm font-medium text-primary sm:pt-0.5">{label}</p>
+      <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
-          <Chip key={item} label={item} accent={accent} />
+          <Chip key={item} label={item} variant={variant} />
         ))}
       </div>
     </div>
