@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation } from 'react-router';
 import { Compass, Landmark, Layers, ListChecks } from 'lucide-react';
 import { env } from '@/shared/config/env';
 
@@ -153,16 +153,16 @@ export function AuthLayout() {
       {/* Логотип живёт внутри той же колонки шириной 1180, что и содержимое:
           так он встаёт ровно над левым краем текста, а не жмётся к углу окна. */}
       <div className="relative z-[1] w-full mx-auto" style={{ maxWidth: 1180 }}>
-        {/* Обычная <a>, а не <Link>: лендинг — статическая страница из public/,
-            она живёт вне SPA и требует полной перезагрузки. */}
-        <a
-          href={env.LANDING_URL}
+        {/* Лендинг стал маршрутом приложения, поэтому переход обычный, без
+            перезагрузки страницы: раньше здесь была <a> на файл в public/. */}
+        <Link
+          to="/"
           className="brand-wordmark auth-enter inline-flex mb-8 lg:mb-0 hover:opacity-70 transition-opacity"
           aria-label="На главную"
         >
           {env.APP_NAME}
           <span className="brand-dot" aria-hidden="true">.</span>
-        </a>
+        </Link>
       </div>
 
       <div className="relative z-[1] flex-1 flex items-center justify-center">

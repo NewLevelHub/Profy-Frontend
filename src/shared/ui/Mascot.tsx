@@ -13,8 +13,13 @@ export { SPRITES, PRO } from './mascot/sprites';
 export interface MascotProps {
   /** Which pose to render — 6 functional states (ТЗ 14.3) + 20 profession states (unwired, held for later). */
   state: MascotState;
-  /** Rendered width in px. Defaults to 260 in full mode, 44 in compact mode. */
-  size?: number;
+  /**
+   * Rendered width. A number is taken as px; a string is passed to CSS as-is,
+   * so fluid values like `clamp(240px, 34vw, 410px)` work — the landing sizes
+   * its mascots against the viewport, not in fixed steps.
+   * Defaults to 260 in full mode, 44 in compact mode.
+   */
+  size?: number | string;
   /** Circular avatar crop (zoomed on the head) instead of the full pose. Defaults to false. */
   compact?: boolean;
   /** Set false to opt out of the blink animation even outside reduced-motion. Defaults to true. */
