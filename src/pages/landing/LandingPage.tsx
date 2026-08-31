@@ -6,7 +6,6 @@ import { FeaturesSection } from './components/FeaturesSection';
 import { InsideSection } from './components/InsideSection';
 import { TrySection } from './components/TrySection';
 import { ReportSection } from './components/ReportSection';
-import { PreviewSection } from './components/PreviewSection';
 import { FaqSection } from './components/FaqSection';
 import { FinalCtaSection } from './components/FinalCtaSection';
 import { LandingFooter } from './components/LandingFooter';
@@ -40,7 +39,6 @@ export default function LandingPage() {
         <InsideSection />
         <TrySection />
         <ReportSection />
-        <PreviewSection />
         <FaqSection />
         <FinalCtaSection />
       </main>
