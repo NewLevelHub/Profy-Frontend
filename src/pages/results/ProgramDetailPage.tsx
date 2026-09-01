@@ -1,6 +1,5 @@
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
-import { useProfileStore } from '@/shared/store/profile';
 import {
   ArrowLeft, Target,
   Briefcase,
@@ -235,8 +234,6 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
 
 export default function ProgramDetailPage() {
   const navigate = useNavigate();
-  const { slug = '', programId = '' } = useParams<{ slug: string; programId: string }>();
-  const isSenior = useProfileStore(s => s.profile?.age_group === 'senior');
   const { program, isLoading, error } = useProgramDetail();
 
   return (
@@ -333,24 +330,11 @@ export default function ProgramDetailPage() {
           <ProgramRequirementsCard program={program} />
 
           <div className="flex flex-col gap-3 pt-2">
-            {isSenior && slug && programId && (
-              <Button
-                size="lg"
-                className="w-full gap-2"
-                onClick={() =>
-                  navigate(
-                    `/results/directions/${encodeURIComponent(slug)}/universities/${programId}/plan`,
-                    { state: { generate: true } },
-                  )
-                }
-              >
-                Собрать план развития
-              </Button>
-            )}
-            {/* Visiting the university's own site is this page's other goal
-                action. Still an <a>, not a Button, since it's an external link
-                (Button only renders a <button>, which can't get real link
-                semantics like target="_blank", right-click "open in new tab"). */}
+            {/* Sole bottom action now — visiting the university's own site
+                is this page's actual goal action. Still an <a>, not a
+                Button, since it's an external link (Button only renders a
+                <button>, which can't get real link semantics like
+                target="_blank", right-click "open in new tab", etc). */}
             {(() => {
               const websiteUrl = program.requirements_summary?.website || program.university.website;
               if (!websiteUrl) return null;

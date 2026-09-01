@@ -41,11 +41,6 @@ export const API = {
     getDirection: (assessmentId: string, slug: string) =>
       `/roadmap/${assessmentId}/directions/${slug}`,
   },
-  developmentPlan: {
-    generate: '/development-plan',
-    get: (assessmentId: string, programId: string) =>
-      `/development-plan/${assessmentId}/${programId}`,
-  },
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
