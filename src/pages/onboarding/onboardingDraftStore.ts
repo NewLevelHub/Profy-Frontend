@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { CertificateItem } from '@/shared/types';
 
 // Backend now accepts profile + artifacts in a single POST /profile call
 // (one transaction — nothing half-created if artifacts are invalid), so
@@ -27,6 +28,13 @@ export interface OnboardingProfileDraft {
   subjectsDislike: string[];
   subjectsEasy: string[];
   subjectsHard: string[];
+  /** Exam scores collected by step 2's optional block — already parsed and
+   *  range-checked (see useProfileSetup's validateScores), so
+   *  ArtifactsSetupPage can hand them straight to the API. Only exams the
+   *  student actually ticked appear here; an empty list means "none sat yet",
+   *  which still replaces whatever was stored (same wholesale-replace
+   *  contract as artifacts). */
+  certificates: CertificateItem[];
 }
 
 interface OnboardingDraftState {

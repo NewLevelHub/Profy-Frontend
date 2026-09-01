@@ -17,8 +17,6 @@ export function ProfileLedger() {
     hasSubjects,
     artifacts,
     certificates,
-    gpaValue,
-    gpaScale,
     railSections,
     confirmRestart,
     handleLogout,
@@ -49,8 +47,6 @@ export function ProfileLedger() {
         <ArtifactsSection artifacts={artifacts} onEdit={handleEditArtifacts} />
         <CertificatesSection
           certificates={certificates}
-          gpaValue={gpaValue}
-          gpaScale={gpaScale}
           onEdit={handleEditCertificates}
         />
         <SettingsSection

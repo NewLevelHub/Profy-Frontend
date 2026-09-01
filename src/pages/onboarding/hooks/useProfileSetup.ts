@@ -1,16 +1,31 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { useProfileStore } from '@/shared/store/profile';
+import { CERTIFICATE_TYPES, validateCertificateScore } from '@/shared/config/certificates';
+import type { CertificateItem, CertificateType } from '@/shared/types';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
 
-type FieldErrors = Partial<Record<'name' | 'age' | 'grade', string>>;
+// Exam score fields are keyed by exam ('ielts' | 'unt' | ...), so they share
+// this error map with the plain profile fields rather than living in a
+// second one — step 2 renders both kinds of error the same way.
+type FieldErrors = Partial<Record<'name' | 'age' | 'grade' | CertificateType, string>>;
+
+/** Raw, as-typed score per exam — parsed only at submit time, like `age`. */
+type ExamScores = Record<CertificateType, string>;
+
+const EMPTY_EXAM_SCORES = Object.fromEntries(
+  CERTIFICATE_TYPES.map(type => [type, '']),
+) as ExamScores;
 
 // 2 screens ("диалог, не форма"), each merging what used to be two separate
 // steps onto one scrollable screen (same pattern NAME_SCHOOL already used
 // internally for имя+возраст — just extended to a second merged pair):
 //  1. имя + возраст, класс + город (+ страна)
 //  2. предметы: нравятся / не нравятся, легко / где приходится стараться
-//     больше (neutral framing — see ProfileSetupPage's SUBJECTS copy)
+//     больше (neutral framing — see ProfileSetupPage's SUBJECTS copy), plus
+//     the optional exam-scores block (IELTS/ЕНТ/SAT/TOEFL) — added as a third
+//     block on this screen rather than a 5th step, so the "Шаг X из 4" count
+//     students already see stays put.
 const TOTAL_STEPS = 2;
 const STEP_NAME_SCHOOL = 1;
 const STEP_SUBJECTS = 2;
@@ -82,10 +97,38 @@ export function useProfileSetup() {
   const [subjectsDislike, setSubjectsDislike] = useState<string[]>(existing?.subjects_disliked ?? draft?.subjectsDislike ?? []);
   const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? draft?.subjectsEasy ?? []);
   const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? draft?.subjectsHard ?? []);
+
+  // Exams the student says they've actually sat. Kept separate from the
+  // scores themselves so "ticked IELTS but hasn't typed the score yet" is a
+  // distinct, validatable state — otherwise a blank field would be
+  // indistinguishable from "didn't sit it" and would silently vanish on save.
+  const savedCertificates = existing?.certificates ?? draft?.certificates;
+  const [examsTaken, setExamsTaken] = useState<CertificateType[]>(
+    () => savedCertificates?.map(c => c.type) ?? [],
+  );
+  const [examScores, setExamScores] = useState<ExamScores>(() => ({
+    ...EMPTY_EXAM_SCORES,
+    ...Object.fromEntries(savedCertificates?.map(c => [c.type, String(c.score)]) ?? []),
+  }));
+
   const [errors, setErrors] = useState<FieldErrors>({});
 
   function clearError(field: keyof FieldErrors) {
     setErrors(prev => ({ ...prev, [field]: undefined }));
+  }
+
+  /** Ticking an exam reveals its score field; unticking clears whatever was
+   *  typed, so a stale number can't reappear if it's ticked again later. */
+  function toggleExam(type: CertificateType) {
+    const wasTaken = examsTaken.includes(type);
+    setExamsTaken(prev => (wasTaken ? prev.filter(t => t !== type) : [...prev, type]));
+    if (wasTaken) setExamScores(prev => ({ ...prev, [type]: '' }));
+    clearError(type);
+  }
+
+  function setExamScore(type: CertificateType, value: string) {
+    setExamScores(prev => ({ ...prev, [type]: value }));
+    clearError(type);
   }
 
   // Both merge into the shared `errors` object (rather than replacing it
@@ -116,6 +159,25 @@ export function useProfileSetup() {
     return !grade_;
   }
 
+  // The whole scores block is optional — nothing here blocks a student who
+  // sat no exams. It only objects to a half-finished entry: an exam ticked
+  // with no (or an out-of-range) score. Errors are written for every exam
+  // type, not just the ticked ones, so unticking an exam also clears the
+  // error it left behind.
+  function validateScores(): boolean {
+    const scoreErrors = Object.fromEntries(
+      CERTIFICATE_TYPES.map(type => [
+        type,
+        examsTaken.includes(type)
+          ? validateCertificateScore(type, examScores[type], { required: true })
+          : undefined,
+      ]),
+    ) as FieldErrors;
+
+    setErrors(prev => ({ ...prev, ...scoreErrors }));
+    return CERTIFICATE_TYPES.every(type => !scoreErrors[type]);
+  }
+
   function handleNext() {
     // Both merged sub-screens' fields live on step 1 now — run both
     // validations (not short-circuited) so both sets of errors show up
@@ -133,6 +195,15 @@ export function useProfileSetup() {
   }
 
   function handleSubmit() {
+    if (!validateScores()) return;
+
+    // Only ticked exams become certificates, and in catalog order rather
+    // than the order they happened to be clicked, so the payload (and the
+    // profile's "04 БАЛЛЫ" row built from it) is stable across passes.
+    const certificates: CertificateItem[] = CERTIFICATE_TYPES
+      .filter(type => examsTaken.includes(type))
+      .map(type => ({ type, score: Number(examScores[type]) }));
+
     // The actual save (POST for a new profile, PUT for an existing one)
     // happens once, at the end of the whole sequence (steps 3-4, in
     // ArtifactsSetupPage), combining this data with whatever artifacts get
@@ -149,6 +220,7 @@ export function useProfileSetup() {
       subjectsDislike,
       subjectsEasy,
       subjectsHard,
+      certificates,
     });
     navigate('/onboarding/artifacts', { replace: true });
   }
@@ -167,6 +239,8 @@ export function useProfileSetup() {
     subjectsDislike, setSubjectsDislike,
     subjectsEasy, setSubjectsEasy,
     subjectsHard, setSubjectsHard,
+    examsTaken, toggleExam,
+    examScores, setExamScore,
     errors,
     clearError,
     handleNext,
