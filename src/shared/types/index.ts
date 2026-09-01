@@ -536,6 +536,97 @@ export interface DirectionRoadmapResponse {
   university_track: UniversityTrack;
 }
 
+// ─── Development plan (план развития) ─────────────────────────────────────────
+
+export type PlanTrack = 'ent' | 'profession' | 'growth' | 'admission' | 'language';
+export type PlanActionKind = 'once' | 'repeat' | 'project';
+
+export interface PlanAction {
+  text: string;
+  time: string;
+  kind: PlanActionKind;
+  /** Present when kind === 'repeat'. */
+  count_target: number | null;
+}
+
+export interface PlanStep {
+  title: string;
+  actions: PlanAction[];
+}
+
+export interface PlanTask {
+  track: PlanTrack;
+  title: string;
+  why: string;
+  done_when: string;
+  steps: PlanStep[];
+}
+
+export interface PlanStage {
+  slot: string;
+  label: string;
+  outcome: string;
+  tasks: PlanTask[];
+}
+
+export interface PlanTarget {
+  role: string;
+  why: string;
+  university_name: string;
+  specialty: string;
+}
+
+export interface PlanGrowth {
+  area: string;
+  why: string;
+  evidence: string;
+}
+
+export interface PlanAboutYou {
+  strengths: string[];
+  /** null when the student has no pronounced growth point. */
+  growth: PlanGrowth | null;
+}
+
+/** Backend-populated admission facts. The generator never writes these — the
+ *  full shape mirrors UniversityRequirement; the fields below are what the UI
+ *  actually renders. */
+export interface AdmissionFacts {
+  program_name: string;
+  university_name: string;
+  city: string;
+  country: string;
+  website: string | null;
+  exams: string[];
+  exam_hint_from_notes: string | null;
+  application_deadline: string | null;
+  grants: { name: string; amount: string | null; conditions: string | null }[];
+  language_level: string | null;
+  portfolio_needed: boolean | null;
+  required_documents: string[] | null;
+  min_ent_threshold: number | null;
+  admission_scores_2026: string[];
+  notes: string[];
+  is_foreign: boolean;
+  foreign_route: string | null;
+  language_exam: string | null;
+  source_url: string | null;
+  last_verified: string | null;
+}
+
+export interface DevelopmentPlanResponse {
+  id: string;
+  assessment_id: string;
+  program_id: string;
+  direction_slug: string;
+  direction_name: string;
+  is_foreign: boolean;
+  target: PlanTarget;
+  about_you: PlanAboutYou;
+  stages: PlanStage[];
+  admission_facts: AdmissionFacts;
+}
+
 // ─── University / Gap-analysis ─────────────────────────────────────────────────
 
 export interface AdmissionScoreItem {

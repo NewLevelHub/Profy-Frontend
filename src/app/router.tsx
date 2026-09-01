@@ -42,6 +42,7 @@ import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
 import RoadmapPage from '@/pages/roadmap/RoadmapPage';
 import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
+import DevelopmentPlanPage from '@/pages/roadmap/plan/DevelopmentPlanPage';
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
@@ -116,6 +117,10 @@ export const router = createBrowserRouter([
               {
                 path: '/results/directions/:slug/universities/:programId',
                 element: <ProgramDetailPage />,
+              },
+              {
+                path: '/results/directions/:slug/universities/:programId/plan',
+                element: <DevelopmentPlanPage />,
               },
 
               // Admin (inside main layout — sidebar stays visible)
