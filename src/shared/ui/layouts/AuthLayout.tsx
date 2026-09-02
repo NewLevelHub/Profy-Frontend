@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import { Compass, Landmark, Layers, ListChecks } from 'lucide-react';
 import { env } from '@/shared/config/env';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 
 /**
  * Копия левой колонки — своя у каждого экрана авторизации. Колонка есть везде:
@@ -152,7 +153,10 @@ export function AuthLayout() {
     <div className="auth-page relative min-h-screen bg-page px-4 py-8 lg:py-10 flex flex-col">
       {/* Логотип живёт внутри той же колонки шириной 1180, что и содержимое:
           так он встаёт ровно над левым краем текста, а не жмётся к углу окна. */}
-      <div className="relative z-[1] w-full mx-auto" style={{ maxWidth: 1180 }}>
+      <div
+        className="relative z-[1] w-full mx-auto flex items-start justify-between gap-4"
+        style={{ maxWidth: 1180 }}
+      >
         {/* Пока не ссылка: лендинг приезжает следующим тикетом, и до его мержа
             переход по env.LANDING_URL упирался бы в 404. Адрес уже настроен —
             останется обернуть знак в <a href={env.LANDING_URL}>. */}
@@ -160,6 +164,7 @@ export function AuthLayout() {
           {env.APP_NAME}
           <span className="brand-dot" aria-hidden="true">.</span>
         </span>
+        <LanguageSwitcher className="auth-enter" />
       </div>
 
       <div className="relative z-[1] flex-1 flex items-center justify-center">

@@ -7,6 +7,9 @@ export interface User {
   is_active?: boolean;
   is_verified?: boolean;
   is_admin?: boolean;
+  /** UI locale from the backend (`users.locale`). "kk" is stored but not
+   *  runtime-honored until KZ-603. */
+  locale?: 'ru' | 'kk';
 }
 
 export interface TokenResponse {

@@ -1,6 +1,8 @@
-import { LogOut, Volume2, VolumeX } from 'lucide-react';
+import { Languages, LogOut, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { LOCALE_SWITCH_ENABLED } from '@/shared/store/locale';
 import { Button } from '@/shared/ui/Button';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { LedgerSection } from '../components/LedgerSection';
 
 export interface SettingsSectionProps {
@@ -31,7 +33,21 @@ export function SettingsSection({
   return (
     <LedgerSection id="settings" number="05" title="НАСТРОЙКИ">
       <div className="flex flex-col">
-        <div className="flex items-center justify-between gap-4 pb-4 border-b border-[color:var(--border-faint)]">
+        {/* Rendered only once more than one locale is offered (KZ-603). */}
+        {LOCALE_SWITCH_ENABLED && (
+          <div className="flex items-center justify-between gap-4 pb-4 border-b border-[color:var(--border-faint)]">
+            <div className="flex items-center gap-3 min-w-0">
+              <Languages size={18} className="text-brand flex-none" />
+              <div>
+                <p className="font-bold text-primary text-body-sm">Тіл / Язык</p>
+                <p className="text-caption text-secondary">Язык интерфейса</p>
+              </div>
+            </div>
+            <LanguageSwitcher />
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-4 py-4 border-b border-[color:var(--border-faint)]">
           <div className="flex items-center gap-3 min-w-0">
             {soundEnabled ? (
               <Volume2 size={18} className="text-brand flex-none" />
