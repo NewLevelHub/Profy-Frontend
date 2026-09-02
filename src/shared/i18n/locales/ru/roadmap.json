@@ -1,1 +1,58 @@
-{}
+{
+  "horizon": {
+    "month_1": "1 месяц",
+    "months_3": "3 месяца",
+    "months_6": "6 месяцев",
+    "year_1": "1 год",
+    "until_goal": "До цели"
+  },
+  "category": {
+    "study": "Учёба",
+    "language": "Язык",
+    "project": "Проект",
+    "exam": "Экзамен",
+    "explore": "Исследование",
+    "achievement": "Достижение",
+    "knowledge": "Знания",
+    "skill": "Навык",
+    "practice": "Практика",
+    "portfolio": "Портфолио",
+    "career": "Карьера",
+    "education": "Образование",
+    "planning": "Планирование",
+    "documents": "Документы",
+    "requirement": "Требование",
+    "finance": "Финансы",
+    "admission": "Поступление",
+    "application": "Заявка"
+  },
+  "directionHorizon": {
+    "months_3": "3 месяца",
+    "months_6": "6 месяцев",
+    "months_9": "9 месяцев",
+    "months_12": "12 месяцев"
+  },
+  "directionHorizonHint": {
+    "months_3": "База и теория",
+    "months_6": "Практика и выход из зоны комфорта",
+    "months_9": "Интеграция навыков",
+    "months_12": "Готовность к профильному пути"
+  },
+  "stepTrack": {
+    "profile": "Профиль",
+    "growth": "Точка роста",
+    "integration": "Интеграция"
+  },
+  "directionCategory": {
+    "knowledge": "Знания",
+    "skill": "Навык",
+    "practice": "Практика",
+    "project": "Проект",
+    "portfolio": "Портфолио",
+    "soft_skill": "Софт-скилл",
+    "subject": "Предмет",
+    "community": "Сообщество",
+    "exam": "Экзамен",
+    "university": "Вуз"
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { Clock, PauseCircle, Smile } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -15,12 +16,13 @@ import { type as typeClass } from '@/shared/ui/typography/tokens';
 // itself works," not a map of the rest of onboarding.
 
 const FEATURES = [
-  { Icon: Clock, title: 'Около 15 минут', sub: 'Спокойный темп, без секундомера' },
-  { Icon: PauseCircle, title: 'Можно прерваться', sub: 'Всё сохранится, продолжишь позже' },
-  { Icon: Smile, title: 'Никто не проверяет', sub: 'Нет правильных и неправильных ответов' },
+  { Icon: Clock, titleKey: 'welcome.feature.timeTitle', subKey: 'welcome.feature.timeSub' },
+  { Icon: PauseCircle, titleKey: 'welcome.feature.pauseTitle', subKey: 'welcome.feature.pauseSub' },
+  { Icon: Smile, titleKey: 'welcome.feature.gradeTitle', subKey: 'welcome.feature.gradeSub' },
 ] as const;
 
 export default function WelcomePage() {
+  const { t } = useTranslation('onboarding');
   const navigate = useNavigate();
 
   return (
@@ -32,19 +34,15 @@ export default function WelcomePage() {
           className="onboarding-welcome-in flex flex-col gap-7 px-6 py-8 sm:px-10 sm:py-10"
           style={{ background: 'var(--fog)', borderRadius: 'var(--radius)' }}
         >
-          <span className={`${typeClass.monoLabel} text-muted`}>
-            Перед тестом · Как это будет
-          </span>
+          <span className={`${typeClass.monoLabel} text-muted`}>{t('welcome.kicker')}</span>
 
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-8">
             <div className="flex flex-col gap-3">
               <Heading level="display-lg" className="text-[color:var(--midnight)]">
-                Привет! Разберёмся, что тебе близко
+                {t('welcome.title')}
               </Heading>
               <Text variant="body-md" className="text-primary">
-                Я буду задавать вопросы и смотреть, что тебе интересно. Правильных и
-                неправильных ответов здесь нет, и никто тебя не оценивает — ни я, ни школа,
-                ни родители.
+                {t('welcome.body')}
               </Text>
             </div>
             <Mascot state="welcome" size={124} className="shrink-0" />
@@ -52,12 +50,12 @@ export default function WelcomePage() {
 
           {/* Feature bullets */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-4 pt-2">
-            {FEATURES.map(({ Icon, title, sub }) => (
-              <div key={title} className="flex flex-col gap-2">
+            {FEATURES.map(({ Icon, titleKey, subKey }) => (
+              <div key={titleKey} className="flex flex-col gap-2">
                 <Icon size={26} strokeWidth={1.75} style={{ color: 'var(--pine)' }} aria-hidden="true" />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-body-md font-semibold text-[color:var(--midnight)]">{title}</span>
-                  <span className="text-body-sm font-book text-muted">{sub}</span>
+                  <span className="text-body-md font-semibold text-[color:var(--midnight)]">{t(titleKey)}</span>
+                  <span className="text-body-sm font-book text-muted">{t(subKey)}</span>
                 </div>
               </div>
             ))}
@@ -71,7 +69,7 @@ export default function WelcomePage() {
               variant="text"
               onClick={() => navigate('/results')}
             >
-              Не сейчас
+              {t('welcome.later')}
             </Button>
             <Button
               variant="primary"
@@ -79,7 +77,7 @@ export default function WelcomePage() {
               style={{ minHeight: 48 }}
               onClick={() => navigate('/assessment')}
             >
-              Хорошо, начнём
+              {t('welcome.start')}
             </Button>
           </div>
         </div>

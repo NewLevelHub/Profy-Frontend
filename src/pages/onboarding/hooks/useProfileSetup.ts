@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
 import { useProfileStore } from '@/shared/store/profile';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
@@ -43,6 +44,7 @@ function toggle(list: string[], item: string): string[] {
 }
 
 export function useProfileSetup() {
+  const { t } = useTranslation('onboarding');
   const navigate = useNavigate();
   const location = useLocation();
   // A real, already-onboarded profile exists server-side — this is a
@@ -95,23 +97,23 @@ export function useProfileSetup() {
   function validateNameAge(): boolean {
     const trimmedName = name.trim();
     const name_ = !trimmedName
-      ? 'Введи своё имя'
+      ? t('validation.nameRequired')
       : trimmedName.length < NAME_MIN_LENGTH
-        ? `Имя слишком короткое (мин. ${NAME_MIN_LENGTH} символа)`
+        ? t('validation.nameTooShort', { min: NAME_MIN_LENGTH })
         : trimmedName.length > NAME_MAX_LENGTH
-          ? `Имя слишком длинное (макс. ${NAME_MAX_LENGTH} символов)`
+          ? t('validation.nameTooLong', { max: NAME_MAX_LENGTH })
           : !NAME_PATTERN.test(trimmedName)
-            ? 'Имя может содержать только буквы'
+            ? t('validation.nameLettersOnly')
             : undefined;
     const ageNum = Number(age);
-    const age_ = (!age || isNaN(ageNum) || ageNum < 14 || ageNum > 18) ? 'Возраст: от 14 до 18' : undefined;
+    const age_ = (!age || isNaN(ageNum) || ageNum < 14 || ageNum > 18) ? t('validation.ageRange') : undefined;
     setErrors(prev => ({ ...prev, name: name_, age: age_ }));
     return !name_ && !age_;
   }
 
   function validateSchool(): boolean {
     const gradeNum = Number(grade);
-    const grade_ = (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) ? 'Класс: от 1 до 12' : undefined;
+    const grade_ = (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) ? t('validation.gradeRange') : undefined;
     setErrors(prev => ({ ...prev, grade: grade_ }));
     return !grade_;
   }

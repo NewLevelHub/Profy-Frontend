@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
@@ -20,6 +21,7 @@ import { TargetCard } from './components/TargetCard';
 import { UniversityTrackSection } from './components/UniversityTrackSection';
 
 export default function DirectionRoadmapPage() {
+  const { t } = useTranslation();
   const { slug = '' } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const {
@@ -104,7 +106,9 @@ export default function DirectionRoadmapPage() {
                 id: stage.horizon,
                 status: i === 0 ? 'current' : 'upcoming',
                 goal: i === roadmap.stages.length - 1,
-                label: DIRECTION_HORIZON_LABELS[stage.horizon] ?? stage.horizon,
+                label: DIRECTION_HORIZON_LABELS[stage.horizon]
+                  ? t(DIRECTION_HORIZON_LABELS[stage.horizon])
+                  : stage.horizon,
               }))}
               showLabels
               className="mb-10"

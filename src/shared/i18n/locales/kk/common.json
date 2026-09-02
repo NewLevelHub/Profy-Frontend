@@ -1,3 +1,54 @@
 {
-  "logout": "Шығу"
+  "logout": "Шығу",
+  "loading": "Жүктелуде…",
+  "retry": "Қайталау",
+  "back": "Артқа",
+  "next": "Келесі",
+  "save": "Сақтау",
+  "cancel": "Болдырмау",
+  "goHome": "Басты бетке",
+  "reloadPage": "Бетті жаңарту",
+  "pageInDevelopment": "Бет әзірленуде",
+  "menu": "Мәзір",
+  "ageYears_one": "{{count}} жаста",
+  "ageYears_other": "{{count}} жаста",
+  "errorBoundary": {
+    "title": "Бірдеңе дұрыс болмады",
+    "body": "Күтпеген қате шықты. Бетті жаңартып көр."
+  },
+  "notFound": {
+    "title": "Бет табылмады"
+  },
+  "nav": {
+    "results": "Нәтижелер",
+    "profile": "Профиль",
+    "admin": "Әкімші"
+  },
+  "sound": {
+    "enable": "Дыбысты қосу",
+    "disable": "Дыбысты өшіру"
+  },
+  "ageGroup": {
+    "junior": "5–7 сынып",
+    "middle": "8–9 сынып",
+    "senior": "10–11 сынып"
+  },
+  "celebrationSound": {
+    "chime": { "label": "Қоңырау", "desc": "Екі жеңіл нота соғысы" },
+    "sparkle": { "label": "Ұшқындар", "desc": "Жылдам көтерілетін әуезді «та-да»" },
+    "fanfare": { "label": "Фанфаралар", "desc": "Салтанатты қысқа фанфара" },
+    "soft": { "label": "Жұмсақ", "desc": "Тыныш бір үнді аккорд" },
+    "party": { "label": "Мереке", "desc": "Көңілді жылдам тізбек" }
+  },
+  "otp": {
+    "cellLabel": "{{index}}-сан ({{total}} ішінен)"
+  },
+  "passwordStrength": {
+    "weak": "ӘЛСІЗ ҚҰПИЯ СӨЗ",
+    "medium": "ОРТАША ҚҰПИЯ СӨЗ",
+    "good": "ЖАҚСЫ ҚҰПИЯ СӨЗ",
+    "excellent": "МЫҚТЫ ҚҰПИЯ СӨЗ",
+    "count_one": "{{count}} таңба",
+    "count_other": "{{count}} таңба"
+  }
 }

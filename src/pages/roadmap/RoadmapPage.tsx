@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useRoadmap } from './hooks/useRoadmap';
 import { ROADMAP_HORIZON_LABELS, ROADMAP_CATEGORY_EMOJIS } from '@/shared/config/constants';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -13,6 +14,7 @@ function HorizonCard({
   milestone: RoadmapMilestone;
   onSelect: (h: RoadmapHorizonKey) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -21,7 +23,9 @@ function HorizonCard({
     >
       <div className="flex items-center justify-between mb-1">
         <span className="font-black text-brand text-caption">
-          {ROADMAP_HORIZON_LABELS[milestone.horizon] ?? milestone.horizon}
+          {ROADMAP_HORIZON_LABELS[milestone.horizon]
+            ? t(ROADMAP_HORIZON_LABELS[milestone.horizon])
+            : milestone.horizon}
         </span>
         <span className="font-semibold text-muted text-xs">
           {milestone.tasks.length} задач
@@ -59,6 +63,7 @@ function MilestoneView({
   milestone: RoadmapMilestone;
   onBack: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div>
       <button
@@ -72,7 +77,9 @@ function MilestoneView({
 
       <div className="mb-1">
         <span className="font-black text-brand text-xs uppercase tracking-widest">
-          {ROADMAP_HORIZON_LABELS[milestone.horizon] ?? milestone.horizon}
+          {ROADMAP_HORIZON_LABELS[milestone.horizon]
+            ? t(ROADMAP_HORIZON_LABELS[milestone.horizon])
+            : milestone.horizon}
         </span>
       </div>
       <h2 className="font-black text-text mb-5 text-display-sm leading-tight">

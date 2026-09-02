@@ -4,7 +4,11 @@
 // ProfileSetupPage (steps 1-4) and ArtifactsSetupPage (steps 5-9, see
 // onboardingSteps.ts) so the two pages read as one continuous flow instead
 // of profile setup ending and a disconnected "artifacts" page beginning.
+import { useTranslation } from 'react-i18next';
+
 export function OnboardingProgress({ current, total }: { current: number; total: number }) {
+  const { t } = useTranslation('onboarding');
+  const label = t('progress.step', { current, total });
   return (
     <div
       className="w-full flex flex-col gap-2"
@@ -12,7 +16,7 @@ export function OnboardingProgress({ current, total }: { current: number; total:
       aria-valuenow={current}
       aria-valuemin={1}
       aria-valuemax={total}
-      aria-label={`Шаг ${current} из ${total}`}
+      aria-label={label}
     >
       <div className="flex gap-1.5">
         {Array.from({ length: total }, (_, i) => {
@@ -27,7 +31,7 @@ export function OnboardingProgress({ current, total }: { current: number; total:
         })}
       </div>
       <p className="text-tiny font-semibold tracking-wide uppercase" style={{ color: 'var(--mute)' }}>
-        Шаг {current} из {total}
+        {label}
       </p>
     </div>
   );

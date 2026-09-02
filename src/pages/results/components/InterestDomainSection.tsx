@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -76,8 +77,17 @@ function buildSecondaryNote(items: InterestMapItem[], labels: Record<string, str
  * treatment, it has no ranking concept.
  */
 export function InterestDomainSection({ isJunior, interestMap, interestMapNote }: InterestDomainSectionProps) {
-  const labels = isJunior ? MI_LABELS : RIASEC_LABELS;
-  const descriptions = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
+  const { t } = useTranslation();
+  const labelKeys = isJunior ? MI_LABELS : RIASEC_LABELS;
+  const descriptionKeys = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
+  // Resolve the i18n key maps to display text once, so the pure headline
+  // helpers keep taking a plain code -> string record.
+  const labels = Object.fromEntries(
+    Object.entries(labelKeys).map(([code, key]) => [code, t(key)]),
+  ) as Record<string, string>;
+  const descriptions = Object.fromEntries(
+    Object.entries(descriptionKeys).map(([code, key]) => [code, t(key)]),
+  ) as Record<string, string>;
   const headline = buildHeadline(interestMap, labels);
   const secondaryNote = buildSecondaryNote(interestMap, labels);
 

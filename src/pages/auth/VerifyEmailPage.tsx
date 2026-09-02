@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
@@ -18,6 +19,7 @@ const CODE_COMPLETE = /^\d{6}$/;
 type TokenStatus = 'loading' | 'success' | 'error';
 
 function TokenVerify({ token }: { token: string }) {
+  const { t } = useTranslation('auth');
   const storeLogin = useAuthStore(s => s.login);
   const [status, setStatus] = useState<TokenStatus>('loading');
   const called = useRef(false);
@@ -40,7 +42,7 @@ function TokenVerify({ token }: { token: string }) {
     return (
       <div className="flex flex-col items-center text-center gap-4 py-6">
         <Loader2 size={40} className="text-brand animate-spin" />
-        <p className="text-body font-semibold text-primary">Подтверждаем email...</p>
+        <p className="text-body font-semibold text-primary">{t('verify.confirming')}</p>
       </div>
     );
   }
@@ -49,8 +51,8 @@ function TokenVerify({ token }: { token: string }) {
     return (
       <div className="flex flex-col items-center text-center gap-4 py-6">
         <CheckCircle size={40} className="text-success" />
-        <p className="text-body font-semibold text-primary">Email подтверждён!</p>
-        <p className="text-caption text-secondary">Перенаправляем вас...</p>
+        <p className="text-body font-semibold text-primary">{t('verify.confirmedTitle')}</p>
+        <p className="text-caption text-secondary">{t('verify.redirecting')}</p>
       </div>
     );
   }
@@ -58,18 +60,16 @@ function TokenVerify({ token }: { token: string }) {
   return (
     <div className="flex flex-col items-center text-center gap-4 py-6">
       <XCircle size={40} className="text-danger" />
-      <h1 className="auth-headline-sm">Ссылка устарела</h1>
-      <p className="text-body text-secondary">
-        Ссылка недействительна или срок её действия истёк.
-      </p>
+      <h1 className="auth-headline-sm">{t('verify.linkExpiredTitle')}</h1>
+      <p className="text-body text-secondary">{t('verify.linkExpiredBody')}</p>
       <Link
         to="/register"
         className="mt-1 inline-flex items-center justify-center w-full min-h-12 px-6 bg-brand text-on-brand font-medium text-label rounded-[var(--radius)] hover:bg-brand-hover transition-colors press-scale"
       >
-        Зарегистрироваться заново
+        {t('verify.registerAgain')}
       </Link>
       <Link to="/login" className="text-caption text-muted hover:opacity-70 transition-opacity">
-        ← Вернуться ко входу
+        {t('backToLogin')}
       </Link>
     </div>
   );
@@ -78,6 +78,7 @@ function TokenVerify({ token }: { token: string }) {
 // ─── OTP mode (code from email, after registration) ───────────────────────────
 
 function OtpVerify({ email }: { email: string }) {
+  const { t } = useTranslation('auth');
   const storeLogin = useAuthStore(s => s.login);
 
   const [code, setCode] = useState('');
@@ -96,7 +97,7 @@ function OtpVerify({ email }: { email: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!CODE_COMPLETE.test(code)) {
-      setCodeError('Введите 6-значный код');
+      setCodeError(t('validation.codeIncomplete'));
       return;
     }
     setCodeError('');
@@ -110,12 +111,12 @@ function OtpVerify({ email }: { email: string }) {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
-          setFormError('Слишком много попыток. Подождите и попробуйте снова');
+          setFormError(t('error.tooManyAttempts'));
         } else {
-          setCodeError('Неверный или истёкший код');
+          setCodeError(t('error.invalidOrExpiredCode'));
         }
       } else {
-        setFormError('Ошибка. Попробуйте позже');
+        setFormError(t('error.generic'));
       }
     } finally {
       setIsLoading(false);
@@ -129,12 +130,12 @@ function OtpVerify({ email }: { email: string }) {
       await authApi.resendVerification(email);
       // Бэкенд всегда отвечает 204 независимо от того, существует ли
       // аккаунт с этим email — не утверждаем, что письмо точно ушло.
-      setResendMessage('Если аккаунт существует — письмо с кодом уже отправлено');
+      setResendMessage(t('verify.resentMaybe'));
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
-        setResendMessage('Подождите перед повторной отправкой');
+        setResendMessage(t('error.waitBeforeResend'));
       } else {
-        setResendMessage('Не удалось отправить код. Попробуйте позже');
+        setResendMessage(t('error.resendFailed'));
       }
     }
   }
@@ -142,7 +143,7 @@ function OtpVerify({ email }: { email: string }) {
   return (
     <>
       <h1 className="auth-headline-sm mt-[20px]">
-        Код отправлен на {email}
+        {t('verify.otpTitle', { email })}
       </h1>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -154,7 +155,7 @@ function OtpVerify({ email }: { email: string }) {
             error={!!codeError}
             disabled={isLoading}
             autoFocus
-            aria-label="Код из письма"
+            aria-label={t('verify.otpAria')}
           />
           {codeError && (
             <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
@@ -168,14 +169,14 @@ function OtpVerify({ email }: { email: string }) {
         )}
 
         <Button type="submit" isLoading={isLoading} disabled={!CODE_COMPLETE.test(code)} size="lg" className="w-full mt-[28px]">
-          {isLoading ? 'Проверяем...' : 'Подтвердить'}
+          {isLoading ? t('verify.submitting') : t('verify.submit')}
         </Button>
       </form>
 
       <div className="flex flex-col items-center gap-2 mt-[24px]">
         {resendCountdown > 0 ? (
           <p className="font-mono text-mono-xs tracking-label uppercase text-muted">
-            Отправить заново через {resendCountdown}
+            {t('verify.resendIn', { seconds: resendCountdown })}
           </p>
         ) : (
           <button
@@ -183,20 +184,18 @@ function OtpVerify({ email }: { email: string }) {
             onClick={handleResend}
             className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity"
           >
-            Отправить код повторно
+            {t('verify.resend')}
           </button>
         )}
         {resendMessage && (
           <p className="text-small text-secondary text-center">{resendMessage}</p>
         )}
-        <p className="text-caption text-muted text-center mt-1">
-          Не пришло письмо? Проверьте папку «Спам».
-        </p>
+        <p className="text-caption text-muted text-center mt-1">{t('checkSpam')}</p>
         <Link
           to="/login"
           className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
         >
-          ← Вернуться ко входу
+          {t('backToLogin')}
         </Link>
       </div>
     </>
@@ -206,6 +205,7 @@ function OtpVerify({ email }: { email: string }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function VerifyEmailPage() {
+  const { t } = useTranslation('auth');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const email = searchParams.get('email');
@@ -217,12 +217,10 @@ export default function VerifyEmailPage() {
   return (
     <div className="flex flex-col items-center text-center gap-4 py-6">
       <XCircle size={40} className="text-danger" />
-      <h1 className="auth-headline-sm">Ссылка недействительна</h1>
-      <p className="text-body text-secondary">
-        Проверьте письмо или зарегистрируйтесь заново.
-      </p>
+      <h1 className="auth-headline-sm">{t('verify.linkInvalidTitle')}</h1>
+      <p className="text-body text-secondary">{t('verify.linkInvalidBody')}</p>
       <Link to="/login" className="text-caption text-brand hover:opacity-70 transition-opacity">
-        ← Вернуться ко входу
+        {t('backToLogin')}
       </Link>
     </div>
   );

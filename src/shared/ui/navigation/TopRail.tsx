@@ -29,7 +29,9 @@ export function TopRail() {
     navigate('/login', { replace: true });
   }
 
-  const identity = profile ? `${profile.name} · ${profile.age} лет` : null;
+  const identity = profile
+    ? `${profile.name} · ${t('ageYears', { count: profile.age })}`
+    : null;
 
   return (
     <header className="sticky top-0 z-40 flex-none bg-page border-b border-strong">
@@ -63,7 +65,7 @@ export function TopRail() {
                   : undefined
               }
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
         </nav>
@@ -93,7 +95,7 @@ export function TopRail() {
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
             className="md:hidden p-2 rounded-lg hover:bg-hover text-secondary"
-            aria-label="Меню"
+            aria-label={t('menu')}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -124,7 +126,7 @@ export function TopRail() {
                 )
               }
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
           <div className="px-3 py-2.5">

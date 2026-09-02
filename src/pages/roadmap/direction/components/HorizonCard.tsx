@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { DIRECTION_HORIZON_LABELS } from '@/shared/config/constants';
 import type { DirectionStage } from '@/shared/types';
@@ -24,7 +25,9 @@ interface HorizonCardProps {
 export const HorizonCard = memo(function HorizonCard({
   stage, isFirst, isLast, targetYear,
 }: HorizonCardProps) {
-  const horizonLabel = DIRECTION_HORIZON_LABELS[stage.horizon] ?? stage.horizon;
+  const { t } = useTranslation();
+  const horizonKey = DIRECTION_HORIZON_LABELS[stage.horizon];
+  const horizonLabel = horizonKey ? t(horizonKey) : stage.horizon;
   const kicker = isFirst
     ? `${horizonLabel.toUpperCase()} · СЕЙЧАС`
     : isLast

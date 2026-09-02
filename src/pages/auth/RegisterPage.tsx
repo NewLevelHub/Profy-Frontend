@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
@@ -9,20 +10,22 @@ import { Button } from '@/shared/ui/Button';
 import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
 
-function validateEmail(email: string): string {
-  return email.includes('@') ? '' : 'Введите корректный email';
+function validateEmailKey(email: string): string {
+  return email.includes('@') ? '' : 'auth:validation.emailInvalid';
 }
 
-function validatePassword(password: string): string {
-  if (password.length < 8) return 'Минимум 8 символов';
-  if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву';
-  if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру';
+function validatePasswordKey(password: string): string {
+  if (password.length < 8) return 'auth:validation.passwordMin8';
+  if (!/[A-Za-z]/.test(password)) return 'auth:validation.passwordNeedsLetter';
+  if (!/\d/.test(password)) return 'auth:validation.passwordNeedsDigit';
   return '';
 }
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const storeLogin = useAuthStore(s => s.login);
+  const tErr = (key: string) => (key ? t(key) : '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,10 +38,10 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const eErr = validateEmail(email);
-    const pErr = validatePassword(password);
-    setEmailError(eErr);
-    setPasswordError(pErr);
+    const eErr = validateEmailKey(email);
+    const pErr = validatePasswordKey(password);
+    setEmailError(tErr(eErr));
+    setPasswordError(tErr(pErr));
     if (eErr || pErr) return;
 
     setFormError('');
@@ -52,13 +55,13 @@ export default function RegisterPage() {
         const status = err.response?.status;
         const message: string = err.response?.data?.detail ?? err.response?.data?.message ?? '';
         if (status === 409 || (status === 400 && message.toLowerCase().includes('already'))) {
-          setEmailError('Этот email уже зарегистрирован');
+          setEmailError(t('auth:error.emailTaken'));
         } else {
-          setFormError('Ошибка регистрации. Попробуйте позже');
+          setFormError(t('auth:error.registerGeneric'));
           setTimeout(() => passwordRef.current?.focus(), 0);
         }
       } else {
-        setFormError('Ошибка. Попробуйте позже');
+        setFormError(t('auth:error.generic'));
         setTimeout(() => passwordRef.current?.focus(), 0);
       }
     } finally {
@@ -74,7 +77,7 @@ export default function RegisterPage() {
       storeLogin(access_token, user);
       navigate('/results', { replace: true });
     } catch {
-      setFormError('Не удалось зарегистрироваться через Google. Попробуйте ещё раз');
+      setFormError(t('auth:error.googleSignUpFailed'));
     } finally {
       setGoogleSubmitting(false);
     }
@@ -82,13 +85,13 @@ export default function RegisterPage() {
 
   return (
     <>
-      <h1 className="auth-card-title">Создать аккаунт</h1>
-      <p className="auth-card-sub">Займёт меньше минуты — профиль настроим на следующем шаге.</p>
+      <h1 className="auth-card-title">{t('auth:register.title')}</h1>
+      <p className="auth-card-sub">{t('auth:register.subtitle')}</p>
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="mt-[28px]">
           <Input
-            label="Электронная почта"
+            label={t('auth:field.emailLong')}
             type="email"
             placeholder="you@example.com"
             value={email}
@@ -103,7 +106,7 @@ export default function RegisterPage() {
         <div className="mt-[24px]">
           <Input
             ref={passwordRef}
-            label="Пароль"
+            label={t('auth:field.password')}
             className="pr-10"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
@@ -117,7 +120,7 @@ export default function RegisterPage() {
                 tabIndex={-1}
                 onClick={() => setShowPassword(v => !v)}
                 className="text-muted hover:text-secondary transition-colors"
-                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={t(showPassword ? 'auth:field.hidePassword' : 'auth:field.showPassword')}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -130,14 +133,14 @@ export default function RegisterPage() {
         )}
 
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[34px]">
-          {isLoading ? 'Регистрируемся...' : 'Зарегистрироваться'}
+          {isLoading ? t('auth:register.submitting') : t('auth:register.submit')}
         </Button>
 
         {env.GOOGLE_CLIENT_ID && (
           <>
             <div className="flex items-center gap-3 mt-[24px]">
               <div className="h-px flex-1 bg-[var(--hairline)]" />
-              <span className="text-body-sm text-muted">или</span>
+              <span className="text-body-sm text-muted">{t('auth:divider')}</span>
               <div className="h-px flex-1 bg-[var(--hairline)]" />
             </div>
 
@@ -152,9 +155,9 @@ export default function RegisterPage() {
         )}
 
         <div className="text-center mt-[20px] text-body-sm">
-          <span className="text-muted">Уже есть аккаунт? </span>
+          <span className="text-muted">{t('auth:register.haveAccount')} </span>
           <Link to="/login" className="text-brand underline underline-offset-2 hover:opacity-70 transition-opacity">
-            Войти
+            {t('auth:register.signIn')}
           </Link>
         </div>
       </form>
