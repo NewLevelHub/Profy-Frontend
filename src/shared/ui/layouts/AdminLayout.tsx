@@ -13,6 +13,7 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
 const ADMIN_NAV_ITEMS = [
   { to: '/admin/users', label: 'Пользователи' },
   { to: '/admin/universities', label: 'Университеты' },
+  { to: '/admin/content', label: 'Контент' },
   { to: '/admin/feedback', label: 'Фидбэк' },
 ] as const;
 

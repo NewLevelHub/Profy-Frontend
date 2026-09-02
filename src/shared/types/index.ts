@@ -936,3 +936,210 @@ export interface AttemptHistoryEntry {
   /** e.g. "Полная диагностика · 60 вопросов" — pre-formatted by the backend. */
   description: string;
 }
+
+// ─── Admin: question-bank content editing (docs/admin-questions-content-overrides-plan.md) ─
+
+export type QuestionKeyed = 'plus' | 'minus';
+
+export interface AdminQuestionListItem {
+  id: string;
+  instrument: Instrument;
+  text: string;
+  order: number;
+  age_tier: AgeGroup;
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
+  mi_category: MIType | null;
+  has_overrides: boolean;
+}
+
+export interface AdminQuestionListResponse {
+  items: AdminQuestionListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminQuestionDetail {
+  id: string;
+  instrument: Instrument;
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
+  mi_category: MIType | null;
+  facet: string | null;
+  keyed: QuestionKeyed | null;
+  text: string;
+  short_text: string | null;
+  icon: string | null;
+  /** Read-only — structural, not part of `AdminQuestionUpdateRequest`. */
+  order: number;
+  age_tier: AgeGroup;
+  /** Field name → overridden value. Presence of a key both locks the field
+   *  and protects the whole row from bank-reorg deletion (see the content
+   *  contract's §3 — unlike university's `admin_locked_fields: string[]`,
+   *  this dict is self-contained and IS the edited value). */
+  overrides: Record<string, unknown>;
+}
+
+export type AdminQuestionUpdateRequest = Partial<{
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
+  mi_category: MIType | null;
+  facet: string | null;
+  keyed: QuestionKeyed | null;
+  text: string;
+  age_tier: AgeGroup;
+  short_text: string | null;
+  icon: string | null;
+}>;
+
+export interface AdminQuestionPairListItem {
+  id: string;
+  instrument: Instrument;
+  age_tier: AgeGroup;
+  pair_index: number;
+  has_overrides: boolean;
+}
+
+export interface AdminQuestionPairListResponse {
+  items: AdminQuestionPairListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminQuestionPairDetail {
+  id: string;
+  instrument: Instrument;
+  age_tier: AgeGroup;
+  pair_index: number;
+  /** Read-only — which two Question rows form the pair is a structural edit,
+   *  out of scope for this API. */
+  question_a_id: string;
+  question_b_id: string;
+  frame: string | null;
+  /** null = fall back to the linked Question's short_text/text on read —
+   *  this endpoint does not resolve that fallback itself. */
+  option_a_text: string | null;
+  option_b_text: string | null;
+  option_a_icon: string | null;
+  option_b_icon: string | null;
+  overrides: Record<string, unknown>;
+}
+
+export type AdminQuestionPairUpdateRequest = Partial<{
+  frame: string | null;
+  option_a_text: string | null;
+  option_b_text: string | null;
+  option_a_icon: string | null;
+  option_b_icon: string | null;
+}>;
+
+export interface AdminMotivationStatementListItem {
+  id: string;
+  triplet_index: number;
+  order: number;
+  category: MotivationCategory;
+  text: string;
+  has_overrides: boolean;
+}
+
+export interface AdminMotivationStatementListResponse {
+  items: AdminMotivationStatementListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminMotivationStatementDetail {
+  id: string;
+  triplet_index: number;
+  order: number;
+  category: MotivationCategory;
+  text: string;
+  /** null = the senior `text` is reused for junior too. */
+  text_junior: string | null;
+  overrides: Record<string, unknown>;
+}
+
+export type AdminMotivationStatementUpdateRequest = Partial<{
+  category: MotivationCategory;
+  text: string;
+  text_junior: string | null;
+}>;
+
+export interface AdminMotivationPairListItem {
+  id: string;
+  pair_index: number;
+  category_a: MotivationCategory;
+  category_b: MotivationCategory;
+  has_overrides: boolean;
+}
+
+export interface AdminMotivationPairListResponse {
+  items: AdminMotivationPairListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminMotivationPairDetail {
+  id: string;
+  pair_index: number;
+  /** Always equal — both sides are the SAME category, `text_a` its positive
+   *  pole and `text_b` its negative pole (not two different categories). */
+  category_a: MotivationCategory;
+  category_b: MotivationCategory;
+  text_a: string;
+  text_b: string;
+  overrides: Record<string, unknown>;
+}
+
+export type AdminMotivationPairUpdateRequest = Partial<{
+  category_a: MotivationCategory;
+  category_b: MotivationCategory;
+  text_a: string;
+  text_b: string;
+}>;
+
+export interface AdminDirectionListItem {
+  id: string;
+  name: string;
+  slug: string;
+  holland_code: string;
+  has_overrides: boolean;
+}
+
+export interface AdminDirectionListResponse {
+  items: AdminDirectionListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminDirectionDetail {
+  id: string;
+  name: string;
+  /** Read-only — generated once from `name` by the seed script, does not
+   *  re-derive if `name` is edited afterward (expected drift, not a bug). */
+  slug: string;
+  holland_code: string;
+  /** Empty for most rows today — the current professions-catalog seed only
+   *  fills name/holland_code; that's the catalog's real state, not a bug. */
+  description: string;
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+  overrides: Record<string, unknown>;
+}
+
+export type AdminDirectionUpdateRequest = Partial<{
+  name: string;
+  holland_code: string;
+  description: string;
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+}>;

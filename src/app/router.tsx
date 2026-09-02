@@ -7,6 +7,7 @@ import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
+import { AdminContentLayout } from '@/shared/ui/layouts/AdminContentLayout';
 
 // ── Auth (mobile: AuthNavigator) ──────────────────────────────────────────────
 import LoginPage from '@/pages/auth/LoginPage';
@@ -50,6 +51,16 @@ import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
 import AdminUniversitiesPage from '@/pages/admin/AdminUniversitiesPage';
 import AdminUniversityDetailPage from '@/pages/admin/AdminUniversityDetailPage';
 import AdminProgramDetailPage from '@/pages/admin/AdminProgramDetailPage';
+import AdminQuestionsPage from '@/pages/admin/content/AdminQuestionsPage';
+import AdminQuestionDetailPage from '@/pages/admin/content/AdminQuestionDetailPage';
+import AdminQuestionPairsPage from '@/pages/admin/content/AdminQuestionPairsPage';
+import AdminQuestionPairDetailPage from '@/pages/admin/content/AdminQuestionPairDetailPage';
+import AdminMotivationStatementsPage from '@/pages/admin/content/AdminMotivationStatementsPage';
+import AdminMotivationStatementDetailPage from '@/pages/admin/content/AdminMotivationStatementDetailPage';
+import AdminMotivationPairsPage from '@/pages/admin/content/AdminMotivationPairsPage';
+import AdminMotivationPairDetailPage from '@/pages/admin/content/AdminMotivationPairDetailPage';
+import AdminDirectionsPage from '@/pages/admin/content/AdminDirectionsPage';
+import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetailPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -136,6 +147,23 @@ export const router = createBrowserRouter([
                       { path: '/admin/universities', element: <AdminUniversitiesPage /> },
                       { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
                       { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
+                      {
+                        path: '/admin/content',
+                        element: <AdminContentLayout />,
+                        children: [
+                          { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                          { path: 'questions', element: <AdminQuestionsPage /> },
+                          { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
+                          { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
+                          { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
+                          { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
+                          { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
+                          { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
+                          { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
+                          { path: 'directions', element: <AdminDirectionsPage /> },
+                          { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                        ],
+                      },
                     ],
                   },
                 ],
