@@ -4,6 +4,11 @@ import type {
   AdminAssessmentDetail,
   AdminFeedbackListResponse,
   AdminFeedbackStatsResponse,
+  AdminProgramDetail,
+  AdminProgramUpdateRequest,
+  AdminUniversityDetail,
+  AdminUniversityListResponse,
+  AdminUniversityUpdateRequest,
   AdminUserDetail,
   AdminUserListResponse,
 } from '@/shared/types';
@@ -29,4 +34,27 @@ export const adminApi = {
 
   getFeedbackStats: () =>
     apiClient.get<AdminFeedbackStatsResponse>(API.admin.feedbackStats).then((r) => r.data),
+
+  listUniversities: (params?: { page?: number; limit?: number; search?: string }) =>
+    apiClient
+      .get<AdminUniversityListResponse>(API.admin.universities, { params })
+      .then((r) => r.data),
+
+  getUniversity: (universityId: string) =>
+    apiClient
+      .get<AdminUniversityDetail>(API.admin.universityDetail(universityId))
+      .then((r) => r.data),
+
+  updateUniversity: (universityId: string, body: AdminUniversityUpdateRequest) =>
+    apiClient
+      .patch<AdminUniversityDetail>(API.admin.universityDetail(universityId), body)
+      .then((r) => r.data),
+
+  getProgram: (programId: string) =>
+    apiClient.get<AdminProgramDetail>(API.admin.programDetail(programId)).then((r) => r.data),
+
+  updateProgram: (programId: string, body: AdminProgramUpdateRequest) =>
+    apiClient
+      .patch<AdminProgramDetail>(API.admin.programDetail(programId), body)
+      .then((r) => r.data),
 };

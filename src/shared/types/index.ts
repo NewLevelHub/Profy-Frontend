@@ -757,6 +757,113 @@ export interface AdminFeedbackStatsResponse {
   helpful_section_counts: Record<string, number>;
 }
 
+// ─── Admin: university/program editing (docs/admin-university-editing-api.md) ────
+
+export interface AdminUniversityListItem {
+  id: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  ranking: number | null;
+  uniranks_kz_rank: number | null;
+  /** "Н/Р" if checked and not found in the ranking; null = not checked yet. */
+  uniranks_note: string | null;
+  updated_at: string | null;
+  programs_count: number;
+}
+
+export interface AdminUniversityListResponse {
+  items: AdminUniversityListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminProgramBrief {
+  id: string;
+  name: string;
+  language: string | null;
+  cost_per_year: number | null;
+  cost_label: string | null;
+}
+
+/** Fields the admin PATCH endpoints accept — see §5/§6 of the API contract. */
+export type AdminUniversityUpdateRequest = Partial<{
+  name: string;
+  short_name: string;
+  aliases: string[];
+  location: string;
+  website: string;
+  ranking: number | null;
+  ranking_label: string | null;
+  uniranks_kz_rank: number | null;
+  uniranks_world_rank: number | null;
+  uniranks_note: string | null;
+  description: string;
+  city: string;
+  country: string;
+  source_url: string;
+}>;
+
+export interface AdminUniversityDetail {
+  id: string;
+  name: string;
+  /** Read-only — not part of `AdminUniversityUpdateRequest`. */
+  slug: string;
+  short_name: string | null;
+  aliases: string[];
+  location: string | null;
+  country: string | null;
+  city: string | null;
+  website: string | null;
+  ranking: number | null;
+  ranking_label: string | null;
+  uniranks_kz_rank: number | null;
+  uniranks_world_rank: number | null;
+  uniranks_note: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string | null;
+  source_url: string | null;
+  programs: AdminProgramBrief[];
+  /** Field names locked against the next automated seed/backfill re-sync. */
+  admin_locked_fields: string[];
+}
+
+export type AdminProgramUpdateRequest = Partial<{
+  name: string;
+  language: string;
+  cost_per_year: number | null;
+  cost_label: string | null;
+  description: string | null;
+  who_its_for: string | null;
+  /** Whole-object replace, not a merge — see §6 of the API contract. */
+  requirements: Record<string, unknown>;
+  /** Whole-object replace, not a merge — see §6 of the API contract. */
+  deadlines: Record<string, unknown>;
+  grants: unknown[];
+  source_url: string | null;
+}>;
+
+export interface AdminProgramDetail {
+  id: string;
+  university_id: string;
+  name: string;
+  language: string | null;
+  cost_per_year: number | null;
+  cost_label: string | null;
+  description: string | null;
+  who_its_for: string | null;
+  requirements: Record<string, unknown>;
+  deadlines: Record<string, unknown>;
+  grants: unknown[];
+  created_at: string;
+  updated_at: string | null;
+  source_url: string | null;
+  university: { id: string; name: string };
+  admin_locked_fields: string[];
+}
+
 // ─── Admin roles & change-log ───────────────────────────────────────────────────
 //
 // NOTE (frontend-only gap): the backend has no two-tier admin role concept today —

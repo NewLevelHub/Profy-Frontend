@@ -47,6 +47,9 @@ import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
 import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
+import AdminUniversitiesPage from '@/pages/admin/AdminUniversitiesPage';
+import AdminUniversityDetailPage from '@/pages/admin/AdminUniversityDetailPage';
+import AdminProgramDetailPage from '@/pages/admin/AdminProgramDetailPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -130,6 +133,9 @@ export const router = createBrowserRouter([
                       { path: '/admin/users', element: <AdminUsersPage /> },
                       { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
                       { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+                      { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+                      { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+                      { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
                     ],
                   },
                 ],

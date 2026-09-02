@@ -29,3 +29,10 @@ export const MONO_MUTE = `${MONO_LABEL} text-muted`;
 
 /** Sans, human-authored copy (names, notes, comments) at admin density. */
 export const ADMIN_SANS = ADMIN_TEXT;
+
+/** Compact bordered text/number input for admin edit forms. */
+export const ADMIN_INPUT =
+  'w-full rounded-[3px] border border-default bg-page text-primary px-2 py-1.5 text-body-sm focus:outline-none focus:border-brand transition-colors disabled:opacity-50';
+
+/** Same as `ADMIN_INPUT`, sized for multi-line text. */
+export const ADMIN_TEXTAREA = `${ADMIN_INPUT} min-h-[80px] resize-y`;
