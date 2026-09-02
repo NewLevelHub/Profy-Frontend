@@ -90,7 +90,11 @@ export type GpaScale = '4' | '5' | '10' | '100';
 
 // ─── Assessment ────────────────────────────────────────────────────────────────
 
-export type AssessmentGoal = 'explore' | 'profession' | 'university';
+// 'unsure' is legacy-only, like 'profession' (see shared/lib/assessmentGoal.ts)
+// — GoalSelectionPage no longer lets a student pick it, but old assessments
+// and the admin goal filter (docs/frontend-admin-users-api-contract.md §2)
+// can still carry/query for it.
+export type AssessmentGoal = 'explore' | 'profession' | 'university' | 'unsure';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
@@ -299,6 +303,14 @@ export interface AnalysisResultResponse {
   motivation: Record<MotivationCategory, number>;
   motivation_top: MotivationCategory[];
   motivation_highlights: string[];
+  /** v2 report fields — empty ([]) / 1 until the v2 report is (re)generated
+   *  for this assessment, not an error state (see
+   *  docs/frontend-admin-users-api-contract.md §5). `StrengthCard`/
+   *  `ThinkingStyleNote` are the same shapes student-facing `ResultResponse`
+   *  uses (see the "Result v2" section below) — this is the raw admin mirror. */
+  strength_cards: StrengthCard[];
+  thinking_style_notes: ThinkingStyleNote[];
+  report_version: number;
   summary: string;
   created_at: string;
 }
@@ -638,7 +650,14 @@ export interface AdminUserListItem {
   has_profile: boolean;
   profile_name: string | null;
   assessments_count: number;
+  /** null if the profile isn't filled in yet. */
+  age_group: AgeGroup | null;
   latest_assessment_status: AssessmentStatus | null;
+  /** Always the user's actual latest assessment — independent of which assessment
+   *  (if any) actually matched the `status`/`goal` list filters (see
+   *  docs/frontend-admin-users-api-contract.md §2's "found by filter" vs.
+   *  "actual latest" warning). null if the user has no assessments at all. */
+  latest_assessment_goal: AssessmentGoal | null;
   /** Admin-only raw percentages from the latest COMPLETED assessment
    *  (TZ_Profi.md §18.3). `riasec` is null for junior (MI instrument, not
    *  RIASEC) and for users with no completed assessment yet. */
@@ -875,26 +894,6 @@ export interface AdminProgramDetail {
 
 /** Frontend-only role distinction. No third tier — binary by design. */
 export type AdminRole = 'operator' | 'administrator';
-
-/**
- * One row of field-level edit history for an admin-editable record.
- *
- * NOTE (backend gap): there is no audit-log / change-history endpoint or type
- * anywhere in the API today (`adminApi` only exposes read GETs). This shape is
- * defined so `ChangeLogTable` has a real contract to render against; callers
- * must source real entries once a backend endpoint exists — never fabricate rows.
- */
-export interface ChangeLogEntry {
-  id: string;
-  /** Machine-readable identifier for the changed field, e.g. `alert-3.status`. */
-  field_id: string;
-  author: string;
-  timestamp: string;
-  old_value: string | null;
-  new_value: string | null;
-  /** Whether a real revert endpoint exists for this entry (currently always false). */
-  can_revert: boolean;
-}
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //

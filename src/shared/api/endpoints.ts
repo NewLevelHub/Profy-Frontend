@@ -53,8 +53,10 @@ export const API = {
   },
   admin: {
     users: '/admin/users',
+    usersExport: '/admin/users/export',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
+    assessmentExport: (id: string) => `/admin/assessments/${id}/export`,
     feedback: '/admin/feedback',
     feedbackStats: '/admin/feedback/stats',
     universities: '/admin/universities',

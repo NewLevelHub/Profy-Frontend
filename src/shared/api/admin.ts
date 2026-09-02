@@ -27,13 +27,30 @@ import type {
   AdminUserDetail,
   AdminUserListResponse,
   AgeGroup,
+  AssessmentGoal,
+  AssessmentStatus,
   Instrument,
 } from '@/shared/types';
 
+interface AdminUserFilterParams {
+  search?: string;
+  age_group?: AgeGroup;
+  status?: AssessmentStatus;
+  goal?: AssessmentGoal;
+}
+
 export const adminApi = {
-  listUsers: (params?: { page?: number; limit?: number; search?: string }) =>
+  listUsers: (params?: AdminUserFilterParams & { page?: number; limit?: number }) =>
     apiClient
       .get<AdminUserListResponse>(API.admin.users, { params })
+      .then((r) => r.data),
+
+  /** Unpaginated CSV of every user matching the filters — same params as
+   *  `listUsers` minus page/limit. Returns the raw Blob; caller triggers the
+   *  download (see `shared/lib/downloadBlob.ts`), never parse this as JSON. */
+  exportUsers: (params?: AdminUserFilterParams) =>
+    apiClient
+      .get<Blob>(API.admin.usersExport, { params, responseType: 'blob' })
       .then((r) => r.data),
 
   getUser: (userId: string) =>
@@ -42,6 +59,16 @@ export const adminApi = {
   getAssessment: (assessmentId: string) =>
     apiClient
       .get<AdminAssessmentDetail>(API.admin.assessmentDetail(assessmentId))
+      .then((r) => r.data),
+
+  /** ZIP of one assessment's full result — summary.csv + responses.csv +
+   *  (optionally) motivation.csv, each a real single-header table (previously
+   *  3 uneven blocks in one CSV; that broke any parser expecting one flat
+   *  table, hence the ZIP). Raw Blob either way — never parse as CSV/JSON,
+   *  just hand it to `downloadBlob`, same caveat as `exportUsers`. */
+  exportAssessment: (assessmentId: string) =>
+    apiClient
+      .get<Blob>(API.admin.assessmentExport(assessmentId), { responseType: 'blob' })
       .then((r) => r.data),
 
   listFeedback: (params?: { page?: number; limit?: number }) =>

@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Plus, X } from 'lucide-react';
+import { Download, Plus, X } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Heading } from '@/shared/ui/typography/Heading';
+import { Button } from '@/shared/ui/Button';
+import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { cn } from '@/shared/lib/cn';
+import { downloadBlob } from '@/shared/lib/downloadBlob';
+import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
+import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
 import { ADMIN_CARD, ADMIN_CELL, ADMIN_RADIUS, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminUserListItem, AssessmentStatus } from '@/shared/types';
+import type { AdminUserListItem, AgeGroup, AssessmentGoal, AssessmentStatus } from '@/shared/types';
 
 const PAGE_SIZE = 20;
-
-const STATUS_LABELS: Record<AssessmentStatus, string> = {
-  in_progress: 'В процессе',
-  completed: 'Завершена',
-};
 
 // Same display order as DiagnosticSummaryBlock's RIASEC bars (spec order,
 // not alphabetical) — kept consistent between the compact table cell here
@@ -106,9 +106,13 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [ageGroup, setAgeGroup] = useState<AgeGroup | ''>('');
+  const [status, setStatus] = useState<AssessmentStatus | ''>('');
+  const [goal, setGoal] = useState<AssessmentGoal | ''>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +121,14 @@ export default function AdminUsersPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await adminApi.listUsers({ page, limit: PAGE_SIZE, search: query || undefined });
+        const data = await adminApi.listUsers({
+          page,
+          limit: PAGE_SIZE,
+          search: query || undefined,
+          age_group: ageGroup || undefined,
+          status: status || undefined,
+          goal: goal || undefined,
+        });
         if (cancelled) return;
         setItems(data.items);
         setTotal(data.total);
@@ -133,7 +144,25 @@ export default function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, query]);
+  }, [page, query, ageGroup, status, goal]);
+
+  async function handleExport() {
+    setExporting(true);
+    setError('');
+    try {
+      const blob = await adminApi.exportUsers({
+        search: query || undefined,
+        age_group: ageGroup || undefined,
+        status: status || undefined,
+        goal: goal || undefined,
+      });
+      downloadBlob(blob, 'users_export.csv');
+    } catch {
+      setError('Не удалось выгрузить CSV');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const rowStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -193,35 +222,89 @@ export default function AdminUsersPage() {
               </button>
             </form>
           ) : (
-            /*
-              Only real, server-supported filter today is the `search` param
-              on `adminApi.listUsers` (matched against email). The spec's
-              richer filter row (status / goal / dropout / etc.) has no
-              query-param support on the backend, so no inactive chips are
-              rendered for filters that would silently do nothing.
-            */
             <button
               type="button"
               onClick={() => setFilterOpen(true)}
               className={cn(MONO_LABEL, 'inline-flex items-center gap-1 px-2.5 py-1 rounded-[3px] border border-dashed border-default text-muted hover:text-secondary hover:border-strong transition-colors')}
             >
               <Plus size={11} />
-              ФИЛЬТР
+              EMAIL
             </button>
           )}
+
+          <select
+            value={ageGroup}
+            onChange={(e) => {
+              setPage(1);
+              setAgeGroup(e.target.value as AgeGroup | '');
+            }}
+            className={cn(MONO_LABEL, ADMIN_RADIUS, 'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal')}
+          >
+            <option value="">Все возрасты</option>
+            {(Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => (
+              <option key={key} value={key}>
+                {AGE_TIER_LABELS[key]}
+              </option>
+            ))}
+          </select>
+
+          {/*
+            `status`/`goal` filter "has at least one matching assessment",
+            NOT "latest assessment matches" — deliberately not wired to the
+            ПОСЛЕДНИЙ ТЕСТ column below, which always shows the true latest
+            regardless of which assessment (if any) matched these filters.
+            See docs/frontend-admin-users-api-contract.md §2.
+          */}
+          <select
+            value={status}
+            onChange={(e) => {
+              setPage(1);
+              setStatus(e.target.value as AssessmentStatus | '');
+            }}
+            className={cn(MONO_LABEL, ADMIN_RADIUS, 'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal')}
+          >
+            <option value="">Есть тест со статусом: любой</option>
+            {(Object.keys(ASSESSMENT_STATUS_LABELS) as AssessmentStatus[]).map((key) => (
+              <option key={key} value={key}>
+                Есть тест: {ASSESSMENT_STATUS_LABELS[key]}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={goal}
+            onChange={(e) => {
+              setPage(1);
+              setGoal(e.target.value as AssessmentGoal | '');
+            }}
+            className={cn(MONO_LABEL, ADMIN_RADIUS, 'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal')}
+          >
+            <option value="">Есть тест с целью: любой</option>
+            {(Object.keys(ASSESSMENT_GOAL_LABELS) as AssessmentGoal[]).map((key) => (
+              <option key={key} value={key}>
+                Есть тест: {ASSESSMENT_GOAL_LABELS[key]}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/*
-          Mockup's "брошено на диагностике: N" needs an aggregate of
-          in-progress-with-no-recent-activity users across the WHOLE table,
-          which the list endpoint doesn't compute or expose (no last-activity
-          field, no server-side aggregate). Labeling a page-local count with
-          that copy would misstate it as a global stat, so it's omitted with
-          an honest note instead of a wrong number.
-        */}
-        <span className={MONO_MUTE} title="Бэкенд не отдаёт агрегат по обрывам диагностики">
-          БРОШЕНО НА ДИАГНОСТИКЕ: НЕТ ДАННЫХ
-        </span>
+        <div className="flex items-center gap-3">
+          {/*
+            Mockup's "брошено на диагностике: N" needs an aggregate of
+            in-progress-with-no-recent-activity users across the WHOLE table,
+            which the list endpoint doesn't compute or expose (no last-activity
+            field, no server-side aggregate). Labeling a page-local count with
+            that copy would misstate it as a global stat, so it's omitted with
+            an honest note instead of a wrong number.
+          */}
+          <span className={MONO_MUTE} title="Бэкенд не отдаёт агрегат по обрывам диагностики">
+            БРОШЕНО НА ДИАГНОСТИКЕ: НЕТ ДАННЫХ
+          </span>
+          <Button variant="ghost" size="sm" muteSound isLoading={exporting} onClick={handleExport}>
+            <Download size={14} />
+            Экспорт CSV
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -250,7 +333,14 @@ export default function AdminUsersPage() {
                   <tr>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ID</th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ПОЛЬЗОВАТЕЛЬ</th>
+                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ВОЗРАСТ</th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ДИАГНОСТИКА</th>
+                    <th
+                      className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}
+                      title="Цель ПОСЛЕДНЕГО теста пользователя — не обязательно тест, который подошёл под фильтр «Есть тест с целью» выше"
+                    >
+                      ЦЕЛЬ (ПОСЛЕДНИЙ ТЕСТ)
+                    </th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>RIASEC</th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>BIG 5</th>
                     <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>АКТИВНОСТЬ</th>
@@ -266,22 +356,19 @@ export default function AdminUsersPage() {
                         <Link to={`/admin/users/${item.id}`} className="font-semibold text-primary hover:text-brand hover:underline">
                           {item.has_profile && item.profile_name ? item.profile_name : item.email}
                         </Link>
-                        {/*
-                          Mockup wants "· age · grade" inline. AdminUserListItem
-                          carries no age/grade — those only exist on
-                          AdminUserDetail.profile, one level deeper. Rather than
-                          fetch every row's detail just to fill this in (an N+1
-                          the list page shouldn't pay for), this is left as a
-                          real gap: the list endpoint needs age/grade added to
-                          AdminUserListItem for this to render honestly.
-                        */}
                         <div className="font-mono text-mono-xs text-muted mt-0.5">{item.email}</div>
                         {item.is_admin && (
                           <span className={cn(MONO_LABEL, 'text-brand')}>ADMIN</span>
                         )}
                       </td>
+                      <td className={cn(ADMIN_CELL, 'text-secondary align-top')}>
+                        {item.age_group ? AGE_TIER_LABELS[item.age_group] : <span className={MONO_MUTE}>—</span>}
+                      </td>
                       <td className={cn(ADMIN_CELL, 'align-top')}>
                         <DiagnosticsCell status={item.latest_assessment_status} />
+                      </td>
+                      <td className={cn(ADMIN_CELL, 'text-secondary align-top')}>
+                        {item.latest_assessment_goal ? ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal] : <span className={MONO_MUTE}>—</span>}
                       </td>
                       <td className={cn(ADMIN_CELL, 'align-top')} title="RIASEC пусто для junior (MI-тест) и до завершения диагностики">
                         <ResultsCell values={item.riasec} order={RIASEC_DISPLAY_ORDER} />
@@ -317,9 +404,18 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
 
-                  <DiagnosticsCell status={item.latest_assessment_status} />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <DiagnosticsCell status={item.latest_assessment_status} />
+                    {item.latest_assessment_goal && (
+                      <span className={MONO_MUTE}>{ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal].toUpperCase()}</span>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-x-3 gap-y-2 pt-2 border-t border-default">
+                    <AdminCardField
+                      label="ВОЗРАСТ"
+                      value={item.age_group ? AGE_TIER_LABELS[item.age_group] : '—'}
+                    />
                     <AdminCardField
                       label="RIASEC"
                       value={
@@ -355,29 +451,7 @@ export default function AdminUsersPage() {
         )}
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className={MONO_MUTE}>
-          СТРОКИ {rowStart}–{rowEnd} ИЗ {total}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            ПРЕД
-          </button>
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            СЛЕД
-          </button>
-        </div>
-      </div>
+      <AdminPager page={page} totalPages={totalPages} rowStart={rowStart} rowEnd={rowEnd} total={total} onPrev={() => setPage((p) => p - 1)} onNext={() => setPage((p) => p + 1)} />
     </PageContainer>
   );
 }
