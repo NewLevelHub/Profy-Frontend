@@ -127,6 +127,19 @@ respect `prefers-reduced-motion: reduce` (see existing `@media` blocks in
 `theme.css` for the pattern — drop transforms, keep or drop opacity per
 case).
 
+### Mascot motion
+
+The mascot sprite is a static PNG. By default only the eyes blink (white lid
+`div`s over the eye boxes). `<Mascot interactive />` adds a transform-only
+layer — a slow idle "breathing" loop, a small lean toward the pointer, and a
+squash-and-stretch hop on tap (`.mascot-lean` / `.mascot-breath` /
+`.mascot-hop` in `theme.css`, driven by `mascot/useMascotInteraction.ts`).
+It's fine-pointer only and off under reduced-motion. Turn it on only for the
+rare/"significant" poses (`welcome`, `completion`) — never for the
+`transition`/`waiting` poses that recur on routine screens, and never on the
+question screen (ТЗ 29.2). Anything richer than this (moving ears/tail/limbs)
+needs the art re-exported in layers or a rigged format — not in scope here.
+
 ## Components
 
 Reusable primitives live in `src/shared/ui/` (`Button`, `Badge`, `Card`,

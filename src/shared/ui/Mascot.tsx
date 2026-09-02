@@ -6,6 +6,7 @@ import {
   type MascotEyeBox,
   type MascotState,
 } from './mascot/sprites';
+import { useMascotInteraction } from './mascot/useMascotInteraction';
 
 export type { MascotState, MascotFunctionalState, MascotProfessionState } from './mascot/sprites';
 export { SPRITES, PRO } from './mascot/sprites';
@@ -19,6 +20,15 @@ export interface MascotProps {
   compact?: boolean;
   /** Set false to opt out of the blink animation even outside reduced-motion. Defaults to true. */
   blink?: boolean;
+  /**
+   * Opt in to the interactive layer: idle "breathing" loop, a lean toward the
+   * pointer while it's near, and a squash-and-stretch hop on tap. Transform-only,
+   * fine-pointer only, and disabled under `prefers-reduced-motion`. Ignored in
+   * `compact` mode. Off by default — only turn it on for rare/"significant"
+   * moments (welcome, completion), not routine content-swap poses. Don't combine
+   * with a `className` that also sets `transform` (e.g. `-scale-x-100`).
+   */
+  interactive?: boolean;
   className?: string;
 }
 
@@ -52,11 +62,21 @@ function prefersReducedMotion(): boolean {
  * react to answer content, and never praise a specific choice — only on
  * rest/transition/loading/completion moments.
  */
-export function Mascot({ state, size, compact = false, blink = true, className }: MascotProps) {
+export function Mascot({
+  state,
+  size,
+  compact = false,
+  blink = true,
+  interactive = false,
+  className,
+}: MascotProps) {
   const entry = ALL_SPRITES[state];
   const resolvedSize = size ?? (compact ? DEFAULT_SIZE_COMPACT : DEFAULT_SIZE_FULL);
   const [blinking, setBlinking] = useState(false);
   const timeoutIdsRef = useRef<number[]>([]);
+
+  const interactionEnabled = interactive && !compact;
+  const interaction = useMascotInteraction(interactionEnabled);
 
   const canBlink = entry.eyes !== null && blink !== false && compact !== true;
 
@@ -116,16 +136,32 @@ export function Mascot({ state, size, compact = false, blink = true, className }
     );
   }
 
+  const poseLayer = (
+    <>
+      <img src={src} alt={entry.alt} className="block w-full h-auto" />
+      {blinking && entry.eyes && entry.eyes.map((eye, index) => <Eyelid key={index} box={eye} />)}
+    </>
+  );
+
   return (
     <div className={cn('relative', className)} style={{ width: resolvedSize }}>
-      <img src={src} alt={entry.alt} className="block w-full h-auto" />
-      {blinking && entry.eyes && (
-        <>
-          {entry.eyes.map((eye, index) => (
-            <Eyelid key={index} box={eye} />
-          ))}
-        </>
-      )}
+      {/* Появление — отдельный слой поверх всех остальных: снаружи className
+          может задавать свой transform (-scale-x-100 в IdentityRail), внутри
+          за transform спорят lean/breath/hop. Собственная обёртка разводит их. */}
+      <div className="mascot-enter">
+        {interactionEnabled ? (
+          <div ref={interaction.ref} className="mascot-lean" onPointerDown={interaction.onPointerDown}>
+            <div
+              className={cn('mascot-breath', interaction.hop && 'mascot-hop')}
+              onAnimationEnd={interaction.onAnimationEnd}
+            >
+              {poseLayer}
+            </div>
+          </div>
+        ) : (
+          poseLayer
+        )}
+      </div>
     </div>
   );
 }
