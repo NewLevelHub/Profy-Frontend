@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import {
   ALL_SPRITES,
@@ -53,7 +54,9 @@ function prefersReducedMotion(): boolean {
  * rest/transition/loading/completion moments.
  */
 export function Mascot({ state, size, compact = false, blink = true, className }: MascotProps) {
+  const { t } = useTranslation('common');
   const entry = ALL_SPRITES[state];
+  const alt = t(entry.alt);
   const resolvedSize = size ?? (compact ? DEFAULT_SIZE_COMPACT : DEFAULT_SIZE_FULL);
   const [blinking, setBlinking] = useState(false);
   const timeoutIdsRef = useRef<number[]>([]);
@@ -104,7 +107,7 @@ export function Mascot({ state, size, compact = false, blink = true, className }
       >
         <img
           src={src}
-          alt={entry.alt}
+          alt={alt}
           className="absolute max-w-none"
           style={{
             width: `${ZOOM * 100}%`,
@@ -118,7 +121,7 @@ export function Mascot({ state, size, compact = false, blink = true, className }
 
   return (
     <div className={cn('relative', className)} style={{ width: resolvedSize }}>
-      <img src={src} alt={entry.alt} className="block w-full h-auto" />
+      <img src={src} alt={alt} className="block w-full h-auto" />
       {blinking && entry.eyes && (
         <>
           {entry.eyes.map((eye, index) => (

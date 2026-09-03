@@ -58,10 +58,27 @@ const resources = {
   },
 } as const;
 
+// Dev-only pseudo-locale: `?pseudo` in the URL wraps every resolved string in
+// ⟦…⟧, so a hardcoded (un-t()'d) string shows up bracket-less on screen. Runs
+// after interpolation, so ⟦Страница 2 из 8⟧ still reads. Never enabled in prod.
+const PSEUDO =
+  import.meta.env.DEV &&
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).has('pseudo');
+
+if (PSEUDO) {
+  i18next.use({
+    type: 'postProcessor',
+    name: 'pseudo',
+    process: (value: string) => `⟦${value}⟧`,
+  });
+}
+
 void i18next.use(initReactI18next).init({
   resources,
   lng: resolveLocale(readPersistedLocale()),
   fallbackLng: DEFAULT_LOCALE,
+  postProcess: PSEUDO ? ['pseudo'] : [],
   // KZ-603 adds 'kk' to SUPPORTED_LOCALES; until then a stale persisted "kk"
   // (or a kk browser) still resolves to "ru" here.
   supportedLngs: [...SUPPORTED_LOCALES],

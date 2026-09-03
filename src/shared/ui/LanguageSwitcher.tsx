@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
@@ -12,6 +13,8 @@ import {
   type Locale,
 } from '@/shared/store/locale';
 
+// Each option is shown in its own script — a language picker convention, not
+// translatable UI copy.
 const LABEL: Record<Locale, string> = { ru: 'RU', kk: 'ҚАЗ' };
 
 // Locales actually offered right now. While this has ≤1 entry (before KZ-603
@@ -28,6 +31,7 @@ export interface LanguageSwitcherProps {
  * Renders `null` until there is more than one supported locale.
  */
 export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
+  const { t } = useTranslation('common');
   const locale = useLocaleStore((s) => s.locale);
   const setLocale = useLocaleStore((s) => s.setLocale);
   const isAuthenticated = useIsAuthenticated();
@@ -61,7 +65,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
         className,
       )}
       role="group"
-      aria-label="Тіл / Язык"
+      aria-label={t('languageSwitcherAria')}
     >
       {OPTIONS.map((l) => (
         <button
