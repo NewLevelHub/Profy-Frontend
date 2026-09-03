@@ -47,7 +47,7 @@ export default function WelcomePage() {
                 ни родители.
               </Text>
             </div>
-            <Mascot state="welcome" size={124} className="shrink-0" />
+            <Mascot state="welcome" size={124} interactive className="shrink-0" />
           </div>
 
           {/* Feature bullets */}
