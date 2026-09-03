@@ -1,1 +1,142 @@
-{}
+{
+  "common": {
+    "edit": "Изменить",
+    "add": "Добавить"
+  },
+  "page": {
+    "defaultName": "Пользователь",
+    "notFilledTitle": "Профиль не заполнен",
+    "notFilledBody": "Данные появятся после прохождения настройки профиля",
+    "juniorFooter": "Настройки и почта — у мамы. Если что-то нужно поменять, скажи ей."
+  },
+  "rail": {
+    "personal": "Личные данные",
+    "subjects": "Предметы",
+    "artifacts": "Увлечения и цели",
+    "certificates": "Сертификаты и GPA",
+    "settings": "Настройки"
+  },
+  "identityRail": {
+    "sectionsAria": "Разделы профиля"
+  },
+  "meta": {
+    "ageYearsUpper_one": "{{count}} ГОД",
+    "ageYearsUpper_few": "{{count}} ГОДА",
+    "ageYearsUpper_many": "{{count}} ЛЕТ",
+    "ageYearsUpper_other": "{{count}} ЛЕТ",
+    "gradeUpper_one": "{{count}} КЛАСС",
+    "gradeUpper_few": "{{count}} КЛАССА",
+    "gradeUpper_many": "{{count}} КЛАССОВ",
+    "gradeUpper_other": "{{count}} КЛАССА"
+  },
+  "hero": {
+    "juniorKicker": "«МОИ ШТУКИ»"
+  },
+  "personal": {
+    "title": "ЛИЧНЫЕ",
+    "editAria": "Редактировать личные данные",
+    "age": "Возраст",
+    "grade": "Класс",
+    "city": "Город",
+    "country": "Страна",
+    "gradeValue_one": "{{count}} класс",
+    "gradeValue_few": "{{count}} класса",
+    "gradeValue_many": "{{count}} классов",
+    "gradeValue_other": "{{count}} класса"
+  },
+  "subjects": {
+    "title": "ПРЕДМЕТЫ",
+    "editAria": "Редактировать предметы",
+    "liked": "Люблю",
+    "easy": "Даются легко",
+    "disliked": "Не люблю",
+    "hard": "Даются трудно"
+  },
+  "artifacts": {
+    "title": "УВЛЕЧЕНИЯ",
+    "editAria": "Редактировать увлечения и цели",
+    "addAria": "Добавить увлечения и цели",
+    "dream": "Мечта",
+    "dreamEmptyPrefix": "Пока пусто —",
+    "dreamEmptyAction": "рассказать",
+    "empty": "Пока пусто — можно рассказать о своих увлечениях и целях",
+    "group": {
+      "hobby": "Хобби",
+      "club": "Клубы",
+      "achievement": "Достижения",
+      "profession": "Интересные профессии",
+      "university": "Страны и университеты"
+    }
+  },
+  "artifactType": {
+    "hobby": "Хобби",
+    "club": "Кружки",
+    "sport": "Спорт",
+    "achievement": "Достижения",
+    "goal": "Мечты",
+    "book": "Книги",
+    "game": "Игры",
+    "topic": "Темы",
+    "profession": "Профессии",
+    "university": "Вузы",
+    "dream": "Мечты"
+  },
+  "selfDescription": {
+    "kicker": "ТЫ РАССКАЗАЛ О СЕБЕ",
+    "change": "Поменять",
+    "empty": "Пока пусто — расскажи о себе, чтобы это появилось здесь."
+  },
+  "strengths": {
+    "kicker": "ТВОИ СИЛЬНЫЕ СТОРОНЫ",
+    "empty": "Пройди тест — тогда здесь появятся твои сильные стороны."
+  },
+  "certificates": {
+    "title": "БАЛЛЫ",
+    "editAria": "Редактировать сертификаты и GPA",
+    "addAria": "Добавить сертификаты и GPA"
+  },
+  "certificate": {
+    "ielts": "IELTS",
+    "unt": "ЕНТ",
+    "sat": "SAT",
+    "toefl": "TOEFL"
+  },
+  "settings": {
+    "title": "НАСТРОЙКИ",
+    "languageLabel": "Язык",
+    "languageHint": "Язык интерфейса",
+    "soundLabel": "Звуковые эффекты",
+    "soundReducedMotion": "Отключены из‑за настройки «уменьшить движение»",
+    "soundHint": "Короткие звуки при нажатии кнопок",
+    "restartConfirmTitle": "Начать заново?",
+    "restartConfirmBody": "Весь текущий прогресс будет сброшен. Ты начнёшь диагностику с самого начала.",
+    "restartConfirmYes": "Начать заново",
+    "restartLabel": "Начать тестирование заново",
+    "restartHint": "Результаты и рекомендации будут сброшены",
+    "restartAction": "Сбросить",
+    "logout": "Выйти из аккаунта"
+  },
+  "edit": {
+    "title": "Сертификаты и GPA",
+    "subtitle": "Баллы IELTS, ЕНТ, SAT, TOEFL и средний балл — если уже есть",
+    "scoresHeading": "Языковые и вступительные баллы",
+    "scoresHint": "Заполни то, что уже сдавал — остальное можно оставить пустым",
+    "rangePlaceholder": "от {{min}} до {{max}}",
+    "gpaHeading": "Средний балл (GPA)",
+    "gpaHint": "Выбери систему оценки в своей школе",
+    "gpaScaleAria": "Система оценки GPA",
+    "scoreLabel": "Балл",
+    "gpaRangePlaceholder": "от 0 до {{max}}",
+    "gpaChooseScaleFirst": "сначала выбери систему",
+    "saveError": "Не удалось сохранить. Попробуй ещё раз.",
+    "errorRange": "От {{min}} до {{max}}",
+    "errorChooseScale": "Выбери систему оценки",
+    "errorEnterScore": "Укажи балл",
+    "errorGpaRange": "От 0 до {{max}}"
+  },
+  "ageGroup": {
+    "junior": "Младший (6–10 лет)",
+    "middle": "Средний (11–14 лет)",
+    "senior": "Старший (15–18 лет)"
+  }
+}

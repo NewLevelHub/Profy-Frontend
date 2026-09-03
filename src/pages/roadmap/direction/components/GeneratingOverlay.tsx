@@ -1,21 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Mascot } from '@/shared/ui/Mascot';
 
-/** Generation takes up to ~60s — rotate the copy so it never looks frozen. */
-const STEPS = [
-  'Читаю твои результаты…',
-  'Ищу, кем ты можешь стать в этом направлении…',
-  'Нахожу твою точку роста…',
-  'Собираю план на 12 месяцев…',
-  'Почти готово…',
-];
-
 const STEP_MS = 6000;
 
 export function GeneratingOverlay() {
+  const { t } = useTranslation('roadmap');
   const [step, setStep] = useState(0);
+
+  /** Generation takes up to ~60s — rotate the copy so it never looks frozen. */
+  const STEPS = useMemo(
+    () => [
+      t('generating.step1'),
+      t('generating.step2'),
+      t('generating.step3'),
+      t('generating.step4'),
+      t('generating.step5'),
+    ],
+    [t],
+  );
 
   useEffect(() => {
     const id = setInterval(
@@ -23,7 +28,7 @@ export function GeneratingOverlay() {
       STEP_MS,
     );
     return () => clearInterval(id);
-  }, []);
+  }, [STEPS.length]);
 
   return (
     <div
@@ -35,7 +40,7 @@ export function GeneratingOverlay() {
       <Spinner size="lg" />
 
       <div className="flex flex-col gap-2">
-        <h2 className="text-title font-extrabold text-primary">Собираю твой план</h2>
+        <h2 className="text-title font-extrabold text-primary">{t('generating.title')}</h2>
         <p className="text-body text-secondary">{STEPS[step]}</p>
       </div>
 
@@ -47,11 +52,11 @@ export function GeneratingOverlay() {
             goal: i === STEPS.length - 1,
           }))}
           thickness={0.85}
-          ariaLabel={`Шаг ${step + 1} из ${STEPS.length}`}
+          ariaLabel={t('generating.stepAria', { current: step + 1, total: STEPS.length })}
         />
       </div>
 
-      <p className="text-caption text-muted">Это займёт до минуты — не закрывай страницу</p>
+      <p className="text-caption text-muted">{t('generating.hint')}</p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { GpaScale } from '@/shared/types';
 import { GPA_SCALES, GPA_SCALE_LABELS } from '../utils/certificateConfig';
 
@@ -10,8 +11,9 @@ export interface GpaScaleSelectorProps {
 // fixed set of options reads better as direct buttons than a native
 // <select>, which nothing else in this app uses either.
 export function GpaScaleSelector({ value, onChange }: GpaScaleSelectorProps) {
+  const { t } = useTranslation('profile');
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Система оценки GPA">
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t('edit.gpaScaleAria')}>
       {GPA_SCALES.map(scale => {
         const selected = value === scale;
         return (

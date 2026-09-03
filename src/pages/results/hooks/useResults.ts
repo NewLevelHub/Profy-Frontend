@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
@@ -7,6 +8,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 
 export function useResults() {
+  const { t } = useTranslation('results');
   const report = useResultStore(s => s.report);
   const setReport = useResultStore(s => s.setReport);
   const clearReport = useResultStore(s => s.clearReport);
@@ -75,8 +77,8 @@ export function useResults() {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
     error: isLegacyShape
-      ? 'Отчёт сохранён в устаревшем формате и пока не может быть показан. Мы уже знаем об этом — попробуй зайти чуть позже.'
-      : (!is403 && error) ? 'Не удалось загрузить результаты. Попробуй ещё раз.' : null,
+      ? t('error.legacyShape')
+      : (!is403 && error) ? t('error.loadResultsRetry') : null,
     hasCompletedAssessment,
     assessmentId,
     goal,

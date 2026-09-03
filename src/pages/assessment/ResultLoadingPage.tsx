@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
@@ -8,14 +9,10 @@ import { Button } from '@/shared/ui/Button';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Mascot } from '@/shared/ui/Mascot';
 
-const MESSAGES = [
-  'Анализируем твои ответы...',
-  'Находим подходящие направления...',
-  'Составляем твой профиль...',
-  'Почти готово...',
-];
+const MESSAGE_KEYS = ['resultLoading.msg1', 'resultLoading.msg2', 'resultLoading.msg3', 'resultLoading.msg4'];
 
 export default function ResultLoadingPage() {
+  const { t } = useTranslation('assessment');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isRetake = searchParams.get('retake') === '1';
@@ -40,7 +37,7 @@ export default function ResultLoadingPage() {
     const id = setInterval(() => {
       setMsgVisible(false);
       const t = setTimeout(() => {
-        setMessageIndex(i => (i + 1) % MESSAGES.length);
+        setMessageIndex(i => (i + 1) % MESSAGE_KEYS.length);
         setMsgVisible(true);
       }, 250);
       return () => clearTimeout(t);
@@ -90,7 +87,7 @@ export default function ResultLoadingPage() {
             }
           } catch {
             if (!cancelled) {
-              setError('Не удалось сформировать результат. Попробуй ещё раз.');
+              setError(t('resultLoading.error'));
             }
           }
         }
@@ -113,25 +110,25 @@ export default function ResultLoadingPage() {
             style={{ opacity: msgVisible ? 1 : 0 }}
           >
             <p className="text-subtitle font-semibold text-primary" style={{ minHeight: '2rem' }}>
-              {MESSAGES[messageIndex]}
+              {t(MESSAGE_KEYS[messageIndex])}
             </p>
           </div>
           <Spine
-            nodes={MESSAGES.map((_, i): SpineNode => ({
+            nodes={MESSAGE_KEYS.map((_, i): SpineNode => ({
               id: i,
               status: i < messageIndex ? 'done' : i === messageIndex ? 'current' : 'upcoming',
-              goal: i === MESSAGES.length - 1,
+              goal: i === MESSAGE_KEYS.length - 1,
             }))}
             thickness={0.85}
-            ariaLabel={`Шаг ${messageIndex + 1} из ${MESSAGES.length}`}
+            ariaLabel={t('resultLoading.stepAria', { current: messageIndex + 1, total: MESSAGE_KEYS.length })}
           />
-          <p className="text-body text-secondary">Это займёт несколько секунд...</p>
+          <p className="text-body text-secondary">{t('resultLoading.takesSeconds')}</p>
         </>
       ) : (
         <div className="flex flex-col items-center gap-4">
           <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
           <p className="text-body text-danger">{error}</p>
-          <Button onClick={() => setRetryCount(c => c + 1)}>Попробовать снова</Button>
+          <Button onClick={() => setRetryCount(c => c + 1)}>{t('error.retry')}</Button>
         </div>
       )}
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
@@ -10,6 +11,7 @@ import type { RestStopState } from '../utils/restStop';
 export type PairAssessmentPhase = 'loading' | 'intro' | 'question';
 
 export function usePairAssessment() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
@@ -76,7 +78,7 @@ export function usePairAssessment() {
         }, 2000);
       } catch {
         if (!cancelled) {
-          setError('Не удалось загрузить вопросы. Попробуй ещё раз.');
+          setError(t('assessment:error.loadQuestions'));
           setPhase('question');
         }
       }
@@ -170,7 +172,7 @@ export function usePairAssessment() {
         setSaving(false);
       }, 300);
     } catch {
-      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+      setError(t('assessment:error.saveAnswer'));
       setSaving(false);
     }
   }
@@ -183,7 +185,7 @@ export function usePairAssessment() {
       await autofillPairAssessment(assessmentId);
       navigate('/assessment/loading');
     } catch {
-      setError('Не удалось автозаполнить тест.');
+      setError(t('assessment:error.autofill'));
     } finally {
       setAutofilling(false);
     }

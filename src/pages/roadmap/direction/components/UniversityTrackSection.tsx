@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import type { UniversityTrack } from '@/shared/types';
 
@@ -7,19 +8,20 @@ interface UniversityTrackSectionProps {
 
 /** Shown to everyone — the plan leads to a matching specialty even if the goal isn't admission. */
 export function UniversityTrackSection({ track }: UniversityTrackSectionProps) {
+  const { t } = useTranslation('roadmap');
   if (track.specialties.length === 0 && track.prepare.length === 0) return null;
 
   return (
     <Card className="flex flex-col gap-5">
       <h2 className="text-label font-bold text-primary flex items-center gap-2">
         <span aria-hidden="true">🎓</span>
-        Путь в вуз
+        {t('universityTrack.title')}
       </h2>
 
       {track.specialties.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-caption font-semibold text-muted uppercase tracking-wide">
-            Куда это ведёт
+            {t('universityTrack.leadsTo')}
           </p>
           <div className="flex flex-wrap gap-2">
             {track.specialties.map((specialty, i) => (
@@ -37,7 +39,7 @@ export function UniversityTrackSection({ track }: UniversityTrackSectionProps) {
       {track.prepare.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-caption font-semibold text-muted uppercase tracking-wide">
-            Что готовить
+            {t('universityTrack.whatToPrepare')}
           </p>
           <ul className="flex flex-col gap-2">
             {track.prepare.map((item, i) => (

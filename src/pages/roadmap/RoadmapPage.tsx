@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useRoadmap } from './hooks/useRoadmap';
-import { ROADMAP_HORIZON_LABELS, ROADMAP_CATEGORY_EMOJIS } from '@/shared/config/constants';
+import { ROADMAP_HORIZON_LABELS, ROADMAP_CATEGORY_EMOJIS, ROADMAP_CATEGORY_LABELS } from '@/shared/config/constants';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import type { RoadmapHorizonKey, RoadmapMilestone } from '@/shared/types';
@@ -28,7 +28,7 @@ function HorizonCard({
             : milestone.horizon}
         </span>
         <span className="font-semibold text-muted text-xs">
-          {milestone.tasks.length} задач
+          {t('roadmap:page.taskCount', { count: milestone.tasks.length })}
         </span>
       </div>
       <p className="font-bold text-text text-body-sm leading-snug">
@@ -46,7 +46,7 @@ function HorizonCard({
         ))}
         {milestone.tasks.length > 3 && (
           <span className="font-semibold text-muted text-mono-xs px-2 py-0.5">
-            +{milestone.tasks.length - 3} ещё
+            {t('roadmap:page.moreCount', { count: milestone.tasks.length - 3 })}
           </span>
         )}
       </div>
@@ -72,7 +72,7 @@ function MilestoneView({
         className="flex items-center gap-1.5 mb-4 font-bold text-brand text-sm"
       >
         <span className="text-lg leading-none">←</span>
-        Все горизонты
+        {t('roadmap:page.allHorizons')}
       </button>
 
       <div className="mb-1">
@@ -108,7 +108,8 @@ function MilestoneView({
                     </p>
                   )}
                   <span className="inline-block mt-2 font-semibold text-mono-xs text-brand bg-brand-subtle rounded-pill px-2 py-0.5">
-                    {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'} {task.category}
+                    {ROADMAP_CATEGORY_EMOJIS[task.category] ?? '•'}{' '}
+                    {ROADMAP_CATEGORY_LABELS[task.category] ? t(ROADMAP_CATEGORY_LABELS[task.category]) : task.category}
                   </span>
                 </div>
               </div>
@@ -163,6 +164,7 @@ function RoadmapEmptyState({
 }
 
 export default function RoadmapPage() {
+  const { t } = useTranslation();
   const {
     roadmap,
     isLoading,
@@ -180,7 +182,7 @@ export default function RoadmapPage() {
     return (
       <PageContainer className="flex flex-col items-center justify-center py-20 gap-3">
         <div className="rounded-full animate-spin w-9 h-9 border-[3px] border-default border-t-brand" />
-        <p className="font-semibold text-muted text-sm">Загружаем твой план...</p>
+        <p className="font-semibold text-muted text-sm">{t('roadmap:page.loading')}</p>
       </PageContainer>
     );
   }
@@ -190,7 +192,7 @@ export default function RoadmapPage() {
       <RoadmapEmptyState
         icon="⚠️"
         title={error}
-        actionLabel="Попробовать снова"
+        actionLabel={t('roadmap:action.retry')}
         onAction={() => generate()}
       />
     );
@@ -200,10 +202,10 @@ export default function RoadmapPage() {
     return (
       <RoadmapEmptyState
         icon="🗺️"
-        title="Твой план ещё не составлен"
-        description="Пройди диагностику, и мы составим персональный план развития по твоим результатам"
+        title={t('roadmap:empty.title')}
+        description={t('roadmap:empty.body')}
         error={generateError}
-        actionLabel={isGenerating ? 'Составляем план...' : 'Составить план'}
+        actionLabel={isGenerating ? t('roadmap:empty.generating') : t('roadmap:empty.cta')}
         onAction={() => generate()}
         disabled={isGenerating}
       />
@@ -224,8 +226,8 @@ export default function RoadmapPage() {
   return (
     <PageContainer className="space-y-6">
       <PageHeader
-        title="Твой план развития"
-        subtitle="Выбери горизонт — сколько у тебя есть времени"
+        title={t('roadmap:page.title')}
+        subtitle={t('roadmap:page.subtitle')}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

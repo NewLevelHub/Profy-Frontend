@@ -29,9 +29,9 @@ export const HorizonCard = memo(function HorizonCard({
   const horizonKey = DIRECTION_HORIZON_LABELS[stage.horizon];
   const horizonLabel = horizonKey ? t(horizonKey) : stage.horizon;
   const kicker = isFirst
-    ? `${horizonLabel.toUpperCase()} · СЕЙЧАС`
+    ? t('roadmap:horizonCard.now', { label: horizonLabel.toUpperCase() })
     : isLast
-      ? `К ЦЕЛИ · ${targetYear}`
+      ? t('roadmap:horizonCard.toGoal', { year: targetYear })
       : horizonLabel.toUpperCase();
 
   return (

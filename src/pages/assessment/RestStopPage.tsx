@@ -1,4 +1,5 @@
 import { useNavigate, useLocation, useSearchParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Spine } from '@/shared/ui/Spine';
@@ -49,6 +50,7 @@ export type { RestStopState };
  *    per spec, not `rest`.
  */
 export default function RestStopPage() {
+  const { t } = useTranslation('assessment');
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -73,17 +75,17 @@ export default function RestStopPage() {
     navigate('/results');
   }
 
-  const kicker = isSpeedVariant || hasInsight ? 'Замечаю по ходу' : 'Привал';
+  const kicker = isSpeedVariant || hasInsight ? t('restStop.kickerInsight') : t('restStop.kickerRest');
   const headline = isSpeedVariant
-    ? 'Ты идёшь быстрее, чем успеваешь прочитать'
+    ? t('restStop.speedHeadline')
     : hasInsight
       ? state.microInsight!
-      : `Прошли ${totalAnswered}, идём ровно`;
+      : t('restStop.neutralHeadline', { count: totalAnswered });
   const body = isSpeedVariant
-    ? 'Этот тест никто не проверяет и никому не показывает — торопиться не нужно. Можно отдохнуть и вернуться к тому же вопросу, место сохранится.'
+    ? t('restStop.speedBody')
     : hasInsight
-      ? 'Пока это только наблюдение — что оно значит, посчитаем в самом конце. Продолжаем?'
-      : 'Отдохни секунду, если нужно, — вопросы никуда не убегут. Продолжаем?';
+      ? t('restStop.insightBody')
+      : t('restStop.neutralBody');
 
   return (
     <div className="flex flex-col min-h-screen bg-page items-center justify-center px-6 py-10">
@@ -102,21 +104,21 @@ export default function RestStopPage() {
           <Mascot state={isSpeedVariant ? 'welcome' : 'rest'} size={96} className="shrink-0" />
         </div>
 
-        <Spine value={progress} thickness={0.9} ariaLabel="Прогресс диагностики" />
+        <Spine value={progress} thickness={0.9} ariaLabel={t('restStop.progressAria')} />
 
         <div className="flex flex-col gap-2">
           {isSpeedVariant ? (
             <>
               <Button variant="primary" size="lg" className="w-full rounded-pill" onClick={handleContinue}>
-                Продолжаем не спеша
+                {t('restStop.continueSlow')}
               </Button>
               <Button variant="ghost" size="lg" className="w-full rounded-pill" onClick={handlePause}>
-                Сделать паузу
+                {t('restStop.pause')}
               </Button>
             </>
           ) : (
             <Button variant="primary" size="lg" className="w-full rounded-pill" onClick={handleContinue}>
-              Продолжаем
+              {t('restStop.continue')}
             </Button>
           )}
         </div>

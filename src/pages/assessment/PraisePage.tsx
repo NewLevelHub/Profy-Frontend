@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
 import { Button } from '@/shared/ui/Button';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
@@ -20,12 +21,13 @@ interface PraiseState {
 const AUTO_ADVANCE_MS = 4000;
 
 export default function PraisePage() {
+  const { t } = useTranslation('assessment');
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state ?? {}) as PraiseState;
 
   const {
-    title = 'Молодец!',
+    title = t('praise.defaultTitle'),
     subtitle = '',
     nextPath = '/results',
     completedCount,
@@ -118,7 +120,7 @@ export default function PraisePage() {
               style={{ border: '1px solid var(--border)' }}
             >
               <div className="flex items-center justify-between mb-[14px]">
-                <span className="font-extrabold text-secondary" style={{ fontSize: 15 }}>Прогресс диагностики</span>
+                <span className="font-extrabold text-secondary" style={{ fontSize: 15 }}>{t('praise.progressLabel')}</span>
                 <span className="font-black text-brand" style={{ fontSize: 15 }}>{completedCount} / {totalBlocks}</span>
               </div>
               <Spine
@@ -128,12 +130,12 @@ export default function PraisePage() {
                   goal: i === totalBlocks! - 1,
                 }))}
                 thickness={1.1}
-                ariaLabel={`Пройдено блоков: ${completedCount} из ${totalBlocks}`}
+                ariaLabel={t('praise.blocksAria', { done: completedCount, total: totalBlocks })}
               />
               {nextBlockName && (
                 <div className="flex items-center gap-2 mt-[14px] font-bold" style={{ fontSize: 14, color: 'var(--brand)' }}>
                   <span>{nextBlockEmoji ?? '🎯'}</span>
-                  <span>Следующий блок: «{nextBlockName}»</span>
+                  <span>{t('praise.nextBlock', { name: nextBlockName })}</span>
                 </div>
               )}
             </div>
@@ -154,7 +156,7 @@ export default function PraisePage() {
             animation: 'pf-pulse 2.4s infinite',
           }}
         >
-          Дальше →
+          {t('praise.continue')}
         </Button>
       </div>
     </div>

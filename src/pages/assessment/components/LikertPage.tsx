@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
 import type { Question } from '@/shared/types';
@@ -21,6 +22,7 @@ interface LikertPageProps {
 }
 
 export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
+  const { t } = useTranslation('common');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
 
   // The next unanswered question on this page — answering one "cuts" to
@@ -78,7 +80,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
         className="w-full max-w-[560px] mx-auto rounded-pill text-body-lg font-extrabold"
         style={{ height: 60 }}
       >
-        Далее
+        {t('next')}
       </Button>
     </div>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
 
@@ -30,12 +31,15 @@ interface BipolarLikertScaleProps {
 export const BipolarLikertScale = React.memo(function BipolarLikertScale({
   selected,
   onSelect,
-  poleLeft = 'Совсем не моё',
-  poleRight = 'Точно моё',
+  poleLeft,
+  poleRight,
 }: BipolarLikertScaleProps) {
+  const { t } = useTranslation();
+  const leftLabel = poleLeft ?? t('assessment:scale.poleLeft');
+  const rightLabel = poleRight ?? t('assessment:scale.poleRight');
   return (
     <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
-      <div className="relative flex items-center justify-between" role="radiogroup" aria-label="Оцени по шкале">
+      <div className="relative flex items-center justify-between" role="radiogroup" aria-label={t('assessment:scale.rateAria')}>
         {/* Connecting hairline behind the dots — purely decorative track. */}
         <div
           className="absolute top-1/2 -translate-y-1/2 pointer-events-none"
@@ -66,7 +70,7 @@ export const BipolarLikertScale = React.memo(function BipolarLikertScale({
               style={{ width: TAP_SIZE, height: TAP_SIZE, borderRadius: '50%' }}
               role="radio"
               aria-checked={isSelected}
-              aria-label={`${value} из 5`}
+              aria-label={t('assessment:scale.valueOfFive', { value })}
             >
               <span
                 className="block flex-none transition-colors duration-150"
@@ -91,13 +95,13 @@ export const BipolarLikertScale = React.memo(function BipolarLikertScale({
           className="font-mono text-tiny font-bold uppercase tracking-label text-muted text-left"
           style={{ maxWidth: 130 }}
         >
-          {poleLeft}
+          {leftLabel}
         </span>
         <span
           className="font-mono text-tiny font-bold uppercase tracking-label text-muted text-right"
           style={{ maxWidth: 130 }}
         >
-          {poleRight}
+          {rightLabel}
         </span>
       </div>
     </div>

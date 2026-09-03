@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { StudentPersonalityNote } from '@/shared/types';
@@ -10,9 +11,10 @@ interface PersonalitySectionProps {
 // Always exactly 5 items, one per Big Five domain (contract §4.3a) — unlike
 // StrengthCardsSection/ThinkingStyleSection, this never renders empty.
 export function PersonalitySection({ notes, note }: PersonalitySectionProps) {
+  const { t } = useTranslation('results');
   return (
-    <section aria-label="Твой характер">
-      <SectionHeading emoji="🌟" title="Твой характер" />
+    <section aria-label={t('legacy.personalityTitle')}>
+      <SectionHeading emoji="🌟" title={t('legacy.personalityTitle')} />
       {note && <p className="text-body text-secondary mb-3">{note}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {notes.map(note => (

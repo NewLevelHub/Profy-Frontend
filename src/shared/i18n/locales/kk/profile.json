@@ -1,1 +1,136 @@
-{}
+{
+  "common": {
+    "edit": "Өзгерту",
+    "add": "Қосу"
+  },
+  "page": {
+    "defaultName": "Пайдаланушы",
+    "notFilledTitle": "Профиль толтырылмаған",
+    "notFilledBody": "Деректер профиль баптауынан өткеннен кейін пайда болады",
+    "juniorFooter": "Баптаулар мен пошта — анаңда. Бірдеңе өзгерту керек болса, оған айт."
+  },
+  "rail": {
+    "personal": "Жеке деректер",
+    "subjects": "Пәндер",
+    "artifacts": "Қызығушылықтар мен мақсаттар",
+    "certificates": "Сертификаттар және GPA",
+    "settings": "Баптаулар"
+  },
+  "identityRail": {
+    "sectionsAria": "Профиль бөлімдері"
+  },
+  "meta": {
+    "ageYearsUpper_one": "{{count}} ЖАСТА",
+    "ageYearsUpper_other": "{{count}} ЖАСТА",
+    "gradeUpper_one": "{{count}} СЫНЫП",
+    "gradeUpper_other": "{{count}} СЫНЫП"
+  },
+  "hero": {
+    "juniorKicker": "«МЕНІҢ ДҮНИЕМ»"
+  },
+  "personal": {
+    "title": "ЖЕКЕ",
+    "editAria": "Жеке деректерді өңдеу",
+    "age": "Жасы",
+    "grade": "Сынып",
+    "city": "Қала",
+    "country": "Ел",
+    "gradeValue_one": "{{count}} сынып",
+    "gradeValue_other": "{{count}} сынып"
+  },
+  "subjects": {
+    "title": "ПӘНДЕР",
+    "editAria": "Пәндерді өңдеу",
+    "liked": "Ұнайды",
+    "easy": "Оңай беріледі",
+    "disliked": "Ұнамайды",
+    "hard": "Қиын беріледі"
+  },
+  "artifacts": {
+    "title": "ҚЫЗЫҒУШЫЛЫҚТАР",
+    "editAria": "Қызығушылықтар мен мақсаттарды өңдеу",
+    "addAria": "Қызығушылықтар мен мақсаттарды қосу",
+    "dream": "Арман",
+    "dreamEmptyPrefix": "Әзірге бос —",
+    "dreamEmptyAction": "айтып беру",
+    "empty": "Әзірге бос — қызығушылықтарың мен мақсаттарың туралы айтып беруге болады",
+    "group": {
+      "hobby": "Хобби",
+      "club": "Клубтар",
+      "achievement": "Жетістіктер",
+      "profession": "Қызық мамандықтар",
+      "university": "Елдер мен университеттер"
+    }
+  },
+  "artifactType": {
+    "hobby": "Хобби",
+    "club": "Үйірмелер",
+    "sport": "Спорт",
+    "achievement": "Жетістіктер",
+    "goal": "Армандар",
+    "book": "Кітаптар",
+    "game": "Ойындар",
+    "topic": "Тақырыптар",
+    "profession": "Мамандықтар",
+    "university": "ЖОО",
+    "dream": "Армандар"
+  },
+  "selfDescription": {
+    "kicker": "ӨЗІҢ ТУРАЛЫ АЙТТЫҢ",
+    "change": "Өзгерту",
+    "empty": "Әзірге бос — мұнда пайда болуы үшін өзің туралы айтып бер."
+  },
+  "strengths": {
+    "kicker": "СЕНІҢ КҮШТІ ЖАҚТАРЫҢ",
+    "empty": "Тесттен өт — сонда мұнда күшті жақтарың пайда болады."
+  },
+  "certificates": {
+    "title": "БАЛДАР",
+    "editAria": "Сертификаттар мен GPA-ны өңдеу",
+    "addAria": "Сертификаттар мен GPA қосу"
+  },
+  "certificate": {
+    "ielts": "IELTS",
+    "unt": "ҰБТ",
+    "sat": "SAT",
+    "toefl": "TOEFL"
+  },
+  "settings": {
+    "title": "БАПТАУЛАР",
+    "languageLabel": "Тіл",
+    "languageHint": "Интерфейс тілі",
+    "soundLabel": "Дыбыс әсерлері",
+    "soundReducedMotion": "«Қозғалысты азайту» баптауына байланысты өшірілген",
+    "soundHint": "Түймелерді басқанда қысқа дыбыстар",
+    "restartConfirmTitle": "Қайта бастайсың ба?",
+    "restartConfirmBody": "Барлық ағымдағы прогресс тазаланады. Диагностиканы басынан бастайсың.",
+    "restartConfirmYes": "Қайта бастау",
+    "restartLabel": "Тестілеуді қайта бастау",
+    "restartHint": "Нәтижелер мен ұсыныстар тазаланады",
+    "restartAction": "Тазарту",
+    "logout": "Аккаунттан шығу"
+  },
+  "edit": {
+    "title": "Сертификаттар және GPA",
+    "subtitle": "IELTS, ҰБТ, SAT, TOEFL балдары және орташа балл — егер бар болса",
+    "scoresHeading": "Тілдік және түсу балдары",
+    "scoresHint": "Тапсырғаныңды толтыр — қалғанын бос қалдыруға болады",
+    "rangePlaceholder": "{{min}}-ден {{max}}-ке дейін",
+    "gpaHeading": "Орташа балл (GPA)",
+    "gpaHint": "Мектебіңдегі бағалау жүйесін таңда",
+    "gpaScaleAria": "GPA бағалау жүйесі",
+    "scoreLabel": "Балл",
+    "gpaRangePlaceholder": "0-ден {{max}}-ке дейін",
+    "gpaChooseScaleFirst": "алдымен жүйені таңда",
+    "saveError": "Сақтау мүмкін болмады. Қайта көр.",
+    "errorRange": "{{min}}-ден {{max}}-ке дейін",
+    "errorChooseScale": "Бағалау жүйесін таңда",
+    "errorEnterScore": "Балды көрсет",
+    "errorGpaRange": "0-ден {{max}}-ке дейін"
+  },
+  "ageGroup": {
+    "junior": "Кіші (6–10 жас)",
+    "middle": "Орта (11–14 жас)",
+    "senior": "Үлкен (15–18 жас)"
+  }
+}

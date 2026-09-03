@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
@@ -17,6 +18,7 @@ function scoreOf(items: CertificateItem[], type: CertificateType): string {
 
 export function useCertificatesEdit() {
   const navigate = useNavigate();
+  const { t } = useTranslation('profile');
   const queryClient = useQueryClient();
   const userId = useAuthStore(s => s.user?.id);
   const profile = useProfileStore(s => s.profile);
@@ -85,21 +87,21 @@ export function useCertificatesEdit() {
       const n = Number(raw);
       const { min, max } = CERTIFICATE_SCORE_RANGES[type];
       if (Number.isNaN(n) || n < min || n > max) {
-        nextErrors[type] = `От ${min} до ${max}`;
+        nextErrors[type] = t('edit.errorRange', { min, max });
       }
     }
 
     const gpaRaw = gpaValue.trim();
     if (gpaRaw || gpaScale) {
       if (!gpaScale) {
-        nextErrors.gpa = 'Выбери систему оценки';
+        nextErrors.gpa = t('edit.errorChooseScale');
       } else if (!gpaRaw) {
-        nextErrors.gpa = 'Укажи балл';
+        nextErrors.gpa = t('edit.errorEnterScore');
       } else {
         const n = Number(gpaRaw);
         const max = GPA_SCALE_MAX[gpaScale];
         if (Number.isNaN(n) || n < 0 || n > max) {
-          nextErrors.gpa = `От 0 до ${max}`;
+          nextErrors.gpa = t('edit.errorGpaRange', { max });
         }
       }
     }

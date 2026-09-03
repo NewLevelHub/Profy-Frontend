@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Heading, Button, Input, Mascot } from '@/shared/ui';
 import { useCertificatesEdit } from './hooks/useCertificatesEdit';
 import { GpaScaleSelector } from './components/GpaScaleSelector';
@@ -16,6 +17,7 @@ import {
 const MASCOT_EDIT_SIZE = 64;
 
 export default function CertificatesEditPage() {
+  const { t } = useTranslation('profile');
   const {
     scores, setScore,
     gpaScale, setGpaScale,
@@ -31,8 +33,8 @@ export default function CertificatesEditPage() {
         <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
           <div>
-            <h1 className="text-h1 font-black text-primary tracking-tight mb-1">Сертификаты и GPA</h1>
-            <p className="text-body text-secondary">Баллы IELTS, ЕНТ, SAT, TOEFL и средний балл — если уже есть</p>
+            <h1 className="text-h1 font-black text-primary tracking-tight mb-1">{t('edit.title')}</h1>
+            <p className="text-body text-secondary">{t('edit.subtitle')}</p>
           </div>
 
           <div
@@ -41,9 +43,9 @@ export default function CertificatesEditPage() {
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
-                <Heading level="display-md" as="h2">Языковые и вступительные баллы</Heading>
+                <Heading level="display-md" as="h2">{t('edit.scoresHeading')}</Heading>
                 <p className="text-body-md" style={{ color: 'var(--mute)' }}>
-                  Заполни то, что уже сдавал — остальное можно оставить пустым
+                  {t('edit.scoresHint')}
                 </p>
               </div>
               <Mascot state="welcome" size={MASCOT_EDIT_SIZE} className="shrink-0" />
@@ -58,12 +60,12 @@ export default function CertificatesEditPage() {
                 return (
                   <Input
                     key={type}
-                    label={CERTIFICATE_LABELS[type]}
+                    label={t(CERTIFICATE_LABELS[type])}
                     type="number"
                     inputMode="decimal"
                     value={scores[type]}
                     onChange={e => setScore(type, e.target.value)}
-                    placeholder={`от ${range.min} до ${range.max}`}
+                    placeholder={t('edit.rangePlaceholder', { min: range.min, max: range.max })}
                     min={range.min}
                     max={range.max}
                     step={range.step}
@@ -75,19 +77,19 @@ export default function CertificatesEditPage() {
 
             <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
-                <Heading level="display-md" as="h2">Средний балл (GPA)</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Выбери систему оценки в своей школе</p>
+                <Heading level="display-md" as="h2">{t('edit.gpaHeading')}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('edit.gpaHint')}</p>
               </div>
 
               <GpaScaleSelector value={gpaScale} onChange={setGpaScale} />
 
               <Input
-                label="Балл"
+                label={t('edit.scoreLabel')}
                 type="number"
                 inputMode="decimal"
                 value={gpaValue}
                 onChange={e => setGpaValue(e.target.value)}
-                placeholder={gpaScale ? `от 0 до ${GPA_SCALE_MAX[gpaScale]}` : 'сначала выбери систему'}
+                placeholder={gpaScale ? t('edit.gpaRangePlaceholder', { max: GPA_SCALE_MAX[gpaScale] }) : t('edit.gpaChooseScaleFirst')}
                 disabled={!gpaScale}
                 min={0}
                 max={gpaScale ? GPA_SCALE_MAX[gpaScale] : undefined}
@@ -97,7 +99,7 @@ export default function CertificatesEditPage() {
             </div>
 
             {saveError && (
-              <p className="text-xs text-danger text-center">Не удалось сохранить. Попробуй ещё раз.</p>
+              <p className="text-xs text-danger text-center">{t('edit.saveError')}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-default">
@@ -107,10 +109,10 @@ export default function CertificatesEditPage() {
                 className="h-12 rounded-pill font-extrabold shadow-button"
                 onClick={handleSave}
               >
-                Сохранить
+                {t('common:save')}
               </Button>
               <Button variant="ghost" size="lg" className="h-12 rounded-pill" onClick={handleCancel}>
-                Отмена
+                {t('common:cancel')}
               </Button>
             </div>
           </div>

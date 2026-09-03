@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { useProfile } from './hooks/useProfile';
@@ -28,6 +29,7 @@ function AnimatedBlock({ children }: { children: React.ReactNode }) {
 // the footer just tells the child where that lives conceptually rather than
 // linking to a page that doesn't exist.
 export default function ProfilePage() {
+  const { t } = useTranslation('profile');
   const { profile, displayName, isJunior, strengthCards } = useProfile();
 
   return (
@@ -36,9 +38,9 @@ export default function ProfilePage() {
         <AnimatedBlock>
           <Card className="flex flex-col items-center py-10 text-center bg-transparent">
             <span className="text-5xl mb-3" aria-hidden="true">📝</span>
-            <p className="text-title font-black text-primary mb-1">Профиль не заполнен</p>
+            <p className="text-title font-black text-primary mb-1">{t('page.notFilledTitle')}</p>
             <p className="text-body text-secondary">
-              Данные появятся после прохождения настройки профиля
+              {t('page.notFilledBody')}
             </p>
           </Card>
         </AnimatedBlock>
@@ -55,7 +57,7 @@ export default function ProfilePage() {
           </AnimatedBlock>
           <AnimatedBlock>
             <p className="text-secondary text-center" style={{ fontSize: 15 }}>
-              Настройки и почта — у мамы. Если что-то нужно поменять, скажи ей.
+              {t('page.juniorFooter')}
             </p>
           </AnimatedBlock>
         </>

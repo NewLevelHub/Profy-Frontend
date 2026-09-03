@@ -10,6 +10,9 @@
   "reloadPage": "Бетті жаңарту",
   "pageInDevelopment": "Бет әзірленуде",
   "menu": "Мәзір",
+  "yes": "Иә",
+  "no": "Жоқ",
+  "emptyValue": "—",
   "ageYears_one": "{{count}} жаста",
   "ageYears_other": "{{count}} жаста",
   "errorBoundary": {

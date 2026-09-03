@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -9,6 +10,7 @@ import type { IdentityRailSection } from '../sections/IdentityRail';
 
 export function useProfile() {
   const navigate = useNavigate();
+  const { t } = useTranslation('profile');
   const [confirmRestart, setConfirmRestart] = useState(false);
 
   const user = useAuthStore((s) => s.user);
@@ -23,7 +25,7 @@ export function useProfile() {
   const report = useResultStore((s) => s.report);
   const setProfileDraft = useOnboardingDraftStore((s) => s.setProfileDraft);
 
-  const displayName = profile?.name?.trim() || user?.name?.trim() || 'Пользователь';
+  const displayName = profile?.name?.trim() || user?.name?.trim() || t('page.defaultName');
   const initial = displayName[0]?.toUpperCase() ?? '?';
 
   // Only two real layout variants exist per spec — 'junior' (under-12,
@@ -53,11 +55,11 @@ export function useProfile() {
 
   const railSections: IdentityRailSection[] = profile
     ? [
-        { id: 'personal', number: '01', label: 'Личные данные' },
-        ...(hasSubjects ? [{ id: 'subjects', number: '02', label: 'Предметы' }] : []),
-        { id: 'artifacts', number: '03', label: 'Увлечения и цели' },
-        { id: 'certificates', number: '04', label: 'Сертификаты и GPA', status: hasCertificates ? undefined : '—' },
-        { id: 'settings', number: '05', label: 'Настройки' },
+        { id: 'personal', number: '01', label: t('rail.personal') },
+        ...(hasSubjects ? [{ id: 'subjects', number: '02', label: t('rail.subjects') }] : []),
+        { id: 'artifacts', number: '03', label: t('rail.artifacts') },
+        { id: 'certificates', number: '04', label: t('rail.certificates'), status: hasCertificates ? undefined : '—' },
+        { id: 'settings', number: '05', label: t('rail.settings') },
       ]
     : [];
 

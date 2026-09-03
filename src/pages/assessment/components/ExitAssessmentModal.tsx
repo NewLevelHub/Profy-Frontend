@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
 
@@ -14,6 +15,7 @@ interface ExitAssessmentModalProps {
 // действия должны быть равноценными и не деструктивными, поэтому обе кнопки
 // рендерятся ghost-вариантом (без заливки), без выделенного "primary" выхода.
 export function ExitAssessmentModal({ open, onSaveAndExit, onContinue }: ExitAssessmentModalProps) {
+  const { t } = useTranslation('assessment');
   useEffect(() => {
     if (!open) return;
     function handleKeyDown(event: KeyboardEvent) {
@@ -40,18 +42,18 @@ export function ExitAssessmentModal({ open, onSaveAndExit, onContinue }: ExitAss
         <Mascot state="pause" size={96} className="mx-auto" />
         <div className="flex flex-col gap-2">
           <h2 id="exit-dialog-title" className="text-title font-black text-primary">
-            Сохранить и продолжить позже?
+            {t('exitModal.title')}
           </h2>
           <p className="text-body text-secondary">
-            Прогресс уже сохранён — можешь выйти сейчас и вернуться в любой момент
+            {t('exitModal.body')}
           </p>
         </div>
         <div className="flex flex-col gap-2">
           <Button variant="ghost" size="lg" className="w-full rounded-pill" onClick={onSaveAndExit}>
-            Сохранить и выйти
+            {t('exitModal.saveExit')}
           </Button>
           <Button variant="ghost" size="lg" className="w-full rounded-pill" onClick={onContinue}>
-            Продолжить
+            {t('exitModal.stay')}
           </Button>
         </div>
       </div>

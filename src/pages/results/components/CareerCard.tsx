@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { CareerMatchLadder } from '@/shared/ui/MatchLadder';
@@ -18,6 +19,7 @@ export const CareerCard = memo(function CareerCard({
   onDetail,
   onUniversity,
 }: CareerCardProps) {
+  const { t } = useTranslation('results');
   return (
     <Card
       onClick={() => onDetail(career)}
@@ -38,7 +40,7 @@ export const CareerCard = memo(function CareerCard({
           className="flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
         >
           <GraduationCap className="w-3.5 h-3.5" />
-          Найти университеты
+          {t('career.findUniversities')}
         </button>
       )}
       <button
@@ -47,7 +49,7 @@ export const CareerCard = memo(function CareerCard({
         className="font-extrabold text-center text-caption hover:opacity-75 transition-opacity"
         style={{ color: 'var(--brand)', padding: 4 }}
       >
-        Подробнее о направлении →
+        {t('career.moreAboutDirection')}
       </button>
     </Card>
   );

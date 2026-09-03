@@ -4,11 +4,13 @@ import type { CertificateType, GpaScale } from '@/shared/types';
 // four dedicated rows rather than a "pick a type, then add" flow.
 export const CERTIFICATE_TYPES: CertificateType[] = ['ielts', 'unt', 'sat', 'toefl'];
 
+// i18n keys — resolved via `t()` at the call site (profile/certificate.*).
+// IELTS/SAT/TOEFL are script-neutral acronyms; only `unt` differs (ЕНТ / ҰБТ).
 export const CERTIFICATE_LABELS: Record<CertificateType, string> = {
-  ielts: 'IELTS',
-  unt: 'ЕНТ',
-  sat: 'SAT',
-  toefl: 'TOEFL',
+  ielts: 'profile:certificate.ielts',
+  unt: 'profile:certificate.unt',
+  sat: 'profile:certificate.sat',
+  toefl: 'profile:certificate.toefl',
 };
 
 // Mirrors the backend's SCORE_RANGES (app/schemas/certificate.py) so a

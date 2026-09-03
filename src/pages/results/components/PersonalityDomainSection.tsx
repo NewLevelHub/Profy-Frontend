@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { StudentPersonalityNote } from '@/shared/types';
 import { DomainCardFrame, DomainKicker, DomainGrid, DomainCell, LEVEL_STATUS_LABEL } from './DomainCardParts';
 
@@ -8,10 +9,10 @@ interface PersonalityDomainSectionProps {
 
 // Same status vocabulary as InterestDomainSection, but "high" reads as a
 // trait strength rather than a type name — "СИЛЬНАЯ СТОРОНА" over the
-// shared "ВЕДУЩИЙ".
+// shared "ВЕДУЩИЙ". Values are i18n keys, resolved with `t()` at render.
 const STATUS_LABEL: Record<StudentPersonalityNote['level'], string> = {
   ...LEVEL_STATUS_LABEL,
-  high: 'СИЛЬНАЯ СТОРОНА',
+  high: 'results:personalityDomain.statusHigh',
 };
 
 // Always exactly 5 items, one per Big Five domain (contract §4.3a), for
@@ -21,10 +22,11 @@ const STATUS_LABEL: Record<StudentPersonalityNote['level'], string> = {
 // fill + white text at `high`, unchanged neutral surface at `medium`,
 // transparent + dimmed at `low`.
 export function PersonalityDomainSection({ personalityNotes, personalityNote }: PersonalityDomainSectionProps) {
+  const { t } = useTranslation('results');
   return (
-    <DomainCardFrame ariaLabel="Личностный профиль">
+    <DomainCardFrame ariaLabel={t('personalityDomain.aria')}>
       <div>
-        <DomainKicker>ЛИЧНОСТНЫЙ ПРОФИЛЬ</DomainKicker>
+        <DomainKicker>{t('personalityDomain.kicker')}</DomainKicker>
         {personalityNote && (
           <p className="text-body text-primary leading-relaxed">{personalityNote}</p>
         )}
@@ -35,7 +37,7 @@ export function PersonalityDomainSection({ personalityNotes, personalityNote }: 
             key={n.trait}
             title={n.label}
             description={n.description}
-            status={STATUS_LABEL[n.level]}
+            status={t(STATUS_LABEL[n.level])}
             level={n.level}
           />
         ))}

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
@@ -56,6 +57,7 @@ interface ProgramCardProps {
 // intrinsic size means "remember the last real height" so the scrollbar
 // doesn't jump as cards virtualize in and out.
 const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: ProgramCardProps) {
+  const { t } = useTranslation('results');
   return (
     <Card className="!p-6 flex flex-col h-full transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
       {program.university.image_url ? (
@@ -104,7 +106,7 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
         className="w-full h-[52px] rounded-[var(--radius)] mt-auto cursor-pointer"
         onClick={() => onViewDetail(program.id)}
       >
-        Подробнее
+        {t('common.details')}
       </Button>
     </Card>
   );
@@ -142,9 +144,10 @@ export function ProgramListSection({
   sortDirection,
   onToggleSort,
 }: ProgramListSectionProps) {
+  const { t } = useTranslation('results');
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex gap-2.5 flex-wrap" role="group" aria-label="Фильтр по стране">
+      <div className="flex gap-2.5 flex-wrap" role="group" aria-label={t('programList.countryFilterAria')}>
         {countryFilters.map(filter => (
           <button
             key={filter.label}
@@ -163,7 +166,7 @@ export function ProgramListSection({
 
       {isLoading ? (
         <>
-          <div className="text-sm font-bold text-muted">Загрузка...</div>
+          <div className="text-sm font-bold text-muted">{t('programList.loading')}</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
             {Array.from({ length: 6 }, (_, i) => <ProgramCardSkeleton key={i} />)}
           </div>
@@ -171,24 +174,26 @@ export function ProgramListSection({
       ) : error !== null ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <p className="text-body text-danger">{error}</p>
-          <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
+          <Button variant="ghost" onClick={() => refetch()}>{t('common:retry')}</Button>
         </div>
       ) : programs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <GraduationCap className="w-12 h-12 text-muted" aria-hidden="true" />
-          <p className="text-label font-bold text-primary">Программы не найдены</p>
-          <p className="text-body text-secondary">Попробуй выбрать другую страну</p>
+          <p className="text-label font-bold text-primary">{t('programList.emptyTitle')}</p>
+          <p className="text-body text-secondary">{t('programList.emptyBody')}</p>
         </div>
       ) : (
         <>
           <div className="flex justify-between items-center text-sm font-bold text-muted">
-            <span>{programs.length} программ</span>
+            <span>{t('programList.count', { count: programs.length })}</span>
             {onToggleSort && sortDirection && (
               <button
                 onClick={onToggleSort}
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill bg-default/40 hover:bg-default/70 text-secondary text-xs font-extrabold border-none cursor-pointer transition-colors"
               >
-                Сортировка: {sortDirection === 'asc' ? 'по убыванию рейтинга' : 'по возрастанию рейтинга'}
+                {t('programList.sortPrefix', {
+                  order: sortDirection === 'asc' ? t('programList.sortByRatingDesc') : t('programList.sortByRatingAsc'),
+                })}
                 {sortDirection === 'asc'
                   ? <ArrowDownWideNarrow className="w-3.5 h-3.5" />
                   : <ArrowUpWideNarrow className="w-3.5 h-3.5" />}

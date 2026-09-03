@@ -1,25 +1,26 @@
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import type { ArtifactItem, ArtifactType } from '@/shared/types';
 import { useProfileArtifacts } from '../../hooks/useProfileArtifacts';
 
-// Same Russian labels the admin panel already uses for these artifact types
-// (see ARTIFACT_LABELS in AdminUserDetailPage.tsx) — kept in sync rather than
-// inventing a second wording for the same data.
-const ARTIFACT_LABELS: Record<ArtifactType, string> = {
-  hobby: 'Хобби',
-  club: 'Кружки',
-  sport: 'Спорт',
-  achievement: 'Достижения',
-  goal: 'Мечты',
-  book: 'Книги',
-  game: 'Игры',
-  topic: 'Темы',
-  profession: 'Профессии',
-  university: 'Вузы',
-  dream: 'Мечты',
+// i18n keys under profile/artifactType.* — the ru wording matches the labels
+// the admin panel uses for these types (AdminUserDetailPage), the kk wording
+// is the localized equivalent. Resolved via `t()` at render.
+const ARTIFACT_LABEL_KEYS: Record<ArtifactType, string> = {
+  hobby: 'artifactType.hobby',
+  club: 'artifactType.club',
+  sport: 'artifactType.sport',
+  achievement: 'artifactType.achievement',
+  goal: 'artifactType.goal',
+  book: 'artifactType.book',
+  game: 'artifactType.game',
+  topic: 'artifactType.topic',
+  profession: 'artifactType.profession',
+  university: 'artifactType.university',
+  dream: 'artifactType.dream',
 };
 
 function groupByType(items: ArtifactItem[]): [ArtifactType, string[]][] {
@@ -46,6 +47,7 @@ function groupByType(items: ArtifactItem[]): [ArtifactType, string[]][] {
  */
 export function SelfDescriptionSection() {
   const navigate = useNavigate();
+  const { t } = useTranslation('profile');
   const { artifacts, isLoading } = useProfileArtifacts(true);
   const grouped = groupByType(artifacts);
 
@@ -53,10 +55,10 @@ export function SelfDescriptionSection() {
     <Card className="flex flex-col gap-4 bg-transparent">
       <div className="flex items-start justify-between gap-3">
         <p className="font-mono text-tiny font-bold uppercase tracking-label text-accent">
-          ТЫ РАССКАЗАЛ О СЕБЕ
+          {t('selfDescription.kicker')}
         </p>
         <Button variant="ghost" size="sm" onClick={() => navigate('/onboarding/artifacts')}>
-          Поменять
+          {t('selfDescription.change')}
         </Button>
       </div>
 
@@ -67,13 +69,13 @@ export function SelfDescriptionSection() {
         </div>
       ) : grouped.length === 0 ? (
         <p className="text-body text-secondary">
-          Пока пусто — расскажи о себе, чтобы это появилось здесь.
+          {t('selfDescription.empty')}
         </p>
       ) : (
         <div className="flex flex-col gap-3">
           {grouped.map(([type, values]) => (
             <div key={type}>
-              <p className="text-caption font-bold text-muted mb-1">{ARTIFACT_LABELS[type] ?? type}</p>
+              <p className="text-caption font-bold text-muted mb-1">{ARTIFACT_LABEL_KEYS[type] ? t(ARTIFACT_LABEL_KEYS[type]) : type}</p>
               <p className="text-body font-medium" style={{ color: 'var(--midnight)' }}>
                 {values.join(', ')}
               </p>
