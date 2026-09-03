@@ -45,18 +45,16 @@ export function useProfile() {
   const artifacts = profile?.artifacts ?? [];
 
   // Same sourcing as `artifacts` above — GET /profile embeds certificates
-  // and gpa_value/gpa_scale directly, no separate fetch needed.
+  // directly, no separate fetch needed.
   const certificates = profile?.certificates ?? [];
-  const gpaValue = profile?.gpa_value ?? null;
-  const gpaScale = profile?.gpa_scale ?? null;
-  const hasCertificates = certificates.length > 0 || (gpaValue != null && gpaScale != null);
+  const hasCertificates = certificates.length > 0;
 
   const railSections: IdentityRailSection[] = profile
     ? [
         { id: 'personal', number: '01', label: 'Личные данные' },
         ...(hasSubjects ? [{ id: 'subjects', number: '02', label: 'Предметы' }] : []),
         { id: 'artifacts', number: '03', label: 'Увлечения и цели' },
-        { id: 'certificates', number: '04', label: 'Сертификаты и GPA', status: hasCertificates ? undefined : '—' },
+        { id: 'certificates', number: '04', label: 'Баллы за экзамены', status: hasCertificates ? undefined : '—' },
         { id: 'settings', number: '05', label: 'Настройки' },
       ]
     : [];
@@ -96,6 +94,11 @@ export function useProfile() {
   // "activities" screen (step 3 of 4), not a separate boxed page. Personal
   // fields go along unchanged (PUT re-sends the same values), only the
   // artifacts actually change.
+  //
+  // Certificates are copied across for the same reason the personal fields
+  // are: the PUT that ends this flow sends them unconditionally and the
+  // backend replaces certificates wholesale, so leaving them out here would
+  // silently wipe a student's exam scores just because they edited a hobby.
   function handleEditArtifacts() {
     if (!profile) return;
     setProfileDraft({
@@ -109,6 +112,7 @@ export function useProfile() {
       subjectsDislike: profile.subjects_disliked,
       subjectsEasy: profile.subjects_easy,
       subjectsHard: profile.subjects_hard,
+      certificates: profile.certificates,
     });
     navigate('/onboarding/artifacts');
   }
@@ -125,8 +129,6 @@ export function useProfile() {
     hasSubjects,
     artifacts,
     certificates,
-    gpaValue,
-    gpaScale,
     railSections,
     strengthCards: report?.strength_cards ?? [],
     confirmRestart,

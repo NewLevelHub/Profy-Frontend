@@ -90,6 +90,14 @@ export function useArtifactsSetup() {
         subjects_easy: profileDraft.subjectsEasy,
         subjects_hard: profileDraft.subjectsHard,
         artifacts: items,
+        // Collected back on step 2 and parked in the draft — sent here with
+        // everything else so profile, artifacts and exam scores land in the
+        // one transaction. Always sent (never omitted), which is why every
+        // path that builds a draft has to carry the current scores forward:
+        // the backend replaces certificates wholesale, so an
+        // omitted-by-accident list would wipe them. See useProfile.ts's
+        // handleEditArtifacts.
+        certificates: profileDraft.certificates,
       };
       return hasExistingProfile ? profileApi.update(payload) : profileApi.create(payload);
     },
