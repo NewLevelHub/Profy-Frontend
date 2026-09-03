@@ -74,9 +74,6 @@ export default function AdminQuestionsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <Heading level="display-sm" className="text-primary">
-          Вопросы
-        </Heading>
         <span className={MONO_MUTE}>{total} ВСЕГО</span>
       </div>
 

@@ -13,7 +13,7 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
 const ADMIN_NAV_ITEMS = [
   { to: '/admin/users', label: 'Пользователи' },
   { to: '/admin/universities', label: 'Университеты' },
-  { to: '/admin/content', label: 'Контент' },
+  { to: '/admin/content', label: 'Вопросы' },
   { to: '/admin/feedback', label: 'Фидбэк' },
 ] as const;
 
@@ -34,9 +34,6 @@ export function AdminLayout() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-5">
-          <span className="font-display text-caption font-semibold text-primary">
-            Profy
-          </span>
           <nav className="flex items-center gap-1">
             {ADMIN_NAV_ITEMS.map((item) => {
               const isActive = location.pathname.startsWith(item.to);
