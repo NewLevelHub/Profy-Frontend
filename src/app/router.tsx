@@ -8,6 +8,9 @@ import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
 
+// ── Landing (публичный корень) ───────────────────────────────────────────────
+import LandingPage from '@/pages/landing/LandingPage';
+
 // ── Auth (mobile: AuthNavigator) ──────────────────────────────────────────────
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
@@ -52,13 +55,15 @@ import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
-  // Root redirect — RequireProfile will handle the profile check at /results
-  { path: '/', element: <Navigate to="/results" replace /> },
-
-  // ── Guest-only: AuthLayout (mobile: AuthNavigator) ─────────────────────────
+  // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
     element: <RequireGuest />,
     children: [
+      // Корень отдаёт посадочную страницу. Отдельного редиректа на /results
+      // здесь больше нет: RequireGuest сам уводит вошедшего в приложение, а
+      // гость видит лендинг — то есть «/» ведёт себя по-разному для разных
+      // посетителей, чего статический Navigate не умел.
+      { path: '/', element: <LandingPage /> },
       {
         element: <AuthLayout />,
         children: [

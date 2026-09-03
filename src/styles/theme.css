@@ -27,6 +27,15 @@
   --dawn:     #DB7F2E;
   --lake:     #2C6A8C;
   --clay:     #A6572F;
+  /* Осветлённые варианты палитры. Живут здесь, а не в отдельном файле лендинга:
+     ими пользуются и иллюстративный слой посадочной страницы, и плашки под
+     иконками в левой колонке авторизации, где они раньше стояли хексами. */
+  --pine-light: #4FA093;
+  --dawn-light: #E89654;
+  --lake-light: #5B93B4;
+  /* Углублённый dawn — та же тёплая роль, но читается как текст на Fog
+     (3.2:1 в крупном кегле), тогда как плоский --dawn даёт только 2.4:1. */
+  --dawn-deep:  #C06A1E;
 
   /* Page background — Fog, the canvas the whole product sits on */
   --bg-page:        var(--fog);
@@ -160,6 +169,10 @@
   --dawn:     #E89654;
   --lake:     #5B93B4;
   --clay:     #C07850;
+  --pine-light: #6FBFB1;
+  --dawn-light: #F0AC76;
+  --lake-light: #7FB0CD;
+  --dawn-deep:  #E89654;
 
   --bg-page:        var(--fog);
   --bg-surface:     var(--paper);
