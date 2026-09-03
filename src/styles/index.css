@@ -1,6 +1,7 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+@import './print.css';
 
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(14px); }

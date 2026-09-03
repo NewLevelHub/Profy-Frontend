@@ -35,6 +35,7 @@ import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
 import ResultsPage from '@/pages/results/ResultsPage';
+import ResultPrintPage from '@/pages/results/print/ResultPrintPage';
 import ProfilePage from '@/pages/profile/ProfilePage';
 import CertificatesEditPage from '@/pages/profile/certificates/CertificatesEditPage';
 
@@ -106,6 +107,10 @@ export const router = createBrowserRouter([
           // /onboarding/artifacts) because editing certificates only makes
           // sense once a profile already exists.
           { path: '/profile/certificates', element: <CertificatesEditPage /> },
+          // Printable/PDF result — chrome-free for the same reason: a
+          // document view, not a tab. Sits outside AppLayout so the nav
+          // rail never lands in the exported PDF.
+          { path: '/results/print', element: <ResultPrintPage /> },
           {
             element: <AppLayout />,
             children: [
