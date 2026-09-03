@@ -7,15 +7,13 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
 
 /**
  * Nav tabs the spec asks for: users / assessments / directions / "содержание
- * писем". Only `/admin/users` (and its `:userId` detail sub-route) and
- * `/admin/feedback` actually exist in the router today — the rest have no
- * page, no route, no backend behind them. Per the investigate-before-
- * fabricating rule for this pass, we don't render placeholder tabs for
- * routes that 404; add entries here only once the corresponding route lands
- * in `app/router.tsx`.
+ * писем". Only the routes actually wired up in `app/router.tsx` get a tab
+ * here — no placeholders for pages that would 404.
  */
 const ADMIN_NAV_ITEMS = [
   { to: '/admin/users', label: 'Пользователи' },
+  { to: '/admin/universities', label: 'Университеты' },
+  { to: '/admin/content', label: 'Вопросы' },
   { to: '/admin/feedback', label: 'Фидбэк' },
 ] as const;
 
@@ -36,9 +34,6 @@ export function AdminLayout() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-5">
-          <span className="font-display text-caption font-semibold text-primary">
-            Profy
-          </span>
           <nav className="flex items-center gap-1">
             {ADMIN_NAV_ITEMS.map((item) => {
               const isActive = location.pathname.startsWith(item.to);

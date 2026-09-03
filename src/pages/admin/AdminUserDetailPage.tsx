@@ -1,46 +1,34 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Download } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { adminApi } from '@/shared/api/admin';
+import { downloadBlob } from '@/shared/lib/downloadBlob';
+import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
+import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { AdminSectionHeading } from '@/shared/ui/admin/AdminSectionHeading';
 import { Spine } from '@/shared/ui/Spine';
-import { ChangeLogTable } from '@/shared/ui/admin/ChangeLogTable';
-import { deriveAdminRole } from '@/shared/lib/adminRole';
-import { useAuthStore } from '@/shared/store/auth';
+import { MONO_MUTE } from '@/shared/ui/admin/density';
 import { DiagnosticSummaryBlock } from './components/DiagnosticSummaryBlock';
-import { AlertTicketCard } from './components/AlertTicketCard';
-import { RoadmapEventHistoryCard } from './components/RoadmapEventHistoryCard';
-import { ParentLinkCard } from './components/ParentLinkCard';
-import { PaymentBlockCard } from './components/PaymentBlockCard';
-import { SupportNotesCard } from './components/SupportNotesCard';
 import type {
   AdminAssessmentDetail,
   AdminMotivationResponseItem,
   AdminResponseItem,
   AdminUserDetail,
-  ChangeLogEntry,
+  MotivationCategory,
+  PersonalityTrait,
 } from '@/shared/types';
 
-// BACKEND GAP: no audit-log / change-history endpoint exists for user records
-// yet (see `src/shared/api/admin.ts` — read-only GETs only). Rendering an
-// honest empty state via `ChangeLogTable` rather than fabricating rows; wire
-// this to real data (e.g. `adminApi.getUserChangeLog(userId)`) once it exists.
-const EMPTY_CHANGE_LOG: ChangeLogEntry[] = [];
-
-const GOAL_LABELS: Record<string, string> = {
-  explore: 'Исследовать',
-  profession: 'Выбрать профессию',
-  university: 'Поступить в вуз',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  in_progress: 'В процессе',
-  completed: 'Завершён',
+const PERSONALITY_TRAIT_LABELS: Record<PersonalityTrait, string> = {
+  openness: 'Открытость опыту',
+  conscientiousness: 'Добросовестность',
+  extraversion: 'Экстраверсия',
+  agreeableness: 'Доброжелательность',
+  emotional_stability: 'Эмоциональная устойчивость',
 };
 
 const ARTIFACT_LABELS: Record<string, string> = {
@@ -83,18 +71,6 @@ const MI_TYPE_LABELS: Record<string, string> = {
   interpersonal: 'Дружба и команда',
   intrapersonal: 'Своё мнение',
   naturalistic: 'Природа и животные',
-};
-
-const MOTIVATION_LABELS: Record<string, string> = {
-  interest: 'Интерес к делу',
-  challenge: 'Вызов и рост',
-  helping: 'Польза другим',
-  freedom: 'Свобода решений',
-  money: 'Материальный результат',
-  recognition: 'Признание',
-  stability: 'Стабильность',
-  creation: 'Создавать своё',
-  teamwork: 'Команда',
 };
 
 function groupLabel(instrument: string, category: string): string {
@@ -200,6 +176,13 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
   );
 }
 
+/** `most_category`/etc. are plain `string` on the wire (raw backend enum text,
+ *  not narrowed to `MotivationCategory`) — cast at the lookup, not the type,
+ *  so an unrecognized value still falls back to the raw string via `??`. */
+function motivationCategoryLabel(category: string): string {
+  return MOTIVATION_CATEGORY_LABELS[category as MotivationCategory] ?? category;
+}
+
 function MotivationResponsesSection({ responses }: { responses: AdminMotivationResponseItem[] }) {
   if (!responses.length) {
     return <p className="text-secondary font-semibold">Блок мотивации ещё не пройден</p>;
@@ -214,17 +197,17 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
           <p className="text-sm">
             <span className="font-extrabold text-brand">Важнее всего: </span>
             {item.most_text}{' '}
-            <span className="text-muted">({MOTIVATION_LABELS[item.most_category] ?? item.most_category})</span>
+            <span className="text-muted">({motivationCategoryLabel(item.most_category)})</span>
           </p>
           <p className="text-sm">
             <span className="font-extrabold text-secondary">Нейтрально: </span>
             {item.neutral_text}{' '}
-            <span className="text-muted">({MOTIVATION_LABELS[item.neutral_category] ?? item.neutral_category})</span>
+            <span className="text-muted">({motivationCategoryLabel(item.neutral_category)})</span>
           </p>
           <p className="text-sm">
             <span className="font-extrabold text-danger">Менее всего: </span>
             {item.least_text}{' '}
-            <span className="text-muted">({MOTIVATION_LABELS[item.least_category] ?? item.least_category})</span>
+            <span className="text-muted">({motivationCategoryLabel(item.least_category)})</span>
           </p>
         </div>
       ))}
@@ -232,16 +215,105 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
   );
 }
 
+function AssessmentExportButton({ assessmentId }: { assessmentId: string }) {
+  const [exporting, setExporting] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    setFailed(false);
+    try {
+      const blob = await adminApi.exportAssessment(assessmentId);
+      downloadBlob(blob, `assessment_${assessmentId}.zip`);
+    } catch {
+      setFailed(true);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button variant="ghost" size="sm" muteSound isLoading={exporting} onClick={handleExport}>
+        <Download size={14} />
+        Скачать (ZIP)
+      </Button>
+      {failed && <span className={cn(MONO_MUTE, 'text-danger')}>НЕ УДАЛОСЬ ВЫГРУЗИТЬ</span>}
+    </div>
+  );
+}
+
+/** Numeric key→value rows for scales that aren't confirmed 0-100 (unlike
+ *  riasec/big_five/thinking_style, which DiagnosticSummaryBlock already
+ *  renders as bars) — motivation's raw counts and personality_profile have
+ *  no documented range, so a percentage bar would be a fabricated scale. */
+function ValueList({ label, values, labels }: { label: string; values: Record<string, number>; labels: Record<string, string> }) {
+  const entries = Object.entries(values);
+  if (!entries.length) return null;
+  return (
+    <div>
+      <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>{label}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {entries.map(([key, value]) => (
+          <div key={key} className="flex items-center justify-between px-2.5 py-1.5 rounded-[3px] bg-raised border border-default">
+            <span className="text-sm text-secondary">{labels[key] ?? key}</span>
+            <span className="font-mono text-mono-sm font-bold text-primary">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TextNoteList({ label, notes, labels }: { label: string; notes: Record<string, string>; labels: Record<string, string> }) {
+  const entries = Object.entries(notes).filter(([, text]) => text);
+  if (!entries.length) return null;
+  return (
+    <div>
+      <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>{label}</p>
+      <div className="space-y-2">
+        {entries.map(([key, text]) => (
+          <div key={key} className="p-3 rounded-[3px] bg-raised border border-default">
+            <p className="font-bold text-sm">{labels[key] ?? key}</p>
+            <p className="text-sm text-secondary mt-1">{text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CardList({ label, cards }: { label: string; cards: { title: string; description: string }[] }) {
+  if (!cards.length) return null;
+  return (
+    <div>
+      <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>{label}</p>
+      <div className="space-y-2">
+        {cards.map((card) => (
+          <div key={card.title} className="p-3 rounded-[3px] bg-raised border border-default">
+            <p className="font-bold text-sm">{card.title}</p>
+            <p className="text-sm text-secondary mt-1">{card.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAssessmentDetail; compact?: boolean }) {
   return (
     <div className={cn('space-y-4', compact ? 'pt-4 border-t border-default' : '')}>
+      <div className="flex items-center justify-end">
+        <AssessmentExportButton assessmentId={assessment.id} />
+      </div>
+
       {!compact && (
         <div>
           <h3 className="font-black text-primary" style={{ fontSize: 20 }}>
-            Тест: {GOAL_LABELS[assessment.goal] ?? assessment.goal}
+            Тест: {ASSESSMENT_GOAL_LABELS[assessment.goal] ?? assessment.goal}
           </h3>
           <p className="text-secondary font-semibold text-sm mt-1">
-            {STATUS_LABELS[assessment.status] ?? assessment.status} · {formatDate(assessment.created_at)}
+            {ASSESSMENT_STATUS_LABELS[assessment.status] ?? assessment.status} · {formatDate(assessment.created_at)}
           </p>
         </div>
       )}
@@ -275,12 +347,30 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
       </div>
 
       {assessment.analysis_result && (
-        <div className="space-y-3 pt-2">
-          <h4 className="font-extrabold text-primary">Результат анализа</h4>
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h4 className="font-extrabold text-primary">Результат анализа</h4>
+            <span className={MONO_MUTE}>REPORT_VERSION {assessment.analysis_result.report_version}</span>
+          </div>
           <p className="text-primary font-medium leading-relaxed">{assessment.analysis_result.summary}</p>
-          {assessment.analysis_result.strengths.length > 0 && (
-            <ChipList label="Сильные стороны" items={assessment.analysis_result.strengths} />
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {assessment.analysis_result.strengths.length > 0 && (
+              <ChipList label="Сильные стороны" items={assessment.analysis_result.strengths} />
+            )}
+            {assessment.analysis_result.weaknesses.length > 0 && (
+              <ChipList label="Слабые стороны" items={assessment.analysis_result.weaknesses} />
+            )}
+          </div>
+
+          {(assessment.analysis_result.development_plan.reinforce.length > 0 ||
+            assessment.analysis_result.development_plan.compensate.length > 0) && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <ChipList label="План развития: усиливать" items={assessment.analysis_result.development_plan.reinforce} />
+              <ChipList label="План развития: компенсировать" items={assessment.analysis_result.development_plan.compensate} />
+            </div>
           )}
+
           {assessment.analysis_result.careers.length > 0 && (
             <div>
               <p className="font-extrabold text-primary mb-2" style={{ fontSize: 14 }}>Направления</p>
@@ -296,6 +386,37 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
               </div>
             </div>
           )}
+
+          <ValueList
+            label="Мышление (thinking_style)"
+            values={assessment.analysis_result.thinking_style as unknown as Record<string, number>}
+            labels={{
+              creative_think: 'Творческое мышление',
+              systematic: 'Системность',
+              strategic: 'Стратегичность',
+              practical: 'Практичность',
+            }}
+          />
+
+          {assessment.analysis_result.personality_highlights.length > 0 && (
+            <ChipList label="Личностные особенности" items={assessment.analysis_result.personality_highlights} />
+          )}
+          <ValueList label="Личностный профиль (сырые баллы)" values={assessment.analysis_result.personality_profile} labels={PERSONALITY_TRAIT_LABELS} />
+          <TextNoteList label="Заметки по личностным чертам" notes={assessment.analysis_result.personality_notes} labels={PERSONALITY_TRAIT_LABELS} />
+
+          {assessment.analysis_result.motivation_top.length > 0 && (
+            <ChipList
+              label="Топ мотивации"
+              items={assessment.analysis_result.motivation_top.map((key) => MOTIVATION_CATEGORY_LABELS[key] ?? key)}
+            />
+          )}
+          {assessment.analysis_result.motivation_highlights.length > 0 && (
+            <ChipList label="Мотивация — акценты" items={assessment.analysis_result.motivation_highlights} />
+          )}
+          <ValueList label="Мотивация (сырые баллы)" values={assessment.analysis_result.motivation} labels={MOTIVATION_CATEGORY_LABELS} />
+
+          <CardList label="Карточки сильных сторон" cards={assessment.analysis_result.strength_cards} />
+          <CardList label="Заметки о стиле мышления" cards={assessment.analysis_result.thinking_style_notes} />
         </div>
       )}
 
@@ -320,15 +441,6 @@ function AssessmentDetailPanel({ assessment, compact }: { assessment: AdminAsses
 
 export default function AdminUserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
-  // The role that gates every `RoleGatedAction`/`sc-if` on this page must be
-  // the CURRENTLY LOGGED-IN admin's role (the viewer), not the viewed user's
-  // `is_admin` — the previous code passed `deriveAdminRole(user.is_admin)`
-  // using the subject `AdminUserDetail`, which inverted every gate on this
-  // page (e.g. an Operator viewing an admin's own record would incorrectly
-  // unlock Administrator-only actions, and vice versa). `AdminLayout` already
-  // derives the viewer's role from `useAuthStore` the same way; mirrored here.
-  const viewer = useAuthStore((s) => s.user);
-  const viewerRole = deriveAdminRole(viewer?.is_admin);
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
   const [selectedAssessment, setSelectedAssessment] = useState<AdminAssessmentDetail | null>(null);
@@ -419,11 +531,6 @@ export default function AdminUserDetailPage() {
         </div>
       </div>
 
-      <Card className="rounded-[3px] p-3">
-        <AdminSectionHeading title="Тревога" className="mb-2.5" />
-        <AlertTicketCard role={viewerRole} />
-      </Card>
-
       <div className="grid gap-5 lg:grid-cols-2">
         <Card className="rounded-[3px] p-3">
           <AdminSectionHeading title="Аккаунт" className="mb-3" />
@@ -456,28 +563,6 @@ export default function AdminUserDetailPage() {
           )}
         </Card>
       </div>
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="rounded-[3px] p-3">
-          <AdminSectionHeading title="Родитель · доступ" className="mb-3" />
-          <ParentLinkCard />
-        </Card>
-
-        <Card className="rounded-[3px] p-3">
-          <AdminSectionHeading title="Оплата" className="mb-3" />
-          <PaymentBlockCard role={viewerRole} />
-        </Card>
-      </div>
-
-      <Card className="rounded-[3px] p-3">
-        <AdminSectionHeading title="Roadmap: история событий" className="mb-3" />
-        <RoadmapEventHistoryCard />
-      </Card>
-
-      <Card className="rounded-[3px] p-3">
-        <AdminSectionHeading title="Заметки поддержки" className="mb-3" />
-        <SupportNotesCard role={viewerRole} />
-      </Card>
 
       {Object.keys(artifactsByType).length > 0 && (
         <Card className="rounded-[3px] p-3">
@@ -512,19 +597,22 @@ export default function AdminUserDetailPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-bold">
-                          {GOAL_LABELS[assessment.goal] ?? assessment.goal}
+                          {ASSESSMENT_GOAL_LABELS[assessment.goal] ?? assessment.goal}
                           <span className="text-secondary font-semibold ml-2" style={{ fontSize: 13 }}>
                             #{user.assessments.length - index}
                           </span>
                         </p>
                         <p className="text-sm text-secondary mt-0.5">
-                          {STATUS_LABELS[assessment.status] ?? assessment.status} · {formatDate(assessment.created_at)}
+                          {ASSESSMENT_STATUS_LABELS[assessment.status] ?? assessment.status} · {formatDate(assessment.created_at)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-xs font-extrabold text-secondary">
                           {assessment.has_result ? 'есть результат' : 'без результата'}
                         </span>
+                        {assessment.has_roadmap && (
+                          <span className="text-xs font-extrabold text-brand">roadmap</span>
+                        )}
                         <ChevronDown
                           size={18}
                           className={cn('text-secondary transition-transform', isOpen && 'rotate-180')}
@@ -551,10 +639,6 @@ export default function AdminUserDetailPage() {
         )}
       </Card>
 
-      <Card className="rounded-[3px] p-3">
-        <AdminSectionHeading title="История изменений" className="mb-3" />
-        <ChangeLogTable entries={EMPTY_CHANGE_LOG} role={viewerRole} />
-      </Card>
     </PageContainer>
   );
 }
