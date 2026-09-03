@@ -106,7 +106,7 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
         className="w-full h-[52px] rounded-[var(--radius)] mt-auto cursor-pointer"
         onClick={() => onViewDetail(program.id)}
       >
-        {t('common.details')}
+        {t('common:details')}
       </Button>
     </Card>
   );

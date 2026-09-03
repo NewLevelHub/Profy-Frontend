@@ -8,12 +8,12 @@
     "book": "Кітап",
     "game": "Ойын",
     "topic": "Қызықтыратын тақырып",
-    "profession": "Арман мамандық",
+    "profession": "Арман мамандығы",
     "university": "Қалаған университет",
     "dream": "Арман"
   },
   "progress": {
-    "step": "{{total}}-тен {{current}}-қадам"
+    "step": "Қадам: {{current}} / {{total}}"
   },
   "welcome": {
     "kicker": "Тест алдында · Бұл қалай өтеді",
@@ -32,15 +32,15 @@
   },
   "validation": {
     "nameRequired": "Атыңды енгіз",
-    "nameTooShort": "Есім тым қысқа (кемінде {{min}} таңба)",
-    "nameTooLong": "Есім тым ұзын (ең көбі {{max}} таңба)",
-    "nameLettersOnly": "Есімде тек әріптер болуы мүмкін",
+    "nameTooShort": "Ат тым қысқа (кемінде {{min}} таңба)",
+    "nameTooLong": "Ат тым ұзын (ең көбі {{max}} таңба)",
+    "nameLettersOnly": "Ат тек әріптерден тұруы керек",
     "ageRange": "Жас: 14-тен 18-ге дейін",
     "gradeRange": "Сынып: 1-ден 12-ге дейін"
   },
   "profile": {
     "nameQuestion": "Атың кім?",
-    "nameLabel": "Есім",
+    "nameLabel": "Ат",
     "namePlaceholder": "Мысалы, Арман",
     "nameHint": "Мен саған осылай жүгінемін. Кейін өзгертуге болады.",
     "ageQuestion": "Нешедесің?",
@@ -51,11 +51,11 @@
     "gradePlaceholder": "1-ден 12-ге дейін",
     "cityLabel": "Қала",
     "cityPlaceholder": "Мысалы, Алматы",
-    "cityHint": "Әзірге ұсыныссыз — жай ғана қалаңды жаз",
+    "cityHint": "Әзірге нұсқаусыз — жай ғана қалаңды жаз",
     "countryLabel": "Ел",
     "countryPlaceholder": "Мысалы, Қазақстан",
     "subjectsLikedQuestion": "Қандай пәндер ұнайды?",
-    "subjectsLikedNote": "Қалағаныңша — немесе бірде-бірі емес",
+    "subjectsLikedNote": "Қанша қаласаң, сонша — немесе мүлдем таңдамасаң да болады",
     "subjectsRestQuestion": "Қалған пәндер қалай?",
     "subjectsRestNote": "Міндетті емес — бірақ дәлдікке көмектеседі",
     "groupLiked": "Ұнайды",
@@ -89,7 +89,7 @@
     "done": "Дайын ✓",
     "nextGroup": "Әрі қарай",
     "skipGroup": "Бұл топты өткізіп жіберу",
-    "groupCounter": "{{total}}-тен {{current}}-топ",
+    "groupCounter": "Топ: {{current}} / {{total}}",
     "addCustom": "+ өзіңдікі",
     "customPlaceholder": "Өзіңдікі",
     "dreamsPlaceholder": "Мысалы: бір күні нағыз қазба жұмыстарына барғым келеді",
@@ -102,7 +102,7 @@
     },
     "section": {
       "activitiesHeadline": "Мектептен тыс немен айналысасың?",
-      "activitiesNote": "Хобби, үйірмелер мен секциялар — сәйкес келетінінің бәрін таңда",
+      "activitiesNote": "Хобби, үйірмелер мен секциялар — саған қатыстының бәрін таңда",
       "achievementsHeadline": "Бәлкім, бірдеңе болды ма?",
       "achievementsNote": "Грамоталар, жеңістер, жобалар, сертификаттар — болса, белгіле",
       "professionsHeadline": "Қандай мамандықтар қызықтырады?",

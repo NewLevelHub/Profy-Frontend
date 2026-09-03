@@ -77,7 +77,7 @@ export default function DirectionDetailPage() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
         <span className="text-5xl select-none" aria-hidden="true">🔍</span>
         <h2 className="text-h1 font-extrabold text-primary">{t('direction.notFoundTitle')}</h2>
-        <Button onClick={() => navigate('/results')}>{t('common.backToResults')}</Button>
+        <Button onClick={() => navigate('/results')}>{t('common:backToResults')}</Button>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export default function DirectionDetailPage() {
         onClick={() => navigate('/results')}
       >
         <ArrowLeft className="w-4 h-4" />
-        {t('common.backToResults')}
+        {t('common:backToResults')}
       </button>
 
       <PageHeader title={direction.name} />

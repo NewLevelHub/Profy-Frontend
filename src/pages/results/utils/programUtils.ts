@@ -1,6 +1,11 @@
-import { i18n } from '@/shared/i18n';
+import type { TFunction } from 'i18next';
 import { formatNumber } from '@/shared/i18n/format';
 import type { UniversityBrief } from '@/shared/types';
+
+// These helpers render user-visible copy, so they take the caller's `t` (from
+// `useTranslation`) rather than the `i18n` singleton — that keeps the calling
+// component subscribed and re-rendering on `changeLanguage` (a bare
+// `i18n.t()` here would freeze the string until some unrelated re-render).
 
 const KZ_COUNTRY_NAMES = new Set(['Казахстан', 'Kazakhstan', 'KZ', 'Қазақстан']);
 
@@ -44,7 +49,8 @@ export function cardImageUrl(imageUrl: string): string {
  * (UniversityRankBadges, ProgramDetailPage) don't need to change shape.
  */
 export function getUniversityRankingLabels(
-  uni: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>
+  uni: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>,
+  t: TFunction,
 ): string[] {
   const positive = (v: number | null | undefined): number | null =>
     v !== null && v !== undefined && v > 0 ? v : null;
@@ -55,13 +61,13 @@ export function getUniversityRankingLabels(
   const isKz = KZ_COUNTRY_NAMES.has((uni.country ?? '').trim());
 
   if (isKz) {
-    if (kzRank !== null) return [i18n.t('results:rank.kzPosition', { rank: kzRank })];
-    if (worldRank !== null) return [i18n.t('results:rank.worldPosition', { rank: worldRank })];
+    if (kzRank !== null) return [t('results:rank.kzPosition', { rank: kzRank })];
+    if (worldRank !== null) return [t('results:rank.worldPosition', { rank: worldRank })];
     return [];
   }
 
-  if (worldRank !== null) return [i18n.t('results:rank.worldPosition', { rank: worldRank })];
-  if (qsWorld !== null) return [i18n.t('results:rank.qsWorldPosition', { rank: qsWorld })];
+  if (worldRank !== null) return [t('results:rank.worldPosition', { rank: worldRank })];
+  if (qsWorld !== null) return [t('results:rank.qsWorldPosition', { rank: qsWorld })];
   return [];
 }
 
@@ -83,8 +89,8 @@ export function splitRequirementNotes(notes: string[]): string[] {
     .filter(part => part.length > 0);
 }
 
-export function formatCost(cost: number | null): string {
-  if (cost === null) return i18n.t('results:cost.notSpecified');
+export function formatCost(cost: number | null, t: TFunction): string {
+  if (cost === null) return t('results:cost.notSpecified');
   // `cost` sometimes arrives as a numeric-looking string (Decimal fields can
   // survive JSON as strings), and `"1659".toLocaleString()` is a no-op on a
   // string (returns it unchanged, no digit grouping) — coercing to Number
@@ -92,11 +98,11 @@ export function formatCost(cost: number | null): string {
   // active UI locale (see KZ-104 / shared/i18n/format), keeping every price
   // on one style like convertLabelCurrenciesToUsd (university-cards-ux-fix-
   // plan.md §10).
-  return i18n.t('results:cost.perYear', { amount: formatNumber(Number(cost)) });
+  return t('results:cost.perYear', { amount: formatNumber(Number(cost)) });
 }
 
-export function convertLabelCurrenciesToUsd(label: string | null): string {
-  if (!label) return i18n.t('results:cost.notSpecified');
+export function convertLabelCurrenciesToUsd(label: string | null, t: TFunction): string {
+  if (!label) return t('results:cost.notSpecified');
 
   let currency: string | null = null;
   let rate = 1.0;
@@ -272,17 +278,17 @@ const KEY_LABELS: Record<string, string> = {
   fall: 'results:reqKey.fall',
 };
 
-export function localizeKey(key: string): string {
+export function localizeKey(key: string, t: TFunction): string {
   const normalized = key.replace(/\s+/g, '_');
   const i18nKey = KEY_LABELS[key] ?? KEY_LABELS[normalized];
-  return i18nKey ? i18n.t(i18nKey) : key.replace(/_/g, ' ');
+  return i18nKey ? t(i18nKey) : key.replace(/_/g, ' ');
 }
 
-export function toDisplayString(value: unknown): string {
-  if (value === null || value === undefined) return i18n.t('common:emptyValue');
-  if (typeof value === 'boolean') return value ? i18n.t('common:yes') : i18n.t('common:no');
+export function toDisplayString(value: unknown, t: TFunction): string {
+  if (value === null || value === undefined) return t('common:emptyValue');
+  if (typeof value === 'boolean') return value ? t('common:yes') : t('common:no');
   if (typeof value !== 'object') return String(value);
-  if (Array.isArray(value)) return value.map(toDisplayString).join(', ');
+  if (Array.isArray(value)) return value.map((v) => toDisplayString(v, t)).join(', ');
   const obj = value as Record<string, unknown>;
   const preferred = ['amount', 'value', 'score', 'level', 'min', 'conditions', 'name'];
   for (const field of preferred) {
@@ -293,5 +299,5 @@ export function toDisplayString(value: unknown): string {
       return `${String(obj[field])}${rest}`;
     }
   }
-  return Object.values(obj).filter(v => v !== null && v !== undefined).map(String).join(' · ') || i18n.t('common:emptyValue');
+  return Object.values(obj).filter(v => v !== null && v !== undefined).map(String).join(' · ') || t('common:emptyValue');
 }

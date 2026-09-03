@@ -60,7 +60,7 @@ export default function DirectionInquiryPage() {
               {t('inquiry.buildPlan')}
             </Button>
             <Button variant="ghost" size="lg" className="w-full" onClick={() => navigate('/results')}>
-              {t('common.backToResults')}
+              {t('common:backToResults')}
             </Button>
           </div>
         </div>

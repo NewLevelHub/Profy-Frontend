@@ -228,7 +228,7 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
                 DomainListCard used by "Сильные стороны", not a pill. */}
             <div className="flex flex-col gap-3">
               {program.grants.map((grant, i) => (
-                <DomainListCard key={i} title={toDisplayString(grant)} />
+                <DomainListCard key={i} title={toDisplayString(grant, t)} />
               ))}
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function ProgramDetailPage() {
                       <div className="min-w-0 flex flex-col gap-2">
                         <DomainKicker>{t('program.descriptionKicker')}</DomainKicker>
                         {(() => {
-                          const rankLabels = getUniversityRankingLabels(program.university);
+                          const rankLabels = getUniversityRankingLabels(program.university, t);
                           if (rankLabels.length === 0) return null;
                           return (
                             <p className="text-body text-primary leading-relaxed">
@@ -326,7 +326,7 @@ export default function ProgramDetailPage() {
                     key={i}
                     className="bg-brand-subtle text-brand text-sm font-bold px-4 py-2 rounded-pill"
                   >
-                    {toDisplayString(career)}
+                    {toDisplayString(career, t)}
                   </span>
                 ))}
               </div>

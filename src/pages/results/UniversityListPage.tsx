@@ -32,7 +32,7 @@ export default function UniversityListPage() {
         <p className="text-body text-secondary max-w-md">
           {t('universityList.lockedBody')}
         </p>
-        <Button onClick={() => navigate('/results')}>{t('common.backToResults')}</Button>
+        <Button onClick={() => navigate('/results')}>{t('common:backToResults')}</Button>
       </div>
     );
   }

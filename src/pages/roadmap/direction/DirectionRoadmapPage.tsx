@@ -70,7 +70,7 @@ export default function DirectionRoadmapPage() {
           )}
           {(errorKind === 'forbidden' || errorKind === 'generic') && (
             <Button variant="ghost" size="lg" onClick={() => navigate('/results')}>
-              {t('roadmap:direction.backToResults')}
+              {t('common:backToResults')}
             </Button>
           )}
         </div>
@@ -161,7 +161,7 @@ export default function DirectionRoadmapPage() {
               className="sm:w-auto"
               onClick={() => navigate('/results')}
             >
-              {t('roadmap:direction.backToResults')}
+              {t('common:backToResults')}
             </Button>
           </div>
         </div>
