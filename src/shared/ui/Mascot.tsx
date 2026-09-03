@@ -29,6 +29,14 @@ export interface MascotProps {
    * with a `className` that also sets `transform` (e.g. `-scale-x-100`).
    */
   interactive?: boolean;
+  /**
+   * Play a one-shot celebratory bounce when the mascot mounts (on top of the
+   * usual landing). For genuine "significant moment" poses only — the
+   * `completion`/medal reveal after finishing the assessment — per DESIGN.md's
+   * "rare + significant → more personality" rule. Transform-only, collapses
+   * under `prefers-reduced-motion`. Independent of `interactive`.
+   */
+  celebrate?: boolean;
   className?: string;
 }
 
@@ -68,6 +76,7 @@ export function Mascot({
   compact = false,
   blink = true,
   interactive = false,
+  celebrate = false,
   className,
 }: MascotProps) {
   const entry = ALL_SPRITES[state];
@@ -136,6 +145,8 @@ export function Mascot({
     );
   }
 
+  const canCelebrate = celebrate && !compact && !prefersReducedMotion();
+
   const poseLayer = (
     <>
       <img src={src} alt={entry.alt} className="block w-full h-auto" />
@@ -143,23 +154,30 @@ export function Mascot({
     </>
   );
 
+  // One-shot celebration wraps the pose closest to the sprite so it composes
+  // with the (subtle, always-on) breath above it rather than replacing it.
+  const inner = canCelebrate ? <div className="mascot-cheer">{poseLayer}</div> : poseLayer;
+
   return (
     <div className={cn('relative', className)} style={{ width: resolvedSize }}>
       {/* Появление — отдельный слой поверх всех остальных: снаружи className
           может задавать свой transform (-scale-x-100 в IdentityRail), внутри
-          за transform спорят lean/breath/hop. Собственная обёртка разводит их. */}
+          за transform спорят lean/gesture/breath/hop. Собственная обёртка на
+          каждый слой разводит их. */}
       <div className="mascot-enter">
         {interactionEnabled ? (
           <div ref={interaction.ref} className="mascot-lean" onPointerDown={interaction.onPointerDown}>
-            <div
-              className={cn('mascot-breath', interaction.hop && 'mascot-hop')}
-              onAnimationEnd={interaction.onAnimationEnd}
-            >
-              {poseLayer}
+            <div className={cn('mascot-gesture', interaction.gesture && `mascot-${interaction.gesture}`)}>
+              <div
+                className={cn('mascot-breath', interaction.hop && 'mascot-hop')}
+                onAnimationEnd={interaction.onAnimationEnd}
+              >
+                {inner}
+              </div>
             </div>
           </div>
         ) : (
-          poseLayer
+          inner
         )}
       </div>
     </div>

@@ -8,6 +8,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  *
  *  - lean: the body drifts a few px / degrees toward the pointer while it's
  *    near (driven from JS via CSS custom properties on the returned ref node);
+ *  - gesture: a rare one-shot idle move on a randomised timer — a glance, an
+ *    ears-perk, a wiggle — so the idle doesn't read as one looping animation;
  *  - hop: one squash-and-stretch bounce on pointer-down (`hop` flag → CSS class).
  *
  * The idle "breathing" loop is pure CSS (`.mascot-breath`) and needs nothing
@@ -21,6 +23,33 @@ const INFLUENCE_PX = 520;
 const MAX_SHIFT_PX = 6;
 // Furthest the body tilts.
 const MAX_TILT_DEG = 3.2;
+
+/** One-shot idle moves, played on the gesture layer. */
+export type MascotGesture = 'glance-left' | 'glance-right' | 'perk' | 'wiggle';
+
+// Weighted pool: the barely-there "glance" is common, the bigger "perk" /
+// "wiggle" are rare treats — same "mostly subtle, occasionally more" logic
+// as the blink scheduler's quick-follow-up double-blink.
+const GESTURE_POOL: MascotGesture[] = [
+  'glance-left',
+  'glance-left',
+  'glance-right',
+  'glance-right',
+  'perk',
+  'wiggle',
+];
+// Gap between idle gestures, and the shorter wait before the first one.
+const GESTURE_GAP_MIN_MS = 6200;
+const GESTURE_GAP_MAX_MS = 15000;
+const GESTURE_FIRST_MIN_MS = 3500;
+const GESTURE_FIRST_MAX_MS = 8000;
+// Longest gesture keyframe run — the class is dropped after this so the next
+// one can restart it, and so a stale gesture never sticks.
+const GESTURE_HOLD_MS = 1700;
+
+function rand(min: number, max: number): number {
+  return min + Math.random() * (max - min);
+}
 
 function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
@@ -37,6 +66,8 @@ export interface MascotInteraction {
   ref: (node: HTMLDivElement | null) => void;
   /** True while the one-shot hop animation should be running. */
   hop: boolean;
+  /** Current one-shot idle gesture, or null when the mascot is just breathing. */
+  gesture: MascotGesture | null;
   /** Wire to the lean layer's `onPointerDown`. */
   onPointerDown: () => void;
   /** Wire to the breath layer's `onAnimationEnd` (only the hop keyframes end). */
@@ -48,6 +79,7 @@ export function useMascotInteraction(enabled: boolean): MascotInteraction {
   const frameRef = useRef<number | null>(null);
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
   const [hop, setHop] = useState(false);
+  const [gesture, setGesture] = useState<MascotGesture | null>(null);
 
   const ref = useCallback((node: HTMLDivElement | null) => {
     nodeRef.current = node;
@@ -114,8 +146,54 @@ export function useMascotInteraction(enabled: boolean): MascotInteraction {
     };
   }, [enabled]);
 
+  // Idle-gesture scheduler — a recursive timeout, same shape as the blink
+  // loop. Skips a turn while the pointer is close (the lean already carries
+  // the "aware" read; a glance on top of it just looks jittery).
+  useEffect(() => {
+    if (!enabled || prefersReducedMotion() || !hasFinePointer()) return;
+
+    let cancelled = false;
+    let timer: number | undefined;
+
+    function pointerIsClose(): boolean {
+      const pointer = pointerRef.current;
+      const el = nodeRef.current;
+      if (!pointer || !el) return false;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0) return false;
+      const dx = pointer.x - (rect.left + rect.width / 2);
+      const dy = pointer.y - (rect.top + rect.height / 2);
+      return Math.hypot(dx, dy) < INFLUENCE_PX * 0.6;
+    }
+
+    function schedule(delay: number) {
+      timer = window.setTimeout(() => {
+        if (cancelled) return;
+        if (pointerIsClose()) {
+          schedule(rand(2500, 5000));
+          return;
+        }
+        setGesture(GESTURE_POOL[Math.floor(Math.random() * GESTURE_POOL.length)]);
+        timer = window.setTimeout(() => {
+          if (cancelled) return;
+          setGesture(null);
+          schedule(rand(GESTURE_GAP_MIN_MS, GESTURE_GAP_MAX_MS));
+        }, GESTURE_HOLD_MS);
+      }, delay);
+    }
+
+    schedule(rand(GESTURE_FIRST_MIN_MS, GESTURE_FIRST_MAX_MS));
+
+    return () => {
+      cancelled = true;
+      if (timer != null) window.clearTimeout(timer);
+      setGesture(null);
+    };
+  }, [enabled]);
+
   const onPointerDown = useCallback(() => {
     if (!enabled || prefersReducedMotion()) return;
+    setGesture(null);
     setHop(false);
     // Drop the class for a frame so the animation restarts on a rapid re-tap.
     window.requestAnimationFrame(() => setHop(true));
@@ -123,5 +201,5 @@ export function useMascotInteraction(enabled: boolean): MascotInteraction {
 
   const onAnimationEnd = useCallback(() => setHop(false), []);
 
-  return { ref, hop, onPointerDown, onAnimationEnd };
+  return { ref, hop, gesture, onPointerDown, onAnimationEnd };
 }

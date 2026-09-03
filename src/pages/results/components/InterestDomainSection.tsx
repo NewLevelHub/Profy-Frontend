@@ -100,7 +100,7 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
               Также заметно: {secondaryNote}
             </p>
           )}
-          <Mascot state="completion" size={68} />
+          <Mascot state="completion" size={68} celebrate />
         </div>
       </div>
 
