@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
@@ -17,6 +18,7 @@ export function useGoalGuard() {
 }
 
 export function useGoalSelection() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const fromRestart = !!(location.state as { fromRestart?: boolean } | null)?.fromRestart;
@@ -126,7 +128,7 @@ export function useGoalSelection() {
     ageGroup,
     isLoading: startMutation.isPending,
     isCheckingCurrent,
-    error: startMutation.isError ? 'Не удалось начать тест. Попробуй ещё раз.' : null,
+    error: startMutation.isError ? t('assessment:error.startTest') : null,
     resumeOpen,
     restartOpen,
     currentGoal: current?.goal ?? null,

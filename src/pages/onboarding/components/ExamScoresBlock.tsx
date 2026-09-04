@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import {
@@ -28,6 +29,7 @@ export function ExamScoresBlock({
   examScores, onScoreChange,
   errors,
 }: ExamScoresBlockProps) {
+  const { t } = useTranslation('onboarding');
   // Catalog order, not click order, so the revealed inputs don't reshuffle
   // as chips get ticked.
   const revealed = CERTIFICATE_TYPES.filter(type => examsTaken.includes(type));
@@ -36,22 +38,22 @@ export function ExamScoresBlock({
     <div className="flex flex-col gap-6 pt-2 border-t border-default">
       <div className="pt-2">
         <Heading level="display-md" as="h2">
-          Сдавал экзамены?
+          {t('exams.heading')}
         </Heading>
         <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>
-          Необязательно — пригодится позже, когда будем собирать твой roadmap
+          {t('exams.hint')}
         </p>
       </div>
 
       <div className="flex flex-col gap-2">
         <p className="text-label font-semibold" style={{ color: 'var(--midnight)' }}>
-          Отметь, что уже сдавал
+          {t('exams.pickLabel')}
         </p>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Сданные экзамены">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t('exams.pickAria')}>
           {CERTIFICATE_TYPES.map(type => (
             <SelectableChip
               key={type}
-              label={CERTIFICATE_LABELS[type]}
+              label={t(CERTIFICATE_LABELS[type])}
               selected={examsTaken.includes(type)}
               onClick={() => onToggleExam(type)}
             />
@@ -66,12 +68,12 @@ export function ExamScoresBlock({
             return (
               <Input
                 key={type}
-                label={`${CERTIFICATE_LABELS[type]} — балл`}
+                label={t('exams.scoreLabel', { exam: t(CERTIFICATE_LABELS[type]) })}
                 type="number"
                 inputMode="decimal"
                 value={examScores[type]}
                 onChange={e => onScoreChange(type, e.target.value)}
-                placeholder={`от ${range.min} до ${range.max}`}
+                placeholder={t('exams.rangePlaceholder', { min: range.min, max: range.max })}
                 min={range.min}
                 max={range.max}
                 step={range.step}

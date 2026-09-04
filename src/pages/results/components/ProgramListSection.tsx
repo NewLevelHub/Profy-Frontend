@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Button } from '@/shared/ui/Button';
@@ -7,7 +8,9 @@ import { LazyMedia } from '@/shared/ui/LazyMedia';
 import type { ProgramBrief } from '@/shared/types';
 import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 import { UniversityRankBadges } from './UniversityRankBadges';
+import { DescriptionLocaleNote } from './DescriptionLocaleNote';
 import { cardImageUrl } from '@/pages/results/utils/programUtils';
+import { localizeGeo } from '@/shared/i18n/geo';
 
 const IMAGE_BOX = 'w-full h-32 rounded-2xl mb-4 overflow-hidden';
 
@@ -56,6 +59,7 @@ interface ProgramCardProps {
 // intrinsic size means "remember the last real height" so the scrollbar
 // doesn't jump as cards virtualize in and out.
 const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: ProgramCardProps) {
+  const { t } = useTranslation('results');
   return (
     <Card className="!p-6 flex flex-col h-full transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
       {program.university.image_url ? (
@@ -78,7 +82,7 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
           {program.name}
         </h3>
         <span className="shrink-0 bg-brand-subtle text-brand text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
-          {program.university.country}
+          {localizeGeo(program.university.country)}
         </span>
       </div>
 
@@ -88,14 +92,21 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
       </div>
 
       {(() => {
-        const desc = (program.description && program.description.length > 40)
+        const useProgramDesc = Boolean(program.description && program.description.length > 40);
+        const desc = useProgramDesc
           ? program.description
           : (program.university.description || program.description);
         if (!desc) return null;
+        const descLocale = useProgramDesc
+          ? program.description_locale
+          : (program.university.description ? program.university.description_locale : program.description_locale);
         return (
-          <p className="text-body-sm font-semibold text-secondary leading-relaxed mb-4 flex-1">
-            {desc.length > 120 ? desc.slice(0, 120) + '...' : desc}
-          </p>
+          <div className="mb-4 flex-1">
+            <DescriptionLocaleNote locale={descLocale} />
+            <p className="text-body-sm font-semibold text-secondary leading-relaxed m-0">
+              {desc.length > 120 ? desc.slice(0, 120) + '...' : desc}
+            </p>
+          </div>
         );
       })()}
 
@@ -104,7 +115,7 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
         className="w-full h-[52px] rounded-[var(--radius)] mt-auto cursor-pointer"
         onClick={() => onViewDetail(program.id)}
       >
-        Подробнее
+        {t('common:details')}
       </Button>
     </Card>
   );
@@ -142,9 +153,10 @@ export function ProgramListSection({
   sortDirection,
   onToggleSort,
 }: ProgramListSectionProps) {
+  const { t } = useTranslation('results');
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex gap-2.5 flex-wrap" role="group" aria-label="Фильтр по стране">
+      <div className="flex gap-2.5 flex-wrap" role="group" aria-label={t('programList.countryFilterAria')}>
         {countryFilters.map(filter => (
           <button
             key={filter.label}
@@ -156,14 +168,14 @@ export function ProgramListSection({
                 : 'px-5 py-2 rounded-pill text-sm font-bold bg-surface text-secondary border-[1.5px] border-strong cursor-pointer hover:border-brand transition-colors'
             }
           >
-            {filter.label}
+            {localizeGeo(filter.label)}
           </button>
         ))}
       </div>
 
       {isLoading ? (
         <>
-          <div className="text-sm font-bold text-muted">Загрузка...</div>
+          <div className="text-sm font-bold text-muted">{t('programList.loading')}</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
             {Array.from({ length: 6 }, (_, i) => <ProgramCardSkeleton key={i} />)}
           </div>
@@ -171,24 +183,26 @@ export function ProgramListSection({
       ) : error !== null ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <p className="text-body text-danger">{error}</p>
-          <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
+          <Button variant="ghost" onClick={() => refetch()}>{t('common:retry')}</Button>
         </div>
       ) : programs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <GraduationCap className="w-12 h-12 text-muted" aria-hidden="true" />
-          <p className="text-label font-bold text-primary">Программы не найдены</p>
-          <p className="text-body text-secondary">Попробуй выбрать другую страну</p>
+          <p className="text-label font-bold text-primary">{t('programList.emptyTitle')}</p>
+          <p className="text-body text-secondary">{t('programList.emptyBody')}</p>
         </div>
       ) : (
         <>
           <div className="flex justify-between items-center text-sm font-bold text-muted">
-            <span>{programs.length} программ</span>
+            <span>{t('programList.count', { count: programs.length })}</span>
             {onToggleSort && sortDirection && (
               <button
                 onClick={onToggleSort}
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-pill bg-default/40 hover:bg-default/70 text-secondary text-xs font-extrabold border-none cursor-pointer transition-colors"
               >
-                Сортировка: {sortDirection === 'asc' ? 'по убыванию рейтинга' : 'по возрастанию рейтинга'}
+                {t('programList.sortPrefix', {
+                  order: sortDirection === 'asc' ? t('programList.sortByRatingDesc') : t('programList.sortByRatingAsc'),
+                })}
                 {sortDirection === 'asc'
                   ? <ArrowDownWideNarrow className="w-3.5 h-3.5" />
                   : <ArrowUpWideNarrow className="w-3.5 h-3.5" />}

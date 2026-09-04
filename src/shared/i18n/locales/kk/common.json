@@ -1,0 +1,111 @@
+{
+  "logout": "Шығу",
+  "loading": "Жүктелуде…",
+  "retry": "Қайталау",
+  "back": "Артқа",
+  "backToResults": "Нәтижелерге қайту",
+  "details": "Толығырақ",
+  "next": "Келесі",
+  "save": "Сақтау",
+  "cancel": "Болдырмау",
+  "goHome": "Басты бетке",
+  "reloadPage": "Бетті жаңарту",
+  "pageInDevelopment": "Бет әзірленуде",
+  "menu": "Мәзір",
+  "yes": "Иә",
+  "no": "Жоқ",
+  "emptyValue": "—",
+  "ageYears_one": "{{count}} жаста",
+  "ageYears_other": "{{count}} жаста",
+  "errorBoundary": {
+    "title": "Бірдеңе дұрыс болмады",
+    "body": "Күтпеген қате шықты. Бетті жаңартып көр."
+  },
+  "notFound": {
+    "title": "Бет табылмады"
+  },
+  "nav": {
+    "results": "Нәтижелер",
+    "profile": "Профиль",
+    "admin": "Әкімші"
+  },
+  "sound": {
+    "enable": "Дыбысты қосу",
+    "disable": "Дыбысты өшіру"
+  },
+  "ageGroup": {
+    "junior": "5–7 сынып",
+    "middle": "8–9 сынып",
+    "senior": "10–11 сынып"
+  },
+  "celebrationSound": {
+    "chime": {
+      "label": "Қоңырау",
+      "desc": "Екі жеңіл нота соғысы"
+    },
+    "sparkle": {
+      "label": "Ұшқындар",
+      "desc": "Жылдам көтерілетін әуезді «та-да»"
+    },
+    "fanfare": {
+      "label": "Фанфаралар",
+      "desc": "Салтанатты қысқа фанфара"
+    },
+    "soft": {
+      "label": "Жұмсақ",
+      "desc": "Тыныш бір үнді аккорд"
+    },
+    "party": {
+      "label": "Мереке",
+      "desc": "Көңілді жылдам тізбек"
+    }
+  },
+  "otp": {
+    "cellLabel": "{{index}}-сан ({{total}} ішінен)"
+  },
+  "passwordStrength": {
+    "weak": "ӘЛСІЗ ҚҰПИЯ СӨЗ",
+    "medium": "ОРТАША ҚҰПИЯ СӨЗ",
+    "good": "ЖАҚСЫ ҚҰПИЯ СӨЗ",
+    "excellent": "МЫҚТЫ ҚҰПИЯ СӨЗ",
+    "count_one": "{{count}} таңба",
+    "count_other": "{{count}} таңба"
+  },
+  "languageSwitcherAria": "Тіл / Язык",
+  "mascot": {
+    "welcome": "Profy маскоты · сәлемдесу",
+    "transition": "Profy маскоты · блоктар арасындағы ауысу",
+    "rest": "Profy маскоты · демалыс",
+    "completion": "Profy маскоты · аяқтау",
+    "waiting": "Profy маскоты · күту",
+    "pause": "Profy маскоты · үзіліс",
+    "graduate": "Profy маскоты · университет",
+    "doctor": "Profy маскоты · дәрігер",
+    "engineer": "Profy маскоты · инженер",
+    "developer": "Profy маскоты · бағдарламашы",
+    "chemist": "Profy маскоты · химик",
+    "artist": "Profy маскоты · суретші",
+    "musician": "Profy маскоты · музыкант",
+    "chef": "Profy маскоты · аспаз",
+    "architect": "Profy маскоты · сәулетші",
+    "footballer": "Profy маскоты · футболшы",
+    "pilot": "Profy маскоты · ұшқыш",
+    "photographer": "Profy маскоты · фотограф",
+    "lawyer": "Profy маскоты · заңгер",
+    "vet": "Profy маскоты · мал дәрігері",
+    "gardener": "Profy маскоты · бағбан",
+    "actor": "Profy маскоты · актёр",
+    "journalist": "Profy маскоты · журналист",
+    "gamer": "Profy маскоты · геймер",
+    "baker": "Profy маскоты · наубайшы",
+    "astronomer": "Profy маскоты · астроном",
+    "entrepreneur": "Profy маскоты · кәсіпкер"
+  },
+  "toHome": "Басты бетке",
+  "examLabel": {
+    "ielts": "IELTS",
+    "unt": "ҰБТ",
+    "sat": "SAT",
+    "toefl": "TOEFL"
+  }
+}

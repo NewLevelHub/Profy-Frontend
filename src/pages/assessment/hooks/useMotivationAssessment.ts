@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { assessmentApi } from '@/shared/api/assessment';
@@ -9,6 +10,7 @@ import type { RestStopState } from '../utils/restStop';
 export type MotivationPhase = 'loading' | 'intro' | 'question';
 
 export function useMotivationAssessment() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
@@ -81,7 +83,7 @@ export function useMotivationAssessment() {
         }
       } catch {
         if (!cancelled) {
-          setError('Не удалось загрузить вопросы. Попробуй ещё раз.');
+          setError(t('assessment:error.loadQuestions'));
           setPhase('question');
         }
       }
@@ -203,7 +205,7 @@ export function useMotivationAssessment() {
         setSaving(false);
       }, 300);
     } catch {
-      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+      setError(t('assessment:error.saveAnswer'));
       setSaving(false);
     }
   }
@@ -225,7 +227,7 @@ export function useMotivationAssessment() {
       });
       navigate('/assessment/loading');
     } catch {
-      setError('Не удалось автозаполнить тест.');
+      setError(t('assessment:error.autofill'));
     } finally {
       setAutofilling(false);
     }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { useResultPrint } from './hooks/useResultPrint';
@@ -19,10 +20,11 @@ function PrintSkeleton() {
 }
 
 function PrintFallback({ text, onBack }: { text: string; onBack: () => void }) {
+  const { t } = useTranslation('results');
   return (
     <div className="print-sheet flex flex-col items-center gap-4 text-center py-16">
       <p className="text-body text-secondary">{text}</p>
-      <Button onClick={onBack}>К результатам</Button>
+      <Button onClick={onBack}>{t('print.toolbar.back')}</Button>
     </div>
   );
 }
@@ -34,6 +36,7 @@ function PrintFallback({ text, onBack }: { text: string; onBack: () => void }) {
  * hidden by a pile of print-only overrides.
  */
 export default function ResultPrintPage() {
+  const { t } = useTranslation('results');
   const {
     report,
     isLoading,
@@ -53,11 +56,11 @@ export default function ResultPrintPage() {
         <PrintToolbar onBack={back} onPrint={print} />
 
         {!hasCompletedAssessment ? (
-          <PrintFallback text="Тест ещё не пройден — экспортировать пока нечего." onBack={back} />
+          <PrintFallback text={t('print.notCompleted')} onBack={back} />
         ) : isLoading ? (
           <PrintSkeleton />
         ) : error || !report ? (
-          <PrintFallback text={error ?? 'Не удалось загрузить результаты.'} onBack={back} />
+          <PrintFallback text={error ?? t('print.loadError')} onBack={back} />
         ) : (
           <PrintDocument
             report={report}

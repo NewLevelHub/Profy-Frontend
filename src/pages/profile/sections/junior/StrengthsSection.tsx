@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import type { StrengthCard } from '@/shared/types';
@@ -15,16 +16,17 @@ export interface StrengthsSectionProps {
  * rather than force a `RiasecIcon` mapping the data doesn't support.
  */
 export function StrengthsSection({ cards }: StrengthsSectionProps) {
+  const { t } = useTranslation('profile');
   return (
     <div>
       <p className="font-mono text-tiny font-bold uppercase tracking-label text-muted mb-3">
-        ТВОИ СИЛЬНЫЕ СТОРОНЫ
+        {t('strengths.kicker')}
       </p>
 
       {cards.length === 0 ? (
         <Card className="bg-transparent">
           <p className="text-body text-secondary">
-            Пройди тест — тогда здесь появятся твои сильные стороны.
+            {t('strengths.empty')}
           </p>
         </Card>
       ) : (

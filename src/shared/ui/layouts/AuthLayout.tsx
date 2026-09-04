@@ -1,86 +1,59 @@
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from 'react-router';
 import { Compass, Landmark, Layers, ListChecks } from 'lucide-react';
 import { env } from '@/shared/config/env';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 
 /**
  * Копия левой колонки — своя у каждого экрана авторизации. Колонка есть везде:
  * без неё переход со входа на «Забыли пароль» читался как уход на другой сайт,
  * потому что половина экрана внезапно пустела. Текст при этом разный: вход и
  * регистрация рассказывают о продукте, экраны восстановления — о том, что
- * происходит прямо сейчас и что прогресс не потеряется.
+ * происходит прямо сейчас и что прогресс не потеряется. Тексты — в
+ * auth:layout.aside.*, здесь только маршрут -> ключ.
  */
 type AsideCopy = { eyebrow: string; head: string; accent: string; sub: string };
 
-const ROUTE_ASIDE: Record<string, AsideCopy> = {
-  '/login': {
-    eyebrow: 'Вход',
-    head: 'Продолжим с того места, где',
-    accent: 'остановились',
-    sub: 'Результаты тестов, подобранные направления и план поступления ждут тебя в кабинете.',
-  },
-  '/register': {
-    eyebrow: 'Регистрация',
-    head: 'Пара шагов — и',
-    accent: 'можно начинать',
-    sub: 'Профиль нужен, чтобы сохранить результаты тестов и продолжить с любого устройства.',
-  },
-  // Ниже — экраны восстановления. Колонка у них своя по смыслу, но она есть:
-  // без неё переход со входа на «Забыли пароль» ощущался как уход на другой
-  // сайт — половина экрана внезапно пустела.
-  '/verify-email': {
-    eyebrow: 'Подтверждение',
-    head: 'Остался',
-    accent: 'один шаг',
-    sub: 'Введите код из письма — и профиль готов. Код действует 15 минут.',
-  },
-  '/forgot-password': {
-    eyebrow: 'Восстановление',
-    head: 'Вернём доступ —',
-    accent: 'за пару минут',
-    sub: 'Пришлём код на почту. Результаты тестов и прогресс при смене пароля не теряются.',
-  },
-  '/reset-password': {
-    eyebrow: 'Новый пароль',
-    head: 'Почти всё —',
-    accent: 'осталось придумать пароль',
-    sub: 'После сохранения сразу войдёте в кабинет. Результаты тестов останутся на месте.',
-  },
+// route -> auth:layout.aside.<key>
+const ROUTE_ASIDE_KEY: Record<string, string> = {
+  '/login': 'login',
+  '/register': 'register',
+  '/verify-email': 'verifyEmail',
+  '/forgot-password': 'forgotPassword',
+  '/reset-password': 'resetPassword',
 };
 
 /**
  * Цифры настоящие — те же, что в блоке статистики на лендинге. Оттенки плашек
  * под иконки взяты оттуда же (.feature-icon), чтобы обе поверхности читались
- * одной системой.
+ * одной системой. Тексты — в auth:layout.stats.*.
  */
-const BLOCKS: { icon: ReactNode; tint: string; title: string; desc: string }[] = [
+const BLOCKS: { icon: ReactNode; tint: string; statKey: string }[] = [
   {
     icon: <ListChecks size={18} strokeWidth={1.75} style={{ color: 'var(--pine)' }} />,
     tint: 'rgba(14, 74, 65, 0.10)',
-    title: '3 теста в одном',
-    desc: 'Интересы, личность и мотивация — за одно прохождение.',
+    statKey: 'tests',
   },
   {
     icon: <Compass size={18} strokeWidth={1.75} style={{ color: '#C06A1E' }} />,
     tint: 'rgba(219, 127, 46, 0.12)',
-    title: '92 профессии',
-    desc: 'Для каждой уже подобраны программы вузов.',
+    statKey: 'professions',
   },
   {
     icon: <Landmark size={18} strokeWidth={1.75} style={{ color: 'var(--lake)' }} />,
     tint: 'rgba(44, 106, 140, 0.12)',
-    title: '250 университетов',
-    desc: '110 в Казахстане и 140 международных.',
+    statKey: 'universities',
   },
   {
     icon: <Layers size={18} strokeWidth={1.75} style={{ color: 'var(--pine)' }} />,
     tint: 'rgba(79, 160, 147, 0.16)',
-    title: '2400 программ',
-    desc: 'С городом и рейтингом вуза.',
+    statKey: 'programs',
   },
 ];
 
 function AuthAside({ copy }: { copy: AsideCopy }) {
+  const { t } = useTranslation('auth');
   return (
     // Ниже lg колонка скрыта: на телефоне форма должна быть первым и
     // единственным, что видно, а не концом прокрутки через маркетинг.
@@ -100,12 +73,16 @@ function AuthAside({ copy }: { copy: AsideCopy }) {
 
       <div className="grid grid-cols-2 gap-[14px] mt-[32px]">
         {BLOCKS.map((block, i) => (
-          <div key={block.title} className={`auth-block auth-enter auth-enter-d${i + 3}`}>
+          <div key={block.statKey} className={`auth-block auth-enter auth-enter-d${i + 3}`}>
             <span className="auth-block-icon" style={{ background: block.tint }}>
               {block.icon}
             </span>
-            <div className="text-body-sm font-semibold text-primary leading-[1.25]">{block.title}</div>
-            <div className="mt-[5px] text-caption leading-[1.45] text-secondary">{block.desc}</div>
+            <div className="text-body-sm font-semibold text-primary leading-[1.25]">
+              {t(`layout.stats.${block.statKey}.title`)}
+            </div>
+            <div className="mt-[5px] text-caption leading-[1.45] text-secondary">
+              {t(`layout.stats.${block.statKey}.desc`)}
+            </div>
           </div>
         ))}
       </div>
@@ -115,7 +92,16 @@ function AuthAside({ copy }: { copy: AsideCopy }) {
 
 export function AuthLayout() {
   const location = useLocation();
-  const aside = ROUTE_ASIDE[location.pathname];
+  const { t } = useTranslation('auth');
+  const asideKey = ROUTE_ASIDE_KEY[location.pathname];
+  const aside: AsideCopy | undefined = asideKey
+    ? {
+        eyebrow: t(`layout.aside.${asideKey}.eyebrow`),
+        head: t(`layout.aside.${asideKey}.head`),
+        accent: t(`layout.aside.${asideKey}.accent`),
+        sub: t(`layout.aside.${asideKey}.sub`),
+      }
+    : undefined;
 
   const card = (
     // key по маршруту: layout между экранами авторизации не размонтируется, и
@@ -162,16 +148,18 @@ export function AuthLayout() {
           задают кнопки навигации, а не сам текст, так что формулой из одних
           отступов её не вывести). Лендинг теперь домержен, поэтому знак —
           настоящая ссылка (на dev до этого стоял <span>-заглушка: без
-          лендинга переход по нему упирался бы в 404). */}
-      <div className={`relative z-[1] pt-[2.2rem] pb-8 lg:pb-0 pl-4 ${column}`}>
+          лендинга переход по нему упирался бы в 404). LanguageSwitcher —
+          справа в той же строке; до KZ-603 рендерит null. */}
+      <div className={`relative z-[1] pt-[2.2rem] pb-8 lg:pb-0 pl-4 ${column} flex items-start justify-between gap-4`}>
         <Link
           to="/"
           className="brand-wordmark auth-enter inline-flex hover:opacity-70 transition-opacity"
-          aria-label="На главную"
+          aria-label={t('common:toHome')}
         >
           {env.APP_NAME}
           <span className="brand-dot" aria-hidden="true">.</span>
         </Link>
+        <LanguageSwitcher className="auth-enter" />
       </div>
 
       <div className="relative z-[1] flex-1 flex items-center justify-center py-8 lg:py-10">

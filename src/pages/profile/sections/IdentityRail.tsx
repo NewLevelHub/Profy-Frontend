@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Mono } from '@/shared/ui/typography/Mono';
@@ -22,7 +23,12 @@ export interface IdentityRailProps {
 // collapses to a plain header block on narrower screens — the section nav
 // only earns its keep once there's a second column to anchor against.
 export function IdentityRail({ displayName, age, grade, city, sections }: IdentityRailProps) {
-  const meta = [age ? `${age} ЛЕТ` : null, grade ? `${grade} КЛАСС` : null, city].filter(Boolean).join(' · ');
+  const { t } = useTranslation('profile');
+  const meta = [
+    age ? t('meta.ageYearsUpper', { count: age }) : null,
+    grade ? t('meta.gradeUpper', { count: grade }) : null,
+    city,
+  ].filter(Boolean).join(' · ');
 
   return (
     <div className="lg:border-r border-default bg-page lg:bg-surface px-5 py-6 sm:px-8 lg:p-8 flex flex-col gap-6 lg:gap-7">
@@ -41,7 +47,7 @@ export function IdentityRail({ displayName, age, grade, city, sections }: Identi
       </div>
 
       {sections.length > 0 && (
-        <nav aria-label="Разделы профиля" className="hidden lg:flex flex-col border-t border-default">
+        <nav aria-label={t('identityRail.sectionsAria')} className="hidden lg:flex flex-col border-t border-default">
           {sections.map((s) => (
             <a
               key={s.id}

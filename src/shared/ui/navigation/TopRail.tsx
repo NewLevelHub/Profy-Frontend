@@ -1,8 +1,10 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { playClick } from '@/shared/lib/sounds';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useProfileStore } from '@/shared/store/profile';
@@ -14,6 +16,7 @@ import { NAV_ITEMS, ADMIN_NAV_ITEM, isNavActive, type NavItem } from './navItems
 // full inline nav row on md+ screens, a hamburger dropdown below that —
 // backed by one shared NAV_ITEMS source (./navItems.ts).
 export function TopRail() {
+  const { t } = useTranslation('common');
   const { user, logout } = useAuth();
   const profile = useProfileStore((s) => s.profile);
   const navigate = useNavigate();
@@ -26,7 +29,9 @@ export function TopRail() {
     navigate('/login', { replace: true });
   }
 
-  const identity = profile ? `${profile.name} · ${profile.age} лет` : null;
+  const identity = profile
+    ? `${profile.name} · ${t('ageYears', { count: profile.age })}`
+    : null;
 
   return (
     <header className="sticky top-0 z-40 flex-none bg-page border-b border-strong">
@@ -60,13 +65,15 @@ export function TopRail() {
                   : undefined
               }
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
         </nav>
 
         {/* Right side */}
         <div className="flex items-center gap-3 flex-shrink-0">
+          <LanguageSwitcher className="hidden md:inline-flex" />
+
           {/* Name · age — the identity summary replacing an avatar */}
           {identity && (
             <span className="hidden sm:inline text-sm text-muted font-semibold">{identity}</span>
@@ -77,8 +84,8 @@ export function TopRail() {
             type="button"
             onClick={handleLogout}
             className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:bg-hover hover:text-primary transition-colors"
-            aria-label="Выйти"
-            title="Выйти"
+            aria-label={t('logout')}
+            title={t('logout')}
           >
             <LogOut size={15} />
           </button>
@@ -88,7 +95,7 @@ export function TopRail() {
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
             className="md:hidden p-2 rounded-lg hover:bg-hover text-secondary"
-            aria-label="Меню"
+            aria-label={t('menu')}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -119,15 +126,18 @@ export function TopRail() {
                 )
               }
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
+          <div className="px-3 py-2.5">
+            <LanguageSwitcher />
+          </div>
           <button
             type="button"
             onClick={handleLogout}
             className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-secondary hover:bg-hover"
           >
-            Выйти
+            {t('logout')}
           </button>
         </div>
       )}

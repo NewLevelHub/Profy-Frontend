@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -15,14 +16,11 @@ import { PROFILE_STEP_COUNT, TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 // editor instead: free jump-to-any-group beats a forced sequence once
 // onboarding itself is behind you.
 
-const TABS: Record<ArtifactSection, string> = {
-  activities: '01 чем занимаешься',
-  achievements: '02 может, уже было',
-  professions: '03 что нравится',
-  targets: '04 о чём думаешь',
-  dreams: '05 мечты и цели',
-};
-
+// Preset chip options. Each entry is the canonical (ru) string stored on the
+// profile / sent to the API — locale-independent. Display labels are resolved
+// with t(`onboarding:preset.<type>.<value>`, { defaultValue: value }); a custom
+// value the student types falls through to itself. Backend `code` catalog is
+// deferred to KZ-503.
 const HOBBIES = [
   'Рисование', 'Музыка', 'Спорт', 'Программирование', 'Чтение',
   'Готовка', 'Фото/видео', 'Танцы', 'Робототехника', 'Дебаты',
@@ -73,8 +71,9 @@ const MASCOT_EDIT_SIZE = 64;
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function SectionTabs({ active, onChange }: { active: ArtifactSection; onChange: (s: ArtifactSection) => void }) {
+  const { t } = useTranslation('onboarding');
   return (
-    <div className="flex flex-wrap gap-2" role="tablist" aria-label="Группы артефактов">
+    <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('artifacts.tablistAria')}>
       {ARTIFACT_SECTIONS.map(section => {
         const isActive = section === active;
         return (
@@ -91,7 +90,7 @@ function SectionTabs({ active, onChange }: { active: ArtifactSection; onChange: 
               border: isActive ? '1.5px solid var(--pine)' : '1.5px solid var(--line)',
             }}
           >
-            {TABS[section]}
+            {t(`artifacts.tab.${section}`)}
           </button>
         );
       })}
@@ -117,6 +116,7 @@ function Chip({ label, selected, onClick }: { label: string; selected: boolean; 
 }
 
 function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
+  const { t } = useTranslation('onboarding');
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
 
@@ -138,7 +138,7 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
           if (e.key === 'Enter') { e.preventDefault(); commit(); }
           if (e.key === 'Escape') { setValue(''); setOpen(false); }
         }}
-        placeholder="Своё"
+        placeholder={t('artifacts.customPlaceholder')}
         className="px-3 py-1.5 rounded-pill text-small font-medium w-32 focus:outline-none"
         style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--midnight)' }}
       />
@@ -152,29 +152,32 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
       className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors"
       style={{ background: 'transparent', color: 'var(--mute)', border: '1.5px dashed var(--hairline)' }}
     >
-      + своё
+      {t('artifacts.addCustom')}
     </button>
   );
 }
 
 function ChipGrid({
-  options, selected, onToggle, onAddCustom, subtitle,
+  options, selected, onToggle, onAddCustom, subtitle, labelFor,
 }: {
   options: string[]; selected: string[];
   onToggle: (s: string) => void;
   onAddCustom: (s: string) => void;
   subtitle?: string;
+  /** value -> display label. Defaults to identity (custom entries). */
+  labelFor?: (value: string) => string;
 }) {
+  const label = labelFor ?? ((v: string) => v);
   const custom = selected.filter(s => !options.includes(s));
   return (
     <div className="flex flex-col gap-2">
       {subtitle && <p className="text-small font-semibold text-muted">{subtitle}</p>}
       <div className="flex flex-wrap gap-2">
         {options.map(o => (
-          <Chip key={o} label={o} selected={selected.includes(o)} onClick={() => onToggle(o)} />
+          <Chip key={o} label={label(o)} selected={selected.includes(o)} onClick={() => onToggle(o)} />
         ))}
         {custom.map(o => (
-          <Chip key={o} label={o} selected onClick={() => onToggle(o)} />
+          <Chip key={o} label={label(o)} selected onClick={() => onToggle(o)} />
         ))}
         <AddCustomChip onAdd={onAddCustom} />
       </div>
@@ -182,17 +185,19 @@ function ChipGrid({
   );
 }
 
-const SECTION_COPY: Record<ArtifactSection, { headline: string; note: string }> = {
-  activities: { headline: 'Чем занимаешься помимо школы?', note: 'Хобби, кружки и секции — выбери всё, что подходит' },
-  achievements: { headline: 'Может, уже что-то было?', note: 'Грамоты, победы, проекты, сертификаты — если есть, отметь' },
-  professions: { headline: 'Какие профессии тебе интересны?', note: 'Необязательно — просто то, что привлекает' },
-  targets: { headline: 'О каких странах или университетах думаешь?', note: 'Если ещё рано об этом думать — можно пропустить' },
-  dreams: { headline: 'Есть мечты или цели?', note: 'Одна строка, без правил. Можно и не писать.' },
+const SECTION_KEY: Record<ArtifactSection, { headline: string; note: string }> = {
+  activities: { headline: 'artifacts.section.activitiesHeadline', note: 'artifacts.section.activitiesNote' },
+  achievements: { headline: 'artifacts.section.achievementsHeadline', note: 'artifacts.section.achievementsNote' },
+  professions: { headline: 'artifacts.section.professionsHeadline', note: 'artifacts.section.professionsNote' },
+  targets: { headline: 'artifacts.section.targetsHeadline', note: 'artifacts.section.targetsNote' },
+  dreams: { headline: 'artifacts.section.dreamsHeadline', note: 'artifacts.section.dreamsNote' },
 };
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ArtifactsSetupPage() {
+  const { t } = useTranslation('onboarding');
+  const { t: tc } = useTranslation('common');
   const {
     activeSection, setActiveSection, sectionIndex, isLastSection,
     isLinearFlow,
@@ -207,7 +212,12 @@ export default function ArtifactsSetupPage() {
     toggle,
   } = useArtifactsSetup();
 
-  const copy = SECTION_COPY[activeSection];
+  const copy = {
+    headline: t(SECTION_KEY[activeSection].headline),
+    note: t(SECTION_KEY[activeSection].note),
+  };
+  const presetLabel = (type: string) => (v: string) =>
+    t(`preset.${type}.${v}`, { defaultValue: v });
 
   // Extracted per-section so onboarding can render four of these stacked on
   // one merged screen (see below) while edit mode still shows exactly one
@@ -215,15 +225,17 @@ export default function ArtifactsSetupPage() {
   const activitiesBody = (
     <div className="flex flex-col gap-5">
       <ChipGrid
-        subtitle="Хобби и занятия"
+        subtitle={t('artifacts.subtitleHobbies')}
         options={HOBBIES}
+        labelFor={presetLabel('hobby')}
         selected={hobbies}
         onToggle={h => setHobbies(prev => toggle(prev, h))}
         onAddCustom={h => setHobbies(prev => (prev.includes(h) ? prev : [...prev, h]))}
       />
       <ChipGrid
-        subtitle="Кружки и секции"
+        subtitle={t('artifacts.subtitleClubs')}
         options={CLUBS}
+        labelFor={presetLabel('club')}
         selected={clubs}
         onToggle={c => setClubs(prev => toggle(prev, c))}
         onAddCustom={c => setClubs(prev => (prev.includes(c) ? prev : [...prev, c]))}
@@ -234,6 +246,7 @@ export default function ArtifactsSetupPage() {
   const achievementsBody = (
     <ChipGrid
       options={ACHIEVEMENTS}
+      labelFor={presetLabel('achievement')}
       selected={achievements}
       onToggle={a => setAchievements(prev => toggle(prev, a))}
       onAddCustom={a => setAchievements(prev => (prev.includes(a) ? prev : [...prev, a]))}
@@ -243,6 +256,7 @@ export default function ArtifactsSetupPage() {
   const professionsBody = (
     <ChipGrid
       options={PROFESSIONS}
+      labelFor={presetLabel('profession')}
       selected={professions}
       onToggle={p => setProfessions(prev => toggle(prev, p))}
       onAddCustom={p => setProfessions(prev => (prev.includes(p) ? prev : [...prev, p]))}
@@ -252,9 +266,10 @@ export default function ArtifactsSetupPage() {
   const targetsBody = (
     <ChipGrid
       options={TARGETS}
+      labelFor={presetLabel('target')}
       selected={targets}
-      onToggle={t => setTargets(prev => toggle(prev, t))}
-      onAddCustom={t => setTargets(prev => (prev.includes(t) ? prev : [...prev, t]))}
+      onToggle={tg => setTargets(prev => toggle(prev, tg))}
+      onAddCustom={tg => setTargets(prev => (prev.includes(tg) ? prev : [...prev, tg]))}
     />
   );
 
@@ -262,7 +277,7 @@ export default function ArtifactsSetupPage() {
     <textarea
       value={dreams}
       onChange={e => setDreams(e.target.value)}
-      placeholder="Например: хочу однажды поехать на настоящие раскопки"
+      placeholder={t('artifacts.dreamsPlaceholder')}
       className={cn(
         'w-full max-w-2xl aspect-[2/1] mx-auto rounded-[var(--radius-sm)] px-4 py-3 text-body-md resize-none',
         'placeholder:text-placeholder focus:outline-none transition-colors',
@@ -293,8 +308,8 @@ export default function ArtifactsSetupPage() {
           <div className="max-w-2xl lg:max-w-4xl mx-auto flex flex-col gap-6">
 
             <div>
-              <h1 className="text-h1 font-black text-primary tracking-tight mb-1">Твои увлечения и цели</h1>
-              <p className="text-body text-secondary">Расскажи, чем занимаешься и о чём мечтаешь</p>
+              <h1 className="text-h1 font-black text-primary tracking-tight mb-1">{t('artifacts.editTitle')}</h1>
+              <p className="text-body text-secondary">{t('artifacts.editSubtitle')}</p>
             </div>
 
             <SectionTabs active={activeSection} onChange={setActiveSection} />
@@ -316,9 +331,7 @@ export default function ArtifactsSetupPage() {
               {sectionContent}
 
               {saveError && (
-                <p className="text-xs text-danger text-center">
-                  Не удалось сохранить. Попробуй ещё раз.
-                </p>
+                <p className="text-xs text-danger text-center">{t('artifacts.saveFailed')}</p>
               )}
 
               <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-default">
@@ -328,7 +341,7 @@ export default function ArtifactsSetupPage() {
                   className="h-12 rounded-pill font-extrabold shadow-button"
                   onClick={handleNext}
                 >
-                  {isLastSection ? 'Готово ✓' : 'Дальше'}
+                  {isLastSection ? t('artifacts.done') : t('artifacts.nextGroup')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -336,10 +349,10 @@ export default function ArtifactsSetupPage() {
                   className="h-12 rounded-pill"
                   onClick={handleSkip}
                 >
-                  Пропустить эту группу
+                  {t('artifacts.skipGroup')}
                 </Button>
                 <span className="ml-auto font-mono text-mono-xs uppercase tracking-label text-muted">
-                  Группа {sectionIndex + 1} из {ARTIFACT_SECTIONS.length}
+                  {t('artifacts.groupCounter', { current: sectionIndex + 1, total: ARTIFACT_SECTIONS.length })}
                 </span>
               </div>
             </div>
@@ -395,31 +408,31 @@ export default function ArtifactsSetupPage() {
         ) : (
           <div className="flex flex-col gap-6">
             <div>
-              <Heading level="display-md">{SECTION_COPY.activities.headline}</Heading>
-              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.activities.note}</p>
+              <Heading level="display-md">{t(SECTION_KEY.activities.headline)}</Heading>
+              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.activities.note)}</p>
             </div>
             {activitiesBody}
 
             <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
-                <Heading level="display-md" as="h2">{SECTION_COPY.achievements.headline}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.achievements.note}</p>
+                <Heading level="display-md" as="h2">{t(SECTION_KEY.achievements.headline)}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.achievements.note)}</p>
               </div>
               {achievementsBody}
             </div>
 
             <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
-                <Heading level="display-md" as="h2">{SECTION_COPY.professions.headline}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.professions.note}</p>
+                <Heading level="display-md" as="h2">{t(SECTION_KEY.professions.headline)}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.professions.note)}</p>
               </div>
               {professionsBody}
             </div>
 
             <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
-                <Heading level="display-md" as="h2">{SECTION_COPY.targets.headline}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{SECTION_COPY.targets.note}</p>
+                <Heading level="display-md" as="h2">{t(SECTION_KEY.targets.headline)}</Heading>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.targets.note)}</p>
               </div>
               {targetsBody}
             </div>
@@ -427,7 +440,7 @@ export default function ArtifactsSetupPage() {
         )}
 
         {saveError && (
-          <p className="text-xs text-danger text-center mt-6">Не удалось сохранить. Попробуй ещё раз.</p>
+          <p className="text-xs text-danger text-center mt-6">{t('artifacts.saveFailed')}</p>
         )}
         </div>
       </div>
@@ -450,7 +463,7 @@ export default function ArtifactsSetupPage() {
           className="h-14 px-6 rounded-pill"
           onClick={handleBack}
         >
-          Назад
+          {tc('back')}
         </Button>
 
         <Button
@@ -459,7 +472,7 @@ export default function ArtifactsSetupPage() {
           className="ml-auto h-14 px-10 rounded-pill font-extrabold shadow-button"
           onClick={handleNext}
         >
-          {isLastSection ? 'Готово ✓' : 'Далее'}
+          {isLastSection ? t('artifacts.done') : tc('next')}
         </Button>
         </div>
       </div>

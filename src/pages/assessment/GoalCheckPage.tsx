@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
 import { Button, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -22,6 +23,7 @@ import { useGoalCheck } from './hooks/useGoalCheck';
 // "stage changed, moving to the next section" — the same state /roadmap
 // uses for its goal-switch banners.
 export default function GoalCheckPage() {
+  const { t } = useTranslation('assessment');
   const { hasReport, showsCareers, suggestions, handleContinue } = useGoalCheck();
 
   if (!hasReport) {
@@ -37,12 +39,12 @@ export default function GoalCheckPage() {
             <Mascot state="transition" size={96} className="shrink-0" />
             <div>
               <Heading level="display-md" className="mt-2 text-[color:var(--midnight)]">
-                Кажется, я понял, что тебе близко
+                {t('goalCheck.title')}
               </Heading>
               <Text variant="body-md" className="text-muted mt-2">
                 {showsCareers
-                  ? 'По твоим ответам эти направления подходят тебе больше всего'
-                  : 'По твоим ответам вот что тебе особенно интересно'}
+                  ? t('goalCheck.subtitleCareers')
+                  : t('goalCheck.subtitleInterests')}
               </Text>
             </div>
           </div>
@@ -59,7 +61,7 @@ export default function GoalCheckPage() {
                 }}
               >
                 <span className={typeClass.monoLabel} style={{ color: 'var(--pine)' }}>
-                  Похоже больше всего
+                  {t('goalCheck.bestMatch')}
                 </span>
                 <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
                   {suggestions[0].title}
@@ -75,7 +77,7 @@ export default function GoalCheckPage() {
                 style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
               >
                 <span className={`${typeClass.monoLabel} text-muted`}>
-                  Тоже подходит
+                  {t('goalCheck.alsoFits')}
                 </span>
                 <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
                   {suggestions[1].title}
@@ -93,19 +95,19 @@ export default function GoalCheckPage() {
               style={{ background: 'transparent', borderRadius: 'var(--radius)', border: '1.5px dashed var(--hairline)' }}
             >
               <span className={`${typeClass.monoLabel} text-muted`}>
-                Если ни то, ни другое
+                {t('goalCheck.neitherHeading')}
               </span>
               <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
-                Пока не знаю — и это нормально
+                {t('goalCheck.dontKnowYet')}
               </p>
               <p className={`${typeClass.bodySm} text-muted`}>
-                Ничего страшного, оставайся на «пока не знаю» — открой отчёт, там будет подробнее
+                {t('goalCheck.dontKnowBody')}
               </p>
             </button>
 
             {suggestions.length === 0 && (
               <p className={`${typeClass.bodySm} text-secondary font-medium`}>
-                Твой полный результат уже готов — открой его, там будет подробнее.
+                {t('goalCheck.fullReadyBody')}
               </p>
             )}
           </div>
@@ -115,7 +117,7 @@ export default function GoalCheckPage() {
             className="w-full h-14 rounded-pill font-extrabold shadow-button"
             onClick={handleContinue}
           >
-            Показать отчёт
+            {t('goalCheck.showReport')}
           </Button>
 
         </div>

@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -11,6 +12,7 @@ import { InquiryVerdict } from './components/InquiryVerdict';
 export default function DirectionInquiryPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('results');
   const {
     questions, isLoading, error,
     answers, setAnswer, allAnswered,
@@ -24,14 +26,14 @@ export default function DirectionInquiryPage() {
         onClick={() => navigate(-1)}
       >
         <ArrowLeft className="w-4 h-4" />
-        Назад
+        {t('common:back')}
       </button>
 
       <PageHeader
-        title="Подходит ли тебе это направление?"
+        title={t('inquiry.title')}
         subtitle={
           questions && !verdict
-            ? `Ответь честно — и узнаешь, насколько «${questions.direction_name}» про тебя.`
+            ? t('inquiry.subtitle', { name: questions.direction_name })
             : undefined
         }
       />
@@ -55,10 +57,10 @@ export default function DirectionInquiryPage() {
               }
             >
               <Sparkles className="w-5 h-5" />
-              Построить мой план
+              {t('inquiry.buildPlan')}
             </Button>
             <Button variant="ghost" size="lg" className="w-full" onClick={() => navigate('/results')}>
-              Назад к результатам
+              {t('common:backToResults')}
             </Button>
           </div>
         </div>
@@ -86,7 +88,7 @@ export default function DirectionInquiryPage() {
               isLoading={isSubmitting}
               onClick={submit}
             >
-              {isSubmitting ? 'Анализирую…' : 'Узнать результат'}
+              {isSubmitting ? t('inquiry.analyzing') : t('inquiry.getResult')}
             </Button>
           </div>
         </div>

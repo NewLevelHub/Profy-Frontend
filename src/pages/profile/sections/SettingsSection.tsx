@@ -1,6 +1,9 @@
-import { LogOut, Volume2, VolumeX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Languages, LogOut, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { LOCALE_SWITCH_ENABLED } from '@/shared/store/locale';
 import { Button } from '@/shared/ui/Button';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { LedgerSection } from '../components/LedgerSection';
 
 export interface SettingsSectionProps {
@@ -28,10 +31,25 @@ export function SettingsSection({
   onRestartCancel,
   onLogout,
 }: SettingsSectionProps) {
+  const { t } = useTranslation('profile');
   return (
-    <LedgerSection id="settings" number="05" title="НАСТРОЙКИ">
+    <LedgerSection id="settings" number="05" title={t('settings.title')}>
       <div className="flex flex-col">
-        <div className="flex items-center justify-between gap-4 pb-4 border-b border-[color:var(--border-faint)]">
+        {/* Rendered only once more than one locale is offered (KZ-603). */}
+        {LOCALE_SWITCH_ENABLED && (
+          <div className="flex items-center justify-between gap-4 pb-4 border-b border-[color:var(--border-faint)]">
+            <div className="flex items-center gap-3 min-w-0">
+              <Languages size={18} className="text-brand flex-none" />
+              <div>
+                <p className="font-bold text-primary text-body-sm">{t('settings.languageLabel')}</p>
+                <p className="text-caption text-secondary">{t('settings.languageHint')}</p>
+              </div>
+            </div>
+            <LanguageSwitcher />
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-4 py-4 border-b border-[color:var(--border-faint)]">
           <div className="flex items-center gap-3 min-w-0">
             {soundEnabled ? (
               <Volume2 size={18} className="text-brand flex-none" />
@@ -39,11 +57,11 @@ export function SettingsSection({
               <VolumeX size={18} className="text-muted flex-none" />
             )}
             <div>
-              <p className="font-bold text-primary text-body-sm">Звуковые эффекты</p>
+              <p className="font-bold text-primary text-body-sm">{t('settings.soundLabel')}</p>
               <p className="text-caption text-secondary">
                 {prefersReducedMotion && !soundEnabled
-                  ? 'Отключены из‑за настройки «уменьшить движение»'
-                  : 'Короткие звуки при нажатии кнопок'}
+                  ? t('settings.soundReducedMotion')
+                  : t('settings.soundHint')}
               </p>
             </div>
           </div>
@@ -51,7 +69,7 @@ export function SettingsSection({
             type="button"
             role="switch"
             aria-checked={soundEnabled}
-            aria-label="Звуковые эффекты"
+            aria-label={t('settings.soundLabel')}
             onClick={toggleSound}
             className={cn(
               'relative w-11 h-6 rounded-pill transition-colors flex-none',
@@ -69,31 +87,31 @@ export function SettingsSection({
 
         {confirmRestart ? (
           <div className="py-4 border-b border-[color:var(--border-faint)]">
-            <p className="text-body-sm font-bold text-primary mb-1">Начать заново?</p>
+            <p className="text-body-sm font-bold text-primary mb-1">{t('settings.restartConfirmTitle')}</p>
             <p className="text-caption text-secondary mb-3">
-              Весь текущий прогресс будет сброшен. Ты начнёшь диагностику с самого начала.
+              {t('settings.restartConfirmBody')}
             </p>
             <div className="flex gap-3">
               <Button variant="ghost" size="sm" className="flex-1" onClick={onRestartCancel}>
-                Отмена
+                {t('common:cancel')}
               </Button>
               <Button size="sm" className="flex-1 bg-danger! hover:bg-danger/80!" onClick={onRestartConfirm}>
-                Начать заново
+                {t('settings.restartConfirmYes')}
               </Button>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-between gap-4 py-4 border-b border-[color:var(--border-faint)]">
             <div>
-              <p className="font-bold text-primary text-body-sm">Начать тестирование заново</p>
-              <p className="text-caption text-secondary">Результаты и рекомендации будут сброшены</p>
+              <p className="font-bold text-primary text-body-sm">{t('settings.restartLabel')}</p>
+              <p className="text-caption text-secondary">{t('settings.restartHint')}</p>
             </div>
             <button
               type="button"
               onClick={onRestartRequest}
               className="text-body-sm font-bold text-danger border border-danger rounded-[var(--radius)] px-3.5 py-1.5 hover:bg-danger-subtle transition-colors flex-none"
             >
-              Сбросить
+              {t('settings.restartAction')}
             </button>
           </div>
         )}
@@ -104,7 +122,7 @@ export function SettingsSection({
           className="flex items-center gap-2 pt-4 text-body-sm font-bold text-secondary hover:text-danger transition-colors"
         >
           <LogOut size={14} />
-          Выйти из аккаунта
+          {t('settings.logout')}
         </button>
       </div>
     </LedgerSection>

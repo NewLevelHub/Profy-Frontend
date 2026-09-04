@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -8,11 +9,29 @@ import { SelectableChip } from './components/SelectableChip';
 import { ExamScoresBlock } from './components/ExamScoresBlock';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
-const SUBJECTS = [
-  'Математика', 'Физика', 'Химия', 'Биология',
-  'История', 'География', 'Русский язык', 'Литература',
-  'Английский язык', 'Информатика', 'Физкультура', 'Рисование', 'Музыка',
-];
+// `value` is the canonical (ru) string stored on the profile and sent to the
+// API — locale-independent, unchanged when the UI switches to kk. `key` is the
+// display label, resolved with t(). Custom subjects the student types are kept
+// verbatim. A backend `subject_code` catalog is deferred to KZ-503.
+const SUBJECT_OPTIONS = [
+  { value: 'Математика', key: 'subject.math' },
+  { value: 'Физика', key: 'subject.physics' },
+  { value: 'Химия', key: 'subject.chemistry' },
+  { value: 'Биология', key: 'subject.biology' },
+  { value: 'История', key: 'subject.history' },
+  { value: 'География', key: 'subject.geography' },
+  { value: 'Русский язык', key: 'subject.russian' },
+  { value: 'Литература', key: 'subject.literature' },
+  { value: 'Английский язык', key: 'subject.english' },
+  { value: 'Информатика', key: 'subject.informatics' },
+  { value: 'Физкультура', key: 'subject.pe' },
+  { value: 'Рисование', key: 'subject.art' },
+  { value: 'Музыка', key: 'subject.music' },
+] as const;
+const SUBJECT_VALUES: string[] = SUBJECT_OPTIONS.map(s => s.value);
+const SUBJECT_KEY: Record<string, string> = Object.fromEntries(
+  SUBJECT_OPTIONS.map(s => [s.value, s.key]),
+);
 
 const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 14–18
 
@@ -34,9 +53,39 @@ const MASCOT_WAITING_SIZE = 168;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+/** Subject chip — per spec, selection is marked with a dawn border (not a
+ *  fill), unselected chips sit on a plain hairline border. Deliberately
+ *  neutral: never colored to imply "good"/"bad" (screen 6 relies on this
+ *  for its easy vs. struggle columns). */
+function SubjectChip({
+  label, selected, onClick, disabled, disabledTitle,
+}: {
+  label: string; selected: boolean; onClick: () => void; disabled?: boolean; disabledTitle?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-disabled={disabled}
+      title={disabled ? disabledTitle : undefined}
+      className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors disabled:cursor-not-allowed"
+      style={{
+        background: 'var(--bg-surface)',
+        color: disabled ? 'var(--mute)' : selected ? 'var(--midnight)' : 'var(--ink)',
+        border: selected ? '1.5px solid var(--dawn)' : '1.5px solid var(--line)',
+        opacity: disabled ? 0.45 : 1,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 /** The dashed "+ своё" chip — click reveals an inline text field to add a
  *  subject that isn't in the fixed catalog. */
 function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
+  const { t } = useTranslation('onboarding');
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
 
@@ -58,7 +107,7 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
           if (e.key === 'Enter') { e.preventDefault(); commit(); }
           if (e.key === 'Escape') { setValue(''); setOpen(false); }
         }}
-        placeholder="Свой предмет"
+        placeholder={t('profile.customSubjectPlaceholder')}
         className="px-3 py-1.5 rounded-pill text-small font-medium w-32 focus:outline-none"
         style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--midnight)' }}
       />
@@ -72,7 +121,7 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
       className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors"
       style={{ background: 'transparent', color: 'var(--mute)', border: '1.5px dashed var(--hairline)' }}
     >
-      + своё
+      {t('profile.addCustom')}
     </button>
   );
 }
@@ -88,7 +137,8 @@ function SubjectGroup({
    *  disabled here until deselected on the other side. */
   otherSelected?: string[];
 }) {
-  const custom = selected.filter(s => !SUBJECTS.includes(s));
+  const { t } = useTranslation('onboarding');
+  const custom = selected.filter(s => !SUBJECT_VALUES.includes(s));
   return (
     <div className="flex flex-col gap-2">
       <div>
@@ -96,14 +146,14 @@ function SubjectGroup({
         {note && <p className="text-small text-muted mt-0.5">{note}</p>}
       </div>
       <div className="flex flex-wrap gap-2">
-        {SUBJECTS.map(s => (
-          <SelectableChip
-            key={s}
-            label={s}
-            selected={selected.includes(s)}
-            onClick={() => onToggle(s)}
-            disabled={otherSelected?.includes(s)}
-            disabledTitle="Уже выбрано в другом списке"
+        {SUBJECT_OPTIONS.map(s => (
+          <SubjectChip
+            key={s.value}
+            label={t(s.key)}
+            selected={selected.includes(s.value)}
+            onClick={() => onToggle(s.value)}
+            disabled={otherSelected?.includes(s.value)}
+            disabledTitle={t('profile.chipAlreadyPicked')}
           />
         ))}
         {custom.map(s => (
@@ -118,6 +168,8 @@ function SubjectGroup({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfileSetupPage() {
+  const { t } = useTranslation('onboarding');
+  const { t: tc } = useTranslation('common');
   const {
     step, totalSteps,
     name, setName,
@@ -163,16 +215,16 @@ export default function ProfileSetupPage() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4">
               <Heading level="display-md">
-                Как тебя зовут?
+                {t('profile.nameQuestion')}
               </Heading>
 
               <Input
-                label="Имя"
+                label={t('profile.nameLabel')}
                 value={name}
                 onChange={e => { setName(sanitizeName(e.target.value)); clearError('name'); }}
-                placeholder="Например, Арман"
+                placeholder={t('profile.namePlaceholder')}
                 error={errors.name}
-                hint={!errors.name ? 'Так я буду к тебе обращаться. Можно поменять потом.' : undefined}
+                hint={!errors.name ? t('profile.nameHint') : undefined}
                 autoFocus
                 maxLength={NAME_MAX_LENGTH}
               />
@@ -181,12 +233,12 @@ export default function ProfileSetupPage() {
             <div className="flex flex-col gap-4 pt-2 border-t border-default">
               <div className="pt-2">
                 <Heading level="display-md" as="h2">
-                  Сколько тебе лет?
+                  {t('profile.ageQuestion')}
                 </Heading>
               </div>
 
               {/* Age picker — button row, 14–18 */}
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Выбери возраст">
+              <div className="flex flex-wrap gap-2" role="group" aria-label={t('profile.agePickerAria')}>
                 {AGES.map(a => {
                   const selected = age === String(a);
                   return (
@@ -212,18 +264,18 @@ export default function ProfileSetupPage() {
             <div className="flex flex-col gap-6 pt-2 border-t border-default">
               <div className="pt-2">
                 <Heading level="display-md" as="h2">
-                  Где ты учишься?
+                  {t('profile.schoolQuestion')}
                 </Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Класс и город — поможет точнее подобрать вопросы и рекомендации</p>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('profile.schoolNote')}</p>
               </div>
 
               <Input
-                label="Класс"
+                label={t('profile.gradeLabel')}
                 type="number"
                 inputMode="numeric"
                 value={grade}
                 onChange={e => { setGrade(e.target.value); clearError('grade'); }}
-                placeholder="от 1 до 12"
+                placeholder={t('profile.gradePlaceholder')}
                 error={errors.grade}
                 min={1}
                 max={12}
@@ -233,18 +285,18 @@ export default function ProfileSetupPage() {
                   field is the honest fallback rather than a fabricated
                   autocomplete list. See onboarding rebuild notes. */}
               <Input
-                label="Город"
+                label={t('profile.cityLabel')}
                 value={city}
                 onChange={e => setCity(e.target.value)}
-                placeholder="Например, Алматы"
-                hint="Пока без подсказок — просто впиши город"
+                placeholder={t('profile.cityPlaceholder')}
+                hint={t('profile.cityHint')}
               />
 
               <Input
-                label="Страна"
+                label={t('profile.countryLabel')}
                 value={country}
                 onChange={e => setCountry(e.target.value)}
-                placeholder="Например, Казахстан"
+                placeholder={t('profile.countryPlaceholder')}
               />
             </div>
           </div>
@@ -254,9 +306,9 @@ export default function ProfileSetupPage() {
           <div className="flex flex-col gap-6">
             <div>
               <Heading level="display-md">
-                Какие предметы тебе нравятся?
+                {t('profile.subjectsLikedQuestion')}
               </Heading>
-              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Сколько хочешь — или ни одного</p>
+              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('profile.subjectsLikedNote')}</p>
             </div>
 
             {/* Same neutral chip styling and mutual-exclusion pattern as
@@ -264,14 +316,14 @@ export default function ProfileSetupPage() {
                 disliked at once. */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <SubjectGroup
-                title="Нравятся"
+                title={t('profile.groupLiked')}
                 selected={subjectsLike}
                 onToggle={s => setSubjectsLike(prev => toggle(prev, s))}
                 onAddCustom={s => setSubjectsLike(prev => (prev.includes(s) ? prev : [...prev, s]))}
                 otherSelected={subjectsDislike}
               />
               <SubjectGroup
-                title="Не нравятся"
+                title={t('profile.groupDisliked')}
                 selected={subjectsDislike}
                 onToggle={s => setSubjectsDislike(prev => toggle(prev, s))}
                 onAddCustom={s => setSubjectsDislike(prev => (prev.includes(s) ? prev : [...prev, s]))}
@@ -282,9 +334,9 @@ export default function ProfileSetupPage() {
             <div className="flex flex-col gap-6 pt-2 border-t border-default">
               <div className="pt-2">
                 <Heading level="display-md" as="h2">
-                  А как с остальными предметами?
+                  {t('profile.subjectsRestQuestion')}
                 </Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>Необязательно — но поможет точнее</p>
+                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('profile.subjectsRestNote')}</p>
               </div>
 
               {/* Deliberately neutral: both columns use the identical chip style.
@@ -292,13 +344,13 @@ export default function ProfileSetupPage() {
                   framing is carried by wording alone. */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <SubjectGroup
-                  title="А что из предметов даётся легко?"
+                  title={t('profile.groupEasy')}
                   selected={subjectsEasy}
                   onToggle={s => setSubjectsEasy(prev => toggle(prev, s))}
                   otherSelected={subjectsHard}
                 />
                 <SubjectGroup
-                  title="А где приходится стараться больше?"
+                  title={t('profile.groupHard')}
                   selected={subjectsHard}
                   onToggle={s => setSubjectsHard(prev => toggle(prev, s))}
                   otherSelected={subjectsEasy}
@@ -340,7 +392,7 @@ export default function ProfileSetupPage() {
             className="h-14 px-6 rounded-pill"
             onClick={handleBack}
           >
-            Назад
+            {tc('back')}
           </Button>
         )}
 
@@ -350,7 +402,7 @@ export default function ProfileSetupPage() {
             className="ml-auto h-14 px-10 rounded-pill font-extrabold shadow-button"
             onClick={handleNext}
           >
-            Далее
+            {tc('next')}
           </Button>
         ) : (
           <Button
@@ -361,7 +413,7 @@ export default function ProfileSetupPage() {
             {/* Saves the profile and moves on to artifacts (steps 3-4 of the
                 same onboarding flow) — "Далее", not "Готово", since this
                 isn't the end of onboarding. */}
-            Далее
+            {tc('next')}
           </Button>
         )}
         </div>

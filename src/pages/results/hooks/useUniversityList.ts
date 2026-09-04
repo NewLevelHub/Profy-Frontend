@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { universityApi } from '@/shared/api/university';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
@@ -54,6 +55,7 @@ function compareByRank(
 export function useUniversityList() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('results');
   const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
   const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
@@ -91,8 +93,8 @@ export function useUniversityList() {
     const countries = Array.from(new Set(allPrograms.map(p => p.university.country))).sort((a, b) =>
       a.localeCompare(b, 'ru'),
     );
-    return [{ label: 'Все', value: undefined }, ...countries.map(country => ({ label: country, value: country }))];
-  }, [allPrograms]);
+    return [{ label: t('programList.allCountries'), value: undefined }, ...countries.map(country => ({ label: country, value: country }))];
+  }, [allPrograms, t]);
 
   const programs = useMemo(() => {
     const filtered = activeCountry
@@ -100,9 +102,10 @@ export function useUniversityList() {
       : allPrograms;
 
     // Country filter decides which ranking scale is meaningful to sort by:
-    // "Все" (no filter) → the general cross-country `ranking`; "Казахстан"
-    // → `uniranks_kz_rank`, the only scale that's actually comparable
-    // within a KZ-only result set.
+    // no filter → the general cross-country `ranking`; KZ → `uniranks_kz_rank`,
+    // the only scale that's actually comparable within a KZ-only result set.
+    // `activeCountry` holds a backend `country` value (ru-only data), so the
+    // literal here is a data match, not UI copy.
     const getScore = activeCountry === 'Казахстан' ? getKzRankScore : getGeneralRankScore;
     return [...filtered].sort((a, b) => compareByRank(a, b, getScore, sortDirection));
   }, [allPrograms, activeCountry, sortDirection]);
@@ -115,7 +118,7 @@ export function useUniversityList() {
     slug,
     programs,
     isLoading,
-    error: error ? 'Не удалось загрузить программы. Попробуй ещё раз.' : null,
+    error: error ? t('error.loadPrograms') : null,
     activeCountry,
     setActiveCountry: handleCountryChange,
     countryFilters,

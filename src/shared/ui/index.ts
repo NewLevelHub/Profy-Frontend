@@ -33,6 +33,9 @@ export type { SkeletonProps } from './Skeleton';
 export { Mascot, SPRITES, PRO } from './Mascot';
 export type { MascotProps, MascotState, MascotFunctionalState, MascotProfessionState } from './Mascot';
 
+export { LanguageSwitcher } from './LanguageSwitcher';
+export type { LanguageSwitcherProps } from './LanguageSwitcher';
+
 export { PageStub } from './PageStub';
 export { PageContainer } from './PageContainer';
 export { PageHeader } from './PageHeader';

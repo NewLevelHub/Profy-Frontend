@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Trophy } from 'lucide-react';
 import { getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
 import type { UniversityBrief } from '@/shared/types';
@@ -17,7 +18,8 @@ interface UniversityRankBadgesProps {
  * nothing.
  */
 export function UniversityRankBadges({ university, size = 'md' }: UniversityRankBadgesProps) {
-  const labels = getUniversityRankingLabels(university);
+  const { t } = useTranslation('results');
+  const labels = getUniversityRankingLabels(university, t);
   if (labels.length === 0) return null;
 
   const sizeClasses = size === 'sm'

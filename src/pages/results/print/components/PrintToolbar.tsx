@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Text } from '@/shared/ui/typography/Text';
@@ -15,19 +16,20 @@ interface PrintToolbarProps {
  * physical printer on plenty of machines.
  */
 export function PrintToolbar({ onBack, onPrint }: PrintToolbarProps) {
+  const { t } = useTranslation('results');
   return (
     <div data-print-hide className="flex items-center justify-between gap-3 flex-wrap mb-5">
       <Button variant="text" size="sm" onClick={onBack}>
         <ArrowLeft size={16} aria-hidden="true" />
-        К результатам
+        {t('print.toolbar.back')}
       </Button>
       <div className="flex items-center gap-3">
         <Text variant="caption" className="text-secondary hidden sm:block">
-          В окне печати выбери «Сохранить как PDF»
+          {t('print.toolbar.hint')}
         </Text>
         <Button size="sm" onClick={onPrint}>
           <Printer size={16} aria-hidden="true" />
-          Скачать PDF
+          {t('page.downloadPdf')}
         </Button>
       </div>
     </div>

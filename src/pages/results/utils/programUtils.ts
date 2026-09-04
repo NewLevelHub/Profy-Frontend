@@ -1,6 +1,11 @@
+import type { TFunction } from 'i18next';
+import { formatNumber } from '@/shared/i18n/format';
 import type { UniversityBrief } from '@/shared/types';
 
-const KZ_COUNTRY_NAMES = new Set(['Казахстан', 'Kazakhstan', 'KZ', 'Қазақстан']);
+// These helpers render user-visible copy, so they take the caller's `t` (from
+// `useTranslation`) rather than the `i18n` singleton — that keeps the calling
+// component subscribed and re-rendering on `changeLanguage` (a bare
+// `i18n.t()` here would freeze the string until some unrelated re-render).
 
 /**
  * The card grid shows `university.image_url` in a ~380x128 box, but that URL
@@ -39,7 +44,8 @@ export function cardImageUrl(imageUrl: string): string {
  * (UniversityRankBadges, ProgramDetailPage) don't need to change shape.
  */
 export function getUniversityRankingLabels(
-  uni: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>
+  uni: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>,
+  t: TFunction,
 ): string[] {
   const positive = (v: number | null | undefined): number | null =>
     v !== null && v !== undefined && v > 0 ? v : null;
@@ -49,8 +55,8 @@ export function getUniversityRankingLabels(
   const worldRank = positive(uni.ranking) ?? positive(uni.uniranks_world_rank);
   const kzRank = positive(uni.uniranks_kz_rank);
 
-  if (kzRank !== null) return [`UniRanks · #${kzRank} в Казахстане`];
-  if (worldRank !== null) return [`UniRanks · #${worldRank} в мире`];
+  if (kzRank !== null) return [t('results:rank.kzPosition', { rank: kzRank })];
+  if (worldRank !== null) return [t('results:rank.worldPosition', { rank: worldRank })];
   return [];
 }
 
@@ -72,19 +78,20 @@ export function splitRequirementNotes(notes: string[]): string[] {
     .filter(part => part.length > 0);
 }
 
-export function formatCost(cost: number | null): string {
-  if (cost === null) return 'Стоимость не указана';
+export function formatCost(cost: number | null, t: TFunction): string {
+  if (cost === null) return t('results:cost.notSpecified');
   // `cost` sometimes arrives as a numeric-looking string (Decimal fields can
   // survive JSON as strings), and `"1659".toLocaleString()` is a no-op on a
   // string (returns it unchanged, no digit grouping) — coercing to Number
-  // first is what actually applies grouping, and 'ru-RU' matches the space
-  // grouping already used by convertLabelCurrenciesToUsd for the same
-  // display purpose (see university-cards-ux-fix-plan.md §10).
-  return `${Number(cost).toLocaleString('ru-RU')} $/год`;
+  // first is what actually applies grouping. `formatNumber` groups per the
+  // active UI locale (see KZ-104 / shared/i18n/format), keeping every price
+  // on one style like convertLabelCurrenciesToUsd (university-cards-ux-fix-
+  // plan.md §10).
+  return t('results:cost.perYear', { amount: formatNumber(Number(cost)) });
 }
 
-export function convertLabelCurrenciesToUsd(label: string | null): string {
-  if (!label) return 'Стоимость не указана';
+export function convertLabelCurrenciesToUsd(label: string | null, t: TFunction): string {
+  if (!label) return t('results:cost.notSpecified');
 
   let currency: string | null = null;
   let rate = 1.0;
@@ -195,7 +202,7 @@ export function convertLabelCurrenciesToUsd(label: string | null): string {
     const num = parseFloat(cleaned);
     if (isNaN(num)) return match;
     const usd = Math.round(num * rate);
-    return usd.toLocaleString('ru-RU') + trailingWs;
+    return formatNumber(usd) + trailingWs;
   });
 
   // Every currency, whatever the source used (a code like "EUR", a Cyrillic
@@ -211,62 +218,66 @@ export function convertLabelCurrenciesToUsd(label: string | null): string {
   return result;
 }
 
+// Maps a raw requirement/deadline key to its i18n key under results/reqKey.*
+// (a fixed enum of shapes the backend uses — the ru/kk copy lives in the
+// catalog, resolved via `i18n.t` in localizeKey below).
 const KEY_LABELS: Record<string, string> = {
   // Requirements
-  exams: 'Вступительные экзамены',
-  min_gpa: 'Минимальный GPA',
-  min_sat: 'Минимальный балл SAT',
-  min_ielts: 'Минимальный балл IELTS',
-  min_toefl: 'Минимальный балл TOEFL',
-  min_ent: 'Минимальный балл ЕНТ',
-  needs_essay: 'Эссе',
-  essay: 'Эссе',
-  needs_interview: 'Собеседование',
-  interview: 'Собеседование',
-  needs_portfolio: 'Портфолио',
-  portfolio: 'Портфолио',
-  needs_recommendation: 'Рекомендательные письма',
-  needs_recommendations: 'Рекомендательные письма',
-  recommendation: 'Рекомендательное письмо',
-  recommendations: 'Рекомендательные письма',
-  language_certificate: 'Языковой сертификат',
-  extracurriculars: 'Внеклассная деятельность',
-  extracurricular: 'Внеклассная деятельность',
-  activities: 'Дополнительные активности',
-  leadership: 'Лидерские качества',
-  community_service: 'Волонтёрство',
-  research: 'Исследовательская работа',
-  awards: 'Награды и достижения',
-  gpa: 'GPA',
-  sat: 'Балл SAT',
-  act: 'Балл ACT',
-  ielts: 'Балл IELTS',
-  toefl: 'Балл TOEFL',
-  ent: 'Балл ЕНТ',
+  exams: 'results:reqKey.exams',
+  min_gpa: 'results:reqKey.min_gpa',
+  min_sat: 'results:reqKey.min_sat',
+  min_ielts: 'results:reqKey.min_ielts',
+  min_toefl: 'results:reqKey.min_toefl',
+  min_ent: 'results:reqKey.min_ent',
+  needs_essay: 'results:reqKey.needs_essay',
+  essay: 'results:reqKey.essay',
+  needs_interview: 'results:reqKey.needs_interview',
+  interview: 'results:reqKey.interview',
+  needs_portfolio: 'results:reqKey.needs_portfolio',
+  portfolio: 'results:reqKey.portfolio',
+  needs_recommendation: 'results:reqKey.needs_recommendation',
+  needs_recommendations: 'results:reqKey.needs_recommendations',
+  recommendation: 'results:reqKey.recommendation',
+  recommendations: 'results:reqKey.recommendations',
+  language_certificate: 'results:reqKey.language_certificate',
+  extracurriculars: 'results:reqKey.extracurriculars',
+  extracurricular: 'results:reqKey.extracurricular',
+  activities: 'results:reqKey.activities',
+  leadership: 'results:reqKey.leadership',
+  community_service: 'results:reqKey.community_service',
+  research: 'results:reqKey.research',
+  awards: 'results:reqKey.awards',
+  gpa: 'results:reqKey.gpa',
+  sat: 'results:reqKey.sat',
+  act: 'results:reqKey.act',
+  ielts: 'results:reqKey.ielts',
+  toefl: 'results:reqKey.toefl',
+  ent: 'results:reqKey.ent',
   // Deadlines
-  application: 'Подача заявки',
-  application_open: 'Открытие приёма',
-  application_close: 'Закрытие приёма',
-  decision_date: 'Дата решения',
-  exam_deadline: 'Срок сдачи экзаменов',
-  documents: 'Документы',
-  early_decision: 'Ранняя подача',
-  regular: 'Основной срок',
-  rolling: 'Скользящий срок',
-  spring: 'Весенний набор',
-  fall: 'Осенний набор',
+  application: 'results:reqKey.application',
+  application_open: 'results:reqKey.application_open',
+  application_close: 'results:reqKey.application_close',
+  decision_date: 'results:reqKey.decision_date',
+  exam_deadline: 'results:reqKey.exam_deadline',
+  documents: 'results:reqKey.documents',
+  early_decision: 'results:reqKey.early_decision',
+  regular: 'results:reqKey.regular',
+  rolling: 'results:reqKey.rolling',
+  spring: 'results:reqKey.spring',
+  fall: 'results:reqKey.fall',
 };
 
-export function localizeKey(key: string): string {
+export function localizeKey(key: string, t: TFunction): string {
   const normalized = key.replace(/\s+/g, '_');
-  return KEY_LABELS[key] ?? KEY_LABELS[normalized] ?? key.replace(/_/g, ' ');
+  const i18nKey = KEY_LABELS[key] ?? KEY_LABELS[normalized];
+  return i18nKey ? t(i18nKey) : key.replace(/_/g, ' ');
 }
 
-export function toDisplayString(value: unknown): string {
-  if (value === null || value === undefined) return '—';
-  if (typeof value === 'boolean') return value ? 'Да' : 'Нет';
+export function toDisplayString(value: unknown, t: TFunction): string {
+  if (value === null || value === undefined) return t('common:emptyValue');
+  if (typeof value === 'boolean') return value ? t('common:yes') : t('common:no');
   if (typeof value !== 'object') return String(value);
-  if (Array.isArray(value)) return value.map(toDisplayString).join(', ');
+  if (Array.isArray(value)) return value.map((v) => toDisplayString(v, t)).join(', ');
   const obj = value as Record<string, unknown>;
   const preferred = ['amount', 'value', 'score', 'level', 'min', 'conditions', 'name'];
   for (const field of preferred) {
@@ -277,5 +288,5 @@ export function toDisplayString(value: unknown): string {
       return `${String(obj[field])}${rest}`;
     }
   }
-  return Object.values(obj).filter(v => v !== null && v !== undefined).map(String).join(' · ') || '—';
+  return Object.values(obj).filter(v => v !== null && v !== undefined).map(String).join(' · ') || t('common:emptyValue');
 }

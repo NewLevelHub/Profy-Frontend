@@ -1,17 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import type { InterestMapItem } from '@/shared/types';
 import { pickSpheres } from './sphereContent';
-import { RoadmapHorizons } from './RoadmapHorizons';
 
 interface ScenarioAProps {
   interestMap: InterestMapItem[];
 }
-
-const EXPLORE_HORIZONS = [
-  { id: 'h1', label: '1 МЕСЯЦ', title: 'Попробовать все 4 сферы', description: 'По одному маленькому делу в каждой — без выбора «лучшей».' },
-  { id: 'h2', label: '3 МЕСЯЦА', title: 'Понаблюдать за собой', description: 'Что было интересно продолжать, а что забросил через день.' },
-  { id: 'h3', label: '6 МЕСЯЦЕВ', title: 'Накопить опыт', description: 'Несколько занятий в разных сферах — материал для будущего выбора.' },
-];
 
 /**
  * Scenario A (explore) — same structure for junior AND for middle/senior
@@ -20,16 +14,17 @@ const EXPLORE_HORIZONS = [
  * data-source note on where the 4 spheres come from.
  */
 export function ScenarioA({ interestMap }: ScenarioAProps) {
-  const spheres = pickSpheres(interestMap);
+  const { t } = useTranslation('results');
+  const spheres = pickSpheres(interestMap, t);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-title font-extrabold text-primary leading-snug mb-1.5">
-          Четыре сферы, где стоит попробовать себя в ближайший месяц
+          {t('scenarioExplore.title')}
         </h2>
         <p className="text-caption text-secondary leading-snug max-w-2xl">
-          Профессий и вузов в этом сценарии нет: пока задача не выбрать, а набрать опыт, на который потом можно опереться.
+          {t('scenarioExplore.subtitle')}
         </p>
       </div>
 
@@ -39,7 +34,7 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
             <Card key={sphere.code} className="flex flex-col gap-3">
               <div>
                 <p className="text-tiny font-mono font-bold uppercase tracking-label text-muted mb-1">
-                  СФЕРА {String(i + 1).padStart(2, '0')}
+                  {t('scenarioExplore.sphereLabel', { n: String(i + 1).padStart(2, '0') })}
                 </p>
                 <p className="font-extrabold text-primary text-body-md">{sphere.title}</p>
               </div>
@@ -49,7 +44,7 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
                     className="text-tiny font-mono font-bold uppercase tracking-label flex-shrink-0 mt-0.5"
                     style={{ color: 'var(--pine)' }}
                   >
-                    ПОПРОБОВАТЬ
+                    {t('scenarioExplore.tryLabel')}
                   </span>
                   <span className="text-caption text-primary leading-snug">{sphere.tryNow}</span>
                 </div>
@@ -58,7 +53,7 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
                     className="text-tiny font-mono font-bold uppercase tracking-label flex-shrink-0 mt-0.5"
                     style={{ color: 'var(--lake)' }}
                   >
-                    ПОНАБЛЮДАТЬ
+                    {t('scenarioExplore.observeLabel')}
                   </span>
                   <span className="text-caption text-primary leading-snug">{sphere.observe}</span>
                 </div>
@@ -67,13 +62,6 @@ export function ScenarioA({ interestMap }: ScenarioAProps) {
           ))}
         </div>
       )}
-
-      {/* <RoadmapHorizons
-        title="ИССЛЕДОВАТЕЛЬСКИЙ ROADMAP"
-        horizons={EXPLORE_HORIZONS}
-        ariaLabel="Исследовательский roadmap: 1 месяц, 3 месяца, 6 месяцев — без фиксированной цели"
-        lastNodeStyle="open"
-      /> */}
     </div>
   );
 }

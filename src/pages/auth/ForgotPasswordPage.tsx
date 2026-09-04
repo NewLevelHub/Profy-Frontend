@@ -1,15 +1,17 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { authApi } from '@/shared/api/auth';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 
-function validateEmail(email: string): string {
-  return email.includes('@') ? '' : 'Введите корректный email';
+function validateEmailKey(email: string): string {
+  return email.includes('@') ? '' : 'auth:validation.emailInvalid';
 }
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -18,8 +20,8 @@ export default function ForgotPasswordPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const eErr = validateEmail(email);
-    setEmailError(eErr);
+    const eErr = validateEmailKey(email);
+    setEmailError(eErr ? t(eErr) : '');
     if (eErr) return;
 
     setFormError('');
@@ -29,9 +31,9 @@ export default function ForgotPasswordPage() {
       navigate(`/reset-password?email=${encodeURIComponent(email.trim())}`);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
-        setFormError('Слишком много запросов. Попробуйте позже');
+        setFormError(t('auth:error.tooManyRequests'));
       } else {
-        setFormError('Ошибка. Попробуйте позже');
+        setFormError(t('auth:error.generic'));
       }
     } finally {
       setIsLoading(false);
@@ -40,15 +42,13 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <h1 className="auth-headline-sm mt-[20px]">Пришлём код на почту</h1>
-      <p className="auth-sub">
-        Введите почту — отправим 6-значный код для создания нового пароля.
-      </p>
+      <h1 className="auth-headline-sm mt-[20px]">{t('auth:forgot.title')}</h1>
+      <p className="auth-sub">{t('auth:forgot.subtitle')}</p>
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="mt-[32px]">
           <Input
-            label="Электронная почта"
+            label={t('auth:field.emailLong')}
             type="email"
             placeholder="you@example.com"
             value={email}
@@ -65,20 +65,18 @@ export default function ForgotPasswordPage() {
         )}
 
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[28px]">
-          {isLoading ? 'Отправляем...' : 'Отправить код'}
+          {isLoading ? t('auth:forgot.submitting') : t('auth:forgot.submit')}
         </Button>
       </form>
 
-      <p className="text-caption text-muted mt-[16px]">
-        Код действует 15 минут. Прогресс ребёнка и результаты диагностики при смене пароля не теряются.
-      </p>
+      <p className="text-caption text-muted mt-[16px]">{t('auth:forgot.note')}</p>
 
       <div className="text-center mt-[20px]">
         <Link
           to="/login"
           className="text-caption text-muted hover:opacity-70 transition-opacity"
         >
-          ← Вернуться ко входу
+          {t('auth:backToLogin')}
         </Link>
       </div>
     </>

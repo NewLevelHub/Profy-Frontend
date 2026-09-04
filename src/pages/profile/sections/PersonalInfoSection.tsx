@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ProfileResponse } from '@/shared/types';
 import { LedgerSection } from '../components/LedgerSection';
 import { RuledGrid, RuledCell } from '../components/RuledGrid';
@@ -8,20 +9,21 @@ export interface PersonalInfoSectionProps {
 }
 
 export function PersonalInfoSection({ profile, onEdit }: PersonalInfoSectionProps) {
+  const { t } = useTranslation('profile');
   return (
     <LedgerSection
       id="personal"
       number="01"
-      title="ЛИЧНЫЕ"
-      editLabel="Изменить"
-      editAriaLabel="Редактировать личные данные"
+      title={t('personal.title')}
+      editLabel={t('common.edit')}
+      editAriaLabel={t('personal.editAria')}
       onEdit={onEdit}
     >
       <RuledGrid className="grid grid-cols-2 sm:grid-cols-4">
-        <RuledCell label="Возраст" value={`${profile.age} лет`} />
-        <RuledCell label="Класс" value={`${profile.grade} класс`} />
-        <RuledCell label="Город" value={profile.city} />
-        <RuledCell label="Страна" value={profile.country} />
+        <RuledCell label={t('personal.age')} value={t('common:ageYears', { count: profile.age })} />
+        <RuledCell label={t('personal.grade')} value={t('personal.gradeValue', { count: profile.grade })} />
+        <RuledCell label={t('personal.city')} value={profile.city} />
+        <RuledCell label={t('personal.country')} value={profile.country} />
       </RuledGrid>
     </LedgerSection>
   );

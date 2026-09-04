@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import { inquiryApi } from '@/shared/api/inquiry';
 import { useAssessmentStore } from '@/shared/store/assessment';
 
 export function useDirectionInquiry(slug: string) {
+  const { t } = useTranslation('results');
   const assessmentId = useAssessmentStore(s => s.assessmentId);
 
   const questionsQuery = useQuery({
@@ -50,7 +52,7 @@ export function useDirectionInquiry(slug: string) {
     questions,
     isLoading: questionsQuery.isLoading,
     error: questionsQuery.isError
-      ? 'Не удалось загрузить вопросы. Попробуй ещё раз.'
+      ? t('error.loadQuestions')
       : null,
     answers,
     setAnswer,
@@ -59,7 +61,7 @@ export function useDirectionInquiry(slug: string) {
     verdict: verdictMutation.data ?? null,
     isSubmitting: verdictMutation.isPending,
     submitError: verdictMutation.isError
-      ? 'Не удалось получить вывод. Попробуй ещё раз.'
+      ? t('error.inquirySubmit')
       : null,
   };
 }

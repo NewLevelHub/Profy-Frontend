@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CAREER_TIER_LABELS } from '@/shared/config/constants';
 import type { StudentCareer } from '@/shared/types';
 import type { SphereCardData } from '../../components/scenarios/sphereContent';
@@ -13,16 +14,16 @@ import { PrintSection } from './PrintSection';
  */
 
 export function PrintSpheres({ spheres }: { spheres: SphereCardData[] }) {
+  const { t } = useTranslation('results');
   if (spheres.length === 0) return null;
 
   return (
     <PrintSection
-      kicker="ЧТО ДЕЛАТЬ ДАЛЬШЕ"
-      title="Четыре сферы, где стоит попробовать себя в ближайший месяц"
+      kicker={t('print.nextSteps.kicker')}
+      title={t('print.nextSteps.spheresTitle')}
     >
       <p className="text-caption leading-snug mb-1" style={{ color: 'var(--ink)' }}>
-        Профессий и вузов в этом сценарии нет: пока задача не выбрать, а набрать опыт, на который
-        потом можно опереться.
+        {t('print.nextSteps.spheresIntro')}
       </p>
       <ul className="space-y-2.5">
         {spheres.map((sphere, i) => (
@@ -31,17 +32,17 @@ export function PrintSpheres({ spheres }: { spheres: SphereCardData[] }) {
             className="print-block print-card border border-[var(--hairline)] rounded-[var(--radius)] p-3"
           >
             <p className="font-mono text-tiny font-bold uppercase tracking-label text-muted mb-1">
-              СФЕРА {String(i + 1).padStart(2, '0')}
+              {t('print.nextSteps.sphereNo', { n: String(i + 1).padStart(2, '0') })}
             </p>
             <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">
               {sphere.title}
             </p>
             <p className="text-caption leading-snug mt-1.5" style={{ color: 'var(--ink)' }}>
-              <span className="font-semibold">Попробовать: </span>
+              <span className="font-semibold">{t('print.nextSteps.tryLabel')} </span>
               {sphere.tryNow}
             </p>
             <p className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
-              <span className="font-semibold">Понаблюдать: </span>
+              <span className="font-semibold">{t('print.nextSteps.observeLabel')} </span>
               {sphere.observe}
             </p>
           </li>
@@ -52,13 +53,14 @@ export function PrintSpheres({ spheres }: { spheres: SphereCardData[] }) {
 }
 
 export function PrintCareers({ careers }: { careers: StudentCareer[] }) {
+  const { t } = useTranslation('results');
   // Same wording as ScenarioProfessional's no-data branch — an empty
   // "что дальше" block would otherwise read as a rendering bug in the PDF.
   if (careers.length === 0) {
     return (
-      <PrintSection kicker="ЧТО ДЕЛАТЬ ДАЛЬШЕ">
+      <PrintSection kicker={t('print.nextSteps.kicker')}>
         <p className="text-body-sm" style={{ color: 'var(--ink)' }}>
-          Пока недостаточно данных, чтобы предложить направление.
+          {t('print.nextSteps.careersEmpty')}
         </p>
       </PrintSection>
     );
@@ -67,7 +69,7 @@ export function PrintCareers({ careers }: { careers: StudentCareer[] }) {
   const sorted = [...careers].sort((a, b) => a.rank - b.rank);
 
   return (
-    <PrintSection kicker="ПОДХОДЯЩИЕ НАПРАВЛЕНИЯ" title="С чего начать выбор">
+    <PrintSection kicker={t('print.nextSteps.careersKicker')} title={t('print.nextSteps.careersTitle')}>
       <ul className="space-y-2.5">
         {sorted.map((career) => (
           <li
@@ -84,7 +86,7 @@ export function PrintCareers({ careers }: { careers: StudentCareer[] }) {
                 {career.name}
               </p>
               <p className="font-mono text-tiny uppercase tracking-label text-muted flex-shrink-0">
-                {CAREER_TIER_LABELS[career.tier]}
+                {t(CAREER_TIER_LABELS[career.tier])}
               </p>
             </div>
             <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
@@ -92,13 +94,13 @@ export function PrintCareers({ careers }: { careers: StudentCareer[] }) {
             </p>
             {career.matched_strengths.length > 0 && (
               <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
-                <span className="font-semibold">Совпадает с: </span>
+                <span className="font-semibold">{t('print.nextSteps.matchesLabel')} </span>
                 {career.matched_strengths.join(', ')}
               </p>
             )}
             {career.try_now && (
               <p className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
-                <span className="font-semibold">Попробовать сейчас: </span>
+                <span className="font-semibold">{t('print.nextSteps.tryNowLabel')} </span>
                 {career.try_now}
               </p>
             )}
