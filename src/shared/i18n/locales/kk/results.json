@@ -176,6 +176,7 @@
     "grantsKicker": "Гранттар мен стипендиялар",
     "forWhom": "Кімге арналған",
     "descriptionKicker": "Сипаттама",
+    "descriptionLocaleNote": "Бөлімнің сипаттамасы әзірге тек орыс тілінде ғана",
     "rankingLine": "Рейтинг: {{labels}}",
     "careerPaths": "Мансап жолдары",
     "visitSite": "ЖОО сайтына өту"

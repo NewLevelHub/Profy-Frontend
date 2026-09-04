@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
@@ -11,6 +11,7 @@ import { useLocaleStore } from '@/shared/store/locale';
 export function useResults() {
   const { t } = useTranslation('results');
   const report = useResultStore(s => s.report);
+  const storedReportLocale = useResultStore(s => s.reportLocale);
   const setReport = useResultStore(s => s.setReport);
   const clearReport = useResultStore(s => s.clearReport);
   const assessmentId = useAssessmentStore(s => s.assessmentId);
@@ -36,16 +37,15 @@ export function useResults() {
   const hasAssessment = assessmentId !== null && goal !== null;
   const inProgress = hasAssessment && !hasCompletedAssessment;
 
-  // Drop the stale-locale report the moment the language *changes* (not on
-  // mount) so the now-different-locale query result isn't shadowed by
-  // `report ?? data`.
-  const prevLocaleRef = useRef(reportLocale);
-  useEffect(() => {
-    if (prevLocaleRef.current !== reportLocale) {
-      prevLocaleRef.current = reportLocale;
-      clearReport();
-    }
-  }, [reportLocale, clearReport]);
+  // Whether the stored report is usable for the current locale. A `null` tag
+  // (report set by ResultLoadingPage straight after generation, before this
+  // hook mounts) counts as a match — it was generated in the owner's language,
+  // which is exactly what `reportLocale` settles to once LocaleGate adopts the
+  // server preference. Only a *known, different* tag means we genuinely need
+  // another locale's report — and even then we never tear the current one down
+  // (see effectiveReport below), so a failed re-fetch can't blank the page.
+  const reportMatchesLocale =
+    report != null && (storedReportLocale === null || storedReportLocale === reportLocale);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['result', assessmentId, reportLocale] as const,
@@ -59,7 +59,7 @@ export function useResults() {
         throw err;
       }
     },
-    enabled: hasCompletedAssessment && !report && !!assessmentId,
+    enabled: hasCompletedAssessment && !reportMatchesLocale && !!assessmentId,
     retry: (failureCount, err) => {
       if ((err as AxiosError)?.response?.status === 403) return false;
       if (err instanceof Error && err.message === 'legacy_result_shape') return false;
@@ -68,8 +68,11 @@ export function useResults() {
   });
 
   useEffect(() => {
-    if (data && !report) setReport(data);
-  }, [data, report, setReport]);
+    // Adopt a report freshly fetched for the current locale, tagging it so a
+    // later language switch is detected. Only runs when the stored one doesn't
+    // already cover this locale — never overwrites a matching report.
+    if (data && !reportMatchesLocale) setReport(data, reportLocale);
+  }, [data, reportMatchesLocale, reportLocale, setReport]);
 
   // Stale assessmentId from a previous user's session — clear it
   const is403 = (error as AxiosError | null)?.response?.status === 403;
@@ -80,7 +83,10 @@ export function useResults() {
     }
   }, [is403, resetAssessment, clearReport]);
 
-  const effectiveReport = report ?? data ?? null;
+  // Prefer a report that matches the current locale; otherwise show a
+  // freshly-fetched one, falling back to the stale-locale report so a switch
+  // (or a failed re-fetch after one) never leaves the page blank (KZ-406).
+  const effectiveReport = (reportMatchesLocale ? report : null) ?? data ?? report ?? null;
 
   // interest_instrument is the ONLY field the result-v2 contract (§3) allows
   // for branching mi/riasec — never age group, array length, or `code`
@@ -98,7 +104,9 @@ export function useResults() {
     isLoading: isLoading && !effectiveReport,
     error: isLegacyShape
       ? t('error.legacyShape')
-      : (!is403 && error) ? t('error.loadResultsRetry') : null,
+      // A background failure while a (possibly stale-locale) report is still on
+      // screen isn't worth an error state — the user keeps what they had.
+      : (!is403 && error && !effectiveReport) ? t('error.loadResultsRetry') : null,
     hasCompletedAssessment,
     assessmentId,
     goal,

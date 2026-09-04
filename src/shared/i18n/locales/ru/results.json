@@ -176,6 +176,7 @@
     "grantsKicker": "Гранты и стипендии",
     "forWhom": "Для кого",
     "descriptionKicker": "Описание",
+    "descriptionLocaleNote": "Описание раздела пока только на русском",
     "rankingLine": "Рейтинг: {{labels}}",
     "careerPaths": "Карьерные пути",
     "visitSite": "Перейти на сайт вуза"

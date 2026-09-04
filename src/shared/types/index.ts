@@ -564,6 +564,9 @@ export interface UniversityBrief {
   uniranks_kz_rank: number | null;
   uniranks_world_rank: number | null;
   description: string | null;
+  // KZ-501/502: which language `description` is actually in ("kk" once the
+  // KZ-504 override exists, "ru" otherwise). Drives DescriptionLocaleNote.
+  description_locale: string;
   image_url: string | null;
 }
 
@@ -616,11 +619,13 @@ export interface ProgramBrief {
   cost_per_year: number | null;
   cost_label: string | null;
   description: string | null;
+  description_locale: string;
   university: UniversityBrief;
 }
 
 export interface ProgramDetail extends ProgramBrief {
   who_its_for: string | null;
+  who_its_for_locale: string;
   career_options: unknown[];
   requirements: Record<string, unknown>;
   deadlines: Record<string, unknown>;

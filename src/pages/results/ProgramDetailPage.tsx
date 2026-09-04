@@ -15,6 +15,7 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { toDisplayString, splitRequirementNotes, getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { DomainCardFrame, DomainKicker, DomainListCard } from '@/pages/results/components/DomainCardParts';
+import { DescriptionLocaleNote } from '@/pages/results/components/DescriptionLocaleNote';
 import type { ProgramDetail } from '@/shared/types';
 
 function ProgramDetailSkeleton() {
@@ -274,6 +275,9 @@ export default function ProgramDetailPage() {
             // university's own description instead of showing nothing,
             // same fallback ProgramListSection.tsx's card already uses.
             const desc = program.description || program.university.description;
+            const descLocale = program.description
+              ? program.description_locale
+              : program.university.description_locale;
             const hasWhoFor = Boolean(program.who_its_for && program.who_its_for.length > 0);
             if (!desc && !hasWhoFor) return null;
 
@@ -303,6 +307,7 @@ export default function ProgramDetailPage() {
                       </div>
                       <Mascot state="graduate" size={68} className="flex-shrink-0" />
                     </div>
+                    <DescriptionLocaleNote locale={descLocale} />
                     <p className="text-body text-primary leading-relaxed m-0">{desc}</p>
                   </DomainCardFrame>
                 )}
@@ -310,6 +315,7 @@ export default function ProgramDetailPage() {
                 {hasWhoFor && (
                   <Card className="bg-brand-subtle">
                     <SectionHeadingLocal icon={Target} className="mb-2.5">{t('program.forWhom')}</SectionHeadingLocal>
+                    <DescriptionLocaleNote locale={program.who_its_for_locale} />
                     <p className="text-body text-primary leading-relaxed m-0">{program.who_its_for}</p>
                   </Card>
                 )}

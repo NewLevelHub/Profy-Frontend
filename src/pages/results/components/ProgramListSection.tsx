@@ -8,7 +8,9 @@ import { LazyMedia } from '@/shared/ui/LazyMedia';
 import type { ProgramBrief } from '@/shared/types';
 import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 import { UniversityRankBadges } from './UniversityRankBadges';
+import { DescriptionLocaleNote } from './DescriptionLocaleNote';
 import { cardImageUrl } from '@/pages/results/utils/programUtils';
+import { localizeGeo } from '@/shared/i18n/geo';
 
 const IMAGE_BOX = 'w-full h-32 rounded-2xl mb-4 overflow-hidden';
 
@@ -80,7 +82,7 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
           {program.name}
         </h3>
         <span className="shrink-0 bg-brand-subtle text-brand text-xs font-extrabold px-3 py-1 rounded-pill whitespace-nowrap">
-          {program.university.country}
+          {localizeGeo(program.university.country)}
         </span>
       </div>
 
@@ -90,14 +92,21 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
       </div>
 
       {(() => {
-        const desc = (program.description && program.description.length > 40)
+        const useProgramDesc = Boolean(program.description && program.description.length > 40);
+        const desc = useProgramDesc
           ? program.description
           : (program.university.description || program.description);
         if (!desc) return null;
+        const descLocale = useProgramDesc
+          ? program.description_locale
+          : (program.university.description ? program.university.description_locale : program.description_locale);
         return (
-          <p className="text-body-sm font-semibold text-secondary leading-relaxed mb-4 flex-1">
-            {desc.length > 120 ? desc.slice(0, 120) + '...' : desc}
-          </p>
+          <div className="mb-4 flex-1">
+            <DescriptionLocaleNote locale={descLocale} />
+            <p className="text-body-sm font-semibold text-secondary leading-relaxed m-0">
+              {desc.length > 120 ? desc.slice(0, 120) + '...' : desc}
+            </p>
+          </div>
         );
       })()}
 
@@ -159,7 +168,7 @@ export function ProgramListSection({
                 : 'px-5 py-2 rounded-pill text-sm font-bold bg-surface text-secondary border-[1.5px] border-strong cursor-pointer hover:border-brand transition-colors'
             }
           >
-            {filter.label}
+            {localizeGeo(filter.label)}
           </button>
         ))}
       </div>
