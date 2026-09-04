@@ -791,13 +791,23 @@ export interface FeedbackBreakdownItem {
   avg_relevance_score: number;
 }
 
+/** Aggregates over whatever the same filters as `listFeedback` left — so the
+ *  summary above the table describes the rows in it, not the all-time totals. */
 export interface AdminFeedbackStatsResponse {
   total: number;
   avg_relevance_score: number | null;
+  /** Count per 1–5 score, keyed by the score as a string. An average alone
+   *  cannot reconstruct this: 4.0 looks the same whether everyone said 4 or
+   *  the room split between 5s and 3s. */
+  score_counts: Record<string, number>;
   by_age_group: FeedbackBreakdownItem[];
   by_scenario: FeedbackBreakdownItem[];
   by_top_direction: FeedbackBreakdownItem[];
   helpful_section_counts: Record<string, number>;
+  /** Reviews that named no useful section. Not derivable from the counts
+   *  above — a review can name several, so they do not sum to a review
+   *  count. */
+  no_sections_count: number;
 }
 
 // ─── Admin: university/program editing (docs/admin-university-editing-api.md) ────
@@ -818,6 +828,14 @@ export interface AdminUniversityListItem {
   uniranks_note: string | null;
   updated_at: string | null;
   programs_count: number;
+}
+
+/** One option of the country filter, with how many universities it covers.
+ *  A page of 20 rows cannot supply the full set of values, so the server
+ *  computes it — the screen used to download the whole catalog to count. */
+export interface AdminUniversityCountry {
+  country: string;
+  universities_count: number;
 }
 
 export interface AdminUniversityListResponse {

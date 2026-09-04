@@ -69,6 +69,7 @@ export const API = {
     feedback: '/admin/feedback',
     feedbackStats: '/admin/feedback/stats',
     universities: '/admin/universities',
+    universityCountries: '/admin/universities/countries',
     universityDetail: (id: string) => `/admin/universities/${id}`,
     programDetail: (id: string) => `/admin/programs/${id}`,
     questions: '/admin/questions',

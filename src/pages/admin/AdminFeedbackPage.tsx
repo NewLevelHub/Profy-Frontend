@@ -1,18 +1,18 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { ChevronDown } from 'lucide-react';
+import { adminApi, type AdminFeedbackFilterParams } from '@/shared/api/admin';
 import { REPORT_SECTIONS } from '@/shared/api/feedback';
 import { cn } from '@/shared/lib/cn';
 import { pluralize } from '@/shared/lib/plural';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
-import { AdminDataTable, type AdminColumn, type AdminSort } from '@/shared/ui/admin/AdminDataTable';
+import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_BUTTON, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { FeedbackOverview } from './components/FeedbackOverview';
-import { useFeedbackFeed } from './useFeedbackFeed';
 import {
   AGE_ORDER,
   AGE_RANGE_HINT,
@@ -25,47 +25,18 @@ import {
   sectionLabel,
   sectionShortLabel,
 } from './feedbackModel';
-import type { AdminFeedbackListItem, AgeGroup } from '@/shared/types';
+import type { AdminFeedbackListItem, AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
 
 const PAGE_SIZE = 25;
-const FILTER_KEYS = ['search', 'score', 'age', 'section', 'comment', 'sort', 'order'] as const;
+const FILTER_KEYS = ['search', 'score', 'age', 'section', 'comment'] as const;
 
-function normalize(value: string): string {
-  return value.toLowerCase().replace(/ё/g, 'е').trim();
-}
-
-interface Filters {
-  search: string;
-  score: string;
-  age: string;
-  section: string;
-  comment: string;
-}
-
-/** `skip` leaves one dimension unfiltered — see the chart note in the page. */
-function matchesFilters(
-  item: AdminFeedbackListItem,
-  { search, score, age, section, comment }: Filters,
-  skip?: 'score' | 'section',
-): boolean {
-  if (score && skip !== 'score') {
-    if (score === 'low' && item.relevance_score > LOW_SCORE_MAX) return false;
-    if (score === 'high' && item.relevance_score < HIGH_SCORE_MIN) return false;
-    if (score !== 'low' && score !== 'high' && item.relevance_score !== Number(score)) return false;
-  }
-  if (age && item.age_group !== age) return false;
-  if (section && skip !== 'section' && !item.helpful_sections.includes(section)) return false;
-  if (comment === 'yes' && !item.comment?.trim()) return false;
-  if (comment === 'no' && item.comment?.trim()) return false;
-
-  const query = normalize(search);
-  if (!query) return true;
-  return (
-    normalize(item.comment ?? '').includes(query) ||
-    normalize(item.profile_name ?? '').includes(query) ||
-    normalize(item.user_email).includes(query) ||
-    normalize(item.top_direction_name ?? '').includes(query)
-  );
+/** The score dropdown speaks in bands; the API speaks in bounds. */
+function scoreBounds(score: string): { score_min?: number; score_max?: number } {
+  if (score === 'low') return { score_max: LOW_SCORE_MAX };
+  if (score === 'high') return { score_min: HIGH_SCORE_MIN };
+  const exact = Number(score);
+  if (!score || Number.isNaN(exact)) return {};
+  return { score_min: exact, score_max: exact };
 }
 
 /**
@@ -127,86 +98,107 @@ function CommentCell({ comment }: { comment: string | null }) {
 }
 
 export default function AdminFeedbackPage() {
-  const { page, values, setFilter, setFilters, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
-  const { items, loading, error, truncated, reload } = useFeedbackFeed();
+  const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
+    useAdminListParams(FILTER_KEYS);
 
-  const { search, score, age, section, comment, sort: sortKey, order } = values;
-  const sort: AdminSort = { key: sortKey || 'date', order: order === 'asc' ? 'asc' : 'desc' };
-
-  const filters: Filters = { search, score, age, section, comment };
-
-  const filtered = useMemo(() => {
-    const matched = items.filter((item) => matchesFilters(item, filters));
-
-    const direction = sort.order === 'asc' ? 1 : -1;
-    return [...matched].sort((a, b) => {
-      if (sort.key === 'score') {
-        // Ties fall back to newest-first, so re-sorting by score doesn't
-        // scramble the order inside each score band on every click.
-        return (
-          (a.relevance_score - b.relevance_score) * direction ||
-          b.created_at.localeCompare(a.created_at)
-        );
-      }
-      return a.created_at.localeCompare(b.created_at) * direction;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, search, score, age, section, comment, sort.key, sort.order]);
-
-  /**
-   * A chart that is also a filter control must not collapse when it is used:
-   * filtering to "5" would otherwise leave the histogram a single full bar and
-   * no way back. So each chart sees every filter except its own dimension.
-   */
-  const scoreBase = useMemo(
-    () => items.filter((item) => matchesFilters(item, filters, 'score')),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [items, search, age, section, comment],
-  );
-  const sectionBase = useMemo(
-    () => items.filter((item) => matchesFilters(item, filters, 'section')),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [items, search, score, age, comment],
-  );
-
-  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const { search, score, age, section, comment } = values;
   const hasFilters = Boolean(search || score || age || section || comment);
 
-  const ageOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const item of items) {
-      if (item.age_group) counts.set(item.age_group, (counts.get(item.age_group) ?? 0) + 1);
+  const [items, setItems] = useState<AdminFeedbackListItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState<AdminFeedbackStatsResponse | null>(null);
+  const [scoreBase, setScoreBase] = useState<AdminFeedbackStatsResponse | null>(null);
+  const [sectionBase, setSectionBase] = useState<AdminFeedbackStatsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const filters: AdminFeedbackFilterParams = useMemo(
+    () => ({
+      search: search || undefined,
+      age_group: (age as AgeGroup) || undefined,
+      section: section || undefined,
+      has_comment: comment ? comment === 'yes' : undefined,
+      ...scoreBounds(score),
+    }),
+    [search, score, age, section, comment],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError('');
+      try {
+        /*
+         * A chart that is also a filter control must not collapse when it is
+         * used: filtering to "5" would otherwise leave the histogram a single
+         * full bar with no way back. So each chart is described by a stats call
+         * that drops its own dimension — and only when that dimension is
+         * actually filtered, since otherwise it is the same set as the summary.
+         */
+        const { score_min, score_max, section: pickedSection, ...rest } = filters;
+        const [list, summary, byScore, bySection] = await Promise.all([
+          adminApi.listFeedback({
+            ...filters,
+            page,
+            limit: PAGE_SIZE,
+            sort: sort?.key,
+            order: sort?.order,
+          }),
+          adminApi.getFeedbackStats(filters),
+          score ? adminApi.getFeedbackStats({ ...rest, section: pickedSection }) : null,
+          pickedSection ? adminApi.getFeedbackStats({ ...rest, score_min, score_max }) : null,
+        ]);
+        if (cancelled) return;
+        setItems(list.items);
+        setTotal(list.total);
+        setStats(summary);
+        setScoreBase(byScore ?? summary);
+        setSectionBase(bySection ?? summary);
+      } catch {
+        if (!cancelled) setError('Не удалось загрузить фидбэк');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-    return AGE_ORDER.filter((tier) => counts.has(tier)).map((tier) => ({
-      value: tier,
-      label: `${ageLabel(tier)} (${counts.get(tier)})`,
-    }));
-  }, [items]);
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [filters, page, score, sort?.key, sort?.order, reloadToken]);
+
+  const ageOptions = useMemo(
+    () =>
+      AGE_ORDER.map((tier) => {
+        const row = stats?.by_age_group.find((entry) => entry.key === tier);
+        return { value: tier, label: row ? `${ageLabel(tier)} (${row.count})` : ageLabel(tier) };
+      }),
+    [stats],
+  );
 
   const sectionOptions = useMemo(() => {
     const known = REPORT_SECTIONS.map((s) => s.value);
     // Sections are free-form strings server-side, so a retired one still has
     // rows pointing at it — those must stay filterable.
-    const extra = [...new Set(items.flatMap((item) => item.helpful_sections))].filter(
+    const extra = Object.keys(stats?.helpful_section_counts ?? {}).filter(
       (key) => !known.includes(key),
     );
     // Короткие подписи: ширина нативного `<select>` — это ширина самой длинной
     // опции, и «Профессии и направления» растягивал контрол на треть строки
     // фильтров, даже когда в нём стояло «любой».
     return [...known, ...extra].map((key) => ({ value: key, label: sectionShortLabel(key) }));
-  }, [items]);
+  }, [stats]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
-
-  function handleSortChange(next: AdminSort) {
-    setFilters({ sort: next.key, order: next.order });
-  }
 
   const columns: AdminColumn<AdminFeedbackListItem>[] = [
     {
       key: 'score',
       header: 'Оценка',
-      sortKey: 'score',
+      sortKey: 'relevance_score',
       width: '92px',
       mobile: 'badge',
       headerTitle: '«Насколько это про тебя?» — 1–5, вопрос после отчёта',
@@ -320,7 +312,7 @@ export default function AdminFeedbackPage() {
     {
       key: 'created',
       header: 'Дата',
-      sortKey: 'date',
+      sortKey: 'created_at',
       align: 'right',
       width: '112px',
       wrap: true,
@@ -349,15 +341,11 @@ export default function AdminFeedbackPage() {
         description="Опрос после отчёта: насколько он оказался про них, какие разделы пригодились и что не подошло."
       />
 
-      {error && <AdminError message={error} onRetry={reload} />}
+      {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
 
-      {truncated && (
-        <AdminError message="Отзывов больше тысячи — сводка и фильтры охватывают только последнюю тысячу." />
-      )}
-
-      {!loading && (
+      {!loading && stats && scoreBase && sectionBase && (
         <FeedbackOverview
-          items={filtered}
+          stats={stats}
           scoreBase={scoreBase}
           sectionBase={sectionBase}
           filtered={hasFilters}
@@ -369,7 +357,7 @@ export default function AdminFeedbackPage() {
       )}
 
       <AdminToolbar
-        search={{ value: search, onChange: handleSearch, placeholder: 'Имя, email или текст' }}
+        search={{ value: search, onChange: handleSearch, placeholder: 'Текст комментария' }}
         selects={[
           {
             key: 'score',
@@ -405,16 +393,16 @@ export default function AdminFeedbackPage() {
       <AdminDataTable
         label="Отзывы об отчёте"
         columns={columns}
-        rows={pageItems}
+        rows={items}
         rowKey={(item) => item.id}
         rowHref={(item) => `/admin/users/${item.user_id}`}
         loading={loading}
         sort={sort}
-        onSortChange={handleSortChange}
+        onSortChange={setSort}
         emptyTitle={hasFilters ? 'Под фильтры ничего не подошло' : 'Фидбэка пока нет'}
         emptyHint={
           hasFilters
-            ? 'Поиск идёт по комментарию, имени, email и названию направления.'
+            ? 'Поиск идёт по тексту комментария.'
             : 'Отзывы появляются после того, как ученик дошёл до отчёта и ответил на три вопроса под ним.'
         }
         emptyAction={
@@ -426,7 +414,7 @@ export default function AdminFeedbackPage() {
         }
       />
 
-      <AdminPager page={page} total={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['отзыв', 'отзыва', 'отзывов']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['отзыв', 'отзыва', 'отзывов']} />
     </>
   );
 }

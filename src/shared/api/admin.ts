@@ -22,6 +22,7 @@ import type {
   AdminQuestionPairUpdateRequest,
   AdminQuestionUpdateRequest,
   AdminSortParams,
+  AdminUniversityCountry,
   AdminUniversityDetail,
   AdminUniversityListResponse,
   AdminUniversityUpdateRequest,
@@ -60,6 +61,8 @@ export interface AdminUniversityFilterParams {
   search?: string;
   country?: string;
   has_ranking?: boolean;
+  /** false = universities no student can ever be matched to. */
+  has_programs?: boolean;
 }
 
 /** Shared by the five question-bank content lists. */
@@ -125,6 +128,10 @@ export const adminApi = {
     apiClient
       .get<AdminUniversityListResponse>(API.admin.universities, { params })
       .then((r) => r.data),
+
+  /** Options for the country filter, most-populated first. */
+  listUniversityCountries: () =>
+    apiClient.get<AdminUniversityCountry[]>(API.admin.universityCountries).then((r) => r.data),
 
   getUniversity: (universityId: string) =>
     apiClient

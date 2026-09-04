@@ -46,11 +46,13 @@ function groupByTriplet(items: readonly AdminMotivationStatementListItem[]): Tri
 
 /**
  * Each of the three statements in a triplet must carry a different motivation
- * category — otherwise the forced ranking cannot separate them. The backend
- * does not enforce this, and the previous UI said so in an uppercase note on
- * the detail screen while showing only one statement, so the rule was
- * unverifiable exactly where it had to be checked. Grouping makes it a
- * one-glance check. See docs/admin-backend-requests-pro-242.md §7.
+ * category — otherwise the forced ranking cannot separate them.
+ *
+ * The backend now rejects a PATCH that would duplicate a category inside a
+ * triplet (PRO-262 §7), so this can no longer be introduced from the admin.
+ * The check stays because it still reports what is ALREADY in the bank, which
+ * no amount of save-time validation can fix retroactively — and it names the
+ * broken triplets instead of leaving them to be found one save at a time.
  */
 function findDuplicateCategories(triplet: Triplet): string[] {
   const seen = new Map<string, number>();
