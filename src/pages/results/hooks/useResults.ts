@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
@@ -6,6 +6,7 @@ import { resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { useLocaleStore } from '@/shared/store/locale';
 
 export function useResults() {
   const { t } = useTranslation('results');
@@ -19,6 +20,14 @@ export function useResults() {
   const answeredCount = useAssessmentStore(s => s.answeredCount);
   const totalQuestions = useAssessmentStore(s => s.totalQuestions);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
+  // The report is generated in the *owner's* language (backend derives it from
+  // users.locale — KZ-403/405), which the locale store mirrors after login
+  // (LocaleGate). The raw stored value can be 'kk' while the UI is still
+  // clamped to 'ru' pre-KZ-603 — that's fine, this is only a cache key. When
+  // the student switches language, this changes and the query below re-fetches;
+  // GET /result 404s (no row for the new locale) and the queryFn transparently
+  // POSTs /generate — the same lazy path used for the very first generation.
+  const reportLocale = useLocaleStore(s => s.locale);
 
   // No completed report yet — either no assessment was ever started, or one
   // is started but not finished. /results is now the only screen for both
@@ -27,8 +36,19 @@ export function useResults() {
   const hasAssessment = assessmentId !== null && goal !== null;
   const inProgress = hasAssessment && !hasCompletedAssessment;
 
+  // Drop the stale-locale report the moment the language *changes* (not on
+  // mount) so the now-different-locale query result isn't shadowed by
+  // `report ?? data`.
+  const prevLocaleRef = useRef(reportLocale);
+  useEffect(() => {
+    if (prevLocaleRef.current !== reportLocale) {
+      prevLocaleRef.current = reportLocale;
+      clearReport();
+    }
+  }, [reportLocale, clearReport]);
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['result', assessmentId] as const,
+    queryKey: ['result', assessmentId, reportLocale] as const,
     queryFn: async () => {
       try {
         return await resultApi.get(assessmentId!);
