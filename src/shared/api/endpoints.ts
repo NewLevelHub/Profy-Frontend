@@ -1,3 +1,11 @@
+/** The five question-bank content types, as they appear in admin URLs. */
+export type AdminContentResource =
+  | 'questions'
+  | 'question-pairs'
+  | 'motivation-statements'
+  | 'motivation-pairs'
+  | 'directions';
+
 export const API = {
   auth: {
     me: '/auth/me',
@@ -53,6 +61,7 @@ export const API = {
   },
   admin: {
     users: '/admin/users',
+    userStats: '/admin/users/stats',
     usersExport: '/admin/users/export',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
@@ -72,5 +81,20 @@ export const API = {
     motivationPairDetail: (id: string) => `/admin/motivation-pairs/${id}`,
     directions: '/admin/directions',
     directionDetail: (id: string) => `/admin/directions/${id}`,
+
+    // Undoing an admin edit. Clearing an override restores the bank value
+    // recorded when the field was first edited; a university/program lock
+    // stores only the field name, so unlocking returns the field to the next
+    // seed run's control rather than restoring anything.
+    contentOverrides: (resource: AdminContentResource, id: string) =>
+      `/admin/${resource}/${id}/overrides`,
+    contentOverrideField: (resource: AdminContentResource, id: string, field: string) =>
+      `/admin/${resource}/${id}/overrides/${encodeURIComponent(field)}`,
+    universityLocks: (id: string) => `/admin/universities/${id}/locks`,
+    universityLockField: (id: string, field: string) =>
+      `/admin/universities/${id}/locks/${encodeURIComponent(field)}`,
+    programLocks: (id: string) => `/admin/programs/${id}/locks`,
+    programLockField: (id: string, field: string) =>
+      `/admin/programs/${id}/locks/${encodeURIComponent(field)}`,
   },
 } as const;

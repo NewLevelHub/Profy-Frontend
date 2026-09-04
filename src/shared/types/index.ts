@@ -643,8 +643,18 @@ export interface AdminUserListItem {
   is_active: boolean;
   is_admin: boolean;
   created_at: string;
+  /** Last time the user was actually seen — refreshed by any authenticated
+   *  request, at most once every 5 minutes. This is what the "Активность"
+   *  column means; `created_at` is registration and nothing else. null = not
+   *  seen since this started being recorded (and, for older accounts, no
+   *  assessment either — the backfill used their newest assessment). */
+  last_active_at: string | null;
   has_profile: boolean;
   profile_name: string | null;
+  /** From the profile — a regional cut is an obvious question of any export
+   *  for a Kazakhstan product. */
+  city: string | null;
+  grade: number | null;
   assessments_count: number;
   /** null if the profile isn't filled in yet. */
   age_group: AgeGroup | null;
@@ -658,7 +668,25 @@ export interface AdminUserListItem {
    *  (TZ_Profi.md §18.3). `riasec` is null for junior (MI instrument, not
    *  RIASEC) and for users with no completed assessment yet. */
   riasec: Record<string, number> | null;
+  /** Junior's interest instrument is MI, not RIASEC, so exactly one of
+   *  `riasec`/`mi` is ever populated — an empty `riasec` on a junior means
+   *  "different instrument", not "no data". */
+  mi: Record<string, number> | null;
   big_five: Record<string, number> | null;
+}
+
+/** Whole-table counts, none of which can be derived from one page of the
+ *  users list. `completed_diagnostics`/`abandoned_diagnostics` count
+ *  ASSESSMENTS (one user can start several); `total`/`signups_last_7d` count
+ *  users. */
+export interface AdminUserStats {
+  total: number;
+  signups_last_7d: number;
+  completed_diagnostics: number;
+  abandoned_diagnostics: number;
+  /** Echoed back from the request: "abandoned" is a judgement about a
+   *  threshold, so the number on screen has to say which one produced it. */
+  inactive_days_threshold: number;
 }
 
 export interface AdminUserListResponse {
@@ -780,6 +808,11 @@ export interface AdminUniversityListItem {
   city: string | null;
   country: string | null;
   ranking: number | null;
+  /** The scale the number came from ("#28 (QS World)", "Top-20 (Нац.
+   *  рейтинг)"). `ranking` alone mixes a QS world position, a national tier
+   *  and a field rank in one column, so the bare number is not comparable
+   *  between rows. */
+  ranking_label: string | null;
   uniranks_kz_rank: number | null;
   /** "Н/Р" if checked and not found in the ranking; null = not checked yet. */
   uniranks_note: string | null;
@@ -935,6 +968,32 @@ export interface AttemptHistoryEntry {
 
 // ─── Admin: question-bank content editing (docs/admin-questions-content-overrides-plan.md) ─
 
+/** One admin edit to a bank-seeded field, alongside what it replaced.
+ *
+ *  `bank_value` is what the content bank held when the field was first
+ *  edited, so the UI can show "было / стало" and offer a revert. Read
+ *  `bank_value_known` before showing it: JSON cannot distinguish an absent
+ *  key from a null one, and several overridable columns (`icon`,
+ *  `short_text`, `frame`) are themselves nullable — so a `null` bank_value
+ *  with the flag set means "the bank really had nothing here", while the
+ *  flag being false means the original was never recorded (every override
+ *  written before PRO-262). */
+export interface AdminFieldOverride {
+  value: unknown;
+  bank_value: unknown;
+  bank_value_known: boolean;
+}
+
+export type AdminOverrides = Record<string, AdminFieldOverride>;
+
+/** `?sort=&order=` accepted by every admin list. The set of valid `sort`
+ *  values is per endpoint — an unknown one is a 422 naming the allowed set,
+ *  never a silently ignored request. */
+export interface AdminSortParams {
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
 export type QuestionKeyed = 'plus' | 'minus';
 
 export interface AdminQuestionListItem {
@@ -974,7 +1033,7 @@ export interface AdminQuestionDetail {
    *  and protects the whole row from bank-reorg deletion (see the content
    *  contract's §3 — unlike university's `admin_locked_fields: string[]`,
    *  this dict is self-contained and IS the edited value). */
-  overrides: Record<string, unknown>;
+  overrides: AdminOverrides;
 }
 
 export type AdminQuestionUpdateRequest = Partial<{
@@ -994,6 +1053,15 @@ export interface AdminQuestionPairListItem {
   instrument: Instrument;
   age_tier: AgeGroup;
   pair_index: number;
+  /** Short scenario intro shown above the pair; null for junior. */
+  frame: string | null;
+  /** The **effective** option texts — what the student actually sees, with
+   *  the pair's override resolved against the linked question's
+   *  short_text/text. Never null, unlike the raw override columns of the same
+   *  name on `AdminQuestionPairDetail`. Never prefill an editing form from
+   *  these: saving a displayed fallback would turn it into a real override. */
+  option_a_text: string;
+  option_b_text: string;
   has_overrides: boolean;
 }
 
@@ -1014,13 +1082,26 @@ export interface AdminQuestionPairDetail {
   question_a_id: string;
   question_b_id: string;
   frame: string | null;
-  /** null = fall back to the linked Question's short_text/text on read —
-   *  this endpoint does not resolve that fallback itself. */
+  /** null = fall back to the linked Question's short_text/text on read.
+   *  The fallback the null resolves to is inlined below as
+   *  `question_a`/`question_b`, so the form can show it without a second
+   *  request per option. */
   option_a_text: string | null;
   option_b_text: string | null;
   option_a_icon: string | null;
   option_b_icon: string | null;
-  overrides: Record<string, unknown>;
+  question_a: AdminLinkedQuestion | null;
+  question_b: AdminLinkedQuestion | null;
+  overrides: AdminOverrides;
+}
+
+/** The Question one side of a pair points at — the fallback an empty
+ *  override resolves to. */
+export interface AdminLinkedQuestion {
+  id: string;
+  text: string;
+  short_text: string | null;
+  icon: string | null;
 }
 
 export type AdminQuestionPairUpdateRequest = Partial<{
@@ -1055,7 +1136,7 @@ export interface AdminMotivationStatementDetail {
   text: string;
   /** null = the senior `text` is reused for junior too. */
   text_junior: string | null;
-  overrides: Record<string, unknown>;
+  overrides: AdminOverrides;
 }
 
 export type AdminMotivationStatementUpdateRequest = Partial<{
@@ -1067,8 +1148,13 @@ export type AdminMotivationStatementUpdateRequest = Partial<{
 export interface AdminMotivationPairListItem {
   id: string;
   pair_index: number;
+  /** Both sides are poles of the SAME category, so these two are always
+   *  equal and identify nothing — `text_a`/`text_b` are what tells two rows
+   *  apart. */
   category_a: MotivationCategory;
   category_b: MotivationCategory;
+  text_a: string;
+  text_b: string;
   has_overrides: boolean;
 }
 
@@ -1088,7 +1174,7 @@ export interface AdminMotivationPairDetail {
   category_b: MotivationCategory;
   text_a: string;
   text_b: string;
-  overrides: Record<string, unknown>;
+  overrides: AdminOverrides;
 }
 
 export type AdminMotivationPairUpdateRequest = Partial<{
@@ -1103,6 +1189,14 @@ export interface AdminDirectionListItem {
   name: string;
   slug: string;
   holland_code: string;
+  programs_count: number;
+  /** True only when every descriptive field is filled. */
+  catalog_filled: boolean;
+  /** Which of description/professions/skills_needed/subjects_to_develop/
+   *  first_steps are still empty on this row — a list rather than a flag
+   *  because `professions` is empty on every direction, so a bare
+   *  `catalog_filled` would read false everywhere and say nothing. */
+  empty_catalog_fields: string[];
   has_overrides: boolean;
 }
 
@@ -1111,6 +1205,15 @@ export interface AdminDirectionListResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+/** A program mapped to a direction through `program_directions` — the
+ *  mapping that drives career matching, invisible from the admin until now. */
+export interface AdminDirectionProgram {
+  id: string;
+  name: string;
+  university_id: string;
+  university_name: string;
 }
 
 export interface AdminDirectionDetail {
@@ -1130,7 +1233,7 @@ export interface AdminDirectionDetail {
   skills_needed: string[];
   subjects_to_develop: string[];
   first_steps: string[];
-  overrides: Record<string, unknown>;
+  overrides: AdminOverrides;
 }
 
 export type AdminDirectionUpdateRequest = Partial<{
