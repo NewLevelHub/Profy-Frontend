@@ -39,7 +39,7 @@ export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroPr
           </Heading>
         </div>
         <div className="order-1 sm:order-2 flex-shrink-0 self-center">
-          <Mascot state="welcome" size={88} />
+          <Mascot state="welcome" size={88} interactive />
         </div>
       </div>
     );
@@ -62,7 +62,7 @@ export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroPr
         </p>
       </div>
       <div className="order-1 sm:order-2 flex-shrink-0 self-center sm:self-auto">
-        <Mascot state="welcome" size={68} />
+        <Mascot state="welcome" size={68} interactive />
       </div>
     </div>
   );

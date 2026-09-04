@@ -1,27 +1,22 @@
 import { useTranslation } from 'react-i18next';
 import { Heading, Button, Input, Mascot } from '@/shared/ui';
 import { useCertificatesEdit } from './hooks/useCertificatesEdit';
-import { GpaScaleSelector } from './components/GpaScaleSelector';
 import {
   CERTIFICATE_TYPES,
   CERTIFICATE_LABELS,
   CERTIFICATE_SCORE_RANGES,
-  GPA_SCALE_MAX,
-  GPA_SCALE_STEP,
-} from './utils/certificateConfig';
+} from '@/shared/config/certificates';
 
 // Same shell as ArtifactsSetupPage's edit-mode branch (opened the same way,
 // from a Profile section's "Изменить"/"Добавить") — boxed card, headline +
 // note, Save/Cancel footer. Unlike artifacts there's no onboarding-linear
-// variant: certificates/GPA are added after onboarding, from Profile only.
+// variant: this page only ever edits scores already collected on step 2.
 const MASCOT_EDIT_SIZE = 64;
 
 export default function CertificatesEditPage() {
   const { t } = useTranslation('profile');
   const {
     scores, setScore,
-    gpaScale, setGpaScale,
-    gpaValue, setGpaValue,
     errors,
     isLoading, saveError,
     handleSave, handleCancel,
@@ -53,7 +48,7 @@ export default function CertificatesEditPage() {
 
             {/* Four fixed rows, not a "pick type then add" flow — the exam
                 set is small and known, so direct inline inputs beat an extra
-                selection step (see certificateConfig.ts). */}
+                selection step (see @/shared/config/certificates.ts). */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {CERTIFICATE_TYPES.map(type => {
                 const range = CERTIFICATE_SCORE_RANGES[type];
@@ -73,29 +68,6 @@ export default function CertificatesEditPage() {
                   />
                 );
               })}
-            </div>
-
-            <div className="flex flex-col gap-4 pt-2 border-t border-default">
-              <div className="pt-2">
-                <Heading level="display-md" as="h2">{t('edit.gpaHeading')}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('edit.gpaHint')}</p>
-              </div>
-
-              <GpaScaleSelector value={gpaScale} onChange={setGpaScale} />
-
-              <Input
-                label={t('edit.scoreLabel')}
-                type="number"
-                inputMode="decimal"
-                value={gpaValue}
-                onChange={e => setGpaValue(e.target.value)}
-                placeholder={gpaScale ? t('edit.gpaRangePlaceholder', { max: GPA_SCALE_MAX[gpaScale] }) : t('edit.gpaChooseScaleFirst')}
-                disabled={!gpaScale}
-                min={0}
-                max={gpaScale ? GPA_SCALE_MAX[gpaScale] : undefined}
-                step={gpaScale ? GPA_SCALE_STEP[gpaScale] : undefined}
-                error={errors.gpa}
-              />
             </div>
 
             {saveError && (

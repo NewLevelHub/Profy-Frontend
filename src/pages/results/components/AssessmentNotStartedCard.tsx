@@ -27,7 +27,7 @@ export function AssessmentNotStartedCard({ onStart }: AssessmentNotStartedCardPr
             {t('notStarted.body')}
           </Text>
         </div>
-        <Mascot state="welcome" size={96} className="flex-shrink-0" />
+        <Mascot state="welcome" size={96} interactive className="flex-shrink-0" />
       </div>
 
       <Button variant="primary" size="lg" className="rounded-pill self-start" onClick={onStart}>

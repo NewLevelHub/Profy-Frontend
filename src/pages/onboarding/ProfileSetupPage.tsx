@@ -5,6 +5,8 @@ import { Button, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
+import { SelectableChip } from './components/SelectableChip';
+import { ExamScoresBlock } from './components/ExamScoresBlock';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
 // `value` is the canonical (ru) string stored on the profile and sent to the
@@ -155,7 +157,7 @@ function SubjectGroup({
           />
         ))}
         {custom.map(s => (
-          <SubjectChip key={s} label={s} selected onClick={() => onToggle(s)} />
+          <SelectableChip key={s} label={s} selected onClick={() => onToggle(s)} />
         ))}
         {onAddCustom && <AddCustomChip onAdd={onAddCustom} />}
       </div>
@@ -179,6 +181,8 @@ export default function ProfileSetupPage() {
     subjectsDislike, setSubjectsDislike,
     subjectsEasy, setSubjectsEasy,
     subjectsHard, setSubjectsHard,
+    examsTaken, toggleExam,
+    examScores, setExamScore,
     errors, clearError,
     handleNext, handleBack, handleSubmit, toggle,
   } = useProfileSetup();
@@ -353,6 +357,18 @@ export default function ProfileSetupPage() {
                 />
               </div>
             </div>
+
+            {/* Third block on this same screen, not a 5th step — the scores
+                are optional in exactly the way the subject picks above are,
+                so they belong to the same "расскажи о себе" beat rather than
+                to a step of their own that implies they're expected. */}
+            <ExamScoresBlock
+              examsTaken={examsTaken}
+              onToggleExam={toggleExam}
+              examScores={examScores}
+              onScoreChange={setExamScore}
+              errors={errors}
+            />
 
           </div>
         )}

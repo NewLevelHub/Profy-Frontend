@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { Download } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -100,10 +101,30 @@ export default function ResultsPage() {
   return (
     <PageContainer className="flex flex-col gap-6">
 
-      <PageHeader
-        title={t('page.title')}
-        subtitle={isJunior ? t('page.subtitleJunior') : t('page.subtitleAdult')}
-      />
+      {/* Same-tab navigate, deliberately not a new tab (tried that — Safari
+          treats `window.print()` from a script-opened tab as its own
+          ephemeral "print preview" surface, and the underlying content tab
+          can end up blank once the dialog closes, occasionally clipping the
+          save itself). Standard single-tab print flow instead: the dialog
+          layers over this same tab, and "К результатам" on the printable
+          view navigates back here when done. `?auto=1` opens the print
+          dialog itself as soon as the printable view has its fonts, so this
+          stays one click. */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader
+          title={t('page.title')}
+          subtitle={isJunior ? t('page.subtitleJunior') : t('page.subtitleAdult')}
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex-shrink-0"
+          onClick={() => navigate('/results/print?auto=1')}
+        >
+          <Download size={16} aria-hidden="true" />
+          {t('page.downloadPdf')}
+        </Button>
+      </div>
 
       {/* Порядок разделов ниже — как в TZ_Profi.md §18.2 / result-report-
           redesign-plan.md "Флоу для нетехнического пользователя": резюме →

@@ -1,114 +1,136 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Plus, X } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
-import { PageContainer } from '@/shared/ui/PageContainer';
-import { Heading } from '@/shared/ui/typography/Heading';
+import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
-import { ADMIN_CARD, ADMIN_CELL, ADMIN_RADIUS, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminUserListItem, AssessmentStatus } from '@/shared/types';
+import { downloadCsv } from '@/shared/lib/downloadBlob';
+import { printWithTitle } from '@/shared/lib/printDocument';
+import { useAdminListParams } from '@/shared/lib/useAdminListParams';
+import { useRememberListQuery } from '@/shared/lib/listReturnPath';
+import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
+import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
+import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
+import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
+import { AdminPager } from '@/shared/ui/admin/AdminPager';
+import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
+import { AdminError } from '@/shared/ui/admin/AdminStates';
+import { UsersPrintReport } from './components/UsersPrintReport';
+import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import type { AdminUserListItem, AgeGroup, AssessmentGoal, AssessmentStatus } from '@/shared/types';
 
 const PAGE_SIZE = 20;
+const FILTER_KEYS = ['search', 'age_group', 'status', 'goal'] as const;
 
-const STATUS_LABELS: Record<AssessmentStatus, string> = {
-  in_progress: 'В процессе',
-  completed: 'Завершена',
+/** Эндпоинта list потолок — `limit: le=100`. */
+const PRINT_PAGE_LIMIT = 100;
+/** См. `handlePrint`: ниже серверных 5000, потому что это бумага. */
+const PRINT_MAX_ROWS = 1000;
+
+/** RIASEC letters, named. The list shows the two strongest by score. */
+const RIASEC_LABELS: Record<string, string> = {
+  R: 'Реалистичный',
+  I: 'Исследовательский',
+  A: 'Артистичный',
+  S: 'Социальный',
+  E: 'Предприимчивый',
+  C: 'Конвенциональный',
 };
 
-// Same display order as DiagnosticSummaryBlock's RIASEC bars (spec order,
-// not alphabetical) — kept consistent between the compact table cell here
-// and the full detail view. Big Five has no such spec order yet, so the
-// standard OCEAN mnemonic order is used.
-const RIASEC_DISPLAY_ORDER = ['I', 'A', 'E', 'R', 'S', 'C'];
-const BIG_FIVE_DISPLAY_ORDER = ['O', 'C', 'E', 'A', 'N'];
-
 /**
- * Compact RIASEC/Big Five cell for the users table — admin-only raw
- * percentages (TZ_Profi.md §18.3). Row space is tight, so this is a plain
- * mono string rather than DiagnosticSummaryBlock's per-category bars; the
- * full bar breakdown stays the one place with `DiagnosticSummaryBlock`'s
- * fuller "ТОЛЬКО ДЛЯ АДМИНИСТРАТОРА" treatment.
- */
-function ResultsCell({ values, order }: { values: Record<string, number> | null; order: string[] }) {
-  if (!values) {
-    return <span className={MONO_MUTE}>—</span>;
-  }
-  const parts = order.filter((letter) => letter in values).map((letter) => `${letter}${Math.round(values[letter])}`);
-  return <span className="font-mono text-mono-xs text-secondary whitespace-nowrap">{parts.join(' ')}</span>;
-}
-
-/**
- * ДИАГНОСТИКА cell: plain mono status line.
+ * The two leading interest types, as words.
  *
- * BACKEND GAP: `AdminUserListItem.latest_assessment_status` only distinguishes
- * `in_progress` / `completed` (see `AssessmentStatus` in shared/types) — there
- * is no per-row "41/60", "пауза 3 дня", or "обрыв на блоке N" detail anywhere
- * in the list response. The spec's pause/drop-off variants need a real
- * backend addition (per-row progress + last-activity gap) to render honestly;
- * faking those numbers here would be exactly the kind of fabrication this
- * pass is meant to avoid, so only the two states the API actually reports are
- * drawn, in the color the spec assigns them (mute for done, Dawn for open).
+ * The original cell printed all six as "I56 A55 E64 R62 S69 C59" — 24
+ * characters of undecoded letter/number pairs in the widest column of the
+ * table. A list answers "roughly who is this"; the full six-way breakdown with
+ * bars already lives on the user's assessment panel.
  */
-function DiagnosticsCell({ status }: { status: AssessmentStatus | null }) {
-  if (!status) {
-    return <span className={MONO_MUTE}>—</span>;
+function InterestsCell({ values }: { values: Record<string, number> | null }) {
+  if (!values) {
+    return <span className={ADMIN_META} title="Пусто у junior (проходят MI-тест) и до завершения диагностики">—</span>;
   }
+
+  const ranked = Object.entries(values)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2);
+
+  if (ranked.length === 0) return <span className={ADMIN_META}>—</span>;
 
   return (
-    <span className={cn(MONO_LABEL, status === 'in_progress' ? 'text-[color:var(--dawn)]' : 'text-muted')}>
-      {status === 'completed' ? 'ЗАВЕРШЕНА' : 'В ПРОЦЕССЕ'}
+    <span className="flex flex-col gap-0.5">
+      {ranked.map(([letter, value], index) => (
+        <span
+          key={letter}
+          className={cn(
+            'flex items-baseline gap-1.5 whitespace-nowrap',
+            index === 0 ? 'text-primary' : 'text-muted',
+          )}
+        >
+          <span>{RIASEC_LABELS[letter] ?? letter}</span>
+          <span className={cn(ADMIN_NUM, 'text-muted text-mono-xs')}>{Math.round(value)}</span>
+        </span>
+      ))}
     </span>
   );
 }
 
-/** One label/value pair inside the mobile card-per-row transform below `lg`. */
-function AdminCardField({ label, value, title }: { label: string; value: string; title?: string }) {
-  return (
-    <div title={title}>
-      <p className={MONO_MUTE}>{label}</p>
-      <p className="font-mono text-muted mt-0.5">{value}</p>
-    </div>
+/**
+ * `latest_assessment_status` only distinguishes in_progress / completed, so
+ * only those two states plus "not started" are drawn — there is no per-row
+ * progress or drop-off signal in the list response.
+ *
+ * All three share one chip shape. Previously "Завершена" was a tinted pill and
+ * "Не начата" was bare uppercase text, so one column looked like two.
+ */
+function DiagnosticsCell({ status }: { status: AssessmentStatus | null }) {
+  if (!status) {
+    return (
+      <AdminBadge tone="quiet" title="Пользователь не начинал диагностику">
+        Не начата
+      </AdminBadge>
+    );
+  }
+
+  return status === 'in_progress' ? (
+    <AdminBadge tone="accent" dot>
+      В процессе
+    </AdminBadge>
+  ) : (
+    <AdminBadge tone="neutral" dot>
+      Завершена
+    </AdminBadge>
   );
 }
 
 function formatRelative(value: string): string {
-  const then = new Date(value).getTime();
-  const diffMs = Date.now() - then;
-  const min = Math.floor(diffMs / 60000);
-  if (min < 1) return 'только что';
-  if (min < 60) return `${min} мин назад`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} ч назад`;
-  const days = Math.floor(hr / 24);
-  return `${days} дн назад`;
-}
-
-function formatClock(date: Date): string {
-  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-}
-
-/** Filled Pine-tinted chip for an active filter, removable. */
-function ActiveChip({ children, onRemove }: { children: string; onRemove: () => void }) {
-  return (
-    <span className={cn(MONO_LABEL, 'inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-[3px] bg-brand-subtle text-brand')}>
-      {children}
-      <button type="button" onClick={onRemove} className="hover:opacity-70" aria-label="Убрать фильтр">
-        <X size={11} />
-      </button>
-    </span>
-  );
+  const date = new Date(value);
+  const diffDays = Math.floor((Date.now() - date.getTime()) / 86400000);
+  if (diffDays < 1) return 'сегодня';
+  if (diffDays === 1) return 'вчера';
+  if (diffDays < 30) return `${diffDays} дн. назад`;
+  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
 export default function AdminUsersPage() {
+  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  // So the breadcrumb on a user's card returns to this exact filtered page.
+  useRememberListQuery('/admin/users');
   const [items, setItems] = useState<AdminUserListItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
-  const [filterOpen, setFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const [printRows, setPrintRows] = useState<{
+    items: AdminUserListItem[];
+    total: number;
+    truncated: boolean;
+  } | null>(null);
+  const [exportError, setExportError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const { search, age_group: ageGroup, status, goal } = values;
 
   useEffect(() => {
     let cancelled = false;
@@ -117,11 +139,17 @@ export default function AdminUsersPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await adminApi.listUsers({ page, limit: PAGE_SIZE, search: query || undefined });
+        const data = await adminApi.listUsers({
+          page,
+          limit: PAGE_SIZE,
+          search: search || undefined,
+          age_group: (ageGroup as AgeGroup) || undefined,
+          status: (status as AssessmentStatus) || undefined,
+          goal: (goal as AssessmentGoal) || undefined,
+        });
         if (cancelled) return;
         setItems(data.items);
         setTotal(data.total);
-        setUpdatedAt(new Date());
       } catch {
         if (!cancelled) setError('Не удалось загрузить пользователей');
       } finally {
@@ -133,251 +161,277 @@ export default function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, query]);
+  }, [page, search, ageGroup, status, goal, reloadToken]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const rowStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rowEnd = Math.min(page * PAGE_SIZE, total);
+  const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
+
+  /**
+   * PDF собирается по всему срезу, а не по видимой странице.
+   *
+   * CSV с бэкенда игнорирует пагинацию и отдаёт всё, что подошло под фильтры
+   * (`export_users`, потолок 5000 строк). PDF рядом с ним, печатающий только
+   * двадцать строк первой страницы, назывался бы «выгрузкой», ею не являясь.
+   * Поэтому список дочитывается страницами по 100 — тем же эндпоинтом и с теми
+   * же фильтрами, что и таблица.
+   *
+   * Потолок ниже серверного (5000): это лист бумаги. Тысяча строк — это уже
+   * ~25 страниц A4, дальше PDF перестаёт быть форматом для чтения, и правильный
+   * ответ — CSV. При обрыве лист сам пишет, что на нём не весь срез.
+   */
+  async function handlePrint() {
+    setPrinting(true);
+    setExportError('');
+    try {
+      const filters = {
+        search: search || undefined,
+        age_group: (ageGroup as AgeGroup) || undefined,
+        status: (status as AssessmentStatus) || undefined,
+        goal: (goal as AssessmentGoal) || undefined,
+      };
+      const first = await adminApi.listUsers({ ...filters, page: 1, limit: PRINT_PAGE_LIMIT });
+      const reachable = Math.min(first.total, PRINT_MAX_ROWS);
+      const pageCount = Math.ceil(reachable / PRINT_PAGE_LIMIT);
+      const rest = await Promise.all(
+        Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) =>
+          adminApi.listUsers({ ...filters, page: i + 2, limit: PRINT_PAGE_LIMIT }),
+        ),
+      );
+      const rows = [...first.items, ...rest.flatMap((r) => r.items)].slice(0, PRINT_MAX_ROWS);
+      setPrintRows({ items: rows, total: first.total, truncated: first.total > PRINT_MAX_ROWS });
+    } catch {
+      setExportError('Не удалось собрать PDF. Попробуйте сузить фильтры.');
+      setPrinting(false);
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    setExportError('');
+    try {
+      const blob = await adminApi.exportUsers({
+        search: search || undefined,
+        age_group: (ageGroup as AgeGroup) || undefined,
+        status: (status as AssessmentStatus) || undefined,
+        goal: (goal as AssessmentGoal) || undefined,
+      });
+      downloadCsv(blob, 'users_export.csv');
+    } catch {
+      setExportError('Не удалось выгрузить CSV. Возможно, выборка слишком большая — сузьте фильтры.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  // Печать запускается отдельным эффектом: разметку листа надо сначала
+  // смонтировать, и только потом звать window.print().
+  useEffect(() => {
+    if (!printRows) return;
+    let cancelled = false;
+    void printWithTitle('profy_users').then(() => {
+      if (cancelled) return;
+      setPrintRows(null);
+      setPrinting(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [printRows]);
+
+  /** Активные фильтры человеческим языком — печатаются в шапке листа. */
+  const activeFilterLabels = [
+    search ? `Email содержит «${search}»` : null,
+    ageGroup ? `Возраст: ${AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup}` : null,
+    status ? `Есть тест со статусом: ${ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]}` : null,
+    goal ? `Есть тест с целью: ${ASSESSMENT_GOAL_LABELS[goal as AssessmentGoal]}` : null,
+  ].filter((value): value is string => value !== null);
+
+  const columns: AdminColumn<AdminUserListItem>[] = [
+    {
+      key: 'user',
+      header: 'Пользователь',
+      mobile: 'title',
+      // Name and email in one cell. They were two columns, and since the name
+      // falls back to the email when there's no profile, half the rows printed
+      // the same address twice, side by side.
+      cell: (item) => {
+        const named = item.has_profile && item.profile_name;
+        return (
+          <span className="flex flex-col gap-0.5 min-w-0">
+            <span className="flex items-center gap-2 min-w-0">
+              <Link
+                to={`/admin/users/${item.id}`}
+                className={cn(
+                  ADMIN_TEXT,
+                  'font-semibold text-primary hover:text-brand hover:underline truncate',
+                  !named && 'font-mono text-mono-sm',
+                )}
+              >
+                {named ? item.profile_name : item.email}
+              </Link>
+              {item.is_admin && (
+                <AdminBadge tone="brand" title="Имеет доступ в админку">
+                  Админ
+                </AdminBadge>
+              )}
+            </span>
+            {named && (
+              <span className={cn(ADMIN_NUM, 'text-muted text-mono-xs truncate')}>{item.email}</span>
+            )}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'age',
+      header: 'Возраст',
+      width: '104px',
+      mobile: 'field',
+      cell: (item) =>
+        item.age_group ? (
+          <span className={ADMIN_TEXT}>{AGE_TIER_LABELS[item.age_group]}</span>
+        ) : (
+          <span className={ADMIN_META}>—</span>
+        ),
+    },
+    {
+      key: 'diagnostics',
+      header: 'Диагностика',
+      width: '146px',
+      mobile: 'badge',
+      cell: (item) => <DiagnosticsCell status={item.latest_assessment_status} />,
+    },
+    {
+      key: 'goal',
+      header: 'Цель теста',
+      width: '176px',
+      headerTitle: 'Цель последнего теста — не обязательно того, что совпал с фильтром «Цель»',
+      mobile: 'field',
+      mobileLabel: 'Цель',
+      cell: (item) =>
+        item.latest_assessment_goal ? (
+          <span className={ADMIN_TEXT}>{ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal]}</span>
+        ) : (
+          <span className={ADMIN_META}>—</span>
+        ),
+    },
+    {
+      key: 'interests',
+      header: 'Интересы',
+      width: '210px',
+      headerTitle: 'Два ведущих типа RIASEC. Полная раскладка — в карточке пользователя',
+      mobile: 'field',
+      cell: (item) => <InterestsCell values={item.riasec} />,
+    },
+    {
+      key: 'created',
+      // Was "Активность" showing `created_at`, so someone who registered two
+      // days ago and never came back read as "active 2 days ago". There is no
+      // last-active field in the API — docs/admin-backend-requests-pro-242.md §5.
+      header: 'Регистрация',
+      width: '126px',
+      align: 'right',
+      mobile: 'field',
+      cell: (item) => (
+        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at)}</span>
+      ),
+    },
+  ];
 
   return (
-    <PageContainer className="space-y-4">
-      <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <Heading level="display-sm" className="text-primary">
-          Пользователи
-        </Heading>
-        {/*
-          Real aggregate: `total` comes straight from `AdminUserListResponse.total`.
-          "ЗА 7 ДНЕЙ" from the mockup is NOT rendered — the list endpoint has no
-          signup-cohort aggregate, and computing it from the current page alone
-          would silently mean "new signups on this page of 20", not a real
-          7-day total; that's a backend gap, not a formatting choice.
-        */}
-        <span className={MONO_MUTE}>
-          {total} ВСЕГО{updatedAt ? ` · ОБНОВЛЕНО ${formatClock(updatedAt).toUpperCase()}` : ''}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {query ? (
-            <ActiveChip
-              onRemove={() => {
-                setSearch('');
-                setQuery('');
-                setPage(1);
-              }}
+    <>
+      <AdminListHeader
+        title="Пользователи"
+        description="Учётные записи, их профили и прохождения диагностики."
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              muteSound
+              isLoading={printing}
+              onClick={handlePrint}
+              title="Откроется диалог печати — выберите «Сохранить как PDF»"
             >
-              {`EMAIL: ${query.toUpperCase()}`}
-            </ActiveChip>
-          ) : null}
+              <FileText size={14} />
+              Экспорт PDF
+            </Button>
+            <Button variant="ghost" size="sm" muteSound isLoading={exporting} onClick={handleExport}>
+              <Download size={14} />
+              Экспорт CSV
+            </Button>
+          </>
+        }
+      />
 
-          {filterOpen ? (
-            <form
-              className="flex items-center gap-1.5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setPage(1);
-                setQuery(search.trim());
-                setFilterOpen(false);
-              }}
-            >
-              <input
-                autoFocus
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="email содержит..."
-                className={cn(MONO_LABEL, ADMIN_RADIUS, 'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal w-[180px]')}
-              />
-              <button type="submit" className={cn(MONO_LABEL, 'px-2 py-1 rounded-[3px] bg-brand text-on-brand')}>
-                OK
-              </button>
-            </form>
-          ) : (
-            /*
-              Only real, server-supported filter today is the `search` param
-              on `adminApi.listUsers` (matched against email). The spec's
-              richer filter row (status / goal / dropout / etc.) has no
-              query-param support on the backend, so no inactive chips are
-              rendered for filters that would silently do nothing.
-            */
-            <button
-              type="button"
-              onClick={() => setFilterOpen(true)}
-              className={cn(MONO_LABEL, 'inline-flex items-center gap-1 px-2.5 py-1 rounded-[3px] border border-dashed border-default text-muted hover:text-secondary hover:border-strong transition-colors')}
-            >
-              <Plus size={11} />
-              ФИЛЬТР
-            </button>
-          )}
-        </div>
+      <AdminToolbar
+        search={{ value: search, onChange: handleSearch, placeholder: 'Email' }}
+        selects={[
+          {
+            key: 'age_group',
+            label: 'Возраст',
+            value: ageGroup,
+            options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
+              value: key,
+              label: AGE_TIER_LABELS[key],
+            })),
+          },
+          {
+            key: 'status',
+            label: 'Есть тест со статусом',
+            value: status,
+            options: (Object.keys(ASSESSMENT_STATUS_LABELS) as AssessmentStatus[]).map((key) => ({
+              value: key,
+              label: ASSESSMENT_STATUS_LABELS[key],
+            })),
+          },
+          {
+            key: 'goal',
+            label: 'Есть тест с целью',
+            value: goal,
+            options: (Object.keys(ASSESSMENT_GOAL_LABELS) as AssessmentGoal[]).map((key) => ({
+              value: key,
+              label: ASSESSMENT_GOAL_LABELS[key],
+            })),
+          },
+        ]}
+        onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
+        onClearAll={clearFilters}
+      />
 
-        {/*
-          Mockup's "брошено на диагностике: N" needs an aggregate of
-          in-progress-with-no-recent-activity users across the WHOLE table,
-          which the list endpoint doesn't compute or expose (no last-activity
-          field, no server-side aggregate). Labeling a page-local count with
-          that copy would misstate it as a global stat, so it's omitted with
-          an honest note instead of a wrong number.
-        */}
-        <span className={MONO_MUTE} title="Бэкенд не отдаёт агрегат по обрывам диагностики">
-          БРОШЕНО НА ДИАГНОСТИКЕ: НЕТ ДАННЫХ
-        </span>
-      </div>
-
-      {error && (
-        <div className={cn(ADMIN_CARD, 'text-danger font-semibold', ADMIN_TEXT)}>{error}</div>
+      {/* The status/goal filters mean "has at least one matching assessment",
+          while the goal column always shows the latest one. Said once, in
+          place, instead of hidden in a header tooltip. */}
+      {(status || goal) && (
+        <p className={cn(ADMIN_META, '-mt-1')}>
+          Фильтр находит пользователей, у которых есть хотя бы один подходящий тест. В колонке «Цель
+          теста» — всегда последний тест, он может отличаться.
+        </p>
       )}
 
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
-        {loading ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>Загрузка...</div>
-        ) : items.length === 0 ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>
-            Пользователи не найдены
-          </div>
-        ) : (
-          <>
-            {/*
-              Even with placeholder columns trimmed, the table is still too
-              dense to read on the table's own horizontal scroll below lg —
-              the two most glanceable facts (who, diagnostic status) end up
-              scrolled off-screen on a phone. Card-per-row below lg,
-              unchanged table at lg+ where there's room for all columns at once.
-            */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className={cn('w-full', ADMIN_TEXT)}>
-                <thead className="bg-raised border-b border-default">
-                  <tr>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ID</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ПОЛЬЗОВАТЕЛЬ</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ДИАГНОСТИКА</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>RIASEC</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>BIG 5</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>АКТИВНОСТЬ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.id} className="border-b border-default last:border-b-0 hover:bg-hover transition-colors">
-                      <td className={cn(ADMIN_CELL, 'font-mono text-mono-sm text-muted align-top')}>
-                        {item.id.slice(0, 8)}
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'align-top')}>
-                        <Link to={`/admin/users/${item.id}`} className="font-semibold text-primary hover:text-brand hover:underline">
-                          {item.has_profile && item.profile_name ? item.profile_name : item.email}
-                        </Link>
-                        {/*
-                          Mockup wants "· age · grade" inline. AdminUserListItem
-                          carries no age/grade — those only exist on
-                          AdminUserDetail.profile, one level deeper. Rather than
-                          fetch every row's detail just to fill this in (an N+1
-                          the list page shouldn't pay for), this is left as a
-                          real gap: the list endpoint needs age/grade added to
-                          AdminUserListItem for this to render honestly.
-                        */}
-                        <div className="font-mono text-mono-xs text-muted mt-0.5">{item.email}</div>
-                        {item.is_admin && (
-                          <span className={cn(MONO_LABEL, 'text-brand')}>ADMIN</span>
-                        )}
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'align-top')}>
-                        <DiagnosticsCell status={item.latest_assessment_status} />
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'align-top')} title="RIASEC пусто для junior (MI-тест) и до завершения диагностики">
-                        <ResultsCell values={item.riasec} order={RIASEC_DISPLAY_ORDER} />
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'align-top')} title="До завершения диагностики — пусто">
-                        <ResultsCell values={item.big_five} order={BIG_FIVE_DISPLAY_ORDER} />
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')} title="Только дата регистрации — поле «последняя активность» отсутствует">
-                        {formatRelative(item.created_at)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
+      {exportError && <AdminError message={exportError} />}
 
-            <div className="lg:hidden divide-y divide-[var(--border)]">
-              {items.map((item) => (
-                <div key={item.id} className={cn(ADMIN_TEXT, 'p-3 flex flex-col gap-2.5')}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link
-                        to={`/admin/users/${item.id}`}
-                        className="font-semibold text-primary hover:text-brand hover:underline block truncate"
-                      >
-                        {item.has_profile && item.profile_name ? item.profile_name : item.email}
-                      </Link>
-                      <div className="font-mono text-mono-xs text-muted mt-0.5 truncate">{item.email}</div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span className={MONO_MUTE}>{item.id.slice(0, 8)}</span>
-                      {item.is_admin && <span className={cn(MONO_LABEL, 'text-brand')}>ADMIN</span>}
-                    </div>
-                  </div>
+      <AdminDataTable
+        label="Пользователи"
+        columns={columns}
+        rows={items}
+        rowKey={(item) => item.id}
+        rowHref={(item) => `/admin/users/${item.id}`}
+        loading={loading}
+        emptyTitle="Пользователи не найдены"
+        emptyHint="Попробуйте изменить фильтры или очистить поиск."
+      />
 
-                  <DiagnosticsCell status={item.latest_assessment_status} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['пользователь', 'пользователя', 'пользователей']} />
 
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 pt-2 border-t border-default">
-                    <AdminCardField
-                      label="RIASEC"
-                      value={
-                        item.riasec
-                          ? RIASEC_DISPLAY_ORDER.filter((l) => l in item.riasec!)
-                              .map((l) => `${l}${Math.round(item.riasec![l])}`)
-                              .join(' ')
-                          : '—'
-                      }
-                      title="Пусто для junior (MI-тест) и до завершения диагностики"
-                    />
-                    <AdminCardField
-                      label="BIG 5"
-                      value={
-                        item.big_five
-                          ? BIG_FIVE_DISPLAY_ORDER.filter((l) => l in item.big_five!)
-                              .map((l) => `${l}${Math.round(item.big_five![l])}`)
-                              .join(' ')
-                          : '—'
-                      }
-                      title="До завершения диагностики — пусто"
-                    />
-                    <AdminCardField
-                      label="АКТИВНОСТЬ"
-                      value={formatRelative(item.created_at)}
-                      title="Только дата регистрации — поле «последняя активность» отсутствует"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className={MONO_MUTE}>
-          СТРОКИ {rowStart}–{rowEnd} ИЗ {total}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            ПРЕД
-          </button>
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            СЛЕД
-          </button>
-        </div>
-      </div>
-    </PageContainer>
+      {printRows && (
+        <UsersPrintReport
+          items={printRows.items}
+          total={printRows.total}
+          truncated={printRows.truncated}
+          filters={activeFilterLabels}
+        />
+      )}
+    </>
   );
 }

@@ -4,16 +4,34 @@
     "src/pages/admin/**",
     "src/shared/ui/admin/**",
     "src/shared/ui/layouts/AdminLayout.tsx",
-    "src/shared/lib/adminRole.ts"
+    "src/shared/lib/adminRole.ts",
+    "src/pages/landing/**"
   ],
   "files": [
     {
       "path": "src/shared/api/feedback.ts",
       "reason": "REPORT_SECTIONS[].label is a ru-only string kept solely for the ru-only AdminFeedbackPage; the user-facing form uses REPORT_SECTIONS[].labelKey via t(). See KZ-206 / docs/i18n.md."
+    },
+    {
+      "path": "src/shared/lib/contentLabels.ts",
+      "reason": "HOLLAND_TYPE_LABELS / BIGFIVE_DOMAIN_LABELS / MI_TYPE_LABELS / MOTIVATION_CATEGORY_LABELS / QUESTION_KEYED_LABELS — consumed only by src/pages/admin/** (question-bank admin tables & print reports), ru-only by KZ-210."
+    },
+    {
+      "path": "src/shared/lib/assessmentLabels.ts",
+      "reason": "GOAL_LABELS / STATUS_LABELS — consumed only by src/pages/admin/** (user list/detail & print reports), ru-only by KZ-210."
+    },
+    {
+      "path": "src/shared/lib/useAdminForm.ts",
+      "reason": "Admin edit-form hook (default error copy) — used only by src/pages/admin/** detail pages, ru-only by KZ-210."
+    },
+    {
+      "path": "src/shared/lib/useUnsavedGuard.ts",
+      "reason": "beforeunload guard message — used only by AdminProgramDetailPage / useAdminForm, ru-only by KZ-210."
     }
   ],
   "comments": {
     "src/pages/admin/**": "Admin panel — internal team tool, ru-only by decision (KZ-210).",
+    "src/pages/landing/**": "TEMPORARY — the marketing landing page (12 components, ~137 strings) was added on dev after KZ-201..211 and is not yet localized. Tracked as KZ-213: extract to an `landing` namespace + kk marketing-copy review. Remove this entry when done.",
     "src/shared/ui/admin/**": "Admin-only UI primitives (RoleBadge, ChangeLogTable, AdminSectionHeading, RoleGatedAction, density).",
     "src/shared/ui/layouts/AdminLayout.tsx": "Admin shell nav labels («Пользователи», «Фидбэк») — chrome for /admin/* only.",
     "src/shared/lib/adminRole.ts": "ADMIN_ROLE_LABELS / ADMIN_ROLE_DESCRIPTIONS / REQUIRES_ADMIN_TOOLTIP — role wording shown only in /admin/*."

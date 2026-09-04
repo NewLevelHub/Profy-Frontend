@@ -10,7 +10,9 @@ interface PersonalityDomainSectionProps {
 // Same status vocabulary as InterestDomainSection, but "high" reads as a
 // trait strength rather than a type name — "СИЛЬНАЯ СТОРОНА" over the
 // shared "ВЕДУЩИЙ". Values are i18n keys, resolved with `t()` at render.
-const STATUS_LABEL: Record<StudentPersonalityNote['level'], string> = {
+// Exported because the printable/PDF version of the report (print/) has to
+// label the same traits the same way (and localize them the same way).
+export const PERSONALITY_STATUS_LABEL: Record<StudentPersonalityNote['level'], string> = {
   ...LEVEL_STATUS_LABEL,
   high: 'results:personalityDomain.statusHigh',
 };
@@ -37,7 +39,7 @@ export function PersonalityDomainSection({ personalityNotes, personalityNote }: 
             key={n.trait}
             title={n.label}
             description={n.description}
-            status={t(STATUS_LABEL[n.level])}
+            status={t(PERSONALITY_STATUS_LABEL[n.level])}
             level={n.level}
           />
         ))}

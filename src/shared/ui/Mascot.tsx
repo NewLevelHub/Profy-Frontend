@@ -7,6 +7,7 @@ import {
   type MascotEyeBox,
   type MascotState,
 } from './mascot/sprites';
+import { useMascotInteraction } from './mascot/useMascotInteraction';
 
 export type { MascotState, MascotFunctionalState, MascotProfessionState } from './mascot/sprites';
 export { SPRITES, PRO } from './mascot/sprites';
@@ -14,12 +15,34 @@ export { SPRITES, PRO } from './mascot/sprites';
 export interface MascotProps {
   /** Which pose to render — 6 functional states (ТЗ 14.3) + 20 profession states (unwired, held for later). */
   state: MascotState;
-  /** Rendered width in px. Defaults to 260 in full mode, 44 in compact mode. */
-  size?: number;
+  /**
+   * Rendered width. A number is taken as px; a string is passed to CSS as-is,
+   * so fluid values like `clamp(240px, 34vw, 410px)` work — the landing sizes
+   * its mascots against the viewport, not in fixed steps.
+   * Defaults to 260 in full mode, 44 in compact mode.
+   */
+  size?: number | string;
   /** Circular avatar crop (zoomed on the head) instead of the full pose. Defaults to false. */
   compact?: boolean;
   /** Set false to opt out of the blink animation even outside reduced-motion. Defaults to true. */
   blink?: boolean;
+  /**
+   * Opt in to the interactive layer: idle "breathing" loop, a lean toward the
+   * pointer while it's near, and a squash-and-stretch hop on tap. Transform-only,
+   * fine-pointer only, and disabled under `prefers-reduced-motion`. Ignored in
+   * `compact` mode. Off by default — only turn it on for rare/"significant"
+   * moments (welcome, completion), not routine content-swap poses. Don't combine
+   * with a `className` that also sets `transform` (e.g. `-scale-x-100`).
+   */
+  interactive?: boolean;
+  /**
+   * Play a one-shot celebratory bounce when the mascot mounts (on top of the
+   * usual landing). For genuine "significant moment" poses only — the
+   * `completion`/medal reveal after finishing the assessment — per DESIGN.md's
+   * "rare + significant → more personality" rule. Transform-only, collapses
+   * under `prefers-reduced-motion`. Independent of `interactive`.
+   */
+  celebrate?: boolean;
   className?: string;
 }
 
@@ -53,13 +76,24 @@ function prefersReducedMotion(): boolean {
  * react to answer content, and never praise a specific choice — only on
  * rest/transition/loading/completion moments.
  */
-export function Mascot({ state, size, compact = false, blink = true, className }: MascotProps) {
+export function Mascot({
+  state,
+  size,
+  compact = false,
+  blink = true,
+  interactive = false,
+  celebrate = false,
+  className,
+}: MascotProps) {
   const { t } = useTranslation('common');
   const entry = ALL_SPRITES[state];
   const alt = t(entry.alt);
   const resolvedSize = size ?? (compact ? DEFAULT_SIZE_COMPACT : DEFAULT_SIZE_FULL);
   const [blinking, setBlinking] = useState(false);
   const timeoutIdsRef = useRef<number[]>([]);
+
+  const interactionEnabled = interactive && !compact;
+  const interaction = useMascotInteraction(interactionEnabled);
 
   const canBlink = entry.eyes !== null && blink !== false && compact !== true;
 
@@ -119,16 +153,41 @@ export function Mascot({ state, size, compact = false, blink = true, className }
     );
   }
 
+  const canCelebrate = celebrate && !compact && !prefersReducedMotion();
+
+  const poseLayer = (
+    <>
+      <img src={src} alt={alt} className="block w-full h-auto" />
+      {blinking && entry.eyes && entry.eyes.map((eye, index) => <Eyelid key={index} box={eye} />)}
+    </>
+  );
+
+  // One-shot celebration wraps the pose closest to the sprite so it composes
+  // with the (subtle, always-on) breath above it rather than replacing it.
+  const inner = canCelebrate ? <div className="mascot-cheer">{poseLayer}</div> : poseLayer;
+
   return (
     <div className={cn('relative', className)} style={{ width: resolvedSize }}>
-      <img src={src} alt={alt} className="block w-full h-auto" />
-      {blinking && entry.eyes && (
-        <>
-          {entry.eyes.map((eye, index) => (
-            <Eyelid key={index} box={eye} />
-          ))}
-        </>
-      )}
+      {/* Появление — отдельный слой поверх всех остальных: снаружи className
+          может задавать свой transform (-scale-x-100 в IdentityRail), внутри
+          за transform спорят lean/gesture/breath/hop. Собственная обёртка на
+          каждый слой разводит их. */}
+      <div className="mascot-enter">
+        {interactionEnabled ? (
+          <div ref={interaction.ref} className="mascot-lean" onPointerDown={interaction.onPointerDown}>
+            <div className={cn('mascot-gesture', interaction.gesture && `mascot-${interaction.gesture}`)}>
+              <div
+                className={cn('mascot-breath', interaction.hop && 'mascot-hop')}
+                onAnimationEnd={interaction.onAnimationEnd}
+              >
+                {inner}
+              </div>
+            </div>
+          </div>
+        ) : (
+          inner
+        )}
+      </div>
     </div>
   );
 }
