@@ -4,6 +4,8 @@ import { Button, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
+import { SelectableChip } from './components/SelectableChip';
+import { ExamScoresBlock } from './components/ExamScoresBlock';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
 const SUBJECTS = [
@@ -31,35 +33,6 @@ const MASCOT_WELCOME_SIZE = 192;
 const MASCOT_WAITING_SIZE = 168;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-
-/** Subject chip — per spec, selection is marked with a dawn border (not a
- *  fill), unselected chips sit on a plain hairline border. Deliberately
- *  neutral: never colored to imply "good"/"bad" (screen 6 relies on this
- *  for its easy vs. struggle columns). */
-function SubjectChip({
-  label, selected, onClick, disabled,
-}: {
-  label: string; selected: boolean; onClick: () => void; disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      aria-disabled={disabled}
-      title={disabled ? 'Уже выбрано в другом списке' : undefined}
-      className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors disabled:cursor-not-allowed"
-      style={{
-        background: 'var(--bg-surface)',
-        color: disabled ? 'var(--mute)' : selected ? 'var(--midnight)' : 'var(--ink)',
-        border: selected ? '1.5px solid var(--dawn)' : '1.5px solid var(--line)',
-        opacity: disabled ? 0.45 : 1,
-      }}
-    >
-      {label}
-    </button>
-  );
-}
 
 /** The dashed "+ своё" chip — click reveals an inline text field to add a
  *  subject that isn't in the fixed catalog. */
@@ -124,16 +97,17 @@ function SubjectGroup({
       </div>
       <div className="flex flex-wrap gap-2">
         {SUBJECTS.map(s => (
-          <SubjectChip
+          <SelectableChip
             key={s}
             label={s}
             selected={selected.includes(s)}
             onClick={() => onToggle(s)}
             disabled={otherSelected?.includes(s)}
+            disabledTitle="Уже выбрано в другом списке"
           />
         ))}
         {custom.map(s => (
-          <SubjectChip key={s} label={s} selected onClick={() => onToggle(s)} />
+          <SelectableChip key={s} label={s} selected onClick={() => onToggle(s)} />
         ))}
         {onAddCustom && <AddCustomChip onAdd={onAddCustom} />}
       </div>
@@ -155,6 +129,8 @@ export default function ProfileSetupPage() {
     subjectsDislike, setSubjectsDislike,
     subjectsEasy, setSubjectsEasy,
     subjectsHard, setSubjectsHard,
+    examsTaken, toggleExam,
+    examScores, setExamScore,
     errors, clearError,
     handleNext, handleBack, handleSubmit, toggle,
   } = useProfileSetup();
@@ -329,6 +305,18 @@ export default function ProfileSetupPage() {
                 />
               </div>
             </div>
+
+            {/* Third block on this same screen, not a 5th step — the scores
+                are optional in exactly the way the subject picks above are,
+                so they belong to the same "расскажи о себе" beat rather than
+                to a step of their own that implies they're expected. */}
+            <ExamScoresBlock
+              examsTaken={examsTaken}
+              onToggleExam={toggleExam}
+              examScores={examScores}
+              onScoreChange={setExamScore}
+              errors={errors}
+            />
 
           </div>
         )}

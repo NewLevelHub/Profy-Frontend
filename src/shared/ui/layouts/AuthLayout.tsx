@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation } from 'react-router';
 import { Compass, Landmark, Layers, ListChecks } from 'lucide-react';
 import { env } from '@/shared/config/env';
 
@@ -148,26 +148,35 @@ export function AuthLayout() {
     </div>
   );
 
+  // Та же формула ширины колонки, что у шапки лендинга (w-[min(1220px,92%)]
+  // mx-auto). Раньше здесь стояла своя — 1180px + отступ 16px на всю
+  // страницу — и на части ширин окна она давала левый край на 20–40px левее
+  // или правее, чем у логотипа на лендинге: переход между / и /login читался
+  // как рывок, а не как один и тот же логотип на месте.
+  const column = 'w-[min(1220px,92%)] mx-auto';
+
   return (
-    <div className="auth-page relative min-h-screen bg-page px-4 py-8 lg:py-10 flex flex-col">
-      {/* Логотип живёт внутри той же колонки шириной 1180, что и содержимое:
-          так он встаёт ровно над левым краем текста, а не жмётся к углу окна. */}
-      <div className="relative z-[1] w-full mx-auto" style={{ maxWidth: 1180 }}>
-        {/* Пока не ссылка: лендинг приезжает следующим тикетом, и до его мержа
-            переход по env.LANDING_URL упирался бы в 404. Адрес уже настроен —
-            останется обернуть знак в <a href={env.LANDING_URL}>. */}
-        <span className="brand-wordmark auth-enter inline-flex mb-8 lg:mb-0">
+    <div className="auth-page relative min-h-screen bg-page flex flex-col">
+      {/* pt подобран так, чтобы верх текста совпадал с верхом слова «Profy»
+          на лендинге (37px от края окна, измерено — там высоту строки шапки
+          задают кнопки навигации, а не сам текст, так что формулой из одних
+          отступов её не вывести). Лендинг теперь домержен, поэтому знак —
+          настоящая ссылка (на dev до этого стоял <span>-заглушка: без
+          лендинга переход по нему упирался бы в 404). */}
+      <div className={`relative z-[1] pt-[2.2rem] pb-8 lg:pb-0 pl-4 ${column}`}>
+        <Link
+          to="/"
+          className="brand-wordmark auth-enter inline-flex hover:opacity-70 transition-opacity"
+          aria-label="На главную"
+        >
           {env.APP_NAME}
           <span className="brand-dot" aria-hidden="true">.</span>
-        </span>
+        </Link>
       </div>
 
-      <div className="relative z-[1] flex-1 flex items-center justify-center">
+      <div className="relative z-[1] flex-1 flex items-center justify-center py-8 lg:py-10">
         {aside ? (
-          <div
-            className="w-full flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-[76px]"
-            style={{ maxWidth: 1180 }}
-          >
+          <div className={`flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-[76px] px-4 ${column}`}>
             <AuthAside key={`aside-${location.pathname}`} copy={aside} />
             {card}
           </div>

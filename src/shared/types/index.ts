@@ -33,14 +33,15 @@ export interface ProfilePayload {
    *  and artifacts together in one transaction. Omit to keep using the old
    *  two-call flow (POST /profile, then POST /profile/artifacts). */
   artifacts?: ArtifactItem[];
-  /** Same optional/atomic-write contract as `artifacts`, backed by
-   *  POST/PUT /profile/certificates when sent standalone. */
+  /** Exam scores (IELTS/ЕНТ/SAT/TOEFL). Same optional/atomic-write contract
+   *  as `artifacts` — any list sent replaces the profile's scores wholesale;
+   *  omitting the field leaves them untouched. Collected on onboarding step 2
+   *  and editable from Profile's "04 Баллы" section.
+   *
+   *  The backend also has `gpa_value`/`gpa_scale` columns (present on `dev`),
+   *  but nothing on the frontend reads or writes them — GPA was dropped from
+   *  the product surface. */
   certificates?: CertificateItem[];
-  /** A single scalar pair (unlike artifacts/certificates, which are lists).
-   *  `null`/omitted means "no GPA recorded yet" on create, or "leave
-   *  untouched" on update — see profileApi.update and useCertificatesEdit. */
-  gpa_value?: number | null;
-  gpa_scale?: GpaScale | null;
 }
 
 export interface ProfileResponse extends ProfilePayload {
@@ -74,7 +75,7 @@ export interface ArtifactItem {
   value: string;
 }
 
-// ─── Certificates & GPA ──────────────────────────────────────────────────────────
+// ─── Certificates (exam scores) ──────────────────────────────────────────────────
 
 export type CertificateType = 'ielts' | 'unt' | 'sat' | 'toefl';
 
@@ -82,11 +83,6 @@ export interface CertificateItem {
   type: CertificateType;
   score: number;
 }
-
-/** The grading scale a profile's `gpa_value` is expressed on — the label IS
- *  the scale's max (e.g. '4' = 4.0-point scale). Mirrors the backend's
- *  GpaScale (app/models/profile.py). */
-export type GpaScale = '4' | '5' | '10' | '100';
 
 // ─── Assessment ────────────────────────────────────────────────────────────────
 

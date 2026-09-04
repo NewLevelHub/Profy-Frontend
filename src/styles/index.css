@@ -1,6 +1,7 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+@import './print.css';
 
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(14px); }
@@ -63,7 +64,14 @@
    #root (см. AssessmentPrintReport). На экране он скрыт, при печати меняются
    местами: #root уходит, лист остаётся. Портал именно в <body>, а не внутрь
    #root, потому что скрыть #root целиком — единственный надёжный способ
-   выключить и шапку, и сайдбар, и все sticky-панели разом.                */
+   выключить и шапку, и сайдбар, и все sticky-панели разом.
+
+   Правила ниже намеренно висят на `body:has(#print-root)`, а не просто на
+   @media print. В приложении есть вторая печать — PRO-251, экспорт отчёта
+   ученика (styles/print.css): там отдельный маршрут /results/print, сама
+   страница и есть лист, и #root прятать нельзя, иначе печатается пустота.
+   `#print-root` существует в DOM только пока открыта админская печать, так
+   что селектор разводит два механизма, ничего друг о друге не знающих.    */
 #print-root {
   display: none;
 }
@@ -78,7 +86,7 @@
     max-width: none !important;
   }
 
-  body > #root {
+  body:has(#print-root) > #root {
     display: none !important;
   }
 
@@ -86,25 +94,26 @@
     display: block !important;
   }
 
-  @page {
-    size: A4;
-    margin: 14mm 14mm 16mm;
+  /* @page глобален и последним объявлением перекрыл бы поля PRO-251, поэтому
+     размеры листа админки живут на самом #print-root. */
+  #print-root {
+    padding: 0;
   }
 
   /* Заливки полос и плашек браузер по умолчанию не печатает — без этого
      диаграммы уходят на бумагу пустыми рамками. */
-  * {
+  #print-root * {
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
   }
 
-  h1,
-  h2 {
+  #print-root h1,
+  #print-root h2 {
     break-after: avoid;
   }
 
-  tr,
-  p {
+  #print-root tr,
+  #print-root p {
     break-inside: avoid;
   }
 }

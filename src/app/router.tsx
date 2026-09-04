@@ -9,6 +9,9 @@ import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
 import { AdminContentLayout } from '@/shared/ui/layouts/AdminContentLayout';
 
+// ── Landing (публичный корень) ───────────────────────────────────────────────
+import LandingPage from '@/pages/landing/LandingPage';
+
 // ── Auth (mobile: AuthNavigator) ──────────────────────────────────────────────
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
@@ -33,6 +36,7 @@ import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
 import ResultsPage from '@/pages/results/ResultsPage';
+import ResultPrintPage from '@/pages/results/print/ResultPrintPage';
 import ProfilePage from '@/pages/profile/ProfilePage';
 import CertificatesEditPage from '@/pages/profile/certificates/CertificatesEditPage';
 
@@ -66,13 +70,15 @@ import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetail
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
-  // Root redirect — RequireProfile will handle the profile check at /results
-  { path: '/', element: <Navigate to="/results" replace /> },
-
-  // ── Guest-only: AuthLayout (mobile: AuthNavigator) ─────────────────────────
+  // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
     element: <RequireGuest />,
     children: [
+      // Корень отдаёт посадочную страницу. Отдельного редиректа на /results
+      // здесь больше нет: RequireGuest сам уводит вошедшего в приложение, а
+      // гость видит лендинг — то есть «/» ведёт себя по-разному для разных
+      // посетителей, чего статический Navigate не умел.
+      { path: '/', element: <LandingPage /> },
       {
         element: <AuthLayout />,
         children: [
@@ -115,6 +121,10 @@ export const router = createBrowserRouter([
           // /onboarding/artifacts) because editing certificates only makes
           // sense once a profile already exists.
           { path: '/profile/certificates', element: <CertificatesEditPage /> },
+          // Printable/PDF result — chrome-free for the same reason: a
+          // document view, not a tab. Sits outside AppLayout so the nav
+          // rail never lands in the exported PDF.
+          { path: '/results/print', element: <ResultPrintPage /> },
           {
             element: <AppLayout />,
             children: [
