@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
+import { formatNumber } from '@/shared/i18n/format';
 import { buttonClasses, type ButtonSize } from '@/shared/ui/Button';
 import { useCountUp, useInView, scrollToAnchor } from '../hooks';
 
@@ -91,7 +93,7 @@ export function Counter({ target, className }: { target: number; className?: str
   const value = useCountUp(target, inView);
   return (
     <span ref={ref} className={className}>
-      {value.toLocaleString('ru-RU')}
+      {formatNumber(value)}
     </span>
   );
 }
@@ -194,22 +196,19 @@ export function CheckIcon({ className, style }: { className?: string; style?: Re
 }
 
 /** Строка «прогресс сохраняется · можно прерваться · без оценок». */
-export const TRUST_POINTS = [
-  'Прогресс сохраняется',
-  'Можно прерваться и вернуться',
-  'Без оценок и баллов',
-] as const;
+const TRUST_KEYS = ['trust.saveProgress', 'trust.pauseResume', 'trust.noGrades'] as const;
 
 export function TrustRow({
   inverted = false,
   center = false,
   className,
 }: { inverted?: boolean; center?: boolean; className?: string }) {
+  const { t } = useTranslation('landing');
   return (
     <div className={cn('flex flex-wrap gap-y-[0.7rem] gap-x-[1.4rem] mt-[1.8rem]', center ? 'justify-center' : 'max-w-[52ch]', className)}>
-      {TRUST_POINTS.map(point => (
+      {TRUST_KEYS.map(key => (
         <span
-          key={point}
+          key={key}
           className="flex items-center gap-[0.45rem] text-[0.86rem] font-medium"
           style={{
             // На инвертированном блоке призыва текст идёт по заливке --pine,
@@ -218,7 +217,7 @@ export function TrustRow({
           }}
         >
           <CheckIcon style={{ color: inverted ? 'var(--dawn-light)' : 'var(--pine-light)' }} />
-          {point}
+          {t(key)}
         </span>
       ))}
     </div>

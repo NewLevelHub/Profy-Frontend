@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mascot } from '@/shared/ui/Mascot';
 import { cn } from '@/shared/lib/cn';
 import {
@@ -44,6 +45,7 @@ function FloatCard({
 }
 
 export function HeroSection() {
+  const { t } = useTranslation('landing');
   // База центрирования не передаётся в параллакс намеренно: в Tailwind 4
   // утилиты translate-* пишут в отдельное свойство `translate`, которое
   // применяется вместе с `transform`. Продублируй смещение здесь — и маскот
@@ -84,24 +86,22 @@ export function HeroSection() {
         {/* min-w-0: без него колонка грид раздувается под самый широкий
             неразрывный элемент, и строка доверия уезжает под визуал. */}
         <Reveal className="min-w-0 max-[1024px]:text-center">
-          <Eyebrow>Профориентация нового поколения</Eyebrow>
+          <Eyebrow>{t('hero.eyebrow')}</Eyebrow>
           <h1
             className="font-display font-bold text-[clamp(2rem,3.9vw,3rem)] leading-[1.14] tracking-[-0.035em] text-balance mt-[1.4rem]"
             style={{ color: 'var(--midnight)' }}
           >
-            Найди профессию,
+            {t('hero.titleLine1')}
             <br />
-            от которой <Accent>горят глаза</Accent>
+            {t('hero.titleLine2Pre')}<Accent>{t('hero.titleAccent')}</Accent>
           </h1>
           <p className="text-secondary text-[clamp(1.02rem,1.6vw,1.18rem)] mt-[1.3rem] max-w-[52ch] max-[1024px]:mx-auto">
-            Profy — онлайн-диагностика для старшеклассников. Три теста за одно прохождение: интересы,
-            личность и мотивация. На выходе — понятный портрет себя, подходящие профессии и реальные
-            университеты с программами под каждую из них.
+            {t('hero.lead')}
           </p>
 
           <div className="flex flex-wrap gap-4 mt-[2.1rem] max-[1024px]:justify-center">
             <CtaLink to="/register" size="lg">
-              Пройти диагностику
+              {t('cta.takeDiagnostic')}
               <ArrowIcon />
             </CtaLink>
             <AnchorButton target="how" size="lg">
@@ -109,7 +109,7 @@ export function HeroSection() {
                 <circle cx="12" cy="12" r="9" />
                 <path d="M10 8.5l6 3.5-6 3.5z" fill="currentColor" stroke="none" />
               </svg>
-              Как это работает
+              {t('cta.howItWorks')}
             </AnchorButton>
           </div>
 
@@ -134,35 +134,35 @@ export function HeroSection() {
             <Mascot state="welcome" size="clamp(240px, 34vw, 410px)" className="mascot-hero" />
           </div>
 
-          <FloatCard position="top-[2%] left-[-6%] card-a max-[680px]:left-[-3%]" label="Подходит тебе" dot="var(--pine)">
+          <FloatCard position="top-[2%] left-[-6%] card-a max-[680px]:left-[-3%]" label={t('hero.cardFitLabel')} dot="var(--pine)">
             <div className="flex items-center gap-[0.6rem]">
               <span
                 className="w-8 h-8 rounded-[var(--radius)] flex items-center justify-center font-display font-bold text-[0.6rem] tracking-[-0.02em] shrink-0"
                 style={{ background: 'var(--pine)', color: 'var(--paper)' }}
               >
-                ДА
+                {t('hero.cardFitYes')}
               </span>
               <div>
                 <strong className="block text-[0.78rem] font-bold max-[680px]:text-[0.7rem]" style={{ color: 'var(--midnight)' }}>
-                  Дата-аналитик
+                  {t('hero.cardFitRole')}
                 </strong>
-                <small className="text-[0.65rem] text-subtle">сильное совпадение</small>
+                <small className="text-[0.65rem] text-subtle">{t('hero.cardFitMatch')}</small>
               </div>
             </div>
           </FloatCard>
 
-          <FloatCard position="top-[6%] right-[-8%] card-b max-[680px]:right-[-3%]" label="Программа в вузе" dot="var(--lake)">
+          <FloatCard position="top-[6%] right-[-8%] card-b max-[680px]:right-[-3%]" label={t('hero.cardProgramLabel')} dot="var(--lake)">
             <strong className="block text-[0.85rem] font-bold mb-[0.4rem]" style={{ color: 'var(--midnight)' }}>
               Nazarbayev University
             </strong>
-            <em className="not-italic text-[0.68rem] text-subtle">Computer Science · Астана</em>
+            <em className="not-italic text-[0.68rem] text-subtle">{t('hero.cardProgramMeta')}</em>
           </FloatCard>
 
-          <FloatCard position="bottom-[8%] left-[-9%] card-c max-[680px]:left-[-3%]" label="Карта интересов" dot="var(--dawn)">
+          <FloatCard position="bottom-[8%] left-[-9%] card-c max-[680px]:left-[-3%]" label={t('hero.cardInterestsLabel')} dot="var(--dawn)">
             {[
-              { label: 'Исследования', width: '92%', color: 'var(--pine-light)' },
-              { label: 'Творчество', width: '81%', color: 'var(--lake)' },
-              { label: 'Работа с людьми', width: '68%', color: 'var(--dawn)' },
+              { label: t('hero.cardInterestsBar1'), width: '92%', color: 'var(--pine-light)' },
+              { label: t('hero.cardInterestsBar2'), width: '81%', color: 'var(--lake)' },
+              { label: t('hero.cardInterestsBar3'), width: '68%', color: 'var(--dawn)' },
             ].map(bar => (
               <div key={bar.label} className="mb-2 text-[0.66rem] text-secondary last:mb-0">
                 <span className="block mb-[0.22rem]">{bar.label}</span>
@@ -173,7 +173,7 @@ export function HeroSection() {
             ))}
           </FloatCard>
 
-          <FloatCard position="bottom-0 right-[-6%] card-d max-[680px]:right-[-3%]" label="Твой маршрут" dot="var(--pine-light)">
+          <FloatCard position="bottom-0 right-[-6%] card-d max-[680px]:right-[-3%]" label={t('hero.cardRouteLabel')} dot="var(--pine-light)">
             <ul className="list-none">
               <li className="flex items-center gap-2 text-[0.72rem] mb-[0.4rem] text-secondary">
                 <span className="w-4 h-4 rounded-full shrink-0 flex items-center justify-center" style={{ background: 'var(--pine-light)' }}>
@@ -181,7 +181,7 @@ export function HeroSection() {
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
-                <span className="line-through text-subtle">Пройти тесты</span>
+                <span className="line-through text-subtle">{t('hero.cardRouteStep1')}</span>
               </li>
               <li className="flex items-center gap-2 text-[0.72rem] mb-[0.4rem] text-secondary">
                 <span
@@ -189,12 +189,12 @@ export function HeroSection() {
                   style={{ border: '1.5px solid var(--dawn)' }}
                 />
                 <span className="font-semibold" style={{ color: 'var(--midnight)' }}>
-                  Изучить профессии
+                  {t('hero.cardRouteStep2')}
                 </span>
               </li>
               <li className="flex items-center gap-2 text-[0.72rem] text-secondary">
                 <span className="w-4 h-4 rounded-full shrink-0" style={{ border: '1.5px solid var(--border-strong)' }} />
-                <span>Выбрать программу</span>
+                <span>{t('hero.cardRouteStep3')}</span>
               </li>
             </ul>
           </FloatCard>

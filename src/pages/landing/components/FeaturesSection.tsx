@@ -1,19 +1,18 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Accent, Reveal, SectionHead } from './primitives';
 import { useParallax } from '../hooks';
 
 /* Каждая карточка несёт свой цвет из палитры — иконка и её плашка совпадают,
    поэтому сетка читается как шесть разных вещей, а не шесть одинаковых. */
-const FEATURES: { icon: ReactNode; stroke: string; card: string; plate: string; ring: string; title: string; desc: string }[] = [
+const FEATURE_META: { icon: ReactNode; stroke: string; card: string; plate: string; ring: string }[] = [
   {
     icon: <><path d="M4 7h9M19 7h1M4 17h5M15 17h5" /><circle cx="16" cy="7" r="2.2" /><circle cx="12" cy="17" r="2.2" /></>,
     stroke: 'var(--lake)',
     card: 'color-mix(in srgb, var(--lake) 5.5%, transparent)',
     plate: 'color-mix(in srgb, var(--lake) 12%, transparent)',
     ring: 'color-mix(in srgb, var(--lake) 30%, transparent)',
-    title: 'Разные форматы экранов',
-    desc: 'Шкала согласия, расстановка приоритетов, выбор из двух карточек — а не одна длинная анкета на сто вопросов.',
   },
   {
     icon: <><circle cx="12" cy="12" r="9" /><path d="M10 9v6M14 9v6" /></>,
@@ -21,8 +20,6 @@ const FEATURES: { icon: ReactNode; stroke: string; card: string; plate: string; 
     card: 'color-mix(in srgb, var(--pine) 5%, transparent)',
     plate: 'color-mix(in srgb, var(--pine) 10%, transparent)',
     ring: 'color-mix(in srgb, var(--pine) 28%, transparent)',
-    title: 'Привалы по пути',
-    desc: 'На 25%, 50% и 75% — короткая пауза. А если отвечаешь слишком быстро, система мягко напомнит не спешить: скорость никак не оценивается.',
   },
   {
     icon: <><path d="M20 15a3 3 0 01-3 3H8l-4 3V6a3 3 0 013-3h10a3 3 0 013 3z" /><path d="M8.5 9.5h7M8.5 13h4" /></>,
@@ -30,8 +27,6 @@ const FEATURES: { icon: ReactNode; stroke: string; card: string; plate: string; 
     card: 'color-mix(in srgb, var(--pine-light) 7%, transparent)',
     plate: 'color-mix(in srgb, var(--pine-light) 16%, transparent)',
     ring: 'color-mix(in srgb, var(--pine-light) 40%, transparent)',
-    title: 'Рассказ о себе',
-    desc: 'Короткий рассказ в свободной форме дополняет отчёт. А если интересы пока не выражены ярко — система опирается прежде всего на него.',
   },
   {
     icon: <><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></>,
@@ -39,8 +34,6 @@ const FEATURES: { icon: ReactNode; stroke: string; card: string; plate: string; 
     card: 'color-mix(in srgb, var(--lake-light) 7%, transparent)',
     plate: 'color-mix(in srgb, var(--lake-light) 16%, transparent)',
     ring: 'color-mix(in srgb, var(--lake-light) 40%, transparent)',
-    title: 'Персональный отчёт',
-    desc: 'Текст пишет ИИ, но только на основе подтверждённых фактов о тебе — ничего не выдумывает. Если ИИ вдруг недоступен, готов запасной вариант по тем же данным.',
   },
   {
     icon: <><path d="M5 20v-8M12 20V4M19 20v-6" /><path d="M3 20h18" /></>,
@@ -48,8 +41,6 @@ const FEATURES: { icon: ReactNode; stroke: string; card: string; plate: string; 
     card: 'color-mix(in srgb, var(--dawn) 6%, transparent)',
     plate: 'color-mix(in srgb, var(--dawn) 14%, transparent)',
     ring: 'color-mix(in srgb, var(--dawn) 34%, transparent)',
-    title: 'Топ-10 профессий',
-    desc: 'Разбиты на три уровня: сильное совпадение, хорошее совпадение и «можно попробовать» — и у каждой объяснение, почему она подошла.',
   },
   {
     icon: <><path d="M22 10L12 5 2 10l10 5 10-5z" /><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5" /></>,
@@ -57,13 +48,17 @@ const FEATURES: { icon: ReactNode; stroke: string; card: string; plate: string; 
     card: 'color-mix(in srgb, var(--pine) 5%, transparent)',
     plate: 'color-mix(in srgb, var(--pine) 10%, transparent)',
     ring: 'color-mix(in srgb, var(--pine) 28%, transparent)',
-    title: 'Реальные вузы и программы',
-    desc: 'Связь «профессия → программа в вузе» выстроена экспертами вручную. Показываем город и сортируем по международным и региональным рейтингам.',
   },
 ];
 
 export function FeaturesSection() {
+  const { t } = useTranslation('landing');
   const mascotRef = useParallax<HTMLDivElement>(0.15);
+  const FEATURES = FEATURE_META.map((m, i) => ({
+    ...m,
+    title: t(`features.f${i + 1}Title`),
+    desc: t(`features.f${i + 1}Desc`),
+  }));
 
   return (
     <section id="features" className="section-gradient relative py-[clamp(4.5rem,8vw,7.5rem)]">
@@ -79,9 +74,9 @@ export function FeaturesSection() {
           </div>
           <SectionHead
             center
-            eyebrow="Возможности"
-            title={<>Всё для осознанного выбора — <Accent>в одном месте</Accent></>}
-            sub="От первого вопроса до конкретной программы в вузе — без сухих баллов и без «магии» ИИ, которая ничего не проверяет"
+            eyebrow={t('features.eyebrow')}
+            title={<>{t('features.titlePre')}<Accent>{t('features.titleAccent')}</Accent></>}
+            sub={t('features.sub')}
           />
         </Reveal>
 
