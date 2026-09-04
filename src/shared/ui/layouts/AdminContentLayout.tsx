@@ -1,46 +1,14 @@
-import { Link, Outlet, useLocation } from 'react-router';
-import { cn } from '@/shared/lib/cn';
-import { PageContainer } from '@/shared/ui/PageContainer';
-import { MONO_LABEL } from '@/shared/ui/admin/density';
-
-const CONTENT_NAV_ITEMS = [
-  { to: '/admin/content/questions', label: 'Вопросы' },
-  { to: '/admin/content/question-pairs', label: 'Пары вопросов' },
-  { to: '/admin/content/motivation-statements', label: 'Утверждения мотивации' },
-  { to: '/admin/content/motivation-pairs', label: 'Пары мотивации' },
-  { to: '/admin/content/directions', label: 'Направления' },
-] as const;
+import { Outlet } from 'react-router';
 
 /**
- * Second-level tab bar for the 5 question-bank content entities
- * (docs/admin-questions-content-overrides-plan.md) — nested one level below
- * `AdminLayout`'s top nav rather than 5 more top-level tabs, so the main
- * admin nav doesn't get crowded.
+ * Pass-through for the `/admin/content/*` route branch.
+ *
+ * It used to render a second tab row for the five content entities. Those are
+ * now first-class destinations in `AdminLayout`'s side rail — visible without
+ * clicking into a section first — so this layout carries no chrome of its own.
+ * The route nesting is kept because the child routes are declared relative to
+ * it and the URLs are already in use.
  */
 export function AdminContentLayout() {
-  const location = useLocation();
-
-  return (
-    <PageContainer className="space-y-4">
-      <nav className="flex items-center gap-1 flex-wrap">
-        {CONTENT_NAV_ITEMS.map((item) => {
-          const isActive = location.pathname.startsWith(item.to);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                MONO_LABEL,
-                'px-2.5 py-1.5 rounded-[3px] transition-colors',
-                isActive ? 'bg-brand-subtle text-brand' : 'text-muted hover:text-secondary',
-              )}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-      <Outlet />
-    </PageContainer>
-  );
+  return <Outlet />;
 }

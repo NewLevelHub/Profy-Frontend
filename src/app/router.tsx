@@ -138,7 +138,7 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/admin', element: <Navigate to="/admin/users" replace /> },
                   {
-                    // Persistent admin chrome (role badge) for every admin page
+                    // Persistent admin chrome (section rail) for every admin page
                     element: <AdminLayout />,
                     children: [
                       { path: '/admin/users', element: <AdminUsersPage /> },

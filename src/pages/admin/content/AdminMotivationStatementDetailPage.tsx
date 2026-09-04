@@ -1,19 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
-import { buildPatchBody } from '@/shared/lib/adminPatch';
 import { cn } from '@/shared/lib/cn';
+import { useAdminForm } from '@/shared/lib/useAdminForm';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
-import { Card } from '@/shared/ui/Card';
-import { Button } from '@/shared/ui/Button';
-import { Heading } from '@/shared/ui/typography/Heading';
-import { AdminSectionHeading } from '@/shared/ui/admin/AdminSectionHeading';
+import { listReturnPath } from '@/shared/lib/listReturnPath';
+import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
+import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
-import { ADMIN_INPUT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminMotivationStatementDetail, AdminMotivationStatementUpdateRequest, MotivationCategory } from '@/shared/types';
+import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
+import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
+import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
+import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import type {
+  AdminMotivationStatementDetail,
+  AdminMotivationStatementListItem,
+  AdminMotivationStatementUpdateRequest,
+  MotivationCategory,
+} from '@/shared/types';
 
 const EDITABLE_KEYS = ['category', 'text', 'text_junior'] as const satisfies readonly (keyof AdminMotivationStatementUpdateRequest)[];
+
+const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
+  category: 'категория',
+  text: 'текст',
+  text_junior: 'текст для junior',
+};
 
 interface FormState {
   category: MotivationCategory;
@@ -29,17 +42,19 @@ function toFormState(detail: AdminMotivationStatementDetail): FormState {
   };
 }
 
-const LOCK_REASON = 'Отредактировано администратором — защищено от перезаписи и удаления при обновлении контент-банка';
+const LOCK_REASON =
+  'Значение задано вручную. Автообновление контент-банка не перезапишет его и не удалит строку.';
+
+/** Enough to cover the whole statement bank in one request; see the list page. */
+const SIBLING_FETCH_LIMIT = 99;
 
 export default function AdminMotivationStatementDetailPage() {
   const { statementId } = useParams<{ statementId: string }>();
   const [detail, setDetail] = useState<AdminMotivationStatementDetail | null>(null);
-  const [initial, setInitial] = useState<FormState | null>(null);
-  const [form, setForm] = useState<FormState | null>(null);
+  const [siblings, setSiblings] = useState<AdminMotivationStatementListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [saveMessage, setSaveMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     if (!statementId) return;
@@ -47,16 +62,23 @@ export default function AdminMotivationStatementDetailPage() {
 
     async function load() {
       setLoading(true);
-      setError('');
+      setLoadError('');
       try {
         const data = await adminApi.getMotivationStatement(statementId!);
         if (cancelled) return;
         setDetail(data);
-        const state = toFormState(data);
-        setInitial(state);
-        setForm(state);
+
+        // The other two statements of this triplet. There is no
+        // `?triplet_index=` filter (docs/admin-backend-requests-pro-242.md §7),
+        // so the bank is fetched once and filtered here — the category
+        // uniqueness rule cannot be checked against rows you cannot see.
+        const list = await adminApi.listMotivationStatements({ page: 1, limit: SIBLING_FETCH_LIMIT });
+        if (cancelled) return;
+        setSiblings(
+          list.items.filter((item) => item.triplet_index === data.triplet_index && item.id !== data.id),
+        );
       } catch {
-        if (!cancelled) setError('Не удалось загрузить утверждение');
+        if (!cancelled) setLoadError('Не удалось загрузить утверждение');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -66,112 +88,171 @@ export default function AdminMotivationStatementDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [statementId]);
+  }, [statementId, reloadToken]);
 
-  if (loading) {
-    return <div className="py-16 text-center text-secondary font-semibold">Загрузка...</div>;
-  }
+  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
 
-  if (error || !detail || !form || !initial) {
-    return <Card className="text-red-600 font-semibold">{error || 'Утверждение не найдено'}</Card>;
+  const { form, setField, patch, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
+    FormState,
+    AdminMotivationStatementDetail
+  >({
+    initial,
+    keys: EDITABLE_KEYS,
+    labels: FIELD_LABELS,
+    toForm: toFormState,
+    onSave: async (nextPatch) => {
+      const wire = { ...nextPatch } as AdminMotivationStatementUpdateRequest;
+      if ('text_junior' in wire) wire.text_junior = form!.text_junior.trim() || null;
+      const updated = await adminApi.updateMotivationStatement(statementId!, wire);
+      setDetail(updated);
+      return updated;
+    },
+  });
+
+  if (loading) return <AdminLoading label="Загрузка утверждения" />;
+  if (loadError || !detail || !form) {
+    return <AdminError message={loadError || 'Утверждение не найдено'} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(Object.keys(detail.overrides));
-
-  function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
-  }
-
-  const patch = buildPatchBody(initial, form, EDITABLE_KEYS);
-  const isDirty = Object.keys(patch).length > 0;
-
-  async function handleSave() {
-    if (!form || !initial || !statementId) return;
-    if (!isDirty) {
-      setSaveMessage({ kind: 'success', text: 'Нет изменений для сохранения' });
-      return;
-    }
-    setSaving(true);
-    setSaveMessage(null);
-    try {
-      const wirePatch: AdminMotivationStatementUpdateRequest = { ...patch };
-      if ('text_junior' in wirePatch) wirePatch.text_junior = form.text_junior.trim() || null;
-
-      const updated = await adminApi.updateMotivationStatement(statementId, wirePatch);
-      setDetail(updated);
-      const state = toFormState(updated);
-      setInitial(state);
-      setForm(state);
-      setSaveMessage({ kind: 'success', text: 'Сохранено' });
-    } catch {
-      setSaveMessage({ kind: 'error', text: 'Не удалось сохранить изменения' });
-    } finally {
-      setSaving(false);
-    }
-  }
+  const conflicting = siblings.filter((sibling) => sibling.category === form.category);
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <Link to="/admin/content/motivation-statements">
-          <Button variant="ghost" size="sm" muteSound>
-            <ArrowLeft size={16} />
-            Назад
-          </Button>
-        </Link>
-        <div>
-          <Heading level="display-sm" className="text-primary">
-            Утверждение · триплет {detail.triplet_index}
-          </Heading>
-          <p className="font-mono text-mono-xs text-muted mt-0.5">Порядок в триплете: {detail.order}</p>
-        </div>
-      </div>
+    <>
+      <AdminPageHeader
+        crumbs={[
+          { label: 'Утверждения мотивации', to: listReturnPath('/admin/content/motivation-statements') },
+          { label: `Тройка ${detail.triplet_index}` },
+        ]}
+        title={detail.text}
+        meta={
+          <p className={cn(ADMIN_META, 'm-0')}>
+            Тройка {detail.triplet_index} · {MOTIVATION_CATEGORY_LABELS[detail.category]}. Ученик
+            ранжирует три утверждения тройки: важнее всего / нейтрально / менее всего.
+          </p>
+        }
+      />
 
-      <Card className="rounded-[3px] p-3 space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <AdminSectionHeading title="Содержание" />
-          <div className="flex items-center gap-2">
-            {saveMessage && (
-              <span className={cn(MONO_LABEL, saveMessage.kind === 'error' ? 'text-danger' : 'text-brand')}>
-                {saveMessage.text.toUpperCase()}
-              </span>
-            )}
-            <Button size="sm" onClick={handleSave} isLoading={saving} disabled={!isDirty} muteSound>
-              Сохранить
-            </Button>
-          </div>
-        </div>
-
-        <AdminField label="Категория" locked={locked.has('category')} lockReason={LOCK_REASON}>
-          <select className={ADMIN_INPUT} value={form.category} onChange={(e) => setField('category', e.target.value as MotivationCategory)}>
-            {(Object.keys(MOTIVATION_CATEGORY_LABELS) as MotivationCategory[]).map((key) => (
-              <option key={key} value={key}>
-                {MOTIVATION_CATEGORY_LABELS[key]}
-              </option>
-            ))}
-          </select>
-        </AdminField>
-        {/* No server-side check that 3 rows in a triplet cover 3 distinct
-            categories — the list endpoint has no triplet_index filter to
-            cheaply fetch the other 2 rows, so this stays a soft reminder
-            rather than a live validation. */}
-        <p className={MONO_MUTE}>
-          КАТЕГОРИЯ ДОЛЖНА БЫТЬ УНИКАЛЬНА ВНУТРИ ТРИПЛЕТА {detail.triplet_index} — БЭКЕНД ЭТО НЕ ПРОВЕРЯЕТ
-        </p>
-
-        <AdminField label="Текст (взрослая формулировка)" locked={locked.has('text')} lockReason={LOCK_REASON}>
-          <textarea className={cn(ADMIN_INPUT, 'min-h-[64px] resize-y')} value={form.text} onChange={(e) => setField('text', e.target.value)} />
+      <AdminCard
+        title="Содержание"
+        description="Взрослая формулировка используется для middle и senior; junior-вариант заменяет её на младшем треке."
+      >
+        <AdminField
+          label="Категория"
+          locked={locked.has('category')}
+          lockReason={LOCK_REASON}
+          error={
+            conflicting.length > 0
+              ? `Эта категория уже занята в тройке ${detail.triplet_index}. Три утверждения тройки должны быть из разных категорий — иначе ранжирование их не различает.`
+              : undefined
+          }
+        >
+          {({ id, invalid, describedBy }) => (
+            <AdminSelect
+              id={id}
+              aria-describedby={describedBy}
+              aria-invalid={invalid}
+              className="max-w-[320px]"
+              value={form.category}
+              onChange={(e) => setField('category', e.target.value as MotivationCategory)}
+            >
+              {(Object.keys(MOTIVATION_CATEGORY_LABELS) as MotivationCategory[]).map((key) => (
+                <option key={key} value={key}>
+                  {MOTIVATION_CATEGORY_LABELS[key]}
+                </option>
+              ))}
+            </AdminSelect>
+          )}
         </AdminField>
 
-        <AdminField label="Текст для junior" locked={locked.has('text_junior')} lockReason={LOCK_REASON}>
-          <textarea
-            className={cn(ADMIN_INPUT, 'min-h-[64px] resize-y')}
-            value={form.text_junior}
-            onChange={(e) => setField('text_junior', e.target.value)}
-            placeholder="Пусто = используется текст выше для всех возрастов"
-          />
+        <AdminField label="Текст" locked={locked.has('text')} lockReason={LOCK_REASON}>
+          {({ id, describedBy }) => (
+            <textarea
+              id={id}
+              aria-describedby={describedBy}
+              className={cn(ADMIN_INPUT, 'min-h-[64px] resize-y')}
+              value={form.text}
+              onChange={(e) => setField('text', e.target.value)}
+            />
+          )}
         </AdminField>
-      </Card>
-    </div>
+
+        <AdminField
+          label="Текст для junior"
+          locked={locked.has('text_junior')}
+          lockReason={LOCK_REASON}
+          hint="Пусто — на всех возрастах покажется текст выше."
+        >
+          {({ id, describedBy }) => (
+            <textarea
+              id={id}
+              aria-describedby={describedBy}
+              className={cn(ADMIN_INPUT, 'min-h-[64px] resize-y')}
+              value={form.text_junior}
+              onChange={(e) => setField('text_junior', e.target.value)}
+            />
+          )}
+        </AdminField>
+      </AdminCard>
+
+      <AdminCard
+        title={`Остальные утверждения тройки ${detail.triplet_index}`}
+        description="Категории всех трёх должны отличаться. Бэкенд это не проверяет — сверка здесь."
+        aside={
+          conflicting.length > 0 ? (
+            <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-semibold')}>
+              <AlertTriangle size={13} />
+              Категория повторяется
+            </span>
+          ) : null
+        }
+      >
+        {siblings.length === 0 ? (
+          <p className={cn(ADMIN_META, 'm-0')}>Другие утверждения тройки не найдены.</p>
+        ) : (
+          <ul className="flex flex-col gap-2 m-0 p-0 list-none">
+            {siblings.map((sibling) => {
+              const clash = sibling.category === form.category;
+              return (
+                <li
+                  key={sibling.id}
+                  className={cn(
+                    'flex items-start gap-3 p-2.5 rounded-[3px] border',
+                    clash ? 'border-danger bg-danger-subtle' : 'border-default bg-page',
+                  )}
+                >
+                  <div className="min-w-0">
+                    <Link
+                      to={`/admin/content/motivation-statements/${sibling.id}`}
+                      className={cn(ADMIN_TEXT, 'text-primary hover:text-brand hover:underline')}
+                    >
+                      {sibling.text}
+                    </Link>
+                    <p className={cn(ADMIN_META, 'mt-1', clash && 'text-danger')}>
+                      {MOTIVATION_CATEGORY_LABELS[sibling.category]}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </AdminCard>
+
+      <AdminSaveBar
+        dirty={dirty}
+        saving={saving}
+        changedLabels={changedLabels}
+        onSave={() => save()}
+        onReset={reset}
+        state={state}
+        locksOnSave
+        blockedReason={
+          conflicting.length > 0 && 'category' in patch
+            ? 'Нельзя сохранить: категория повторяется внутри тройки.'
+            : null
+        }
+      />
+    </>
   );
 }

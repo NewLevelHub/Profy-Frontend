@@ -57,3 +57,54 @@
     font-size: 16px;
   }
 }
+
+/* ─── Печать ───────────────────────────────────────────────────────────────
+   `#print-root` — портал, который админка монтирует прямо в <body> рядом с
+   #root (см. AssessmentPrintReport). На экране он скрыт, при печати меняются
+   местами: #root уходит, лист остаётся. Портал именно в <body>, а не внутрь
+   #root, потому что скрыть #root целиком — единственный надёжный способ
+   выключить и шапку, и сайдбар, и все sticky-панели разом.                */
+#print-root {
+  display: none;
+}
+
+@media print {
+  html,
+  body {
+    /* Экранная блокировка горизонтального скролла обрезает лист по ширине
+       вьюпорта, а не по ширине страницы. */
+    overflow: visible !important;
+    background: #fff !important;
+    max-width: none !important;
+  }
+
+  body > #root {
+    display: none !important;
+  }
+
+  body > #print-root {
+    display: block !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm 14mm 16mm;
+  }
+
+  /* Заливки полос и плашек браузер по умолчанию не печатает — без этого
+     диаграммы уходят на бумагу пустыми рамками. */
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  h1,
+  h2 {
+    break-after: avoid;
+  }
+
+  tr,
+  p {
+    break-inside: avoid;
+  }
+}

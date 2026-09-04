@@ -1,186 +1,242 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router';
-import { adminApi } from '@/shared/api/admin';
-import { PageContainer } from '@/shared/ui/PageContainer';
-import { Heading } from '@/shared/ui/typography/Heading';
 import { cn } from '@/shared/lib/cn';
-import { ADMIN_CARD, ADMIN_CELL, ADMIN_RADIUS, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
+import { pluralize } from '@/shared/lib/plural';
+import { useAdminListParams } from '@/shared/lib/useAdminListParams';
+import { useRememberListQuery } from '@/shared/lib/listReturnPath';
+import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
+import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
+import { AdminDataTable, type AdminColumn, type AdminSort } from '@/shared/ui/admin/AdminDataTable';
+import { AdminPager } from '@/shared/ui/admin/AdminPager';
+import { AdminError } from '@/shared/ui/admin/AdminStates';
+import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { countryOptions, useUniversityCatalog } from './useUniversityCatalog';
 import type { AdminUniversityListItem } from '@/shared/types';
 
 const PAGE_SIZE = 20;
-const SEARCH_DEBOUNCE_MS = 350;
+const FILTER_KEYS = ['search', 'country', 'sort', 'order'] as const;
 
-function formatDate(value: string | null) {
-  if (!value) return '—';
-  return new Date(value).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+const HOME_COUNTRY = 'Казахстан';
+
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function normalize(value: string): string {
+  return value.toLowerCase().replace(/ё/g, 'е').trim();
+}
+
+/** Missing ranks sort last in both directions — an absent rank is not a rank of 0. */
+function compareNullableNumber(a: number | null, b: number | null): number {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return a - b;
 }
 
 export default function AdminUniversitiesPage() {
-  const [items, setItems] = useState<AdminUniversityListItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { page, values, setFilter, setFilters, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  useRememberListQuery('/admin/universities');
 
-  // Debounced search — the endpoint only matches `University.name`, so the
-  // placeholder says so rather than implying a full-text search.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(1);
-      setQuery(search.trim());
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const { items, loading, error, truncated, reload } = useUniversityCatalog();
+  const { search, country, sort: sortKey, order } = values;
 
-  useEffect(() => {
-    let cancelled = false;
+  const sort: AdminSort = { key: sortKey || 'name', order: order === 'desc' ? 'desc' : 'asc' };
 
-    async function load() {
-      setLoading(true);
-      setError('');
-      try {
-        const data = await adminApi.listUniversities({ page, limit: PAGE_SIZE, search: query || undefined });
-        if (cancelled) return;
-        setItems(data.items);
-        setTotal(data.total);
-      } catch {
-        if (!cancelled) setError('Не удалось загрузить университеты');
-      } finally {
-        if (!cancelled) setLoading(false);
+  const filtered = useMemo(() => {
+    const query = normalize(search);
+    const matched = items.filter((item) => {
+      if (country && item.country !== country) return false;
+      if (!query) return true;
+      // Matches the city as well, which the server-side `search` cannot do —
+      // "не находит по городу" was the standing complaint about this screen.
+      return normalize(item.name).includes(query) || normalize(item.city ?? '').includes(query);
+    });
+
+    const direction = sort.order === 'asc' ? 1 : -1;
+    return [...matched].sort((a, b) => {
+      switch (sort.key) {
+        case 'programs':
+          return (a.programs_count - b.programs_count) * direction;
+        case 'ranking':
+          return compareNullableNumber(a.ranking, b.ranking) * direction;
+        case 'uniranks':
+          return compareNullableNumber(a.uniranks_kz_rank, b.uniranks_kz_rank) * direction;
+        default:
+          // Cyrillic-aware, unlike the server's default ordering, which put all
+          // Latin-named universities first and pushed the 111 Kazakh ones to
+          // page six of thirteen.
+          return a.name.localeCompare(b.name, 'ru') * direction;
       }
-    }
+    });
+  }, [items, search, country, sort.key, sort.order]);
 
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, query]);
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const countries = useMemo(() => countryOptions(items), [items]);
+  const withoutPrograms = filtered.filter((item) => item.programs_count === 0).length;
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const rowStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rowEnd = Math.min(page * PAGE_SIZE, total);
+  const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
+
+  function handleSortChange(next: AdminSort) {
+    setFilters({ sort: next.key, order: next.order });
+  }
+
+  // Which ranking deserves a column depends on which half of the catalog you
+  // are working in: `ranking` is filled for 62 mostly-foreign universities,
+  // `uniranks_kz_rank` for 28 Kazakh ones. Showing both to everyone meant
+  // every admin always read one column of dashes.
+  const showWorldRanking = country !== HOME_COUNTRY;
+  const showKzRanking = !country || country === HOME_COUNTRY;
+
+  const rankingColumn: AdminColumn<AdminUniversityListItem> = {
+    key: 'ranking',
+    header: 'Рейтинг',
+    sortKey: 'ranking',
+    align: 'right',
+    width: '108px',
+    mobile: 'field',
+    // The model warns this column mixes scales — a global QS position, a
+    // national tier and a category rank all land in one Integer, so 32 and 248
+    // are not comparable. The verbatim source string lives in `ranking_label`,
+    // absent from the list response — docs/admin-backend-requests-pro-242.md §12.
+    headerTitle:
+      'Значения из разных источников (мировые, национальные, отраслевые) и между собой не сравнимы. Расшифровка — в карточке вуза.',
+    cell: (item) =>
+      item.ranking != null ? (
+        <span className={cn(ADMIN_NUM, 'text-secondary')}>{item.ranking}</span>
+      ) : (
+        <span className={ADMIN_META}>—</span>
+      ),
+  };
+
+  const uniranksColumn: AdminColumn<AdminUniversityListItem> = {
+    key: 'uniranks',
+    header: 'Uniranks KZ',
+    sortKey: 'uniranks',
+    align: 'right',
+    width: '128px',
+    mobile: 'field',
+    headerTitle: 'Позиция в казахстанском рейтинге uniranks.com. Пусто — ещё не проверяли.',
+    cell: (item) =>
+      item.uniranks_kz_rank != null ? (
+        <span className={cn(ADMIN_NUM, 'text-secondary')}>{item.uniranks_kz_rank}</span>
+      ) : item.uniranks_note ? (
+        <span className={ADMIN_META} title="Проверено: вуза нет в рейтинге">
+          {item.uniranks_note}
+        </span>
+      ) : (
+        <span className={ADMIN_META}>—</span>
+      ),
+  };
+
+  const columns: AdminColumn<AdminUniversityListItem>[] = [
+    {
+      key: 'name',
+      header: 'Вуз',
+      sortKey: 'name',
+      mobile: 'title',
+      cell: (item) => (
+        <Link
+          to={`/admin/universities/${item.id}`}
+          title={item.name}
+          className={cn(ADMIN_TEXT, 'font-semibold text-primary hover:text-brand hover:underline')}
+        >
+          {item.name}
+        </Link>
+      ),
+    },
+    {
+      key: 'location',
+      // With a country picked, repeating it on every row is noise.
+      header: country ? 'Город' : 'Город / страна',
+      width: country ? '160px' : '220px',
+      mobile: 'subtitle',
+      cell: (item) => {
+        const text = (country ? [item.city] : [item.city, item.country]).filter(Boolean).join(', ');
+        return text ? (
+          <span className={cn(ADMIN_TEXT, 'text-secondary')}>{text}</span>
+        ) : (
+          <span className={ADMIN_META}>—</span>
+        );
+      },
+    },
+    ...(showWorldRanking ? [rankingColumn] : []),
+    ...(showKzRanking ? [uniranksColumn] : []),
+    {
+      key: 'programs',
+      header: 'Программ',
+      sortKey: 'programs',
+      align: 'right',
+      width: '110px',
+      mobile: 'field',
+      // A university with no programs can be recommended by nothing — it is
+      // invisible to students. Worth spotting while scanning the catalog.
+      cell: (item) =>
+        item.programs_count === 0 ? (
+          <span className={cn(ADMIN_NUM, 'text-danger')} title="Без программ вуз не попадёт в подбор ученику">
+            0
+          </span>
+        ) : (
+          <span className={cn(ADMIN_NUM, 'text-secondary')}>{item.programs_count}</span>
+        ),
+    },
+    {
+      key: 'updated',
+      header: 'Правка',
+      align: 'right',
+      width: '108px',
+      mobile: 'badge',
+      headerTitle: 'Дата ручной правки из админки. Пусто — вуз только из сида, руками не трогали.',
+      // Was "Обновлён" and rendered a dash on every row: `updated_at` is set
+      // only by an admin PATCH and is null for the entire seeded catalog. A
+      // column of 252 dashes is not a column; a mark on edited rows is.
+      cell: (item) =>
+        item.updated_at ? (
+          <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatDate(item.updated_at)}</span>
+        ) : null,
+    },
+  ];
 
   return (
-    <PageContainer className="space-y-4">
-      <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <Heading level="display-sm" className="text-primary">
-          Университеты
-        </Heading>
-        <span className={MONO_MUTE}>{total} ВСЕГО</span>
-      </div>
+    <>
+      <AdminListHeader
+        title="Университеты"
+        description="Каталог вузов и их программ. Это единственный раздел, где правки уходят в данные продукта напрямую."
+      />
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Поиск по названию вуза..."
-          className={cn(
-            MONO_LABEL,
-            ADMIN_RADIUS,
-            'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal w-[260px]',
-          )}
-        />
-        {/* Search matches only University.name — city/country/aliases are not indexed by this endpoint. */}
-        <span className={MONO_MUTE}>ТОЛЬКО ПО НАЗВАНИЮ</span>
-      </div>
+      <AdminToolbar
+        search={{ value: search, onChange: handleSearch, placeholder: 'Название или город' }}
+        selects={[{ key: 'country', label: 'Страна', value: country, options: countries }]}
+        onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
+        onClearAll={clearFilters}
+      />
 
-      {error && <div className={cn(ADMIN_CARD, 'text-danger font-semibold', ADMIN_TEXT)}>{error}</div>}
+      {error && <AdminError message={error} onRetry={reload} />}
 
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
-        {loading ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>Загрузка...</div>
-        ) : items.length === 0 ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>
-            Университеты не найдены
-          </div>
-        ) : (
-          <>
-            <div className="hidden lg:block overflow-x-auto">
-              <table className={cn('w-full', ADMIN_TEXT)}>
-                <thead className="bg-raised border-b border-default">
-                  <tr>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ВУЗ</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ГОРОД / СТРАНА</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>РЕЙТИНГ</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>UNIRANKS KZ</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-right text-muted')}>ПРОГРАММ</th>
-                    <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ОБНОВЛЕНО</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr key={item.id} className="border-b border-default last:border-b-0 hover:bg-hover transition-colors">
-                      <td className={cn(ADMIN_CELL, 'align-top')}>
-                        <Link to={`/admin/universities/${item.id}`} className="font-semibold text-primary hover:text-brand hover:underline">
-                          {item.name}
-                        </Link>
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'text-secondary align-top')}>
-                        {[item.city, item.country].filter(Boolean).join(', ') || '—'}
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')}>{item.ranking ?? '—'}</td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')}>
-                        {item.uniranks_kz_rank ?? item.uniranks_note ?? '—'}
-                      </td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top text-right')}>{item.programs_count}</td>
-                      <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')}>{formatDate(item.updated_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {truncated && (
+        <AdminError message="Каталог не поместился целиком — фильтр по стране и сортировка охватывают только первые 2000 вузов." />
+      )}
 
-            <div className="lg:hidden divide-y divide-[var(--border)]">
-              {items.map((item) => (
-                <Link
-                  key={item.id}
-                  to={`/admin/universities/${item.id}`}
-                  className={cn(ADMIN_TEXT, 'p-3 flex flex-col gap-1.5 hover:bg-hover transition-colors')}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="font-semibold text-primary">{item.name}</span>
-                    <span className={MONO_MUTE}>{item.programs_count} ПРОГРАММ</span>
-                  </div>
-                  <span className="text-secondary">{[item.city, item.country].filter(Boolean).join(', ') || '—'}</span>
-                  <span className={MONO_MUTE}>ОБНОВЛЕНО {formatDate(item.updated_at)}</span>
-                </Link>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      {withoutPrograms > 0 && (
+        <p className={cn(ADMIN_META, 'm-0')}>
+          {pluralize(withoutPrograms, 'вуз', 'вуза', 'вузов')} без программ — они не попадут в подбор ученику.
+        </p>
+      )}
 
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className={MONO_MUTE}>
-          СТРОКИ {rowStart}–{rowEnd} ИЗ {total}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            ПРЕД
-          </button>
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            СЛЕД
-          </button>
-        </div>
-      </div>
-    </PageContainer>
+      <AdminDataTable
+        label="Университеты"
+        columns={columns}
+        rows={pageItems}
+        rowKey={(item) => item.id}
+        rowHref={(item) => `/admin/universities/${item.id}`}
+        loading={loading}
+        sort={sort}
+        onSortChange={handleSortChange}
+        emptyTitle="Университеты не найдены"
+        emptyHint="Поиск ищет по названию и городу. Попробуйте снять фильтр по стране."
+      />
+
+      <AdminPager page={page} total={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['вуз', 'вуза', 'вузов']} />
+    </>
   );
 }

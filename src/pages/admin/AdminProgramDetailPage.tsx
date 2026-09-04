@@ -1,17 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router';
+import { AlertTriangle, Check } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { buildPatchBody } from '@/shared/lib/adminPatch';
 import { cn } from '@/shared/lib/cn';
-import { Card } from '@/shared/ui/Card';
-import { Button } from '@/shared/ui/Button';
-import { PageContainer } from '@/shared/ui/PageContainer';
-import { Heading } from '@/shared/ui/typography/Heading';
-import { AdminSectionHeading } from '@/shared/ui/admin/AdminSectionHeading';
+import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
+import { listReturnPath } from '@/shared/lib/listReturnPath';
+import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
+import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { AdminSaveBar, type SaveState } from '@/shared/ui/admin/AdminSaveBar';
+import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
-import { ADMIN_INPUT, ADMIN_TEXTAREA, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
+import { ADMIN_INPUT, ADMIN_TEXT, ADMIN_TEXTAREA, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
 import type { AdminProgramDetail, AdminProgramUpdateRequest } from '@/shared/types';
 
 const SIMPLE_KEYS = [
@@ -24,8 +25,16 @@ const SIMPLE_KEYS = [
   'source_url',
 ] as const satisfies readonly (keyof AdminProgramUpdateRequest)[];
 
-// Decoupled from `AdminProgramUpdateRequest`'s wire nullability, same
-// reasoning as `AdminUniversityDetailPage`'s `FormState`.
+const SIMPLE_LABELS: Record<(typeof SIMPLE_KEYS)[number], string> = {
+  name: 'название',
+  language: 'язык обучения',
+  cost_per_year: 'стоимость',
+  cost_label: 'подпись стоимости',
+  description: 'описание',
+  who_its_for: 'кому подходит',
+  source_url: 'источник',
+};
+
 interface SimpleForm {
   name: string;
   language: string;
@@ -82,44 +91,51 @@ function toRequirementsForm(requirements: Record<string, unknown>): Requirements
 }
 
 function toDeadlinesForm(deadlines: Record<string, unknown>): DeadlinesForm {
-  return { application_close: typeof deadlines.application_close === 'string' ? deadlines.application_close : '' };
+  return {
+    application_close: typeof deadlines.application_close === 'string' ? deadlines.application_close : '',
+  };
 }
 
-function toFloatOrNull(value: string): number | null {
-  if (value.trim() === '') return null;
-  const parsed = Number.parseFloat(value);
-  return Number.isNaN(parsed) ? null : parsed;
-}
-
-function RequirementCheckbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex items-center gap-2 text-body-sm text-primary cursor-pointer">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="accent-[var(--brand)]" />
-      {label}
-    </label>
-  );
-}
+const LOCK_REASON = 'Значение задано вручную. Сиды и бэкфиллы при следующем деплое его не перезапишут.';
 
 export default function AdminProgramDetailPage() {
   const { programId } = useParams<{ programId: string }>();
   const [detail, setDetail] = useState<AdminProgramDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
 
   const [initialSimple, setInitialSimple] = useState<SimpleForm | null>(null);
   const [simple, setSimple] = useState<SimpleForm | null>(null);
-
   const [initialReq, setInitialReq] = useState<RequirementsForm | null>(null);
   const [req, setReq] = useState<RequirementsForm | null>(null);
-
   const [initialDeadlines, setInitialDeadlines] = useState<DeadlinesForm | null>(null);
   const [deadlines, setDeadlines] = useState<DeadlinesForm | null>(null);
-
   const [initialGrantsText, setInitialGrantsText] = useState('');
   const [grantsText, setGrantsText] = useState('');
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [saveMessage, setSaveMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' });
+
+  function hydrate(data: AdminProgramDetail) {
+    setDetail(data);
+
+    const simpleState = toSimpleForm(data);
+    setInitialSimple(simpleState);
+    setSimple(simpleState);
+
+    const reqState = toRequirementsForm(data.requirements);
+    setInitialReq(reqState);
+    setReq(reqState);
+
+    const deadlinesState = toDeadlinesForm(data.deadlines);
+    setInitialDeadlines(deadlinesState);
+    setDeadlines(deadlinesState);
+
+    const grantsJson = JSON.stringify(data.grants, null, 2);
+    setInitialGrantsText(grantsJson);
+    setGrantsText(grantsJson);
+  }
 
   useEffect(() => {
     if (!programId) return;
@@ -127,29 +143,12 @@ export default function AdminProgramDetailPage() {
 
     async function load() {
       setLoading(true);
-      setError('');
+      setLoadError('');
       try {
         const data = await adminApi.getProgram(programId!);
-        if (cancelled) return;
-        setDetail(data);
-
-        const simpleState = toSimpleForm(data);
-        setInitialSimple(simpleState);
-        setSimple(simpleState);
-
-        const reqState = toRequirementsForm(data.requirements);
-        setInitialReq(reqState);
-        setReq(reqState);
-
-        const deadlinesState = toDeadlinesForm(data.deadlines);
-        setInitialDeadlines(deadlinesState);
-        setDeadlines(deadlinesState);
-
-        const grantsJson = JSON.stringify(data.grants, null, 2);
-        setInitialGrantsText(grantsJson);
-        setGrantsText(grantsJson);
+        if (!cancelled) hydrate(data);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить программу');
+        if (!cancelled) setLoadError('Не удалось загрузить программу');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -159,14 +158,40 @@ export default function AdminProgramDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [programId]);
+  }, [programId, reloadToken]);
 
-  if (loading) {
-    return <div className="py-16 text-center text-secondary font-semibold">Загрузка...</div>;
-  }
+  const simplePatch = useMemo(
+    () => (initialSimple && simple ? buildPatchBody(initialSimple, simple, SIMPLE_KEYS) : {}),
+    [initialSimple, simple],
+  );
+  const reqPatch = useMemo(
+    () => (initialReq && req ? buildPatchBody(initialReq, req, REQUIREMENTS_KEYS) : {}),
+    [initialReq, req],
+  );
+  const deadlinesPatch = useMemo(
+    () =>
+      initialDeadlines && deadlines
+        ? buildPatchBody(initialDeadlines, deadlines, ['application_close'] as const)
+        : {},
+    [initialDeadlines, deadlines],
+  );
+  const grantsDirty = grantsText !== initialGrantsText;
 
-  if (error || !detail || !simple || !initialSimple || !req || !initialReq || !deadlines || !initialDeadlines) {
-    return <Card className="text-red-600 font-semibold">{error || 'Программа не найдена'}</Card>;
+  const grantsError = useMemo(() => validateGrants(grantsText), [grantsText]);
+
+  const changedLabels = [
+    ...(Object.keys(simplePatch) as (keyof SimpleForm)[]).map((key) => SIMPLE_LABELS[key]),
+    ...(Object.keys(reqPatch).length > 0 ? ['требования'] : []),
+    ...(Object.keys(deadlinesPatch).length > 0 ? ['дедлайны'] : []),
+    ...(grantsDirty ? ['гранты'] : []),
+  ];
+  const dirty = changedLabels.length > 0;
+
+  useUnsavedGuard(dirty);
+
+  if (loading) return <AdminLoading label="Загрузка программы" />;
+  if (loadError || !detail || !simple || !req || !deadlines) {
+    return <AdminError message={loadError || 'Программа не найдена'} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(detail.admin_locked_fields);
@@ -179,186 +204,338 @@ export default function AdminProgramDetailPage() {
     setReq((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
-  const simplePatch = buildPatchBody(initialSimple, simple, SIMPLE_KEYS);
-  const reqPatch = buildPatchBody(initialReq, req, REQUIREMENTS_KEYS);
-  const deadlinesPatch = buildPatchBody(initialDeadlines, deadlines, ['application_close'] as const);
-  const grantsDirty = grantsText !== initialGrantsText;
-  const isDirty = Object.keys(simplePatch).length > 0 || Object.keys(reqPatch).length > 0 || Object.keys(deadlinesPatch).length > 0 || grantsDirty;
+  function handleReset() {
+    if (detail) hydrate(detail);
+    setSaveState({ kind: 'idle' });
+  }
 
   async function handleSave() {
     if (!programId || !detail || !req || !deadlines) return;
 
     const patch: AdminProgramUpdateRequest = { ...simplePatch };
 
-    // requirements/deadlines are whole-object replace on the backend — merge
-    // the full original object with the (possibly edited) known subset so any
-    // keys this form doesn't render (e.g. admission_scores_2026) survive.
-    if (Object.keys(reqPatch).length > 0) {
-      patch.requirements = { ...detail.requirements, ...req };
-    }
-    if (Object.keys(deadlinesPatch).length > 0) {
-      patch.deadlines = { ...detail.deadlines, ...deadlines };
-    }
-
+    // `requirements`/`deadlines` are whole-object replaces on the backend, so
+    // the original object is merged under the edited subset — keys this form
+    // doesn't render (admission_scores_2026 and friends) must survive a save.
+    if (Object.keys(reqPatch).length > 0) patch.requirements = { ...detail.requirements, ...req };
+    if (Object.keys(deadlinesPatch).length > 0) patch.deadlines = { ...detail.deadlines, ...deadlines };
     if (grantsDirty) {
-      try {
-        patch.grants = JSON.parse(grantsText);
-      } catch {
-        setSaveMessage({ kind: 'error', text: 'Некорректный JSON в поле «Гранты»' });
+      if (grantsError) {
+        setSaveState({ kind: 'error', message: grantsError });
         return;
       }
-    }
-
-    if (Object.keys(patch).length === 0) {
-      setSaveMessage({ kind: 'success', text: 'Нет изменений для сохранения' });
-      return;
+      patch.grants = JSON.parse(grantsText);
     }
 
     setSaving(true);
-    setSaveMessage(null);
+    setSaveState({ kind: 'idle' });
     try {
       const updated = await adminApi.updateProgram(programId, patch);
-      setDetail(updated);
-
-      const simpleState = toSimpleForm(updated);
-      setInitialSimple(simpleState);
-      setSimple(simpleState);
-
-      const reqState = toRequirementsForm(updated.requirements);
-      setInitialReq(reqState);
-      setReq(reqState);
-
-      const deadlinesState = toDeadlinesForm(updated.deadlines);
-      setInitialDeadlines(deadlinesState);
-      setDeadlines(deadlinesState);
-
-      const grantsJson = JSON.stringify(updated.grants, null, 2);
-      setInitialGrantsText(grantsJson);
-      setGrantsText(grantsJson);
-
-      setSaveMessage({ kind: 'success', text: 'Сохранено' });
+      hydrate(updated);
+      setSaveState({ kind: 'saved' });
     } catch {
-      setSaveMessage({ kind: 'error', text: 'Не удалось сохранить изменения' });
+      setSaveState({ kind: 'error', message: 'Не удалось сохранить изменения' });
     } finally {
       setSaving(false);
     }
   }
 
+  const untouchedRequirementKeys = Object.keys(detail.requirements).filter(
+    (key) => !REQUIREMENTS_KEYS.includes(key as never),
+  );
+  const untouchedDeadlineKeys = Object.keys(detail.deadlines).filter((key) => key !== 'application_close');
+
   return (
-    <PageContainer size="narrow" className="space-y-5">
-      <div className="flex items-center gap-3">
-        <Link to={`/admin/universities/${detail.university.id}`}>
-          <Button variant="ghost" size="sm" muteSound>
-            <ArrowLeft size={16} />
-            Назад
-          </Button>
-        </Link>
-        <div>
-          <Heading level="display-sm" className="text-primary">
-            {detail.name}
-          </Heading>
-          <p className="font-mono text-mono-xs text-muted mt-0.5">{detail.university.name}</p>
+    <>
+      <AdminPageHeader
+        crumbs={[
+          { label: 'Университеты', to: listReturnPath('/admin/universities') },
+          { label: detail.university.name, to: `/admin/universities/${detail.university.id}` },
+          { label: detail.name },
+        ]}
+        title={detail.name}
+        meta={detail.university.name}
+      />
+
+      <AdminCard title="Основное">
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <AdminField label="Название" locked={locked.has('name')} lockReason={LOCK_REASON}>
+            {({ id, describedBy }) => (
+              <input
+                id={id}
+                aria-describedby={describedBy}
+                className={ADMIN_INPUT}
+                value={simple.name}
+                onChange={(e) => setSimpleField('name', e.target.value)}
+              />
+            )}
+          </AdminField>
+          <AdminField label="Язык обучения" locked={locked.has('language')} lockReason={LOCK_REASON}>
+            {({ id, describedBy }) => (
+              <input
+                id={id}
+                aria-describedby={describedBy}
+                className={ADMIN_INPUT}
+                value={simple.language}
+                onChange={(e) => setSimpleField('language', e.target.value)}
+              />
+            )}
+          </AdminField>
+          <AdminField
+            label="Стоимость за год, ₸"
+            locked={locked.has('cost_per_year')}
+            lockReason={LOCK_REASON}
+            hint="Число для фильтров и сравнения."
+          >
+            {({ id, describedBy }) => (
+              <input
+                id={id}
+                aria-describedby={describedBy}
+                inputMode="decimal"
+                className={cn(ADMIN_INPUT, 'tabular-nums')}
+                value={simple.cost_per_year ?? ''}
+                onChange={(e) => setSimpleField('cost_per_year', toFloatOrNull(e.target.value))}
+              />
+            )}
+          </AdminField>
+          <AdminField
+            label="Подпись стоимости"
+            locked={locked.has('cost_label')}
+            lockReason={LOCK_REASON}
+            hint="Показывается ученику вместо числа: «бесплатно», «по гранту»."
+          >
+            {({ id, describedBy }) => (
+              <input
+                id={id}
+                aria-describedby={describedBy}
+                className={ADMIN_INPUT}
+                value={simple.cost_label}
+                onChange={(e) => setSimpleField('cost_label', e.target.value)}
+              />
+            )}
+          </AdminField>
+          <AdminField
+            label="Источник"
+            locked={locked.has('source_url')}
+            lockReason={LOCK_REASON}
+            className="sm:col-span-2"
+          >
+            {({ id, describedBy }) => (
+              <input
+                id={id}
+                aria-describedby={describedBy}
+                type="url"
+                className={ADMIN_INPUT}
+                value={simple.source_url}
+                onChange={(e) => setSimpleField('source_url', e.target.value)}
+              />
+            )}
+          </AdminField>
         </div>
-      </div>
 
-      <div className="flex items-center justify-end gap-2">
-        {saveMessage && (
-          <span className={cn(MONO_LABEL, saveMessage.kind === 'error' ? 'text-danger' : 'text-brand')}>
-            {saveMessage.text.toUpperCase()}
-          </span>
-        )}
-        <Button size="sm" onClick={handleSave} isLoading={saving} disabled={!isDirty} muteSound>
-          Сохранить
-        </Button>
-      </div>
-
-      <Card className="rounded-[3px] p-3 space-y-3">
-        <AdminSectionHeading title="Основное" />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <AdminField label="Название" locked={locked.has('name')}>
-            <input className={ADMIN_INPUT} value={simple.name} onChange={(e) => setSimpleField('name', e.target.value)} />
-          </AdminField>
-          <AdminField label="Язык обучения" locked={locked.has('language')}>
-            <input className={ADMIN_INPUT} value={simple.language} onChange={(e) => setSimpleField('language', e.target.value)} />
-          </AdminField>
-          <AdminField label="Стоимость / год" locked={locked.has('cost_per_year')}>
-            <input
-              type="number"
-              className={ADMIN_INPUT}
-              value={simple.cost_per_year ?? ''}
-              onChange={(e) => setSimpleField('cost_per_year', toFloatOrNull(e.target.value))}
+        <AdminField label="Описание" locked={locked.has('description')} lockReason={LOCK_REASON}>
+          {({ id, describedBy }) => (
+            <textarea
+              id={id}
+              aria-describedby={describedBy}
+              className={ADMIN_TEXTAREA}
+              value={simple.description}
+              onChange={(e) => setSimpleField('description', e.target.value)}
             />
-          </AdminField>
-          <AdminField label="Подпись стоимости" locked={locked.has('cost_label')}>
-            <input className={ADMIN_INPUT} value={simple.cost_label} onChange={(e) => setSimpleField('cost_label', e.target.value)} />
-          </AdminField>
-          <AdminField label="Источник" locked={locked.has('source_url')} className="sm:col-span-2">
-            <input className={ADMIN_INPUT} value={simple.source_url} onChange={(e) => setSimpleField('source_url', e.target.value)} />
-          </AdminField>
-        </div>
-
-        <AdminField label="Описание" locked={locked.has('description')}>
-          <textarea className={ADMIN_TEXTAREA} value={simple.description} onChange={(e) => setSimpleField('description', e.target.value)} />
+          )}
         </AdminField>
-        <AdminField label="Кому подходит" locked={locked.has('who_its_for')}>
-          <textarea className={ADMIN_TEXTAREA} value={simple.who_its_for} onChange={(e) => setSimpleField('who_its_for', e.target.value)} />
+        <AdminField label="Кому подходит" locked={locked.has('who_its_for')} lockReason={LOCK_REASON}>
+          {({ id, describedBy }) => (
+            <textarea
+              id={id}
+              aria-describedby={describedBy}
+              className={ADMIN_TEXTAREA}
+              value={simple.who_its_for}
+              onChange={(e) => setSimpleField('who_its_for', e.target.value)}
+            />
+          )}
         </AdminField>
-      </Card>
+      </AdminCard>
 
-      <Card className="rounded-[3px] p-3 space-y-3">
-        <div className="flex items-center gap-1.5">
-          <AdminSectionHeading title="Требования" />
-          {locked.has('requirements') && <span className={cn(MONO_LABEL, 'text-brand')}>ЗАЩИЩЕНО</span>}
-        </div>
+      <AdminCard
+        title="Требования к поступлению"
+        aside={locked.has('requirements') ? <span className={cn(MONO_LABEL, 'text-brand')}>Задано вручную</span> : null}
+      >
         <div className="grid gap-2 sm:grid-cols-2">
-          <RequirementCheckbox label="Нужно портфолио" checked={req.needs_portfolio} onChange={(v) => setReqField('needs_portfolio', v)} />
-          <RequirementCheckbox label="Нужно эссе" checked={req.needs_essay} onChange={(v) => setReqField('needs_essay', v)} />
+          <RequirementCheckbox
+            label="Нужно портфолио"
+            checked={req.needs_portfolio}
+            onChange={(v) => setReqField('needs_portfolio', v)}
+          />
+          <RequirementCheckbox
+            label="Нужно эссе"
+            checked={req.needs_essay}
+            onChange={(v) => setReqField('needs_essay', v)}
+          />
           <RequirementCheckbox
             label="Нужны рекомендации"
             checked={req.needs_recommendations}
             onChange={(v) => setReqField('needs_recommendations', v)}
           />
-          <RequirementCheckbox label="Нужно собеседование" checked={req.needs_interview} onChange={(v) => setReqField('needs_interview', v)} />
+          <RequirementCheckbox
+            label="Нужно собеседование"
+            checked={req.needs_interview}
+            onChange={(v) => setReqField('needs_interview', v)}
+          />
         </div>
-        <StringListEditor label="Экзамены" values={req.exams} onChange={(v) => setReqField('exams', v)} placeholder="Например, Математика" />
-        <StringListEditor label="Примечания" values={req.notes} onChange={(v) => setReqField('notes', v)} placeholder="Свободный текст" />
-        <p className={MONO_MUTE}>
-          Прочие ключи requirements ({Object.keys(detail.requirements).filter((k) => !REQUIREMENTS_KEYS.includes(k as never)).join(', ') || 'нет'}) сохраняются как есть.
-        </p>
-      </Card>
 
-      <Card className="rounded-[3px] p-3 space-y-3">
-        <AdminSectionHeading title="Дедлайны" />
-        <AdminField label="Окончание приёма заявок" locked={locked.has('deadlines')}>
-          <input
-            type="date"
-            className={ADMIN_INPUT}
-            value={deadlines.application_close}
-            onChange={(e) => setDeadlines({ application_close: e.target.value })}
+        <AdminField label="Экзамены">
+          <StringListEditor
+            values={req.exams}
+            onChange={(v) => setReqField('exams', v)}
+            placeholder="Например, Математика"
           />
         </AdminField>
-      </Card>
+        <AdminField label="Примечания">
+          <StringListEditor
+            values={req.notes}
+            onChange={(v) => setReqField('notes', v)}
+            placeholder="Свободный текст"
+          />
+        </AdminField>
 
-      <Card className="rounded-[3px] p-3 space-y-3">
-        <div className="flex items-center gap-1.5">
-          <AdminSectionHeading title="Гранты" />
-          {locked.has('grants') && <span className={cn(MONO_LABEL, 'text-brand')}>ЗАЩИЩЕНО</span>}
-        </div>
-        {/* Grant entry shape isn't documented in the API contract, so this
-            edits the raw array as JSON rather than guessing a structured form
-            that could silently corrupt real entries. */}
+        {untouchedRequirementKeys.length > 0 && (
+          <UnmanagedKeys title="Другие поля требований" keys={untouchedRequirementKeys} />
+        )}
+      </AdminCard>
+
+      <AdminCard title="Дедлайны">
+        <AdminField
+          label="Окончание приёма заявок"
+          locked={locked.has('deadlines')}
+          lockReason={LOCK_REASON}
+          className="max-w-[240px]"
+        >
+          {({ id, describedBy }) => (
+            <input
+              id={id}
+              aria-describedby={describedBy}
+              type="date"
+              className={ADMIN_INPUT}
+              value={deadlines.application_close}
+              onChange={(e) => setDeadlines({ application_close: e.target.value })}
+            />
+          )}
+        </AdminField>
+
+        {untouchedDeadlineKeys.length > 0 && (
+          <UnmanagedKeys title="Другие поля дедлайнов" keys={untouchedDeadlineKeys} />
+        )}
+      </AdminCard>
+
+      <AdminCard
+        title="Гранты"
+        description="Форма записи гранта не зафиксирована в API, поэтому список редактируется как JSON. Проверка синтаксиса — ниже; смысл значений админка проверить не может."
+        aside={locked.has('grants') ? <span className={cn(MONO_LABEL, 'text-brand')}>Задано вручную</span> : null}
+      >
         <textarea
-          className={cn(ADMIN_TEXTAREA, 'font-mono text-mono-sm min-h-[120px]')}
+          className={cn(
+            ADMIN_TEXTAREA,
+            'font-mono text-mono-sm min-h-[160px]',
+            grantsError && 'border-danger',
+          )}
           value={grantsText}
           onChange={(e) => setGrantsText(e.target.value)}
           spellCheck={false}
+          aria-invalid={Boolean(grantsError)}
+          aria-label="Гранты в формате JSON"
         />
-      </Card>
+        {grantsError ? (
+          <p className={cn(ADMIN_TEXT, 'flex items-start gap-1.5 text-danger m-0')}>
+            <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />
+            {grantsError}
+          </p>
+        ) : (
+          <p className={cn(ADMIN_TEXT, 'flex items-center gap-1.5 text-muted m-0')}>
+            <Check size={13} className="text-brand flex-shrink-0" />
+            JSON корректен{grantsDirty ? ' — изменения не сохранены' : ''}
+          </p>
+        )}
+      </AdminCard>
 
-      <p className={MONO_MUTE}>
-        СОЗДАНА {new Date(detail.created_at).toLocaleDateString('ru-RU')}
-        {detail.updated_at ? ` · ОБНОВЛЕНА ${new Date(detail.updated_at).toLocaleDateString('ru-RU')}` : ''}
+      <p className={cn(MONO_MUTE, 'normal-case tracking-normal')}>
+        Создана {new Date(detail.created_at).toLocaleDateString('ru-RU')}
+        {detail.updated_at ? ` · обновлена ${new Date(detail.updated_at).toLocaleDateString('ru-RU')}` : ''}
       </p>
-    </PageContainer>
+
+      <AdminSaveBar
+        dirty={dirty}
+        saving={saving}
+        changedLabels={changedLabels}
+        onSave={handleSave}
+        onReset={handleReset}
+        state={saveState}
+        locksOnSave
+        blockedReason={grantsDirty && grantsError ? `Гранты: ${grantsError}` : null}
+      />
+    </>
   );
+}
+
+/**
+ * Keys the API returns inside `requirements`/`deadlines` that this form has no
+ * editor for. They are preserved on save by merging, but that was previously
+ * stated in a footnote in mono caps — an admin had no way to know what else
+ * lived in the object they were about to replace.
+ */
+function UnmanagedKeys({ title, keys }: { title: string; keys: string[] }) {
+  return (
+    <div className="border border-default rounded-[3px] p-2.5 bg-page">
+      <p className={cn(MONO_LABEL, 'text-muted mb-1.5')}>{title}</p>
+      <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>
+        Здесь не редактируются, но сохраняются как есть:{' '}
+        <span className="font-mono text-mono-xs text-secondary">{keys.join(', ')}</span>
+      </p>
+    </div>
+  );
+}
+
+function RequirementCheckbox({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className={cn(ADMIN_TEXT, 'flex items-center gap-2 text-primary cursor-pointer select-none')}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-[var(--brand)] w-3.5 h-3.5"
+      />
+      {label}
+    </label>
+  );
+}
+
+function toFloatOrNull(value: string): number | null {
+  if (value.trim() === '') return null;
+  const parsed = Number.parseFloat(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+/**
+ * Syntax check only — the grant entry shape isn't documented in the API
+ * contract (docs/admin-backend-requests-pro-242.md §8), so a structured editor
+ * would have to guess at fields and could corrupt real entries. What it CAN
+ * check honestly: the text parses, and it is a list.
+ */
+function validateGrants(text: string): string | null {
+  if (text.trim() === '') return 'Пусто. Для «грантов нет» оставьте пустой список: []';
+  try {
+    const parsed = JSON.parse(text);
+    if (!Array.isArray(parsed)) return 'Ожидается список записей — JSON-массив в квадратных скобках.';
+    return null;
+  } catch (error) {
+    return error instanceof Error ? `Некорректный JSON: ${error.message}` : 'Некорректный JSON';
+  }
 }

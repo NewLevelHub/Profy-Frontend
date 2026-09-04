@@ -76,6 +76,11 @@ export const adminApi = {
       .get<AdminFeedbackListResponse>(API.admin.feedback, { params })
       .then((r) => r.data),
 
+  /** Currently unused: the feedback screen loads the list in full and computes
+   *  the same aggregates locally, so the summary always matches the rows the
+   *  filters left — see `useFeedbackFeed` and
+   *  docs/admin-backend-requests-pro-242.md §3. Kept for when the list endpoint
+   *  grows filters and the screen goes back to server paging. */
   getFeedbackStats: () =>
     apiClient.get<AdminFeedbackStatsResponse>(API.admin.feedbackStats).then((r) => r.data),
 

@@ -1,63 +1,126 @@
-import { Link, Outlet, useLocation } from 'react-router';
+import { NavLink, Outlet, useLocation } from 'react-router';
+import { BookOpen, Building2, MessageSquare, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { useAuthStore } from '@/shared/store/auth';
-import { deriveAdminRole } from '@/shared/lib/adminRole';
-import { RoleBadge } from '@/shared/ui/admin/RoleBadge';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import { MONO_LABEL } from '@/shared/ui/admin/density';
 
 /**
- * Nav tabs the spec asks for: users / assessments / directions / "содержание
- * писем". Only the routes actually wired up in `app/router.tsx` get a tab
- * here — no placeholders for pages that would 404.
+ * Admin chrome: one navigation surface for every `/admin/*` screen.
+ *
+ * Before PRO-242 this was a row of four tabs, under which the content section
+ * added a second row of five more — three levels of navigation counting the
+ * product's own top rail, in two different active-state styles (an underline
+ * on one row, a filled pill on the other). The five content entities were only
+ * discoverable after clicking into "Вопросы".
+ *
+ * A single side rail flattens that: every destination in the admin panel is
+ * visible at once, grouped, with one active style. The content entities become
+ * a labelled group rather than a hidden second level.
+ *
+ * The role badge that used to sit here is gone. It derived "Администратор" vs
+ * "Оператор" from the one boolean the backend has (`is_admin`), which
+ * `RequireAdmin` already gates on — so every person who could see the badge was
+ * an administrator by construction, and the operator state was unreachable.
+ * See docs/admin-backend-requests-pro-242.md §9.
  */
-const ADMIN_NAV_ITEMS = [
-  { to: '/admin/users', label: 'Пользователи' },
-  { to: '/admin/universities', label: 'Университеты' },
-  { to: '/admin/content', label: 'Вопросы' },
-  { to: '/admin/feedback', label: 'Фидбэк' },
-] as const;
 
-/**
- * Persistent chrome shared by every `/admin/*` page: wordmark + role
- * indicator + section nav, kept in its own layout (rather than duplicated
- * per-page) so it stays visible "at all times" per the design spec regardless
- * of which admin page is active. Nests inside `AppLayout` / `RequireAdmin`,
- * mirroring the `AppLayout` / `AuthLayout` convention already used in
- * `shared/ui/layouts`.
- */
+interface AdminNavItem {
+  to: string;
+  label: string;
+  icon?: typeof Users;
+}
+
+interface AdminNavGroup {
+  label?: string;
+  items: readonly AdminNavItem[];
+}
+
+const ADMIN_NAV: readonly AdminNavGroup[] = [
+  {
+    items: [
+      { to: '/admin/users', label: 'Пользователи', icon: Users },
+      { to: '/admin/universities', label: 'Университеты', icon: Building2 },
+      { to: '/admin/feedback', label: 'Фидбэк', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'Контент диагностики',
+    items: [
+      { to: '/admin/content/questions', label: 'Вопросы', icon: BookOpen },
+      { to: '/admin/content/question-pairs', label: 'Пары вопросов' },
+      { to: '/admin/content/motivation-statements', label: 'Утверждения мотивации' },
+      { to: '/admin/content/motivation-pairs', label: 'Пары мотивации' },
+      { to: '/admin/content/directions', label: 'Направления' },
+    ],
+  },
+];
+
+const ALL_ITEMS = ADMIN_NAV.flatMap((group) => group.items);
+
 export function AdminLayout() {
-  const user = useAuthStore((s) => s.user);
-  const role = deriveAdminRole(user?.is_admin);
   const location = useLocation();
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-5">
-          <nav className="flex items-center gap-1">
-            {ADMIN_NAV_ITEMS.map((item) => {
-              const isActive = location.pathname.startsWith(item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
+    <PageContainer className="flex flex-col lg:flex-row gap-5 lg:gap-8">
+      {/* lg+: side rail. Below lg: one horizontally scrollable row, so the nav
+          costs one line instead of wrapping into three stacked rows. */}
+      <nav aria-label="Разделы админки" className="lg:w-[200px] lg:flex-shrink-0">
+        {/* `AppLayout`'s <main> is the scroll container, so the rail sticks to
+            the top of that scrollport, not to the viewport. */}
+        <div className="lg:sticky lg:top-0 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-2 lg:pb-0">
+          {ADMIN_NAV.map((group, groupIndex) => (
+            <div key={group.label ?? groupIndex} className="flex lg:flex-col gap-1 lg:gap-0.5">
+              {group.label && (
+                <span
                   className={cn(
                     MONO_LABEL,
-                    'px-2.5 py-1.5 rounded-[3px] border-b-2 transition-colors',
-                    isActive
-                      ? 'border-[var(--pine)] text-primary'
-                      : 'border-transparent text-muted hover:text-secondary',
+                    'hidden lg:block text-muted px-2.5 pt-4 pb-1.5',
                   )}
                 >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+                  {group.label}
+                </span>
+              )}
+              {group.items.map((item) => (
+                <AdminNavLink key={item.to} item={item} pathname={location.pathname} />
+              ))}
+            </div>
+          ))}
         </div>
-        <RoleBadge role={role} />
+      </nav>
+
+      <div className="flex-1 min-w-0 flex flex-col gap-5 pb-8">
+        <Outlet />
       </div>
-      <Outlet />
-    </div>
+    </PageContainer>
+  );
+}
+
+function AdminNavLink({ item, pathname }: { item: AdminNavItem; pathname: string }) {
+  const Icon = item.icon;
+  // Prefix matching, but the longest matching route wins — otherwise
+  // `/admin/content/questions` would also light up `/admin/content/question-pairs`
+  // is not a prefix of it, yet a naive `startsWith` on a shorter sibling route
+  // can mark two items active at once.
+  const active =
+    ALL_ITEMS.filter((candidate) => pathname.startsWith(candidate.to)).sort(
+      (a, b) => b.to.length - a.to.length,
+    )[0]?.to === item.to;
+
+  return (
+    <NavLink
+      to={item.to}
+      className={cn(
+        'flex items-center gap-2 px-2.5 py-2 rounded-[3px] transition-colors whitespace-nowrap',
+        'font-sans text-caption font-medium',
+        'focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_30%,transparent)]',
+        active
+          ? 'bg-brand-subtle text-brand font-semibold'
+          : 'text-muted hover:text-primary hover:bg-hover',
+      )}
+      aria-current={active ? 'page' : undefined}
+    >
+      {Icon && <Icon size={14} className="flex-shrink-0" />}
+      {item.label}
+    </NavLink>
   );
 }
