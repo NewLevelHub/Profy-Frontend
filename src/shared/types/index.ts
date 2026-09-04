@@ -616,12 +616,15 @@ export interface UniversityRequirement {
 export interface ProgramBrief {
   id: string;
   name: string;
-  direction_slug: string;
+  profession_slugs: string[];
   language: string;
   cost_per_year: number | null;
   cost_label: string | null;
   description: string | null;
   university: UniversityBrief;
+  cost_currency: string | null;
+  cost_per_year_min: number | null;
+  cost_per_year_max: number | null;
 }
 
 export interface ProgramDetail extends ProgramBrief {
@@ -824,7 +827,7 @@ export interface AdminUniversityDetail {
   id: string;
   name: string;
   /** Read-only — not part of `AdminUniversityUpdateRequest`. */
-  slug: string;
+  slug: string | null;
   short_name: string | null;
   aliases: string[];
   location: string | null;

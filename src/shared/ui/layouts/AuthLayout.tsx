@@ -63,19 +63,19 @@ const BLOCKS: { icon: ReactNode; tint: string; title: string; desc: string }[] =
   {
     icon: <Compass size={18} strokeWidth={1.75} style={{ color: '#C06A1E' }} />,
     tint: 'rgba(219, 127, 46, 0.12)',
-    title: '92 профессии',
+    title: '145 профессий',
     desc: 'Для каждой уже подобраны программы вузов.',
   },
   {
     icon: <Landmark size={18} strokeWidth={1.75} style={{ color: 'var(--lake)' }} />,
     tint: 'rgba(44, 106, 140, 0.12)',
-    title: '250 университетов',
-    desc: '110 в Казахстане и 140 международных.',
+    title: '2400 университетов',
+    desc: '134 в Казахстане и 2265 международных.',
   },
   {
     icon: <Layers size={18} strokeWidth={1.75} style={{ color: 'var(--pine)' }} />,
     tint: 'rgba(79, 160, 147, 0.16)',
-    title: '2400 программ',
+    title: '12400 программ',
     desc: 'С городом и рейтингом вуза.',
   },
 ];

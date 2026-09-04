@@ -7,19 +7,19 @@ const STATS: { icon: ReactNode; tint: string; value: ReactNode; label: string }[
   {
     icon: <path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6" />,
     tint: 'var(--lake-light)',
-    value: <>≈<Counter target={250} /></>,
-    label: 'университетов в каталоге: 110 в Казахстане и 140 международных',
+    value: <>≈<Counter target={2400} /></>,
+    label: 'университетов в каталоге: 134 в Казахстане и 2265 международных',
   },
   {
     icon: <path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M10 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />,
     tint: 'var(--pine-light)',
-    value: <>≈<Counter target={2400} /></>,
+    value: <>≈<Counter target={12400} /></>,
     label: 'учебных программ — с городом и рейтингом вуза',
   },
   {
     icon: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" /></>,
     tint: 'var(--paper)',
-    value: <Counter target={92} />,
+    value: <Counter target={145} />,
     label: 'профессии, и для каждой уже подобраны программы вузов',
   },
   {
