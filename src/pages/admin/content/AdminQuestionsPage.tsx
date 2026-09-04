@@ -1,41 +1,65 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
-import { AGE_TIER_LABELS, INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
-import { Heading } from '@/shared/ui/typography/Heading';
+import { useAdminListParams } from '@/shared/lib/useAdminListParams';
+import { useRememberListQuery } from '@/shared/lib/listReturnPath';
+import {
+  AGE_TIER_LABELS,
+  BIGFIVE_DOMAIN_LABELS,
+  HOLLAND_TYPE_LABELS,
+  INSTRUMENT_LABELS,
+  MI_TYPE_LABELS,
+} from '@/shared/lib/contentLabels';
+import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
+import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
+import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
+import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { ADMIN_CARD, ADMIN_CELL, ADMIN_RADIUS, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminQuestionListItem, AgeGroup, Instrument } from '@/shared/types';
+import { MONO_MUTE } from '@/shared/ui/admin/density';
+import type { AdminQuestionListItem, AgeGroup, BigFiveDomain, HollandType, Instrument, MIType } from '@/shared/types';
 
 const PAGE_SIZE = 20;
-const SEARCH_DEBOUNCE_MS = 350;
+const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
 
-function typeCell(item: AdminQuestionListItem): string {
-  if (item.instrument === 'riasec') return item.riasec_type ?? '—';
-  if (item.instrument === 'big_five') return item.bigfive_domain ?? '—';
-  return item.mi_category ?? '—';
+/**
+ * The scored category, named rather than coded.
+ *
+ * The list printed the raw enum value — "R", "N", "verbal" — while the detail
+ * screen for the very same row showed "R — Реалистичный" / "N — Эмоциональная
+ * чувствительность" / "Слова и истории". Nothing is gained by making the list
+ * the only place that speaks in codes.
+ */
+function TypeCell({ item }: { item: AdminQuestionListItem }) {
+  const label = resolveTypeLabel(item);
+  if (!label) return <span className={MONO_MUTE}>—</span>;
+  return <span className="text-secondary">{label}</span>;
+}
+
+function resolveTypeLabel(item: AdminQuestionListItem): string | null {
+  if (item.instrument === 'riasec' && item.riasec_type) {
+    return HOLLAND_TYPE_LABELS[item.riasec_type as HollandType] ?? item.riasec_type;
+  }
+  if (item.instrument === 'big_five' && item.bigfive_domain) {
+    return BIGFIVE_DOMAIN_LABELS[item.bigfive_domain as BigFiveDomain] ?? item.bigfive_domain;
+  }
+  if (item.instrument === 'mi' && item.mi_category) {
+    return MI_TYPE_LABELS[item.mi_category as MIType] ?? item.mi_category;
+  }
+  return null;
 }
 
 export default function AdminQuestionsPage() {
+  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  useRememberListQuery('/admin/content/questions');
   const [items, setItems] = useState<AdminQuestionListItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [instrument, setInstrument] = useState<Instrument | ''>('');
-  const [ageTier, setAgeTier] = useState<AgeGroup | ''>('');
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(1);
-      setQuery(search.trim());
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const { search, instrument, age_tier: ageTier } = values;
 
   useEffect(() => {
     let cancelled = false;
@@ -47,9 +71,9 @@ export default function AdminQuestionsPage() {
         const data = await adminApi.listQuestions({
           page,
           limit: PAGE_SIZE,
-          instrument: instrument || undefined,
-          age_tier: ageTier || undefined,
-          search: query || undefined,
+          instrument: (instrument as Instrument) || undefined,
+          age_tier: (ageTier as AgeGroup) || undefined,
+          search: search || undefined,
         });
         if (cancelled) return;
         setItems(data.items);
@@ -65,99 +89,122 @@ export default function AdminQuestionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, instrument, ageTier, query]);
+  }, [page, instrument, ageTier, search, reloadToken]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const rowStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rowEnd = Math.min(page * PAGE_SIZE, total);
+  const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
+
+  const columns: AdminColumn<AdminQuestionListItem>[] = [
+    {
+      key: 'text',
+      header: 'Вопрос',
+      mobile: 'title',
+      // Long question texts wrap inside the growing column instead of being
+      // clipped to a fixed width.
+      cell: (item) => (
+        <Link
+          to={`/admin/content/questions/${item.id}`}
+          title={item.text}
+          className="font-medium text-primary hover:text-brand hover:underline"
+        >
+          {item.text}
+        </Link>
+      ),
+    },
+    {
+      key: 'instrument',
+      header: 'Инструмент',
+      width: '112px',
+      mobile: 'field',
+      cell: (item) => <span className="text-secondary">{INSTRUMENT_LABELS[item.instrument]}</span>,
+    },
+    {
+      key: 'type',
+      header: 'Шкала',
+      // Самые длинные значения — домены Big Five («N — Эмоциональная
+      // чувствительность»); в 168px они обрезались до бессмысленной буквы.
+      width: '208px',
+      mobile: 'field',
+      headerTitle: 'Что измеряет вопрос: тип RIASEC, домен Big Five или категория MI',
+      cell: (item) => <TypeCell item={item} />,
+    },
+    {
+      key: 'age',
+      header: 'Возраст',
+      width: '104px',
+      mobile: 'field',
+      headerTitle: 'Минимальная группа: вопрос виден ей и всем старшим',
+      cell: (item) => <span className="text-secondary">{AGE_TIER_LABELS[item.age_tier]}</span>,
+    },
+    {
+      key: 'order',
+      header: 'Порядок',
+      align: 'right',
+      width: '92px',
+      mobile: 'field',
+      headerTitle: 'Структурное поле, задаётся контент-банком — в админке не редактируется',
+      cell: (item) => (
+        <span className="font-mono text-mono-sm text-muted tabular-nums">{item.order}</span>
+      ),
+    },
+    {
+      key: 'overrides',
+      header: '',
+      align: 'right',
+      // Колонка-маркер: пустой заголовок над 112px пустоты читался как
+      // обрезанная таблица и отнимал место у самого вопроса.
+      width: '72px',
+      mobile: 'badge',
+      cell: (item) => (item.has_overrides ? <OverrideBadge /> : null),
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <span className={MONO_MUTE}>{total} ВСЕГО</span>
-      </div>
+    <>
+      <AdminListHeader
+        title="Вопросы"
+        description="Банк вопросов диагностики. Источник правды — файлы контент-банка в репозитории бэкенда; правка здесь выводит поле из-под автообновления."
+      />
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <select
-          value={instrument}
-          onChange={(e) => {
-            setPage(1);
-            setInstrument(e.target.value as Instrument | '');
-          }}
-          className={cn(MONO_LABEL, ADMIN_RADIUS, 'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal')}
-        >
-          <option value="">Все инструменты</option>
-          {(Object.keys(INSTRUMENT_LABELS) as Instrument[]).map((key) => (
-            <option key={key} value={key}>
-              {INSTRUMENT_LABELS[key]}
-            </option>
-          ))}
-        </select>
-        <select
-          value={ageTier}
-          onChange={(e) => {
-            setPage(1);
-            setAgeTier(e.target.value as AgeGroup | '');
-          }}
-          className={cn(MONO_LABEL, ADMIN_RADIUS, 'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal')}
-        >
-          <option value="">Все возрасты</option>
-          {(Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => (
-            <option key={key} value={key}>
-              {AGE_TIER_LABELS[key]}
-            </option>
-          ))}
-        </select>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Поиск по тексту вопроса..."
-          className={cn(MONO_LABEL, ADMIN_RADIUS, 'border border-default bg-page text-primary px-2 py-1 normal-case tracking-normal w-[220px]')}
-        />
-      </div>
+      <AdminToolbar
+        search={{ value: search, onChange: handleSearch, placeholder: 'Текст вопроса' }}
+        selects={[
+          {
+            key: 'instrument',
+            label: 'Инструмент',
+            value: instrument,
+            options: (Object.keys(INSTRUMENT_LABELS) as Instrument[]).map((key) => ({
+              value: key,
+              label: INSTRUMENT_LABELS[key],
+            })),
+          },
+          {
+            key: 'age_tier',
+            label: 'Возраст',
+            value: ageTier,
+            options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
+              value: key,
+              label: AGE_TIER_LABELS[key],
+            })),
+          },
+        ]}
+        onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
+        onClearAll={clearFilters}
+      />
 
-      {error && <div className={cn(ADMIN_CARD, 'text-danger font-semibold', ADMIN_TEXT)}>{error}</div>}
+      {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
 
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
-        {loading ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>Загрузка...</div>
-        ) : items.length === 0 ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>Вопросы не найдены</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className={cn('w-full', ADMIN_TEXT)}>
-              <thead className="bg-raised border-b border-default">
-                <tr>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ИНСТРУМЕНТ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ТИП</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ТЕКСТ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-right text-muted')}>ПОРЯДОК</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ВОЗРАСТ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')} />
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className="border-b border-default last:border-b-0 hover:bg-hover transition-colors">
-                    <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')}>{INSTRUMENT_LABELS[item.instrument]}</td>
-                    <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top')}>{typeCell(item)}</td>
-                    <td className={cn(ADMIN_CELL, 'align-top max-w-[420px]')}>
-                      <Link to={`/admin/content/questions/${item.id}`} className="font-semibold text-primary hover:text-brand hover:underline">
-                        {item.text}
-                      </Link>
-                    </td>
-                    <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top text-right')}>{item.order}</td>
-                    <td className={cn(ADMIN_CELL, 'text-secondary align-top')}>{AGE_TIER_LABELS[item.age_tier]}</td>
-                    <td className={cn(ADMIN_CELL, 'align-top text-right')}>{item.has_overrides && <OverrideBadge />}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <AdminDataTable
+        label="Вопросы диагностики"
+        columns={columns}
+        rows={items}
+        rowKey={(item) => item.id}
+        rowHref={(item) => `/admin/content/questions/${item.id}`}
+        loading={loading}
+        emptyTitle="Вопросы не найдены"
+        emptyHint="Попробуйте снять фильтр по инструменту или возрасту."
+      />
 
-      <AdminPager page={page} totalPages={totalPages} rowStart={rowStart} rowEnd={rowEnd} total={total} onPrev={() => setPage((p) => p - 1)} onNext={() => setPage((p) => p + 1)} />
-    </div>
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['вопрос', 'вопроса', 'вопросов']} />
+    </>
   );
 }

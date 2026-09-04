@@ -879,17 +879,18 @@ export interface AdminProgramDetail {
   admin_locked_fields: string[];
 }
 
-// ─── Admin roles & change-log ───────────────────────────────────────────────────
+// ─── Admin roles ────────────────────────────────────────────────────────────────
 //
-// NOTE (frontend-only gap): the backend has no two-tier admin role concept today —
-// `User.is_admin` / `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are
-// still plain booleans, with no `role` field anywhere in the API response shape.
-// `AdminRole` below is a frontend-only type used to render the Operator/Administrator
-// distinction from the design spec; see `deriveAdminRole` in `@/shared/lib/adminRole`
-// for how it is honestly derived from the existing boolean (never fabricated).
-
-/** Frontend-only role distinction. No third tier — binary by design. */
-export type AdminRole = 'operator' | 'administrator';
+// NOTE (backend gap): the API has no admin role concept — `User.is_admin` /
+// `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are plain booleans,
+// with no `role` field anywhere in the response shape.
+//
+// A frontend-only `AdminRole` used to exist here, deriving "Оператор" from
+// `is_admin === false`. It was removed in PRO-242: `RequireAdmin` only lets
+// `is_admin` users into `/admin/*`, so the operator state was unreachable and
+// the role badge always read "Администратор". Rendering a permission tier the
+// server does not enforce is UI theatre — see
+// docs/admin-backend-requests-pro-242.md §9 for what a real role would need.
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
@@ -1119,9 +1120,12 @@ export interface AdminDirectionDetail {
    *  re-derive if `name` is edited afterward (expected drift, not a bug). */
   slug: string;
   holland_code: string;
-  /** Empty for most rows today — the current professions-catalog seed only
-   *  fills name/holland_code; that's the catalog's real state, not a bug. */
   description: string;
+  /** Empty on **all 92** directions as of 2026-09 — measured, not estimated.
+   *  Every other catalog field (description, skills, subjects, first steps) is
+   *  filled everywhere. `Direction.professions` feeds the student's report and
+   *  the LLM context for the direction inquiry and roadmap, so all three get an
+   *  empty list today — see docs/admin-backend-requests-pro-242.md §13. */
   professions: string[];
   skills_needed: string[];
   subjects_to_develop: string[];

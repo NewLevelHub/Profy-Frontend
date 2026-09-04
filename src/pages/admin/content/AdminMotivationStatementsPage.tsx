@@ -1,22 +1,73 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
+import { pluralize } from '@/shared/lib/plural';
+import { useAdminListParams } from '@/shared/lib/useAdminListParams';
+import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
-import { Heading } from '@/shared/ui/typography/Heading';
+import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
+import { AdminEmpty, AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { ADMIN_CARD, ADMIN_CELL, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
+import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AdminMotivationStatementListItem } from '@/shared/types';
 
-const PAGE_SIZE = 20;
+/**
+ * A triplet (3 statements the student ranks MOST / NEUTRAL / LEAST) is the unit
+ * of this content — a single statement in isolation is not editable content,
+ * it is one third of a forced-choice screen. The endpoint takes `limit` up to
+ * 100, and the bank holds ~36 statements, so a page of 33 triplets fetches the
+ * whole set in one request and lets them be grouped honestly.
+ *
+ * If the bank ever outgrows this, paging still works — a triplet split across
+ * a page boundary would then render as a partial group, which the group header
+ * calls out rather than hiding.
+ */
+const PAGE_SIZE = 99;
+
+interface Triplet {
+  index: number;
+  items: AdminMotivationStatementListItem[];
+}
+
+function groupByTriplet(items: readonly AdminMotivationStatementListItem[]): Triplet[] {
+  const groups = new Map<number, AdminMotivationStatementListItem[]>();
+  for (const item of items) {
+    const list = groups.get(item.triplet_index) ?? [];
+    list.push(item);
+    groups.set(item.triplet_index, list);
+  }
+  return [...groups.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([index, list]) => ({ index, items: [...list].sort((a, b) => a.order - b.order) }));
+}
+
+/**
+ * Each of the three statements in a triplet must carry a different motivation
+ * category — otherwise the forced ranking cannot separate them. The backend
+ * does not enforce this, and the previous UI said so in an uppercase note on
+ * the detail screen while showing only one statement, so the rule was
+ * unverifiable exactly where it had to be checked. Grouping makes it a
+ * one-glance check. See docs/admin-backend-requests-pro-242.md §7.
+ */
+function findDuplicateCategories(triplet: Triplet): string[] {
+  const seen = new Map<string, number>();
+  for (const item of triplet.items) {
+    seen.set(item.category, (seen.get(item.category) ?? 0) + 1);
+  }
+  return [...seen.entries()].filter(([, count]) => count > 1).map(([category]) => category);
+}
 
 export default function AdminMotivationStatementsPage() {
+  const { page, setPage } = useAdminListParams([] as const);
+  useRememberListQuery('/admin/content/motivation-statements');
   const [items, setItems] = useState<AdminMotivationStatementListItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,61 +91,114 @@ export default function AdminMotivationStatementsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, reloadToken]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const rowStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rowEnd = Math.min(page * PAGE_SIZE, total);
+  const triplets = groupByTriplet(items);
+  const brokenCount = triplets.filter((t) => findDuplicateCategories(t).length > 0).length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <Heading level="display-sm" className="text-primary">
-          Утверждения мотивации (MOST/LEAST)
-        </Heading>
-        <span className={MONO_MUTE}>{total} ВСЕГО</span>
-      </div>
+    <>
+      <AdminListHeader
+        title="Утверждения мотивации"
+        description="Блок MOST / LEAST: ученик ранжирует тройку утверждений. Внутри тройки все три категории должны быть разными."
+      />
 
-      {error && <div className={cn(ADMIN_CARD, 'text-danger font-semibold', ADMIN_TEXT)}>{error}</div>}
+      {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
 
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
-        {loading ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>Загрузка...</div>
-        ) : items.length === 0 ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>Утверждения не найдены</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className={cn('w-full', ADMIN_TEXT)}>
-              <thead className="bg-raised border-b border-default">
-                <tr>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-right text-muted')}>ТРИПЛЕТ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-right text-muted')}>ПОРЯДОК</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>КАТЕГОРИЯ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ТЕКСТ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')} />
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className="border-b border-default last:border-b-0 hover:bg-hover transition-colors">
-                    <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top text-right')}>{item.triplet_index}</td>
-                    <td className={cn(ADMIN_CELL, 'font-mono text-muted align-top text-right')}>{item.order}</td>
-                    <td className={cn(ADMIN_CELL, 'text-secondary align-top')}>{MOTIVATION_CATEGORY_LABELS[item.category]}</td>
-                    <td className={cn(ADMIN_CELL, 'align-top max-w-[420px]')}>
-                      <Link to={`/admin/content/motivation-statements/${item.id}`} className="font-semibold text-primary hover:text-brand hover:underline">
-                        {item.text}
-                      </Link>
-                    </td>
-                    <td className={cn(ADMIN_CELL, 'align-top text-right')}>{item.has_overrides && <OverrideBadge />}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        {/* Число утверждений называет подвал — здесь только то, чего там нет. */}
+        <span className={ADMIN_META}>
+          {loading ? 'загрузка…' : pluralize(triplets.length, 'тройка', 'тройки', 'троек')}
+        </span>
+        {brokenCount > 0 && (
+          <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-medium')}>
+            <AlertTriangle size={13} />
+            {pluralize(brokenCount, 'тройка', 'тройки', 'троек')} с повторяющейся категорией
+          </span>
         )}
       </div>
 
-      <AdminPager page={page} totalPages={totalPages} rowStart={rowStart} rowEnd={rowEnd} total={total} onPrev={() => setPage((p) => p - 1)} onNext={() => setPage((p) => p + 1)} />
-    </div>
+      {loading ? (
+        <div className="bg-surface border border-default rounded-[3px] p-0 overflow-hidden">
+          <AdminTableSkeleton rows={8} columns={3} />
+        </div>
+      ) : triplets.length === 0 ? (
+        <div className="bg-surface border border-default rounded-[3px]">
+          <AdminEmpty title="Утверждения не найдены" />
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3 m-0 p-0 list-none">
+          {triplets.map((triplet) => (
+            <TripletCard key={triplet.index} triplet={triplet} />
+          ))}
+        </ul>
+      )}
+
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['утверждение', 'утверждения', 'утверждений']} />
+    </>
+  );
+}
+
+function TripletCard({ triplet }: { triplet: Triplet }) {
+  const duplicates = findDuplicateCategories(triplet);
+  const incomplete = triplet.items.length !== 3;
+
+  return (
+    <li
+      className={cn(
+        'bg-surface border rounded-[3px] overflow-hidden',
+        duplicates.length > 0 ? 'border-danger' : 'border-default',
+      )}
+    >
+      <div className="flex items-center justify-between gap-3 px-3 py-2 bg-raised border-b border-default">
+        <span className={cn(ADMIN_TEXT, 'font-semibold text-primary tabular-nums')}>
+          Тройка {triplet.index}
+        </span>
+        {duplicates.length > 0 ? (
+          <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-semibold')}>
+            <AlertTriangle size={13} />
+            Категория повторяется:{' '}
+            {duplicates.map((c) => MOTIVATION_CATEGORY_LABELS[c as keyof typeof MOTIVATION_CATEGORY_LABELS] ?? c).join(', ')}
+          </span>
+        ) : incomplete ? (
+          <span className={ADMIN_META}>
+            на этой странице {triplet.items.length} из 3 — остальные на соседней
+          </span>
+        ) : null}
+      </div>
+
+      <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
+        {triplet.items.map((item) => (
+          <li key={item.id}>
+            {/* Ссылка на всю строку: подсветка при наведении шла по всей
+                строке, а кликался только текст. */}
+            <Link
+              to={`/admin/content/motivation-statements/${item.id}`}
+              className="flex items-start justify-between gap-3 px-3 py-2.5 hover:bg-hover transition-colors group/row"
+            >
+              <div className="min-w-0">
+                {/* Никакого «0 / 1 / 2» перед текстом: порядок внутри тройки
+                    ничего не значит — ученик сам расставляет «важнее всего /
+                    нейтрально / менее всего», а колонка цифр читалась как
+                    уже проставленный ранг. */}
+                <span className={cn(ADMIN_TEXT, 'font-medium text-primary group-hover/row:text-brand')}>
+                  {item.text}
+                </span>
+                <p
+                  className={cn(
+                    ADMIN_META,
+                    'mt-1',
+                    duplicates.includes(item.category) && 'text-danger',
+                  )}
+                >
+                  {MOTIVATION_CATEGORY_LABELS[item.category]}
+                </p>
+              </div>
+              {item.has_overrides && <OverrideBadge />}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </li>
   );
 }
