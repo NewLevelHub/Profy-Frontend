@@ -1,0 +1,114 @@
+/* ─── Print / PDF export ─── */
+/*
+ * Backs the /results/print route (pages/results/print/). "Экспорт в PDF" is
+ * the browser's own print → "Сохранить как PDF": no PDF library, no
+ * server-side renderer, and — the reason it's worth doing this way — the
+ * text stays real vector text with correct Cyrillic, not a rasterized
+ * screenshot of the results page.
+ *
+ * Two jobs live here:
+ *   1. the screen-side "sheet" preview, so what you see before printing is
+ *      already page-shaped;
+ *   2. the @page/@media print rules that turn that sheet into A4.
+ *
+ * Paper is white, not --fog: the canvas token is a screen surface, and a
+ * full-bleed beige background is both ink-expensive and stripped by every
+ * browser's default print settings anyway. Nothing in the document depends
+ * on a background surviving — the level ranking that the screen shows as a
+ * solid pine/dawn fill is redrawn as a rule + a word (PrintLevelRows), so
+ * the PDF reads the same whether or not the reader prints backgrounds.
+ */
+
+/* The route's own full-screen shell — only there to center the sheet on the
+   app canvas while you're looking at it on screen. */
+.print-shell {
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+/* Screen: an A4-proportioned sheet floating on the app canvas. */
+.print-sheet {
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  background: white;
+  color: var(--midnight);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14mm 12mm;
+}
+
+/* Keep a card/row from being split across two pages. */
+.print-block {
+  break-inside: avoid;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  html,
+  body {
+    background: white;
+  }
+
+  /* Toolbar, buttons, anything that only makes sense on screen. */
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /* The canvas tint is a screen surface; on paper it would either waste ink
+     or (more often) be silently dropped with "Background graphics" off,
+     depending on the reader's print settings. Neither is worth depending on. */
+  .print-shell {
+    min-height: 0;
+    background: none;
+    padding: 0;
+  }
+
+  /* Page margins already provide the padding; the border/radius are screen
+     affordances that would print as a stray box on page 1 only. */
+  .print-sheet {
+    max-width: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  /* This wrapper's own 210mm cap (ResultPrintPage) is a screen-only
+     approximation of A4 proportions so the sheet reads as page-shaped
+     before you print. During print, `@page`'s own margin already carves
+     the true printable width out of the physical A4 sheet — capping this
+     wrapper at the full 210mm on top of that double-constrains the width
+     and is the kind of mismatch that can push a bordered element's right
+     edge past the actual printable area. Same reasoning as `.print-sheet`
+     above, just one level up. */
+  .print-page-frame {
+    max-width: none;
+    margin: 0;
+  }
+
+  /* Career/sphere cards (PrintNextSteps) are the only fully bordered boxes
+     in the document — and specifically the only ones where the exported
+     PDF has been seen to drop the right edge of the border while the same
+     card looks correct in the on-screen /results/print preview. Squaring
+     the corners (above logic, kept as a first line of defence) didn't fix
+     it on its own, which points away from a corner-radius/fragmentation
+     interaction and toward WebKit's print path simply failing to paint one
+     edge of a real `border` on this box in some cases.
+     The border itself is made transparent rather than removed — its
+     width still occupies the same 1px of the (border-box-sized) card, so
+     nothing shifts — and an inset box-shadow repaints the same line as a
+     pure decoration instead. box-shadow doesn't participate in layout at
+     all, so it can't be "pushed" by the same fragmentation path a real
+     border can, and it's a different paint routine than `border`
+     entirely — a standard workaround for exactly this class of print/PDF
+     border bug. */
+  .print-card {
+    border-radius: 0;
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--hairline);
+  }
+}

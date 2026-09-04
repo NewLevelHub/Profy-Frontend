@@ -1,200 +1,432 @@
-import { useEffect, useState } from 'react';
-import { adminApi } from '@/shared/api/admin';
+import { useCallback, useMemo, useState } from 'react';
+import { Link } from 'react-router';
+import { ChevronDown } from 'lucide-react';
 import { REPORT_SECTIONS } from '@/shared/api/feedback';
-import { PageContainer } from '@/shared/ui/PageContainer';
-import { Heading } from '@/shared/ui/typography/Heading';
 import { cn } from '@/shared/lib/cn';
-import { ADMIN_CARD, ADMIN_CELL, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminFeedbackListItem, AdminFeedbackStatsResponse } from '@/shared/types';
+import { pluralize } from '@/shared/lib/plural';
+import { useAdminListParams } from '@/shared/lib/useAdminListParams';
+import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
+import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
+import { AdminDataTable, type AdminColumn, type AdminSort } from '@/shared/ui/admin/AdminDataTable';
+import { AdminPager } from '@/shared/ui/admin/AdminPager';
+import { AdminError } from '@/shared/ui/admin/AdminStates';
+import { ADMIN_BUTTON, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { FeedbackOverview } from './components/FeedbackOverview';
+import { useFeedbackFeed } from './useFeedbackFeed';
+import {
+  AGE_ORDER,
+  AGE_RANGE_HINT,
+  HIGH_SCORE_MIN,
+  LOW_SCORE_MAX,
+  MAX_SCORE,
+  ageLabel,
+  scenarioLabel,
+  scoreTone,
+  sectionLabel,
+  sectionShortLabel,
+} from './feedbackModel';
+import type { AdminFeedbackListItem, AgeGroup } from '@/shared/types';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 25;
+const FILTER_KEYS = ['search', 'score', 'age', 'section', 'comment', 'sort', 'order'] as const;
 
-const SECTION_LABELS: Record<string, string> = Object.fromEntries(
-  REPORT_SECTIONS.map((s) => [s.value, s.label]),
-);
-
-function formatDate(value: string): string {
-  return new Date(value).toLocaleString('ru-RU', {
-    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  });
+function normalize(value: string): string {
+  return value.toLowerCase().replace(/ё/g, 'е').trim();
 }
 
-/** Compact score chip — pine-tinted when >= 4, otherwise plain. No red/low
- *  tint: a low relevance score is signal to read, not an "error" state. */
-function ScoreChip({ value }: { value: number }) {
+interface Filters {
+  search: string;
+  score: string;
+  age: string;
+  section: string;
+  comment: string;
+}
+
+/** `skip` leaves one dimension unfiltered — see the chart note in the page. */
+function matchesFilters(
+  item: AdminFeedbackListItem,
+  { search, score, age, section, comment }: Filters,
+  skip?: 'score' | 'section',
+): boolean {
+  if (score && skip !== 'score') {
+    if (score === 'low' && item.relevance_score > LOW_SCORE_MAX) return false;
+    if (score === 'high' && item.relevance_score < HIGH_SCORE_MIN) return false;
+    if (score !== 'low' && score !== 'high' && item.relevance_score !== Number(score)) return false;
+  }
+  if (age && item.age_group !== age) return false;
+  if (section && skip !== 'section' && !item.helpful_sections.includes(section)) return false;
+  if (comment === 'yes' && !item.comment?.trim()) return false;
+  if (comment === 'no' && item.comment?.trim()) return false;
+
+  const query = normalize(search);
+  if (!query) return true;
   return (
-    <span
-      className={cn(
-        MONO_LABEL,
-        'inline-flex items-center justify-center w-6 h-6 rounded-[3px]',
-        value >= 4 ? 'bg-brand-subtle text-brand' : 'bg-raised text-secondary',
-      )}
-    >
-      {value}
+    normalize(item.comment ?? '').includes(query) ||
+    normalize(item.profile_name ?? '').includes(query) ||
+    normalize(item.user_email).includes(query) ||
+    normalize(item.top_direction_name ?? '').includes(query)
+  );
+}
+
+/**
+ * Score as a filled meter, not a bare digit.
+ *
+ * Low scores are the rows worth reading, so they have to be findable by eye
+ * while scrolling. Dawn (the "finding" accent) for 1–2, lake for a neutral 3,
+ * pine for 4–5 — clay stays reserved for genuine errors, and a student saying
+ * "this isn't me" is a finding, not a failure of the system.
+ */
+function ScoreCell({ value }: { value: number }) {
+  const tone = scoreTone(value);
+
+  return (
+    <span className="inline-flex items-center gap-2" title={`${value} из ${MAX_SCORE}`}>
+      <span className="flex gap-[3px]" aria-hidden="true">
+        {Array.from({ length: MAX_SCORE }).map((_, index) => (
+          <span
+            key={index}
+            className="w-[4px] h-4 rounded-[1px]"
+            style={{ backgroundColor: index < value ? tone : 'var(--border)' }}
+          />
+        ))}
+      </span>
+      <span className={cn(ADMIN_NUM, 'text-primary font-medium')}>{value}</span>
     </span>
   );
 }
 
-/** TZ_Profi.md §28.4's requested aggregation (age/scenario/top-direction) —
- *  a compact strip, not a separate dashboard, above the per-row list. */
-function StatsStrip({ stats }: { stats: AdminFeedbackStatsResponse }) {
-  if (stats.total === 0) return null;
+/**
+ * Comments are the point of this screen and were clipped to a narrow column.
+ * Long ones expand in place — there is no comment detail endpoint to link to.
+ */
+function CommentCell({ comment }: { comment: string | null }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!comment?.trim()) {
+    // Subtle, not muted: примерно половина строк без комментария, и они не
+    // должны спорить за внимание с теми, где текст есть.
+    return <span className={cn(ADMIN_TEXT, 'text-subtle')}>без комментария</span>;
+  }
 
-  const topSections = Object.entries(stats.helpful_section_counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+  const long = comment.length > 160;
 
   return (
-    <div className={cn(ADMIN_CARD, 'flex flex-col gap-2')}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-        <span className={MONO_MUTE}>ВСЕГО: {stats.total}</span>
-        <span className={MONO_MUTE}>СРЕДНЯЯ ОЦЕНКА: {stats.avg_relevance_score ?? '—'}</span>
-      </div>
-      {topSections.length > 0 && (
-        <span className={MONO_MUTE}>
-          ЧАЩЕ ВСЕГО ПОЛЕЗНО: {topSections.map(([key, count]) => `${SECTION_LABELS[key] ?? key} (${count})`).join(' · ')}
-        </span>
-      )}
-      {stats.by_age_group.length > 0 && (
-        <span className={MONO_MUTE}>
-          ПО ВОЗРАСТУ: {stats.by_age_group.map((b) => `${b.key} ${b.avg_relevance_score} (${b.count})`).join(' · ')}
-        </span>
+    <div>
+      <p className={cn(ADMIN_TEXT, 'text-primary m-0', !expanded && long && 'line-clamp-3')}>{comment}</p>
+      {long && (
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          className={cn(ADMIN_TEXT, 'mt-1 text-brand hover:underline inline-flex items-center gap-1')}
+        >
+          {expanded ? 'Свернуть' : 'Читать полностью'}
+          <ChevronDown size={11} className={cn('transition-transform', expanded && 'rotate-180')} />
+        </button>
       )}
     </div>
   );
 }
 
-function FeedbackRow({ item }: { item: AdminFeedbackListItem }) {
-  const sections = item.helpful_sections.map((s) => SECTION_LABELS[s] ?? s).join(', ');
-  const context = [item.age_group, item.scenario ? `сценарий ${item.scenario}` : null, item.top_direction_name]
-    .filter(Boolean)
-    .join(' · ');
-
-  return (
-    <tr className="border-b border-default last:border-b-0 align-top">
-      <td className={ADMIN_CELL}>
-        <div className="font-semibold text-primary">{item.profile_name ?? item.user_email}</div>
-        <div className="font-mono text-mono-xs text-muted mt-0.5">{item.user_email}</div>
-      </td>
-      <td className={ADMIN_CELL}>
-        <ScoreChip value={item.relevance_score} />
-      </td>
-      <td className={cn(ADMIN_CELL, 'text-secondary max-w-[220px]')}>{sections || <span className={MONO_MUTE}>—</span>}</td>
-      <td className={cn(ADMIN_CELL, 'text-secondary max-w-[320px]')}>
-        {item.comment || <span className={MONO_MUTE}>—</span>}
-      </td>
-      <td className={cn(ADMIN_CELL, 'font-mono text-mono-xs text-muted')}>
-        {context || <span className={MONO_MUTE}>—</span>}
-      </td>
-      <td className={cn(ADMIN_CELL, 'font-mono text-mono-xs text-muted whitespace-nowrap')}>
-        {formatDate(item.created_at)}
-      </td>
-    </tr>
-  );
-}
-
 export default function AdminFeedbackPage() {
-  const [items, setItems] = useState<AdminFeedbackListItem[]>([]);
-  const [stats, setStats] = useState<AdminFeedbackStatsResponse | null>(null);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { page, values, setFilter, setFilters, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  const { items, loading, error, truncated, reload } = useFeedbackFeed();
 
-  useEffect(() => {
-    let cancelled = false;
+  const { search, score, age, section, comment, sort: sortKey, order } = values;
+  const sort: AdminSort = { key: sortKey || 'date', order: order === 'asc' ? 'asc' : 'desc' };
 
-    async function load() {
-      setLoading(true);
-      setError('');
-      try {
-        const [list, statsResp] = await Promise.all([
-          adminApi.listFeedback({ page, limit: PAGE_SIZE }),
-          adminApi.getFeedbackStats(),
-        ]);
-        if (cancelled) return;
-        setItems(list.items);
-        setTotal(list.total);
-        setStats(statsResp);
-      } catch {
-        if (!cancelled) setError('Не удалось загрузить фидбэк');
-      } finally {
-        if (!cancelled) setLoading(false);
+  const filters: Filters = { search, score, age, section, comment };
+
+  const filtered = useMemo(() => {
+    const matched = items.filter((item) => matchesFilters(item, filters));
+
+    const direction = sort.order === 'asc' ? 1 : -1;
+    return [...matched].sort((a, b) => {
+      if (sort.key === 'score') {
+        // Ties fall back to newest-first, so re-sorting by score doesn't
+        // scramble the order inside each score band on every click.
+        return (
+          (a.relevance_score - b.relevance_score) * direction ||
+          b.created_at.localeCompare(a.created_at)
+        );
       }
+      return a.created_at.localeCompare(b.created_at) * direction;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, search, score, age, section, comment, sort.key, sort.order]);
+
+  /**
+   * A chart that is also a filter control must not collapse when it is used:
+   * filtering to "5" would otherwise leave the histogram a single full bar and
+   * no way back. So each chart sees every filter except its own dimension.
+   */
+  const scoreBase = useMemo(
+    () => items.filter((item) => matchesFilters(item, filters, 'score')),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, search, age, section, comment],
+  );
+  const sectionBase = useMemo(
+    () => items.filter((item) => matchesFilters(item, filters, 'section')),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, search, score, age, comment],
+  );
+
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const hasFilters = Boolean(search || score || age || section || comment);
+
+  const ageOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of items) {
+      if (item.age_group) counts.set(item.age_group, (counts.get(item.age_group) ?? 0) + 1);
     }
+    return AGE_ORDER.filter((tier) => counts.has(tier)).map((tier) => ({
+      value: tier,
+      label: `${ageLabel(tier)} (${counts.get(tier)})`,
+    }));
+  }, [items]);
 
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [page]);
+  const sectionOptions = useMemo(() => {
+    const known = REPORT_SECTIONS.map((s) => s.value);
+    // Sections are free-form strings server-side, so a retired one still has
+    // rows pointing at it — those must stay filterable.
+    const extra = [...new Set(items.flatMap((item) => item.helpful_sections))].filter(
+      (key) => !known.includes(key),
+    );
+    // Короткие подписи: ширина нативного `<select>` — это ширина самой длинной
+    // опции, и «Профессии и направления» растягивал контрол на треть строки
+    // фильтров, даже когда в нём стояло «любой».
+    return [...known, ...extra].map((key) => ({ value: key, label: sectionShortLabel(key) }));
+  }, [items]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
+
+  function handleSortChange(next: AdminSort) {
+    setFilters({ sort: next.key, order: next.order });
+  }
+
+  const columns: AdminColumn<AdminFeedbackListItem>[] = [
+    {
+      key: 'score',
+      header: 'Оценка',
+      sortKey: 'score',
+      width: '92px',
+      mobile: 'badge',
+      headerTitle: '«Насколько это про тебя?» — 1–5, вопрос после отчёта',
+      cell: (item) => <ScoreCell value={item.relevance_score} />,
+    },
+    {
+      key: 'user',
+      header: 'Пользователь',
+      width: '172px',
+      wrap: true,
+      mobile: 'title',
+      cell: (item) => (
+        <div className="min-w-0">
+          <Link
+            to={`/admin/users/${item.user_id}`}
+            title={item.user_email}
+            className={cn(ADMIN_TEXT, 'font-semibold text-primary hover:text-brand hover:underline')}
+          >
+            {item.profile_name ?? item.user_email}
+          </Link>
+          {item.profile_name && (
+            <p className={cn(ADMIN_META, 'mt-0.5 truncate')} title={item.user_email}>
+              {item.user_email}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'comment',
+      header: 'Комментарий',
+      // The comment is the content of this screen, so it takes the slack
+      // rather than the user column that happens to be the mobile title.
+      grow: true,
+      wrap: true,
+      cell: (item) => <CommentCell comment={item.comment} />,
+    },
+    {
+      key: 'sections',
+      header: 'Полезные разделы',
+      width: '160px',
+      wrap: true,
+      mobile: 'field',
+      headerTitle: 'Что ученик отметил как полезное. Полные названия — в сводке над таблицей.',
+      // Слова через точку, не плашки: пять серых прямоугольников разной ширины
+      // весили в строке больше, чем комментарий, ради которого строку и читают.
+      cell: (item) =>
+        item.helpful_sections.length > 0 ? (
+          <span className="inline">
+            {item.helpful_sections.map((key, index) => (
+              <span key={key}>
+                {index > 0 && <span className={cn(ADMIN_META, 'mx-1')}>·</span>}
+                <button
+                  type="button"
+                  onClick={() => setFilter('section', section === key ? '' : key)}
+                  title={`Показать отзывы с разделом «${sectionLabel(key)}»`}
+                  className={cn(
+                    ADMIN_TEXT,
+                    'hover:underline transition-colors',
+                    section === key ? 'text-brand font-medium' : 'text-secondary hover:text-primary',
+                  )}
+                >
+                  {sectionShortLabel(key)}
+                </button>
+              </span>
+            ))}
+          </span>
+        ) : (
+          <span className={ADMIN_META}>—</span>
+        ),
+    },
+    {
+      key: 'context',
+      header: 'Контекст',
+      width: '156px',
+      wrap: true,
+      mobile: 'field',
+      headerTitle:
+        'Возрастная группа и сценарий отчёта на момент отзыва, ниже — направление, выпавшее первым',
+      cell: (item) => {
+        const head: string[] = [];
+        if (item.age_group) head.push(ageLabel(item.age_group));
+        if (item.scenario) head.push(`сценарий ${item.scenario}`);
+        if (head.length === 0 && !item.top_direction_name) {
+          return <span className={ADMIN_META}>—</span>;
+        }
+        // Расшифровка «Senior» и «сценарий C» — в подсказке: в ячейке они
+        // должны занимать одну строку, а без расшифровки это просто буквы.
+        const hint = [
+          item.age_group ? AGE_RANGE_HINT[item.age_group as AgeGroup] : null,
+          item.scenario ? scenarioLabel(item.scenario) : null,
+        ]
+          .filter(Boolean)
+          .join(' · ');
+        return (
+          <div className="min-w-0">
+            {head.length > 0 && (
+              <p className={cn(ADMIN_TEXT, 'text-secondary m-0')} title={hint || undefined}>
+                {head.join(' · ')}
+              </p>
+            )}
+            {item.top_direction_name && (
+              <p className={cn(ADMIN_META, 'mt-0.5')} title={item.top_direction_name}>
+                {item.top_direction_name}
+              </p>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'created',
+      header: 'Дата',
+      sortKey: 'date',
+      align: 'right',
+      width: '112px',
+      wrap: true,
+      mobile: 'field',
+      cell: (item) => {
+        const date = new Date(item.created_at);
+        return (
+          <div>
+            {/* Год целиком: «03.09.26» читается как обрезанное «03.09.2026». */}
+            <p className={cn(ADMIN_NUM, 'text-secondary m-0')}>
+              {date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            </p>
+            <p className={cn(ADMIN_NUM, 'text-mono-xs text-muted m-0')}>
+              {date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+        );
+      },
+    },
+  ];
 
   return (
-    <PageContainer className="space-y-4">
-      <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <Heading level="display-sm" className="text-primary">
-          Фидбэк
-        </Heading>
-        <span className={MONO_MUTE}>{total} ВСЕГО</span>
-      </div>
+    <>
+      <AdminListHeader
+        title="Фидбэк"
+        description="Опрос после отчёта: насколько он оказался про них, какие разделы пригодились и что не подошло."
+      />
 
-      {stats && <StatsStrip stats={stats} />}
+      {error && <AdminError message={error} onRetry={reload} />}
 
-      {error && <div className={cn(ADMIN_CARD, 'text-danger font-semibold', ADMIN_TEXT)}>{error}</div>}
+      {truncated && (
+        <AdminError message="Отзывов больше тысячи — сводка и фильтры охватывают только последнюю тысячу." />
+      )}
 
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
-        {loading ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>Загрузка...</div>
-        ) : items.length === 0 ? (
-          <div className={cn('py-12 text-center text-secondary font-semibold', ADMIN_TEXT)}>
-            Фидбэка пока нет
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className={cn('w-full', ADMIN_TEXT)}>
-              <thead className="bg-raised border-b border-default">
-                <tr>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ПОЛЬЗОВАТЕЛЬ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ОЦЕНКА</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ПОЛЕЗНОЕ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>КОММЕНТАРИЙ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>КОНТЕКСТ</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted')}>ДАТА</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <FeedbackRow key={item.id} item={item} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {!loading && (
+        <FeedbackOverview
+          items={filtered}
+          scoreBase={scoreBase}
+          sectionBase={sectionBase}
+          filtered={hasFilters}
+          activeScore={score}
+          activeSection={section}
+          onPickScore={(value) => setFilter('score', value)}
+          onPickSection={(value) => setFilter('section', value)}
+        />
+      )}
 
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className={MONO_MUTE}>СТРАНИЦА {page} ИЗ {totalPages}</span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            ПРЕД
-          </button>
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className={cn(MONO_LABEL, 'px-2.5 py-1 rounded-[3px] border border-default text-secondary hover:border-strong disabled:opacity-40 disabled:cursor-not-allowed transition-colors')}
-          >
-            СЛЕД
-          </button>
-        </div>
-      </div>
-    </PageContainer>
+      <AdminToolbar
+        search={{ value: search, onChange: handleSearch, placeholder: 'Имя, email или текст' }}
+        selects={[
+          {
+            key: 'score',
+            label: 'Оценка',
+            value: score,
+            options: [
+              { value: 'low', label: `низкие (1–${LOW_SCORE_MAX})` },
+              { value: 'high', label: `высокие (${HIGH_SCORE_MIN}–${MAX_SCORE})` },
+              { value: '5', label: '5' },
+              { value: '4', label: '4' },
+              { value: '3', label: '3' },
+              { value: '2', label: '2' },
+              { value: '1', label: '1' },
+            ],
+          },
+          { key: 'age', label: 'Возраст', value: age, options: ageOptions },
+          { key: 'section', label: 'Раздел', value: section, options: sectionOptions },
+          {
+            key: 'comment',
+            label: 'Комментарий',
+            value: comment,
+            options: [
+              { value: 'yes', label: 'есть' },
+              { value: 'no', label: 'нет' },
+            ],
+          },
+        ]}
+        onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
+        onClearAll={clearFilters}
+        summary={loading ? 'загрузка отзывов…' : undefined}
+      />
+
+      <AdminDataTable
+        label="Отзывы об отчёте"
+        columns={columns}
+        rows={pageItems}
+        rowKey={(item) => item.id}
+        rowHref={(item) => `/admin/users/${item.user_id}`}
+        loading={loading}
+        sort={sort}
+        onSortChange={handleSortChange}
+        emptyTitle={hasFilters ? 'Под фильтры ничего не подошло' : 'Фидбэка пока нет'}
+        emptyHint={
+          hasFilters
+            ? 'Поиск идёт по комментарию, имени, email и названию направления.'
+            : 'Отзывы появляются после того, как ученик дошёл до отчёта и ответил на три вопроса под ним.'
+        }
+        emptyAction={
+          hasFilters ? (
+            <button type="button" onClick={clearFilters} className={cn(ADMIN_BUTTON, ADMIN_TEXT)}>
+              Сбросить фильтры
+            </button>
+          ) : undefined
+        }
+      />
+
+      <AdminPager page={page} total={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['отзыв', 'отзыва', 'отзывов']} />
+    </>
   );
 }

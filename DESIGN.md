@@ -127,6 +127,37 @@ respect `prefers-reduced-motion: reduce` (see existing `@media` blocks in
 `theme.css` for the pattern — drop transforms, keep or drop opacity per
 case).
 
+### Mascot motion
+
+The mascot sprite is a static PNG. By default only the eyes blink (white lid
+`div`s over the eye boxes) and the whole sprite plays a one-shot landing on
+mount (`.mascot-enter`, every mascot).
+
+`<Mascot interactive />` adds more transform-only layers, each on its own
+wrapper so nothing fights for the one `transform` slot (`theme.css`, driven by
+`mascot/useMascotInteraction.ts`):
+
+- `.mascot-lean` — a small drift toward the pointer while it's near;
+- `.mascot-gesture` — a rare one-shot idle move on a randomised timer
+  (`glance-left/right`, `perk`, `wiggle`), so the idle doesn't read as one
+  looping animation. Skipped while the pointer is close (the lean already
+  carries that);
+- `.mascot-breath` — the always-on idle loop. Deliberately *not* a pure sine
+  (off-centre peak + a hair of drift/roll) — don't "simplify" it back to a
+  symmetric two-keyframe pulse;
+- `.mascot-hop` — squash-and-stretch on tap.
+
+`<Mascot celebrate />` is a separate one-shot bounce (`.mascot-cheer`) for the
+genuine payoff pose — the `completion`/medal reveal after finishing the
+assessment — per the "rare + significant → more personality" rule above.
+
+All of it is fine-pointer only and off under reduced-motion. Turn `interactive`
+on only for the rare/"significant" poses (`welcome`, `completion`, profile
+hero) — never for the `transition`/`waiting` poses that recur on routine
+screens, and never on the question screen (ТЗ 29.2). Anything richer than this
+(independently moving ears/tail/limbs, pupil tracking) needs the art
+re-exported in layers or a rigged format — not in scope here.
+
 ## Components
 
 Reusable primitives live in `src/shared/ui/` (`Button`, `Badge`, `Card`,

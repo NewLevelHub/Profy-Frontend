@@ -1,6 +1,7 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+@import './print.css';
 
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(14px); }
@@ -55,5 +56,64 @@
   textarea,
   button {
     font-size: 16px;
+  }
+}
+
+/* ─── Печать ───────────────────────────────────────────────────────────────
+   `#print-root` — портал, который админка монтирует прямо в <body> рядом с
+   #root (см. AssessmentPrintReport). На экране он скрыт, при печати меняются
+   местами: #root уходит, лист остаётся. Портал именно в <body>, а не внутрь
+   #root, потому что скрыть #root целиком — единственный надёжный способ
+   выключить и шапку, и сайдбар, и все sticky-панели разом.
+
+   Правила ниже намеренно висят на `body:has(#print-root)`, а не просто на
+   @media print. В приложении есть вторая печать — PRO-251, экспорт отчёта
+   ученика (styles/print.css): там отдельный маршрут /results/print, сама
+   страница и есть лист, и #root прятать нельзя, иначе печатается пустота.
+   `#print-root` существует в DOM только пока открыта админская печать, так
+   что селектор разводит два механизма, ничего друг о друге не знающих.    */
+#print-root {
+  display: none;
+}
+
+@media print {
+  html,
+  body {
+    /* Экранная блокировка горизонтального скролла обрезает лист по ширине
+       вьюпорта, а не по ширине страницы. */
+    overflow: visible !important;
+    background: #fff !important;
+    max-width: none !important;
+  }
+
+  body:has(#print-root) > #root {
+    display: none !important;
+  }
+
+  body > #print-root {
+    display: block !important;
+  }
+
+  /* @page глобален и последним объявлением перекрыл бы поля PRO-251, поэтому
+     размеры листа админки живут на самом #print-root. */
+  #print-root {
+    padding: 0;
+  }
+
+  /* Заливки полос и плашек браузер по умолчанию не печатает — без этого
+     диаграммы уходят на бумагу пустыми рамками. */
+  #print-root * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  #print-root h1,
+  #print-root h2 {
+    break-after: avoid;
+  }
+
+  #print-root tr,
+  #print-root p {
+    break-inside: avoid;
   }
 }

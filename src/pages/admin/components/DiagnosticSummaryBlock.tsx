@@ -1,7 +1,6 @@
-import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { cn } from '@/shared/lib/cn';
-import { MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminAssessmentDetail, AdminResponseItem, BigFiveDomain, HollandType } from '@/shared/types';
+import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT, MONO_LABEL } from '@/shared/ui/admin/density';
+import type { AdminAssessmentDetail, BigFiveDomain, HollandType } from '@/shared/types';
 
 const CONSISTENCY_LABELS: Record<'high' | 'medium' | 'low', string> = {
   high: 'высокая',
@@ -9,202 +8,205 @@ const CONSISTENCY_LABELS: Record<'high' | 'medium' | 'low', string> = {
   low: 'низкая',
 };
 
-// Spec order is I/A/E/R/S/C (not the usual RIASEC reading order) — followed
-// literally here since that's the exact sequence called out in the design spec.
-const RIASEC_DISPLAY_ORDER: HollandType[] = ['I', 'A', 'E', 'R', 'S', 'C'];
-
-// No spec order exists yet for Big Five (unlike RIASEC above) — standard
-// OCEAN mnemonic order, same as the compact table cell in AdminUsersPage.tsx.
+const RIASEC_DISPLAY_ORDER: HollandType[] = ['R', 'I', 'A', 'S', 'E', 'C'];
 const BIG_FIVE_DISPLAY_ORDER: BigFiveDomain[] = ['O', 'C', 'E', 'A', 'N'];
 
-function formatDuration(ms: number): string {
+const RIASEC_LABELS: Record<HollandType, string> = {
+  R: 'Реалистичный',
+  I: 'Исследовательский',
+  A: 'Артистичный',
+  S: 'Социальный',
+  E: 'Предприимчивый',
+  C: 'Конвенциональный',
+};
+
+const BIG_FIVE_LABELS: Record<BigFiveDomain, string> = {
+  O: 'Открытость опыту',
+  C: 'Добросовестность',
+  E: 'Экстраверсия',
+  A: 'Доброжелательность',
+  N: 'Нейротизм',
+};
+
+const INSTRUMENT_LABELS: Record<string, string> = {
+  riasec: 'RIASEC',
+  big_five: 'Big Five',
+  mi: 'MI',
+};
+
+function formatElapsed(ms: number): string {
   if (!Number.isFinite(ms) || ms <= 0) return '—';
   const totalMin = Math.round(ms / 60000);
-  if (totalMin < 1) return '<1 мин';
   if (totalMin < 60) return `${totalMin} мин`;
   const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return m ? `${h} ч ${m} мин` : `${h} ч`;
-}
-
-interface BlockSpan {
-  id: string;
-  label: string;
-  count: number;
-  durationMs: number | null;
+  if (h < 24) return `${h} ч ${totalMin % 60} мин`;
+  const d = Math.floor(h / 24);
+  return `${d} дн ${h % 24} ч`;
 }
 
 /**
- * Derives real per-block time-spent from response timestamps instead of a
- * backend-provided duration field (none exists) — first/last `created_at`
- * within each instrument's answered questions, which IS real data already on
- * `AdminAssessmentDetail.responses[].created_at`.
+ * How many questions each instrument contributed.
+ *
+ * This used to also show time spent per block, derived from the first and last
+ * `created_at` inside each instrument. That number was meaningless: the
+ * backend writes every response row at submit time, so all 314 rows of a real
+ * assessment carry the same two timestamps and every block reported "<1 мин"
+ * or "—". Counting questions is something the data actually supports.
  */
-function computeBlockSpans(assessment: AdminAssessmentDetail): BlockSpan[] {
-  const byInstrument = new Map<string, AdminResponseItem[]>();
-  for (const r of assessment.responses) {
-    const list = byInstrument.get(r.instrument) ?? [];
-    list.push(r);
-    byInstrument.set(r.instrument, list);
+function blockCounts(assessment: AdminAssessmentDetail) {
+  const counts = new Map<string, number>();
+  for (const response of assessment.responses) {
+    counts.set(response.instrument, (counts.get(response.instrument) ?? 0) + 1);
   }
 
-  const spans: BlockSpan[] = [];
+  const blocks = [...counts.entries()].map(([instrument, count]) => ({
+    id: instrument,
+    label: INSTRUMENT_LABELS[instrument] ?? instrument,
+    count,
+  }));
 
-  // "goal" — the assessment's chosen goal, not a scored/timed block: no
-  // response rows exist for it, so duration is honestly "—", not fabricated.
-  spans.push({ id: 'goal', label: 'Цель', count: 1, durationMs: null });
-
-  const INSTRUMENT_LABELS: Record<string, string> = {
-    riasec: 'RIASEC',
-    big_five: 'Big Five',
-    mi: 'MI',
-  };
-
-  for (const [instrument, items] of byInstrument.entries()) {
-    const times = items.map((i) => new Date(i.created_at).getTime()).filter((t) => !Number.isNaN(t));
-    const durationMs = times.length >= 2 ? Math.max(...times) - Math.min(...times) : null;
-    spans.push({
-      id: instrument,
-      label: INSTRUMENT_LABELS[instrument] ?? instrument,
-      count: items.length,
-      durationMs,
-    });
-  }
-
-  // Motivation triplets (MOST/NEUTRAL/LEAST) are the forced-choice format in
-  // this data model — the closest real match to the spec's "forced-choice"
-  // sub-block (there is no separate "forced-choice" instrument key anywhere
-  // in AdminAssessmentDetail).
   if (assessment.motivation_responses.length > 0) {
-    const times = assessment.motivation_responses
-      .map((i) => new Date(i.created_at).getTime())
-      .filter((t) => !Number.isNaN(t));
-    const durationMs = times.length >= 2 ? Math.max(...times) - Math.min(...times) : null;
-    spans.push({
+    blocks.push({
       id: 'motivation',
-      label: 'Мотивация (форс-выбор)',
+      label: 'Мотивация',
       count: assessment.motivation_responses.length,
-      durationMs,
     });
   }
 
-  return spans;
+  return blocks;
+}
+
+/** Horizontal bar with a named scale, used for both instrument breakdowns. */
+function ScoreBar({
+  label,
+  code,
+  value,
+  tone,
+}: {
+  label: string;
+  code: string;
+  value: number;
+  tone: 'pine' | 'lake';
+}) {
+  const clamped = Math.max(0, Math.min(100, value));
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className={cn(ADMIN_TEXT, 'text-secondary w-[168px] flex-shrink-0 truncate')}>
+        <span className={cn(ADMIN_NUM, 'text-muted mr-1.5')}>{code}</span>
+        {label}
+      </span>
+      {/* Capped rather than full-bleed: six bars stretched across a 1200px
+          card made near-equal scores impossible to compare by eye, which is
+          the only reason to draw bars instead of printing the numbers. */}
+      <span className="flex-1 max-w-[320px] h-2 rounded-[2px] bg-raised overflow-hidden">
+        <span
+          className={cn('block h-full rounded-[2px]', tone === 'pine' ? 'bg-[color:var(--pine)]' : 'bg-[color:var(--lake)]')}
+          style={{ width: `${clamped}%` }}
+        />
+      </span>
+      <span className={cn(ADMIN_NUM, 'text-primary w-8 text-right')}>{Math.round(value)}</span>
+    </div>
+  );
 }
 
 export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssessmentDetail }) {
-  const spans = computeBlockSpans(assessment);
-  const hasAnySpan = spans.some((s) => s.id !== 'goal');
-  if (!hasAnySpan) return null;
-
-  const nodes: SpineNode[] = spans.map((s, i) => ({
-    id: s.id,
-    status: assessment.status === 'completed' || i < spans.length - 1 ? 'done' : 'current',
-    label: s.label,
-    goal: i === spans.length - 1,
-  }));
+  const blocks = blockCounts(assessment);
+  if (blocks.length === 0) return null;
 
   const analysis = assessment.analysis_result;
-  // Guard against rendering raw Holland letters+numbers for a non-RIASEC
-  // profile (junior track uses MI categories in this same field) — the spec
-  // is explicit that this is the ONE place raw RIASEC scores may appear, so
-  // it must actually BE RIASEC data, not any Record<string, number>.
+
+  // Guard against rendering raw Holland letters for a non-RIASEC profile — the
+  // junior track puts MI categories in this same `profile` field.
   const riasecEntries = analysis
-    ? RIASEC_DISPLAY_ORDER
-        .filter((letter) => letter in analysis.profile)
-        .map((letter) => ({ letter, value: analysis.profile[letter] }))
+    ? RIASEC_DISPLAY_ORDER.filter((letter) => letter in analysis.profile).map((letter) => ({
+        letter,
+        value: analysis.profile[letter],
+      }))
     : [];
   const isRiasecProfile = riasecEntries.length === RIASEC_DISPLAY_ORDER.length;
 
-  // Big Five is unconditionally the right shape regardless of instrument
-  // (unlike `profile` above, which is MI for junior) — no guard needed.
   const bigFiveEntries = analysis
     ? BIG_FIVE_DISPLAY_ORDER.map((letter) => ({ letter, value: analysis.big_five[letter] }))
     : [];
 
-  const totalDurationMs =
+  const elapsedMs =
     assessment.completed_at && assessment.created_at
       ? new Date(assessment.completed_at).getTime() - new Date(assessment.created_at).getTime()
       : null;
 
   return (
-    <div className="space-y-4 py-3 border-y border-default">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className={MONO_MUTE}>СВОДКА ДИАГНОСТИКИ</span>
+    <div className="flex flex-col gap-4 py-3.5 border-y border-default">
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <h4 className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>Сводка диагностики</h4>
         {assessment.completed_at && (
-          <span className={MONO_MUTE}>
-            ЗАВЕРШЕНА {new Date(assessment.completed_at).toLocaleDateString('ru-RU')}
-            {totalDurationMs !== null ? ` · ${formatDuration(totalDurationMs).toUpperCase()}` : ''}
+          <span className={ADMIN_META}>
+            завершена {new Date(assessment.completed_at).toLocaleDateString('ru-RU')}
+            {elapsedMs !== null && (
+              <>
+                {' · '}
+                {/* Labelled as elapsed, not as time spent: it is the gap between
+                    starting and finishing, which for a test left open overnight
+                    reads as "20 ч 30 мин" of work that never happened. */}
+                <span title="Время от начала теста до завершения, включая перерывы">
+                  прошло {formatElapsed(elapsedMs)}
+                </span>
+              </>
+            )}
           </span>
         )}
       </div>
 
-      <div>
-        <Spine nodes={nodes} thickness={0.85} showLabels ariaLabel="Прогресс по блокам диагностики" />
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-          {spans.map((s) => (
-            <span key={s.id} className={MONO_MUTE}>
-              {s.label.toUpperCase()}: {s.durationMs !== null ? formatDuration(s.durationMs).toUpperCase() : '—'}
-            </span>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+        {blocks.map((block) => (
+          <span key={block.id} className={ADMIN_TEXT}>
+            <span className="text-muted">{block.label}</span>{' '}
+            <span className={cn(ADMIN_NUM, 'text-primary')}>{block.count}</span>
+          </span>
+        ))}
       </div>
 
       {isRiasecProfile && (
-        <div className="space-y-2">
-          <p className={MONO_MUTE}>
-            RIASEC — ТОЛЬКО ДЛЯ АДМИНИСТРАТОРА
-          </p>
-          <div className="space-y-1.5">
+        <div className="flex flex-col gap-2">
+          <p className={cn(MONO_LABEL, 'text-muted m-0')}>Интересы RIASEC</p>
+          <div className="flex flex-col gap-1.5">
             {riasecEntries.map(({ letter, value }) => (
-              <div key={letter} className="flex items-center gap-2">
-                <span className={cn(MONO_LABEL, 'w-4 text-primary')}>{letter}</span>
-                <div className="flex-1 h-2 rounded-[2px] bg-raised overflow-hidden">
-                  <div
-                    className="h-full bg-[color:var(--pine)] rounded-[2px]"
-                    style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-                  />
-                </div>
-                <span className="font-mono text-mono-xs text-secondary w-8 text-right">{Math.round(value)}</span>
-              </div>
+              <ScoreBar key={letter} code={letter} label={RIASEC_LABELS[letter]} value={value} tone="pine" />
             ))}
           </div>
-          <p className="text-mono-xs text-muted leading-[1.35]">
-            Необработанные баллы и буквы RIASEC показываются только здесь — `/results` не должен
-            раскрывать эти значения (см. frontend-result-api-contract.md).
-          </p>
         </div>
       )}
 
       {bigFiveEntries.length > 0 && (
-        <div className="space-y-2">
-          <p className={MONO_MUTE}>
-            BIG FIVE — ТОЛЬКО ДЛЯ АДМИНИСТРАТОРА
-          </p>
-          <div className="space-y-1.5">
+        <div className="flex flex-col gap-2">
+          <p className={cn(MONO_LABEL, 'text-muted m-0')}>Big Five</p>
+          <div className="flex flex-col gap-1.5">
             {bigFiveEntries.map(({ letter, value }) => (
-              <div key={letter} className="flex items-center gap-2">
-                <span className={cn(MONO_LABEL, 'w-4 text-primary')}>{letter}</span>
-                <div className="flex-1 h-2 rounded-[2px] bg-raised overflow-hidden">
-                  <div
-                    className="h-full bg-[color:var(--lake)] rounded-[2px]"
-                    style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-                  />
-                </div>
-                <span className="font-mono text-mono-xs text-secondary w-8 text-right">{Math.round(value)}</span>
-              </div>
+              <ScoreBar key={letter} code={letter} label={BIG_FIVE_LABELS[letter]} value={value} tone="lake" />
             ))}
           </div>
-          <p className="text-mono-xs text-muted leading-[1.35]">
-            Необработанные баллы Big Five (N/E/O/A/C) показываются только здесь, как и RIASEC выше.
-          </p>
         </div>
       )}
 
+      {(isRiasecProfile || bigFiveEntries.length > 0) && (
+        // One short line instead of the two developer footnotes that used to
+        // sit under each chart citing a contract file by name.
+        <p className={ADMIN_META}>Сырые баллы видны только в админке — в отчёте ученика их нет.</p>
+      )}
+
       {analysis && (
-        <div className={MONO_MUTE}>
-          СОГЛАСОВАННОСТЬ: {CONSISTENCY_LABELS[analysis.meta.consistency]?.toUpperCase() ?? analysis.meta.consistency.toUpperCase()}
-          {' · '}ДИФФЕРЕНЦИАЦИЯ: {Math.round(analysis.meta.differentiation)}
-          {' · '}СКОРОСТЬ ПРОХОЖДЕНИЯ: НЕТ ДАННЫХ
+        <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+          <span className={ADMIN_TEXT}>
+            <span className="text-muted">Согласованность ответов</span>{' '}
+            <span className="text-primary font-medium">
+              {CONSISTENCY_LABELS[analysis.meta.consistency] ?? analysis.meta.consistency}
+            </span>
+          </span>
+          <span className={ADMIN_TEXT}>
+            <span className="text-muted" title="Разброс между ведущими и слабыми типами: чем выше, тем чётче профиль">
+              Дифференциация
+            </span>{' '}
+            <span className={cn(ADMIN_NUM, 'text-primary')}>{Math.round(analysis.meta.differentiation)}</span>
+          </span>
         </div>
       )}
     </div>

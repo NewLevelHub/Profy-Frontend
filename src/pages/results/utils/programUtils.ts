@@ -24,19 +24,16 @@ export function cardImageUrl(imageUrl: string): string {
  * "#12 в мире (UNIRANKS)" from `uniranks_world_rank` — two global ranks on two
  * incomparable scales, written two different ways).
  *
- * Product rule (chosen 2026-08-28): every displayed number comes from ONE
- * rating system, UniRanks, so the chips are actually comparable across
- * universities —
- *   - Kazakhstani university → its position inside the country
- *     ("UniRanks · #N в Казахстане");
- *   - foreign university → its world position ("UniRanks · #N в мире").
- * `uniranks_world_rank` is used first for a foreign university; the parsed
- * QS World number (`ranking`) is only a fallback so a card isn't left with no
- * rank at all when UniRanks has no entry for it — and even then it's rendered
- * in the same "система · #N в мире" shape, never as raw `ranking_label` text.
- * The free-text `ranking_label` (subject ranks, THE, "#1 в Азии", prose like
- * "Спец. вуз МО РК") is deliberately not shown here any more — it was the
- * main source of the mixed-format confusion.
+ * Product rule (chosen 2026-08-28, revised 2026-09-02): every displayed
+ * number comes from ONE rating system, UniRanks Global Rank, so the chips
+ * are comparable across universities. The consolidated backend now writes
+ * that single number into `University.ranking` for every university it has
+ * (see scripts/build_world_rank_map.py); `uniranks_world_rank` /
+ * `uniranks_kz_rank` / the free-text `ranking_label` are no longer populated
+ * by the pipeline and are only read here as legacy fallbacks. Every chip is
+ * "UniRanks · #N в мире" — no per-country rank exists any more, and the
+ * "QS World" label was wrong (that field never held a QS number after the
+ * revision).
  *
  * Returns an array (0 or 1 entries) so the existing call sites
  * (UniversityRankBadges, ProgramDetailPage) don't need to change shape.
@@ -47,19 +44,13 @@ export function getUniversityRankingLabels(
   const positive = (v: number | null | undefined): number | null =>
     v !== null && v !== undefined && v > 0 ? v : null;
 
+  // `ranking` is the current single source (UniRanks Global Rank); the other
+  // two are legacy and normally null.
+  const worldRank = positive(uni.ranking) ?? positive(uni.uniranks_world_rank);
   const kzRank = positive(uni.uniranks_kz_rank);
-  const worldRank = positive(uni.uniranks_world_rank);
-  const qsWorld = positive(uni.ranking);
-  const isKz = KZ_COUNTRY_NAMES.has((uni.country ?? '').trim());
 
-  if (isKz) {
-    if (kzRank !== null) return [`UniRanks · #${kzRank} в Казахстане`];
-    if (worldRank !== null) return [`UniRanks · #${worldRank} в мире`];
-    return [];
-  }
-
+  if (kzRank !== null) return [`UniRanks · #${kzRank} в Казахстане`];
   if (worldRank !== null) return [`UniRanks · #${worldRank} в мире`];
-  if (qsWorld !== null) return [`QS World · #${qsWorld} в мире`];
   return [];
 }
 

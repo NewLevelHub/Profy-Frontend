@@ -33,14 +33,15 @@ export interface ProfilePayload {
    *  and artifacts together in one transaction. Omit to keep using the old
    *  two-call flow (POST /profile, then POST /profile/artifacts). */
   artifacts?: ArtifactItem[];
-  /** Same optional/atomic-write contract as `artifacts`, backed by
-   *  POST/PUT /profile/certificates when sent standalone. */
+  /** Exam scores (IELTS/ЕНТ/SAT/TOEFL). Same optional/atomic-write contract
+   *  as `artifacts` — any list sent replaces the profile's scores wholesale;
+   *  omitting the field leaves them untouched. Collected on onboarding step 2
+   *  and editable from Profile's "04 Баллы" section.
+   *
+   *  The backend also has `gpa_value`/`gpa_scale` columns (present on `dev`),
+   *  but nothing on the frontend reads or writes them — GPA was dropped from
+   *  the product surface. */
   certificates?: CertificateItem[];
-  /** A single scalar pair (unlike artifacts/certificates, which are lists).
-   *  `null`/omitted means "no GPA recorded yet" on create, or "leave
-   *  untouched" on update — see profileApi.update and useCertificatesEdit. */
-  gpa_value?: number | null;
-  gpa_scale?: GpaScale | null;
 }
 
 export interface ProfileResponse extends ProfilePayload {
@@ -74,7 +75,7 @@ export interface ArtifactItem {
   value: string;
 }
 
-// ─── Certificates & GPA ──────────────────────────────────────────────────────────
+// ─── Certificates (exam scores) ──────────────────────────────────────────────────
 
 export type CertificateType = 'ielts' | 'unt' | 'sat' | 'toefl';
 
@@ -83,14 +84,13 @@ export interface CertificateItem {
   score: number;
 }
 
-/** The grading scale a profile's `gpa_value` is expressed on — the label IS
- *  the scale's max (e.g. '4' = 4.0-point scale). Mirrors the backend's
- *  GpaScale (app/models/profile.py). */
-export type GpaScale = '4' | '5' | '10' | '100';
-
 // ─── Assessment ────────────────────────────────────────────────────────────────
 
-export type AssessmentGoal = 'explore' | 'profession' | 'university';
+// 'unsure' is legacy-only, like 'profession' (see shared/lib/assessmentGoal.ts)
+// — GoalSelectionPage no longer lets a student pick it, but old assessments
+// and the admin goal filter (docs/frontend-admin-users-api-contract.md §2)
+// can still carry/query for it.
+export type AssessmentGoal = 'explore' | 'profession' | 'university' | 'unsure';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
@@ -299,6 +299,14 @@ export interface AnalysisResultResponse {
   motivation: Record<MotivationCategory, number>;
   motivation_top: MotivationCategory[];
   motivation_highlights: string[];
+  /** v2 report fields — empty ([]) / 1 until the v2 report is (re)generated
+   *  for this assessment, not an error state (see
+   *  docs/frontend-admin-users-api-contract.md §5). `StrengthCard`/
+   *  `ThinkingStyleNote` are the same shapes student-facing `ResultResponse`
+   *  uses (see the "Result v2" section below) — this is the raw admin mirror. */
+  strength_cards: StrengthCard[];
+  thinking_style_notes: ThinkingStyleNote[];
+  report_version: number;
   summary: string;
   created_at: string;
 }
@@ -608,12 +616,15 @@ export interface UniversityRequirement {
 export interface ProgramBrief {
   id: string;
   name: string;
-  direction_slug: string;
+  profession_slugs: string[];
   language: string;
   cost_per_year: number | null;
   cost_label: string | null;
   description: string | null;
   university: UniversityBrief;
+  cost_currency: string | null;
+  cost_per_year_min: number | null;
+  cost_per_year_max: number | null;
 }
 
 export interface ProgramDetail extends ProgramBrief {
@@ -638,7 +649,14 @@ export interface AdminUserListItem {
   has_profile: boolean;
   profile_name: string | null;
   assessments_count: number;
+  /** null if the profile isn't filled in yet. */
+  age_group: AgeGroup | null;
   latest_assessment_status: AssessmentStatus | null;
+  /** Always the user's actual latest assessment — independent of which assessment
+   *  (if any) actually matched the `status`/`goal` list filters (see
+   *  docs/frontend-admin-users-api-contract.md §2's "found by filter" vs.
+   *  "actual latest" warning). null if the user has no assessments at all. */
+  latest_assessment_goal: AssessmentGoal | null;
   /** Admin-only raw percentages from the latest COMPLETED assessment
    *  (TZ_Profi.md §18.3). `riasec` is null for junior (MI instrument, not
    *  RIASEC) and for users with no completed assessment yet. */
@@ -757,37 +775,125 @@ export interface AdminFeedbackStatsResponse {
   helpful_section_counts: Record<string, number>;
 }
 
-// ─── Admin roles & change-log ───────────────────────────────────────────────────
-//
-// NOTE (frontend-only gap): the backend has no two-tier admin role concept today —
-// `User.is_admin` / `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are
-// still plain booleans, with no `role` field anywhere in the API response shape.
-// `AdminRole` below is a frontend-only type used to render the Operator/Administrator
-// distinction from the design spec; see `deriveAdminRole` in `@/shared/lib/adminRole`
-// for how it is honestly derived from the existing boolean (never fabricated).
+// ─── Admin: university/program editing (docs/admin-university-editing-api.md) ────
 
-/** Frontend-only role distinction. No third tier — binary by design. */
-export type AdminRole = 'operator' | 'administrator';
-
-/**
- * One row of field-level edit history for an admin-editable record.
- *
- * NOTE (backend gap): there is no audit-log / change-history endpoint or type
- * anywhere in the API today (`adminApi` only exposes read GETs). This shape is
- * defined so `ChangeLogTable` has a real contract to render against; callers
- * must source real entries once a backend endpoint exists — never fabricate rows.
- */
-export interface ChangeLogEntry {
+export interface AdminUniversityListItem {
   id: string;
-  /** Machine-readable identifier for the changed field, e.g. `alert-3.status`. */
-  field_id: string;
-  author: string;
-  timestamp: string;
-  old_value: string | null;
-  new_value: string | null;
-  /** Whether a real revert endpoint exists for this entry (currently always false). */
-  can_revert: boolean;
+  name: string;
+  city: string | null;
+  country: string | null;
+  ranking: number | null;
+  uniranks_kz_rank: number | null;
+  /** "Н/Р" if checked and not found in the ranking; null = not checked yet. */
+  uniranks_note: string | null;
+  updated_at: string | null;
+  programs_count: number;
 }
+
+export interface AdminUniversityListResponse {
+  items: AdminUniversityListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminProgramBrief {
+  id: string;
+  name: string;
+  language: string | null;
+  cost_per_year: number | null;
+  cost_label: string | null;
+}
+
+/** Fields the admin PATCH endpoints accept — see §5/§6 of the API contract. */
+export type AdminUniversityUpdateRequest = Partial<{
+  name: string;
+  short_name: string;
+  aliases: string[];
+  location: string;
+  website: string;
+  ranking: number | null;
+  ranking_label: string | null;
+  uniranks_kz_rank: number | null;
+  uniranks_world_rank: number | null;
+  uniranks_note: string | null;
+  description: string;
+  city: string;
+  country: string;
+  source_url: string;
+}>;
+
+export interface AdminUniversityDetail {
+  id: string;
+  name: string;
+  /** Read-only — not part of `AdminUniversityUpdateRequest`. */
+  slug: string | null;
+  short_name: string | null;
+  aliases: string[];
+  location: string | null;
+  country: string | null;
+  city: string | null;
+  website: string | null;
+  ranking: number | null;
+  ranking_label: string | null;
+  uniranks_kz_rank: number | null;
+  uniranks_world_rank: number | null;
+  uniranks_note: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string | null;
+  source_url: string | null;
+  programs: AdminProgramBrief[];
+  /** Field names locked against the next automated seed/backfill re-sync. */
+  admin_locked_fields: string[];
+}
+
+export type AdminProgramUpdateRequest = Partial<{
+  name: string;
+  language: string;
+  cost_per_year: number | null;
+  cost_label: string | null;
+  description: string | null;
+  who_its_for: string | null;
+  /** Whole-object replace, not a merge — see §6 of the API contract. */
+  requirements: Record<string, unknown>;
+  /** Whole-object replace, not a merge — see §6 of the API contract. */
+  deadlines: Record<string, unknown>;
+  grants: unknown[];
+  source_url: string | null;
+}>;
+
+export interface AdminProgramDetail {
+  id: string;
+  university_id: string;
+  name: string;
+  language: string | null;
+  cost_per_year: number | null;
+  cost_label: string | null;
+  description: string | null;
+  who_its_for: string | null;
+  requirements: Record<string, unknown>;
+  deadlines: Record<string, unknown>;
+  grants: unknown[];
+  created_at: string;
+  updated_at: string | null;
+  source_url: string | null;
+  university: { id: string; name: string };
+  admin_locked_fields: string[];
+}
+
+// ─── Admin roles ────────────────────────────────────────────────────────────────
+//
+// NOTE (backend gap): the API has no admin role concept — `User.is_admin` /
+// `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are plain booleans,
+// with no `role` field anywhere in the response shape.
+//
+// A frontend-only `AdminRole` used to exist here, deriving "Оператор" from
+// `is_admin === false`. It was removed in PRO-242: `RequireAdmin` only lets
+// `is_admin` users into `/admin/*`, so the operator state was unreachable and
+// the role badge always read "Администратор". Rendering a permission tier the
+// server does not enforce is UI theatre — see
+// docs/admin-backend-requests-pro-242.md §9 for what a real role would need.
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
@@ -829,3 +935,213 @@ export interface AttemptHistoryEntry {
   /** e.g. "Полная диагностика · 60 вопросов" — pre-formatted by the backend. */
   description: string;
 }
+
+// ─── Admin: question-bank content editing (docs/admin-questions-content-overrides-plan.md) ─
+
+export type QuestionKeyed = 'plus' | 'minus';
+
+export interface AdminQuestionListItem {
+  id: string;
+  instrument: Instrument;
+  text: string;
+  order: number;
+  age_tier: AgeGroup;
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
+  mi_category: MIType | null;
+  has_overrides: boolean;
+}
+
+export interface AdminQuestionListResponse {
+  items: AdminQuestionListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminQuestionDetail {
+  id: string;
+  instrument: Instrument;
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
+  mi_category: MIType | null;
+  facet: string | null;
+  keyed: QuestionKeyed | null;
+  text: string;
+  short_text: string | null;
+  icon: string | null;
+  /** Read-only — structural, not part of `AdminQuestionUpdateRequest`. */
+  order: number;
+  age_tier: AgeGroup;
+  /** Field name → overridden value. Presence of a key both locks the field
+   *  and protects the whole row from bank-reorg deletion (see the content
+   *  contract's §3 — unlike university's `admin_locked_fields: string[]`,
+   *  this dict is self-contained and IS the edited value). */
+  overrides: Record<string, unknown>;
+}
+
+export type AdminQuestionUpdateRequest = Partial<{
+  riasec_type: HollandType | null;
+  bigfive_domain: BigFiveDomain | null;
+  mi_category: MIType | null;
+  facet: string | null;
+  keyed: QuestionKeyed | null;
+  text: string;
+  age_tier: AgeGroup;
+  short_text: string | null;
+  icon: string | null;
+}>;
+
+export interface AdminQuestionPairListItem {
+  id: string;
+  instrument: Instrument;
+  age_tier: AgeGroup;
+  pair_index: number;
+  has_overrides: boolean;
+}
+
+export interface AdminQuestionPairListResponse {
+  items: AdminQuestionPairListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminQuestionPairDetail {
+  id: string;
+  instrument: Instrument;
+  age_tier: AgeGroup;
+  pair_index: number;
+  /** Read-only — which two Question rows form the pair is a structural edit,
+   *  out of scope for this API. */
+  question_a_id: string;
+  question_b_id: string;
+  frame: string | null;
+  /** null = fall back to the linked Question's short_text/text on read —
+   *  this endpoint does not resolve that fallback itself. */
+  option_a_text: string | null;
+  option_b_text: string | null;
+  option_a_icon: string | null;
+  option_b_icon: string | null;
+  overrides: Record<string, unknown>;
+}
+
+export type AdminQuestionPairUpdateRequest = Partial<{
+  frame: string | null;
+  option_a_text: string | null;
+  option_b_text: string | null;
+  option_a_icon: string | null;
+  option_b_icon: string | null;
+}>;
+
+export interface AdminMotivationStatementListItem {
+  id: string;
+  triplet_index: number;
+  order: number;
+  category: MotivationCategory;
+  text: string;
+  has_overrides: boolean;
+}
+
+export interface AdminMotivationStatementListResponse {
+  items: AdminMotivationStatementListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminMotivationStatementDetail {
+  id: string;
+  triplet_index: number;
+  order: number;
+  category: MotivationCategory;
+  text: string;
+  /** null = the senior `text` is reused for junior too. */
+  text_junior: string | null;
+  overrides: Record<string, unknown>;
+}
+
+export type AdminMotivationStatementUpdateRequest = Partial<{
+  category: MotivationCategory;
+  text: string;
+  text_junior: string | null;
+}>;
+
+export interface AdminMotivationPairListItem {
+  id: string;
+  pair_index: number;
+  category_a: MotivationCategory;
+  category_b: MotivationCategory;
+  has_overrides: boolean;
+}
+
+export interface AdminMotivationPairListResponse {
+  items: AdminMotivationPairListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminMotivationPairDetail {
+  id: string;
+  pair_index: number;
+  /** Always equal — both sides are the SAME category, `text_a` its positive
+   *  pole and `text_b` its negative pole (not two different categories). */
+  category_a: MotivationCategory;
+  category_b: MotivationCategory;
+  text_a: string;
+  text_b: string;
+  overrides: Record<string, unknown>;
+}
+
+export type AdminMotivationPairUpdateRequest = Partial<{
+  category_a: MotivationCategory;
+  category_b: MotivationCategory;
+  text_a: string;
+  text_b: string;
+}>;
+
+export interface AdminDirectionListItem {
+  id: string;
+  name: string;
+  slug: string;
+  holland_code: string;
+  has_overrides: boolean;
+}
+
+export interface AdminDirectionListResponse {
+  items: AdminDirectionListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminDirectionDetail {
+  id: string;
+  name: string;
+  /** Read-only — generated once from `name` by the seed script, does not
+   *  re-derive if `name` is edited afterward (expected drift, not a bug). */
+  slug: string;
+  holland_code: string;
+  description: string;
+  /** Empty on **all 92** directions as of 2026-09 — measured, not estimated.
+   *  Every other catalog field (description, skills, subjects, first steps) is
+   *  filled everywhere. `Direction.professions` feeds the student's report and
+   *  the LLM context for the direction inquiry and roadmap, so all three get an
+   *  empty list today — see docs/admin-backend-requests-pro-242.md §13. */
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+  overrides: Record<string, unknown>;
+}
+
+export type AdminDirectionUpdateRequest = Partial<{
+  name: string;
+  holland_code: string;
+  description: string;
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+}>;

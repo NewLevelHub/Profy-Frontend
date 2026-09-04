@@ -7,6 +7,10 @@ import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
+import { AdminContentLayout } from '@/shared/ui/layouts/AdminContentLayout';
+
+// ── Landing (публичный корень) ───────────────────────────────────────────────
+import LandingPage from '@/pages/landing/LandingPage';
 
 // ── Auth (mobile: AuthNavigator) ──────────────────────────────────────────────
 import LoginPage from '@/pages/auth/LoginPage';
@@ -32,6 +36,7 @@ import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
 import ResultsPage from '@/pages/results/ResultsPage';
+import ResultPrintPage from '@/pages/results/print/ResultPrintPage';
 import ProfilePage from '@/pages/profile/ProfilePage';
 import CertificatesEditPage from '@/pages/profile/certificates/CertificatesEditPage';
 
@@ -47,18 +52,33 @@ import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
 import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
+import AdminUniversitiesPage from '@/pages/admin/AdminUniversitiesPage';
+import AdminUniversityDetailPage from '@/pages/admin/AdminUniversityDetailPage';
+import AdminProgramDetailPage from '@/pages/admin/AdminProgramDetailPage';
+import AdminQuestionsPage from '@/pages/admin/content/AdminQuestionsPage';
+import AdminQuestionDetailPage from '@/pages/admin/content/AdminQuestionDetailPage';
+import AdminQuestionPairsPage from '@/pages/admin/content/AdminQuestionPairsPage';
+import AdminQuestionPairDetailPage from '@/pages/admin/content/AdminQuestionPairDetailPage';
+import AdminMotivationStatementsPage from '@/pages/admin/content/AdminMotivationStatementsPage';
+import AdminMotivationStatementDetailPage from '@/pages/admin/content/AdminMotivationStatementDetailPage';
+import AdminMotivationPairsPage from '@/pages/admin/content/AdminMotivationPairsPage';
+import AdminMotivationPairDetailPage from '@/pages/admin/content/AdminMotivationPairDetailPage';
+import AdminDirectionsPage from '@/pages/admin/content/AdminDirectionsPage';
+import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetailPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
-  // Root redirect — RequireProfile will handle the profile check at /results
-  { path: '/', element: <Navigate to="/results" replace /> },
-
-  // ── Guest-only: AuthLayout (mobile: AuthNavigator) ─────────────────────────
+  // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
     element: <RequireGuest />,
     children: [
+      // Корень отдаёт посадочную страницу. Отдельного редиректа на /results
+      // здесь больше нет: RequireGuest сам уводит вошедшего в приложение, а
+      // гость видит лендинг — то есть «/» ведёт себя по-разному для разных
+      // посетителей, чего статический Navigate не умел.
+      { path: '/', element: <LandingPage /> },
       {
         element: <AuthLayout />,
         children: [
@@ -101,6 +121,10 @@ export const router = createBrowserRouter([
           // /onboarding/artifacts) because editing certificates only makes
           // sense once a profile already exists.
           { path: '/profile/certificates', element: <CertificatesEditPage /> },
+          // Printable/PDF result — chrome-free for the same reason: a
+          // document view, not a tab. Sits outside AppLayout so the nav
+          // rail never lands in the exported PDF.
+          { path: '/results/print', element: <ResultPrintPage /> },
           {
             element: <AppLayout />,
             children: [
@@ -124,12 +148,32 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/admin', element: <Navigate to="/admin/users" replace /> },
                   {
-                    // Persistent admin chrome (role badge) for every admin page
+                    // Persistent admin chrome (section rail) for every admin page
                     element: <AdminLayout />,
                     children: [
                       { path: '/admin/users', element: <AdminUsersPage /> },
                       { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
                       { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+                      { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+                      { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+                      { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
+                      {
+                        path: '/admin/content',
+                        element: <AdminContentLayout />,
+                        children: [
+                          { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                          { path: 'questions', element: <AdminQuestionsPage /> },
+                          { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
+                          { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
+                          { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
+                          { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
+                          { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
+                          { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
+                          { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
+                          { path: 'directions', element: <AdminDirectionsPage /> },
+                          { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                        ],
+                      },
                     ],
                   },
                 ],
