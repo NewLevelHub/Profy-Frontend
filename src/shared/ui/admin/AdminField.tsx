@@ -1,12 +1,30 @@
 import { useId, type ReactNode } from 'react';
+import { Undo2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { Tooltip } from '@/shared/ui/Tooltip';
 import { ADMIN_TEXT, MONO_LABEL } from '@/shared/ui/admin/density';
 import { LockedFieldBadge } from '@/shared/ui/admin/LockedFieldBadge';
+
+export interface AdminFieldRevert {
+  /** What the content bank held before this field was edited. */
+  bankValue: unknown;
+  /** False when the original was never recorded — the revert then hands the
+   *  field back to the next deploy's re-sync instead of restoring a value. */
+  bankValueKnown: boolean;
+  pending: boolean;
+  /** Set when reverting is temporarily impossible; renders as a disabled
+   *  control with this as the explanation. */
+  disabledReason?: string;
+  onRevert: () => void;
+}
 
 interface AdminFieldProps {
   label: string;
   locked?: boolean;
   lockReason?: string;
+  /** Offers "вернуть исходное" next to the lock marker. Only meaningful on a
+   *  locked field — an untouched one has nothing to revert. */
+  revert?: AdminFieldRevert;
   /** Explains the field's effect — shown always, not hidden in a tooltip. */
   hint?: ReactNode;
   /** Validation message. Renders in clay and marks the control invalid. */
@@ -25,7 +43,16 @@ interface AdminFieldProps {
  * the previous version rendered a bare `<span>` label next to an unlabelled
  * input.
  */
-export function AdminField({ label, locked, lockReason, hint, error, className, children }: AdminFieldProps) {
+export function AdminField({
+  label,
+  locked,
+  lockReason,
+  revert,
+  hint,
+  error,
+  className,
+  children,
+}: AdminFieldProps) {
   const id = useId();
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
@@ -37,6 +64,7 @@ export function AdminField({ label, locked, lockReason, hint, error, className, 
           {label}
         </label>
         {locked && <LockedFieldBadge reason={lockReason} />}
+        {locked && revert && <RevertButton {...revert} />}
       </div>
 
       {/* `describedBy` must reach the control, otherwise the hint and the error
@@ -63,4 +91,55 @@ export function AdminField({ label, locked, lockReason, hint, error, className, 
       )}
     </div>
   );
+}
+
+/**
+ * Undo one admin edit.
+ *
+ * Before PRO-262 there was no way back: a PATCH recorded an override that the
+ * seed re-sync composed back over the bank on every deploy, so one mistyped
+ * character pinned a field forever and only a hand edit in the database could
+ * free it. The tooltip shows what the value will become, because "вернуть
+ * исходное" is worth nothing if you cannot see what "исходное" is.
+ */
+function RevertButton({ bankValue, bankValueKnown, pending, disabledReason, onRevert }: AdminFieldRevert) {
+  const preview = formatBankValue(bankValue);
+  const content = disabledReason
+    ? disabledReason
+    : bankValueKnown
+      ? `Вернуть значение из контент-банка: ${preview}`
+      : // Overrides written before the original was recorded. Saying so beats
+        // implying a restore that will not happen until the next deploy.
+        'Исходное значение не сохранялось. Правка будет снята, а значение вернёт ближайший деплой.';
+
+  return (
+    <Tooltip content={content}>
+      <button
+        type="button"
+        onClick={onRevert}
+        disabled={pending || Boolean(disabledReason)}
+        className={cn(
+          MONO_LABEL,
+          'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] transition-colors',
+          'text-muted hover:text-primary hover:bg-hover',
+          'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent',
+          'focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_30%,transparent)]',
+        )}
+      >
+        <Undo2 size={10} />
+        {pending ? 'Возвращаю…' : 'Вернуть исходное'}
+      </button>
+    </Tooltip>
+  );
+}
+
+const BANK_VALUE_PREVIEW_LIMIT = 120;
+
+function formatBankValue(value: unknown): string {
+  if (value === null || value === undefined) return 'пусто';
+  if (Array.isArray(value)) return value.length === 0 ? 'пустой список' : value.join(', ');
+  const text = String(value);
+  return text.length > BANK_VALUE_PREVIEW_LIMIT
+    ? `${text.slice(0, BANK_VALUE_PREVIEW_LIMIT)}…`
+    : text;
 }

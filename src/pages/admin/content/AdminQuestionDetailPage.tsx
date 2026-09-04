@@ -15,6 +15,8 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
@@ -136,6 +138,14 @@ export default function AdminQuestionDetailPage() {
 
   const locked = new Set(Object.keys(detail.overrides));
 
+  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminQuestionDetail>({
+    resource: 'questions',
+    id: detail.id,
+    overrides: detail.overrides,
+    dirty,
+    onReverted: setDetail,
+  });
+
   return (
     <>
       {/* Крошка и заголовок — по самому вопросу, а не «Порядок 1»: порядок
@@ -162,11 +172,22 @@ export default function AdminQuestionDetailPage() {
           a rewritten question would read on the Likert screen. */}
       <QuestionPreview text={form.text} shortText={form.short_text} icon={form.icon} />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+      />
       <AdminCard
         title="Содержание"
         description="Текст, который увидит ученик. Короткий вариант используется на экранах выбора «или / или» у junior."
       >
-        <AdminField label="Текст вопроса" locked={locked.has('text')} lockReason={LOCK_REASON}>
+        <AdminField label="Текст вопроса" locked={locked.has('text')} revert={fieldRevert('text')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -181,7 +202,7 @@ export default function AdminQuestionDetailPage() {
         <div className="grid gap-3.5 sm:grid-cols-[1fr_140px]">
           <AdminField
             label="Короткий текст"
-            locked={locked.has('short_text')}
+            locked={locked.has('short_text')} revert={fieldRevert('short_text')}
             lockReason={LOCK_REASON}
             hint="Пусто — на экране пары покажется полный текст выше."
           >
@@ -199,7 +220,7 @@ export default function AdminQuestionDetailPage() {
           {/* Отдельного превью эмодзи рядом с полем нет: карточка «Как увидит
               ученик» вверху уже показывает его в нужном размере, а тут он
               дублировался в 22px рядом с тем же символом в самом поле. */}
-          <AdminField label="Иконка" locked={locked.has('icon')} lockReason={LOCK_REASON} hint="Один эмодзи.">
+          <AdminField label="Иконка" locked={locked.has('icon')} revert={fieldRevert('icon')} lockReason={LOCK_REASON} hint="Один эмодзи.">
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -214,7 +235,7 @@ export default function AdminQuestionDetailPage() {
 
         <AdminField
           label="Возрастная видимость"
-          locked={locked.has('age_tier')}
+          locked={locked.has('age_tier')} revert={fieldRevert('age_tier')}
           lockReason={LOCK_REASON}
           hint="Вопрос виден выбранной группе и всем старшим: junior ⊆ middle ⊆ senior."
         >
@@ -240,7 +261,7 @@ export default function AdminQuestionDetailPage() {
           invite cross-instrument data that no scoring path reads. */}
       {detail.instrument === 'riasec' && (
         <AdminCard title="RIASEC" description="К какому типу Холланда относится ответ на этот вопрос.">
-          <AdminField label="Тип" locked={locked.has('riasec_type')} lockReason={LOCK_REASON}>
+          <AdminField label="Тип" locked={locked.has('riasec_type')} revert={fieldRevert('riasec_type')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <AdminSelect
                 id={id}
@@ -264,7 +285,7 @@ export default function AdminQuestionDetailPage() {
       {detail.instrument === 'big_five' && (
         <AdminCard title="Big Five" description="Домен, фасет и направление шкалы.">
           <div className="grid gap-3.5 sm:grid-cols-2">
-            <AdminField label="Домен" locked={locked.has('bigfive_domain')} lockReason={LOCK_REASON}>
+            <AdminField label="Домен" locked={locked.has('bigfive_domain')} revert={fieldRevert('bigfive_domain')} lockReason={LOCK_REASON}>
               {({ id, describedBy }) => (
                 <AdminSelect
                   id={id}
@@ -284,7 +305,7 @@ export default function AdminQuestionDetailPage() {
 
             <AdminField
               label="Ключевание"
-              locked={locked.has('keyed')}
+              locked={locked.has('keyed')} revert={fieldRevert('keyed')}
               lockReason={LOCK_REASON}
               hint="Обратный вопрос инвертирует балл при подсчёте."
             >
@@ -307,7 +328,7 @@ export default function AdminQuestionDetailPage() {
 
             <AdminField
               label="Фасет"
-              locked={locked.has('facet')}
+              locked={locked.has('facet')} revert={fieldRevert('facet')}
               lockReason={LOCK_REASON}
               className="sm:col-span-2"
             >
@@ -330,7 +351,7 @@ export default function AdminQuestionDetailPage() {
           title="Multiple Intelligences"
           description="Junior-трек использует категории MI вместо кодов RIASEC."
         >
-          <AdminField label="Категория" locked={locked.has('mi_category')} lockReason={LOCK_REASON}>
+          <AdminField label="Категория" locked={locked.has('mi_category')} revert={fieldRevert('mi_category')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <AdminSelect
                 id={id}

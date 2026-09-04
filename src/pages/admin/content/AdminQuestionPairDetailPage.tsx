@@ -8,6 +8,8 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
@@ -59,7 +61,6 @@ interface Fallback {
 export default function AdminQuestionPairDetailPage() {
   const { pairId } = useParams<{ pairId: string }>();
   const [detail, setDetail] = useState<AdminQuestionPairDetail | null>(null);
-  const [fallbacks, setFallbacks] = useState<{ a: Fallback | null; b: Fallback | null }>({ a: null, b: null });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -75,22 +76,6 @@ export default function AdminQuestionPairDetailPage() {
         const data = await adminApi.getQuestionPair(pairId!);
         if (cancelled) return;
         setDetail(data);
-
-        // Resolved up front, not behind a "показать значение по умолчанию"
-        // button as before. A blank option text falls back to the linked
-        // question, so without this the screen could not answer the only
-        // question it exists to answer: what will the student actually see.
-        // The detail endpoint does not resolve this itself — see
-        // docs/admin-backend-requests-pro-242.md §11.
-        const [a, b] = await Promise.allSettled([
-          adminApi.getQuestion(data.question_a_id),
-          adminApi.getQuestion(data.question_b_id),
-        ]);
-        if (cancelled) return;
-        setFallbacks({
-          a: a.status === 'fulfilled' ? { text: a.value.short_text ?? a.value.text, icon: a.value.icon ?? '' } : null,
-          b: b.status === 'fulfilled' ? { text: b.value.short_text ?? b.value.text, icon: b.value.icon ?? '' } : null,
-        });
       } catch {
         if (!cancelled) setLoadError('Не удалось загрузить пару вопросов');
       } finally {
@@ -103,6 +88,26 @@ export default function AdminQuestionPairDetailPage() {
       cancelled = true;
     };
   }, [pairId, reloadToken]);
+
+  /**
+   * Что подставится вместо пустого поля.
+   *
+   * Пустой текст опции означает fallback на связанный вопрос, и без него экран
+   * не мог ответить на единственный вопрос, ради которого существует: что
+   * увидит ученик. Связанные вопросы теперь приходят прямо в карточке пары —
+   * раньше за каждым из них шёл отдельный запрос.
+   */
+  const fallbacks: { a: Fallback | null; b: Fallback | null } = useMemo(
+    () => ({
+      a: detail?.question_a
+        ? { text: detail.question_a.short_text ?? detail.question_a.text, icon: detail.question_a.icon ?? '' }
+        : null,
+      b: detail?.question_b
+        ? { text: detail.question_b.short_text ?? detail.question_b.text, icon: detail.question_b.icon ?? '' }
+        : null,
+    }),
+    [detail],
+  );
 
   const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
 
@@ -127,6 +132,14 @@ export default function AdminQuestionPairDetailPage() {
   }
 
   const locked = new Set(Object.keys(detail.overrides));
+
+  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminQuestionPairDetail>({
+    resource: 'question-pairs',
+    id: detail.id,
+    overrides: detail.overrides,
+    dirty,
+    onReverted: setDetail,
+  });
 
   /**
    * An empty box means "no override — use the linked question", and the wire
@@ -163,11 +176,22 @@ export default function AdminQuestionPairDetailPage() {
         b={{ text: effectiveB, icon: effectiveIconB }}
       />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+      />
       <AdminCard
         title="Сценарий"
         description="Общая формулировка над двумя вариантами. Если очистить — ученик увидит два варианта без общего вопроса."
       >
-        <AdminField label="Фрейм" locked={locked.has('frame')} lockReason={LOCK_REASON}>
+        <AdminField label="Фрейм" locked={locked.has('frame')} revert={fieldRevert('frame')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <input
               id={id}
