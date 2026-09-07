@@ -126,6 +126,17 @@ export default function AdminQuestionPairDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminQuestionPairDetail>({
+    resource: 'question-pairs',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label="Загрузка пары" />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || 'Пара не найдена'} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -133,13 +144,6 @@ export default function AdminQuestionPairDetailPage() {
 
   const locked = new Set(Object.keys(detail.overrides));
 
-  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminQuestionPairDetail>({
-    resource: 'question-pairs',
-    id: detail.id,
-    overrides: detail.overrides,
-    dirty,
-    onReverted: setDetail,
-  });
 
   /**
    * An empty box means "no override — use the linked question", and the wire

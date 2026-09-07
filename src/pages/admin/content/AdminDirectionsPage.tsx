@@ -14,6 +14,9 @@ import type { AdminDirectionListItem } from '@/shared/types';
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'catalog_filled'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['name', 'holland_code', 'slug'] as const;
 
 /** Русские имена полей каталога — список приходит машинными. */
 const CATALOG_FIELD_LABELS: Record<string, string> = {
@@ -26,7 +29,7 @@ const CATALOG_FIELD_LABELS: Record<string, string> = {
 
 export default function AdminDirectionsPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
-    useAdminListParams(FILTER_KEYS);
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/directions');
   const [items, setItems] = useState<AdminDirectionListItem[]>([]);
   const [total, setTotal] = useState(0);

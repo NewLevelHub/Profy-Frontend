@@ -29,6 +29,9 @@ import type { AdminFeedbackListItem, AdminFeedbackStatsResponse, AgeGroup } from
 
 const PAGE_SIZE = 25;
 const FILTER_KEYS = ['search', 'score', 'age', 'section', 'comment'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['created_at', 'relevance_score'] as const;
 
 /** The score dropdown speaks in bands; the API speaks in bounds. */
 function scoreBounds(score: string): { score_min?: number; score_max?: number } {
@@ -99,7 +102,7 @@ function CommentCell({ comment }: { comment: string | null }) {
 
 export default function AdminFeedbackPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
-    useAdminListParams(FILTER_KEYS);
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
 
   const { search, score, age, section, comment } = values;
   const hasFilters = Boolean(search || score || age || section || comment);
@@ -170,13 +173,19 @@ export default function AdminFeedbackPage() {
     };
   }, [filters, page, score, sort?.key, sort?.order, reloadToken]);
 
+  /**
+   * Счётчики в подписях — только пока фильтр по возрасту не выбран.
+   *
+   * `stats` считается по текущим фильтрам, поэтому с выбранным возрастом у
+   * остальных вариантов было бы «(0)» — не «таких нет», а «мы их отфильтровали».
+   */
   const ageOptions = useMemo(
     () =>
       AGE_ORDER.map((tier) => {
-        const row = stats?.by_age_group.find((entry) => entry.key === tier);
+        const row = age ? undefined : stats?.by_age_group.find((entry) => entry.key === tier);
         return { value: tier, label: row ? `${ageLabel(tier)} (${row.count})` : ageLabel(tier) };
       }),
-    [stats],
+    [stats, age],
   );
 
   const sectionOptions = useMemo(() => {
@@ -343,7 +352,10 @@ export default function AdminFeedbackPage() {
 
       {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
 
-      {!loading && stats && scoreBase && sectionBase && (
+      {/* Не размонтируется на время запроса: сводка — это ещё и фильтр
+          (клик по столбику), а размонтирование сбрасывало бы выбранный срез и
+          развёрнутые списки ровно в тот момент, когда ими пользуются. */}
+      {stats && scoreBase && sectionBase && (
         <FeedbackOverview
           stats={stats}
           scoreBase={scoreBase}

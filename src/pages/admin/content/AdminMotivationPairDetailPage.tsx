@@ -127,6 +127,17 @@ export default function AdminMotivationPairDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminMotivationPairDetail>({
+    resource: 'motivation-pairs',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label="Загрузка пары" />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || 'Пара не найдена'} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -134,13 +145,6 @@ export default function AdminMotivationPairDetailPage() {
 
   const locked = new Set(Object.keys(detail.overrides));
 
-  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminMotivationPairDetail>({
-    resource: 'motivation-pairs',
-    id: detail.id,
-    overrides: detail.overrides,
-    dirty,
-    onReverted: setDetail,
-  });
   const categoriesDiverged = detail.category_a !== detail.category_b;
 
   // Что станет с балансом, если сохранить выбранную сейчас категорию.

@@ -16,10 +16,13 @@ import type { AdminQuestionPairListItem, AgeGroup, Instrument } from '@/shared/t
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['pair_index', 'instrument', 'age_tier'] as const;
 
 export default function AdminQuestionPairsPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
-    useAdminListParams(FILTER_KEYS);
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/question-pairs');
   const [items, setItems] = useState<AdminQuestionPairListItem[]>([]);
   const [total, setTotal] = useState(0);

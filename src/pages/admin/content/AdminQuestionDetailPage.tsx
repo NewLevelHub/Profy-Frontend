@@ -131,6 +131,17 @@ export default function AdminQuestionDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminQuestionDetail>({
+    resource: 'questions',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label="Загрузка вопроса" />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || 'Вопрос не найден'} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -138,13 +149,6 @@ export default function AdminQuestionDetailPage() {
 
   const locked = new Set(Object.keys(detail.overrides));
 
-  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminQuestionDetail>({
-    resource: 'questions',
-    id: detail.id,
-    overrides: detail.overrides,
-    dirty,
-    onReverted: setDetail,
-  });
 
   return (
     <>

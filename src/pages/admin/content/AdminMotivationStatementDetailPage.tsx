@@ -111,6 +111,17 @@ export default function AdminMotivationStatementDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminMotivationStatementDetail>({
+    resource: 'motivation-statements',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label="Загрузка утверждения" />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || 'Утверждение не найдено'} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -118,13 +129,6 @@ export default function AdminMotivationStatementDetailPage() {
 
   const locked = new Set(Object.keys(detail.overrides));
 
-  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminMotivationStatementDetail>({
-    resource: 'motivation-statements',
-    id: detail.id,
-    overrides: detail.overrides,
-    dirty,
-    onReverted: setDetail,
-  });
   const conflicting = siblings.filter((sibling) => sibling.category === form.category);
 
   return (

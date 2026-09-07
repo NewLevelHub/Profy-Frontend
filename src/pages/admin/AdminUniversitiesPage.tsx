@@ -14,6 +14,9 @@ import type { AdminUniversityCountry, AdminUniversityListItem } from '@/shared/t
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'country', 'has_programs'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['name', 'city', 'country', 'ranking', 'uniranks_kz_rank', 'updated_at', 'programs_count'] as const;
 
 const HOME_COUNTRY = 'Казахстан';
 
@@ -31,10 +34,16 @@ function formatDate(value: string): string {
  * `?sort=&order=` with a Russian collation, and a search that also matches
  * city, short name and aliases — so the workaround is gone and the numbers in
  * the pager are the server's own, not a slice of a partial download.
+ *
+ * The two local sort rules went with it and are now the server's, verified
+ * against the running API: rows without a rank sort last in BOTH directions
+ * (`nulls_last`, so "по убыванию" does not open on the ~190 unranked ones),
+ * and every ordering carries a unique tiebreaker, so paging over a column
+ * with ties cannot repeat or drop a row.
  */
 export default function AdminUniversitiesPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
-    useAdminListParams(FILTER_KEYS);
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/universities');
 
   const [items, setItems] = useState<AdminUniversityListItem[]>([]);

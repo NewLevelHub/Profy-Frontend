@@ -830,6 +830,19 @@ export interface AdminUniversityListItem {
   programs_count: number;
 }
 
+/** One entry of `AdminProgramDetail.grants`.
+ *
+ *  `name` is the only field every live row has; the other two are optional and
+ *  the index signature keeps any key an importer added that this type has not
+ *  learned about yet — a read-edit-write pass through the admin must not
+ *  silently drop one. */
+export interface AdminProgramGrant {
+  name: string;
+  amount?: string | null;
+  conditions?: string | null;
+  [key: string]: unknown;
+}
+
 /** One option of the country filter, with how many universities it covers.
  *  A page of 20 rows cannot supply the full set of values, so the server
  *  computes it — the screen used to download the whole catalog to count. */
@@ -907,7 +920,7 @@ export type AdminProgramUpdateRequest = Partial<{
   requirements: Record<string, unknown>;
   /** Whole-object replace, not a merge — see §6 of the API contract. */
   deadlines: Record<string, unknown>;
-  grants: unknown[];
+  grants: AdminProgramGrant[];
   source_url: string | null;
 }>;
 
@@ -922,7 +935,7 @@ export interface AdminProgramDetail {
   who_its_for: string | null;
   requirements: Record<string, unknown>;
   deadlines: Record<string, unknown>;
-  grants: unknown[];
+  grants: AdminProgramGrant[];
   created_at: string;
   updated_at: string | null;
   source_url: string | null;
@@ -1251,6 +1264,10 @@ export interface AdminDirectionDetail {
   skills_needed: string[];
   subjects_to_develop: string[];
   first_steps: string[];
+  /** Программы вузов, привязанные к направлению через program_directions.
+   *  Именно эта связь решает, попадёт ли направление в подбор ученику, а из
+   *  админки её раньше не было видно вообще. */
+  programs: AdminDirectionProgram[];
   overrides: AdminOverrides;
 }
 

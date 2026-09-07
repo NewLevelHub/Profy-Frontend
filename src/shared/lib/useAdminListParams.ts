@@ -25,7 +25,20 @@ const ORDER_KEY = 'order';
  * Sorting is handled here too (`sort`/`setSort`), so every list spells it the
  * same way the API does — `?sort=<field>&order=asc|desc`.
  */
-export function useAdminListParams<K extends string>(keys: readonly K[]) {
+export function useAdminListParams<K extends string>(
+  keys: readonly K[],
+  /**
+   * Поля, по которым этот список умеет сортироваться — тот же набор, что
+   * принимает эндпоинт.
+   *
+   * Нужен потому, что сортировка живёт в URL и переживает «сбросить фильтры»:
+   * закладка со старым `?sort=` (или правка адреса руками) отправила бы на
+   * сервер поле, которого он не знает, и экран встретил бы пользователя
+   * ошибкой 422 без единого способа из неё выйти. Незнакомое поле просто
+   * игнорируется — список открывается в порядке по умолчанию.
+   */
+  sortableKeys?: readonly string[],
+) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
@@ -91,8 +104,10 @@ export function useAdminListParams<K extends string>(keys: readonly K[]) {
   const sort = useMemo<AdminSort | undefined>(() => {
     const key = searchParams.get(SORT_KEY);
     if (!key) return undefined;
+    if (sortableKeys && !sortableKeys.includes(key)) return undefined;
     return { key, order: searchParams.get(ORDER_KEY) === 'desc' ? 'desc' : 'asc' };
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString(), sortableKeys]);
 
   /**
    * Both keys in ONE write.

@@ -18,10 +18,13 @@ import type { AdminMotivationPairListItem, MotivationCategory } from '@/shared/t
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'category'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['pair_index', 'category_a'] as const;
 
 export default function AdminMotivationPairsPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters, activeCount } =
-    useAdminListParams(FILTER_KEYS);
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/motivation-pairs');
   const [items, setItems] = useState<AdminMotivationPairListItem[]>([]);
   const [total, setTotal] = useState(0);

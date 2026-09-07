@@ -22,6 +22,9 @@ import type { AdminQuestionListItem, AgeGroup, BigFiveDomain, HollandType, Instr
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['order', 'instrument', 'age_tier', 'text'] as const;
 
 /**
  * The scored category, named rather than coded.
@@ -52,7 +55,7 @@ function resolveTypeLabel(item: AdminQuestionListItem): string | null {
 
 export default function AdminQuestionsPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
-    useAdminListParams(FILTER_KEYS);
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/questions');
   const [items, setItems] = useState<AdminQuestionListItem[]>([]);
   const [total, setTotal] = useState(0);

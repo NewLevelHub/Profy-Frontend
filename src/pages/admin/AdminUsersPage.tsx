@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Download, FileText } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
@@ -28,6 +28,9 @@ import type {
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'age_group', 'status', 'goal', 'inactive_days'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['created_at', 'last_active_at', 'email', 'age_group', 'latest_assessment_status'] as const;
 
 /** Порог «давно не заходил». Регистрация считается активностью, поэтому
  *  свежий аккаунт под фильтр не попадает. */
@@ -128,7 +131,7 @@ function formatRelative(value: string): string {
 
 export default function AdminUsersPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
-    useAdminListParams(FILTER_KEYS);
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   // So the breadcrumb on a user's card returns to this exact filtered page.
   useRememberListQuery('/admin/users');
   const [items, setItems] = useState<AdminUserListItem[]>([]);
@@ -148,6 +151,24 @@ export default function AdminUsersPage() {
   const { search, age_group: ageGroup, status, goal, inactive_days: inactiveDays } = values;
   const [stats, setStats] = useState<AdminUserStats | null>(null);
 
+  /**
+   * Один источник фильтров на таблицу, CSV и PDF.
+   *
+   * Раньше каждый из трёх собирал их у себя, и добавление фильтра означало
+   * правку в трёх местах: пропустили один — и выгрузка молча содержит всех
+   * пользователей, хотя на экране отфильтрованная выборка.
+   */
+  const filters = useMemo(
+    () => ({
+      search: search || undefined,
+      age_group: (ageGroup as AgeGroup) || undefined,
+      status: (status as AssessmentStatus) || undefined,
+      goal: (goal as AssessmentGoal) || undefined,
+      inactive_days: inactiveDays ? Number(inactiveDays) : undefined,
+    }),
+    [search, ageGroup, status, goal, inactiveDays],
+  );
+
   useEffect(() => {
     let cancelled = false;
 
@@ -156,13 +177,9 @@ export default function AdminUsersPage() {
       setError('');
       try {
         const data = await adminApi.listUsers({
+          ...filters,
           page,
           limit: PAGE_SIZE,
-          search: search || undefined,
-          age_group: (ageGroup as AgeGroup) || undefined,
-          status: (status as AssessmentStatus) || undefined,
-          goal: (goal as AssessmentGoal) || undefined,
-          inactive_days: inactiveDays ? Number(inactiveDays) : undefined,
           sort: sort?.key,
           order: sort?.order,
         });
@@ -180,7 +197,7 @@ export default function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, search, ageGroup, status, goal, inactiveDays, sort?.key, sort?.order, reloadToken]);
+  }, [page, filters, sort?.key, sort?.order, reloadToken]);
 
   // Whole-table counts, independent of the filters: they answer "what is
   // happening overall", which is the question a filtered page cannot.
@@ -219,12 +236,6 @@ export default function AdminUsersPage() {
     setPrinting(true);
     setExportError('');
     try {
-      const filters = {
-        search: search || undefined,
-        age_group: (ageGroup as AgeGroup) || undefined,
-        status: (status as AssessmentStatus) || undefined,
-        goal: (goal as AssessmentGoal) || undefined,
-      };
       const first = await adminApi.listUsers({ ...filters, page: 1, limit: PRINT_PAGE_LIMIT });
       const reachable = Math.min(first.total, PRINT_MAX_ROWS);
       const pageCount = Math.ceil(reachable / PRINT_PAGE_LIMIT);
@@ -245,12 +256,7 @@ export default function AdminUsersPage() {
     setExporting(true);
     setExportError('');
     try {
-      const blob = await adminApi.exportUsers({
-        search: search || undefined,
-        age_group: (ageGroup as AgeGroup) || undefined,
-        status: (status as AssessmentStatus) || undefined,
-        goal: (goal as AssessmentGoal) || undefined,
-      });
+      const blob = await adminApi.exportUsers(filters);
       downloadCsv(blob, 'users_export.csv');
     } catch {
       setExportError('Не удалось выгрузить CSV. Возможно, выборка слишком большая — сузьте фильтры.');
@@ -280,6 +286,7 @@ export default function AdminUsersPage() {
     ageGroup ? `Возраст: ${AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup}` : null,
     status ? `Есть тест со статусом: ${ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]}` : null,
     goal ? `Есть тест с целью: ${ASSESSMENT_GOAL_LABELS[goal as AssessmentGoal]}` : null,
+    inactiveDays ? `Не заходил дольше ${inactiveDays} дн.` : null,
   ].filter((value): value is string => value !== null);
 
   const columns: AdminColumn<AdminUserListItem>[] = [

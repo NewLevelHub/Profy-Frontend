@@ -7,12 +7,18 @@ import { LockedFieldBadge } from '@/shared/ui/admin/LockedFieldBadge';
 
 export interface AdminFieldRevert {
   /** What the content bank held before this field was edited. */
-  bankValue: unknown;
-  /** False when the original was never recorded — the revert then hands the
+  bankValue?: unknown;
+  /** False when the original was never recorded — the action then hands the
    *  field back to the next deploy's re-sync instead of restoring a value. */
   bankValueKnown: boolean;
+  /** Button copy. Question-bank content really does restore a value, while a
+   *  university lock only returns the field to seed control — the two must not
+   *  make the same promise. */
+  label?: string;
+  /** Replaces the generated tooltip, for the same reason. */
+  description?: string;
   pending: boolean;
-  /** Set when reverting is temporarily impossible; renders as a disabled
+  /** Set when the action is temporarily impossible; renders as a disabled
    *  control with this as the explanation. */
   disabledReason?: string;
   onRevert: () => void;
@@ -102,15 +108,23 @@ export function AdminField({
  * free it. The tooltip shows what the value will become, because "вернуть
  * исходное" is worth nothing if you cannot see what "исходное" is.
  */
-function RevertButton({ bankValue, bankValueKnown, pending, disabledReason, onRevert }: AdminFieldRevert) {
-  const preview = formatBankValue(bankValue);
+function RevertButton({
+  bankValue,
+  bankValueKnown,
+  label = 'Вернуть исходное',
+  description,
+  pending,
+  disabledReason,
+  onRevert,
+}: AdminFieldRevert) {
   const content = disabledReason
     ? disabledReason
-    : bankValueKnown
-      ? `Вернуть значение из контент-банка: ${preview}`
-      : // Overrides written before the original was recorded. Saying so beats
-        // implying a restore that will not happen until the next deploy.
-        'Исходное значение не сохранялось. Правка будет снята, а значение вернёт ближайший деплой.';
+    : (description ??
+      (bankValueKnown
+        ? `Вернуть значение из контент-банка: ${formatBankValue(bankValue)}`
+        : // Overrides written before the original was recorded. Saying so beats
+          // implying a restore that will not happen until the next deploy.
+          'Исходное значение не сохранялось. Правка будет снята, а значение вернёт ближайший деплой.'));
 
   return (
     <Tooltip content={content}>
@@ -127,7 +141,7 @@ function RevertButton({ bankValue, bankValueKnown, pending, disabledReason, onRe
         )}
       >
         <Undo2 size={10} />
-        {pending ? 'Возвращаю…' : 'Вернуть исходное'}
+        {pending ? 'Применяю…' : label}
       </button>
     </Tooltip>
   );
