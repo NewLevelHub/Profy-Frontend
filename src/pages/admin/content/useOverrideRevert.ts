@@ -37,14 +37,20 @@ export function useOverrideRevert<T extends { overrides: AdminOverrides }>({
 }: Options<T>) {
   const [pendingField, setPendingField] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const revert = useCallback(
     async (field?: string) => {
       if (!id) return;
       setPendingField(field ?? '*');
       setError('');
+      setNotice('');
       try {
-        onReverted(await adminApi.clearContentOverrides<T>(resource, id, field));
+        const detail = await adminApi.clearContentOverrides<T>(resource, id, field);
+        onReverted(detail);
+        setNotice(
+          field ? 'Значение из контент-банка возвращено.' : 'Все правки сняты, строка снова из банка.',
+        );
       } catch {
         setError(
           field
@@ -81,5 +87,6 @@ export function useOverrideRevert<T extends { overrides: AdminOverrides }>({
     revertAll: () => void revert(),
     revertingAll: pendingField === '*',
     error,
+    notice,
   };
 }

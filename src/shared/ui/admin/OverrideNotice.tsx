@@ -17,14 +17,19 @@ export function OverrideNotice({
   disabledReason,
   onRevertAll,
   error,
+  notice,
 }: {
   count: number;
   pending: boolean;
   disabledReason?: string;
   onRevertAll: () => void;
   error?: string;
+  /** Подтверждение после успешного возврата: сам возврат виден только по
+   *  исчезнувшему бейджу, и без строки нажатие читается как «ничего не
+   *  произошло». */
+  notice?: string;
 }) {
-  if (count === 0 && !error) return null;
+  if (count === 0 && !error && !notice) return null;
 
   return (
     <div className="flex flex-col gap-1">
@@ -52,6 +57,7 @@ export function OverrideNotice({
         </div>
       )}
       {error && <p className={cn(ADMIN_META, 'text-danger m-0')}>{error}</p>}
+      {!error && notice && <p className={cn(ADMIN_META, 'text-brand m-0')}>{notice}</p>}
     </div>
   );
 }

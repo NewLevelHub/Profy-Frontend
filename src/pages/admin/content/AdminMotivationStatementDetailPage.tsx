@@ -114,7 +114,13 @@ export default function AdminMotivationStatementDetailPage() {
   // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
   // return'ов и принимает ещё не загруженный detail — иначе после прихода
   // данных React видит другое число хуков и роняет экран.
-  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminMotivationStatementDetail>({
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminMotivationStatementDetail>({
     resource: 'motivation-statements',
     id: detail?.id,
     overrides: detail?.overrides ?? {},
@@ -157,6 +163,7 @@ export default function AdminMotivationStatementDetailPage() {
         }
         onRevertAll={revertAll}
         error={revertError}
+        notice={revertNotice}
       />
       <AdminCard
         title="Содержание"

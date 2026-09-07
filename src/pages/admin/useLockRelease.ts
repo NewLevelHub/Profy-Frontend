@@ -31,18 +31,28 @@ export function useLockRelease<T extends { admin_locked_fields: string[] }>({
 }) {
   const [pendingField, setPendingField] = useState<string | null>(null);
   const [error, setError] = useState('');
+  // Снятие замка ничего не меняет на экране, кроме исчезнувшего бейджа: само
+  // значение остаётся прежним. Без явной строки нажатие выглядит как «ничего
+  // не произошло», и админ жмёт ещё раз.
+  const [notice, setNotice] = useState('');
 
   const release = useCallback(
     async (field?: string) => {
       if (!id) return;
       setPendingField(field ?? '*');
       setError('');
+      setNotice('');
       try {
         const detail =
           kind === 'university'
             ? await adminApi.unlockUniversityFields(id, field)
             : await adminApi.unlockProgramFields(id, field);
         onReleased(detail as unknown as T);
+        setNotice(
+          field
+            ? 'Поле снова под автообновлением. Значение осталось прежним — его сможет перезаписать ближайший деплой.'
+            : 'Все поля снова под автообновлением. Значения остались прежними.',
+        );
       } catch {
         setError('Не удалось вернуть поле под автообновление');
       } finally {
@@ -77,5 +87,6 @@ export function useLockRelease<T extends { admin_locked_fields: string[] }>({
     releaseAll: () => void release(),
     releasingAll: pendingField === '*',
     error,
+    notice,
   };
 }

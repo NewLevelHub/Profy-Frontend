@@ -89,15 +89,28 @@ export function FeedbackOverview({
   const high = countInScoreBand(scoreBase, HIGH_SCORE_MIN, MAX_SCORE);
   const noSections = sectionBase.no_sections_count;
 
-  const scope = (count: number) =>
-    filtered
-      ? `по ${pluralize(count, 'отзыву', 'отзывам', 'отзывам')} в текущем фильтре`
-      : `по всем ${pluralize(count, 'отзыву', 'отзывам', 'отзывам')}`;
+  /**
+   * Что именно описывает карточка.
+   *
+   * У каждой из двух карточек своё измерение выключено из фильтра, иначе
+   * график схлопнулся бы в один столбик и вернуться было бы нечем. Из-за
+   * этого её число НЕ совпадает с числом строк в таблице, и подпись «в
+   * текущем фильтре» была бы прямой неправдой: при выбранной оценке шкала
+   * показывала 63 отзыва, а таблица под ней — 6.
+   */
+  const scope = (count: number, ownDimensionFiltered = false) => {
+    const noun = pluralize(count, 'отзыву', 'отзывам', 'отзывам');
+    if (ownDimensionFiltered) return `по ${noun} — без учёта фильтра этой шкалы`;
+    return filtered ? `по ${noun} в текущем фильтре` : `по всем ${noun}`;
+  };
 
   return (
     <div className="flex flex-col gap-3">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-stretch">
-        <AdminCard title="Насколько отчёт про них" description={scope(scoreBase.total)}>
+        <AdminCard
+          title="Насколько отчёт про них"
+          description={scope(scoreBase.total, Boolean(activeScore))}
+        >
           {/* Вопрос под отчётом — «Насколько это про тебя?», поэтому шкала
               читается как «узнал себя / не узнал», а не как «доволен». */}
           <div className="flex items-end gap-6 flex-wrap">
@@ -168,7 +181,7 @@ export function FeedbackOverview({
 
         <AdminCard
           title="Что назвали полезным"
-          description={`Доля отзывов, отметивших раздел, ${scope(sectionBase.total)}. Разделов можно выбрать несколько, поэтому сумма больше 100%.`}
+          description={`Доля отзывов, отметивших раздел, ${scope(sectionBase.total, Boolean(activeSection))}. Разделов можно выбрать несколько, поэтому сумма больше 100%.`}
         >
           <div className="flex flex-col gap-1">
             {sections.map((section) => {

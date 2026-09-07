@@ -140,7 +140,11 @@ export default function AdminUniversityDetailPage() {
 
   // До ранних return'ов: хук обязан вызываться на каждом рендере, иначе после
   // загрузки данных число хуков меняется и React роняет экран.
-  const { fieldRelease, error: releaseError } = useLockRelease<AdminUniversityDetail>({
+  const {
+    fieldRelease,
+    error: releaseError,
+    notice: releaseNotice,
+  } = useLockRelease<AdminUniversityDetail>({
     kind: 'university',
     id: detail?.id,
     lockedFields: detail?.admin_locked_fields ?? [],
@@ -177,6 +181,11 @@ export default function AdminUniversityDetailPage() {
       />
 
       {releaseError && <AdminError message={releaseError} />}
+      {/* Снятие замка меняет на экране только исчезнувший бейдж — значение
+          остаётся прежним, поэтому результат надо назвать словами. */}
+      {!releaseError && releaseNotice && (
+        <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>{releaseNotice}</p>
+      )}
 
       <AdminCard title="Основное">
         <div className="grid gap-3.5 sm:grid-cols-2">

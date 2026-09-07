@@ -19,7 +19,9 @@ export function OverrideBadge() {
         tabIndex={0}
         className={cn(
           MONO_LABEL,
-          'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-brand-subtle text-brand',
+          // whitespace-nowrap: подпись из одного слова, и перенос делал бы из
+          // неё две строки в ячейке высотой в одну.
+          'inline-flex items-center gap-1 whitespace-nowrap px-1.5 py-0.5 rounded-[2px] bg-brand-subtle text-brand',
           'focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_30%,transparent)]',
         )}
       >

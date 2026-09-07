@@ -162,7 +162,7 @@ export default function AdminQuestionsPage() {
       align: 'right',
       // Колонка-маркер: пустой заголовок над 112px пустоты читался как
       // обрезанная таблица и отнимал место у самого вопроса.
-      width: '72px',
+      width: '104px',
       mobile: 'badge',
       cell: (item) => (item.has_overrides ? <OverrideBadge /> : null),
     },

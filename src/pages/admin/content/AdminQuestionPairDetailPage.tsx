@@ -129,7 +129,13 @@ export default function AdminQuestionPairDetailPage() {
   // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
   // return'ов и принимает ещё не загруженный detail — иначе после прихода
   // данных React видит другое число хуков и роняет экран.
-  const { fieldRevert, revertAll, revertingAll, error: revertError } = useOverrideRevert<AdminQuestionPairDetail>({
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminQuestionPairDetail>({
     resource: 'question-pairs',
     id: detail?.id,
     overrides: detail?.overrides ?? {},
@@ -190,6 +196,7 @@ export default function AdminQuestionPairDetailPage() {
         }
         onRevertAll={revertAll}
         error={revertError}
+        notice={revertNotice}
       />
       <AdminCard
         title="Сценарий"

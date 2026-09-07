@@ -122,7 +122,7 @@ export default function AdminQuestionPairsPage() {
       key: 'overrides',
       header: '',
       align: 'right',
-      width: '72px',
+      width: '104px',
       mobile: 'badge',
       cell: (item) => (item.has_overrides ? <OverrideBadge /> : null),
     },
