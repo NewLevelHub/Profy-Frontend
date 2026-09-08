@@ -27,12 +27,13 @@ export type { RestStopState };
  * 25/50/75% of the way through the whole run (see
  * useAssessmentStore.recordQuestionAnswered), independent of whether a
  * question-block has closed. Visually the same card
- * family as PraisePage/ExitAssessmentModal/ResultLoadingPage (Paper card on
- * Fog background, hairline border via shadow-pop, Mascot, Spine progress),
- * but semantically different from PraisePage: PraisePage is a fact statement
- * with no question ("Молодец!" + "Дальше →" button); this always ends its
- * body copy on an invitation ("...Продолжаем?") and speaks only in
- * first-person-system voice ("замечаю"/"вижу"), never judging the student.
+ * family as ExitAssessmentModal/ResultLoadingPage (Paper card on Fog
+ * background, hairline border via shadow-pop, Mascot, Spine progress).
+ *
+ * Пришёл на смену экрану похвалы («Молодец!» + «Дальше →»), который был
+ * простой констатацией факта и удалён в PRO-266 как недостижимый: этот
+ * всегда заканчивает текст приглашением («...Продолжаем?») и говорит
+ * только от лица системы («замечаю»/«вижу»), никогда не оценивая ученика.
  *
  * Two content variants:
  *  - Normal — a micro-insight about the *process* of choosing, if one is

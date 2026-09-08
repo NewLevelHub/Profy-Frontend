@@ -24,13 +24,12 @@ import WelcomePage from '@/pages/onboarding/WelcomePage';
 import ProfileSetupPage from '@/pages/onboarding/ProfileSetupPage';
 import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
 
-// ── Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
+// ── Assessment flow (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
 import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
 import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
 import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
-import PraisePage from '@/pages/assessment/PraisePage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
@@ -103,12 +102,11 @@ export const router = createBrowserRouter([
       { path: '/onboarding/profile', element: <ProfileSetupPage /> },
       { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
 
-      // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → Praise → ResultLoading)
+      // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
       { path: '/assessment/goal', element: <GoalSelectionPage /> },
       { path: '/assessment', element: <AssessmentPage /> },
       { path: '/assessment/pairs', element: <PairAssessmentPage /> },
       { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
-      { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/rest', element: <RestStopPage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
       { path: '/assessment/goal-check', element: <GoalCheckPage /> },
