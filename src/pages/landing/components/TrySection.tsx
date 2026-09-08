@@ -61,7 +61,7 @@ export function TrySection() {
 
           <p
             className="font-display font-semibold tracking-[-0.025em] text-[clamp(1.05rem,2.1vw,1.45rem)] leading-[1.35] mt-[1.2rem] mb-8 mx-auto max-w-[26ch] text-balance"
-            style={{ color: 'var(--midnight)' }}
+            style={{ color: 'var(--text-heading)' }}
           >
             {t('try.statement')}
           </p>
@@ -92,7 +92,7 @@ export function TrySection() {
                 style={{ color: dot.color }}
               >
                 <i>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--paper)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-on-brand)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </i>

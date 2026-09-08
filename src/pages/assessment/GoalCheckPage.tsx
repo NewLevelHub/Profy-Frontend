@@ -38,7 +38,7 @@ export default function GoalCheckPage() {
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:gap-7">
             <Mascot state="transition" size={96} className="shrink-0" />
             <div>
-              <Heading level="display-md" className="mt-2 text-[color:var(--midnight)]">
+              <Heading level="display-md" className="mt-2 text-[color:var(--text-heading)]">
                 {t('goalCheck.title')}
               </Heading>
               <Text variant="body-md" className="text-muted mt-2">
@@ -63,7 +63,7 @@ export default function GoalCheckPage() {
                 <span className={typeClass.monoLabel} style={{ color: 'var(--pine)' }}>
                   {t('goalCheck.bestMatch')}
                 </span>
-                <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
+                <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--text-heading)]`}>
                   {suggestions[0].title}
                 </p>
                 <p className={`${typeClass.bodySm} text-muted`}>{suggestions[0].subtitle}</p>
@@ -79,7 +79,7 @@ export default function GoalCheckPage() {
                 <span className={`${typeClass.monoLabel} text-muted`}>
                   {t('goalCheck.alsoFits')}
                 </span>
-                <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
+                <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--text-heading)]`}>
                   {suggestions[1].title}
                 </p>
                 <p className={`${typeClass.bodySm} text-muted`}>{suggestions[1].subtitle}</p>
@@ -97,7 +97,7 @@ export default function GoalCheckPage() {
               <span className={`${typeClass.monoLabel} text-muted`}>
                 {t('goalCheck.neitherHeading')}
               </span>
-              <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
+              <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--text-heading)]`}>
                 {t('goalCheck.dontKnowYet')}
               </p>
               <p className={`${typeClass.bodySm} text-muted`}>

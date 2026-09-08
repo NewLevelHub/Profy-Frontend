@@ -111,7 +111,7 @@ export function DomainCell({
   const fill = level ? LEVEL_FILL[level] : undefined;
   const isFilled = fill !== undefined;
   const isLow = level === 'low';
-  const fg = isFilled ? 'var(--text-on-brand)' : 'var(--midnight)';
+  const fg = isFilled ? 'var(--text-on-brand)' : 'var(--text-heading)';
   const descFg = isFilled ? 'var(--text-on-brand)' : 'var(--ink)';
   const statusFg = isFilled ? 'var(--text-on-brand)' : 'var(--text-muted)';
   return (
@@ -158,7 +158,7 @@ export function DomainListCard({
     <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
       {icon}
       <div className="min-w-0">
-        <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">{title}</p>
+        <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">{title}</p>
         {description && (
           <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
             {description}

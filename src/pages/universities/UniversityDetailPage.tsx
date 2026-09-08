@@ -6,7 +6,7 @@ import { LazyMedia } from '@/shared/ui/LazyMedia';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
-import { pluralize } from '@/shared/lib/plural';
+import { localizeGeo } from '@/shared/i18n/geo';
 import { formatCost } from '@/shared/lib/universityDisplay';
 import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityDetail } from './hooks/useUniversityDetail';
@@ -25,7 +25,7 @@ export default function UniversityDetailPage() {
         className="inline-flex items-center gap-2 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
       >
         <ArrowLeft className="w-4 h-4" />
-        Назад
+        {t('common:back')}
       </button>
 
       {isLoading ? (
@@ -39,13 +39,13 @@ export default function UniversityDetailPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           {error === 'not_found' ? (
             <>
-              <p className="text-body text-secondary">Такого университета нет — возможно, ссылка устарела.</p>
-              <Button variant="ghost" onClick={goBack}>К списку университетов</Button>
+              <p className="text-body text-secondary">{t('catalog.notFound')}</p>
+              <Button variant="ghost" onClick={goBack}>{t('catalog.backToList')}</Button>
             </>
           ) : (
             <>
-              <p className="text-body text-danger">Не удалось загрузить университет. Попробуй ещё раз.</p>
-              <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
+              <p className="text-body text-danger">{t('catalog.loadFailed')}</p>
+              <Button variant="ghost" onClick={() => refetch()}>{t('common:retry')}</Button>
             </>
           )}
         </div>
@@ -89,7 +89,7 @@ export default function UniversityDetailPage() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base font-semibold text-muted">
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 shrink-0" aria-hidden="true" />
-                {university.city}, {university.country}
+                {localizeGeo(university.city)}, {localizeGeo(university.country)}
               </span>
               <UniversityRankBadges university={university} size="sm" />
             </div>
@@ -107,7 +107,7 @@ export default function UniversityDetailPage() {
               className="w-full sm:w-auto"
               onClick={() => window.open(university.website!, '_blank', 'noopener,noreferrer')}
             >
-              Сайт университета
+              {t('program.visitSite')}
               <ExternalLink className="w-4 h-4" aria-hidden="true" />
             </Button>
           )}
@@ -115,14 +115,12 @@ export default function UniversityDetailPage() {
           <section className="space-y-4 pt-2">
             <h2 className="text-display-sm font-black text-primary m-0">
               {university.programs.length > 0
-                ? pluralize(university.programs.length, 'программа', 'программы', 'программ')
-                : 'Программы'}
+                ? t('programList.count', { count: university.programs.length })
+                : t('catalog.programsHeading')}
             </h2>
 
             {university.programs.length === 0 ? (
-              <p className="text-body text-secondary">
-                Для этого вуза пока нет программ в базе.
-              </p>
+              <p className="text-body text-secondary">{t('catalog.programsEmpty')}</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
                 {university.programs.map(program => {
@@ -151,7 +149,7 @@ export default function UniversityDetailPage() {
                       </p>
                       {clickable && (
                         <span className="text-label font-extrabold text-brand mt-1">
-                          Подробнее
+                          {t('common:details')}
                         </span>
                       )}
                     </Card>

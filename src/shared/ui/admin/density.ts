@@ -2,7 +2,7 @@ import { type as typeClass } from '@/shared/ui/typography/tokens';
 
 /**
  * Admin-only density tokens — "the same system at minimum volume".
- * Caption (13/1.35) is the admin body; Bricolage is reserved for exactly
+ * Caption (13/1.35) is the admin body; the display face is reserved for exactly
  * ONE heading per screen (the page title). Machine content uses monoLabel.
  *
  * Plain className fragments, not new CSS rules — kept out of theme.css so

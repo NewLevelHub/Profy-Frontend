@@ -46,7 +46,7 @@ export function ExamScoresBlock({
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-label font-semibold" style={{ color: 'var(--midnight)' }}>
+        <p className="text-label font-semibold" style={{ color: 'var(--text-heading)' }}>
           {t('exams.pickLabel')}
         </p>
         <div className="flex flex-wrap gap-2" role="group" aria-label={t('exams.pickAria')}>

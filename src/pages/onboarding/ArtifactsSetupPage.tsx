@@ -106,7 +106,7 @@ function Chip({ label, selected, onClick }: { label: string; selected: boolean; 
       className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors"
       style={{
         background: 'var(--bg-surface)',
-        color: selected ? 'var(--midnight)' : 'var(--ink)',
+        color: selected ? 'var(--text-heading)' : 'var(--ink)',
         border: selected ? '1.5px solid var(--dawn)' : '1.5px solid var(--line)',
       }}
     >
@@ -140,7 +140,7 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
         }}
         placeholder={t('artifacts.customPlaceholder')}
         className="px-3 py-1.5 rounded-pill text-small font-medium w-32 focus:outline-none"
-        style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--midnight)' }}
+        style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--text-heading)' }}
       />
     );
   }
@@ -371,7 +371,7 @@ export default function ArtifactsSetupPage() {
   const isDreamsStep = activeSection === 'dreams';
 
   return (
-    <div className="min-h-screen bg-page flex flex-col">
+    <div className="journey-page min-h-screen flex flex-col">
       {/* Pinned to the viewport corner, independent of the centered content
           column — hidden below `sm` so it doesn't cover form fields on
           narrow phones. Step 4 (dreams) keeps its own inline mascot above
@@ -384,20 +384,23 @@ export default function ArtifactsSetupPage() {
         />
       )}
 
-      <div className="sticky top-0 z-10 bg-page px-5 pt-5 pb-4 flex flex-col gap-2">
+      <div className="sticky top-0 z-10 px-5 pt-5 pb-4 flex flex-col gap-2 bg-[color-mix(in_srgb,var(--bg-page)_88%,transparent)] backdrop-blur-[6px]">
         <OnboardingProgress
           current={PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1)}
           total={TOTAL_ONBOARDING_STEPS}
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
+      <div className="relative z-[1] flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
         <div className="max-w-2xl mx-auto">
         {isDreamsStep ? (
           <div className="flex flex-col items-center gap-5">
             <div className="flex flex-col items-center gap-3 text-center">
               <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
               <div>
+                <div className="flex justify-center mb-2">
+                  <span className="journey-kicker">Профиль · Мечты</span>
+                </div>
                 <Heading level="display-md">{copy.headline}</Heading>
                 <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{copy.note}</p>
               </div>
@@ -408,6 +411,9 @@ export default function ArtifactsSetupPage() {
         ) : (
           <div className="flex flex-col gap-6">
             <div>
+              <div className="mb-2">
+                <span className="journey-kicker">Профиль · Увлечения и цели</span>
+              </div>
               <Heading level="display-md">{t(SECTION_KEY.activities.headline)}</Heading>
               <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.activities.note)}</p>
             </div>

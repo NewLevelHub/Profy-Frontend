@@ -59,7 +59,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
           className="flex flex-col gap-6 scroll-mt-24 text-center"
         >
           <p
-            className="font-sans font-semibold text-[color:var(--midnight)]"
+            className="font-sans font-semibold text-[color:var(--text-heading)]"
             style={{ fontSize: '1.375rem', lineHeight: 1.55 }}
           >
             {question.text}

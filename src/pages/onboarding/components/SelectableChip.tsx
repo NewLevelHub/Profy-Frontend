@@ -30,7 +30,7 @@ export function SelectableChip({
       className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors disabled:cursor-not-allowed"
       style={{
         background: 'var(--bg-surface)',
-        color: disabled ? 'var(--mute)' : selected ? 'var(--midnight)' : 'var(--ink)',
+        color: disabled ? 'var(--mute)' : selected ? 'var(--text-heading)' : 'var(--ink)',
         border: selected ? '1.5px solid var(--dawn)' : '1.5px solid var(--line)',
         opacity: disabled ? 0.45 : 1,
       }}

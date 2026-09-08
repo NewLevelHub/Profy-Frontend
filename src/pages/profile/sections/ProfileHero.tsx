@@ -27,8 +27,7 @@ export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroPr
   if (isJunior) {
     return (
       <div
-        className="rounded-[var(--radius)] border border-default p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5"
-        style={{ background: 'var(--bg-page)' }}
+        className="panel-glass p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5"
       >
         <div className="flex-1 order-2 sm:order-1">
           <p className={`${typeClass.monoLabel} text-muted mb-2`}>
@@ -46,10 +45,7 @@ export function ProfileHero({ isJunior, displayName, age, grade }: ProfileHeroPr
   }
 
   return (
-    <div
-      className="rounded-[var(--radius)] border border-default p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5"
-      style={{ background: 'var(--bg-page)' }}
-    >
+    <div className="panel-glass p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5">
       <div className="flex-1 min-w-0 order-2 sm:order-1">
         <Heading level="display-md" as="p" className="text-primary">
           {displayName}

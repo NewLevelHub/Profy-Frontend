@@ -14,7 +14,7 @@ export function FinalCtaSection() {
             даёт сплошная заливка pine, а не тень или свечение. */}
         <Reveal
           className="relative overflow-hidden rounded-[var(--radius)] text-center px-[clamp(1.5rem,5vw,3rem)] py-[clamp(3rem,7vw,5.5rem)]"
-          style={{ background: 'var(--pine)', border: '1px solid var(--pine)' }}
+          style={{ background: 'var(--brand-solid)', border: '1px solid var(--brand-solid)' }}
         >
           <div
             ref={mascotRef}
@@ -27,13 +27,13 @@ export function FinalCtaSection() {
 
           <h2
             className="relative z-[1] font-display font-bold text-[clamp(1.75rem,3.6vw,2.6rem)] leading-[1.18] tracking-[-0.03em] text-balance"
-            style={{ color: 'var(--paper)' }}
+            style={{ color: 'var(--on-brand-solid)' }}
           >
             {t('finalCta.titleLine1')}
             <br />
             <span style={{ color: 'var(--dawn-light)' }}>{t('finalCta.titleAccent')}</span>
           </h2>
-          <p className="relative z-[1] mt-[1.1rem] text-[1.05rem]" style={{ color: 'color-mix(in srgb, var(--paper) 76%, transparent)' }}>
+          <p className="relative z-[1] mt-[1.1rem] text-[1.05rem]" style={{ color: 'color-mix(in srgb, var(--on-brand-solid) 76%, transparent)' }}>
             {t('finalCta.sub')}
           </p>
 
@@ -43,7 +43,7 @@ export function FinalCtaSection() {
             <CtaLink
               to="/register"
               size="lg"
-              className="!bg-[var(--paper)] !text-[var(--pine)] hover:!bg-[color-mix(in_srgb,var(--paper)_80%,white)]"
+              className="!bg-[var(--on-brand-solid)] !text-[var(--brand-solid)] hover:!bg-[color-mix(in_srgb,var(--on-brand-solid)_88%,var(--dawn-light))]"
             >
               {t('cta.takeDiagnostic')}
               <ArrowIcon />

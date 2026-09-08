@@ -4,6 +4,7 @@ import { Link, Outlet, useLocation } from 'react-router';
 import { Compass, Landmark, Layers, ListChecks } from 'lucide-react';
 import { env } from '@/shared/config/env';
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 /**
  * Копия левой колонки — своя у каждого экрана авторизации. Колонка есть везде:
@@ -32,22 +33,22 @@ const ROUTE_ASIDE_KEY: Record<string, string> = {
 const BLOCKS: { icon: ReactNode; tint: string; statKey: string }[] = [
   {
     icon: <ListChecks size={18} strokeWidth={1.75} style={{ color: 'var(--pine)' }} />,
-    tint: 'rgba(14, 74, 65, 0.10)',
+    tint: 'color-mix(in srgb, var(--pine) 10%, transparent)',
     statKey: 'tests',
   },
   {
-    icon: <Compass size={18} strokeWidth={1.75} style={{ color: '#C06A1E' }} />,
-    tint: 'rgba(219, 127, 46, 0.12)',
+    icon: <Compass size={18} strokeWidth={1.75} style={{ color: 'var(--dawn-deep)' }} />,
+    tint: 'color-mix(in srgb, var(--dawn) 12%, transparent)',
     statKey: 'professions',
   },
   {
     icon: <Landmark size={18} strokeWidth={1.75} style={{ color: 'var(--lake)' }} />,
-    tint: 'rgba(44, 106, 140, 0.12)',
+    tint: 'color-mix(in srgb, var(--lake) 12%, transparent)',
     statKey: 'universities',
   },
   {
     icon: <Layers size={18} strokeWidth={1.75} style={{ color: 'var(--pine)' }} />,
-    tint: 'rgba(79, 160, 147, 0.16)',
+    tint: 'color-mix(in srgb, var(--pine-light) 16%, transparent)',
     statKey: 'programs',
   },
 ];
@@ -148,9 +149,10 @@ export function AuthLayout() {
           задают кнопки навигации, а не сам текст, так что формулой из одних
           отступов её не вывести). Лендинг теперь домержен, поэтому знак —
           настоящая ссылка (на dev до этого стоял <span>-заглушка: без
-          лендинга переход по нему упирался бы в 404). LanguageSwitcher —
-          справа в той же строке; до KZ-603 рендерит null. */}
-      <div className={`relative z-[1] pt-[2.2rem] pb-8 lg:pb-0 pl-4 ${column} flex items-start justify-between gap-4`}>
+          лендинга переход по нему упирался бы в 404). LanguageSwitcher и
+          ThemeToggle — справа в той же строке; LanguageSwitcher до KZ-603
+          рендерит null. */}
+      <div className={`relative z-[1] pt-[2.2rem] pb-8 lg:pb-0 pl-4 flex items-center justify-between gap-4 ${column}`}>
         <Link
           to="/"
           className="brand-wordmark auth-enter inline-flex hover:opacity-70 transition-opacity"
@@ -159,7 +161,10 @@ export function AuthLayout() {
           {env.APP_NAME}
           <span className="brand-dot" aria-hidden="true">.</span>
         </Link>
-        <LanguageSwitcher className="auth-enter" />
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher className="auth-enter" />
+          <ThemeToggle className="auth-enter" />
+        </div>
       </div>
 
       <div className="relative z-[1] flex-1 flex items-center justify-center py-8 lg:py-10">

@@ -31,15 +31,12 @@ export function UniversityRankBadges({ university, size = 'md' }: UniversityRank
       {labels.map((rankText, i) => (
         <span
           key={i}
-          // font-bold, not font-extrabold — Instrument Sans only ships
-          // weights up to 700, and has no Cyrillic glyphs at all, so
-          // Cyrillic characters here fall back to the OS font, which
-          // *does* have true 800/900 weights. Requesting extrabold (800)
-          // makes Latin-only rank text (clamped to 700) look visibly
-          // thinner than Cyrillic-containing rank text in the same
-          // badge style. bold (700) is Instrument Sans's actual max, so
-          // both scripts land close enough to read as the same weight.
-          className={`inline-flex items-center gap-1.5 bg-accent-soft text-accent font-bold rounded-pill max-w-full ${sizeClasses}`}
+          className={`inline-flex items-center gap-1.5 font-semibold rounded-pill max-w-full ${sizeClasses}`}
+          style={{
+            color: 'var(--lake)',
+            background: 'color-mix(in srgb, var(--lake) 12%, var(--paper))',
+            border: '1px solid color-mix(in srgb, var(--lake) 18%, transparent)',
+          }}
         >
           <Trophy className="w-3.5 h-3.5 shrink-0" />
           <span className="min-w-0">{rankText}</span>

@@ -111,7 +111,8 @@ export function useUniversities() {
 
   // Казахстан first — the product's primary market — then the rest in the
   // API's order so the horizontal filter strip starts with the most useful
-  // chip instead of Australia.
+  // chip instead of Australia. 'Казахстан' is the backend country value
+  // (ru-only API data), not UI copy — display goes through localizeGeo.
   const sortedCountries = useMemo(() => {
     const kz = countries.filter(c => c.country === 'Казахстан');
     const rest = countries.filter(c => c.country !== 'Казахстан');
@@ -166,7 +167,7 @@ export function useUniversities() {
     setPage,
     isLoading: isLoading || (isPlaceholderData && onlyFavorites),
     isFetching,
-    error: error ? 'Не удалось загрузить университеты. Попробуй ещё раз.' : null,
+    error: error ? true : null,
     refetch,
     searchInput,
     setSearchInput,

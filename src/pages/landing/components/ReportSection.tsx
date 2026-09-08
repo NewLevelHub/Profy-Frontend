@@ -33,7 +33,7 @@ export function ReportSection() {
                   {fact.icon}
                 </svg>
                 <div>
-                  <strong className="block text-[0.92rem] font-semibold mb-[0.15rem]" style={{ color: 'var(--midnight)' }}>
+                  <strong className="block text-[0.92rem] font-semibold mb-[0.15rem]" style={{ color: 'var(--text-heading)' }}>
                     {fact.title}
                   </strong>
                   <span className="text-[0.86rem] leading-[1.55] text-secondary">{fact.desc}</span>
@@ -54,7 +54,7 @@ export function ReportSection() {
               >
                 {block.num}
               </span>
-              <h4 className="font-display font-semibold text-[0.95rem] tracking-[-0.02em] mb-1" style={{ color: 'var(--midnight)' }}>
+              <h4 className="font-display font-semibold text-[0.95rem] tracking-[-0.02em] mb-1" style={{ color: 'var(--text-heading)' }}>
                 {block.title}
               </h4>
               <p className="text-[0.93rem] leading-[1.6] text-secondary">{block.desc}</p>

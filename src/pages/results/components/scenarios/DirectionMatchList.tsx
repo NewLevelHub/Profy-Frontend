@@ -58,7 +58,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
               <div className="min-w-0">
                 <p
                   className={cn(
-                    'font-semibold text-[color:var(--midnight)] leading-snug truncate',
+                    'font-semibold text-[color:var(--text-heading)] leading-snug truncate',
                     isTop ? 'text-body-lg' : 'text-body-md',
                   )}
                 >

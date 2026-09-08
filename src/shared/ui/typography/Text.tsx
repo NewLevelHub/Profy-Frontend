@@ -19,7 +19,7 @@ interface TextProps {
 }
 
 /**
- * Body-role copy. Instrument Sans — questions, descriptions, names, buttons
+ * Body-role copy. Onest — questions, descriptions, names, buttons
  * labels, repeating section titles. Default for everything a person wrote.
  */
 export function Text({

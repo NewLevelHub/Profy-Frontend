@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { CtaLink, ArrowIcon } from './primitives';
 import { useScrollProgress, scrollToAnchor } from '../hooks';
 
@@ -19,7 +21,7 @@ function Wordmark({ className, onClick }: { className?: string; onClick?: () => 
         'group inline-flex items-baseline font-display font-bold text-[1.22rem] tracking-[-0.045em] leading-none',
         className,
       )}
-      style={{ color: 'var(--midnight)' }}
+      style={{ color: 'var(--text-heading)' }}
     >
       {env.APP_NAME}
       <span
@@ -107,6 +109,9 @@ export function LandingHeader() {
             </nav>
 
             <div className="flex items-center gap-[0.9rem]">
+              <LanguageSwitcher className="hidden min-[901px]:inline-flex" />
+              <ThemeToggle className="hidden min-[901px]:inline-flex" />
+
               <Link
                 to="/login"
                 className="hidden min-[901px]:inline text-[0.93rem] font-semibold text-secondary hover:text-primary transition-colors no-underline"
@@ -148,12 +153,21 @@ export function LandingHeader() {
             type="button"
             onClick={() => goToAnchor(item.id)}
             className="text-left font-display text-[1.25rem] font-semibold tracking-[-0.02em]"
-            style={{ color: 'var(--midnight)' }}
+            style={{ color: 'var(--text-heading)' }}
           >
             {item.label}
           </button>
         ))}
-        <div className="flex flex-col gap-[0.9rem] mt-4">
+        <div className="flex items-center justify-between gap-3 mt-2">
+          <span className="text-body-sm font-semibold text-secondary">{t('cta.language', { defaultValue: 'Язык' })}</span>
+          <LanguageSwitcher />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-body-sm font-semibold text-secondary">{t('cta.theme', { defaultValue: 'Тема' })}</span>
+          <ThemeToggle />
+        </div>
+
+        <div className="flex flex-col gap-[0.9rem] mt-2">
           <CtaLink to="/login" variant="ghost" size="lg" className="w-full">
             {t('cta.login')}
           </CtaLink>

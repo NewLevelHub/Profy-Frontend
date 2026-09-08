@@ -8,18 +8,12 @@ export interface RuledGridProps {
   children: ReactNode;
 }
 
-// Hairline-ruled table: 1px border-color gaps between surface cells inside
-// one framing border — the ledger reference's personal-info table and
-// certificate stat row are the same shape, so both reuse this shell instead
-// of two bespoke grids.
+// Soft field tiles with air between them — replaces the old beige hairline
+// table (1px gap + solid surface cells) that read as flat paperwork on the
+// new mesh background.
 export function RuledGrid({ className, children }: RuledGridProps) {
   return (
-    <div
-      className={cn(
-        'gap-px bg-[color:var(--border)] border border-default rounded-[var(--radius)] overflow-hidden',
-        className,
-      )}
-    >
+    <div className={cn('gap-2.5', className)}>
       {children}
     </div>
   );
@@ -32,9 +26,9 @@ export interface RuledCellProps {
 
 export function RuledCell({ label, value }: RuledCellProps) {
   return (
-    <div className="bg-surface px-4 py-3.5">
+    <div className="field-tile px-4 py-3.5">
       <p className="text-caption text-secondary">{label}</p>
-      <p className="text-body-md font-bold text-primary mt-0.5">{value}</p>
+      <p className="text-body-md font-semibold text-[color:var(--text-heading)] mt-0.5">{value}</p>
     </div>
   );
 }
@@ -49,7 +43,7 @@ export interface RuledStatProps {
 export function RuledStat({ label, value }: RuledStatProps) {
   const hasValue = value !== null;
   return (
-    <div className="bg-surface px-4 py-3.5 flex-1 min-w-[92px]">
+    <div className="field-tile px-4 py-3.5 flex-1 min-w-[92px]">
       <Mono variant="xs" as="p" className="text-secondary">{label}</Mono>
       <Mono
         variant="md"

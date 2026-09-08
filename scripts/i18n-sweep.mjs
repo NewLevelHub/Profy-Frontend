@@ -35,6 +35,7 @@ const ALLOW = [
   ['src/pages/results/utils/programUtils.ts', /Казахстан|Қазақстан|тенге|евро|фунт|юан|вон|крон|рупи|франк|иен|йен|рэнд|ранд|реал|доллар|А-ЯA-Z/, 'backend-data matcher/parser'],
   ['src/pages/results/ProgramDetailPage.tsx', /Казахстан|Общий конкурс|проходной балл/, 'backend admission-score parser'],
   ['src/pages/results/hooks/useUniversityList.ts', /Казахстан/, 'backend country value match'],
+  ['src/pages/universities/hooks/useUniversities.ts', /Казахстан/, 'backend country value match'],
   // KZ-204 — canonical option values sent to the API as-is, displayed via t().
   ['src/pages/onboarding/ProfileSetupPage.tsx', /value: '[^']+'/, 'canonical subject value (display via t(s.key))'],
   ['src/pages/onboarding/ArtifactsSetupPage.tsx', /^("?[^']*"?\s*)?('[^']*'\s*,?\s*)+$/, 'canonical preset value (display via presetLabel/t)'],

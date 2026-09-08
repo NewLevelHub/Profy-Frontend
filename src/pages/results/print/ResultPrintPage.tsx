@@ -7,7 +7,7 @@ import { PrintDocument } from './components/PrintDocument';
 
 function PrintSkeleton() {
   return (
-    <div className="print-sheet flex flex-col gap-5">
+    <div className="theme-day print-sheet flex flex-col gap-5">
       <Skeleton className="h-9 w-2/3" />
       {Array.from({ length: 5 }, (_, i) => (
         <div key={i} className="flex flex-col gap-2">
@@ -22,7 +22,7 @@ function PrintSkeleton() {
 function PrintFallback({ text, onBack }: { text: string; onBack: () => void }) {
   const { t } = useTranslation('results');
   return (
-    <div className="print-sheet flex flex-col items-center gap-4 text-center py-16">
+    <div className="theme-day print-sheet flex flex-col items-center gap-4 text-center py-16">
       <p className="text-body text-secondary">{text}</p>
       <Button onClick={onBack}>{t('print.toolbar.back')}</Button>
     </div>

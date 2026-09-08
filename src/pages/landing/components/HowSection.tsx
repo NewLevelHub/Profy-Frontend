@@ -51,7 +51,7 @@ export function HowSection() {
               >
                 {step.num}
               </div>
-              <h3 className="font-display text-[0.98rem] font-semibold tracking-[-0.02em] mb-[0.65rem]" style={{ color: 'var(--midnight)' }}>
+              <h3 className="font-display text-[0.98rem] font-semibold tracking-[-0.02em] mb-[0.65rem]" style={{ color: 'var(--text-heading)' }}>
                 {step.title}
               </h3>
               <p className="text-secondary text-[0.9rem] leading-[1.55]">{step.desc}</p>

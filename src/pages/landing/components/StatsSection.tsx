@@ -21,7 +21,7 @@ export function StatsSection() {
     },
     {
       icon: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" /></>,
-      tint: 'var(--paper)',
+      tint: 'var(--on-brand-solid)',
       value: <Counter target={92} />,
       label: t('stats.professions'),
     },
@@ -34,15 +34,15 @@ export function StatsSection() {
   ];
 
   return (
-    <section id="stats" className="relative py-[clamp(3.5rem,6vw,5rem)]" style={{ background: 'var(--pine)' }}>
+    <section id="stats" className="relative py-[clamp(3.5rem,6vw,5rem)]" style={{ background: 'var(--brand-solid)' }}>
       <div className="w-[min(1220px,92%)] mx-auto grid grid-cols-4 gap-8 max-[1024px]:grid-cols-2 max-[1024px]:gap-y-10">
         {STATS.map((stat, i) => (
           <Reveal key={stat.label} delay={i} className="text-center">
             <div
               className="w-11 h-11 rounded-[var(--radius)] flex items-center justify-center mx-auto mb-[0.9rem] border"
               style={{
-                background: 'color-mix(in srgb, var(--paper) 10%, transparent)',
-                borderColor: 'color-mix(in srgb, var(--paper) 22%, transparent)',
+                background: 'color-mix(in srgb, var(--on-brand-solid) 10%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--on-brand-solid) 22%, transparent)',
               }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5" style={{ color: stat.tint }}>
@@ -51,11 +51,11 @@ export function StatsSection() {
             </div>
             <div
               className="font-display font-bold text-[clamp(1.6rem,2.5vw,2rem)] tracking-[-0.03em]"
-              style={{ color: 'var(--paper)' }}
+              style={{ color: 'var(--on-brand-solid)' }}
             >
               {stat.value}
             </div>
-            <div className="text-[0.86rem] mt-[0.35rem]" style={{ color: 'color-mix(in srgb, var(--paper) 62%, transparent)' }}>
+            <div className="text-[0.86rem] mt-[0.35rem]" style={{ color: 'color-mix(in srgb, var(--on-brand-solid) 62%, transparent)' }}>
               {stat.label}
             </div>
           </Reveal>

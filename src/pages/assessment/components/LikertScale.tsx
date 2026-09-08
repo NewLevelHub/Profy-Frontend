@@ -11,8 +11,8 @@ interface LikertScaleProps {
   scale?: { value: number; label: string }[];
 }
 
-const POLE_LEFT = '#7A5F7D';
-const POLE_RIGHT = '#6F8F6A';
+const POLE_LEFT = 'var(--pole-left)';
+const POLE_RIGHT = 'var(--pole-right)';
 const POLE_NEUTRAL = 'var(--hairline)';
 
 function poleColor(index: number, count: number) {

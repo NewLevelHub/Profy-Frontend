@@ -50,7 +50,7 @@ function ProgramDetailSkeleton() {
 // don't stack into a double gap.
 function SectionHeadingLocal({ icon: Icon, children, className }: { icon: LucideIcon; children: string; className?: string }) {
   return (
-    <h3 className={cn('text-body-lg font-semibold text-[color:var(--midnight)] flex items-center gap-2', className)}>
+    <h3 className={cn('text-body-lg font-semibold text-[color:var(--text-heading)] flex items-center gap-2', className)}>
       <Icon className="w-4 h-4 text-muted shrink-0" />
       {children}
     </h3>

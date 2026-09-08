@@ -36,15 +36,39 @@
     />
     <meta name="twitter:image" content="/og-cover.png" />
 
-    <meta name="theme-color" content="#EDE9DF" />
+    <!-- Цвет шапки браузера на телефоне — холст активной темы. При явном
+         выборе темы значение переписывает shared/lib/theme.ts. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#EDE9DF" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111A18" />
+
+    <!-- Тема применяется до первой отрисовки: иначе на каждой загрузке
+         тёмная тема моргала бы светлым кадром. Ключ и логика повторяют
+         shared/lib/theme.ts — при правке менять оба места. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('profy-theme');
+          var choice = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+          var dark = choice === 'dark'
+            || (choice === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* приватный режим: остаёмся на светлой теме */
+        }
+      })();
+    </script>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230E4A41'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23F7F5EF' stroke-width='3'/%3E%3Cpath d='M39 25 L29 29 L25 39 L35 35 Z' fill='%23F7F5EF'/%3E%3C/svg%3E"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+    <!-- Onest — текст и дисплей (одна семья: вес/трекинг задают иерархию).
+         IBM Plex Mono — коды и цифры spine. Кириллица родная у обеих.
+         Отдельный display-face (Unbounded / Geologica) убрали: на кириллице
+         они читались плакатно-жирными («Ты уже в пути»). -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Onest:wght@400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
   </head>
   <body>
     <div id="root"></div>

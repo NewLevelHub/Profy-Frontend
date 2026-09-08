@@ -109,7 +109,7 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
         }}
         placeholder={t('profile.customSubjectPlaceholder')}
         className="px-3 py-1.5 rounded-pill text-small font-medium w-32 focus:outline-none"
-        style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--midnight)' }}
+        style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--text-heading)' }}
       />
     );
   }
@@ -142,7 +142,7 @@ function SubjectGroup({
   return (
     <div className="flex flex-col gap-2">
       <div>
-        <p className="text-label font-semibold" style={{ color: 'var(--midnight)' }}>{title}</p>
+        <p className="text-label font-semibold" style={{ color: 'var(--text-heading)' }}>{title}</p>
         {note && <p className="text-small text-muted mt-0.5">{note}</p>}
       </div>
       <div className="flex flex-wrap gap-2">
@@ -192,7 +192,7 @@ export default function ProfileSetupPage() {
     : { state: 'waiting' as const, size: MASCOT_WAITING_SIZE };
 
   return (
-    <div className="min-h-screen bg-page flex flex-col">
+    <div className="journey-page min-h-screen flex flex-col">
       {/* Pinned to the viewport corner, independent of the centered content
           column — hidden below `sm` so it doesn't cover form fields on
           narrow phones. */}
@@ -203,17 +203,18 @@ export default function ProfileSetupPage() {
       />
 
       {/* ── Progress header ───────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-10 bg-page px-5 pt-5 pb-4 flex flex-col gap-2">
+      <div className="sticky top-0 z-10 px-5 pt-5 pb-4 flex flex-col gap-2 bg-[color-mix(in_srgb,var(--bg-page)_88%,transparent)] backdrop-blur-[6px]">
         <OnboardingProgress current={step} total={TOTAL_ONBOARDING_STEPS} />
       </div>
 
       {/* ── Scrollable content ────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
+      <div className="relative z-[1] flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
         <div className="max-w-2xl mx-auto">
 
         {step === PROFILE_STEPS.NAME_SCHOOL && (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4">
+              <span className="journey-kicker">Профиль · Шаг знакомства</span>
               <Heading level="display-md">
                 {t('profile.nameQuestion')}
               </Heading>

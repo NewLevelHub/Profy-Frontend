@@ -72,10 +72,17 @@ export function AppLayout() {
   }, [location.key]);
 
   return (
-    <div className="h-screen bg-page text-primary flex flex-col overflow-hidden">
+    <div className="h-screen text-primary flex flex-col overflow-hidden bg-transparent">
       <TopRail />
       <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-        {syncDone ? <Outlet /> : (
+        {syncDone ? (
+          // key=pathname: каждый переход по маршруту (вкладки шапки и
+          // вложенные экраны) заново запускает .page-enter — один вход для
+          // всех трёх вкладок, без постраничных AnimatedBlock.
+          <div key={location.pathname} className="page-enter">
+            <Outlet />
+          </div>
+        ) : (
           <div className="flex items-center justify-center h-full min-h-[60vh]">
             <Spinner size="lg" />
           </div>

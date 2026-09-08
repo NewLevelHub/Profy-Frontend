@@ -34,7 +34,7 @@ export function PrintSpheres({ spheres }: { spheres: SphereCardData[] }) {
             <p className="font-mono text-tiny font-bold uppercase tracking-label text-muted mb-1">
               {t('print.nextSteps.sphereNo', { n: String(i + 1).padStart(2, '0') })}
             </p>
-            <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">
+            <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">
               {sphere.title}
             </p>
             <p className="text-caption leading-snug mt-1.5" style={{ color: 'var(--ink)' }}>
@@ -82,7 +82,7 @@ export function PrintCareers({ careers }: { careers: StudentCareer[] }) {
                 right border/rounded corner off the printed page — the tier
                 badge just drops to its own line instead once that happens. */}
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-              <p className="min-w-0 text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">
+              <p className="min-w-0 text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">
                 {career.name}
               </p>
               <p className="font-mono text-tiny uppercase tracking-label text-muted flex-shrink-0">

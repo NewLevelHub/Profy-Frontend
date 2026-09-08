@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight, GraduationCap, Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { pluralize } from '@/shared/lib/plural';
 import { cn } from '@/shared/lib/cn';
 import { useUniversities } from './hooks/useUniversities';
 import { UniversityCard } from './components/UniversityCard';
@@ -10,6 +10,7 @@ import { UniversityCardSkeleton } from './components/UniversityCardSkeleton';
 import { UniversityFilters } from './components/UniversityFilters';
 
 export default function UniversitiesPage() {
+  const { t } = useTranslation(['results', 'common']);
   const {
     universities,
     total,
@@ -33,8 +34,8 @@ export default function UniversitiesPage() {
   return (
     <PageContainer className="space-y-6">
       <PageHeader
-        title="Университеты"
-        subtitle="Справочник вузов Казахстана и других стран. Отмечай звёздочкой те, что понравились — они будут первыми и в подборе."
+        title={t('catalog.title')}
+        subtitle={t('catalog.subtitle')}
       />
 
       <UniversityFilters
@@ -53,24 +54,22 @@ export default function UniversitiesPage() {
         </div>
       ) : error !== null ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <p className="text-body text-danger">{error}</p>
-          <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
+          <p className="text-body text-danger">{t('catalog.loadListFailed')}</p>
+          <Button variant="ghost" onClick={() => refetch()}>{t('common:retry')}</Button>
         </div>
       ) : universities.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           {onlyFavorites ? (
             <>
               <Star className="w-12 h-12 text-muted" aria-hidden="true" />
-              <p className="text-label font-bold text-primary">Пока ничего не в избранном</p>
-              <p className="text-body text-secondary">
-                Нажми на звёздочку у понравившегося вуза — он появится здесь
-              </p>
+              <p className="text-label font-bold text-primary">{t('catalog.emptyFavoritesTitle')}</p>
+              <p className="text-body text-secondary">{t('catalog.emptyFavoritesBody')}</p>
             </>
           ) : (
             <>
               <GraduationCap className="w-12 h-12 text-muted" aria-hidden="true" />
-              <p className="text-label font-bold text-primary">Университеты не найдены</p>
-              <p className="text-body text-secondary">Попробуй изменить запрос или выбрать другую страну</p>
+              <p className="text-label font-bold text-primary">{t('catalog.emptyTitle')}</p>
+              <p className="text-body text-secondary">{t('catalog.emptyBody')}</p>
             </>
           )}
         </div>
@@ -78,10 +77,10 @@ export default function UniversitiesPage() {
         <>
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-bold text-muted m-0">
-              {pluralize(total, 'университет', 'университета', 'университетов')}
+              {t('catalog.count', { count: total })}
             </p>
             {isFetching && !isLoading && (
-              <span className="text-xs font-bold text-muted animate-pulse">Обновляем…</span>
+              <span className="text-xs font-bold text-muted animate-pulse">{t('catalog.updating')}</span>
             )}
           </div>
 
@@ -107,11 +106,11 @@ export default function UniversitiesPage() {
                 size="sm"
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
-                aria-label="Предыдущая страница"
+                aria-label={t('catalog.prevPageAria')}
                 className="min-w-11 px-3"
               >
                 <ChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Назад</span>
+                <span className="hidden sm:inline">{t('common:back')}</span>
               </Button>
               <span className="min-w-[5.5rem] text-center text-sm font-extrabold text-primary tabular-nums">
                 {page}
@@ -122,10 +121,10 @@ export default function UniversitiesPage() {
                 size="sm"
                 disabled={page >= totalPages}
                 onClick={() => setPage(page + 1)}
-                aria-label="Следующая страница"
+                aria-label={t('catalog.nextPageAria')}
                 className="min-w-11 px-3"
               >
-                <span className="hidden sm:inline">Дальше</span>
+                <span className="hidden sm:inline">{t('catalog.further')}</span>
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>

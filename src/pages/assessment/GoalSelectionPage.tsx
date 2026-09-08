@@ -65,7 +65,7 @@ function ResumeDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="resume-dialog-title"
@@ -119,7 +119,7 @@ function RestartDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="restart-dialog-title"
@@ -210,7 +210,7 @@ export default function GoalSelectionPage() {
                 {/* <span className="font-mono text-mono-xs tracking-label uppercase text-muted">
                   Шаг 4 · Цель · Выбери, что сейчас важнее
                 </span> */}
-                <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--midnight)]">
+                <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--text-heading)]">
                   {t('goalSelection.question')}
                 </Heading>
                 <Text variant="body-md" className="text-muted">
@@ -256,7 +256,7 @@ export default function GoalSelectionPage() {
                       </div>
 
                       <div className="flex flex-col gap-1.5">
-                        <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
+                        <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--text-heading)]`}>
                           {t(card.title)}
                         </p>
                         <p className={`${typeClass.bodySm} text-muted`}>{t(card.subtitle)}</p>

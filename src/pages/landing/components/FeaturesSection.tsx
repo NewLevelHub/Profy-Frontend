@@ -97,7 +97,7 @@ export function FeaturesSection() {
                     {feature.icon}
                   </svg>
                 </div>
-                <h3 className="font-display text-[1rem] font-semibold tracking-[-0.02em] mb-[0.7rem]" style={{ color: 'var(--midnight)' }}>
+                <h3 className="font-display text-[1rem] font-semibold tracking-[-0.02em] mb-[0.7rem]" style={{ color: 'var(--text-heading)' }}>
                   {feature.title}
                 </h3>
                 <p className="text-secondary text-[0.92rem] leading-[1.6]">{feature.desc}</p>

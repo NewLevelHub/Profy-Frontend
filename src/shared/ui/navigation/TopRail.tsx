@@ -1,11 +1,12 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, useLocation, useNavigate } from 'react-router';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { playClick } from '@/shared/lib/sounds';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useProfileStore } from '@/shared/store/profile';
 import { NAV_ITEMS, ADMIN_NAV_ITEM, isNavActive, type NavItem } from './navItems';
@@ -34,67 +35,93 @@ export function TopRail() {
     : null;
 
   return (
-    <header className="sticky top-0 z-40 flex-none bg-page border-b border-strong">
+    <header className="sticky top-0 z-40 flex-none app-chrome">
       <div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4"
         style={{ height: 'var(--header-h)' }}
       >
-        {/* Logo */}
-        <span className="font-black text-lg tracking-tight text-primary flex-shrink-0">
+        <Link
+          to="/results"
+          className="brand-wordmark flex-shrink-0 hover:opacity-80 transition-opacity press-scale"
+          aria-label={env.APP_NAME}
+        >
           {env.APP_NAME}
-        </span>
+          <span className="brand-dot" aria-hidden="true">.</span>
+        </Link>
 
-        {/* Nav — inline on md+, collapses into the dropdown below md */}
-        <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => playClick()}
-              className={({ isActive }) =>
-                cn(
-                  'pb-1 text-sm font-bold transition-colors border-b-2 border-transparent',
-                  isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
-                    ? 'text-nav-active'
-                    : 'text-nav hover:text-primary',
-                )
-              }
-              style={({ isActive }) =>
-                isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
-                  ? { borderColor: 'var(--nav-active-border)' }
-                  : undefined
-              }
-            >
-              {t(item.label)}
-            </NavLink>
-          ))}
+        <nav className="hidden md:flex items-center gap-1.5">
+          {navItems.map((item) => {
+            const active = isNavActive(
+              'matchPrefix' in item ? item.matchPrefix : undefined,
+              location.pathname,
+              false,
+            );
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={() => playClick()}
+                className={({ isActive }) => {
+                  const on = isNavActive(
+                    'matchPrefix' in item ? item.matchPrefix : undefined,
+                    location.pathname,
+                    isActive,
+                  );
+                  return cn(
+                    'relative px-3 py-1.5 rounded-[10px] text-sm font-bold transition-[color,background-color] press-scale',
+                    on
+                      ? 'text-nav-active bg-[color:var(--bg-nav-active,var(--brand-subtle))]'
+                      : 'text-nav hover:text-primary hover:bg-hover',
+                  );
+                }}
+              >
+                {({ isActive }) => {
+                  const on = isNavActive(
+                    'matchPrefix' in item ? item.matchPrefix : undefined,
+                    location.pathname,
+                    isActive,
+                  );
+                  return (
+                    <>
+                      {t(item.label)}
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          'pointer-events-none absolute left-3 right-3 -bottom-0.5 h-0.5 rounded-full bg-[color:var(--nav-active-border)] transition-opacity duration-200',
+                          on ? 'opacity-100' : 'opacity-0',
+                        )}
+                      />
+                    </>
+                  );
+                }}
+              </NavLink>
+            );
+          })}
         </nav>
 
-        {/* Right side */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <LanguageSwitcher className="hidden md:inline-flex" />
 
-          {/* Name · age — the identity summary replacing an avatar */}
           {identity && (
             <span className="hidden sm:inline text-sm text-muted font-semibold">{identity}</span>
           )}
 
-          {/* Logout — icon-only, minimal footprint next to the identity text */}
+          <ThemeToggle className="hidden md:inline-flex" />
+
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:bg-hover hover:text-primary transition-colors"
+            className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:bg-hover hover:text-primary transition-colors press-scale"
             aria-label={t('logout')}
             title={t('logout')}
           >
             <LogOut size={15} />
           </button>
 
-          {/* Mobile menu toggle */}
           <button
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
-            className="md:hidden p-2 rounded-lg hover:bg-hover text-secondary"
+            className="md:hidden p-2 rounded-lg hover:bg-hover text-secondary press-scale"
             aria-label={t('menu')}
             aria-expanded={mobileOpen}
           >
@@ -103,12 +130,15 @@ export function TopRail() {
         </div>
       </div>
 
-      {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-strong bg-page px-4 py-3 space-y-1">
+        <div className="md:hidden border-t border-strong app-chrome px-4 py-3 space-y-1">
           {identity && (
             <p className="px-3 py-1.5 text-sm text-muted font-semibold">{identity}</p>
           )}
+          <div className="px-3 py-1.5 flex items-center justify-between gap-3">
+            <span className="text-sm text-muted font-semibold">{t('themeLabel')}</span>
+            <ThemeToggle />
+          </div>
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -119,7 +149,7 @@ export function TopRail() {
               }}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors',
+                  'flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors press-scale',
                   isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
                     ? 'bg-nav-active text-nav-active'
                     : 'text-nav hover:bg-nav-hover hover:text-primary',

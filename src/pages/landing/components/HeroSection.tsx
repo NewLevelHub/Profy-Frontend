@@ -67,12 +67,12 @@ export function HeroSection() {
             {/* Верхний стоп — тот же хвойный, чуть подсветлённый: сплошной
                 --pine-light дал бы мятную заливку вместо глубокой. */}
             <linearGradient id="hero-cave" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="color-mix(in srgb, var(--pine) 78%, var(--pine-light))" />
-              <stop offset="1" stopColor="var(--pine)" />
+              <stop offset="0" stopColor="color-mix(in srgb, var(--brand-solid) 78%, var(--pine-light))" />
+              <stop offset="1" stopColor="var(--brand-solid)" />
             </linearGradient>
           </defs>
           <path
-            fill="color-mix(in srgb, var(--pine) 10%, transparent)"
+            fill="color-mix(in srgb, var(--brand-solid) 22%, transparent)"
             d="M1440 48c-200 56-350 148-414 262-64 114-32 216-128 314-96 98-136 178-116 276h658z"
           />
           <path
@@ -89,7 +89,7 @@ export function HeroSection() {
           <Eyebrow>{t('hero.eyebrow')}</Eyebrow>
           <h1
             className="font-display font-bold text-[clamp(2rem,3.9vw,3rem)] leading-[1.14] tracking-[-0.035em] text-balance mt-[1.4rem]"
-            style={{ color: 'var(--midnight)' }}
+            style={{ color: 'var(--text-heading)' }}
           >
             {t('hero.titleLine1')}
             <br />
@@ -138,12 +138,12 @@ export function HeroSection() {
             <div className="flex items-center gap-[0.6rem]">
               <span
                 className="w-8 h-8 rounded-[var(--radius)] flex items-center justify-center font-display font-bold text-[0.6rem] tracking-[-0.02em] shrink-0"
-                style={{ background: 'var(--pine)', color: 'var(--paper)' }}
+                style={{ background: 'var(--pine)', color: 'var(--text-on-brand)' }}
               >
                 {t('hero.cardFitYes')}
               </span>
               <div>
-                <strong className="block text-[0.78rem] font-bold max-[680px]:text-[0.7rem]" style={{ color: 'var(--midnight)' }}>
+                <strong className="block text-[0.78rem] font-bold max-[680px]:text-[0.7rem]" style={{ color: 'var(--text-heading)' }}>
                   {t('hero.cardFitRole')}
                 </strong>
                 <small className="text-[0.65rem] text-subtle">{t('hero.cardFitMatch')}</small>
@@ -152,7 +152,7 @@ export function HeroSection() {
           </FloatCard>
 
           <FloatCard position="top-[6%] right-[-8%] card-b max-[680px]:right-[-3%]" label={t('hero.cardProgramLabel')} dot="var(--lake)">
-            <strong className="block text-[0.85rem] font-bold mb-[0.4rem]" style={{ color: 'var(--midnight)' }}>
+            <strong className="block text-[0.85rem] font-bold mb-[0.4rem]" style={{ color: 'var(--text-heading)' }}>
               Nazarbayev University
             </strong>
             <em className="not-italic text-[0.68rem] text-subtle">{t('hero.cardProgramMeta')}</em>
@@ -177,7 +177,7 @@ export function HeroSection() {
             <ul className="list-none">
               <li className="flex items-center gap-2 text-[0.72rem] mb-[0.4rem] text-secondary">
                 <span className="w-4 h-4 rounded-full shrink-0 flex items-center justify-center" style={{ background: 'var(--pine-light)' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--paper)" strokeWidth="3" className="w-[9px] h-[9px]">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-on-brand)" strokeWidth="3" className="w-[9px] h-[9px]">
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
@@ -188,7 +188,7 @@ export function HeroSection() {
                   className="dot-pulse w-4 h-4 rounded-full shrink-0 flex items-center justify-center relative"
                   style={{ border: '1.5px solid var(--dawn)' }}
                 />
-                <span className="font-semibold" style={{ color: 'var(--midnight)' }}>
+                <span className="font-semibold" style={{ color: 'var(--text-heading)' }}>
                   {t('hero.cardRouteStep2')}
                 </span>
               </li>

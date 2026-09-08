@@ -26,7 +26,7 @@ export function CertificatesSection({ certificates, onEdit }: CertificatesSectio
       editAriaLabel={hasAny ? t('certificates.editAria') : t('certificates.addAria')}
       onEdit={onEdit}
     >
-      <RuledGrid className="flex flex-wrap">
+      <RuledGrid className="flex flex-wrap gap-2.5">
         <RuledStat label={t(CERTIFICATE_LABELS.ielts)} value={scoreByType.get('ielts') ?? null} />
         <RuledStat label={t(CERTIFICATE_LABELS.unt)} value={scoreByType.get('unt') ?? null} />
         <RuledStat label={t(CERTIFICATE_LABELS.sat)} value={scoreByType.get('sat') ?? null} />

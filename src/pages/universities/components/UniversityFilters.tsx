@@ -1,4 +1,6 @@
 import { Search, Star, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { localizeGeo } from '@/shared/i18n/geo';
 import { cn } from '@/shared/lib/cn';
 import type { UniversityCountry } from '@/shared/types';
 
@@ -13,9 +15,10 @@ interface UniversityFiltersProps {
 }
 
 const PILL_BASE =
-  'shrink-0 px-4 py-2 rounded-pill text-sm font-bold border-[1.5px] cursor-pointer transition-colors whitespace-nowrap';
+  'shrink-0 px-4 py-2 rounded-pill text-sm font-semibold border cursor-pointer transition-colors whitespace-nowrap';
 const PILL_ON = 'bg-brand text-on-brand border-transparent';
-const PILL_OFF = 'bg-surface text-secondary border-strong hover:border-brand';
+const PILL_OFF =
+  'bg-[color-mix(in_srgb,var(--paper)_75%,transparent)] text-secondary border-[color:color-mix(in_srgb,#fff_50%,var(--border))] hover:border-brand hover:text-brand';
 
 export function UniversityFilters({
   searchInput,
@@ -26,6 +29,8 @@ export function UniversityFilters({
   onlyFavorites,
   onToggleOnlyFavorites,
 }: UniversityFiltersProps) {
+  const { t } = useTranslation('results');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-3">
@@ -38,15 +43,15 @@ export function UniversityFilters({
             type="search"
             value={searchInput}
             onChange={e => onSearchChange(e.target.value)}
-            placeholder="Название, аббревиатура или город"
-            aria-label="Поиск университета"
-            className="w-full h-11 pl-11 pr-10 rounded-pill bg-surface border-[1.5px] border-strong text-sm font-semibold text-primary placeholder:text-muted focus:border-brand focus:outline-none transition-colors"
+            placeholder={t('catalog.searchPlaceholder')}
+            aria-label={t('catalog.searchAria')}
+            className="w-full h-11 pl-11 pr-10 rounded-pill bg-[color-mix(in_srgb,var(--paper)_78%,transparent)] border border-[color:color-mix(in_srgb,#fff_50%,var(--border))] text-sm font-semibold text-primary placeholder:text-muted focus:border-brand focus:outline-none transition-colors backdrop-blur-sm"
           />
           {searchInput && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              aria-label="Очистить поиск"
+              aria-label={t('catalog.clearSearchAria')}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted hover:text-primary border-none bg-transparent cursor-pointer"
             >
               <X className="w-4 h-4" />
@@ -65,7 +70,7 @@ export function UniversityFilters({
           )}
         >
           <Star className={cn('w-4 h-4', onlyFavorites && 'fill-current')} />
-          Избранные
+          {t('catalog.favorites')}
         </button>
       </div>
 
@@ -75,7 +80,7 @@ export function UniversityFilters({
       <div
         className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         role="group"
-        aria-label="Фильтр по стране"
+        aria-label={t('programList.countryFilterAria')}
       >
         <button
           type="button"
@@ -83,7 +88,7 @@ export function UniversityFilters({
           aria-pressed={activeCountry === undefined}
           className={cn(PILL_BASE, activeCountry === undefined ? PILL_ON : PILL_OFF)}
         >
-          Все
+          {t('programList.allCountries')}
         </button>
         {countries.map(({ country, count }) => (
           <button
@@ -93,7 +98,7 @@ export function UniversityFilters({
             aria-pressed={activeCountry === country}
             className={cn(PILL_BASE, activeCountry === country ? PILL_ON : PILL_OFF)}
           >
-            {country}
+            {localizeGeo(country)}
             <span className="ml-1.5 opacity-60">{count}</span>
           </button>
         ))}
