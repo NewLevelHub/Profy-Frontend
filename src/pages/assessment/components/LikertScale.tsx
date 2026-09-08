@@ -1,5 +1,6 @@
 import React from 'react';
 import { Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
 import { LIKERT_SCALE } from '@/shared/config/constants';
@@ -33,17 +34,18 @@ export const LikertScale = React.memo(function LikertScale({
   onSelect,
   scale = LIKERT_SCALE,
 }: LikertScaleProps) {
+  const { t } = useTranslation();
   return (
     <div
       className="flex items-center justify-center w-full gap-[clamp(0.4rem,2vw,1.5rem)]"
       role="radiogroup"
-      aria-label="Оцени по шкале"
+      aria-label={t('assessment:scale.rateAria')}
     >
       <span
         className="shrink-0 text-right font-semibold leading-tight"
         style={{ color: POLE_LEFT, fontSize: 'clamp(0.75rem, 1.6vw, 1rem)', maxWidth: 'clamp(4.5rem, 14vw, 7.5rem)' }}
       >
-        Совсем не моё
+        {t('assessment:scale.poleLeft')}
       </span>
 
       {scale.map(({ value, label }, index) => {
@@ -68,7 +70,7 @@ export const LikertScale = React.memo(function LikertScale({
             style={{ borderRadius: '50%' }}
             role="radio"
             aria-checked={isSelected}
-            aria-label={label}
+            aria-label={t(label)}
           >
             <span
               className="flex items-center justify-center transition-colors duration-150"
@@ -97,7 +99,7 @@ export const LikertScale = React.memo(function LikertScale({
         className="shrink-0 text-left font-semibold leading-tight"
         style={{ color: POLE_RIGHT, fontSize: 'clamp(0.75rem, 1.6vw, 1rem)', maxWidth: 'clamp(4.5rem, 14vw, 7.5rem)' }}
       >
-        Точно моё
+        {t('assessment:scale.poleRight')}
       </span>
     </div>
   );

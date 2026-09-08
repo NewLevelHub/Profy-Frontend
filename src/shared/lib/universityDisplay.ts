@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next';
+import { formatNumber } from '@/shared/i18n/format';
 import type { UniversityBrief } from '@/shared/types';
 
 // Display helpers for a university, shared by the results-side program cards
@@ -22,12 +24,16 @@ export function cardImageUrl(imageUrl: string): string {
 }
 
 /** Shared cost line for university/program cards (`1659 $/год`). */
-export function formatCost(cost: number | null): string {
-  if (cost === null) return 'Стоимость не указана';
+export function formatCost(cost: number | null, t: TFunction): string {
+  if (cost === null) return t('results:cost.notSpecified');
   // `cost` sometimes arrives as a numeric-looking string (Decimal fields can
   // survive JSON as strings), and `"1659".toLocaleString()` is a no-op on a
-  // string — coercing to Number first is what actually applies grouping.
-  return `${Number(cost).toLocaleString('ru-RU')} $/год`;
+  // string (returns it unchanged, no digit grouping) — coercing to Number
+  // first is what actually applies grouping. `formatNumber` groups per the
+  // active UI locale (see KZ-104 / shared/i18n/format), keeping every price
+  // on one style like convertLabelCurrenciesToUsd (university-cards-ux-fix-
+  // plan.md §10).
+  return t('results:cost.perYear', { amount: formatNumber(Number(cost)) });
 }
 
 /**
@@ -52,7 +58,8 @@ export function formatCost(cost: number | null): string {
  * (UniversityRankBadges, ProgramDetailPage) don't need to change shape.
  */
 export function getUniversityRankingLabels(
-  uni: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>
+  uni: Pick<UniversityBrief, 'country' | 'ranking' | 'uniranks_kz_rank' | 'uniranks_world_rank'>,
+  t: TFunction,
 ): string[] {
   const positive = (v: number | null | undefined): number | null =>
     v !== null && v !== undefined && v > 0 ? v : null;
@@ -62,7 +69,7 @@ export function getUniversityRankingLabels(
   const worldRank = positive(uni.ranking) ?? positive(uni.uniranks_world_rank);
   const kzRank = positive(uni.uniranks_kz_rank);
 
-  if (kzRank !== null) return [`UniRanks · #${kzRank} в Казахстане`];
-  if (worldRank !== null) return [`UniRanks · #${worldRank} в мире`];
+  if (kzRank !== null) return [t('results:rank.kzPosition', { rank: kzRank })];
+  if (worldRank !== null) return [t('results:rank.worldPosition', { rank: worldRank })];
   return [];
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
@@ -18,6 +19,7 @@ function scoreOf(items: CertificateItem[], type: CertificateType): string {
 
 export function useCertificatesEdit() {
   const navigate = useNavigate();
+  const { t } = useTranslation('profile');
   const queryClient = useQueryClient();
   const userId = useAuthStore(s => s.user?.id);
   const profile = useProfileStore(s => s.profile);
@@ -79,7 +81,7 @@ export function useCertificatesEdit() {
   function validate(): boolean {
     const nextErrors: FieldErrors = {};
     for (const type of CERTIFICATE_TYPES) {
-      nextErrors[type] = validateCertificateScore(type, scores[type]);
+      nextErrors[type] = validateCertificateScore(type, scores[type], { t });
     }
     setErrors(nextErrors);
     return Object.values(nextErrors).every(e => e === undefined);

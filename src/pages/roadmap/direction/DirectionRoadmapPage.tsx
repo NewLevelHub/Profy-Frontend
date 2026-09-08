@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
@@ -21,6 +22,7 @@ import { TargetCard } from './components/TargetCard';
 import { UniversityTrackSection } from './components/UniversityTrackSection';
 
 export default function DirectionRoadmapPage() {
+  const { t } = useTranslation();
   const { slug = '' } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const {
@@ -44,7 +46,7 @@ export default function DirectionRoadmapPage() {
         onClick={goBack}
       >
         <ArrowLeft className="w-4 h-4" />
-        Назад
+        {t('common:back')}
       </button>
 
       {isGenerating ? (
@@ -60,17 +62,17 @@ export default function DirectionRoadmapPage() {
 
           {errorKind === 'ai_unavailable' && (
             <Button variant="primary" size="lg" onClick={generate}>
-              Попробовать снова
+              {t('roadmap:action.retry')}
             </Button>
           )}
           {errorKind === 'needs_inquiry' && (
             <Button variant="primary" size="lg" onClick={() => navigate(inquiryPath)}>
-              Пройти опрос
+              {t('roadmap:direction.takeInquiry')}
             </Button>
           )}
           {(errorKind === 'forbidden' || errorKind === 'generic') && (
             <Button variant="ghost" size="lg" onClick={() => navigate('/results')}>
-              Назад к результатам
+              {t('common:backToResults')}
             </Button>
           )}
         </div>
@@ -78,13 +80,13 @@ export default function DirectionRoadmapPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <span className="text-5xl select-none" aria-hidden="true">🗺️</span>
           <PageHeader
-            title="Плана пока нет"
-            subtitle="Составим персональный план развития в этом направлении — от того, что ты можешь делать уже сейчас, до конечной цели."
+            title={t('roadmap:direction.emptyTitle')}
+            subtitle={t('roadmap:direction.emptyBody')}
             align="center"
           />
           <Button variant="primary" size="lg" className="gap-2" onClick={generate}>
             <Sparkles className="w-5 h-5" />
-            Построить мой план
+            {t('roadmap:direction.buildPlan')}
           </Button>
         </div>
       ) : roadmap ? (
@@ -97,20 +99,22 @@ export default function DirectionRoadmapPage() {
           </div>
 
           <div>
-            <SectionHeading title="Твой путь на год" className="mb-1" />
+            <SectionHeading title={t('roadmap:direction.yourYearPath')} className="mb-1" />
             <p className="text-body text-secondary mb-6">
-              Каждый месяц — шаги в профиль и в твою точку роста.
+              {t('roadmap:direction.yearPathSubtitle')}
             </p>
             <Spine
               nodes={roadmap.stages.map((stage, i): SpineNode => ({
                 id: stage.horizon,
                 status: i === 0 ? 'current' : 'upcoming',
                 goal: i === roadmap.stages.length - 1,
-                label: DIRECTION_HORIZON_LABELS[stage.horizon] ?? stage.horizon,
+                label: DIRECTION_HORIZON_LABELS[stage.horizon]
+                  ? t(DIRECTION_HORIZON_LABELS[stage.horizon])
+                  : stage.horizon,
               }))}
               showLabels
               className="mb-10"
-              ariaLabel="Горизонты плана: сейчас, до цели через 12 месяцев"
+              ariaLabel={t('roadmap:direction.horizonsAria')}
             />
 
             {/* Horizon grid per spec 07 — hairline-divided Paper cells, one
@@ -159,7 +163,7 @@ export default function DirectionRoadmapPage() {
               className="sm:w-auto"
               onClick={() => navigate('/results')}
             >
-              Назад к результатам
+              {t('common:backToResults')}
             </Button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
+import { localizeGeo } from '@/shared/i18n/geo';
 import { useProfile } from '../hooks/useProfile';
 import { IdentityRail } from './IdentityRail';
 import { PersonalInfoSection } from './PersonalInfoSection';
@@ -38,7 +39,7 @@ export function ProfileLedger() {
         displayName={displayName}
         age={profile.age}
         grade={profile.grade}
-        city={profile.city}
+        city={localizeGeo(profile.city)}
         sections={railSections}
       />
       <div className="flex flex-col">

@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
 import { CtaLink, ArrowIcon } from './primitives';
 import { useScrollProgress, scrollToAnchor } from '../hooks';
 
-const NAV = [
-  { id: 'how', label: 'Как работает' },
-  { id: 'features', label: 'Возможности' },
-  { id: 'inside', label: 'Что внутри' },
-  { id: 'try', label: 'Попробуй' },
-  { id: 'faq', label: 'Вопросы' },
-] as const;
+const NAV_IDS = ['how', 'features', 'inside', 'try', 'faq'] as const;
 
 /** Вордмарк: имя набором и акцентная точка на базовой линии. */
 function Wordmark({ className, onClick }: { className?: string; onClick?: () => void }) {
@@ -39,8 +34,10 @@ function Wordmark({ className, onClick }: { className?: string; onClick?: () => 
 }
 
 export function LandingHeader() {
+  const { t } = useTranslation('landing');
   const { progress, scrolled } = useScrollProgress();
   const [menuOpen, setMenuOpen] = useState(false);
+  const nav = NAV_IDS.map(id => ({ id, label: t(`nav.${id}`) }));
 
   // Пока открыто мобильное меню, страница под ним не прокручивается.
   // Снимаем блокировку и при размонтировании: уйти с лендинга можно прямо
@@ -97,7 +94,7 @@ export function LandingHeader() {
             <Wordmark />
 
             <nav className="hidden min-[901px]:flex items-center gap-[2.1rem]">
-              {NAV.map(item => (
+              {nav.map(item => (
                 <button
                   key={item.id}
                   type="button"
@@ -114,17 +111,17 @@ export function LandingHeader() {
                 to="/login"
                 className="hidden min-[901px]:inline text-[0.93rem] font-semibold text-secondary hover:text-primary transition-colors no-underline"
               >
-                Войти
+                {t('cta.login')}
               </Link>
               <CtaLink to="/register" size="sm" className="hidden min-[901px]:inline-flex">
-                Пройти тест
+                {t('cta.takeTest')}
                 <ArrowIcon />
               </CtaLink>
 
               <button
                 type="button"
                 onClick={() => setMenuOpen(v => !v)}
-                aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
+                aria-label={menuOpen ? t('cta.closeMenu') : t('cta.openMenu')}
                 aria-expanded={menuOpen}
                 className="min-[901px]:hidden w-10 h-10 rounded-[var(--radius)] bg-surface border border-default flex items-center justify-center"
               >
@@ -145,7 +142,7 @@ export function LandingHeader() {
         )}
         style={{ background: 'color-mix(in srgb, var(--bg-page) 98%, transparent)' }}
       >
-        {NAV.map(item => (
+        {nav.map(item => (
           <button
             key={item.id}
             type="button"
@@ -158,10 +155,10 @@ export function LandingHeader() {
         ))}
         <div className="flex flex-col gap-[0.9rem] mt-4">
           <CtaLink to="/login" variant="ghost" size="lg" className="w-full">
-            Войти
+            {t('cta.login')}
           </CtaLink>
           <CtaLink to="/register" size="lg" className="w-full">
-            Пройти диагностику
+            {t('cta.takeDiagnostic')}
             <ArrowIcon />
           </CtaLink>
         </div>

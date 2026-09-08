@@ -1,27 +1,18 @@
+import { useTranslation } from 'react-i18next';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Accent, Reveal, SectionHead } from './primitives';
 import { useParallax } from '../hooks';
 
-const STEPS = [
-  {
-    num: '01',
-    title: 'Расскажи о себе',
-    desc: 'Увлечения, кружки, достижения, любимые темы — коротко и в свободной форме. Это не тест и на результат не влияет: рассказ помогает точнее объяснить, почему подошла та или иная профессия.',
-  },
-  {
-    num: '02',
-    title: 'Пройди диагностику',
-    desc: 'Три теста подряд: интересы, личность и мотивация. Экраны разные — шкала согласия, расстановка приоритетов, выбор из двух карточек. На 25%, 50% и 75% ждёт привал: короткая пауза, чтобы передохнуть.',
-  },
-  {
-    num: '03',
-    title: 'Получи отчёт',
-    desc: 'Резюме о себе, карта интересов, сильные стороны, особенности личности, стиль мышления и мотивация — простым языком, без сухих баллов.',
-  },
-];
+const STEP_NUMS = ['01', '02', '03'] as const;
 
 export function HowSection() {
+  const { t } = useTranslation('landing');
   const mascotRef = useParallax<HTMLDivElement>(0.15);
+  const steps = STEP_NUMS.map((num, i) => ({
+    num,
+    title: t(`how.step${i + 1}Title`),
+    desc: t(`how.step${i + 1}Desc`),
+  }));
 
   return (
     <section id="how" className="relative py-[clamp(4.5rem,8vw,7.5rem)] bg-surface">
@@ -37,14 +28,14 @@ export function HowSection() {
           </div>
           <SectionHead
             center
-            eyebrow="Как это работает"
-            title={<>От сомнений до чёткого плана — <Accent>за 3 шага</Accent></>}
-            sub="Одно прохождение — и на выходе понятный портрет себя, подходящие профессии и программы вузов под них"
+            eyebrow={t('how.eyebrow')}
+            title={<>{t('how.titlePre')}<Accent>{t('how.titleAccent')}</Accent></>}
+            sub={t('how.sub')}
           />
         </Reveal>
 
         <div className="grid grid-cols-3 gap-[1.6rem] max-[1024px]:gap-[1.1rem] max-[680px]:grid-cols-1">
-          {STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <Reveal
               key={step.num}
               delay={i + 1}

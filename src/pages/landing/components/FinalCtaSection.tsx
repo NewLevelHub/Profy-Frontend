@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { Mascot } from '@/shared/ui/Mascot';
 import { ArrowIcon, CtaLink, Reveal, TrustRow } from './primitives';
 import { useParallax } from '../hooks';
 
 export function FinalCtaSection() {
+  const { t } = useTranslation('landing');
   const mascotRef = useParallax<HTMLDivElement>(0.1);
 
   return (
@@ -27,12 +29,12 @@ export function FinalCtaSection() {
             className="relative z-[1] font-display font-bold text-[clamp(1.75rem,3.6vw,2.6rem)] leading-[1.18] tracking-[-0.03em] text-balance"
             style={{ color: 'var(--paper)' }}
           >
-            Готов узнать,
+            {t('finalCta.titleLine1')}
             <br />
-            <span style={{ color: 'var(--dawn-light)' }}>кем тебе быть?</span>
+            <span style={{ color: 'var(--dawn-light)' }}>{t('finalCta.titleAccent')}</span>
           </h2>
           <p className="relative z-[1] mt-[1.1rem] text-[1.05rem]" style={{ color: 'color-mix(in srgb, var(--paper) 76%, transparent)' }}>
-            Три теста, персональный отчёт и реальные программы вузов — за одно прохождение
+            {t('finalCta.sub')}
           </p>
 
           <div className="relative z-[1] flex justify-center mt-[2.2rem]">
@@ -43,7 +45,7 @@ export function FinalCtaSection() {
               size="lg"
               className="!bg-[var(--paper)] !text-[var(--pine)] hover:!bg-[color-mix(in_srgb,var(--paper)_80%,white)]"
             >
-              Пройти диагностику
+              {t('cta.takeDiagnostic')}
               <ArrowIcon />
             </CtaLink>
           </div>

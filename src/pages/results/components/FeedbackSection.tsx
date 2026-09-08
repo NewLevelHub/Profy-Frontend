@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
@@ -25,6 +26,7 @@ type SubmitState = 'idle' | 'submitting' | 'sent' | 'error';
  * component used before the backend existed.
  */
 export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
+  const { t } = useTranslation('results');
   const [relevanceScore, setRelevanceScore] = useState<number | null>(null);
   const [sections, setSections] = useState<Set<string>>(new Set());
   const [comment, setComment] = useState('');
@@ -65,10 +67,10 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
     return (
       <Card className="flex flex-col gap-1.5">
         <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-brand">
-          ОТЗЫВ ПОЛУЧЕН
+          {t('feedback.sentKicker')}
         </p>
         <p className="text-body text-secondary leading-relaxed">
-          Спасибо — прочитаем. Ответа на это сообщение не будет, оно уходит команде без переписки.
+          {t('feedback.sentBody')}
         </p>
       </Card>
     );
@@ -78,17 +80,17 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
     <Card className="flex flex-col gap-5">
       <div>
         <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mb-1.5">
-          ОТЗЫВ КОМАНДЕ · НЕОБЯЗАТЕЛЬНО
+          {t('feedback.kicker')}
         </p>
-        <p className="text-label font-bold text-primary">Что думаешь о результате?</p>
+        <p className="text-label font-bold text-primary">{t('feedback.heading')}</p>
         <p className="text-caption text-secondary leading-snug mt-1">
-          Отчёт уже сохранён — писать необязательно, это просто помогает нам делать продукт лучше.
+          {t('feedback.subheading')}
         </p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-caption font-semibold text-primary">Насколько это про тебя?</p>
-        <div className="flex gap-2" role="radiogroup" aria-label="Насколько это про тебя, от 1 до 5">
+        <p className="text-caption font-semibold text-primary">{t('feedback.relevanceQuestion')}</p>
+        <div className="flex gap-2" role="radiogroup" aria-label={t('feedback.relevanceAria')}>
           {RELEVANCE_SCALE.map((value) => (
             <button
               key={value}
@@ -110,7 +112,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-caption font-semibold text-primary">Что оказалось самым полезным?</p>
+        <p className="text-caption font-semibold text-primary">{t('feedback.usefulQuestion')}</p>
         <div className="flex flex-wrap gap-2">
           {REPORT_SECTIONS.map((section) => (
             <button
@@ -125,7 +127,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
                   : 'bg-surface text-secondary border-default hover:border-brand',
               )}
             >
-              {section.label}
+              {t(section.labelKey)}
             </button>
           ))}
         </div>
@@ -133,12 +135,12 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
 
       <div className="flex flex-col gap-2">
         <p className="text-caption font-semibold text-primary">
-          Что было непонятно или не подошло? <span className="font-normal text-muted">— необязательно</span>
+          {t('feedback.commentQuestion')} <span className="font-normal text-muted">{t('feedback.commentOptional')}</span>
         </p>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Необязательно — что угодно, коротко или подробно"
+          placeholder={t('feedback.commentPlaceholder')}
           rows={3}
           maxLength={COMMENT_MAX_LENGTH}
           className={cn(
@@ -156,7 +158,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
 
       {state === 'error' && (
         <p className="text-caption text-danger" role="alert">
-          Не получилось отправить отзыв. Попробуй ещё раз.
+          {t('error.feedbackSubmit')}
         </p>
       )}
 
@@ -166,7 +168,7 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
           disabled={!assessmentId || relevanceScore === null}
           isLoading={state === 'submitting'}
         >
-          Отправить отзыв
+          {t('feedback.submit')}
         </Button>
       </div>
     </Card>

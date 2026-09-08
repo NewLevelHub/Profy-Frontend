@@ -1,42 +1,47 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Accent, Reveal, SectionHead } from './primitives';
 
 /* Крупная цветная плашка вместо точки — блок читается как «свой» цвет ещё
    до того, как прочитан заголовок. Цвет группы прокидывается через --gc. */
-const GROUPS: { color: string; icon: ReactNode; name: string; desc: string; chips: string[] }[] = [
+const GROUP_META: { key: string; color: string; icon: ReactNode; chipCount: number }[] = [
   {
+    key: 'interests',
     color: 'var(--pine)',
     icon: <><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5 11 11 8.5 15.5 13 13z" /></>,
-    name: 'Тест интересов',
-    desc: 'К какому типу дела больше тянет. 146 утверждений по шкале согласия — от «совсем не моё» до «точно моё».',
-    chips: ['Практика', 'Исследования', 'Творчество', 'Люди', 'Лидерство', 'Порядок'],
+    chipCount: 6,
   },
   {
+    key: 'personality',
     color: 'var(--pine-light)',
     icon: <><circle cx="12" cy="8" r="3.6" /><path d="M4.5 20a7.5 7.5 0 0115 0" /></>,
-    name: 'Тест личности',
-    desc: 'Как ты реагируешь на стресс, насколько общителен, открыт новому, доброжелателен и организован. 120 утверждений, та же шкала.',
-    chips: ['Стресс', 'Общительность', 'Открытость новому', 'Доброжелательность', 'Организованность'],
+    chipCount: 5,
   },
   {
+    key: 'motivation',
     color: 'var(--dawn)',
     icon: <><path d="M12 21a5.2 5.2 0 005.2-5.2c0-4.2-5.2-8.8-5.2-8.8S6.8 11.6 6.8 15.8A5.2 5.2 0 0012 21z" /><path d="M12 21a2.2 2.2 0 002.2-2.2c0-1.8-2.2-3.7-2.2-3.7s-2.2 1.9-2.2 3.7A2.2 2.2 0 0012 21z" /></>,
-    name: 'Тест мотивации',
-    desc: 'Что для тебя по-настоящему важно в работе. 12 раундов по три утверждения: отмечаешь, что больше похоже на тебя, а что меньше.',
-    chips: ['Интерес к делу', 'Вызов и рост', 'Помощь людям', 'Свобода', 'Доход', 'Стабильность'],
+    chipCount: 6,
   },
 ];
 
 export function InsideSection() {
+  const { t } = useTranslation('landing');
+  const GROUPS = GROUP_META.map(g => ({
+    ...g,
+    name: t(`inside.${g.key}Name`),
+    desc: t(`inside.${g.key}Desc`),
+    chips: Array.from({ length: g.chipCount }, (_, i) => t(`inside.${g.key}Chip${i + 1}`)),
+  }));
   return (
     <section id="inside" className="relative py-[clamp(4.5rem,8vw,7.5rem)] bg-surface">
       <div className="w-[min(1220px,92%)] mx-auto">
         <Reveal>
           <SectionHead
             center
-            eyebrow="Что внутри"
-            title={<>Три теста — <Accent>и полный портрет</Accent></>}
-            sub="Все блоки связаны в один сценарий, а не в набор разрозненных анкет."
+            eyebrow={t('inside.eyebrow')}
+            title={<>{t('inside.titlePre')}<Accent>{t('inside.titleAccent')}</Accent></>}
+            sub={t('inside.sub')}
           />
         </Reveal>
 

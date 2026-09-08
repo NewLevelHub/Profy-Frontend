@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -8,6 +9,7 @@ import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 
 export default function PairAssessmentPage() {
+  const { t } = useTranslation('assessment');
   const {
     phase,
     pairIndex,
@@ -32,8 +34,8 @@ export default function PairAssessmentPage() {
 
   const headerTitle =
     phase === 'question' && totalPairs > 0
-      ? `Вопрос ${pairIndex + 1} из ${totalPairs}`
-      : 'Выбери, что тебе ближе';
+      ? t('rail.questionOf', { current: pairIndex + 1, total: totalPairs })
+      : t('rail.sectionPairs');
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -44,8 +46,8 @@ export default function PairAssessmentPage() {
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
         title={headerTitle}
-        sectionLabel="Выбери, что тебе ближе"
-        progressAriaLabel="Прогресс теста"
+        sectionLabel={t('rail.sectionPairs')}
+        progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
         showBack={phase === 'question' && pairIndex > 0}
         onBack={handleBack}
@@ -64,12 +66,12 @@ export default function PairAssessmentPage() {
 
         {phase === 'intro' && (
           <AssessmentIntro
-            kicker="Узнаём тебя"
-            title="Выбирай, что тебе ближе"
-            subtitle="Правильных и неправильных ответов здесь нет"
-            itemCountLabel={`${totalPairs} вопросов`}
-            durationLabel={`~${Math.max(1, Math.ceil(totalPairs / 20))} мин`}
-            ctaLabel="Начать тест"
+            kicker={t('intro.pairs.kicker')}
+            title={t('intro.pairs.title')}
+            subtitle={t('intro.pairs.subtitle')}
+            itemCountLabel={t('intro.itemCount', { count: totalPairs })}
+            durationLabel={t('intro.durationMin', { count: Math.max(1, Math.ceil(totalPairs / 20)) })}
+            ctaLabel={t('intro.pairs.cta')}
             onStart={handleStartIntro}
           />
         )}
@@ -82,7 +84,7 @@ export default function PairAssessmentPage() {
                 <div className="mb-4 p-3 rounded-xl bg-danger-subtle text-danger text-caption text-center">
                   <p>{error}</p>
                   <button type="button" onClick={retry} className="mt-2 font-semibold underline">
-                    Попробовать снова
+                    {t('error.retry')}
                   </button>
                 </div>
               )}
@@ -95,7 +97,7 @@ export default function PairAssessmentPage() {
                   )}
                 >
                   <Heading level="display-md" as="h2" className="text-primary mb-8 text-center">
-                    Что тебе ближе?
+                    {t('format.pickCloser')}
                   </Heading>
                   <PairChoice
                     frame={currentPair.frame}

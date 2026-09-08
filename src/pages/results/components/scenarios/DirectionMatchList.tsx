@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { CareerMatchLadder } from '@/shared/ui/MatchLadder';
@@ -31,12 +32,13 @@ interface DirectionMatchListProps {
  */
 export const DirectionMatchList = memo(function DirectionMatchList({
   careers,
-  emptyText = 'Подходящих направлений пока нет.',
+  emptyText,
   showUniversitiesHint = false,
 }: DirectionMatchListProps) {
+  const { t } = useTranslation('results');
 
   if (careers.length === 0) {
-    return <p className="text-caption text-muted">{emptyText}</p>;
+    return <p className="text-caption text-muted">{emptyText ?? t('directionMatch.empty')}</p>;
   }
 
   return (
@@ -86,7 +88,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                   className="font-mono text-tiny font-bold uppercase tracking-label mb-1"
                   style={{ color: 'var(--lake)' }}
                 >
-                  Почему подходит
+                  {t('directionMatch.whyFit')}
                 </p>
                 <p className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
                   {career.why}
@@ -97,7 +99,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                     style={{ color: 'var(--lake)', borderTop: '1px solid color-mix(in srgb, var(--lake) 25%, transparent)' }}
                   >
                     <GraduationCap className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
-                    Открой направление, чтобы увидеть вузы и программы
+                    {t('directionMatch.openForUniversities')}
                   </p>
                 )}
               </div>

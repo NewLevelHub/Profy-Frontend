@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Download } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -7,6 +8,7 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { StudentCareer } from '@/shared/types';
 import { useResults } from './hooks/useResults';
+import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
 import { SummaryCard } from './components/SummaryCard';
@@ -43,10 +45,12 @@ function ResultsSkeleton() {
 
 export default function ResultsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('results');
 
   const {
     report,
     isLoading,
+    isTranslating,
     error,
     hasCompletedAssessment,
     assessmentId,
@@ -77,13 +81,25 @@ export default function ResultsPage() {
 
   if (isLoading) return <ResultsSkeleton />;
 
+  // Language was switched on a finished report — the backend is translating
+  // the existing narrative (see useResults `isTranslating`). Show the same
+  // mascot "preparing your result" screen as a first-time generation rather
+  // than holding the report on screen in the previous language.
+  if (isTranslating) {
+    return (
+      <PageContainer>
+        <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
+
   if (error || !report) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
         <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
-        <h2 className="text-h1 font-extrabold text-primary">Что-то пошло не так</h2>
-        <p className="text-body text-secondary">{error ?? 'Не удалось загрузить результаты.'}</p>
-        <Button onClick={() => refetch()}>Повторить</Button>
+        <h2 className="text-h1 font-extrabold text-primary">{t('error.somethingWrong')}</h2>
+        <p className="text-body text-secondary">{error ?? t('error.loadResults')}</p>
+        <Button onClick={() => refetch()}>{t('common:retry')}</Button>
       </div>
     );
   }
@@ -102,8 +118,8 @@ export default function ResultsPage() {
           stays one click. */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <PageHeader
-          title="Что мы узнали о тебе"
-          subtitle={isJunior ? 'Что тебе интересно и что стоит попробовать' : 'Твой профиль интересов и рекомендованное направление'}
+          title={t('page.title')}
+          subtitle={isJunior ? t('page.subtitleJunior') : t('page.subtitleAdult')}
         />
         <Button
           variant="ghost"
@@ -112,7 +128,7 @@ export default function ResultsPage() {
           onClick={() => navigate('/results/print?auto=1')}
         >
           <Download size={16} aria-hidden="true" />
-          Скачать PDF
+          {t('page.downloadPdf')}
         </Button>
       </div>
 

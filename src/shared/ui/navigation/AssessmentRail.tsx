@@ -1,4 +1,5 @@
 import { Volume2, VolumeX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { Spine } from '@/shared/ui/Spine';
 
@@ -41,7 +42,9 @@ export function AssessmentRail({
   onExit,
   devAutofill,
 }: AssessmentRailProps) {
+  const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
+  const soundLabel = t(soundEnabled ? 'common:sound.disable' : 'common:sound.enable');
 
   return (
     <header
@@ -55,7 +58,7 @@ export function AssessmentRail({
             <button
               type="button"
               onClick={onBack}
-              aria-label="Назад"
+              aria-label={t('common:back')}
               className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-secondary text-body-lg leading-none transition-colors hover:bg-brand-subtle flex-shrink-0"
               style={{ boxShadow: 'var(--shadow-pop)' }}
             >
@@ -70,7 +73,9 @@ export function AssessmentRail({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Dev-only autofill — pre-existing dev tool, kept out of the 3 prod slots */}
+          {/* Dev-only autofill — pre-existing dev tool, kept out of the 3 prod
+              slots. Strings are gated behind import.meta.env.DEV, never ship to
+              users, so they're intentionally left un-localized. */}
           {import.meta.env.DEV && devAutofill && (
             <button
               type="button"
@@ -91,8 +96,8 @@ export function AssessmentRail({
             onClick={toggleSound}
             role="switch"
             aria-checked={soundEnabled}
-            aria-label={soundEnabled ? 'Выключить звук' : 'Включить звук'}
-            title={soundEnabled ? 'Выключить звук' : 'Включить звук'}
+            aria-label={soundLabel}
+            title={soundLabel}
             className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-secondary transition-colors hover:bg-brand-subtle flex-shrink-0"
             style={{ boxShadow: 'var(--shadow-pop)' }}
           >
@@ -103,7 +108,7 @@ export function AssessmentRail({
           <button
             type="button"
             onClick={onExit}
-            aria-label="Выйти из теста"
+            aria-label={t('assessment:rail.exit')}
             className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
             style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)' }}
           >

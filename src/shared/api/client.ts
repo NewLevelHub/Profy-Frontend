@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { env } from '@/shared/config/env';
 import { resetUserSession } from '@/shared/lib/session';
+import { readPersistedLocale } from '@/shared/store/locale';
 
 export const apiClient = axios.create({
   baseURL: env.API_URL,
@@ -24,6 +25,9 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Every request carries the UI locale; the backend resolves ru/kk from this
+  // (and from users.locale for authenticated calls). See docs/i18n.md.
+  config.headers['Accept-Language'] = readPersistedLocale();
   return config;
 });
 

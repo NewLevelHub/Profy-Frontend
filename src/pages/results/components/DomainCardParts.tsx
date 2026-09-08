@@ -10,15 +10,15 @@ import type { InterestLevel } from '@/shared/types';
  * second/third/fourth/fifth section needed the exact same look.
  */
 
-// Status word under a level-ranked cell (design spec §06 — "fill contrast"
-// variant) — shared by every section keyed on the same opaque low/medium/
-// high enum (interest_map, personality_notes). `high`'s wording is domain-
-// specific ("ВЕДУЩИЙ" for a type, "СИЛЬНАЯ СТОРОНА" for a trait) — callers
-// spread this and override just that key.
+// i18n key for the status word under a level-ranked cell (design spec §06 —
+// "fill contrast" variant) — shared by every section keyed on the same opaque
+// low/medium/high enum (interest_map, personality_notes). `high`'s wording is
+// domain-specific ("ВЕДУЩИЙ" for a type, "СИЛЬНАЯ СТОРОНА" for a trait) —
+// callers spread this and override just that key, then resolve with `t()`.
 export const LEVEL_STATUS_LABEL: Record<InterestLevel, string> = {
-  high: 'ВЕДУЩИЙ',
-  medium: 'ЗАМЕТНО',
-  low: 'ПОЧТИ НЕ ПРОЯВЛЕН',
+  high: 'results:domain.statusHigh',
+  medium: 'results:domain.statusMedium',
+  low: 'results:domain.statusLow',
 };
 
 export function DomainCardFrame({

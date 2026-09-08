@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { CareerMatchLadder } from '@/shared/ui/MatchLadder';
@@ -21,6 +22,7 @@ interface CareerCardProps {
  * z-оси, иначе растянутая ссылка перехватывала бы клики по ней.
  */
 export const CareerCard = memo(function CareerCard({ career, showUniversityBtn }: CareerCardProps) {
+  const { t } = useTranslation('results');
   const slug = encodeURIComponent(career.slug);
 
   return (
@@ -39,7 +41,7 @@ export const CareerCard = memo(function CareerCard({ career, showUniversityBtn }
           className="relative z-10 self-start flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
         >
           <GraduationCap className="w-3.5 h-3.5" />
-          Найти университеты
+          {t('career.findUniversities')}
         </Link>
       )}
       <Link
@@ -47,7 +49,7 @@ export const CareerCard = memo(function CareerCard({ career, showUniversityBtn }
         className="font-extrabold text-center text-caption hover:opacity-75 transition-opacity after:absolute after:inset-0 after:rounded-[var(--radius)]"
         style={{ color: 'var(--brand)', padding: 4 }}
       >
-        Подробнее о направлении →
+        {t('career.moreAboutDirection')}
       </Link>
     </Card>
   );

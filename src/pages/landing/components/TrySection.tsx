@@ -1,21 +1,24 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mascot } from '@/shared/ui/Mascot';
 import { cn } from '@/shared/lib/cn';
 import { Accent, ArrowIcon, CtaLink, Reveal, SectionHead } from './primitives';
 
 /* Шкала повторяет продуктовую: пять точек, крайние крупнее, галочка на
    выбранной. Размер и цвет — единственное, что отличает точки друг от друга. */
-const DOTS = [
-  { value: 1, size: 's-far', color: 'var(--lake)', label: 'Совсем не моё' },
-  { value: 2, size: 's-mid', color: 'var(--lake)', label: 'Скорее не моё' },
-  { value: 3, size: 's-near', color: 'var(--border-strong)', label: 'Нейтрально' },
-  { value: 4, size: 's-mid', color: 'var(--pine)', label: 'Скорее моё' },
-  { value: 5, size: 's-far', color: 'var(--pine)', label: 'Точно моё' },
+const DOT_META = [
+  { value: 1, size: 's-far', color: 'var(--lake)' },
+  { value: 2, size: 's-mid', color: 'var(--lake)' },
+  { value: 3, size: 's-near', color: 'var(--border-strong)' },
+  { value: 4, size: 's-mid', color: 'var(--pine)' },
+  { value: 5, size: 's-far', color: 'var(--pine)' },
 ];
 
 export function TrySection() {
+  const { t } = useTranslation('landing');
   const [selected, setSelected] = useState<number | null>(null);
   const dotRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const DOTS = DOT_META.map(d => ({ ...d, label: t(`try.dot${d.value}`) }));
 
   /* Стрелками ходим по шкале — это radiogroup, и с клавиатуры она должна
      вести себя как настоящая группа переключателей, а не как пять кнопок. */
@@ -35,9 +38,9 @@ export function TrySection() {
         <Reveal>
           <SectionHead
             center
-            eyebrow="Попробуй"
-            title={<>Один вопрос — <Accent>прямо сейчас</Accent></>}
-            sub="Так выглядит шкала согласия в настоящем тесте. Отметь, насколько это про тебя — и увидишь, как ответ превращается в результат."
+            eyebrow={t('try.eyebrow')}
+            title={<>{t('try.titlePre')}<Accent>{t('try.titleAccent')}</Accent></>}
+            sub={t('try.sub')}
           />
         </Reveal>
 
@@ -53,22 +56,22 @@ export function TrySection() {
           </div>
 
           <span className="inline-block font-mono text-[0.68rem] font-medium uppercase tracking-[0.06em] text-subtle border border-default rounded-pill px-[0.8rem] py-[0.35rem]">
-            Пример утверждения · 1 из 146
+            {t('try.exampleBadge')}
           </span>
 
           <p
             className="font-display font-semibold tracking-[-0.025em] text-[clamp(1.05rem,2.1vw,1.45rem)] leading-[1.35] mt-[1.2rem] mb-8 mx-auto max-w-[26ch] text-balance"
             style={{ color: 'var(--midnight)' }}
           >
-            Мне нравится разбираться, как устроены сложные вещи
+            {t('try.statement')}
           </p>
 
-          <div className="flex items-center justify-center gap-[clamp(.35rem,1.6vw,1.1rem)] max-[680px]:gap-[0.2rem]" role="radiogroup" aria-label="Шкала согласия">
+          <div className="flex items-center justify-center gap-[clamp(.35rem,1.6vw,1.1rem)] max-[680px]:gap-[0.2rem]" role="radiogroup" aria-label={t('try.scaleAria')}>
             <span
               className="shrink-0 text-right font-semibold leading-[1.25] text-[clamp(.68rem,1.2vw,.8rem)] max-w-[clamp(4rem,10vw,6.5rem)] max-[680px]:max-w-[4.2rem]"
               style={{ color: 'var(--lake)' }}
             >
-              Совсем не моё
+              {t('try.dot1')}
             </span>
 
             {DOTS.map((dot, i) => (
@@ -100,7 +103,7 @@ export function TrySection() {
               className="shrink-0 text-left font-semibold leading-[1.25] text-[clamp(.68rem,1.2vw,.8rem)] max-w-[clamp(4rem,10vw,6.5rem)] max-[680px]:max-w-[4.2rem]"
               style={{ color: 'var(--pine)' }}
             >
-              Точно моё
+              {t('try.dot5')}
             </span>
           </div>
 
@@ -109,20 +112,19 @@ export function TrySection() {
           {selected !== null && (
             <div className="try-result mt-8 pt-[1.7rem]" style={{ borderTop: '1px solid var(--border-faint)' }}>
               <span className="block font-mono text-[0.68rem] uppercase tracking-[0.06em] text-subtle">
-                Ответ работает на направление
+                {t('try.resultKicker')}
               </span>
               <strong
                 className="inline-block mt-2 font-display font-bold tracking-[-0.03em] text-[clamp(1.3rem,2.6vw,1.8rem)]"
                 style={{ color: 'var(--dawn-deep)' }}
               >
-                Исследования
+                {t('try.resultDirection')}
               </strong>
               <p className="mx-auto mt-[0.7rem] mb-[1.4rem] max-w-[52ch] text-[0.92rem] leading-[1.6] text-secondary">
-                Одно из шести направлений карты интересов. В настоящем тесте таких утверждений 146 —
-                картина складывается из всех сразу, а не из одного ответа.
+                {t('try.resultDesc')}
               </p>
               <CtaLink to="/register" size="sm">
-                Пройти диагностику
+                {t('cta.takeDiagnostic')}
                 <ArrowIcon />
               </CtaLink>
             </div>

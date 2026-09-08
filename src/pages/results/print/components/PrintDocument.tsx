@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   RIASEC_LABELS,
   RIASEC_DESCRIPTIONS,
@@ -37,6 +38,7 @@ interface PrintDocumentProps {
  * do on paper.
  */
 export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: PrintDocumentProps) {
+  const { t } = useTranslation('results');
   const labels = isJunior ? MI_LABELS : RIASEC_LABELS;
   const descriptions = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
   const headline = buildHeadline(report.interest_map, labels);
@@ -53,15 +55,11 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
     <article className="print-sheet space-y-6">
       <PrintCover
         profile={profile}
-        subtitle={
-          isJunior
-            ? 'Что тебе интересно и что стоит попробовать'
-            : 'Твой профиль интересов и рекомендованное направление'
-        }
+        subtitle={isJunior ? t('page.subtitleJunior') : t('page.subtitleAdult')}
         createdAt={report.created_at}
       />
 
-      <PrintSection kicker="РЕЗЮМЕ">
+      <PrintSection kicker={t('print.kicker.summary')}>
         <p className="text-body-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
           {report.summary}
         </p>
@@ -71,19 +69,19 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
       </PrintSection>
 
       <PrintSection
-        kicker={isJunior ? 'ВЕДУЩИЕ СПОСОБНОСТИ' : 'КАРЬЕРНЫЕ ИНТЕРЕСЫ'}
+        kicker={isJunior ? t('print.kicker.abilitiesJunior') : t('print.kicker.careerInterests')}
         title={headline || undefined}
       >
         {secondaryNote && (
           <p className="text-caption" style={{ color: 'var(--ink)' }}>
-            Также заметно: {secondaryNote}
+            {t('print.alsoNotable', { note: secondaryNote })}
           </p>
         )}
         <PrintLevelRows
           rows={report.interest_map.map((item) => ({
             id: item.code,
             title: item.sphere,
-            status: LEVEL_STATUS_LABEL[item.level],
+            status: t(LEVEL_STATUS_LABEL[item.level]),
             description: descriptions[item.code],
             level: item.level,
           }))}
@@ -95,11 +93,11 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
         )}
       </PrintSection>
 
-      <PrintSection kicker="СИЛЬНЫЕ СТОРОНЫ">
-        <PrintNoteList items={report.strength_cards} emptyText="Появится по мере новых ответов." />
+      <PrintSection kicker={t('print.kicker.strengths')}>
+        <PrintNoteList items={report.strength_cards} emptyText={t('print.emptyMore')} />
       </PrintSection>
 
-      <PrintSection kicker="ЛИЧНОСТНЫЙ ПРОФИЛЬ">
+      <PrintSection kicker={t('print.kicker.personality')}>
         {report.personality_note && (
           <p className="text-body-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
             {report.personality_note}
@@ -109,23 +107,23 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
           rows={report.personality_notes.map((note) => ({
             id: note.trait,
             title: note.label,
-            status: PERSONALITY_STATUS_LABEL[note.level],
+            status: t(PERSONALITY_STATUS_LABEL[note.level]),
             description: note.description,
             level: note.level,
           }))}
         />
       </PrintSection>
 
-      <PrintSection kicker="СТИЛЬ МЫШЛЕНИЯ">
+      <PrintSection kicker={t('print.kicker.thinkingStyle')}>
         <PrintNoteList
           items={report.thinking_style_notes}
-          emptyText="Появится по мере новых ответов."
+          emptyText={t('print.emptyMore')}
         />
       </PrintSection>
 
-      <PrintSection kicker="МОТИВАЦИЯ">
+      <PrintSection kicker={t('print.kicker.motivation')}>
         {report.motivation_highlights.length === 0 ? (
-          <p className="text-caption text-muted">Появится по мере новых ответов.</p>
+          <p className="text-caption text-muted">{t('print.emptyMore')}</p>
         ) : (
           <ul className="space-y-1">
             {report.motivation_highlights.map((text, i) => (
@@ -141,7 +139,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
       </PrintSection>
 
       {report.exploration_activities.length > 0 && (
-        <PrintSection kicker="ЧТО МОЖНО ПОПРОБОВАТЬ">
+        <PrintSection kicker={t('print.kicker.tryThis')}>
           <ul className="space-y-1">
             {report.exploration_activities.map((activity, i) => (
               <li
@@ -159,7 +157,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
       )}
 
       {report.final_analysis && (
-        <PrintSection kicker="ИТОГ">
+        <PrintSection kicker={t('print.kicker.conclusion')}>
           <p className="text-body-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
             {report.final_analysis}
           </p>
@@ -173,7 +171,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
           this used to repeat is already said once, up top, as
           `report.disclaimer` — repeating it isn't worth a wasted page. */}
       {showSpheres ? (
-        <PrintSpheres spheres={pickSpheres(report.interest_map)} />
+        <PrintSpheres spheres={pickSpheres(report.interest_map, t)} />
       ) : (
         <PrintCareers careers={report.careers} />
       )}

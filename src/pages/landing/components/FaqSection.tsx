@@ -1,29 +1,9 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Accent, Reveal, SectionHead } from './primitives';
 
-const ITEMS = [
-  {
-    q: 'Сколько длится диагностика и можно ли прерваться?',
-    a: 'Диагностика занимает около 15 минут. Три теста рассчитаны на одно прохождение, но прогресс сохраняется автоматически: можно закрыть на любом вопросе и вернуться позже — продолжишь с того же места. На 25%, 50% и 75% специально сделаны привалы, чтобы передохнуть.',
-  },
-  {
-    q: 'Насколько можно доверять результату?',
-    a: 'В основе — классические методики профориентации: тест интересов по типам деятельности, тест личности по ключевым чертам характера и тест мотивации через сравнение ценностей. Подсчёт однозначный, без всякой случайности. При этом результат — опора для решения, а не приговор.',
-  },
-  {
-    q: 'Какие университеты есть в каталоге?',
-    a: '2 440 университета: 128 казахстанских и 2 312 зарубежных. Внутри — 12 463 программы и специальности, и все они разложены по 145 профессиям. У каждой программы показан город, а сортировка идёт по международным и региональным рейтингам вузов.',
-  },
-  {
-    q: 'А если я пока ничем особо не увлекаюсь?',
-    a: 'Так бывает часто — в этом возрасте интересы у многих ещё не оформились. Поэтому до тестов можно коротко рассказать о себе в свободной форме: если по тесту интересов ничего не выражено ярко, система опирается прежде всего на этот рассказ.',
-  },
-  {
-    q: 'Текст отчёта пишет искусственный интеллект?',
-    a: 'Да, но только из подтверждённых фактов о тебе: результатов тестов и твоего рассказа о себе. ИИ ничего не придумывает от себя — он только переводит результаты на человеческий язык: связывает три теста и твой рассказ в один текст и объясняет, почему тебе подошла именно эта профессия.',
-  },
-];
+const FAQ_KEYS = ['1', '2', '3', '4', '5'] as const;
 
 function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -67,6 +47,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
 }
 
 export function FaqSection() {
+  const { t } = useTranslation('landing');
   // Открыт всегда один вопрос: у списка из пяти пунктов гармошка с
   // несколькими раскрытыми сразу перестаёт помещаться в экран.
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -75,14 +56,14 @@ export function FaqSection() {
     <section id="faq" className="relative py-[clamp(4.5rem,8vw,7.5rem)]">
       <div className="w-[min(1220px,92%)] mx-auto">
         <Reveal>
-          <SectionHead center eyebrow="Вопросы" title={<>Отвечаем на <Accent>частые вопросы</Accent></>} />
+          <SectionHead center eyebrow={t('faq.eyebrow')} title={<>{t('faq.titlePre')}<Accent>{t('faq.titleAccent')}</Accent></>} />
         </Reveal>
         <div className="max-w-[760px] mx-auto flex flex-col gap-[0.9rem]">
-          {ITEMS.map((item, i) => (
+          {FAQ_KEYS.map((k, i) => (
             <FaqItem
-              key={item.q}
-              q={item.q}
-              a={item.a}
+              key={k}
+              q={t(`faq.q${k}`)}
+              a={t(`faq.a${k}`)}
               open={openIndex === i}
               onToggle={() => setOpenIndex(openIndex === i ? null : i)}
             />

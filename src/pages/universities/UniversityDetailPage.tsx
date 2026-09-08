@@ -1,4 +1,5 @@
 import { ArrowLeft, ExternalLink, GraduationCap, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { LazyMedia } from '@/shared/ui/LazyMedia';
@@ -12,6 +13,7 @@ import { useUniversityDetail } from './hooks/useUniversityDetail';
 import { FavoriteStar } from '@/shared/ui/FavoriteStar';
 
 export default function UniversityDetailPage() {
+  const { t } = useTranslation(['results', 'common']);
   const goBack = useBackTo('/universities');
   const { university, isLoading, error, refetch, toggleFavorite, handleProgramClick } =
     useUniversityDetail();
@@ -144,8 +146,8 @@ export default function UniversityDetailPage() {
                       </div>
                       <p className="text-body-sm font-bold text-secondary m-0 flex-1">
                         {program.cost_per_year !== null
-                          ? formatCost(Number(program.cost_per_year))
-                          : (program.cost_label ?? 'Стоимость не указана')}
+                          ? formatCost(Number(program.cost_per_year), t)
+                          : (program.cost_label ?? t('results:cost.notSpecified'))}
                       </p>
                       {clickable && (
                         <span className="text-label font-extrabold text-brand mt-1">

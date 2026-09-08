@@ -35,6 +35,8 @@ export type { MascotProps, MascotState, MascotFunctionalState, MascotProfessionS
 
 export { FavoriteStar } from './FavoriteStar';
 export { UniversityRankBadges } from './UniversityRankBadges';
+export { LanguageSwitcher } from './LanguageSwitcher';
+export type { LanguageSwitcherProps } from './LanguageSwitcher';
 export { PageStub } from './PageStub';
 export { PageContainer } from './PageContainer';
 export { PageHeader } from './PageHeader';

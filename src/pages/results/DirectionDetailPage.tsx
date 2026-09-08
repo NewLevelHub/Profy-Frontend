@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Map } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
@@ -8,6 +9,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { Mascot } from '@/shared/ui/Mascot';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useResults } from '@/pages/results/hooks/useResults';
+import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 import { DomainCardFrame, DomainKicker } from '@/pages/results/components/DomainCardParts';
@@ -32,8 +34,9 @@ function DirectionDetailSkeleton() {
 export default function DirectionDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('results');
 
-  const { report, isLoading, error, refetch } = useResults();
+  const { report, isLoading, isTranslating, error, refetch } = useResults();
   const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
 
   const {
@@ -60,13 +63,23 @@ export default function DirectionDetailPage() {
     return <DirectionDetailSkeleton />;
   }
 
+  // Language switched — backend is translating the existing report (see
+  // useResults `isTranslating`); same mascot screen as ResultsPage.
+  if (isTranslating) {
+    return (
+      <PageContainer>
+        <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
         <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
-        <h2 className="text-h1 font-extrabold text-primary">Что-то пошло не так</h2>
+        <h2 className="text-h1 font-extrabold text-primary">{t('direction.errorTitle')}</h2>
         <p className="text-body text-secondary">{error}</p>
-        <Button onClick={() => refetch()}>Повторить</Button>
+        <Button onClick={() => refetch()}>{t('common:retry')}</Button>
       </div>
     );
   }
@@ -75,8 +88,8 @@ export default function DirectionDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
         <span className="text-5xl select-none" aria-hidden="true">🔍</span>
-        <h2 className="text-h1 font-extrabold text-primary">Направление не найдено</h2>
-        <Button onClick={() => navigate('/results')}>Назад к результатам</Button>
+        <h2 className="text-h1 font-extrabold text-primary">{t('direction.notFoundTitle')}</h2>
+        <Button onClick={() => navigate('/results')}>{t('common:backToResults')}</Button>
       </div>
     );
   }
@@ -89,13 +102,13 @@ export default function DirectionDetailPage() {
         onClick={() => navigate('/results')}
       >
         <ArrowLeft className="w-4 h-4" />
-        Назад к результатам
+        {t('common:backToResults')}
       </button>
 
       <PageHeader title={direction.name} />
 
       {direction.description && direction.description.length > 0 && (
-        <section aria-label="Описание">
+        <section aria-label={t('direction.descriptionAria')}>
           <Card className="bg-brand-subtle flex flex-col gap-3">
             <p className="text-body text-primary leading-relaxed">{direction.description}</p>
           </Card>
@@ -103,12 +116,12 @@ export default function DirectionDetailPage() {
       )}
 
       {(skills.length > 0 || subjects.length > 0) && (
-        <DomainCardFrame ariaLabel="Навыки и предметы для развития">
+        <DomainCardFrame ariaLabel={t('direction.skillsSubjectsAria')}>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0 flex flex-col gap-2">
-              <DomainKicker>Навыки и предметы для развития</DomainKicker>
+              <DomainKicker>{t('direction.skillsSubjectsKicker')}</DomainKicker>
               <p className="text-body text-primary leading-relaxed">
-                Прокачивай их постепенно — они пригодятся и в учёбе, и в будущей профессии.
+                {t('direction.skillsSubjectsBody')}
               </p>
             </div>
             <Mascot state="transition" size={68} className="flex-shrink-0" />
@@ -117,7 +130,7 @@ export default function DirectionDetailPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {skills.length > 0 && (
               <div className="flex flex-col gap-3">
-                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">Навыки</p>
+                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">{t('direction.skills')}</p>
                 <div className="flex flex-col gap-2">
                   {skills.map((skill, i) => (
                     <div
@@ -133,7 +146,7 @@ export default function DirectionDetailPage() {
 
             {subjects.length > 0 && (
               <div className="flex flex-col gap-3">
-                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">Предметы</p>
+                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">{t('direction.subjects')}</p>
                 <div className="flex flex-col gap-2">
                   {subjects.map((subj, i) => (
                     <div
@@ -151,10 +164,10 @@ export default function DirectionDetailPage() {
       )}
 
       {/* Always present — contract guarantees non-empty try_now; matched_strengths above it is optional */}
-      <DomainCardFrame ariaLabel="Почему тебе подходит и попробуй прямо сейчас">
+      <DomainCardFrame ariaLabel={t('direction.whyFitAria')}>
         {direction.matched_strengths.length > 0 && (
           <div className="flex flex-col gap-3">
-            <DomainKicker>Почему тебе подходит</DomainKicker>
+            <DomainKicker>{t('direction.whyFitKicker')}</DomainKicker>
             <p className="text-body text-primary leading-relaxed">
               {direction.matched_strengths.join(', ')}
             </p>
@@ -162,7 +175,7 @@ export default function DirectionDetailPage() {
         )}
 
         <div className="flex flex-col gap-3">
-          <DomainKicker>Попробуй прямо сейчас</DomainKicker>
+          <DomainKicker>{t('direction.tryNowKicker')}</DomainKicker>
           <p className="text-body text-primary leading-relaxed">{capitalizeFirst(direction.try_now)}</p>
         </div>
       </DomainCardFrame>
@@ -173,7 +186,7 @@ export default function DirectionDetailPage() {
           profession/university goal was picked (they're merged). */}
       {showUniversities && (
         <div>
-          <DomainKicker>Университеты и программы</DomainKicker>
+          <DomainKicker>{t('direction.universitiesKicker')}</DomainKicker>
           <ProgramListSection
             programs={programs}
             isLoading={programsLoading}
@@ -196,7 +209,7 @@ export default function DirectionDetailPage() {
           onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/roadmap`)}
         >
           <Map className="w-5 h-5" />
-          Мой план по направлению
+          {t('direction.myPlan')}
         </Button>
       )}
     </PageContainer>
