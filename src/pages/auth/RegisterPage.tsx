@@ -63,7 +63,11 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await authApi.register(email.trim(), password);
-      navigate(`/verify-email?email=${encodeURIComponent(email.trim())}&step=3`);
+      // Аккаунт уже создан — возвращаться к форме регистрации незачем.
+      // Без replace «назад» с экрана кода показывал форму заново (и
+      // только потом RequireGuest уводил дальше), что читалось как
+      // «регистрация не прошла».
+      navigate(`/verify-email?email=${encodeURIComponent(email.trim())}&step=3`, { replace: true });
     } catch (err) {
       setPassword('');
       setConfirm('');
