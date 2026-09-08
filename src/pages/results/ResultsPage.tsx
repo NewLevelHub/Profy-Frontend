@@ -8,6 +8,7 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import type { StudentCareer } from '@/shared/types';
 import { useResults } from './hooks/useResults';
+import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
 import { SummaryCard } from './components/SummaryCard';
@@ -49,6 +50,7 @@ export default function ResultsPage() {
   const {
     report,
     isLoading,
+    isTranslating,
     error,
     hasCompletedAssessment,
     assessmentId,
@@ -78,6 +80,18 @@ export default function ResultsPage() {
   }
 
   if (isLoading) return <ResultsSkeleton />;
+
+  // Language was switched on a finished report — the backend is translating
+  // the existing narrative (see useResults `isTranslating`). Show the same
+  // mascot "preparing your result" screen as a first-time generation rather
+  // than holding the report on screen in the previous language.
+  if (isTranslating) {
+    return (
+      <PageContainer>
+        <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
 
   if (error || !report) {
     return (

@@ -46,6 +46,9 @@ const ALLOW = [
   // Both sides are Cyrillic by nature; keys match backend values, values are
   // the localized output. Native review: KZ-502-вычитка-kk.md.
   ['src/shared/i18n/geo.ts', /^'[^']+':\s*'[^']+',$/, 'ru→kk geo dictionary (KZ-502)'],
+  // Canonical ru subject label → onboarding `subject.<key>` map; the ru side is
+  // the stored profile value, output is localized via t('onboarding:subject.*').
+  ['src/shared/i18n/presets.ts', /^'[^']+':\s*'[a-z]+',$/, 'ru subject label → catalog key'],
 ];
 
 function isExcluded(rel) {

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { ProfileResponse } from '@/shared/types';
+import { localizeGeo } from '@/shared/i18n/geo';
 import { LedgerSection } from '../components/LedgerSection';
 import { RuledGrid, RuledCell } from '../components/RuledGrid';
 
@@ -22,8 +23,8 @@ export function PersonalInfoSection({ profile, onEdit }: PersonalInfoSectionProp
       <RuledGrid className="grid grid-cols-2 sm:grid-cols-4">
         <RuledCell label={t('personal.age')} value={t('common:ageYears', { count: profile.age })} />
         <RuledCell label={t('personal.grade')} value={t('personal.gradeValue', { count: profile.grade })} />
-        <RuledCell label={t('personal.city')} value={profile.city} />
-        <RuledCell label={t('personal.country')} value={profile.country} />
+        <RuledCell label={t('personal.city')} value={localizeGeo(profile.city)} />
+        <RuledCell label={t('personal.country')} value={localizeGeo(profile.country)} />
       </RuledGrid>
     </LedgerSection>
   );

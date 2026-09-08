@@ -562,6 +562,9 @@ export interface AdmissionScoreItem {
 export interface UniversityBrief {
   id: string;
   name: string;
+  // "kk" when a Kazakh official name is served (Kazakhstan universities,
+  // KZ-206 follow-up), "ru" otherwise. Currently only KZ universities have it.
+  name_locale: string;
   country: string;
   city: string;
   website: string | null;
@@ -572,8 +575,8 @@ export interface UniversityBrief {
   uniranks_kz_rank: number | null;
   uniranks_world_rank: number | null;
   description: string | null;
-  // KZ-501/502: which language `description` is actually in ("kk" once the
-  // KZ-504 override exists, "ru" otherwise). Drives DescriptionLocaleNote.
+  // KZ-501: which language `description` is actually served in ("kk" when the
+  // override exists, "ru" otherwise). Kept for completeness; not rendered.
   description_locale: string;
   image_url: string | null;
 }
@@ -622,6 +625,9 @@ export interface UniversityRequirement {
 export interface ProgramBrief {
   id: string;
   name: string;
+  // "kk" when a Kazakh program-name (направление) override is served
+  // (Kazakhstan universities), "ru" otherwise.
+  name_locale: string;
   direction_slug: string;
   language: string;
   cost_per_year: number | null;

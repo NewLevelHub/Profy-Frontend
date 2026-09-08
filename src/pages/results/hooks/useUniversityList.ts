@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { universityApi } from '@/shared/api/university';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { useLocaleStore } from '@/shared/store/locale';
 import { canSeeUniversities } from '@/shared/lib/assessmentGoal';
 import type { ProgramBrief } from '@/shared/types';
 
@@ -62,12 +63,17 @@ export function useUniversityList() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const isAllowed = canSeeUniversities(goal, ageGroup);
+  // Program/university `name` and `description` are resolved server-side per
+  // request locale (Accept-Language, set by the api interceptor from this same
+  // store). Without locale in the key, switching language serves the stale
+  // cached response — the localized names only appeared after a reload.
+  const locale = useLocaleStore(s => s.locale);
 
   // Program.profession_slugs directly lists which professions a specialty
   // prepares someone for, so the university search keys off the profession's
   // own slug — no intermediate category to bridge through.
   const { data: allPrograms = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['programs', slug] as const,
+    queryKey: ['programs', slug, locale] as const,
     queryFn: () => universityApi.getPrograms(slug!),
     enabled: !!slug && isAllowed,
   });

@@ -3,13 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
+import { useLocaleStore } from '@/shared/store/locale';
 import { resultApi } from '@/shared/api/result';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { Button } from '@/shared/ui/Button';
-import { Spine, type SpineNode } from '@/shared/ui/Spine';
-import { Mascot } from '@/shared/ui/Mascot';
-
-const MESSAGE_KEYS = ['resultLoading.msg1', 'resultLoading.msg2', 'resultLoading.msg3', 'resultLoading.msg4'];
+import { ResultLoadingView } from './components/ResultLoadingView';
 
 export default function ResultLoadingPage() {
   const { t } = useTranslation('assessment');
@@ -30,20 +28,6 @@ export default function ResultLoadingPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [messageIndex, setMessageIndex] = useState(0);
-  const [msgVisible, setMsgVisible] = useState(true);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setMsgVisible(false);
-      const t = setTimeout(() => {
-        setMessageIndex(i => (i + 1) % MESSAGE_KEYS.length);
-        setMsgVisible(true);
-      }, 250);
-      return () => clearTimeout(t);
-    }, 2000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     if (!assessmentId) {
@@ -54,7 +38,11 @@ export default function ResultLoadingPage() {
     // Result already generated — just fetch and forward (skip on retake: must regenerate)
     if (!isRetake && hasCompletedAssessment) {
       resultApi.get(assessmentId).then(result => {
-        setReport(result);
+        // Tag with the locale the backend just served it in (the api
+        // interceptor sends this same value as Accept-Language). Without a
+        // real tag, useResults treats the report as matching *any* locale and
+        // never re-fetches on a language switch.
+        setReport(result, useLocaleStore.getState().locale);
         navigate('/results', { replace: true });
       }).catch(() => navigate('/results', { replace: true }));
       return;
@@ -67,7 +55,7 @@ export default function ResultLoadingPage() {
       try {
         const result = await resultApi.generate(assessmentId!);
         if (!cancelled) {
-          setReport(result);
+          setReport(result, useLocaleStore.getState().locale);
           completeAssessment();
           // Full assessment completion should use the shipped finale audio
           // file, same as other final-completion moments.
@@ -80,7 +68,7 @@ export default function ResultLoadingPage() {
           try {
             const existing = await resultApi.get(assessmentId!);
             if (!cancelled) {
-              setReport(existing);
+              setReport(existing, useLocaleStore.getState().locale);
               completeAssessment();
               playBlockFinishAudio(1, 1);
               navigate(postResultPath, { replace: true });
@@ -99,39 +87,17 @@ export default function ResultLoadingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryCount]);
 
-  return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-page px-6">
-      <div className="w-full max-w-lg mx-auto text-center flex flex-col gap-6">
-      {error === null ? (
-        <>
-          <Mascot state="waiting" size={140} className="mx-auto" />
-          <div
-            className="transition-opacity duration-[250ms]"
-            style={{ opacity: msgVisible ? 1 : 0 }}
-          >
-            <p className="text-subtitle font-semibold text-primary" style={{ minHeight: '2rem' }}>
-              {t(MESSAGE_KEYS[messageIndex])}
-            </p>
-          </div>
-          <Spine
-            nodes={MESSAGE_KEYS.map((_, i): SpineNode => ({
-              id: i,
-              status: i < messageIndex ? 'done' : i === messageIndex ? 'current' : 'upcoming',
-              goal: i === MESSAGE_KEYS.length - 1,
-            }))}
-            thickness={0.85}
-            ariaLabel={t('resultLoading.stepAria', { current: messageIndex + 1, total: MESSAGE_KEYS.length })}
-          />
-          <p className="text-body text-secondary">{t('resultLoading.takesSeconds')}</p>
-        </>
-      ) : (
-        <div className="flex flex-col items-center gap-4">
+  if (error !== null) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-page px-6">
+        <div className="flex flex-col items-center gap-4 text-center">
           <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
           <p className="text-body text-danger">{error}</p>
           <Button onClick={() => setRetryCount(c => c + 1)}>{t('error.retry')}</Button>
         </div>
-      )}
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <ResultLoadingView className="min-h-screen" />;
 }

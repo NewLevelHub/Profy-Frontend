@@ -38,24 +38,34 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const [failed, setFailed] = useState(false);
+  const [pending, setPending] = useState(false);
 
   if (OPTIONS.length <= 1) return null;
 
   async function choose(next: Locale) {
-    if (next === locale) return;
-    const previous = locale;
+    if (next === locale || pending) return;
     setFailed(false);
-    setLocale(next);
 
+    // For a signed-in user the results report — and the directions/descriptions
+    // it carries — is rendered in the *account* language (backend reads
+    // users.locale, not Accept-Language: KZ-403/405). The server must commit
+    // the new locale BEFORE the UI flips, otherwise the immediate `/result`
+    // re-fetch races the PATCH and caches the old-language report under the new
+    // key. So persist first, then switch.
     if (isAuthenticated) {
+      setPending(true);
       try {
         await apiClient.patch(API.auth.me, { locale: next });
         if (user) setUser({ ...user, locale: next });
       } catch {
-        setLocale(previous);
         setFailed(true);
+        setPending(false);
+        return;
       }
+      setPending(false);
     }
+
+    setLocale(next);
   }
 
   return (
@@ -66,15 +76,18 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       )}
       role="group"
       aria-label={t('languageSwitcherAria')}
+      aria-busy={pending}
     >
       {OPTIONS.map((l) => (
         <button
           key={l}
           type="button"
           onClick={() => choose(l)}
+          disabled={pending}
           aria-pressed={l === locale}
           className={cn(
             'rounded-pill px-2 py-0.5 text-caption font-bold transition-colors press-scale',
+            pending && 'opacity-60',
             l === locale
               ? 'bg-brand text-on-brand'
               : 'text-muted hover:text-primary',

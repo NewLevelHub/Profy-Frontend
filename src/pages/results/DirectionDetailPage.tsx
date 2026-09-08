@@ -9,6 +9,7 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { Mascot } from '@/shared/ui/Mascot';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useResults } from '@/pages/results/hooks/useResults';
+import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 import { DomainCardFrame, DomainKicker } from '@/pages/results/components/DomainCardParts';
@@ -35,7 +36,7 @@ export default function DirectionDetailPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('results');
 
-  const { report, isLoading, error, refetch } = useResults();
+  const { report, isLoading, isTranslating, error, refetch } = useResults();
   const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
 
   const {
@@ -59,6 +60,16 @@ export default function DirectionDetailPage() {
 
   if (isLoading) {
     return <DirectionDetailSkeleton />;
+  }
+
+  // Language switched — backend is translating the existing report (see
+  // useResults `isTranslating`); same mascot screen as ResultsPage.
+  if (isTranslating) {
+    return (
+      <PageContainer>
+        <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
   }
 
   if (error) {

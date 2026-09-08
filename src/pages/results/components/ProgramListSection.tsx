@@ -8,7 +8,6 @@ import { LazyMedia } from '@/shared/ui/LazyMedia';
 import type { ProgramBrief } from '@/shared/types';
 import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 import { UniversityRankBadges } from './UniversityRankBadges';
-import { DescriptionLocaleNote } from './DescriptionLocaleNote';
 import { cardImageUrl } from '@/pages/results/utils/programUtils';
 import { localizeGeo } from '@/shared/i18n/geo';
 
@@ -97,12 +96,8 @@ const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: Program
           ? program.description
           : (program.university.description || program.description);
         if (!desc) return null;
-        const descLocale = useProgramDesc
-          ? program.description_locale
-          : (program.university.description ? program.university.description_locale : program.description_locale);
         return (
           <div className="mb-4 flex-1">
-            <DescriptionLocaleNote locale={descLocale} />
             <p className="text-body-sm font-semibold text-secondary leading-relaxed m-0">
               {desc.length > 120 ? desc.slice(0, 120) + '...' : desc}
             </p>

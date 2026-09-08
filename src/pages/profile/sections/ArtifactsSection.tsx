@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { ArtifactItem, ArtifactType } from '@/shared/types';
+import { localizeArtifactList } from '@/shared/i18n/presets';
 import { LedgerSection } from '../components/LedgerSection';
 
 export interface ArtifactsSectionProps {
@@ -16,9 +17,12 @@ const GROUPS: { type: ArtifactType; labelKey: string }[] = [
   { type: 'university', labelKey: 'artifacts.group.university' },
 ];
 
+// Preset values (hobby/club/achievement/profession/target) carry a `kk` copy
+// in the onboarding catalog; custom entries and the free-text dream fall
+// through untouched.
 function joinValues(items: ArtifactItem[], type: ArtifactType): string | null {
   const values = items.filter((i) => i.type === type).map((i) => i.value);
-  return values.length ? values.join(', ') : null;
+  return values.length ? localizeArtifactList(type, values) : null;
 }
 
 // Mirrors the onboarding "Твои увлечения и цели" step's own groups (see
