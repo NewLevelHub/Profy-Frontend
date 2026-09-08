@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { artifactsApi } from '@/shared/api/artifacts';
 import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
 import type { ArtifactItem, ArtifactType } from '@/shared/types';
+import type { AxiosError } from 'axios';
 
 // 5 groups. During onboarding these render as steps 3-4 of the same linear
 // flow ProfileSetupPage starts (see ArtifactsSetupPage): the first four
@@ -40,7 +41,29 @@ export function useArtifactsSetup() {
   // launched from inside RequireProfile, so the store's `profile` is already
   // populated (artifacts included) for every edit case and null for fresh
   // onboarding. See useProfileSetup.ts for the matching logic.
-  const hasExistingProfile = profile !== null;
+  // Экран лежит вне RequireProfile — сюда попадают и во время онбординга
+  // (профиля ещё нет), и из готового профиля по кнопке «Добавить». Стор
+  // профиля не персистится и наполняется гвардой RequireProfile, поэтому
+  // на прямой ссылке и после обновления страницы он пуст, и вопрос «есть
+  // ли профиль» приходится задавать серверу самому — иначе ответ по
+  // умолчанию «нет», и человека с готовым профилем отбрасывало на первый
+  // шаг онбординга.
+  const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['profile', userId] as const,
+    queryFn: () =>
+      profileApi.get().catch((err: AxiosError) => {
+        if (err.response?.status === 404) return null;
+        throw err;
+      }),
+    enabled: Boolean(userId) && profile === null,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (fetchedProfile) setProfile(fetchedProfile);
+  }, [fetchedProfile, setProfile]);
+
+  const hasExistingProfile = profile !== null || Boolean(fetchedProfile);
 
   // This screen is also reachable from Profile settings to add/change
   // artifacts after onboarding is done — pre-fill from whatever's already
@@ -132,10 +155,13 @@ export function useArtifactsSetup() {
   // subscriber notification and react-query's own can land in different
   // render passes, and a reactive condition could still lose that race.
   useEffect(() => {
+    // Пока ответ про профиль не пришёл, решать нечего: поспешный вывод
+    // «профиля нет» и есть то, что отбрасывало людей на шаг 1.
+    if (profileLoading) return;
     if (!profileDraft && !hasExistingProfile && !hasSubmittedRef.current) {
       navigate('/onboarding/profile', { replace: true });
     }
-  }, [profileDraft, hasExistingProfile, navigate]);
+  }, [profileDraft, hasExistingProfile, profileLoading, navigate]);
 
   // Artifacts-only shortcut (opened directly from ArtifactsSection, no
   // profile draft): unchanged — save artifacts alone via the original
