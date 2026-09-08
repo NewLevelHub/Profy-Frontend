@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { universityApi } from '@/shared/api/university';
 import { useFavoriteUniversity } from '@/shared/hooks/useFavoriteUniversity';
 import { scrollMainToTop } from '@/shared/lib/scrollMain';
@@ -10,26 +10,55 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function useUniversities() {
   const navigate = useNavigate();
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
-  const [page, setPage] = useState(1);
+  // Состояние каталога живёт в адресе, а не в useState: иначе отфильтрованный
+  // список нельзя ни переслать, ни открыть в новой вкладке, а возврат из
+  // карточки вуза каждый раз сбрасывал фильтры и страницу на первую.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q')?.trim() ?? '';
+  const activeCountry = searchParams.get('country') ?? undefined;
+  const onlyFavorites = searchParams.get('favorites') === '1';
+  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+
+  const [searchInput, setSearchInput] = useState(search);
   // Skip the mount scroll — the user is already at the top on first paint.
   const didMount = useRef(false);
 
-  // Debounced: the catalogue is server-side filtered, so every keystroke would
-  // otherwise be its own request against a ~250-row table.
-  useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  const updateParams = useCallback(
+    (patch: Record<string, string | null>, options?: { replace?: boolean }) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          for (const [key, value] of Object.entries(patch)) {
+            if (value === null || value === '') next.delete(key);
+            else next.set(key, value);
+          }
+          // Any filter change restarts paging — page 3 of the old filter is
+          // meaningless (and usually empty) under the new one.
+          if (!('page' in patch)) next.delete('page');
+          return next;
+        },
+        { replace: options?.replace ?? false },
+      );
+    },
+    [setSearchParams],
+  );
 
-  // Any filter change restarts paging — page 3 of the old filter is
-  // meaningless (and usually empty) under the new one.
+  // Debounced: the catalogue is server-side filtered, so every keystroke would
+  // otherwise be its own request against a ~250-row table. Пишем поиск в адрес
+  // через replace — иначе каждая буква стала бы отдельной записью в истории.
   useEffect(() => {
-    setPage(1);
-  }, [search, activeCountry, onlyFavorites]);
+    const timer = setTimeout(() => {
+      const value = searchInput.trim();
+      if (value !== search) updateParams({ q: value || null }, { replace: true });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput, search, updateParams]);
+
+  // Возврат «назад» меняет адрес — поле ввода должно догнать его, иначе в
+  // строке останется старый запрос, а список уже другой.
+  useEffect(() => {
+    setSearchInput((prev) => (prev.trim() === search ? prev : search));
+  }, [search]);
 
   // Pagination and filter swaps keep the same route, so AppLayout never
   // resets scroll. Jump back to the top of <main> so the new page of cards
@@ -96,14 +125,31 @@ export function useUniversities() {
     [navigate],
   );
 
-  const handleCountryChange = useCallback((country: string | undefined) => {
-    setActiveCountry(country);
-  }, []);
+  const handleCountryChange = useCallback(
+    (country: string | undefined) => updateParams({ country: country ?? null }),
+    [updateParams],
+  );
 
-  const toggleOnlyFavorites = useCallback(() => setOnlyFavorites(prev => !prev), []);
+  const toggleOnlyFavorites = useCallback(
+    () => updateParams({ favorites: onlyFavorites ? null : '1' }),
+    [updateParams, onlyFavorites],
+  );
+
+  const setPage = useCallback(
+    (next: number) => updateParams({ page: next > 1 ? String(next) : null }),
+    [updateParams],
+  );
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Номер страницы теперь можно переслать ссылкой, а значит и промахнуться:
+  // под фильтром страниц меньше, чем было без него. Пустой экран вместо
+  // списка выглядит поломкой, поэтому возвращаемся к первой странице,
+  // сохранив сам фильтр.
+  useEffect(() => {
+    if (data && page > totalPages) updateParams({ page: null }, { replace: true });
+  }, [data, page, totalPages, updateParams]);
 
   // Belt-and-suspenders with the backend's favourite-first ORDER BY: if a
   // star was just toggled on Results, the cached page may already have
