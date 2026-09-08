@@ -44,6 +44,7 @@ export default function DirectionDetailPage() {
     setActiveCountry,
     countryFilters,
     isAllowed: showUniversities,
+    toggleFavorite,
     refetch: refetchPrograms,
   } = useUniversityList();
 
@@ -182,6 +183,7 @@ export default function DirectionDetailPage() {
             countryFilters={countryFilters}
             refetch={refetchPrograms}
             onViewDetail={(id) => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${id}`)}
+            onToggleFavorite={toggleFavorite}
           />
         </div>
       )}

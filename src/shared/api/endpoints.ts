@@ -44,6 +44,10 @@ export const API = {
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
+    list: '/universities',
+    countries: '/universities/countries',
+    detail: (id: string) => `/universities/${id}`,
+    favorite: (id: string) => `/universities/${id}/favorite`,
   },
   inquiry: {
     questions: (assessmentId: string, slug: string) =>

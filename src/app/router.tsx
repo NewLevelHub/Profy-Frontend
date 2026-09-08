@@ -46,6 +46,8 @@ import DirectionInquiryPage from '@/pages/results/inquiry/DirectionInquiryPage';
 import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
 import RoadmapPage from '@/pages/roadmap/RoadmapPage';
+import UniversitiesPage from '@/pages/universities/UniversitiesPage';
+import UniversityDetailPage from '@/pages/universities/UniversityDetailPage';
 import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
@@ -131,6 +133,12 @@ export const router = createBrowserRouter([
               { path: '/results', element: <ResultsPage /> },
               { path: '/profile', element: <ProfilePage /> },
               { path: '/roadmap', element: <RoadmapPage /> },
+
+              // Standalone university catalogue (PRO-265) — a top-level tab,
+              // deliberately outside /results: unlike the direction-scoped
+              // picker below it needs no assessment and no senior gate.
+              { path: '/universities', element: <UniversitiesPage /> },
+              { path: '/universities/:universityId', element: <UniversityDetailPage /> },
 
               // Detail screens (mobile: App stack over tabs)
               { path: '/results/directions/:slug', element: <DirectionDetailPage /> },

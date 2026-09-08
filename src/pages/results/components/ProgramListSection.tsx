@@ -6,10 +6,11 @@ import { Card } from '@/shared/ui/Card';
 import { LazyMedia } from '@/shared/ui/LazyMedia';
 import type { ProgramBrief } from '@/shared/types';
 import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
-import { UniversityRankBadges } from './UniversityRankBadges';
-import { cardImageUrl } from '@/pages/results/utils/programUtils';
+import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
+import { FavoriteStar } from '@/shared/ui/FavoriteStar';
+import { cardImageUrl } from '@/shared/lib/universityDisplay';
 
-const IMAGE_BOX = 'w-full h-32 rounded-2xl mb-4 overflow-hidden';
+const IMAGE_BOX = 'w-full h-32 rounded-2xl mb-4 overflow-hidden relative';
 
 function ImagePlaceholder() {
   return (
@@ -41,6 +42,9 @@ function ProgramCardSkeleton() {
 interface ProgramCardProps {
   program: ProgramBrief;
   onViewDetail: (id: string) => void;
+  /** Optional: the star is only rendered where starring makes sense (the
+   *  signed-in picker), so print/report renders can leave it off. */
+  onToggleFavorite?: (id: string, isFavorite: boolean) => void;
 }
 
 // Single action now — no separate "select" state. "Подробнее" is a plain
@@ -55,23 +59,37 @@ interface ProgramCardProps {
 // empty list with just the icon placeholder stayed smooth). `auto` in the
 // intrinsic size means "remember the last real height" so the scrollbar
 // doesn't jump as cards virtualize in and out.
-const ProgramCard = memo(function ProgramCard({ program, onViewDetail }: ProgramCardProps) {
+const ProgramCard = memo(function ProgramCard({
+  program,
+  onViewDetail,
+  onToggleFavorite,
+}: ProgramCardProps) {
   return (
     <Card className="!p-6 flex flex-col h-full transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
-      {program.university.image_url ? (
-        <LazyMedia
-          src={cardImageUrl(program.university.image_url)}
-          fallbackSrc={program.university.image_url}
-          alt={program.university.name}
-          className={IMAGE_BOX}
-          imgClassName="w-full h-full object-cover"
-          fallback={<ImagePlaceholder />}
-        />
-      ) : (
-        <div className={IMAGE_BOX}>
+      <div className={IMAGE_BOX}>
+        {program.university.image_url ? (
+          <LazyMedia
+            src={cardImageUrl(program.university.image_url)}
+            fallbackSrc={program.university.image_url}
+            alt={program.university.name}
+            className="w-full h-full"
+            imgClassName="w-full h-full object-cover"
+            fallback={<ImagePlaceholder />}
+          />
+        ) : (
           <ImagePlaceholder />
-        </div>
-      )}
+        )}
+        {/* Stars the whole university, not this one program — see PRO-265. */}
+        {onToggleFavorite && (
+          <FavoriteStar
+            universityId={program.university.id}
+            isFavorite={program.university.is_favorite}
+            onToggle={onToggleFavorite}
+            className="absolute top-2 right-2"
+            size="sm"
+          />
+        )}
+      </div>
 
       <div className="flex items-start justify-between gap-3 mb-1">
         <h3 className="text-display-sm font-black leading-snug text-primary m-0">
@@ -119,6 +137,7 @@ interface ProgramListSectionProps {
   countryFilters: CountryFilter[];
   refetch: () => void;
   onViewDetail: (id: string) => void;
+  onToggleFavorite?: (id: string, isFavorite: boolean) => void;
   sortDirection?: 'asc' | 'desc';
   onToggleSort?: () => void;
 }
@@ -139,6 +158,7 @@ export function ProgramListSection({
   countryFilters,
   refetch,
   onViewDetail,
+  onToggleFavorite,
   sortDirection,
   onToggleSort,
 }: ProgramListSectionProps) {
@@ -201,6 +221,7 @@ export function ProgramListSection({
                 key={program.id}
                 program={program}
                 onViewDetail={onViewDetail}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </div>

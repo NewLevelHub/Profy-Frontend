@@ -570,6 +570,43 @@ export interface UniversityBrief {
   uniranks_world_rank: number | null;
   description: string | null;
   image_url: string | null;
+  /** Whether the signed-in user starred this university (PRO-265). Always
+   *  false for an anonymous request — the backend fills it per-caller. */
+  is_favorite: boolean;
+}
+
+export interface UniversityListItem extends UniversityBrief {
+  programs_count: number;
+}
+
+export interface UniversityListResponse {
+  items: UniversityListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UniversityCountry {
+  country: string;
+  count: number;
+}
+
+export interface UniversityDetail extends UniversityBrief {
+  contacts: Record<string, string>;
+  facilities: Record<string, unknown>;
+  source_url: string | null;
+  programs: ProgramBrief[];
+}
+
+export interface UniversityListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  country?: string;
+  city?: string;
+  only_favorites?: boolean;
+  sort?: 'ranking' | 'name' | 'kz_rank';
+  order?: 'asc' | 'desc';
 }
 
 export interface ProgramGrant {

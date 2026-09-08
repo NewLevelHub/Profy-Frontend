@@ -1,5 +1,5 @@
 import { Trophy } from 'lucide-react';
-import { getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
+import { getUniversityRankingLabels } from '@/shared/lib/universityDisplay';
 import type { UniversityBrief } from '@/shared/types';
 
 interface UniversityRankBadgesProps {
