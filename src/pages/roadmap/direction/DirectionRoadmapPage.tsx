@@ -6,6 +6,7 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { useProfileStore } from '@/shared/store/profile';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { DIRECTION_HORIZON_LABELS } from '@/shared/config/constants';
 import { useDirectionRoadmap } from './hooks/useDirectionRoadmap';
 import { DirectionRoadmapSkeleton } from './components/DirectionRoadmapSkeleton';
@@ -29,6 +30,7 @@ export default function DirectionRoadmapPage() {
   const subjectsEasy = useProfileStore(s => s.profile?.subjects_easy ?? []);
 
   const inquiryPath = `/results/directions/${encodeURIComponent(slug)}/inquiry`;
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug)}`);
   // "ЦЕЛЬ: ПОСТУПЛЕНИЕ {year}" — derived from the real `target.horizon_years`
   // the plan was generated with, not a hardcoded or guessed admission date.
   const targetYear = roadmap
@@ -39,7 +41,7 @@ export default function DirectionRoadmapPage() {
     <PageContainer className="space-y-6">
       <button
         className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
-        onClick={() => navigate(-1)}
+        onClick={goBack}
       >
         <ArrowLeft className="w-4 h-4" />
         Назад

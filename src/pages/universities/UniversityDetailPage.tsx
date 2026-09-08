@@ -1,5 +1,4 @@
 import { ArrowLeft, ExternalLink, GraduationCap, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { LazyMedia } from '@/shared/ui/LazyMedia';
@@ -8,18 +7,19 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
 import { pluralize } from '@/shared/lib/plural';
 import { formatCost } from '@/shared/lib/universityDisplay';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityDetail } from './hooks/useUniversityDetail';
 import { FavoriteStar } from '@/shared/ui/FavoriteStar';
 
 export default function UniversityDetailPage() {
-  const navigate = useNavigate();
+  const goBack = useBackTo('/universities');
   const { university, isLoading, error, refetch, toggleFavorite, handleProgramClick } =
     useUniversityDetail();
 
   return (
     <PageContainer className="space-y-6">
       <button
-        onClick={() => navigate(-1)}
+        onClick={goBack}
         className="inline-flex items-center gap-2 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -35,8 +35,17 @@ export default function UniversityDetailPage() {
         </div>
       ) : error !== null || !university ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <p className="text-body text-danger">{error ?? 'Университет не найден'}</p>
-          <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
+          {error === 'not_found' ? (
+            <>
+              <p className="text-body text-secondary">Такого университета нет — возможно, ссылка устарела.</p>
+              <Button variant="ghost" onClick={goBack}>К списку университетов</Button>
+            </>
+          ) : (
+            <>
+              <p className="text-body text-danger">Не удалось загрузить университет. Попробуй ещё раз.</p>
+              <Button variant="ghost" onClick={() => refetch()}>Повторить</Button>
+            </>
+          )}
         </div>
       ) : (
         <>

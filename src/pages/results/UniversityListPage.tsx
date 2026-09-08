@@ -1,13 +1,16 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 
 export default function UniversityListPage() {
   const navigate = useNavigate();
+  const { slug = '' } = useParams<{ slug: string }>();
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug)}`);
   const {
     programs,
     isLoading,
@@ -40,7 +43,7 @@ export default function UniversityListPage() {
     <PageContainer className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="inline-flex items-center gap-2 text-brand text-label font-extrabold hover:opacity-70 transition-opacity shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import {
   ArrowLeft, Target,
@@ -13,6 +13,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { toDisplayString, splitRequirementNotes } from '@/pages/results/utils/programUtils';
 import { getUniversityRankingLabels } from '@/shared/lib/universityDisplay';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { DomainCardFrame, DomainKicker, DomainListCard } from '@/pages/results/components/DomainCardParts';
 import type { ProgramDetail } from '@/shared/types';
@@ -234,13 +235,14 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
 }
 
 export default function ProgramDetailPage() {
-  const navigate = useNavigate();
+  const { slug = '' } = useParams<{ slug: string }>();
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug)}/universities`);
   const { program, isLoading, error } = useProgramDetail();
 
   return (
     <PageContainer className="space-y-6">
       <button
-        onClick={() => navigate(-1)}
+        onClick={goBack}
         className="inline-flex items-center gap-2 text-brand text-label font-semibold hover:opacity-70 transition-opacity animate-fade-in"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -252,7 +254,7 @@ export default function ProgramDetailPage() {
       ) : error !== null || !program ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <p className="text-body text-danger">{error ?? 'Программа не найдена'}</p>
-          <Button variant="ghost" onClick={() => navigate(-1)}>Назад</Button>
+          <Button variant="ghost" onClick={goBack}>Назад</Button>
         </div>
       ) : (
         <div className="flex flex-col gap-6 animate-fade-in">

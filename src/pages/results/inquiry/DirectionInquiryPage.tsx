@@ -3,6 +3,7 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useDirectionInquiry } from './hooks/useDirectionInquiry';
 import { InquiryQuestion } from './components/InquiryQuestion';
 import { InquirySkeleton } from './components/InquirySkeleton';
@@ -11,6 +12,7 @@ import { InquiryVerdict } from './components/InquiryVerdict';
 export default function DirectionInquiryPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug ?? '')}`);
   const {
     questions, isLoading, error,
     answers, setAnswer, allAnswered,
@@ -21,7 +23,7 @@ export default function DirectionInquiryPage() {
     <PageContainer className="space-y-6">
       <button
         className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
-        onClick={() => navigate(-1)}
+        onClick={goBack}
       >
         <ArrowLeft className="w-4 h-4" />
         Назад
