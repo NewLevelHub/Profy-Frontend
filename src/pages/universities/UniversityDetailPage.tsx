@@ -5,6 +5,7 @@ import { Card } from '@/shared/ui/Card';
 import { LazyMedia } from '@/shared/ui/LazyMedia';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Skeleton } from '@/shared/ui/Skeleton';
+import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
 import { localizeGeo } from '@/shared/i18n/geo';
 import { formatCost } from '@/shared/lib/universityDisplay';
@@ -36,25 +37,19 @@ export default function UniversityDetailPage() {
           <Skeleton className="h-20 w-full" />
         </div>
       ) : error !== null || !university ? (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          {error === 'not_found' ? (
-            <>
-              <p className="text-body text-secondary">{t('catalog.notFound')}</p>
-              <Button variant="ghost" onClick={goBack}>{t('catalog.backToList')}</Button>
-            </>
-          ) : (
-            <>
-              <p className="text-body text-danger">{t('catalog.loadFailed')}</p>
-              <Button variant="ghost" onClick={() => refetch()}>{t('common:retry')}</Button>
-            </>
-          )}
-        </div>
+        <JourneyEmptyState
+          mascotState="pause"
+          title={error === 'not_found' ? t('catalog.notFound') : t('catalog.loadFailed')}
+          body={error === 'not_found' ? t('catalog.backToList') : t('common:retry')}
+          actionLabel={error === 'not_found' ? t('catalog.backToList') : t('common:retry')}
+          onAction={error === 'not_found' ? goBack : () => refetch()}
+        />
       ) : (
         <>
           {/* Always render a hero band — many seeded rows have no photo, and
               skipping the media block made the detail page feel like a blank
               document under the nav. */}
-          <div className="relative w-full h-44 sm:h-56 rounded-2xl overflow-hidden">
+          <div className="relative w-full h-52 sm:h-72 -mx-4 sm:mx-0 sm:rounded-[20px] overflow-hidden">
             {university.image_url ? (
               <LazyMedia
                 src={university.image_url}
@@ -75,7 +70,7 @@ export default function UniversityDetailPage() {
                 <GraduationCap className="w-8 h-8 text-brand/40" aria-hidden="true" />
               </div>
             )}
-            <div className="absolute top-3 right-3">
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
               <FavoriteStar
                 universityId={university.id}
                 isFavorite={university.is_favorite}

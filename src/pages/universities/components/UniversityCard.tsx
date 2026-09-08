@@ -63,14 +63,14 @@ export const UniversityCard = memo(function UniversityCard({
         '[content-visibility:auto] [contain-intrinsic-size:auto_420px]',
       )}
     >
-      <div className={IMAGE_BOX}>
+      <div className={cn(IMAGE_BOX, 'uni-card-media')}>
         {university.image_url ? (
           <LazyMedia
             src={cardImageUrl(university.image_url)}
             fallbackSrc={university.image_url}
             alt={university.name}
             className="w-full h-full"
-            imgClassName="w-full h-full object-cover"
+            imgClassName="w-full h-full object-cover uni-card-media__img"
             fallback={<ImagePlaceholder name={university.name} />}
           />
         ) : (

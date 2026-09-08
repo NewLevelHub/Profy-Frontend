@@ -77,6 +77,9 @@
     "count_other": "{{count}} символа"
   },
   "languageSwitcherAria": "Тіл / Язык",
+  "themeLabel": "Тема",
+  "favoriteAdd": "Добавить в избранное",
+  "favoriteRemove": "Убрать из избранного",
   "mascot": {
     "welcome": "Маскот Profy · приветствие",
     "transition": "Маскот Profy · переход между блоками",

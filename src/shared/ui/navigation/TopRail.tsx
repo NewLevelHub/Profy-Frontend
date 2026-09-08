@@ -50,13 +50,7 @@ export function TopRail() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1.5">
-          {navItems.map((item) => {
-            const active = isNavActive(
-              'matchPrefix' in item ? item.matchPrefix : undefined,
-              location.pathname,
-              false,
-            );
-            return (
+          {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -95,8 +89,7 @@ export function TopRail() {
                   );
                 }}
               </NavLink>
-            );
-          })}
+          ))}
         </nav>
 
         <div className="flex items-center gap-3 flex-shrink-0">

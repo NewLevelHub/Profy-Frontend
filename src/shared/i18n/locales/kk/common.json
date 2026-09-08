@@ -73,6 +73,9 @@
     "count_other": "{{count}} таңба"
   },
   "languageSwitcherAria": "Тіл / Язык",
+  "themeLabel": "Тақырып",
+  "favoriteAdd": "Таңдаулыға қосу",
+  "favoriteRemove": "Таңдаулыдан алу",
   "mascot": {
     "welcome": "Profy маскоты · сәлемдесу",
     "transition": "Profy маскоты · блоктар арасындағы ауысу",

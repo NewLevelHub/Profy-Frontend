@@ -43,6 +43,8 @@ export type { LanguageSwitcherProps } from './LanguageSwitcher';
 export { PageStub } from './PageStub';
 export { PageContainer } from './PageContainer';
 export { PageHeader } from './PageHeader';
+export { JourneyEmptyState } from './JourneyEmptyState';
+export type { JourneyEmptyStateProps } from './JourneyEmptyState';
 export { SectionHeading } from './SectionHeading';
 export { Heading, Text, Mono, typeClass } from './typography';
 export type { HeadingLevel, TextVariant, MonoVariant, TypeRole } from './typography';

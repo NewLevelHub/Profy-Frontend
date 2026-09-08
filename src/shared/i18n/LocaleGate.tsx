@@ -51,6 +51,10 @@ export function LocaleGate() {
     const previous = appliedLocaleRef.current;
     appliedLocaleRef.current = active;
     if (previous !== null && previous !== active) {
+      document.documentElement.classList.add('locale-crossfade');
+      window.setTimeout(() => {
+        document.documentElement.classList.remove('locale-crossfade');
+      }, 280);
       void queryClient.invalidateQueries();
     }
   }, [locale, queryClient]);

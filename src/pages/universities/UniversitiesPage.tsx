@@ -1,8 +1,10 @@
-import { ChevronLeft, ChevronRight, GraduationCap, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
+import { Mascot } from '@/shared/ui/Mascot';
 import { cn } from '@/shared/lib/cn';
 import { useUniversities } from './hooks/useUniversities';
 import { UniversityCard } from './components/UniversityCard';
@@ -34,45 +36,46 @@ export default function UniversitiesPage() {
   return (
     <PageContainer className="space-y-6">
       <PageHeader
+        kicker={t('catalog.kicker')}
         title={t('catalog.title')}
         subtitle={t('catalog.subtitle')}
+        aside={
+          <div className="journey-mascot-well hidden sm:flex">
+            <Mascot state="graduate" size={72} blink={false} />
+          </div>
+        }
       />
 
-      <UniversityFilters
-        searchInput={searchInput}
-        onSearchChange={setSearchInput}
-        countries={countries}
-        activeCountry={activeCountry}
-        onCountryChange={setActiveCountry}
-        onlyFavorites={onlyFavorites}
-        onToggleOnlyFavorites={toggleOnlyFavorites}
-      />
+      <div className="universities-filters-sticky">
+        <UniversityFilters
+          searchInput={searchInput}
+          onSearchChange={setSearchInput}
+          countries={countries}
+          activeCountry={activeCountry}
+          onCountryChange={setActiveCountry}
+          onlyFavorites={onlyFavorites}
+          onToggleOnlyFavorites={toggleOnlyFavorites}
+        />
+      </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
           {Array.from({ length: 6 }, (_, i) => <UniversityCardSkeleton key={i} />)}
         </div>
       ) : error !== null ? (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <p className="text-body text-danger">{t('catalog.loadListFailed')}</p>
-          <Button variant="ghost" onClick={() => refetch()}>{t('common:retry')}</Button>
-        </div>
+        <JourneyEmptyState
+          mascotState="pause"
+          title={t('error.somethingWrong')}
+          body={t('catalog.loadListFailed')}
+          actionLabel={t('common:retry')}
+          onAction={() => refetch()}
+        />
       ) : universities.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          {onlyFavorites ? (
-            <>
-              <Star className="w-12 h-12 text-muted" aria-hidden="true" />
-              <p className="text-label font-bold text-primary">{t('catalog.emptyFavoritesTitle')}</p>
-              <p className="text-body text-secondary">{t('catalog.emptyFavoritesBody')}</p>
-            </>
-          ) : (
-            <>
-              <GraduationCap className="w-12 h-12 text-muted" aria-hidden="true" />
-              <p className="text-label font-bold text-primary">{t('catalog.emptyTitle')}</p>
-              <p className="text-body text-secondary">{t('catalog.emptyBody')}</p>
-            </>
-          )}
-        </div>
+        <JourneyEmptyState
+          mascotState={onlyFavorites ? 'waiting' : 'graduate'}
+          title={onlyFavorites ? t('catalog.emptyFavoritesTitle') : t('catalog.emptyTitle')}
+          body={onlyFavorites ? t('catalog.emptyFavoritesBody') : t('catalog.emptyBody')}
+        />
       ) : (
         <>
           <div className="flex items-center justify-between gap-3">

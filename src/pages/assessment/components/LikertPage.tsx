@@ -49,7 +49,8 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
   }, [activeQuestion?.id]);
 
   return (
-    <div className="flex flex-col gap-28">
+    <div className="assessment-stage mx-auto w-full max-w-[720px]">
+      <div className="assessment-stage__shell journey-shell flex flex-col gap-28 !p-6 sm:!p-8">
       {questions.map(question => (
         <div
           key={question.id}
@@ -82,6 +83,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
       >
         {t('next')}
       </Button>
+      </div>
     </div>
   );
 }

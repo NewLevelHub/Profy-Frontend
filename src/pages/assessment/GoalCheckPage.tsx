@@ -56,7 +56,7 @@ export default function GoalCheckPage() {
                 className="flex flex-col gap-1.5 px-5 py-4"
                 style={{
                   background: 'color-mix(in srgb, var(--pine) 5%, var(--bg-surface))',
-                  borderRadius: 'var(--radius)',
+                  borderRadius: '14px',
                   border: '1px solid color-mix(in srgb, var(--pine) 35%, var(--border))',
                 }}
               >
@@ -74,7 +74,7 @@ export default function GoalCheckPage() {
               <div
                 key={suggestions[1].key}
                 className="flex flex-col gap-1.5 px-5 py-4"
-                style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
+                style={{ background: 'var(--bg-surface)', borderRadius: '14px', border: '1px solid var(--border)' }}
               >
                 <span className={`${typeClass.monoLabel} text-muted`}>
                   {t('goalCheck.alsoFits')}
@@ -92,7 +92,7 @@ export default function GoalCheckPage() {
               type="button"
               onClick={handleContinue}
               className="flex flex-col gap-1.5 px-5 py-4 text-left transition-colors hover:bg-hover"
-              style={{ background: 'transparent', borderRadius: 'var(--radius)', border: '1.5px dashed var(--hairline)' }}
+              style={{ background: 'transparent', borderRadius: '14px', border: '1.5px dashed var(--hairline)' }}
             >
               <span className={`${typeClass.monoLabel} text-muted`}>
                 {t('goalCheck.neitherHeading')}

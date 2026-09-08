@@ -15,7 +15,7 @@ interface UniversityFiltersProps {
 }
 
 const PILL_BASE =
-  'shrink-0 px-4 py-2 rounded-pill text-sm font-semibold border cursor-pointer transition-colors whitespace-nowrap';
+  'shrink-0 px-4 py-2 rounded-pill text-sm font-semibold border cursor-pointer transition-colors whitespace-nowrap press-scale';
 const PILL_ON = 'bg-brand text-on-brand border-transparent';
 const PILL_OFF =
   'bg-[color-mix(in_srgb,var(--paper)_75%,transparent)] text-secondary border-[color:color-mix(in_srgb,#fff_50%,var(--border))] hover:border-brand hover:text-brand';

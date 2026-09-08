@@ -1,30 +1,23 @@
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Download } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
-import { SectionHeading } from '@/shared/ui/SectionHeading';
-import type { StudentCareer } from '@/shared/types';
+import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { useResults } from './hooks/useResults';
 import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
+import { ResultsCoverBand } from './components/ResultsCoverBand';
+import { ResultsReveal } from './components/ResultsReveal';
 import { SummaryCard } from './components/SummaryCard';
 import { InterestDomainSection } from './components/InterestDomainSection';
 import { StrengthsDomainSection } from './components/StrengthsDomainSection';
 import { PersonalityDomainSection } from './components/PersonalityDomainSection';
 import { ThinkingStyleMotivationSection } from './components/ThinkingStyleMotivationSection';
-import { CareerCard } from './components/CareerCard';
 import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
 import { FinalAnalysisSection } from './components/FinalAnalysisSection';
 import { GoalBranchSection } from './components/GoalBranchSection';
 import { FeedbackSection } from './components/FeedbackSection';
-
-// Page entrance lives on AppLayout (`.page-enter`) — shared with Profile /
-// Universities. Don't wrap sections in a local fadeSlideUp here or tab
-// switches would double-animate.
 
 function ResultsSkeleton() {
   return (
@@ -75,12 +68,10 @@ export default function ResultsPage() {
     );
   }
 
-  if (isLoading) return <ResultsSkeleton />;
+  if (isLoading) {
+    return <ResultsSkeleton />;
+  }
 
-  // Language was switched on a finished report — the backend is translating
-  // the existing narrative (see useResults `isTranslating`). Show the same
-  // mascot "preparing your result" screen as a first-time generation rather
-  // than holding the report on screen in the previous language.
   if (isTranslating) {
     return (
       <PageContainer>
@@ -91,99 +82,77 @@ export default function ResultsPage() {
 
   if (error || !report) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
-        <h2 className="text-h1 font-extrabold text-primary">{t('error.somethingWrong')}</h2>
-        <p className="text-body text-secondary">{error ?? t('error.loadResults')}</p>
-        <Button onClick={() => refetch()}>{t('common:retry')}</Button>
-      </div>
+      <PageContainer>
+        <JourneyEmptyState
+          mascotState="pause"
+          title={t('error.somethingWrong')}
+          body={error ?? t('error.loadResults')}
+          actionLabel={t('common:retry')}
+          onAction={() => refetch()}
+        />
+      </PageContainer>
     );
   }
 
   return (
     <PageContainer className="flex flex-col gap-6">
+      <ResultsCoverBand
+        report={report}
+        isJunior={isJunior}
+        onDownloadPdf={() => navigate('/results/print?auto=1')}
+        onExploreDirections={() => {
+          const el = document.getElementById('results-goal-branch');
+          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }}
+      />
 
-      {/* Same-tab navigate, deliberately not a new tab (tried that — Safari
-          treats `window.print()` from a script-opened tab as its own
-          ephemeral "print preview" surface, and the underlying content tab
-          can end up blank once the dialog closes, occasionally clipping the
-          save itself). Standard single-tab print flow instead: the dialog
-          layers over this same tab, and "К результатам" on the printable
-          view navigates back here when done. `?auto=1` opens the print
-          dialog itself as soon as the printable view has its fonts, so this
-          stays one click. */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <PageHeader
-          title={t('page.title')}
-          subtitle={isJunior ? t('page.subtitleJunior') : t('page.subtitleAdult')}
+      <ResultsReveal>
+        <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
+      </ResultsReveal>
+
+      <ResultsReveal delay={1}>
+        <InterestDomainSection
+          isJunior={isJunior}
+          interestMap={report.interest_map}
+          interestMapNote={report.interest_map_note}
         />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-shrink-0"
-          onClick={() => navigate('/results/print?auto=1')}
-        >
-          <Download size={16} aria-hidden="true" />
-          {t('page.downloadPdf')}
-        </Button>
+      </ResultsReveal>
+
+      <ResultsReveal delay={1}>
+        <StrengthsDomainSection strengthCards={report.strength_cards} />
+      </ResultsReveal>
+
+      <ResultsReveal>
+        <PersonalityDomainSection
+          personalityNotes={report.personality_notes}
+          personalityNote={report.personality_note}
+        />
+      </ResultsReveal>
+
+      <ResultsReveal>
+        <ThinkingStyleMotivationSection
+          thinkingStyleNotes={report.thinking_style_notes}
+          motivationHighlights={report.motivation_highlights}
+        />
+      </ResultsReveal>
+
+      <ResultsReveal>
+        <ExplorationActivitiesSection activities={report.exploration_activities} note={report.exploration_note} />
+      </ResultsReveal>
+
+      <ResultsReveal>
+        <FinalAnalysisSection text={report.final_analysis} />
+      </ResultsReveal>
+
+      <div id="results-goal-branch">
+        <ResultsReveal>
+          <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal} />
+        </ResultsReveal>
       </div>
 
-      {/* Порядок разделов ниже — как в TZ_Profi.md §18.2 / result-report-
-          redesign-plan.md "Флоу для нетехнического пользователя": резюме →
-          общая диагностика, теперь как отдельно озаглавленные домены, все в
-          одной визуальной системе (DomainCardParts) — карьерные интересы/
-          ведущие способности → сильные стороны → личностный профиль →
-          стиль мышления и мотивация (один card) → "что делать дальше"
-          (профессии/занятия) — последним, не первым. */}
-
-      <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
-
-      <InterestDomainSection
-        isJunior={isJunior}
-        interestMap={report.interest_map}
-        interestMapNote={report.interest_map_note}
-      />
-
-      <StrengthsDomainSection strengthCards={report.strength_cards} />
-
-      <PersonalityDomainSection
-        personalityNotes={report.personality_notes}
-        personalityNote={report.personality_note}
-      />
-
-      <ThinkingStyleMotivationSection
-        thinkingStyleNotes={report.thinking_style_notes}
-        motivationHighlights={report.motivation_highlights}
-      />
-
-      {/* {report.careers.length > 0 && (
-        <section aria-label="Подходящие направления">
-          <SectionHeading emoji="👥" title="Подходящие профессии" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-            {report.careers.map(career => (
-              <CareerCard
-                key={career.slug}
-                career={career}
-                showUniversityBtn={showUniversityBtn}
-              />
-            ))}
-          </div>
-        </section>
-      )} */}
-
-      <ExplorationActivitiesSection activities={report.exploration_activities} note={report.exploration_note} />
-
-      <FinalAnalysisSection text={report.final_analysis} />
-
-      {/* ── Update boundary ──────────────────────────────────────────────
-          Everything above is the shared diagnostic block — identical
-          regardless of goal, and never re-rendered by the goal switcher
-          below (GoalBranchSection owns its own local state; nothing above
-          this line reads it). See GoalBranchSection.tsx. */}
-      <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal} />
-
-      <FeedbackSection assessmentId={assessmentId} />
-
+      <ResultsReveal>
+        <FeedbackSection assessmentId={assessmentId} />
+      </ResultsReveal>
     </PageContainer>
   );
 }

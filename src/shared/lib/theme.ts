@@ -52,12 +52,16 @@ export function resolveTheme(choice: ThemeChoice): ResolvedTheme {
 }
 
 function applyToDocument(theme: ResolvedTheme) {
+  document.documentElement.classList.add('theme-crossfade');
   document.documentElement.classList.toggle('dark', theme === 'dark');
   // meta с media покрывает только системную тему; при явном выборе шапку
   // браузера надо перекрасить руками, иначе она останется бежевой.
   document
     .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
     .forEach((meta) => meta.setAttribute('content', THEME_COLOR[theme]));
+  window.setTimeout(() => {
+    document.documentElement.classList.remove('theme-crossfade');
+  }, 320);
 }
 
 const listeners = new Set<() => void>();
