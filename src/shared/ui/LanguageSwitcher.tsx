@@ -17,8 +17,8 @@ import {
 // translatable UI copy.
 const LABEL: Record<Locale, string> = { ru: 'RU', kk: 'ҚАЗ' };
 
-// Locales actually offered right now. While this has ≤1 entry (before KZ-603
-// adds 'kk' to SUPPORTED_LOCALES) the component renders nothing.
+// Locales actually offered right now — ['ru', 'kk'] since KZ-603. If this ever
+// has ≤1 entry (KZ-603 reverted) the component renders nothing.
 const OPTIONS = KNOWN_LOCALES.filter((l) => (SUPPORTED_LOCALES as readonly string[]).includes(l));
 
 export interface LanguageSwitcherProps {

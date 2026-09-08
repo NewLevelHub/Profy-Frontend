@@ -11,17 +11,18 @@ export type Locale = 'ru' | 'kk';
 export const KNOWN_LOCALES: readonly Locale[] = ['ru', 'kk'];
 
 /**
- * Locales actually offered to the user right now. KZ-603 adds 'kk'. Until then
- * the LanguageSwitcher renders nothing and i18next only ever sees 'ru'.
+ * Locales actually offered to the user right now. KZ-603 (2026-09-08) added
+ * 'kk' — no feature flag. `revert` that change to go back to ['ru'] and the
+ * LanguageSwitcher hides itself again.
  */
-export const SUPPORTED_LOCALES: readonly Locale[] = ['ru'];
+export const SUPPORTED_LOCALES: readonly Locale[] = ['ru', 'kk'];
 
 export const DEFAULT_LOCALE: Locale = 'ru';
 
 /**
- * Whether the user is offered a language choice at all. `false` until KZ-603
- * adds 'kk' to SUPPORTED_LOCALES — until then the LanguageSwitcher and its
- * host rows render nothing.
+ * Whether the user is offered a language choice at all. `true` since KZ-603
+ * added 'kk' to SUPPORTED_LOCALES — drives whether the LanguageSwitcher and
+ * its host rows render.
  */
 export const LOCALE_SWITCH_ENABLED = SUPPORTED_LOCALES.length > 1;
 

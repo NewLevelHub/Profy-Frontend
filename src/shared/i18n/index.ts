@@ -84,8 +84,7 @@ void i18next.use(initReactI18next).init({
   lng: resolveLocale(readPersistedLocale()),
   fallbackLng: DEFAULT_LOCALE,
   postProcess: PSEUDO ? ['pseudo'] : [],
-  // KZ-603 adds 'kk' to SUPPORTED_LOCALES; until then a stale persisted "kk"
-  // (or a kk browser) still resolves to "ru" here.
+  // ['ru', 'kk'] since KZ-603. `revert` that change to drop back to ['ru'].
   supportedLngs: [...SUPPORTED_LOCALES],
   ns: [...NAMESPACES],
   defaultNS: 'common',
