@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
-import { useProfileStore } from '@/shared/store/profile';
+import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
@@ -52,7 +52,8 @@ export function useAssessment() {
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const totalQuestionsFromStore = useAssessmentStore(s => s.totalQuestions);
   const setProgress = useAssessmentStore(s => s.setProgress);
-  const ageGroup = useProfileStore(s => s.profile?.age_group);
+  const { profile } = useEnsureProfile();
+  const ageGroup = profile?.age_group;
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [pages, setPages] = useState<Page[]>([]);

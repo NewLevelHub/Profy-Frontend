@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { artifactsApi } from '@/shared/api/artifacts';
 import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
+import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
 import type { ArtifactItem, ArtifactType } from '@/shared/types';
-import type { AxiosError } from 'axios';
 
 // 5 groups. During onboarding these render as steps 3-4 of the same linear
 // flow ProfileSetupPage starts (see ArtifactsSetupPage): the first four
@@ -42,33 +42,18 @@ export function useArtifactsSetup() {
   // populated (artifacts included) for every edit case and null for fresh
   // onboarding. See useProfileSetup.ts for the matching logic.
   // Экран лежит вне RequireProfile — сюда попадают и во время онбординга
-  // (профиля ещё нет), и из готового профиля по кнопке «Добавить». Стор
-  // профиля не персистится и наполняется гвардой RequireProfile, поэтому
-  // на прямой ссылке и после обновления страницы он пуст, и вопрос «есть
-  // ли профиль» приходится задавать серверу самому — иначе ответ по
-  // умолчанию «нет», и человека с готовым профилем отбрасывало на первый
-  // шаг онбординга.
-  const { data: fetchedProfile, isLoading: profileLoading } = useQuery({
-    queryKey: ['profile', userId] as const,
-    queryFn: () =>
-      profileApi.get().catch((err: AxiosError) => {
-        if (err.response?.status === 404) return null;
-        throw err;
-      }),
-    enabled: Boolean(userId) && profile === null,
-    retry: false,
-  });
+  // (профиля ещё нет), и из готового профиля по кнопке «Добавить». На
+  // прямой ссылке и после F5 стор пуст, поэтому вопрос «есть ли профиль»
+  // задаём серверу сами — иначе ответ по умолчанию «нет», и человека с
+  // готовым профилем отбрасывало на первый шаг онбординга.
+  const { profile: ensuredProfile, isLoading: profileLoading } = useEnsureProfile();
 
-  useEffect(() => {
-    if (fetchedProfile) setProfile(fetchedProfile);
-  }, [fetchedProfile, setProfile]);
-
-  const hasExistingProfile = profile !== null || Boolean(fetchedProfile);
+  const hasExistingProfile = ensuredProfile !== null;
 
   // This screen is also reachable from Profile settings to add/change
   // artifacts after onboarding is done — pre-fill from whatever's already
   // saved on the profile.
-  const existing = profile?.artifacts;
+  const existing = ensuredProfile?.artifacts;
 
   const [activeSection, setActiveSection] = useState<ArtifactSection>('activities');
 
@@ -78,6 +63,24 @@ export function useArtifactsSetup() {
   const [professions, setProfessions] = useState<string[]>(() => valuesOf(existing ?? [], 'profession'));
   const [targets, setTargets] = useState<string[]>(() => valuesOf(existing ?? [], 'university'));
   const [dreams, setDreams] = useState(() => existing?.find(i => i.type === 'goal')?.value ?? '');
+
+  // Поля выше инициализируются один раз. Если экран открыт по прямой ссылке
+  // или после F5, профиль к этому моменту ещё не пришёл — редактор открылся
+  // бы пустым поверх реально сохранённых увлечений, а «Готово» их стёрло бы.
+  // Досинхронизируем ровно один раз и только в этом случае: когда профиль был
+  // на месте с самого начала, начальные значения уже верные, и перезапись затёрла
+  // бы то, что человек успел напечатать.
+  const needsHydration = useRef(existing === undefined);
+  useEffect(() => {
+    if (!needsHydration.current || !existing) return;
+    needsHydration.current = false;
+    setHobbies(valuesOf(existing, 'hobby'));
+    setClubs(valuesOf(existing, 'club'));
+    setAchievements(valuesOf(existing, 'achievement'));
+    setProfessions(valuesOf(existing, 'profession'));
+    setTargets(valuesOf(existing, 'university'));
+    setDreams(existing.find(i => i.type === 'goal')?.value ?? '');
+  }, [existing]);
 
   // Coming here via ProfileSetupPage's handoff (profileDraft set) means the
   // forced-linear onboarding-style flow — whether that's a brand-new profile
