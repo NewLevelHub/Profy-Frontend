@@ -1,6 +1,7 @@
 import { memo } from 'react';
+import { Link } from 'react-router';
 import { GraduationCap, MapPin } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
+import { buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { LazyMedia } from '@/shared/ui/LazyMedia';
 import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
@@ -25,7 +26,6 @@ function ImagePlaceholder({ name }: { name: string }) {
 
 interface UniversityCardProps {
   university: UniversityListItem;
-  onOpen: (id: string) => void;
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
 }
 
@@ -35,16 +35,21 @@ interface UniversityCardProps {
  * wherever it appears. `content-visibility:auto` for the same reason it is on
  * ProgramCard: the photos are served at up to 1600px and decoding a page of
  * them at once is what makes the grid stutter.
+ *
+ * Открывается настоящей ссылкой, а не onClick на <div>: вуз можно открыть в
+ * новой вкладке, переслать адресом и дойти до него табуляцией — раньше
+ * карточка была кликабельным <div>, недоступным с клавиатуры. «Подробнее»
+ * растянута на всю карточку через `after:inset-0`, поэтому кликается любое
+ * её место, а звезда «в избранное» поднята по z-оси, чтобы ссылка не
+ * перехватывала клик по ней.
  */
 export const UniversityCard = memo(function UniversityCard({
   university,
-  onOpen,
   onToggleFavorite,
 }: UniversityCardProps) {
   return (
     <Card
-      onClick={() => onOpen(university.id)}
-      className="!p-5 sm:!p-6 flex flex-col h-full cursor-pointer transition-[border-color,box-shadow,transform] duration-200 hover:border-brand hover:shadow-pop hover:-translate-y-0.5 [content-visibility:auto] [contain-intrinsic-size:auto_420px]"
+      className="relative !p-5 sm:!p-6 flex flex-col h-full transition-[border-color,box-shadow,transform] duration-200 hover:border-brand hover:shadow-pop hover:-translate-y-0.5 [content-visibility:auto] [contain-intrinsic-size:auto_420px]"
     >
       <div className={IMAGE_BOX}>
         {university.image_url ? (
@@ -63,7 +68,7 @@ export const UniversityCard = memo(function UniversityCard({
           universityId={university.id}
           isFavorite={university.is_favorite}
           onToggle={onToggleFavorite}
-          className="absolute top-2 right-2"
+          className="absolute top-2 right-2 z-10"
         />
         <span className="absolute bottom-2 left-2 bg-surface/95 backdrop-blur-sm text-brand text-xs font-extrabold px-2.5 py-1 rounded-pill shadow-card">
           {university.country}
@@ -97,16 +102,15 @@ export const UniversityCard = memo(function UniversityCard({
         <span className="text-sm font-bold text-muted">
           {pluralize(university.programs_count, 'программа', 'программы', 'программ')}
         </span>
-        <Button
-          variant="ghost"
-          className="w-full h-[48px] rounded-[var(--radius)] cursor-pointer"
-          onClick={e => {
-            e.stopPropagation();
-            onOpen(university.id);
-          }}
+        <Link
+          to={`/universities/${university.id}`}
+          className={buttonClasses({
+            variant: 'ghost',
+            className: 'w-full h-[48px] rounded-[var(--radius)] after:absolute after:inset-0 after:rounded-[var(--radius)]',
+          })}
         >
           Подробнее
-        </Button>
+        </Link>
       </div>
     </Card>
   );

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { Card } from '@/shared/ui/Card';
 import { CareerMatchLadder, careerTierToLevel } from '@/shared/ui/MatchLadder';
 import type { AgeGroup, StudentCareer } from '@/shared/types';
@@ -53,7 +53,6 @@ const ADMISSION_HORIZONS = [
  * headline/copy string below.
  */
 export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessionalProps) {
-  const navigate = useNavigate();
   const isMiddle = ageGroup === 'middle';
   const sorted = useMemo(() => [...careers].sort((a, b) => a.rank - b.rank), [careers]);
   const top = sorted[0];
@@ -123,13 +122,12 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
                 <ul className="flex flex-col gap-2">
                   {adjacent.map((c) => (
                     <li key={c.slug} className="flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/results/directions/${encodeURIComponent(c.slug)}`)}
+                      <Link
+                        to={`/results/directions/${encodeURIComponent(c.slug)}`}
                         className="text-caption font-semibold text-primary hover:text-brand text-left"
                       >
                         {c.name}
-                      </button>
+                      </Link>
                       <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
                     </li>
                   ))}

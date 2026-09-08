@@ -21,7 +21,7 @@ export default function UniversityListPage() {
     sortDirection,
     toggleSortDirection,
     isAllowed,
-    handleProgramClick,
+    programDetailPath,
     toggleFavorite,
     refetch,
   } = useUniversityList();
@@ -60,7 +60,7 @@ export default function UniversityListPage() {
         onCountryChange={setActiveCountry}
         countryFilters={countryFilters}
         refetch={refetch}
-        onViewDetail={handleProgramClick}
+        detailPathFor={programDetailPath}
         onToggleFavorite={toggleFavorite}
         sortDirection={sortDirection}
         onToggleSort={toggleSortDirection}

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { GraduationCap } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { CareerMatchLadder } from '@/shared/ui/MatchLadder';
@@ -20,8 +20,9 @@ interface DirectionMatchListProps {
  * Shared "direction + match ladder" table — used by scenario B's
  * "НАПРАВЛЕНИЯ И ПРОФЕССИИ ПОД ЦЕЛЬ" and scenario C's step 01 "Направления
  * под цель". A single hairline-bordered list, not individually-bordered
- * cards — every row is a real `<button>` (native keyboard/focus support,
- * no synthetic click-div) that navigates to the direction detail page.
+ * cards — every row is a real ссылка `<Link>` (настоящий `<a href>`:
+ * клавиатура, «открыть в новой вкладке», копирование адреса), ведущая на
+ * страницу направления.
  * Always the complete list, including the top-ranked direction already
  * headlined above it — this table is meant to be the full reference, not
  * "everything except the one already shown." Deeper follow-through beyond
@@ -33,7 +34,6 @@ export const DirectionMatchList = memo(function DirectionMatchList({
   emptyText = 'Подходящих направлений пока нет.',
   showUniversitiesHint = false,
 }: DirectionMatchListProps) {
-  const navigate = useNavigate();
 
   if (careers.length === 0) {
     return <p className="text-caption text-muted">{emptyText}</p>;
@@ -44,12 +44,11 @@ export const DirectionMatchList = memo(function DirectionMatchList({
       {careers.map((career, i) => {
         const isTop = i === 0;
         return (
-          <button
+          <Link
             key={career.slug}
-            type="button"
-            onClick={() => navigate(`/results/directions/${encodeURIComponent(career.slug)}`)}
+            to={`/results/directions/${encodeURIComponent(career.slug)}`}
             className={cn(
-              'w-full flex flex-col gap-3 text-left bg-surface hover:bg-hover transition-colors cursor-pointer',
+              'w-full flex flex-col gap-3 text-left bg-surface hover:bg-hover transition-colors',
               isTop ? 'px-5 py-5' : 'px-5 py-4',
             )}
           >
@@ -103,7 +102,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                 )}
               </div>
             )}
-          </button>
+          </Link>
         );
       })}
     </div>

@@ -120,11 +120,6 @@ export function useUniversities() {
 
   const { toggleFavorite } = useFavoriteUniversity();
 
-  const handleOpen = useCallback(
-    (id: string) => navigate(`/universities/${id}`),
-    [navigate],
-  );
-
   const handleCountryChange = useCallback(
     (country: string | undefined) => updateParams({ country: country ?? null }),
     [updateParams],
@@ -180,7 +175,6 @@ export function useUniversities() {
     setActiveCountry: handleCountryChange,
     onlyFavorites,
     toggleOnlyFavorites,
-    handleOpen,
     toggleFavorite,
   };
 }

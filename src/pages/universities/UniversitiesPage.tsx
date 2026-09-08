@@ -27,7 +27,6 @@ export default function UniversitiesPage() {
     setActiveCountry,
     onlyFavorites,
     toggleOnlyFavorites,
-    handleOpen,
     toggleFavorite,
   } = useUniversities();
 
@@ -96,7 +95,6 @@ export default function UniversitiesPage() {
               <UniversityCard
                 key={university.id}
                 university={university}
-                onOpen={handleOpen}
                 onToggleFavorite={toggleFavorite}
               />
             ))}

@@ -88,14 +88,6 @@ export default function ResultsPage() {
     );
   }
 
-  function handleCareerDetail(career: StudentCareer) {
-    navigate(`/results/directions/${encodeURIComponent(career.slug)}`);
-  }
-
-  function handleUniversity(career: StudentCareer) {
-    navigate(`/results/directions/${encodeURIComponent(career.slug)}/universities`);
-  }
-
   return (
     <PageContainer className="flex flex-col gap-6">
 
@@ -172,8 +164,6 @@ export default function ResultsPage() {
                   key={career.slug}
                   career={career}
                   showUniversityBtn={showUniversityBtn}
-                  onDetail={handleCareerDetail}
-                  onUniversity={handleUniversity}
                 />
               ))}
             </div>

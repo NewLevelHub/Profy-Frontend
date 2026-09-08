@@ -182,7 +182,7 @@ export default function DirectionDetailPage() {
             onCountryChange={setActiveCountry}
             countryFilters={countryFilters}
             refetch={refetchPrograms}
-            onViewDetail={(id) => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${id}`)}
+            detailPathFor={(id) => `/results/directions/${encodeURIComponent(slug!)}/universities/${id}`}
             onToggleFavorite={toggleFavorite}
           />
         </div>

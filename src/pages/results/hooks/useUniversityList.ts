@@ -120,9 +120,11 @@ export function useUniversityList() {
     );
   }, [allPrograms, activeCountry, sortDirection]);
 
-  const handleProgramClick = useCallback((programId: string) => {
-    navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
-  }, [navigate, slug]);
+  // Адрес, а не переход: карточка программы рендерит его как обычную ссылку.
+  const programDetailPath = useCallback(
+    (programId: string) => `/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`,
+    [slug],
+  );
 
   return {
     slug,
@@ -135,7 +137,7 @@ export function useUniversityList() {
     sortDirection,
     toggleSortDirection,
     isAllowed,
-    handleProgramClick,
+    programDetailPath,
     toggleFavorite,
     refetch,
   };

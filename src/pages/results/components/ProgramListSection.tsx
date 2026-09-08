@@ -1,12 +1,13 @@
 import { memo } from 'react';
 import { GraduationCap, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
 import { Skeleton } from '@/shared/ui/Skeleton';
-import { Button } from '@/shared/ui/Button';
+import { Button, buttonClasses } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { LazyMedia } from '@/shared/ui/LazyMedia';
 import type { ProgramBrief } from '@/shared/types';
 import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
+import { Link } from 'react-router';
 import { FavoriteStar } from '@/shared/ui/FavoriteStar';
 import { cardImageUrl } from '@/shared/lib/universityDisplay';
 
@@ -41,15 +42,17 @@ function ProgramCardSkeleton() {
 
 interface ProgramCardProps {
   program: ProgramBrief;
-  onViewDetail: (id: string) => void;
+  /** Адрес программы, а не колбэк: карточка открывается настоящей ссылкой. */
+  detailPathFor: (id: string) => string;
   /** Optional: the star is only rendered where starring makes sense (the
    *  signed-in picker), so print/report renders can leave it off. */
   onToggleFavorite?: (id: string, isFavorite: boolean) => void;
 }
 
-// Single action now — no separate "select" state. "Подробнее" is a plain
-// visible button; the hover feedback lives on that button itself (Button's
-// own ghost hover state), not a whole-card overlay.
+// Single action now — no separate "select" state. «Подробнее» — настоящая
+// ссылка с адресом программы (открыть в новой вкладке, скопировать, дойти
+// табом), растянутая на всю карточку через `after:inset-0`; звезда «в
+// избранное» поднята по z-оси, чтобы ссылка не перехватывала клик по ней.
 //
 // `content-visibility:auto` + `contain-intrinsic-size` let the browser skip
 // layout/paint *and* image decode for cards that aren't near the viewport.
@@ -61,11 +64,11 @@ interface ProgramCardProps {
 // doesn't jump as cards virtualize in and out.
 const ProgramCard = memo(function ProgramCard({
   program,
-  onViewDetail,
+  detailPathFor,
   onToggleFavorite,
 }: ProgramCardProps) {
   return (
-    <Card className="!p-6 flex flex-col h-full transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
+    <Card className="relative !p-6 flex flex-col h-full transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
       <div className={IMAGE_BOX}>
         {program.university.image_url ? (
           <LazyMedia
@@ -85,7 +88,7 @@ const ProgramCard = memo(function ProgramCard({
             universityId={program.university.id}
             isFavorite={program.university.is_favorite}
             onToggle={onToggleFavorite}
-            className="absolute top-2 right-2"
+            className="absolute top-2 right-2 z-10"
             size="sm"
           />
         )}
@@ -117,13 +120,15 @@ const ProgramCard = memo(function ProgramCard({
         );
       })()}
 
-      <Button
-        variant="ghost"
-        className="w-full h-[52px] rounded-[var(--radius)] mt-auto cursor-pointer"
-        onClick={() => onViewDetail(program.id)}
+      <Link
+        to={detailPathFor(program.id)}
+        className={buttonClasses({
+          variant: 'ghost',
+          className: 'w-full h-[52px] rounded-[var(--radius)] mt-auto after:absolute after:inset-0 after:rounded-[var(--radius)]',
+        })}
       >
         Подробнее
-      </Button>
+      </Link>
     </Card>
   );
 });
@@ -136,7 +141,7 @@ interface ProgramListSectionProps {
   onCountryChange: (country: string | undefined) => void;
   countryFilters: CountryFilter[];
   refetch: () => void;
-  onViewDetail: (id: string) => void;
+  detailPathFor: (id: string) => string;
   onToggleFavorite?: (id: string, isFavorite: boolean) => void;
   sortDirection?: 'asc' | 'desc';
   onToggleSort?: () => void;
@@ -157,7 +162,7 @@ export function ProgramListSection({
   onCountryChange,
   countryFilters,
   refetch,
-  onViewDetail,
+  detailPathFor,
   onToggleFavorite,
   sortDirection,
   onToggleSort,
@@ -220,7 +225,7 @@ export function ProgramListSection({
               <ProgramCard
                 key={program.id}
                 program={program}
-                onViewDetail={onViewDetail}
+                detailPathFor={detailPathFor}
                 onToggleFavorite={onToggleFavorite}
               />
             ))}
