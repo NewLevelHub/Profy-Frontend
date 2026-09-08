@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { Navigate, useNavigate, useLocation } from 'react-router';
 import { Button } from '@/shared/ui/Button';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -23,6 +23,11 @@ export default function PraisePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state ?? {}) as PraiseState;
+  // Экран — часть потока: и текст похвалы, и «куда дальше» приходят в
+  // состоянии перехода. По прямой ссылке состояния нет, и без этой
+  // проверки человеку, который ничего не проходил, показывалось
+  // «Молодец!» с переходом на /results через 4 секунды.
+  const openedOutOfFlow = location.state == null;
 
   const {
     title = 'Молодец!',
@@ -67,6 +72,8 @@ export default function PraisePage() {
     celebratedRef.current = true;
     playBlockFinishAudio(completedCount, totalBlocks);
   }, [completedCount, totalBlocks]);
+
+  if (openedOutOfFlow) return <Navigate to="/results" replace />;
 
   // Будущая интеграция: константа XP за пройденный блок
   // const xpByBlock = 120;

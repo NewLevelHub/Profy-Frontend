@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useProfileStore } from '@/shared/store/profile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
@@ -44,6 +45,7 @@ function loadStoredAnswers<T>(key: string | null): T | null {
 }
 
 export function useAssessment() {
+  useFinishedAssessmentGuard();
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);

@@ -1,4 +1,4 @@
-import { useNavigate, useLocation, useSearchParams } from 'react-router';
+import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Spine } from '@/shared/ui/Spine';
@@ -61,6 +61,11 @@ export default function RestStopPage() {
   // Real signal from useAssessmentStore.recordAnswerTiming, or the
   // `?variant=speed` QA/dev preview escape hatch — see doc comment above.
   const isSpeedVariant = state.isSpeedFlag === true || searchParams.get('variant') === 'speed';
+  // Привал существует только внутри прохождения: и прогресс, и адрес
+  // возврата приходят в состоянии перехода. По прямой ссылке экран
+  // показывал «Прошли 0, идём ровно» человеку вне теста. `?variant=speed`
+  // остаётся рабочей превьюшкой для QA — см. комментарий выше.
+  const openedOutOfFlow = location.state == null && searchParams.get('variant') === null;
   const hasInsight = !isSpeedVariant && Boolean(state.microInsight);
 
   function handleContinue() {
@@ -72,6 +77,8 @@ export default function RestStopPage() {
     // ExitAssessmentModal relies on) — pausing is just leaving.
     navigate('/results');
   }
+
+  if (openedOutOfFlow) return <Navigate to="/results" replace />;
 
   const kicker = isSpeedVariant || hasInsight ? 'Замечаю по ходу' : 'Привал';
   const headline = isSpeedVariant

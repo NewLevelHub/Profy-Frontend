@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useProfileStore } from '@/shared/store/profile';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillPairAssessment } from '@/shared/dev/autofillPairAssessment';
@@ -10,6 +11,7 @@ import type { RestStopState } from '../utils/restStop';
 export type PairAssessmentPhase = 'loading' | 'intro' | 'question';
 
 export function usePairAssessment() {
+  useFinishedAssessmentGuard();
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
@@ -92,7 +94,7 @@ export function usePairAssessment() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assessmentId, retryCount]);
+  }, [assessmentId, retryCount, ageGroup]);
 
   useEffect(() => {
     const pair = pairs[pairIndex];
