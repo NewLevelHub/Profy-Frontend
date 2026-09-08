@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
 import { env } from '@/shared/config/env';
 import { useAuthStore } from '@/shared/store/auth';
+import { resolveReturnTo } from '@/shared/lib/returnTo';
 import { Button } from '@/shared/ui/Button';
 import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
@@ -50,12 +51,10 @@ export default function LoginPage() {
     try {
       const { access_token, user } = await authApi.login(email.trim(), password);
       storeLogin(access_token, user);
-      const from = (location.state as { from?: string })?.from;
-      // /welcome no longer doubles as the "just authenticated" landing spot
-      // (it now only shows once, right before a user's first assessment —
-      // see useGoalSelection) — RequireProfile at /results decides from here
-      // whether onboarding is still needed.
-      navigate(from ?? '/results', { replace: true });
+      // Один и тот же разбор адреса назначения, что и в RequireGuest —
+      // гварда перерисуется от нового токена и уведёт туда же, так что
+      // неважно, кто из них сработает первым.
+      navigate(resolveReturnTo(location) ?? '/results', { replace: true });
     } catch (err) {
       setPassword('');
       if (axios.isAxiosError(err)) {
@@ -92,8 +91,7 @@ export default function LoginPage() {
     try {
       const { access_token, user } = await authApi.googleLogin(idToken);
       storeLogin(access_token, user);
-      const from = (location.state as { from?: string })?.from;
-      navigate(from ?? '/results', { replace: true });
+      navigate(resolveReturnTo(location) ?? '/results', { replace: true });
     } catch {
       setFormError('Не удалось войти через Google. Попробуйте ещё раз');
     } finally {

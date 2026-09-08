@@ -35,7 +35,15 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && getToken()) {
       resetUserSession();
       localStorage.removeItem('profy-auth');
-      window.location.replace('/login');
+      // Здесь React уже не работает — состояние навигации передать нечем,
+      // поэтому адрес, на котором человека застала протухшая сессия,
+      // уезжает в сам URL. Форма логина читает его тем же
+      // resolveReturnTo, что и `state.from` при обычном перехвате гвардой,
+      // и после повторного входа возвращает человека на прежний экран,
+      // а не на /results.
+      const here = window.location.pathname + window.location.search + window.location.hash;
+      const next = here.startsWith('/login') ? '' : `?next=${encodeURIComponent(here)}`;
+      window.location.replace(`/login${next}`);
     }
     return Promise.reject(error);
   },

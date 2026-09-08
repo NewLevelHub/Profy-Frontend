@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuthStore } from '@/shared/store/auth';
+import { toPath } from '@/shared/lib/returnTo';
 
 export function RequireAuth() {
   const token = useAuthStore((s) => s.token);
@@ -15,7 +16,7 @@ export function RequireAuth() {
   }
 
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: toPath(location) }} replace />;
   }
 
   return <Outlet />;
