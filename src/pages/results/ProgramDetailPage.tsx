@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { Card } from '@/shared/ui/Card';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -248,12 +249,9 @@ export default function ProgramDetailPage() {
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        onClick={goBack}
-        className="inline-flex items-center text-brand text-label font-semibold hover:opacity-70 transition-opacity animate-fade-in"
-      >
+      <BackLink onClick={goBack} className="animate-fade-in">
         {t('common:back')}
-      </button>
+      </BackLink>
 
       {isLoading ? (
         <ProgramDetailSkeleton />

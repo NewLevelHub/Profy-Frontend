@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useBackTo } from '@/shared/lib/useBackTo';
@@ -23,12 +24,9 @@ export default function DirectionInquiryPage() {
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        className="flex items-center text-brand font-semibold text-label hover:opacity-70 transition-opacity"
-        onClick={goBack}
-      >
+      <BackLink onClick={goBack}>
         {t('common:back')}
-      </button>
+      </BackLink>
 
       <PageHeader
         title={t('inquiry.title')}

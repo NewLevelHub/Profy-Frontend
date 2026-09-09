@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -124,13 +125,9 @@ export default function DirectionDetailPage() {
 
   return (
     <PageContainer className="flex flex-col gap-6">
-      <button
-        type="button"
-        className="text-brand font-semibold text-label hover:opacity-70 transition-opacity w-fit border-none bg-transparent cursor-pointer p-0"
-        onClick={() => navigate('/results')}
-      >
+      <BackLink onClick={() => navigate('/results')}>
         {t('common:backToResults')}
-      </button>
+      </BackLink>
 
       <PageHeader
         kicker={t('direction.pageKicker')}

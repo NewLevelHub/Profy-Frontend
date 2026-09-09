@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
@@ -41,12 +42,9 @@ export default function DirectionRoadmapPage() {
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        className="flex items-center text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
-        onClick={goBack}
-      >
+      <BackLink onClick={goBack} className="mb-6">
         {t('common:back')}
-      </button>
+      </BackLink>
 
       {isGenerating ? (
         <GeneratingOverlay />

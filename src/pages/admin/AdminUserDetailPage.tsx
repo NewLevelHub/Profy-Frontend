@@ -201,7 +201,7 @@ function Section({
   const [open, setOpen] = useState(Boolean(defaultOpen));
 
   return (
-    <div className="border border-default rounded-[3px] overflow-hidden bg-surface">
+    <div className="border border-default rounded-[14px] overflow-hidden bg-surface">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -848,7 +848,7 @@ export default function AdminUserDetailPage() {
                 <li
                   key={item.id}
                   className={cn(
-                    'rounded-[3px] border transition-colors',
+                    'rounded-[14px] border transition-colors',
                     isOpen ? 'border-brand' : 'border-default',
                   )}
                 >
@@ -856,7 +856,7 @@ export default function AdminUserDetailPage() {
                     type="button"
                     onClick={() => toggleAssessment(item.id)}
                     aria-expanded={isOpen}
-                    className="w-full text-left p-3 flex items-center justify-between gap-3 hover:bg-hover transition-colors rounded-[3px]"
+                    className="w-full text-left p-3 flex items-center justify-between gap-3 hover:bg-hover transition-colors rounded-[14px]"
                   >
                     <div className="min-w-0">
                       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>

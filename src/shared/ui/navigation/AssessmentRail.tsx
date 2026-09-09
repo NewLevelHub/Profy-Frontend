@@ -1,4 +1,4 @@
-import { Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { Spine } from '@/shared/ui/Spine';
@@ -58,8 +58,9 @@ export function AssessmentRail({
             <button
               type="button"
               onClick={onBack}
-              className="shrink-0 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
+              className="inline-flex items-center gap-1.5 shrink-0 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
             >
+              <ArrowLeft className="w-4 h-4 flex-shrink-0" strokeWidth={2.25} aria-hidden="true" />
               {t('common:back')}
             </button>
           ) : null}

@@ -52,10 +52,8 @@ export default function UniversitiesPage() {
       {/* Панель намеренно лежит РЯДОМ с PageContainer, а не внутри: только так
           она может погасить padding-inline у <main> и встать во всю ширину,
           как шапка. Внутри неё колонка возвращается вложенным PageContainer,
-          чтобы контролы стояли по той же сетке, что и карточки.
-          Отступа сверху нет: у sticky-узла внешний margin оставляет под шапкой
-          сквозную щель, в которую видно проезжающие карточки. */}
-      <div className="universities-filters-sticky">
+          чтобы контролы стояли по той же сетке, что и карточки. */}
+      <div className="universities-filters">
         <PageContainer>
           <div className="filters-island">
             <UniversityFilters

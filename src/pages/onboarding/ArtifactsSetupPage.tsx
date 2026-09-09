@@ -483,7 +483,7 @@ export default function ArtifactsSetupPage() {
         'fixed bottom-0 inset-x-0 lg:static',
         'action-bar-scrim',
       )}>
-        <div className="max-w-6xl mx-auto w-full flex items-center gap-3 panel-glass !rounded-[18px] !p-3 lg:mb-6">
+        <div className="max-w-6xl mx-auto w-full flex items-center gap-3 p-3 lg:mb-6">
           <Button
             variant="ghost"
             size="lg"

@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useBackTo } from '@/shared/lib/useBackTo';
@@ -43,12 +44,9 @@ export default function UniversityListPage() {
   return (
     <PageContainer className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-        <button
-          onClick={goBack}
-          className="inline-flex items-center text-brand text-label font-extrabold hover:opacity-70 transition-opacity shrink-0"
-        >
+        <BackLink onClick={goBack} className="shrink-0 font-extrabold">
           {t('common:back')}
-        </button>
+        </BackLink>
         <PageHeader title={t('universityList.title')} className="flex-1 min-w-0" />
       </div>
 

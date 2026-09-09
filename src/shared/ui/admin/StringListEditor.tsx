@@ -69,7 +69,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
       {values.length === 0 && emptyNote && <p className={cn(ADMIN_META, 'mb-2')}>{emptyNote}</p>}
 
       {values.length > 0 && (
-        <ul className="flex flex-col gap-1 mb-2 border border-default rounded-[3px] p-1 bg-page">
+        <ul className="flex flex-col gap-1 mb-2 border border-default rounded-[14px] p-1 bg-page">
           {values.map((value, index) => (
             <li key={`${value}-${index}`} className="flex items-center gap-1.5 group">
               {ordered && (

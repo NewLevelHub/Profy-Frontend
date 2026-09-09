@@ -1,6 +1,7 @@
 import { ExternalLink, GraduationCap, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { Card } from '@/shared/ui/Card';
 import { LazyMedia } from '@/shared/ui/LazyMedia';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -21,12 +22,9 @@ export default function UniversityDetailPage() {
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        onClick={goBack}
-        className="inline-flex items-center text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
-      >
+      <BackLink onClick={goBack} className="font-extrabold">
         {t('common:back')}
-      </button>
+      </BackLink>
 
       {isLoading ? (
         <div className="space-y-4">

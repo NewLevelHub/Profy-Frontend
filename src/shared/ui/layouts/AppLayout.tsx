@@ -8,12 +8,26 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 // Keyed by location.key so each history entry keeps its own scroll position.
 const scrollPositions = new Map<string, number>();
 
+/**
+ * Remount key for `.page-enter`. Top-rail tabs (Результаты / Университеты /
+ * Профиль / Админка) should fade in; nested screens under a tab should not.
+ *
+ * `/admin/*` shares one key so the glass shell + side rail stay mounted and
+ * sidebar clicks swap content instantly. Other top-level areas still key by
+ * full path (university detail, results deep links, etc.).
+ */
+function pageEnterKey(pathname: string): string {
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) return '/admin';
+  return pathname;
+}
+
 export function AppLayout() {
   useAssessmentSync();
   const syncDone = useAssessmentStore(s => s.syncDone);
   const mainRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const navigationType = useNavigationType();
+  const enterKey = pageEnterKey(location.pathname);
 
   // Restore scroll on back/forward navigation, scroll to top on new pushes.
   // Pages below fetch data async (e.g. university lists) and swap a short
@@ -76,10 +90,9 @@ export function AppLayout() {
       <TopRail />
       <main ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
         {syncDone ? (
-          // key=pathname: каждый переход по маршруту (вкладки шапки и
-          // вложенные экраны) заново запускает .page-enter — один вход для
-          // всех трёх вкладок, без постраничных AnimatedBlock.
-          <div key={location.pathname} className="page-enter">
+          // key=pageEnterKey: анимация только при смене вкладки шапки.
+          // Внутри /admin/* ключ стабилен — сайдбар без fade, контент сразу.
+          <div key={enterKey} className="page-enter">
             <Outlet />
           </div>
         ) : (
