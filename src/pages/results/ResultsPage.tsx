@@ -19,6 +19,7 @@ import { ExplorationActivitiesSection } from './components/ExplorationActivities
 import { FinalAnalysisSection } from './components/FinalAnalysisSection';
 import { GoalBranchSection } from './components/GoalBranchSection';
 import { FeedbackSection } from './components/FeedbackSection';
+import { SpecialistSectionsBlock } from './components/psych/SpecialistSectionsBlock';
 
 function AnimatedBlock({ children }: { children: React.ReactNode }) {
   return (
@@ -57,6 +58,8 @@ export default function ResultsPage() {
     inProgress,
     answeredCount,
     totalQuestions,
+    psychSections,
+    hasPsychSections,
   } = useResults();
 
   if (!hasCompletedAssessment) {
@@ -197,6 +200,17 @@ export default function ResultsPage() {
       <AnimatedBlock>
         <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal} />
       </AnimatedBlock>
+
+      {/* Психоблок (PRO-282 §3): единый блок «Дополнительно для специалиста»
+          ниже основного отчёта. В MVP виден и школьнику, и админу; при
+          отсутствии/`null` всех трёх секций (состояние Фазы 0) не рендерится
+          ничего. PRO-320 переиспользует SpecialistSectionsBlock на
+          admin-экране разбора клиента. */}
+      {hasPsychSections && (
+        <AnimatedBlock>
+          <SpecialistSectionsBlock {...psychSections} />
+        </AnimatedBlock>
+      )}
 
       <AnimatedBlock>
         <FeedbackSection assessmentId={assessmentId} />

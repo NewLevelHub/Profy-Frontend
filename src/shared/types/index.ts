@@ -365,6 +365,28 @@ export interface StudentCareer {
   subjects_to_develop: string[];
 }
 
+// ─── Psychology block (PRO-282 epic) ──────────────────────────────────────────
+// Three auxiliary sections a psychologist reviews at the in-person meeting:
+// достоверность протокола («шкала лжи»), психоэмоциональный тест (МЦВ Собчик —
+// the name «Люшер» is never shown), МАК (метафорические карты). MVP: returned
+// to the student too (backend gate `psych_sections_for`; PRO-321 narrows it to
+// psychologist/admin). Each model is a Phase-0 skeleton — every phase extends
+// its own with concrete fields (validity → Фаза 1, psychoemotional → Фаза 2,
+// mac → Фаза 3). `consent_ok` mirrors the recorded parental consent; it is a
+// flag, not a gate. See profi-backend/docs/psych-block-contract.md.
+
+export interface PsychValiditySection {
+  consent_ok: boolean;
+}
+
+export interface PsychEmotionalSection {
+  consent_ok: boolean;
+}
+
+export interface PsychMacSection {
+  consent_ok: boolean;
+}
+
 interface ResultResponseBase {
   report_version: 2;
   assessment_id: string;
@@ -381,6 +403,13 @@ interface ResultResponseBase {
   exploration_note: string;
   final_analysis: string;
   created_at: string;
+  // Psychology block — see Psych*Section above. Optional + nullable: `null`
+  // on every report until the matching phase's calculation lands on the
+  // backend. Rendered by SpecialistSectionsBlock (results/components/psych)
+  // below the main report; a `null` section is simply not shown.
+  validity?: PsychValiditySection | null;
+  psychoemotional?: PsychEmotionalSection | null;
+  mac?: PsychMacSection | null;
 }
 
 export interface MiResultResponse extends ResultResponseBase {
