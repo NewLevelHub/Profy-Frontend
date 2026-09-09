@@ -639,11 +639,16 @@ export interface ProgramDetail extends ProgramBrief {
 
 // ─── Admin ─────────────────────────────────────────────────────────────────────
 
+/** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
+ *  this (`is_admin === (role === 'admin')`) and kept only for back-compat. */
+export type UserRole = 'student' | 'admin' | 'psychologist';
+
 export interface AdminUserListItem {
   id: string;
   email: string;
   is_verified: boolean;
   is_active: boolean;
+  role: UserRole;
   is_admin: boolean;
   created_at: string;
   has_profile: boolean;
@@ -688,11 +693,25 @@ export interface AdminUserDetail {
   email: string;
   is_verified: boolean;
   is_active: boolean;
+  role: UserRole;
   is_admin: boolean;
   created_at: string;
   profile: ProfileResponse | null;
   artifacts: ArtifactItem[];
   assessments: AdminAssessmentSummary[];
+}
+
+/** `role: 'student'` is rejected by the endpoint (422) — self-registration
+ *  creates students, this only creates staff accounts. */
+export type AdminStaffRole = Exclude<UserRole, 'student'>;
+
+export interface AdminUserCreateRequest {
+  email: string;
+  password: string;
+  role: AdminStaffRole;
+  /** Defaults to `true` server-side — no verification email is sent, unlike
+   *  self-registration. */
+  is_verified?: boolean;
 }
 
 export interface AdminResponseItem {
@@ -884,16 +903,12 @@ export interface AdminProgramDetail {
 
 // ─── Admin roles ────────────────────────────────────────────────────────────────
 //
-// NOTE (backend gap): the API has no admin role concept — `User.is_admin` /
-// `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are plain booleans,
-// with no `role` field anywhere in the response shape.
-//
-// A frontend-only `AdminRole` used to exist here, deriving "Оператор" from
-// `is_admin === false`. It was removed in PRO-242: `RequireAdmin` only lets
-// `is_admin` users into `/admin/*`, so the operator state was unreachable and
-// the role badge always read "Администратор". Rendering a permission tier the
-// server does not enforce is UI theatre — see
-// docs/admin-backend-requests-pro-242.md §9 for what a real role would need.
+// `UserRole` (above, `pro-281`) closes the gap PRO-242 flagged here: the API
+// now has a real role concept (`student` / `admin` / `psychologist`), and
+// `is_admin` is a derived, back-compat view of it. `RequireAdmin` still gates
+// `/admin/*` on `is_admin` alone — a `psychologist` cabinet is a later
+// milestone, not yet built server-side, see
+// docs/user-roles-integration-plan.md Milestones 2–3.
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //

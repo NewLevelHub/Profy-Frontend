@@ -678,9 +678,16 @@ function AssessmentPanel({
 function AccountFlags({ user }: { user: AdminUserDetail }) {
   return (
     <span className="flex items-center gap-1.5 flex-wrap">
-      {user.is_admin && (
+      {/* `role` is the source of truth (pro-281); `is_admin` is its derived
+          boolean, kept in the API for back-compat but no longer read here. */}
+      {user.role === 'admin' && (
         <AdminBadge tone="brand" title="Имеет доступ в админку">
           Админ
+        </AdminBadge>
+      )}
+      {user.role === 'psychologist' && (
+        <AdminBadge tone="accent" title="Кабинет психолога">
+          Психолог
         </AdminBadge>
       )}
       {!user.is_active && (
