@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { env } from '@/shared/config/env';
 import { loadGoogleIdentityScript } from '@/shared/lib/googleIdentity';
+import { resolveLocale, useLocaleStore } from '@/shared/store/locale';
 
 const MAX_WIDTH = 400;
 
@@ -14,9 +15,11 @@ export interface GoogleSignInButtonProps {
 export function GoogleSignInButton({ onCredential, onLoadError, disabled, text = 'signin_with' }: GoogleSignInButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  const [gisLocale, setGisLocale] = useState<string | null>(null);
+  const locale = useLocaleStore((s) => resolveLocale(s.locale));
 
-  // Kept in refs so the GIS callback (registered once, on script load) always
-  // calls the latest handler without forcing a re-init on every render.
+  // Kept in refs so the GIS callback always calls the latest handler.
+  // initialize() re-runs only when the app locale changes (GIS script reload).
   const onCredentialRef = useRef(onCredential);
   onCredentialRef.current = onCredential;
   const onLoadErrorRef = useRef(onLoadError);
@@ -25,23 +28,24 @@ export function GoogleSignInButton({ onCredential, onLoadError, disabled, text =
   useEffect(() => {
     if (!env.GOOGLE_CLIENT_ID) return;
     let cancelled = false;
-    loadGoogleIdentityScript()
+    loadGoogleIdentityScript(locale)
       .then(() => {
         if (cancelled || !window.google) return;
         window.google.accounts.id.initialize({
           client_id: env.GOOGLE_CLIENT_ID,
           callback: (response) => onCredentialRef.current(response.credential),
         });
+        setGisLocale(locale);
         setReady(true);
       })
       .catch(() => {
         if (!cancelled) onLoadErrorRef.current?.();
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
-    if (!ready || !containerRef.current || !window.google) return;
+    if (!ready || gisLocale !== locale || !containerRef.current || !window.google) return;
     containerRef.current.innerHTML = '';
     const width = Math.min(containerRef.current.offsetWidth || MAX_WIDTH, MAX_WIDTH);
     window.google.accounts.id.renderButton(containerRef.current, {
@@ -49,11 +53,11 @@ export function GoogleSignInButton({ onCredential, onLoadError, disabled, text =
       theme: 'outline',
       size: 'large',
       shape: 'rectangular',
-      locale: 'ru',
+      locale,
       text,
       width,
     });
-  }, [ready, text]);
+  }, [ready, gisLocale, locale, text]);
 
   if (!env.GOOGLE_CLIENT_ID) return null;
 
