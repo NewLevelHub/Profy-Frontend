@@ -48,7 +48,7 @@ export function HowSection() {
               )}
             >
               <div
-                className="w-10 h-10 rounded-[var(--radius)] flex items-center justify-center font-display font-semibold text-[0.85rem] tracking-[-0.02em] mb-[1.3rem]"
+                className="w-10 h-10 rounded-[var(--radius)] flex items-center justify-center font-display font-semibold text-caption tracking-[-0.02em] mb-[1.3rem]"
                 style={{
                   background: i === 1 ? 'var(--pine)' : 'var(--brand-subtle)',
                   border: '1px solid color-mix(in srgb, var(--pine) 22%, transparent)',
@@ -57,10 +57,10 @@ export function HowSection() {
               >
                 {step.num}
               </div>
-              <h3 className="font-display text-[0.98rem] font-semibold tracking-[-0.02em] mb-[0.65rem]" style={{ color: 'var(--text-heading)' }}>
+              <h3 className="font-display text-body-sm font-semibold tracking-[-0.02em] mb-[0.65rem]" style={{ color: 'var(--text-heading)' }}>
                 {step.title}
               </h3>
-              <p className="text-secondary text-[0.9rem] leading-[1.55]">{step.desc}</p>
+              <p className="text-secondary text-body-sm leading-[1.55]">{step.desc}</p>
             </Reveal>
           ))}
         </div>

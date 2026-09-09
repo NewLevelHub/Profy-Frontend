@@ -18,7 +18,7 @@ function AnchorLink({ id, children }: { id: string; children: ReactNode }) {
     <button
       type="button"
       onClick={() => scrollToAnchor(id)}
-      className="text-left text-[0.9rem] text-subtle hover:text-brand transition-colors"
+      className="text-left text-body-sm text-subtle hover:text-brand transition-colors"
     >
       {children}
     </button>
@@ -38,7 +38,7 @@ export function LandingFooter() {
             <button
               type="button"
               onClick={() => scrollToAnchor('hero')}
-              className="group inline-flex items-baseline font-display font-bold text-[1.35rem] tracking-[-0.045em] leading-none"
+              className="group inline-flex items-baseline font-display font-bold text-display-sm tracking-[-0.045em] leading-none"
               style={{ color: 'var(--text-heading)' }}
               aria-label={env.APP_NAME}
             >
@@ -51,7 +51,7 @@ export function LandingFooter() {
                 .
               </span>
             </button>
-            <p className="text-subtle text-[0.9rem] mt-4 max-w-[30ch] leading-[1.6]">
+            <p className="text-subtle text-body-sm mt-4 max-w-[30ch] leading-[1.6]">
               {t('footer.about')}
             </p>
             <div className="flex gap-[0.7rem] mt-6">
@@ -71,7 +71,7 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <h5 className="font-display text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colProduct')}</h5>
+            <h5 className="font-display text-caption font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colProduct')}</h5>
             <ul className="flex flex-col gap-[0.8rem] list-none">
               <li><AnchorLink id="how">{t('nav.how')}</AnchorLink></li>
               <li><AnchorLink id="features">{t('nav.features')}</AnchorLink></li>
@@ -80,32 +80,32 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <h5 className="font-display text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colCompany')}</h5>
+            <h5 className="font-display text-caption font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colCompany')}</h5>
             <ul className="flex flex-col gap-[0.8rem] list-none">
-              <li><span className="text-[0.9rem] text-subtle">{t('footer.aboutUs')}</span></li>
+              <li><span className="text-body-sm text-subtle">{t('footer.aboutUs')}</span></li>
               <li><AnchorLink id="faq">{t('nav.faq')}</AnchorLink></li>
             </ul>
           </div>
 
           <div>
-            <h5 className="font-display text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colContacts')}</h5>
+            <h5 className="font-display text-caption font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colContacts')}</h5>
             <ul className="flex flex-col gap-[0.8rem] list-none">
               <li>
-                <a href="mailto:hello@profy.kz" className="text-[0.9rem] text-subtle hover:text-brand transition-colors no-underline">
+                <a href="mailto:hello@profy.kz" className="text-body-sm text-subtle hover:text-brand transition-colors no-underline">
                   hello@profy.kz
                 </a>
               </li>
-              <li><span className="text-[0.9rem] text-subtle">@profy_kz</span></li>
-              <li><span className="text-[0.9rem] text-subtle">{t('footer.city')}</span></li>
+              <li><span className="text-body-sm text-subtle">@profy_kz</span></li>
+              <li><span className="text-body-sm text-subtle">{t('footer.city')}</span></li>
             </ul>
           </div>
         </div>
 
         <div className="flex flex-wrap justify-between items-center gap-4 pt-8">
-          <p className="text-[0.85rem] text-subtle">{t('footer.copyright', { app: env.APP_NAME })}</p>
+          <p className="text-caption text-subtle">{t('footer.copyright', { app: env.APP_NAME })}</p>
           <div className="flex gap-6">
-            <span className="text-[0.85rem] text-subtle">{t('footer.privacy')}</span>
-            <span className="text-[0.85rem] text-subtle">{t('footer.terms')}</span>
+            <span className="text-caption text-subtle">{t('footer.privacy')}</span>
+            <span className="text-caption text-subtle">{t('footer.terms')}</span>
           </div>
         </div>
       </div>

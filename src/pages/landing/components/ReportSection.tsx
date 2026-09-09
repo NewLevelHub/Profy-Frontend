@@ -33,10 +33,10 @@ export function ReportSection() {
                   {fact.icon}
                 </svg>
                 <div>
-                  <strong className="block text-[0.92rem] font-semibold mb-[0.15rem]" style={{ color: 'var(--text-heading)' }}>
+                  <strong className="block text-body-sm font-semibold mb-[0.15rem]" style={{ color: 'var(--text-heading)' }}>
                     {fact.title}
                   </strong>
-                  <span className="text-[0.86rem] leading-[1.55] text-secondary">{fact.desc}</span>
+                  <span className="text-caption leading-[1.55] text-secondary">{fact.desc}</span>
                 </div>
               </div>
             ))}
@@ -49,15 +49,15 @@ export function ReportSection() {
           {BLOCKS.map(block => (
             <div key={block.num} className="report-item relative pb-[1.7rem] last-of-type:pb-0">
               <span
-                className="absolute -left-12 -top-[0.15rem] w-8 h-8 rounded-full flex items-center justify-center font-mono text-[0.7rem] font-medium tracking-[0.02em] bg-surface border border-default"
+                className="absolute -left-12 -top-[0.15rem] w-8 h-8 rounded-full flex items-center justify-center font-mono text-mono-xs font-medium tracking-[0.02em] bg-surface border border-default"
                 style={{ color: 'var(--pine)' }}
               >
                 {block.num}
               </span>
-              <h4 className="font-display font-semibold text-[0.95rem] tracking-[-0.02em] mb-1" style={{ color: 'var(--text-heading)' }}>
+              <h4 className="font-display font-semibold text-body-sm tracking-[-0.02em] mb-1" style={{ color: 'var(--text-heading)' }}>
                 {block.title}
               </h4>
-              <p className="text-[0.93rem] leading-[1.6] text-secondary">{block.desc}</p>
+              <p className="text-body-sm leading-[1.6] text-secondary">{block.desc}</p>
             </div>
           ))}
         </Reveal>

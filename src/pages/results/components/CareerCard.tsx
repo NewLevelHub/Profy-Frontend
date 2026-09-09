@@ -28,7 +28,7 @@ export const CareerCard = memo(function CareerCard({ career, showUniversityBtn }
   return (
     <Card className="relative !p-[22px] flex flex-col gap-3 transition-all hover:-translate-y-0.5 hover:shadow-pop">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[26px]" aria-hidden="true">{getIconForCareer(career.name)}</span>
+        <span className="text-display-sm leading-none" aria-hidden="true">{getIconForCareer(career.name)}</span>
         <CareerMatchLadder tier={career.tier} size="sm" />
       </div>
       <div>

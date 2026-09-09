@@ -64,11 +64,11 @@ export function DemoSection() {
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
-                      <p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-muted m-0 mb-1">
+                      <p className="font-mono text-mono-xs uppercase tracking-[0.14em] text-muted m-0 mb-1">
                         {t(`demo.frame.${id}.kicker`)}
                       </p>
                       <p
-                        className="font-display text-[1.05rem] font-semibold m-0"
+                        className="font-display text-body-md font-semibold m-0"
                         style={{ color: 'var(--text-heading)' }}
                       >
                         {t(`demo.frame.${id}.title`)}

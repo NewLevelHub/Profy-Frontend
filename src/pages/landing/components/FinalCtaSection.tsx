@@ -26,14 +26,14 @@ export function FinalCtaSection() {
           </div>
 
           <h2
-            className="relative z-[1] font-display font-bold text-[clamp(1.75rem,3.6vw,2.6rem)] leading-[1.18] tracking-[-0.03em] text-balance"
+            className="relative z-[1] font-display font-bold text-display-lg leading-[1.18] tracking-[-0.03em] text-balance"
             style={{ color: 'var(--on-brand-solid)' }}
           >
             {t('finalCta.titleLine1')}
             <br />
             <span style={{ color: 'var(--dawn-light)' }}>{t('finalCta.titleAccent')}</span>
           </h2>
-          <p className="relative z-[1] mt-[1.1rem] text-[1.05rem]" style={{ color: 'color-mix(in srgb, var(--on-brand-solid) 76%, transparent)' }}>
+          <p className="relative z-[1] mt-[1.1rem] text-body-md" style={{ color: 'color-mix(in srgb, var(--on-brand-solid) 76%, transparent)' }}>
             {t('finalCta.sub')}
           </p>
 

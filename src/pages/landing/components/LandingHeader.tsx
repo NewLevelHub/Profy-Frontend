@@ -18,7 +18,7 @@ function Wordmark({ className, onClick }: { className?: string; onClick?: () => 
       onClick={onClick ?? (() => scrollToAnchor('hero'))}
       aria-label={env.APP_NAME}
       className={cn(
-        'group inline-flex items-baseline font-display font-bold text-[1.22rem] tracking-[-0.045em] leading-none',
+        'group inline-flex items-baseline font-display font-bold text-display-sm tracking-[-0.045em] leading-none',
         className,
       )}
       style={{ color: 'var(--text-heading)' }}
@@ -101,7 +101,7 @@ export function LandingHeader() {
                   key={item.id}
                   type="button"
                   onClick={() => goToAnchor(item.id)}
-                  className="nav-underline relative text-[0.93rem] font-medium text-secondary hover:text-primary transition-colors"
+                  className="nav-underline relative text-body-sm font-medium text-secondary hover:text-primary transition-colors"
                 >
                   {item.label}
                 </button>
@@ -114,7 +114,7 @@ export function LandingHeader() {
 
               <Link
                 to="/login"
-                className="hidden min-[901px]:inline text-[0.93rem] font-semibold text-secondary hover:text-primary transition-colors no-underline"
+                className="hidden min-[901px]:inline text-body-sm font-semibold text-secondary hover:text-primary transition-colors no-underline"
               >
                 {t('cta.login')}
               </Link>
@@ -152,7 +152,7 @@ export function LandingHeader() {
             key={item.id}
             type="button"
             onClick={() => goToAnchor(item.id)}
-            className="text-left font-display text-[1.25rem] font-semibold tracking-[-0.02em]"
+            className="text-left font-display text-display-sm font-semibold tracking-[-0.02em]"
             style={{ color: 'var(--text-heading)' }}
           >
             {item.label}
