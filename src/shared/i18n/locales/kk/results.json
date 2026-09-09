@@ -159,7 +159,9 @@
     "whyFitKicker": "Неге саған сай",
     "tryNowKicker": "Дәл қазір байқап көр",
     "universitiesKicker": "Университеттер мен бағдарламалар",
-    "myPlan": "Бағыт бойынша жоспарым"
+    "myPlan": "Бағыт бойынша жоспарым",
+    "pageKicker": "Бағыт",
+    "skillsSubjectsTitle": "Жолда нені дамыту керек"
   },
   "program": {
     "notFound": "Бағдарлама табылмады",
@@ -400,7 +402,9 @@
   "directionMatch": {
     "empty": "Сай келетін бағыттар әзірге жоқ.",
     "whyFit": "Неге сай",
-    "openForUniversities": "ЖОО мен бағдарламаларды көру үшін бағытты аш"
+    "openForUniversities": "ЖОО мен бағдарламаларды көру үшін бағытты аш",
+    "topPick": "Үздік сәйкестік",
+    "open": "Ашу"
   },
   "career": {
     "findUniversities": "Университеттерді табу",

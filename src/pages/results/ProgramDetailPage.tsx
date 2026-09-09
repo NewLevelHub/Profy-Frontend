@@ -2,7 +2,7 @@ import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import {
-  ArrowLeft, Target,
+  Target,
   Briefcase,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -250,9 +250,8 @@ export default function ProgramDetailPage() {
     <PageContainer className="space-y-6">
       <button
         onClick={goBack}
-        className="inline-flex items-center gap-2 text-brand text-label font-semibold hover:opacity-70 transition-opacity animate-fade-in"
+        className="inline-flex items-center text-brand text-label font-semibold hover:opacity-70 transition-opacity animate-fade-in"
       >
-        <ArrowLeft className="w-4 h-4" />
         {t('common:back')}
       </button>
 

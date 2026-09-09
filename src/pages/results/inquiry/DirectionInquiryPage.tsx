@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -24,10 +24,9 @@ export default function DirectionInquiryPage() {
   return (
     <PageContainer className="space-y-6">
       <button
-        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
+        className="flex items-center text-brand font-semibold text-label hover:opacity-70 transition-opacity"
         onClick={goBack}
       >
-        <ArrowLeft className="w-4 h-4" />
         {t('common:back')}
       </button>
 

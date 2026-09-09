@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -42,10 +42,9 @@ export default function DirectionRoadmapPage() {
   return (
     <PageContainer className="space-y-6">
       <button
-        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
+        className="flex items-center text-brand font-semibold text-label hover:opacity-70 transition-opacity mb-6"
         onClick={goBack}
       >
-        <ArrowLeft className="w-4 h-4" />
         {t('common:back')}
       </button>
 

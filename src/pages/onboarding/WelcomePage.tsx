@@ -25,7 +25,7 @@ export default function WelcomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="journey-page min-h-screen flex flex-col">
+    <div className="journey-page journey-page--lit min-h-screen flex flex-col">
       <div className="relative z-[1] flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
         <div className="w-full max-w-5xl mx-auto">
           <div className="onboarding-welcome-in journey-shell flex flex-col gap-8 px-6 py-8 sm:px-10 sm:py-11">

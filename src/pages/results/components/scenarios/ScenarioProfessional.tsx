@@ -66,13 +66,12 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
   return (
     <div className="flex flex-col gap-6">
       {isBridge && (
-        <Card style={{ borderColor: 'var(--lake)', background: 'color-mix(in srgb, var(--lake) 6%, transparent)' }}>
+        <Card className="panel-glass !border-[color:color-mix(in_srgb,var(--lake)_35%,var(--border))] bg-[color-mix(in_srgb,var(--lake)_6%,var(--paper))]">
           <div className="mb-4">
-            <p className="text-label font-bold text-primary flex items-center gap-2">
-              <span aria-hidden="true">🌉</span>
+            <span className="journey-kicker" style={{ color: 'var(--lake)' }}>
               {t('scenarioProfessional.bridgeLabel')}
-            </p>
-            <p className="text-caption text-secondary leading-snug mt-1">
+            </span>
+            <p className="text-body-sm text-secondary leading-snug mt-1.5 m-0">
               {t('scenarioProfessional.bridgeSubtitle')}
             </p>
           </div>
@@ -132,12 +131,12 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
         </Card>
       )}
 
-      <section aria-label={t('scenarioProfessional.directionsAria')} className="flex flex-col gap-3">
-        <div>
-          <p className="text-label font-bold text-primary font-mono uppercase tracking-label">
+      <section aria-label={t('scenarioProfessional.directionsAria')} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <span className="journey-kicker">
             {isMiddle ? t('scenarioProfessional.directionsTitleMiddle') : t('scenarioProfessional.directionsTitleSenior')}
-          </p>
-          <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
+          </span>
+          <p className="text-body-sm text-secondary leading-relaxed m-0 max-w-[54ch]">
             {isMiddle
               ? t('scenarioProfessional.directionsSubtitleMiddle')
               : t('scenarioProfessional.directionsSubtitleSenior')}

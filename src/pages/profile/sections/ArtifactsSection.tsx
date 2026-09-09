@@ -46,15 +46,24 @@ export function ArtifactsSection({ artifacts, onEdit }: ArtifactsSectionProps) {
       {hasAny ? (
         <div className="grid sm:grid-cols-2 gap-2.5">
           {rows.map((r) => (
-            <div key={r.type} className="field-tile flex flex-col gap-1 px-4 py-3.5">
+            <div key={r.type} className="field-tile flex flex-col gap-1 px-4 py-3.5 min-w-0">
               <p className="text-caption text-secondary">{t(r.labelKey)}</p>
-              <p className="text-body-md font-semibold text-[color:var(--text-heading)]">{r.value}</p>
+              <p className="text-body-md font-semibold text-[color:var(--text-heading)] wrap-anywhere">
+                {r.value}
+              </p>
             </div>
           ))}
-          <div className="field-tile flex flex-col gap-1 px-4 py-3.5 sm:col-span-2">
+          <div className="field-tile flex flex-col gap-1 px-4 py-3.5 sm:col-span-2 min-w-0">
             <p className="text-caption text-secondary">{t('artifacts.dream')}</p>
+            {/* wrap-anywhere, а не break-words: значение вводит человек, и «мечта»
+                одной строкой без пробелов раздувала колонку. break-word ломает строку
+                визуально, но НЕ уменьшает min-content, а плитка — элемент grid с
+                min-width: auto, поэтому дорожка всё равно раздувалась и текст уезжал
+                за карточку. anywhere уменьшает и min-content тоже. */}
             {dream ? (
-              <p className="text-body-md font-semibold text-[color:var(--text-heading)]">{dream}</p>
+              <p className="text-body-md font-semibold text-[color:var(--text-heading)] wrap-anywhere">
+                {dream}
+              </p>
             ) : (
               <p className="text-body-sm text-secondary flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent flex-none" aria-hidden="true" />

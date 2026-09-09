@@ -1,4 +1,5 @@
 import { Search, Star, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { localizeGeo } from '@/shared/i18n/geo';
 import { cn } from '@/shared/lib/cn';
@@ -30,6 +31,29 @@ export function UniversityFilters({
   onToggleOnlyFavorites,
 }: UniversityFiltersProps) {
   const { t } = useTranslation('results');
+
+  // Затухание показывается только с той стороны, где реально есть скрытые чипы:
+  // статическая маска слева приглушала бы активный «Все», когда строка в покое.
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ start: false, end: false });
+
+  const syncEdges = useCallback(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setEdges({ start: el.scrollLeft > 4, end: el.scrollLeft < max - 4 });
+  }, []);
+
+  // Пересчёт нужен и при смене набора стран (фильтр «Избранные» его сокращает),
+  // и при изменении ширины — строка перестаёт переполняться, и маска не нужна.
+  useEffect(() => {
+    syncEdges();
+    const el = stripRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(syncEdges);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [syncEdges, countries]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -78,7 +102,11 @@ export function UniversityFilters({
           catalogue has dozens of countries, and a multi-row chip cloud eats
           the first viewport before any card appears. */}
       <div
-        className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        ref={stripRef}
+        onScroll={syncEdges}
+        data-fade-start={edges.start ? '' : undefined}
+        data-fade-end={edges.end ? '' : undefined}
+        className="filter-strip-fade flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         role="group"
         aria-label={t('programList.countryFilterAria')}
       >

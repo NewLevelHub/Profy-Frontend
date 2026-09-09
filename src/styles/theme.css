@@ -67,6 +67,16 @@
     radial-gradient(ellipse 55% 45% at -5% 95%, color-mix(in srgb, var(--pine) 6%, transparent), transparent 62%),
     radial-gradient(ellipse 50% 40% at 105% 85%, color-mix(in srgb, var(--pine-light) 7%, transparent), transparent 60%),
     var(--fog);
+  /* Тёплая калибровка того же холста: намёк --pine-light сверху справа,
+     --dawn снизу слева поверх перехода сливки → беж. Живёт токеном, потому
+     что этим фоном пользуются две разные поверхности — экраны входа и
+     онбординг, — и держать рецепт в одной из них значило бы, что второй
+     молча отстанет при первой же правке. Тёмной пары не нужно: все пять
+     остановок сами по себе токены и ночью пересчитываются. */
+  --bg-atmosphere-lit:
+    radial-gradient(1100px 620px at 88% 6%, color-mix(in srgb, var(--pine-light) 13%, transparent), transparent 62%),
+    radial-gradient(900px 520px at 6% 96%, color-mix(in srgb, var(--dawn) 9%, transparent), transparent 60%),
+    linear-gradient(158deg, var(--paper) 0%, var(--fog) 52%, var(--bg-raised) 100%);
   /* Card / panel surfaces — Paper, lighter than Fog so cards lift off the canvas without a shadow */
   --bg-surface:     var(--paper);
   /* Slightly elevated surface (hover rows, skeletons) */
@@ -165,6 +175,12 @@
   /* Layout */
   --header-h: 56px;
   --tap: 48px;
+  /* Вертикальный паддинг <main> в AppLayout. Вынесен в токен, потому что от
+     него зависит не только отступ страницы: sticky внутри скролл-контейнера
+     прилипает к границе его КОНТЕНТА, то есть ниже паддинга. Панель фильтров
+     на /universities вычитает это значение обратно через top, и держать число
+     в двух местах — гарантированно разъехаться. */
+  --main-pad-y: 1.5rem;
 
   /* Legacy size aliases → role tokens in @theme. New code must use
      text-display-* / text-body-* / text-caption / text-mono-* or <Heading>/<Text>/<Mono>. */
@@ -313,6 +329,13 @@
 
   --shadow-card: none;
   --shadow-pop:  0 0 0 1px var(--hairline);
+}
+
+@media (min-width: 1024px) {
+  :root,
+  .theme-day {
+    --main-pad-y: 2.5rem;
+  }
 }
 
 /* ─── Base Styles ─── */
@@ -475,16 +498,28 @@
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to   { opacity: 1; transform: translateY(0);    }
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* Вход страницы внутри AppLayout. Один приём на все вкладки шапки
    (Результаты / Университеты / Профиль) и вложенные экраны под ними —
    раньше fadeSlideUp жил только в ProfilePage и в готовом отчёте
    ResultsPage, поэтому соседние вкладки открывались рывком. */
+/* `backwards`, а не `both`. Разница решающая и неочевидная: при `both`
+   анимированные значения остаются на элементе НАВСЕГДА после её окончания, и
+   `to { transform: none }` тут не спасает — анимированный transform вычисляется
+   в матрицу, так что на .page-enter вечно висит matrix(1, 0, 0, 1, 0, 0).
+   Единичная матрица — всё равно transform, а трансформированный предок:
+     * создаёт containing block, из-за чего ломался position:sticky у фильтров
+       на /universities (лечили это ключевым кадром — лечило симптом);
+     * и отключает backdrop-filter у ВСЕХ потомков. То есть всё стекло внутри
+       AppLayout (.panel-glass, карточки вузов, панель фильтров) на деле ничего
+       не размывало — просто полупрозрачная заливка.
+   `backwards` даёт то же появление (значения `from` действуют до старта), но
+   по окончании элемент возвращается к собственным стилям: transform: none. */
 .page-enter {
-  animation: fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
 }
 @media (prefers-reduced-motion: reduce) {
   .page-enter { animation: none; }
@@ -565,10 +600,7 @@
    быть плоской заливкой, но не спорит с карточкой. Все три остановки —
    токены, поэтому тёмная тема пересчитывается сама. */
 .auth-page {
-  background:
-    radial-gradient(1100px 620px at 88% 6%, color-mix(in srgb, var(--pine-light) 13%, transparent), transparent 62%),
-    radial-gradient(900px 520px at 6% 96%, color-mix(in srgb, var(--dawn) 9%, transparent), transparent 60%),
-    linear-gradient(158deg, var(--paper) 0%, var(--fog) 52%, var(--bg-raised) 100%);
+  background: var(--bg-atmosphere-lit);
 }
 .auth-page::before {
   content: "";
@@ -770,6 +802,33 @@
 }
 .dark .journey-page::before {
   background-image: radial-gradient(rgba(237, 233, 223, 0.05) 1px, transparent 1px);
+}
+
+/* Тот же тёплый холст, что на экранах входа. Модификатор, а не отдельный
+   класс: разметке нужны и позиционирование с isolation от .journey-page, и
+   её точечная текстура — меняется только слой фона. */
+.journey-page--lit {
+  background: var(--bg-atmosphere-lit);
+}
+
+/* Подложка под фиксированной панелью действий (узкие экраны, где футер
+   онбординга висит над прокруткой). Плоская заливка тут не годится:
+   --bg-page — это ровный фог, и поверх градиентного холста он давал видимую
+   горизонтальную границу там, где начинался. Градиент гасится кверху, поэтому
+   у подложки нет края — она просто уплотняется к низу. Блюра нет намеренно:
+   backdrop-filter размывает весь прямоугольник целиком и вернул бы ту же
+   резкую кромку, которую убирает градиент. */
+.action-bar-scrim {
+  background: linear-gradient(
+    to top,
+    var(--bg-page) 28%,
+    color-mix(in srgb, var(--bg-page) 70%, transparent) 68%,
+    transparent 100%
+  );
+}
+@media (min-width: 1024px) {
+  /* На широких экранах панель встаёт в поток (lg:static) и прятать ей нечего. */
+  .action-bar-scrim { background: none; }
 }
 
 .journey-shell {
@@ -1175,22 +1234,76 @@
   color: var(--text-heading);
 }
 
+/* Плавающий остров — тот же приём, что у шапки лендинга (LandingHeader):
+   прозрачная обёртка держит вертикальный зазор, а стекло висит на самой
+   плашке. Панель во всю ширину, которая была здесь раньше, читалась плитой:
+   она разрезала страницу и при прокрутке наезжала на каталог сплошной
+   полосой. У острова же в просветах сверху и по бокам видно проезжающие
+   карточки, и он перестаёт весить.
+   Обёртка ничего не рисует — ни фона, ни тени, ни границ. */
 .universities-filters-sticky {
   position: sticky;
-  top: calc(var(--header-h, 3.5rem) + 0.35rem);
+  /* sticky отсчитывается от контентной границы скролл-контейнера, а у <main>
+     сверху --main-pad-y. Вычитаем его и добавляем зазор, в котором остров
+     висит под шапкой приложения. */
+  top: calc(0.375rem - var(--main-pad-y));
   z-index: 20;
-  padding: 0.65rem 0.75rem;
-  margin: 0 -0.25rem;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, #fff 45%, var(--border));
+  padding-block: 0.375rem 0.9rem;
 }
-.dark .universities-filters-sticky {
-  background: color-mix(in srgb, var(--fog) 88%, transparent);
-  border-color: var(--border-strong);
+
+/* Рецепт поверхности — ровно как у острова лендинга: --bg-surface 82%,
+   blur(16px) saturate(150%), волосяная обводка, общий радиус. */
+.filters-island {
+  padding: 0.75rem 1rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-surface) 82%, transparent);
+  /* Размытие сильнее лендинговых 16px: там под шапкой проезжают крупные
+     блоки, здесь — плотный мелкий текст карточек, и на 16px сквозь остров
+     читались подписи рейтинга. Плотность не трогаем — она и делает плашку
+     лёгкой. */
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  /* Щель между шапкой и островом не спрятать заливкой: холст градиентный, и
+     любой плоский скрим поверх него даёт шов (см. онбординг). Поэтому щель не
+     маскируется, а обыгрывается — остров приподнят, и каталог проезжает под
+     ним, а не упирается в него срезом. Тень мягкая и почти без смещения:
+     задача — оторвать плашку от фона, а не подложить под неё плиту. */
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 55%, transparent) inset,
+    0 10px 26px color-mix(in srgb, var(--midnight) 6%, transparent);
 }
+.dark .filters-island {
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 5%, transparent) inset,
+    0 10px 26px rgba(0, 0, 0, 0.3);
+}
+@media (min-width: 640px) {
+  .filters-island { padding-inline: 1.25rem; }
+}
+
+/* Строка стран прокручивается вбок и раньше обрывалась о край панели: чип
+   резало пополам вертикальной кромкой, и это читалось как поломка вёрстки,
+   а не как «здесь ещё есть». Затухание говорит то же самое, но без среза.
+   Ширина затухания приходит из data-атрибутов, которые ставит сам компонент
+   по scrollLeft: статическая маска слева приглушала бы активный чип «Все»
+   в покое, когда прокручивать влево нечего. */
+.filter-strip-fade {
+  --fade-start: 0rem;
+  --fade-end: 0rem;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0, #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)), transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0, #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)), transparent 100%
+  );
+}
+.filter-strip-fade[data-fade-start] { --fade-start: 2.5rem; }
+.filter-strip-fade[data-fade-end]   { --fade-end: 3.5rem; }
 
 .uni-card-media__img {
   transition: transform 480ms ease-out;

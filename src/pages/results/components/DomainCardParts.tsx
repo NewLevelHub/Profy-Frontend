@@ -30,7 +30,7 @@ export function DomainCardFrame({
 }) {
   return (
     <section
-      className="border border-strong rounded-[var(--radius)] bg-page p-5 sm:p-6 flex flex-col gap-6"
+      className="panel-glass p-5 sm:p-7 flex flex-col gap-6"
       aria-label={ariaLabel}
     >
       {children}
@@ -40,7 +40,7 @@ export function DomainCardFrame({
 
 export function DomainKicker({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mb-2">
+    <p className="journey-kicker mb-2">
       {children}
     </p>
   );

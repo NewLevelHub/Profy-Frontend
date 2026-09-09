@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { Printer } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Text } from '@/shared/ui/typography/Text';
 
@@ -20,7 +20,6 @@ export function PrintToolbar({ onBack, onPrint }: PrintToolbarProps) {
   return (
     <div data-print-hide className="flex items-center justify-between gap-3 flex-wrap mb-5">
       <Button variant="text" size="sm" onClick={onBack}>
-        <ArrowLeft size={16} aria-hidden="true" />
         {t('print.toolbar.back')}
       </Button>
       <div className="flex items-center gap-3">

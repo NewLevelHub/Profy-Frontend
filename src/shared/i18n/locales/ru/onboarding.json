@@ -39,6 +39,8 @@
     "gradeRange": "Класс: от 1 до 12"
   },
   "profile": {
+    "kickerIntro": "Профиль · Шаг знакомства",
+    "kickerSubjects": "Профиль · Предметы",
     "nameQuestion": "Как тебя зовут?",
     "nameLabel": "Имя",
     "namePlaceholder": "Например, Арман",
@@ -86,7 +88,9 @@
     "editSubtitle": "Расскажи, чем занимаешься и о чём мечтаешь",
     "tablistAria": "Группы артефактов",
     "saveFailed": "Не удалось сохранить. Попробуй ещё раз.",
-    "done": "Готово ✓",
+    "done": "Готово",
+    "kickerInterests": "Профиль · Увлечения и цели",
+    "kickerDreams": "Профиль · Мечты",
     "nextGroup": "Дальше",
     "skipGroup": "Пропустить эту группу",
     "groupCounter": "Группа {{current}} из {{total}}",

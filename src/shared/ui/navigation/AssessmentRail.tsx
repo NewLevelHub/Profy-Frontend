@@ -58,15 +58,11 @@ export function AssessmentRail({
             <button
               type="button"
               onClick={onBack}
-              aria-label={t('common:back')}
-              className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-secondary text-body-lg leading-none transition-colors hover:bg-brand-subtle flex-shrink-0"
-              style={{ boxShadow: 'var(--shadow-pop)' }}
+              className="shrink-0 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
             >
-              ←
+              {t('common:back')}
             </button>
-          ) : (
-            <div className="w-[38px] h-[38px] flex-shrink-0" />
-          )}
+          ) : null}
           <span className="font-extrabold text-primary truncate text-body-sm">
             {title}
           </span>

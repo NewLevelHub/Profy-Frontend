@@ -72,9 +72,9 @@ export function AppLayout() {
   }, [location.key]);
 
   return (
-    <div className="h-screen text-primary flex flex-col overflow-hidden bg-transparent">
+    <div className="journey-page h-screen text-primary flex flex-col overflow-hidden">
       <TopRail />
-      <main ref={mainRef} className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <main ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
         {syncDone ? (
           // key=pathname: каждый переход по маршруту (вкладки шапки и
           // вложенные экраны) заново запускает .page-enter — один вход для

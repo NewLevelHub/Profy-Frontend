@@ -1,4 +1,4 @@
-import { ArrowLeft, ExternalLink, GraduationCap, MapPin } from 'lucide-react';
+import { ExternalLink, GraduationCap, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
@@ -23,9 +23,8 @@ export default function UniversityDetailPage() {
     <PageContainer className="space-y-6">
       <button
         onClick={goBack}
-        className="inline-flex items-center gap-2 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
+        className="inline-flex items-center text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
       >
-        <ArrowLeft className="w-4 h-4" />
         {t('common:back')}
       </button>
 

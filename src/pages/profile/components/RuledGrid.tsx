@@ -26,9 +26,13 @@ export interface RuledCellProps {
 
 export function RuledCell({ label, value }: RuledCellProps) {
   return (
-    <div className="field-tile px-4 py-3.5">
+    <div className="field-tile px-4 py-3.5 min-w-0">
       <p className="text-caption text-secondary">{label}</p>
-      <p className="text-body-md font-semibold text-[color:var(--text-heading)] mt-0.5">{value}</p>
+      {/* См. ArtifactsSection: значение вводит человек, и строка без пробелов
+          обязана переноситься, иначе раздувает дорожку grid. */}
+      <p className="text-body-md font-semibold text-[color:var(--text-heading)] mt-0.5 wrap-anywhere">
+        {value}
+      </p>
     </div>
   );
 }

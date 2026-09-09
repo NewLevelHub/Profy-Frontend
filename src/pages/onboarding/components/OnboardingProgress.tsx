@@ -1,9 +1,8 @@
 // Shared progress bar for the whole onboarding sequence — one rounded line
 // segment per step (done/current filled, upcoming a plain hairline bar)
 // with a small uppercase "Шаг X из Y" caption underneath. Used by both
-// ProfileSetupPage (steps 1-4) and ArtifactsSetupPage (steps 5-9, see
-// onboardingSteps.ts) so the two pages read as one continuous flow instead
-// of profile setup ending and a disconnected "artifacts" page beginning.
+// ProfileSetupPage (steps 1-2) and ArtifactsSetupPage (steps 3-4) so the
+// two pages read as one continuous flow.
 import { useTranslation } from 'react-i18next';
 
 export function OnboardingProgress({ current, total }: { current: number; total: number }) {
@@ -11,7 +10,7 @@ export function OnboardingProgress({ current, total }: { current: number; total:
   const label = t('progress.step', { current, total });
   return (
     <div
-      className="w-full flex flex-col gap-2"
+      className="journey-progress w-full flex flex-col gap-2.5"
       role="progressbar"
       aria-valuenow={current}
       aria-valuemin={1}
@@ -24,15 +23,13 @@ export function OnboardingProgress({ current, total }: { current: number; total:
           return (
             <span
               key={step}
-              className="flex-1 h-1.5 rounded-full"
+              className="flex-1 h-1.5 rounded-full transition-colors"
               style={{ background: step <= current ? 'var(--pine)' : 'var(--hairline)' }}
             />
           );
         })}
       </div>
-      <p className="text-tiny font-semibold tracking-wide uppercase" style={{ color: 'var(--mute)' }}>
-        {label}
-      </p>
+      <p className="journey-kicker !gap-2 text-[color:var(--mute)]">{label}</p>
     </div>
   );
 }

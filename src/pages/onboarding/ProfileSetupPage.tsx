@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { SelectableChip } from './components/SelectableChip';
@@ -29,61 +30,18 @@ const SUBJECT_OPTIONS = [
   { value: 'Музыка', key: 'subject.music' },
 ] as const;
 const SUBJECT_VALUES: string[] = SUBJECT_OPTIONS.map(s => s.value);
-const SUBJECT_KEY: Record<string, string> = Object.fromEntries(
-  SUBJECT_OPTIONS.map(s => [s.value, s.key]),
-);
 
 const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 14–18
 
-// One mascot per step, `position: fixed` to the viewport's bottom-right
-// corner (not inline with the heading anymore — content/buttons stay
-// centered in their own column, the mascot floats independently of that
-// axis) — a different pose per step so the 4 onboarding screens read as
-// distinct moments rather than a repeated icon. Sizes are calibrated per
-// pose to a common ~182px rendered character height (all 4 onboarding
-// poses scaled up ~2.5x together from the original ~73px calibration, so
-// the relative proportions between poses stay intact) — each pose is a
-// separate PNG with its own canvas padding (measured via each sprite's
-// alpha bounding box: greeting 461/480h, book 467/430h), so the same
-// `size` prop would otherwise render visibly different heights.
-// 'transition'/'pause' (the other two calibrated poses) are used on
-// ArtifactsSetupPage's two steps — see its own MASCOT_*_SIZE constants.
-const MASCOT_WELCOME_SIZE = 192;
-const MASCOT_WAITING_SIZE = 168;
+// One mascot per step, fixed to the viewport corner — sizes calibrated per
+// pose to a common ~182px rendered character height. 'transition'/'pause'
+// live on ArtifactsSetupPage.
+// Подобраны под лунку .journey-mascot-well (112px), а не под угол экрана:
+// у поз разная доля пустого поля в спрайте, поэтому числа разные, а
+// нарисованный персонаж выходит одного роста.
+const MASCOT_WELCOME_SIZE = 96;
+const MASCOT_WAITING_SIZE = 84;
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-/** Subject chip — per spec, selection is marked with a dawn border (not a
- *  fill), unselected chips sit on a plain hairline border. Deliberately
- *  neutral: never colored to imply "good"/"bad" (screen 6 relies on this
- *  for its easy vs. struggle columns). */
-function SubjectChip({
-  label, selected, onClick, disabled, disabledTitle,
-}: {
-  label: string; selected: boolean; onClick: () => void; disabled?: boolean; disabledTitle?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      aria-disabled={disabled}
-      title={disabled ? disabledTitle : undefined}
-      className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors disabled:cursor-not-allowed"
-      style={{
-        background: 'var(--bg-surface)',
-        color: disabled ? 'var(--mute)' : selected ? 'var(--midnight)' : 'var(--ink)',
-        border: selected ? '1.5px solid var(--dawn)' : '1.5px solid var(--line)',
-        opacity: disabled ? 0.45 : 1,
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
-/** The dashed "+ своё" chip — click reveals an inline text field to add a
- *  subject that isn't in the fixed catalog. */
 function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
   const { t } = useTranslation('onboarding');
   const [open, setOpen] = useState(false);
@@ -108,8 +66,8 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
           if (e.key === 'Escape') { setValue(''); setOpen(false); }
         }}
         placeholder={t('profile.customSubjectPlaceholder')}
-        className="px-3 py-1.5 rounded-pill text-small font-medium w-32 focus:outline-none"
-        style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--text-heading)' }}
+        className="field-tile px-3.5 py-2 rounded-pill text-caption font-semibold w-36 focus:outline-none border-[color:var(--pine)]"
+        style={{ color: 'var(--text-heading)' }}
       />
     );
   }
@@ -118,8 +76,12 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors"
-      style={{ background: 'transparent', color: 'var(--mute)', border: '1.5px dashed var(--hairline)' }}
+      className="px-3.5 py-2 rounded-pill text-caption font-semibold transition-colors press-scale"
+      style={{
+        background: 'transparent',
+        color: 'var(--mute)',
+        border: '1.5px dashed color-mix(in srgb, var(--pine) 28%, var(--hairline))',
+      }}
     >
       {t('profile.addCustom')}
     </button>
@@ -132,22 +94,19 @@ function SubjectGroup({
   title: string; note?: string; selected: string[];
   onToggle: (s: string) => void;
   onAddCustom?: (s: string) => void;
-  /** Subjects already picked in the sibling group (e.g. "легко" vs.
-   *  "стараться больше") — same subject can't mean both, so these render
-   *  disabled here until deselected on the other side. */
   otherSelected?: string[];
 }) {
   const { t } = useTranslation('onboarding');
   const custom = selected.filter(s => !SUBJECT_VALUES.includes(s));
   return (
-    <div className="flex flex-col gap-2">
+    <div className="panel-glass flex flex-col gap-3 !p-4 sm:!p-5">
       <div>
-        <p className="text-label font-semibold" style={{ color: 'var(--text-heading)' }}>{title}</p>
-        {note && <p className="text-small text-muted mt-0.5">{note}</p>}
+        <p className="text-body-sm font-semibold text-[color:var(--text-heading)] m-0">{title}</p>
+        {note && <p className="text-body-sm text-muted mt-0.5 m-0">{note}</p>}
       </div>
       <div className="flex flex-wrap gap-2">
         {SUBJECT_OPTIONS.map(s => (
-          <SubjectChip
+          <SelectableChip
             key={s.value}
             label={t(s.key)}
             selected={selected.includes(s.value)}
@@ -164,8 +123,6 @@ function SubjectGroup({
     </div>
   );
 }
-
-// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfileSetupPage() {
   const { t } = useTranslation('onboarding');
@@ -192,234 +149,241 @@ export default function ProfileSetupPage() {
     : { state: 'waiting' as const, size: MASCOT_WAITING_SIZE };
 
   return (
-    <div className="journey-page min-h-screen flex flex-col">
-      {/* Pinned to the viewport corner, independent of the centered content
-          column — hidden below `sm` so it doesn't cover form fields on
-          narrow phones. */}
-      <Mascot
-        state={currentStepMascot.state}
-        size={currentStepMascot.size}
-        className="hidden sm:block fixed bottom-24 right-4 sm:right-8 lg:right-10 lg:bottom-10 z-30 pointer-events-none"
-      />
-
-      {/* ── Progress header ───────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-10 px-5 pt-5 pb-4 flex flex-col gap-2 bg-[color-mix(in_srgb,var(--bg-page)_88%,transparent)] backdrop-blur-[6px]">
-        <OnboardingProgress current={step} total={TOTAL_ONBOARDING_STEPS} />
-      </div>
-
-      {/* ── Scrollable content ────────────────────────────────────────────── */}
-      <div className="relative z-[1] flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
-        <div className="max-w-2xl mx-auto">
-
-        {step === PROFILE_STEPS.NAME_SCHOOL && (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4">
-              <span className="journey-kicker">Профиль · Шаг знакомства</span>
-              <Heading level="display-md">
-                {t('profile.nameQuestion')}
-              </Heading>
-
-              <Input
-                label={t('profile.nameLabel')}
-                value={name}
-                onChange={e => { setName(sanitizeName(e.target.value)); clearError('name'); }}
-                placeholder={t('profile.namePlaceholder')}
-                error={errors.name}
-                hint={!errors.name ? t('profile.nameHint') : undefined}
-                autoFocus
-                maxLength={NAME_MAX_LENGTH}
-              />
-            </div>
-
-            <div className="flex flex-col gap-4 pt-2 border-t border-default">
-              <div className="pt-2">
-                <Heading level="display-md" as="h2">
-                  {t('profile.ageQuestion')}
-                </Heading>
-              </div>
-
-              {/* Age picker — button row, 14–18 */}
-              <div className="flex flex-wrap gap-2" role="group" aria-label={t('profile.agePickerAria')}>
-                {AGES.map(a => {
-                  const selected = age === String(a);
-                  return (
-                    <button
-                      key={a}
-                      type="button"
-                      onClick={() => { setAge(String(a)); clearError('age'); }}
-                      className="w-11 h-11 rounded-full text-label font-semibold transition-colors"
-                      style={{
-                        background: selected ? 'var(--pine)' : 'var(--bg-surface)',
-                        color: selected ? 'var(--text-on-brand)' : 'var(--ink)',
-                        border: selected ? '1.5px solid var(--pine)' : '1.5px solid var(--line)',
-                      }}
-                    >
-                      {a}
-                    </button>
-                  );
-                })}
-              </div>
-              {errors.age && <p className="text-small text-danger">{errors.age}</p>}
-            </div>
-
-            <div className="flex flex-col gap-6 pt-2 border-t border-default">
-              <div className="pt-2">
-                <Heading level="display-md" as="h2">
-                  {t('profile.schoolQuestion')}
-                </Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('profile.schoolNote')}</p>
-              </div>
-
-              <Input
-                label={t('profile.gradeLabel')}
-                type="number"
-                inputMode="numeric"
-                value={grade}
-                onChange={e => { setGrade(e.target.value); clearError('grade'); }}
-                placeholder={t('profile.gradePlaceholder')}
-                error={errors.grade}
-                min={1}
-                max={12}
-              />
-
-              {/* No real city dataset/API exists in this codebase — a plain text
-                  field is the honest fallback rather than a fabricated
-                  autocomplete list. See onboarding rebuild notes. */}
-              <Input
-                label={t('profile.cityLabel')}
-                value={city}
-                onChange={e => setCity(e.target.value)}
-                placeholder={t('profile.cityPlaceholder')}
-                hint={t('profile.cityHint')}
-              />
-
-              <Input
-                label={t('profile.countryLabel')}
-                value={country}
-                onChange={e => setCountry(e.target.value)}
-                placeholder={t('profile.countryPlaceholder')}
-              />
-            </div>
-          </div>
-        )}
-
-        {step === PROFILE_STEPS.SUBJECTS && (
-          <div className="flex flex-col gap-6">
-            <div>
-              <Heading level="display-md">
-                {t('profile.subjectsLikedQuestion')}
-              </Heading>
-              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('profile.subjectsLikedNote')}</p>
-            </div>
-
-            {/* Same neutral chip styling and mutual-exclusion pattern as
-                the easy/hard group below — a subject can't be both liked and
-                disliked at once. */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <SubjectGroup
-                title={t('profile.groupLiked')}
-                selected={subjectsLike}
-                onToggle={s => setSubjectsLike(prev => toggle(prev, s))}
-                onAddCustom={s => setSubjectsLike(prev => (prev.includes(s) ? prev : [...prev, s]))}
-                otherSelected={subjectsDislike}
-              />
-              <SubjectGroup
-                title={t('profile.groupDisliked')}
-                selected={subjectsDislike}
-                onToggle={s => setSubjectsDislike(prev => toggle(prev, s))}
-                onAddCustom={s => setSubjectsDislike(prev => (prev.includes(s) ? prev : [...prev, s]))}
-                otherSelected={subjectsLike}
-              />
-            </div>
-
-            <div className="flex flex-col gap-6 pt-2 border-t border-default">
-              <div className="pt-2">
-                <Heading level="display-md" as="h2">
-                  {t('profile.subjectsRestQuestion')}
-                </Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t('profile.subjectsRestNote')}</p>
-              </div>
-
-              {/* Deliberately neutral: both columns use the identical chip style.
-                  Dawn only ever marks "selected", never "good" vs. "bad" — the
-                  framing is carried by wording alone. */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <SubjectGroup
-                  title={t('profile.groupEasy')}
-                  selected={subjectsEasy}
-                  onToggle={s => setSubjectsEasy(prev => toggle(prev, s))}
-                  otherSelected={subjectsHard}
-                />
-                <SubjectGroup
-                  title={t('profile.groupHard')}
-                  selected={subjectsHard}
-                  onToggle={s => setSubjectsHard(prev => toggle(prev, s))}
-                  otherSelected={subjectsEasy}
-                />
-              </div>
-            </div>
-
-            {/* Third block on this same screen, not a 5th step — the scores
-                are optional in exactly the way the subject picks above are,
-                so they belong to the same "расскажи о себе" beat rather than
-                to a step of their own that implies they're expected. */}
-            <ExamScoresBlock
-              examsTaken={examsTaken}
-              onToggleExam={toggleExam}
-              examScores={examScores}
-              onScoreChange={setExamScore}
-              errors={errors}
-            />
-
-          </div>
-        )}
+    <div className="journey-page journey-page--lit min-h-screen flex flex-col">
+      {/* Ни заливки, ни блюра: полоса шагов — flex-сосед НАД областью прокрутки,
+          а не слой поверх неё, и прятать ей нечего. Тонировка --bg-page на 72%
+          ничего не скрывала, зато клала плоский фог поверх градиента холста и
+          давала видимый горизонтальный шов. */}
+      <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
+        <div className="max-w-6xl mx-auto">
+          <OnboardingProgress current={step} total={TOTAL_ONBOARDING_STEPS} />
         </div>
       </div>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
-      {/* Surface/shadow/rounding live on the inner, centered bar (not this
-          outer full-width one) so the visible "card" wraps tightly around
-          the buttons instead of spanning edge-to-edge into the corner where
-          the fixed mascot sits — it was painting over the mascot before. */}
+      <div className="relative z-[1] flex-1 overflow-y-auto px-3 pt-4 pb-40 sm:px-4 lg:px-6 lg:pb-10">
+        <div className="w-full max-w-6xl mx-auto">
+          <div className="journey-shell flex flex-col gap-7 px-5 py-7 sm:px-8 sm:py-9">
+            {/* Маскот живёт в углу карточки, а не приколот к углу экрана.
+                Пока карточка была узкой, ему хватало бокового поля; на
+                широкой (1152) зазор меньше самого спрайта, и он ложился
+                поверх «Далее». Здесь он заодно занимает пустой верхний
+                правый угол — заголовки шагов короткие и туда не достают. */}
+            {/* !absolute — потому что .journey-shell > * принудительно ставит детям
+                position: relative (чтобы поднять их над декоративным свечением
+                ::after), и обычный `absolute` из слоя утилит это правило не
+                перебивает. */}
+            {/* Показ живёт на обёртке, а не на самой лунке: `.journey-mascot-well`
+                объявлен вне слоёв Tailwind и его `display: flex` перебивает
+                утилиту `hidden` — на мобильном маскот вылезал на кикер. */}
+            <div className="pointer-events-none !absolute right-6 top-6 hidden lg:block">
+              <div className="journey-mascot-well">
+                <Mascot state={currentStepMascot.state} size={currentStepMascot.size} />
+              </div>
+            </div>
+
+
+            {step === PROFILE_STEPS.NAME_SCHOOL && (
+              <div className="flex flex-col gap-7">
+                <div className="flex flex-col gap-4">
+                  <span className="journey-kicker">{t('profile.kickerIntro')}</span>
+                  <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance">
+                    {t('profile.nameQuestion')}
+                  </Heading>
+
+                  {/* Ширину полю задаёт содержимое, а не карточка: имя — это
+                      два-три слова, и подчёркивание во всю ширину карточки
+                      читается как ошибка вёрстки, а не как поле ввода. */}
+                  <div className="max-w-md">
+                    <Input
+                      label={t('profile.nameLabel')}
+                      value={name}
+                      onChange={e => { setName(sanitizeName(e.target.value)); clearError('name'); }}
+                      placeholder={t('profile.namePlaceholder')}
+                      error={errors.name}
+                      hint={!errors.name ? t('profile.nameHint') : undefined}
+                      autoFocus
+                      maxLength={NAME_MAX_LENGTH}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4 pt-1 border-t border-default">
+                  <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)] pt-5">
+                    {t('profile.ageQuestion')}
+                  </Heading>
+
+                  <div className="flex flex-wrap gap-2" role="group" aria-label={t('profile.agePickerAria')}>
+                    {AGES.map(a => {
+                      const selected = age === String(a);
+                      return (
+                        <button
+                          key={a}
+                          type="button"
+                          onClick={() => { setAge(String(a)); clearError('age'); }}
+                          className={cn(
+                            'w-11 h-11 rounded-[12px] text-body-sm font-bold border transition-colors press-scale',
+                            selected
+                              ? 'bg-brand text-on-brand border-transparent'
+                              : 'field-tile text-secondary hover:border-[color:var(--pine)] hover:text-[color:var(--pine)]',
+                          )}
+                        >
+                          {a}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {errors.age && <p className="text-small text-danger m-0">{errors.age}</p>}
+                </div>
+
+                <div className="flex flex-col gap-5 pt-1 border-t border-default">
+                  <div className="pt-5">
+                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
+                      {t('profile.schoolQuestion')}
+                    </Heading>
+                    <Text variant="body-md" className="text-secondary mt-1.5">
+                      {t('profile.schoolNote')}
+                    </Text>
+                  </div>
+
+                  {/* Три коротких ответа в ряд, а не стопкой: по отдельности
+                      каждый занимал всю ширину карточки и оставлял справа
+                      пустоту, а вместе они её заполняют. */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 items-start">
+                    <Input
+                      label={t('profile.gradeLabel')}
+                      type="number"
+                      inputMode="numeric"
+                      value={grade}
+                      onChange={e => { setGrade(e.target.value); clearError('grade'); }}
+                      placeholder={t('profile.gradePlaceholder')}
+                      error={errors.grade}
+                      min={1}
+                      max={12}
+                    />
+
+                    <Input
+                      label={t('profile.cityLabel')}
+                      value={city}
+                      onChange={e => setCity(e.target.value)}
+                      placeholder={t('profile.cityPlaceholder')}
+                      hint={t('profile.cityHint')}
+                    />
+
+                    <Input
+                      label={t('profile.countryLabel')}
+                      value={country}
+                      onChange={e => setCountry(e.target.value)}
+                      placeholder={t('profile.countryPlaceholder')}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === PROFILE_STEPS.SUBJECTS && (
+              <div className="flex flex-col gap-7">
+                <div>
+                  <span className="journey-kicker">{t('profile.kickerSubjects')}</span>
+                  <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance mt-3">
+                    {t('profile.subjectsLikedQuestion')}
+                  </Heading>
+                  <Text variant="body-md" className="text-secondary mt-1.5">
+                    {t('profile.subjectsLikedNote')}
+                  </Text>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                  <SubjectGroup
+                    title={t('profile.groupLiked')}
+                    selected={subjectsLike}
+                    onToggle={s => setSubjectsLike(prev => toggle(prev, s))}
+                    onAddCustom={s => setSubjectsLike(prev => (prev.includes(s) ? prev : [...prev, s]))}
+                    otherSelected={subjectsDislike}
+                  />
+                  <SubjectGroup
+                    title={t('profile.groupDisliked')}
+                    selected={subjectsDislike}
+                    onToggle={s => setSubjectsDislike(prev => toggle(prev, s))}
+                    onAddCustom={s => setSubjectsDislike(prev => (prev.includes(s) ? prev : [...prev, s]))}
+                    otherSelected={subjectsLike}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-4 pt-1 border-t border-default">
+                  <div className="pt-5">
+                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
+                      {t('profile.subjectsRestQuestion')}
+                    </Heading>
+                    <Text variant="body-md" className="text-secondary mt-1.5">
+                      {t('profile.subjectsRestNote')}
+                    </Text>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                    <SubjectGroup
+                      title={t('profile.groupEasy')}
+                      selected={subjectsEasy}
+                      onToggle={s => setSubjectsEasy(prev => toggle(prev, s))}
+                      otherSelected={subjectsHard}
+                    />
+                    <SubjectGroup
+                      title={t('profile.groupHard')}
+                      selected={subjectsHard}
+                      onToggle={s => setSubjectsHard(prev => toggle(prev, s))}
+                      otherSelected={subjectsEasy}
+                    />
+                  </div>
+                </div>
+
+                <ExamScoresBlock
+                  examsTaken={examsTaken}
+                  onToggleExam={toggleExam}
+                  examScores={examScores}
+                  onScoreChange={setExamScore}
+                  errors={errors}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className={cn(
-        'bg-page sm:bg-transparent px-5 py-4 z-20',
+        'px-3 py-4 z-20 sm:px-4',
         'fixed bottom-0 inset-x-0 lg:static',
+        'action-bar-scrim',
       )}>
-        <div className="max-w-2xl mx-auto w-full flex items-center gap-3 lg:mb-6 lg:p-3 lg:rounded-[var(--radius)] lg:bg-surface lg:shadow-card">
-        {step > 1 && (
-          <Button
-            variant="ghost"
-            size="lg"
-            className="h-14 px-6 rounded-pill"
-            onClick={handleBack}
-          >
-            {tc('back')}
-          </Button>
-        )}
+        <div className="max-w-6xl mx-auto w-full flex items-center gap-3 panel-glass !rounded-[18px] !p-3 lg:mb-6">
+          {step > 1 && (
+            <Button
+              variant="ghost"
+              size="lg"
+              className="h-12 sm:h-14 px-5 sm:px-6 rounded-pill press-scale"
+              onClick={handleBack}
+            >
+              {tc('back')}
+            </Button>
+          )}
 
-        {step < totalSteps ? (
-          <Button
-            size="lg"
-            className="ml-auto h-14 px-10 rounded-pill font-extrabold shadow-button"
-            onClick={handleNext}
-          >
-            {tc('next')}
-          </Button>
-        ) : (
-          <Button
-            size="lg"
-            className="ml-auto h-14 px-10 rounded-pill font-extrabold shadow-button"
-            onClick={handleSubmit}
-          >
-            {/* Saves the profile and moves on to artifacts (steps 3-4 of the
-                same onboarding flow) — "Далее", not "Готово", since this
-                isn't the end of onboarding. */}
-            {tc('next')}
-          </Button>
-        )}
+          {step < totalSteps ? (
+            <Button
+              size="lg"
+              className="ml-auto h-12 sm:h-14 px-8 sm:px-10 rounded-pill font-extrabold shadow-button press-scale"
+              onClick={handleNext}
+            >
+              {tc('next')}
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              className="ml-auto h-12 sm:h-14 px-8 sm:px-10 rounded-pill font-extrabold shadow-button press-scale"
+              onClick={handleSubmit}
+            >
+              {tc('next')}
+            </Button>
+          )}
         </div>
       </div>
-
     </div>
   );
 }

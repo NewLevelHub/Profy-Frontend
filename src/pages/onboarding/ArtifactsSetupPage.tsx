@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 import { useArtifactsSetup, ARTIFACT_SECTIONS, type ArtifactSection } from './hooks/useArtifactsSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
+import { SelectableChip } from './components/SelectableChip';
 import { PROFILE_STEP_COUNT, TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
 // ── Artifacts — onboarding steps 5-9 ────────────────────────────────────────
@@ -62,7 +64,8 @@ const TARGETS = [
 // 'welcome'/'waiting') — sizes calibrated per pose to a common ~182px
 // rendered character height, same ~2.5x scale-up and rationale as
 // ProfileSetupPage.
-const MASCOT_TRANSITION_SIZE = 158;
+// Под лунку .journey-mascot-well (112px), а не под угол экрана.
+const MASCOT_TRANSITION_SIZE = 88;
 const MASCOT_PAUSE_SIZE = 198;
 // Edit mode (opened from Profile settings) isn't one of the 4 onboarding
 // steps — kept at its own pre-existing fixed size, unaffected by the above.
@@ -98,23 +101,6 @@ function SectionTabs({ active, onChange }: { active: ArtifactSection; onChange: 
   );
 }
 
-function Chip({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors"
-      style={{
-        background: 'var(--bg-surface)',
-        color: selected ? 'var(--text-heading)' : 'var(--ink)',
-        border: selected ? '1.5px solid var(--dawn)' : '1.5px solid var(--line)',
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
 function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
   const { t } = useTranslation('onboarding');
   const [open, setOpen] = useState(false);
@@ -139,8 +125,8 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
           if (e.key === 'Escape') { setValue(''); setOpen(false); }
         }}
         placeholder={t('artifacts.customPlaceholder')}
-        className="px-3 py-1.5 rounded-pill text-small font-medium w-32 focus:outline-none"
-        style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--dawn)', color: 'var(--text-heading)' }}
+        className="field-tile px-3.5 py-2 rounded-pill text-caption font-semibold w-36 focus:outline-none border-[color:var(--pine)]"
+        style={{ color: 'var(--text-heading)' }}
       />
     );
   }
@@ -149,8 +135,12 @@ function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="px-3 py-1.5 rounded-pill text-small font-medium transition-colors"
-      style={{ background: 'transparent', color: 'var(--mute)', border: '1.5px dashed var(--hairline)' }}
+      className="px-3.5 py-2 rounded-pill text-caption font-semibold transition-colors press-scale"
+      style={{
+        background: 'transparent',
+        color: 'var(--mute)',
+        border: '1.5px dashed color-mix(in srgb, var(--pine) 28%, var(--hairline))',
+      }}
     >
       {t('artifacts.addCustom')}
     </button>
@@ -170,14 +160,16 @@ function ChipGrid({
   const label = labelFor ?? ((v: string) => v);
   const custom = selected.filter(s => !options.includes(s));
   return (
-    <div className="flex flex-col gap-2">
-      {subtitle && <p className="text-small font-semibold text-muted">{subtitle}</p>}
+    <div className="panel-glass flex flex-col gap-3 !p-4 sm:!p-5">
+      {subtitle && (
+        <p className="text-body-sm font-semibold text-[color:var(--text-heading)] m-0">{subtitle}</p>
+      )}
       <div className="flex flex-wrap gap-2">
         {options.map(o => (
-          <Chip key={o} label={label(o)} selected={selected.includes(o)} onClick={() => onToggle(o)} />
+          <SelectableChip key={o} label={label(o)} selected={selected.includes(o)} onClick={() => onToggle(o)} />
         ))}
         {custom.map(o => (
-          <Chip key={o} label={label(o)} selected onClick={() => onToggle(o)} />
+          <SelectableChip key={o} label={label(o)} selected onClick={() => onToggle(o)} />
         ))}
         <AddCustomChip onAdd={onAddCustom} />
       </div>
@@ -279,12 +271,14 @@ export default function ArtifactsSetupPage() {
       onChange={e => setDreams(e.target.value)}
       placeholder={t('artifacts.dreamsPlaceholder')}
       className={cn(
-        'w-full max-w-2xl aspect-[2/1] mx-auto rounded-[var(--radius-sm)] px-4 py-3 text-body-md resize-none',
+        // Высота под пару строк, а не aspect-[2/1]: пропорция растила поле вместе
+        // с карточкой и на широком экране разворачивала «одну строку, без правил»
+        // в пустой прямоугольник в треть экрана.
+        'w-full min-h-[8.5rem] mx-auto field-tile !rounded-[16px] px-4 py-3.5 text-body-md resize-none',
         'placeholder:text-placeholder focus:outline-none transition-colors',
+        'focus:border-[color:var(--pine)]',
       )}
-      style={{ background: 'var(--bg-page)', border: '1.5px solid var(--line)', color: 'var(--ink)' }}
-      onFocus={e => { e.currentTarget.style.borderColor = 'var(--pine)'; }}
-      onBlur={e => { e.currentTarget.style.borderColor = 'var(--line)'; }}
+      style={{ color: 'var(--ink)' }}
     />
   );
 
@@ -303,27 +297,29 @@ export default function ArtifactsSetupPage() {
   // boxed layout since jumping freely between groups is the point here.
   if (!isLinearFlow) {
     return (
-      <div className="min-h-screen bg-page flex flex-col">
-        <div className="flex-1 overflow-y-auto px-5 py-8 lg:py-12">
-          <div className="max-w-2xl lg:max-w-4xl mx-auto flex flex-col gap-6">
+      <div className="journey-page journey-page--lit min-h-screen flex flex-col">
+        <div className="relative z-[1] flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6 lg:py-12">
+          <div className="max-w-6xl mx-auto flex flex-col gap-6">
 
             <div>
-              <h1 className="text-h1 font-black text-primary tracking-tight mb-1">{t('artifacts.editTitle')}</h1>
-              <p className="text-body text-secondary">{t('artifacts.editSubtitle')}</p>
+              <span className="journey-kicker">{t('artifacts.kickerInterests')}</span>
+              <Heading level="display-md" className="text-[color:var(--text-heading)] mt-3">
+                {t('artifacts.editTitle')}
+              </Heading>
+              <Text variant="body-md" className="text-secondary mt-1.5">
+                {t('artifacts.editSubtitle')}
+              </Text>
             </div>
 
             <SectionTabs active={activeSection} onChange={setActiveSection} />
 
-            <div
-              className="flex flex-col gap-6 p-6 sm:p-8"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}
-            >
+            <div className="journey-shell flex flex-col gap-6 px-5 py-6 sm:px-8 sm:py-8">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Heading level="display-md" as="h2">
+                <div className="flex flex-col gap-1.5 min-w-0">
+                  <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
                     {copy.headline}
                   </Heading>
-                  <p className="text-body-md" style={{ color: 'var(--mute)' }}>{copy.note}</p>
+                  <Text variant="body-md" className="text-secondary">{copy.note}</Text>
                 </div>
                 <Mascot state="welcome" size={MASCOT_EDIT_SIZE} className="shrink-0" />
               </div>
@@ -331,14 +327,14 @@ export default function ArtifactsSetupPage() {
               {sectionContent}
 
               {saveError && (
-                <p className="text-xs text-danger text-center">{t('artifacts.saveFailed')}</p>
+                <p className="text-xs text-danger text-center m-0">{t('artifacts.saveFailed')}</p>
               )}
 
               <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-default">
                 <Button
                   size="lg"
                   isLoading={isLoading}
-                  className="h-12 rounded-pill font-extrabold shadow-button"
+                  className="h-12 rounded-pill font-extrabold shadow-button press-scale"
                   onClick={handleNext}
                 >
                   {isLastSection ? t('artifacts.done') : t('artifacts.nextGroup')}
@@ -346,7 +342,7 @@ export default function ArtifactsSetupPage() {
                 <Button
                   variant="ghost"
                   size="lg"
-                  className="h-12 rounded-pill"
+                  className="h-12 rounded-pill press-scale"
                   onClick={handleSkip}
                 >
                   {t('artifacts.skipGroup')}
@@ -371,118 +367,142 @@ export default function ArtifactsSetupPage() {
   const isDreamsStep = activeSection === 'dreams';
 
   return (
-    <div className="journey-page min-h-screen flex flex-col">
-      {/* Pinned to the viewport corner, independent of the centered content
-          column — hidden below `sm` so it doesn't cover form fields on
-          narrow phones. Step 4 (dreams) keeps its own inline mascot above
-          the headline instead — see below. */}
-      {!isDreamsStep && (
-        <Mascot
-          state="transition"
-          size={MASCOT_TRANSITION_SIZE}
-          className="hidden sm:block fixed bottom-24 right-4 sm:right-8 lg:right-10 lg:bottom-10 z-30 pointer-events-none"
-        />
-      )}
-
-      <div className="sticky top-0 z-10 px-5 pt-5 pb-4 flex flex-col gap-2 bg-[color-mix(in_srgb,var(--bg-page)_88%,transparent)] backdrop-blur-[6px]">
-        <OnboardingProgress
-          current={PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1)}
-          total={TOTAL_ONBOARDING_STEPS}
-        />
+    <div className="journey-page journey-page--lit min-h-screen flex flex-col">
+      {/* Ни заливки, ни блюра: полоса шагов — flex-сосед НАД областью прокрутки,
+          а не слой поверх неё, и прятать ей нечего. Тонировка --bg-page на 72%
+          ничего не скрывала, зато клала плоский фог поверх градиента холста и
+          давала видимый горизонтальный шов. */}
+      <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
+        <div className="max-w-6xl mx-auto">
+          <OnboardingProgress
+            current={PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1)}
+            total={TOTAL_ONBOARDING_STEPS}
+          />
+        </div>
       </div>
 
-      <div className="relative z-[1] flex-1 overflow-y-auto px-5 pt-5 pb-40 lg:pb-8">
-        <div className="max-w-2xl mx-auto">
-        {isDreamsStep ? (
-          <div className="flex flex-col items-center gap-5">
-            <div className="flex flex-col items-center gap-3 text-center">
-              <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
-              <div>
-                <div className="flex justify-center mb-2">
-                  <span className="journey-kicker">Профиль · Мечты</span>
+      <div className="relative z-[1] flex-1 overflow-y-auto px-3 pt-4 pb-40 sm:px-4 lg:px-6 lg:pb-10">
+        <div className="w-full max-w-6xl mx-auto">
+          <div className="journey-shell flex flex-col gap-7 px-5 py-7 sm:px-8 sm:py-9">
+            {/* Угол карточки, а не угол экрана: при ширине 1152 боковое поле
+                меньше спрайта, и приколотый маскот ложился на «Далее».
+                На шаге «мечт» его нет — там своя композиция с маскотом по
+                центру. !absolute перебивает `.journey-shell > *`, которое
+                принудительно ставит детям position: relative. */}
+            {!isDreamsStep && (
+              <div className="pointer-events-none !absolute right-6 top-6 hidden lg:block">
+                <div className="journey-mascot-well">
+                  <Mascot state="transition" size={MASCOT_TRANSITION_SIZE} />
                 </div>
-                <Heading level="display-md">{copy.headline}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{copy.note}</p>
               </div>
-            </div>
+            )}
 
-            {dreamsBody}
+            {isDreamsStep ? (
+              /* Шаг «мечт» держит свою, узкую колонку и не наследует ширину
+                 карточки: это одна центрированная реплика с полем на пару
+                 строк, а не сетка чипов. На всю ширину поле «одна строка, без
+                 правил» разворачивалось в пустой прямоугольник 1050×525. */
+              <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
+                  <div>
+                    <div className="flex justify-center mb-3">
+                      <span className="journey-kicker">{t('artifacts.kickerDreams')}</span>
+                    </div>
+                    <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance">
+                      {copy.headline}
+                    </Heading>
+                    <Text variant="body-md" className="text-secondary mt-1.5">
+                      {copy.note}
+                    </Text>
+                  </div>
+                </div>
+
+                {dreamsBody}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-7">
+                <div>
+                  <span className="journey-kicker">{t('artifacts.kickerInterests')}</span>
+                  <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance mt-3">
+                    {t(SECTION_KEY.activities.headline)}
+                  </Heading>
+                  <Text variant="body-md" className="text-secondary mt-1.5">
+                    {t(SECTION_KEY.activities.note)}
+                  </Text>
+                </div>
+                {activitiesBody}
+
+                <div className="flex flex-col gap-4 pt-1 border-t border-default">
+                  <div className="pt-5">
+                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
+                      {t(SECTION_KEY.achievements.headline)}
+                    </Heading>
+                    <Text variant="body-md" className="text-secondary mt-1.5">
+                      {t(SECTION_KEY.achievements.note)}
+                    </Text>
+                  </div>
+                  {achievementsBody}
+                </div>
+
+                <div className="flex flex-col gap-4 pt-1 border-t border-default">
+                  <div className="pt-5">
+                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
+                      {t(SECTION_KEY.professions.headline)}
+                    </Heading>
+                    <Text variant="body-md" className="text-secondary mt-1.5">
+                      {t(SECTION_KEY.professions.note)}
+                    </Text>
+                  </div>
+                  {professionsBody}
+                </div>
+
+                <div className="flex flex-col gap-4 pt-1 border-t border-default">
+                  <div className="pt-5">
+                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
+                      {t(SECTION_KEY.targets.headline)}
+                    </Heading>
+                    <Text variant="body-md" className="text-secondary mt-1.5">
+                      {t(SECTION_KEY.targets.note)}
+                    </Text>
+                  </div>
+                  {targetsBody}
+                </div>
+              </div>
+            )}
+
+            {saveError && (
+              <p className="text-xs text-danger text-center m-0">{t('artifacts.saveFailed')}</p>
+            )}
           </div>
-        ) : (
-          <div className="flex flex-col gap-6">
-            <div>
-              <div className="mb-2">
-                <span className="journey-kicker">Профиль · Увлечения и цели</span>
-              </div>
-              <Heading level="display-md">{t(SECTION_KEY.activities.headline)}</Heading>
-              <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.activities.note)}</p>
-            </div>
-            {activitiesBody}
-
-            <div className="flex flex-col gap-4 pt-2 border-t border-default">
-              <div className="pt-2">
-                <Heading level="display-md" as="h2">{t(SECTION_KEY.achievements.headline)}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.achievements.note)}</p>
-              </div>
-              {achievementsBody}
-            </div>
-
-            <div className="flex flex-col gap-4 pt-2 border-t border-default">
-              <div className="pt-2">
-                <Heading level="display-md" as="h2">{t(SECTION_KEY.professions.headline)}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.professions.note)}</p>
-              </div>
-              {professionsBody}
-            </div>
-
-            <div className="flex flex-col gap-4 pt-2 border-t border-default">
-              <div className="pt-2">
-                <Heading level="display-md" as="h2">{t(SECTION_KEY.targets.headline)}</Heading>
-                <p className="text-body mt-1" style={{ color: 'var(--ink)' }}>{t(SECTION_KEY.targets.note)}</p>
-              </div>
-              {targetsBody}
-            </div>
-          </div>
-        )}
-
-        {saveError && (
-          <p className="text-xs text-danger text-center mt-6">{t('artifacts.saveFailed')}</p>
-        )}
         </div>
       </div>
 
-      {/* Surface/shadow/rounding live on the inner, centered bar (not this
-          outer full-width one) so the visible "card" wraps tightly around
-          the buttons instead of spanning edge-to-edge into the corner where
-          the fixed mascot sits — it was painting over the mascot before. */}
       <div className={cn(
-        'bg-page sm:bg-transparent px-5 py-4 z-20',
+        'px-3 py-4 z-20 sm:px-4',
         'fixed bottom-0 inset-x-0 lg:static',
+        'action-bar-scrim',
       )}>
-        <div className="max-w-2xl mx-auto w-full flex items-center gap-3 lg:mb-6 lg:p-3 lg:rounded-[var(--radius)] lg:bg-surface lg:shadow-card">
-        {/* Always shown here — on the first group this steps back across the
-            page boundary into profile setup's last step (see
-            useArtifactsSetup.handleBack), not just between artifact groups. */}
-        <Button
-          variant="ghost"
-          size="lg"
-          className="h-14 px-6 rounded-pill"
-          onClick={handleBack}
-        >
-          {tc('back')}
-        </Button>
+        <div className="max-w-6xl mx-auto w-full flex items-center gap-3 panel-glass !rounded-[18px] !p-3 lg:mb-6">
+          <Button
+            variant="ghost"
+            size="lg"
+            className="h-12 sm:h-14 px-5 sm:px-6 rounded-pill press-scale"
+            onClick={handleBack}
+          >
+            {tc('back')}
+          </Button>
 
-        <Button
-          size="lg"
-          isLoading={isLoading}
-          className="ml-auto h-14 px-10 rounded-pill font-extrabold shadow-button"
-          onClick={handleNext}
-        >
-          {isLastSection ? t('artifacts.done') : tc('next')}
-        </Button>
+          <Button
+            size="lg"
+            isLoading={isLoading}
+            className="ml-auto h-12 sm:h-14 px-8 sm:px-10 rounded-pill font-extrabold shadow-button press-scale"
+            onClick={handleNext}
+          >
+            {isLastSection ? t('artifacts.done') : tc('next')}
+          </Button>
         </div>
       </div>
-
     </div>
   );
 }
