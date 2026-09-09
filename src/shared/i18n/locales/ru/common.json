@@ -1,0 +1,119 @@
+{
+  "logout": "Выйти",
+  "loading": "Загрузка…",
+  "retry": "Повторить",
+  "back": "Назад",
+  "backToResults": "Назад к результатам",
+  "details": "Подробнее",
+  "next": "Далее",
+  "save": "Сохранить",
+  "cancel": "Отмена",
+  "goHome": "На главную",
+  "reloadPage": "Обновить страницу",
+  "pageInDevelopment": "Страница в разработке",
+  "menu": "Меню",
+  "yes": "Да",
+  "no": "Нет",
+  "emptyValue": "—",
+  "ageYears_one": "{{count}} год",
+  "ageYears_few": "{{count}} года",
+  "ageYears_many": "{{count}} лет",
+  "ageYears_other": "{{count}} лет",
+  "errorBoundary": {
+    "title": "Что-то пошло не так",
+    "body": "Произошла непредвиденная ошибка. Попробуй обновить страницу."
+  },
+  "notFound": {
+    "title": "Страница не найдена"
+  },
+  "nav": {
+    "results": "Результаты",
+    "universities": "Университеты",
+    "profile": "Профиль",
+    "admin": "Админка"
+  },
+  "sound": {
+    "enable": "Включить звук",
+    "disable": "Выключить звук"
+  },
+  "ageGroup": {
+    "junior": "5–7 класс",
+    "middle": "8–9 класс",
+    "senior": "10–11 класс"
+  },
+  "celebrationSound": {
+    "chime": {
+      "label": "Колокольчик",
+      "desc": "Два лёгких нотных удара"
+    },
+    "sparkle": {
+      "label": "Искры",
+      "desc": "Быстрое восходящее мелодичное «та-да»"
+    },
+    "fanfare": {
+      "label": "Фанфары",
+      "desc": "Торжественная короткая фанфара"
+    },
+    "soft": {
+      "label": "Мягкое",
+      "desc": "Спокойный однотонный аккорд"
+    },
+    "party": {
+      "label": "Праздник",
+      "desc": "Весёлая быстрая последовательность"
+    }
+  },
+  "otp": {
+    "cellLabel": "Цифра {{index}} из {{total}}"
+  },
+  "passwordStrength": {
+    "weak": "СЛАБЫЙ ПАРОЛЬ",
+    "medium": "СРЕДНИЙ ПАРОЛЬ",
+    "good": "ХОРОШИЙ ПАРОЛЬ",
+    "excellent": "ОТЛИЧНЫЙ ПАРОЛЬ",
+    "count_one": "{{count}} символ",
+    "count_few": "{{count}} символа",
+    "count_many": "{{count}} символов",
+    "count_other": "{{count}} символа"
+  },
+  "languageSwitcherAria": "Тіл / Язык",
+  "themeLabel": "Тема",
+  "favoriteAdd": "Добавить в избранное",
+  "favoriteRemove": "Убрать из избранного",
+  "mascot": {
+    "welcome": "Маскот Profy · приветствие",
+    "transition": "Маскот Profy · переход между блоками",
+    "rest": "Маскот Profy · привал",
+    "completion": "Маскот Profy · завершение",
+    "waiting": "Маскот Profy · ожидание",
+    "pause": "Маскот Profy · пауза",
+    "graduate": "Маскот Profy · университет",
+    "doctor": "Маскот Profy · врач",
+    "engineer": "Маскот Profy · инженер",
+    "developer": "Маскот Profy · программист",
+    "chemist": "Маскот Profy · химик",
+    "artist": "Маскот Profy · художник",
+    "musician": "Маскот Profy · музыкант",
+    "chef": "Маскот Profy · повар",
+    "architect": "Маскот Profy · архитектор",
+    "footballer": "Маскот Profy · футболист",
+    "pilot": "Маскот Profy · пилот",
+    "photographer": "Маскот Profy · фотограф",
+    "lawyer": "Маскот Profy · юрист",
+    "vet": "Маскот Profy · ветеринар",
+    "gardener": "Маскот Profy · садовник",
+    "actor": "Маскот Profy · актёр",
+    "journalist": "Маскот Profy · журналист",
+    "gamer": "Маскот Profy · геймер",
+    "baker": "Маскот Profy · пекарь",
+    "astronomer": "Маскот Profy · астроном",
+    "entrepreneur": "Маскот Profy · предприниматель"
+  },
+  "toHome": "На главную",
+  "examLabel": {
+    "ielts": "IELTS",
+    "unt": "ЕНТ",
+    "sat": "SAT",
+    "toefl": "TOEFL"
+  }
+}

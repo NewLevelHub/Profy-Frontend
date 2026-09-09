@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { CtaLink, ArrowIcon } from './primitives';
 import { useScrollProgress, scrollToAnchor } from '../hooks';
 
-const NAV = [
-  { id: 'how', label: 'Как работает' },
-  { id: 'features', label: 'Возможности' },
-  { id: 'inside', label: 'Что внутри' },
-  { id: 'try', label: 'Попробуй' },
-  { id: 'faq', label: 'Вопросы' },
-] as const;
+const NAV_IDS = ['how', 'features', 'inside', 'try', 'faq'] as const;
 
 /** Вордмарк: имя набором и акцентная точка на базовой линии. */
 function Wordmark({ className, onClick }: { className?: string; onClick?: () => void }) {
@@ -21,10 +18,10 @@ function Wordmark({ className, onClick }: { className?: string; onClick?: () => 
       onClick={onClick ?? (() => scrollToAnchor('hero'))}
       aria-label={env.APP_NAME}
       className={cn(
-        'group inline-flex items-baseline font-display font-bold text-[1.22rem] tracking-[-0.045em] leading-none',
+        'group inline-flex items-baseline font-display font-bold text-display-sm tracking-[-0.045em] leading-none',
         className,
       )}
-      style={{ color: 'var(--midnight)' }}
+      style={{ color: 'var(--text-heading)' }}
     >
       {env.APP_NAME}
       <span
@@ -39,8 +36,10 @@ function Wordmark({ className, onClick }: { className?: string; onClick?: () => 
 }
 
 export function LandingHeader() {
+  const { t } = useTranslation('landing');
   const { progress, scrolled } = useScrollProgress();
   const [menuOpen, setMenuOpen] = useState(false);
+  const nav = NAV_IDS.map(id => ({ id, label: t(`nav.${id}`) }));
 
   // Пока открыто мобильное меню, страница под ним не прокручивается.
   // Снимаем блокировку и при размонтировании: уйти с лендинга можно прямо
@@ -97,12 +96,12 @@ export function LandingHeader() {
             <Wordmark />
 
             <nav className="hidden min-[901px]:flex items-center gap-[2.1rem]">
-              {NAV.map(item => (
+              {nav.map(item => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => goToAnchor(item.id)}
-                  className="nav-underline relative text-[0.93rem] font-medium text-secondary hover:text-primary transition-colors"
+                  className="nav-underline relative text-body-sm font-medium text-secondary hover:text-primary transition-colors"
                 >
                   {item.label}
                 </button>
@@ -110,21 +109,24 @@ export function LandingHeader() {
             </nav>
 
             <div className="flex items-center gap-[0.9rem]">
+              <LanguageSwitcher className="hidden min-[901px]:inline-flex" />
+              <ThemeToggle className="hidden min-[901px]:inline-flex" />
+
               <Link
                 to="/login"
-                className="hidden min-[901px]:inline text-[0.93rem] font-semibold text-secondary hover:text-primary transition-colors no-underline"
+                className="hidden min-[901px]:inline text-body-sm font-semibold text-secondary hover:text-primary transition-colors no-underline"
               >
-                Войти
+                {t('cta.login')}
               </Link>
               <CtaLink to="/register" size="sm" className="hidden min-[901px]:inline-flex">
-                Пройти тест
+                {t('cta.takeTest')}
                 <ArrowIcon />
               </CtaLink>
 
               <button
                 type="button"
                 onClick={() => setMenuOpen(v => !v)}
-                aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
+                aria-label={menuOpen ? t('cta.closeMenu') : t('cta.openMenu')}
                 aria-expanded={menuOpen}
                 className="min-[901px]:hidden w-10 h-10 rounded-[var(--radius)] bg-surface border border-default flex items-center justify-center"
               >
@@ -145,23 +147,32 @@ export function LandingHeader() {
         )}
         style={{ background: 'color-mix(in srgb, var(--bg-page) 98%, transparent)' }}
       >
-        {NAV.map(item => (
+        {nav.map(item => (
           <button
             key={item.id}
             type="button"
             onClick={() => goToAnchor(item.id)}
-            className="text-left font-display text-[1.25rem] font-semibold tracking-[-0.02em]"
-            style={{ color: 'var(--midnight)' }}
+            className="text-left font-display text-display-sm font-semibold tracking-[-0.02em]"
+            style={{ color: 'var(--text-heading)' }}
           >
             {item.label}
           </button>
         ))}
-        <div className="flex flex-col gap-[0.9rem] mt-4">
+        <div className="flex items-center justify-between gap-3 mt-2">
+          <span className="text-body-sm font-semibold text-secondary">{t('cta.language', { defaultValue: 'Язык' })}</span>
+          <LanguageSwitcher />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-body-sm font-semibold text-secondary">{t('cta.theme', { defaultValue: 'Тема' })}</span>
+          <ThemeToggle />
+        </div>
+
+        <div className="flex flex-col gap-[0.9rem] mt-2">
           <CtaLink to="/login" variant="ghost" size="lg" className="w-full">
-            Войти
+            {t('cta.login')}
           </CtaLink>
           <CtaLink to="/register" size="lg" className="w-full">
-            Пройти диагностику
+            {t('cta.takeDiagnostic')}
             <ArrowIcon />
           </CtaLink>
         </div>

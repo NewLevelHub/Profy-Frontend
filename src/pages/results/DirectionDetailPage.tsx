@@ -1,13 +1,17 @@
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, Map } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
+import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { Mascot } from '@/shared/ui/Mascot';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
+import { cn } from '@/shared/lib/cn';
 import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useResults } from '@/pages/results/hooks/useResults';
+import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 import { DomainCardFrame, DomainKicker } from '@/pages/results/components/DomainCardParts';
@@ -29,11 +33,43 @@ function DirectionDetailSkeleton() {
   );
 }
 
+function SkillTile({ children, tone }: { children: string; tone: 'pine' | 'lake' }) {
+  return (
+    <div
+      className={cn(
+        'field-tile px-3.5 py-3 text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug',
+        'border-l-[3px]',
+        tone === 'pine'
+          ? 'border-l-[color:var(--pine)]'
+          : 'border-l-[color:var(--lake)]',
+      )}
+    >
+      {capitalizeFirst(children)}
+    </div>
+  );
+}
+
+function ColumnTitle({ children, tone }: { children: string; tone: 'pine' | 'lake' }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-1">
+      <span
+        className="w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ background: tone === 'pine' ? 'var(--pine)' : 'var(--lake)' }}
+        aria-hidden="true"
+      />
+      <Heading level="display-sm" as="h3" className="text-[color:var(--text-heading)] m-0">
+        {children}
+      </Heading>
+    </div>
+  );
+}
+
 export default function DirectionDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('results');
 
-  const { report, isLoading, error, refetch } = useResults();
+  const { report, isLoading, isTranslating, error, refetch } = useResults();
   const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
 
   const {
@@ -44,6 +80,7 @@ export default function DirectionDetailPage() {
     setActiveCountry,
     countryFilters,
     isAllowed: showUniversities,
+    toggleFavorite,
     refetch: refetchPrograms,
   } = useUniversityList();
 
@@ -59,13 +96,20 @@ export default function DirectionDetailPage() {
     return <DirectionDetailSkeleton />;
   }
 
+  if (isTranslating) {
+    return (
+      <PageContainer>
+        <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
-        <h2 className="text-h1 font-extrabold text-primary">Что-то пошло не так</h2>
+        <h2 className="text-h1 font-extrabold text-primary">{t('direction.errorTitle')}</h2>
         <p className="text-body text-secondary">{error}</p>
-        <Button onClick={() => refetch()}>Повторить</Button>
+        <Button onClick={() => refetch()}>{t('common:retry')}</Button>
       </div>
     );
   }
@@ -73,58 +117,58 @@ export default function DirectionDetailPage() {
   if (!direction) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <span className="text-5xl select-none" aria-hidden="true">🔍</span>
-        <h2 className="text-h1 font-extrabold text-primary">Направление не найдено</h2>
-        <Button onClick={() => navigate('/results')}>Назад к результатам</Button>
+        <h2 className="text-h1 font-extrabold text-primary">{t('direction.notFoundTitle')}</h2>
+        <Button onClick={() => navigate('/results')}>{t('common:backToResults')}</Button>
       </div>
     );
   }
 
   return (
     <PageContainer className="flex flex-col gap-6">
+      <BackLink onClick={() => navigate('/results')}>
+        {t('common:backToResults')}
+      </BackLink>
 
-      <button
-        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity w-fit"
-        onClick={() => navigate('/results')}
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Назад к результатам
-      </button>
-
-      <PageHeader title={direction.name} />
+      <PageHeader
+        kicker={t('direction.pageKicker')}
+        title={direction.name}
+      />
 
       {direction.description && direction.description.length > 0 && (
-        <section aria-label="Описание">
-          <Card className="bg-brand-subtle flex flex-col gap-3">
-            <p className="text-body text-primary leading-relaxed">{direction.description}</p>
-          </Card>
+        <section
+          aria-label={t('direction.descriptionAria')}
+          className="panel-glass !p-5 sm:!p-7 bg-[color-mix(in_srgb,var(--pine)_5%,var(--paper))]"
+        >
+          <Text variant="body-md" className="text-primary leading-relaxed">
+            {direction.description}
+          </Text>
         </section>
       )}
 
       {(skills.length > 0 || subjects.length > 0) && (
-        <DomainCardFrame ariaLabel="Навыки и предметы для развития">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="min-w-0 flex flex-col gap-2">
-              <DomainKicker>Навыки и предметы для развития</DomainKicker>
-              <p className="text-body text-primary leading-relaxed">
-                Прокачивай их постепенно — они пригодятся и в учёбе, и в будущей профессии.
-              </p>
+        <DomainCardFrame ariaLabel={t('direction.skillsSubjectsAria')}>
+          <div className="flex items-start justify-between gap-5 flex-wrap">
+            <div className="min-w-0 flex flex-col gap-2.5 flex-1">
+              <DomainKicker>{t('direction.skillsSubjectsKicker')}</DomainKicker>
+              <Heading level="display-sm" as="h2" className="text-[color:var(--text-heading)] text-balance m-0">
+                {t('direction.skillsSubjectsTitle')}
+              </Heading>
+              <Text variant="body-sm" className="text-secondary max-w-[52ch]">
+                {t('direction.skillsSubjectsBody')}
+              </Text>
             </div>
-            <Mascot state="transition" size={68} className="flex-shrink-0" />
+            <div className="journey-mascot-well shrink-0">
+              <Mascot state="transition" size={72} blink={false} />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             {skills.length > 0 && (
               <div className="flex flex-col gap-3">
-                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">Навыки</p>
+                <ColumnTitle tone="pine">{t('direction.skills')}</ColumnTitle>
                 <div className="flex flex-col gap-2">
                   {skills.map((skill, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-2.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-surface text-body-sm font-semibold text-primary"
-                    >
-                      {skill}
-                    </div>
+                    <SkillTile key={i} tone="pine">{skill}</SkillTile>
                   ))}
                 </div>
               </div>
@@ -132,15 +176,10 @@ export default function DirectionDetailPage() {
 
             {subjects.length > 0 && (
               <div className="flex flex-col gap-3">
-                <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">Предметы</p>
+                <ColumnTitle tone="lake">{t('direction.subjects')}</ColumnTitle>
                 <div className="flex flex-col gap-2">
                   {subjects.map((subj, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-2.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-surface text-body-sm font-semibold text-primary"
-                    >
-                      {subj}
-                    </div>
+                    <SkillTile key={i} tone="lake">{subj}</SkillTile>
                   ))}
                 </div>
               </div>
@@ -149,30 +188,27 @@ export default function DirectionDetailPage() {
         </DomainCardFrame>
       )}
 
-      {/* Always present — contract guarantees non-empty try_now; matched_strengths above it is optional */}
-      <DomainCardFrame ariaLabel="Почему тебе подходит и попробуй прямо сейчас">
+      <DomainCardFrame ariaLabel={t('direction.whyFitAria')}>
         {direction.matched_strengths.length > 0 && (
           <div className="flex flex-col gap-3">
-            <DomainKicker>Почему тебе подходит</DomainKicker>
-            <p className="text-body text-primary leading-relaxed">
+            <DomainKicker>{t('direction.whyFitKicker')}</DomainKicker>
+            <p className="text-body-md font-semibold text-[color:var(--text-heading)] leading-relaxed m-0">
               {direction.matched_strengths.join(', ')}
             </p>
           </div>
         )}
 
         <div className="flex flex-col gap-3">
-          <DomainKicker>Попробуй прямо сейчас</DomainKicker>
-          <p className="text-body text-primary leading-relaxed">{capitalizeFirst(direction.try_now)}</p>
+          <DomainKicker>{t('direction.tryNowKicker')}</DomainKicker>
+          <p className="text-body-md text-primary leading-relaxed m-0">
+            {capitalizeFirst(direction.try_now)}
+          </p>
         </div>
       </DomainCardFrame>
 
-      {/* Universities/programs — inline, not behind a separate click-through
-          anymore. Same senior-only gate as before (`useUniversityList`'s
-          own `isAllowed`), just no longer conditioned on which of
-          profession/university goal was picked (they're merged). */}
       {showUniversities && (
-        <div>
-          <DomainKicker>Университеты и программы</DomainKicker>
+        <div className="flex flex-col gap-3">
+          <DomainKicker>{t('direction.universitiesKicker')}</DomainKicker>
           <ProgramListSection
             programs={programs}
             isLoading={programsLoading}
@@ -181,7 +217,8 @@ export default function DirectionDetailPage() {
             onCountryChange={setActiveCountry}
             countryFilters={countryFilters}
             refetch={refetchPrograms}
-            onViewDetail={(id) => navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${id}`)}
+            detailPathFor={(id) => `/results/directions/${encodeURIComponent(slug!)}/universities/${id}`}
+            onToggleFavorite={toggleFavorite}
           />
         </div>
       )}
@@ -190,11 +227,10 @@ export default function DirectionDetailPage() {
         <Button
           variant="primary"
           size="lg"
-          className="gap-2 w-fit"
+          className="w-fit rounded-pill"
           onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/roadmap`)}
         >
-          <Map className="w-5 h-5" />
-          Мой план по направлению
+          {t('direction.myPlan')}
         </Button>
       )}
     </PageContainer>

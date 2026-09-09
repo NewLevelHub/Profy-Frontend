@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 
 export type SpinnerSize = 'sm' | 'md' | 'lg';
@@ -8,7 +9,9 @@ export interface SpinnerProps {
   label?: string;
 }
 
-export function Spinner({ size = 'md', className, label = 'Загрузка...' }: SpinnerProps) {
+export function Spinner({ size = 'md', className, label }: SpinnerProps) {
+  const { t } = useTranslation('common');
+  const resolvedLabel = label ?? t('loading');
   return (
     <svg
       className={cn(
@@ -22,7 +25,7 @@ export function Spinner({ size = 'md', className, label = 'Загрузка...' 
       fill="none"
       viewBox="0 0 24 24"
       role="status"
-      aria-label={label}
+      aria-label={resolvedLabel}
     >
       <circle
         className="opacity-25"

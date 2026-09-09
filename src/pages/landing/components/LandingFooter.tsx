@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { env } from '@/shared/config/env';
 import { scrollToAnchor } from '../hooks';
 
@@ -17,7 +18,7 @@ function AnchorLink({ id, children }: { id: string; children: ReactNode }) {
     <button
       type="button"
       onClick={() => scrollToAnchor(id)}
-      className="text-left text-[0.9rem] text-subtle hover:text-brand transition-colors"
+      className="text-left text-body-sm text-subtle hover:text-brand transition-colors"
     >
       {children}
     </button>
@@ -25,6 +26,7 @@ function AnchorLink({ id, children }: { id: string; children: ReactNode }) {
 }
 
 export function LandingFooter() {
+  const { t } = useTranslation('landing');
   return (
     <footer className="relative pt-[4.5rem] pb-8 bg-surface" style={{ borderTop: '1px solid var(--border-faint)' }}>
       <div className="w-[min(1220px,92%)] mx-auto">
@@ -36,8 +38,8 @@ export function LandingFooter() {
             <button
               type="button"
               onClick={() => scrollToAnchor('hero')}
-              className="group inline-flex items-baseline font-display font-bold text-[1.35rem] tracking-[-0.045em] leading-none"
-              style={{ color: 'var(--midnight)' }}
+              className="group inline-flex items-baseline font-display font-bold text-display-sm tracking-[-0.045em] leading-none"
+              style={{ color: 'var(--text-heading)' }}
               aria-label={env.APP_NAME}
             >
               {env.APP_NAME}
@@ -49,15 +51,14 @@ export function LandingFooter() {
                 .
               </span>
             </button>
-            <p className="text-subtle text-[0.9rem] mt-4 max-w-[30ch] leading-[1.6]">
-              Онлайн-диагностика для старшеклассников: интересы, личность и мотивация, персональный
-              отчёт и реальные университеты с программами под каждую профессию.
+            <p className="text-subtle text-body-sm mt-4 max-w-[30ch] leading-[1.6]">
+              {t('footer.about')}
             </p>
             <div className="flex gap-[0.7rem] mt-6">
               {SOCIAL.map(item => (
                 <span
                   key={item.label}
-                  title={`${item.label} — адрес добавим позже`}
+                  title={t('footer.socialTooltip', { network: item.label })}
                   aria-label={item.label}
                   className="w-[38px] h-[38px] rounded-[var(--radius)] bg-page border border-default flex items-center justify-center text-secondary"
                 >
@@ -70,41 +71,41 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <h5 className="font-display text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-secondary mb-5">Продукт</h5>
+            <h5 className="font-display text-caption font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colProduct')}</h5>
             <ul className="flex flex-col gap-[0.8rem] list-none">
-              <li><AnchorLink id="how">Как работает</AnchorLink></li>
-              <li><AnchorLink id="features">Возможности</AnchorLink></li>
-              <li><AnchorLink id="inside">Что внутри</AnchorLink></li>
+              <li><AnchorLink id="how">{t('nav.how')}</AnchorLink></li>
+              <li><AnchorLink id="features">{t('nav.features')}</AnchorLink></li>
+              <li><AnchorLink id="inside">{t('nav.inside')}</AnchorLink></li>
             </ul>
           </div>
 
           <div>
-            <h5 className="font-display text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-secondary mb-5">Компания</h5>
+            <h5 className="font-display text-caption font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colCompany')}</h5>
             <ul className="flex flex-col gap-[0.8rem] list-none">
-              <li><span className="text-[0.9rem] text-subtle">О нас</span></li>
-              <li><AnchorLink id="faq">Вопросы</AnchorLink></li>
+              <li><span className="text-body-sm text-subtle">{t('footer.aboutUs')}</span></li>
+              <li><AnchorLink id="faq">{t('nav.faq')}</AnchorLink></li>
             </ul>
           </div>
 
           <div>
-            <h5 className="font-display text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-secondary mb-5">Контакты</h5>
+            <h5 className="font-display text-caption font-semibold uppercase tracking-[0.04em] text-secondary mb-5">{t('footer.colContacts')}</h5>
             <ul className="flex flex-col gap-[0.8rem] list-none">
               <li>
-                <a href="mailto:hello@profy.kz" className="text-[0.9rem] text-subtle hover:text-brand transition-colors no-underline">
+                <a href="mailto:hello@profy.kz" className="text-body-sm text-subtle hover:text-brand transition-colors no-underline">
                   hello@profy.kz
                 </a>
               </li>
-              <li><span className="text-[0.9rem] text-subtle">@profy_kz</span></li>
-              <li><span className="text-[0.9rem] text-subtle">Алматы, Казахстан</span></li>
+              <li><span className="text-body-sm text-subtle">@profy_kz</span></li>
+              <li><span className="text-body-sm text-subtle">{t('footer.city')}</span></li>
             </ul>
           </div>
         </div>
 
         <div className="flex flex-wrap justify-between items-center gap-4 pt-8">
-          <p className="text-[0.85rem] text-subtle">© 2026 {env.APP_NAME}. Сделано в Казахстане</p>
+          <p className="text-caption text-subtle">{t('footer.copyright', { app: env.APP_NAME })}</p>
           <div className="flex gap-6">
-            <span className="text-[0.85rem] text-subtle">Конфиденциальность</span>
-            <span className="text-[0.85rem] text-subtle">Условия использования</span>
+            <span className="text-caption text-subtle">{t('footer.privacy')}</span>
+            <span className="text-caption text-subtle">{t('footer.terms')}</span>
           </div>
         </div>
       </div>

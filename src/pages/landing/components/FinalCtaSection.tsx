@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { Mascot } from '@/shared/ui/Mascot';
 import { ArrowIcon, CtaLink, Reveal, TrustRow } from './primitives';
 import { useParallax } from '../hooks';
 
 export function FinalCtaSection() {
+  const { t } = useTranslation('landing');
   const mascotRef = useParallax<HTMLDivElement>(0.1);
 
   return (
@@ -12,7 +14,7 @@ export function FinalCtaSection() {
             даёт сплошная заливка pine, а не тень или свечение. */}
         <Reveal
           className="relative overflow-hidden rounded-[var(--radius)] text-center px-[clamp(1.5rem,5vw,3rem)] py-[clamp(3rem,7vw,5.5rem)]"
-          style={{ background: 'var(--pine)', border: '1px solid var(--pine)' }}
+          style={{ background: 'var(--brand-solid)', border: '1px solid var(--brand-solid)' }}
         >
           <div
             ref={mascotRef}
@@ -24,15 +26,15 @@ export function FinalCtaSection() {
           </div>
 
           <h2
-            className="relative z-[1] font-display font-bold text-[clamp(1.75rem,3.6vw,2.6rem)] leading-[1.18] tracking-[-0.03em] text-balance"
-            style={{ color: 'var(--paper)' }}
+            className="relative z-[1] font-display font-bold text-display-lg leading-[1.18] tracking-[-0.03em] text-balance"
+            style={{ color: 'var(--on-brand-solid)' }}
           >
-            Готов узнать,
+            {t('finalCta.titleLine1')}
             <br />
-            <span style={{ color: 'var(--dawn-light)' }}>кем тебе быть?</span>
+            <span style={{ color: 'var(--dawn-light)' }}>{t('finalCta.titleAccent')}</span>
           </h2>
-          <p className="relative z-[1] mt-[1.1rem] text-[1.05rem]" style={{ color: 'color-mix(in srgb, var(--paper) 76%, transparent)' }}>
-            Три теста, персональный отчёт и реальные программы вузов — за одно прохождение
+          <p className="relative z-[1] mt-[1.1rem] text-body-md" style={{ color: 'color-mix(in srgb, var(--on-brand-solid) 76%, transparent)' }}>
+            {t('finalCta.sub')}
           </p>
 
           <div className="relative z-[1] flex justify-center mt-[2.2rem]">
@@ -41,9 +43,9 @@ export function FinalCtaSection() {
             <CtaLink
               to="/register"
               size="lg"
-              className="!bg-[var(--paper)] !text-[var(--pine)] hover:!bg-[color-mix(in_srgb,var(--paper)_80%,white)]"
+              className="!bg-[var(--on-brand-solid)] !text-[var(--brand-solid)] hover:!bg-[color-mix(in_srgb,var(--on-brand-solid)_88%,var(--dawn-light))]"
             >
-              Пройти диагностику
+              {t('cta.takeDiagnostic')}
               <ArrowIcon />
             </CtaLink>
           </div>

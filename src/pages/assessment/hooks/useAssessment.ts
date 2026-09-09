@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
-import { useProfileStore } from '@/shared/store/profile';
+import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
+import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
@@ -44,13 +46,16 @@ function loadStoredAnswers<T>(key: string | null): T | null {
 }
 
 export function useAssessment() {
+  useFinishedAssessmentGuard();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const totalQuestionsFromStore = useAssessmentStore(s => s.totalQuestions);
   const setProgress = useAssessmentStore(s => s.setProgress);
-  const ageGroup = useProfileStore(s => s.profile?.age_group);
+  const { profile } = useEnsureProfile();
+  const ageGroup = profile?.age_group;
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [pages, setPages] = useState<Page[]>([]);
@@ -150,7 +155,7 @@ export function useAssessment() {
         }
       } catch {
         if (!cancelled) {
-          setError('Не удалось загрузить вопросы. Попробуй ещё раз.');
+          setError(t('assessment:error.loadQuestions'));
           setPhase('question');
         }
       }
@@ -225,7 +230,7 @@ export function useAssessment() {
       // again from the top: re-submitting already-answered items is a
       // harmless no-op, and whatever was actually skipped will surface
       // this pass.
-      setError('Кажется, несколько ответов не сохранились — пройдём вопросы ещё раз, чтобы найти пропущенные.');
+      setError(t('assessment:error.answersLost'));
       setPageIndex(0);
       setSaving(false);
       return;
@@ -287,7 +292,7 @@ export function useAssessment() {
       }
       advance(isSpeedFlag);
     } catch {
-      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+      setError(t('assessment:error.saveAnswer'));
       setSaving(false);
     }
   }
@@ -316,7 +321,7 @@ export function useAssessment() {
       }
       advance(isSpeedFlag);
     } catch {
-      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+      setError(t('assessment:error.saveAnswer'));
       setSaving(false);
     }
   }
@@ -329,7 +334,7 @@ export function useAssessment() {
       await autofillAssessment(assessmentId, ageGroup);
       navigate('/assessment/loading');
     } catch {
-      setError('Не удалось автозаполнить тест.');
+      setError(t('assessment:error.autofill'));
     } finally {
       setAutofilling(false);
     }

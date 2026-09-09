@@ -1,17 +1,21 @@
-import { useNavigate } from 'react-router';
+import { useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import {
-  ArrowLeft, Target,
+  Target,
   Briefcase,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { Card } from '@/shared/ui/Card';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { toDisplayString, splitRequirementNotes, getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
+import { toDisplayString, splitRequirementNotes } from '@/pages/results/utils/programUtils';
+import { getUniversityRankingLabels } from '@/shared/lib/universityDisplay';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { DomainCardFrame, DomainKicker, DomainListCard } from '@/pages/results/components/DomainCardParts';
 import type { ProgramDetail } from '@/shared/types';
@@ -47,13 +51,16 @@ function ProgramDetailSkeleton() {
 // don't stack into a double gap.
 function SectionHeadingLocal({ icon: Icon, children, className }: { icon: LucideIcon; children: string; className?: string }) {
   return (
-    <h3 className={cn('text-body-lg font-semibold text-[color:var(--midnight)] flex items-center gap-2', className)}>
+    <h3 className={cn('text-body-lg font-semibold text-[color:var(--text-heading)] flex items-center gap-2', className)}>
       <Icon className="w-4 h-4 text-muted shrink-0" />
       {children}
     </h3>
   );
 }
 
+// Parses backend-supplied admission-score prose (`admission_scores_2026`,
+// authored ru-only in the university seed data) — the Cyrillic literals here
+// match that source text, not UI copy, so they are not localized.
 function extractGrantScoreRange(scores: string[]): string | null {
   if (!scores || scores.length === 0) return null;
   const generalScore = scores.find(s => s.includes('Общий конкурс')) || scores[0];
@@ -62,23 +69,25 @@ function extractGrantScoreRange(scores: string[]): string | null {
 }
 
 function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
+  const { t } = useTranslation('results');
   const req = program.requirements_summary;
   if (!req) return null;
 
+  // `country` is backend data (ru-only), matched here as a value, not shown.
   const isKzUni = program.university.country === 'Казахстан';
   // Foreign universities never have an ENT/grant track — only KZ universities do.
   const activeTab: 'kz' | 'intl' = isKzUni ? 'kz' : 'intl';
 
   return (
-    <DomainCardFrame ariaLabel="Требования к поступлению">
-      <DomainKicker>Требования к поступлению</DomainKicker>
+    <DomainCardFrame ariaLabel={t('program.requirementsAria')}>
+      <DomainKicker>{t('program.requirementsKicker')}</DomainKicker>
 
       {/* KZ Track View */}
       {activeTab === 'kz' && (
         <div className="flex flex-col gap-4">
           {/* Required Exams */}
           <div className="flex flex-col gap-3">
-            <p className="text-caption font-bold text-muted">Профильные предметы ЕНТ</p>
+            <p className="text-caption font-bold text-muted">{t('program.entProfileSubjects')}</p>
             {req.exams && req.exams.length > 0 ? (
               <div className="flex flex-col gap-2">
                 {req.exams.map((exam, i) => (
@@ -95,23 +104,23 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
                 {req.exam_hint_from_notes}
               </div>
             ) : (
-              <div className="text-body-sm text-muted">Предметы не указаны, уточняйте в приемной комиссии.</div>
+              <div className="text-body-sm text-muted">{t('program.examHintFallback')}</div>
             )}
           </div>
 
           {/* Compulsory subjects for KZ universities */}
           {isKzUni && (
             <div className="flex flex-col gap-3">
-              <p className="text-caption font-bold text-muted">Обязательные предметы ЕНТ (минимальные пороги)</p>
+              <p className="text-caption font-bold text-muted">{t('program.compulsoryEnt')}</p>
               <div className="flex flex-col gap-2">
                 <div className="px-3 py-2.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-surface text-body-sm font-semibold text-primary">
-                  История Казахстана: от 5 баллов
+                  {t('program.compulsoryHistory')}
                 </div>
                 <div className="px-3 py-2.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-surface text-body-sm font-semibold text-primary">
-                  Математическая грамотность: от 3 баллов
+                  {t('program.compulsoryMathLiteracy')}
                 </div>
                 <div className="px-3 py-2.5 rounded-[var(--radius)] border border-[var(--hairline)] bg-surface text-body-sm font-semibold text-primary">
-                  Грамотность чтения: от 3 баллов
+                  {t('program.compulsoryReadingLiteracy')}
                 </div>
               </div>
             </div>
@@ -126,31 +135,31 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
               here". One clear message replaces them instead. */}
           {req.requires_ent === false ? (
             <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-              <div className="text-caption font-bold text-muted mb-1">ЕНТ</div>
-              <div className="text-body-lg font-bold text-secondary">Не требуется — свои вступительные требования (см. выше)</div>
+              <div className="text-caption font-bold text-muted mb-1">{t('program.entLabel')}</div>
+              <div className="text-body-lg font-bold text-secondary">{t('program.entNotRequired')}</div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-                <div className="text-caption font-bold text-muted mb-1">Пороговый балл ЕНТ</div>
+                <div className="text-caption font-bold text-muted mb-1">{t('program.entThresholdLabel')}</div>
                 <div className="text-body-lg font-bold text-brand">
-                  {req.min_ent_threshold !== null && req.min_ent_threshold !== undefined ? `от ${req.min_ent_threshold} баллов` : 'Не установлен'}
+                  {req.min_ent_threshold !== null && req.min_ent_threshold !== undefined ? t('program.scoreFrom', { score: req.min_ent_threshold }) : t('program.notSet')}
                 </div>
               </div>
               <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-                <div className="text-caption font-bold text-muted mb-1">Проходной балл на грант (конкурс 2026–2027 гг.)</div>
+                <div className="text-caption font-bold text-muted mb-1">{t('program.grantScoreLabel')}</div>
                 <div className="text-body-lg font-bold text-secondary">
                   {(() => {
                     const range = extractGrantScoreRange(req.admission_scores_2026);
-                    if (!range) return 'Не установлен';
+                    if (!range) return t('program.notSet');
                     const parts = range.split(/[–-]/);
                     if (parts.length === 2 && parts[0].trim() === parts[1].trim()) {
-                      return `от ${parts[0].trim()} баллов`;
+                      return t('program.scoreFrom', { score: parts[0].trim() });
                     }
                     if (range.includes('–') || range.includes('-')) {
-                      return `${range} баллов`;
+                      return t('program.scoreRange', { range });
                     }
-                    return `от ${range} баллов`;
+                    return t('program.scoreFrom', { score: range });
                   })()}
                 </div>
               </div>
@@ -167,9 +176,9 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
               so each is rendered as its own small card, not one text block. */}
           {req.notes && req.notes.length > 0 && (
             <div>
-              <div className="text-caption font-bold text-muted mb-1.5">Общие требования вуза</div>
+              <div className="text-caption font-bold text-muted mb-1.5">{t('program.generalRequirements')}</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[...splitRequirementNotes(req.notes), `Язык обучения: ${program.language}`].map((part, i) => (
+                {[...splitRequirementNotes(req.notes), t('program.languageOfInstruction', { language: program.language })].map((part, i) => (
                   <div
                     key={i}
                     className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] px-3.5 py-2.5 text-body-sm text-primary font-semibold leading-snug"
@@ -186,20 +195,20 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {req.language_level && (
                 <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-                  <div className="text-caption font-bold text-muted mb-1">Английский язык</div>
+                  <div className="text-caption font-bold text-muted mb-1">{t('program.englishLanguage')}</div>
                   <div className="text-body-md font-bold text-primary">{req.language_level}</div>
                 </div>
               )}
               {req.min_sat !== null && (
                 <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-                  <div className="text-caption font-bold text-muted mb-1">Минимальный SAT</div>
+                  <div className="text-caption font-bold text-muted mb-1">{t('program.minSat')}</div>
                   <div className="text-body-md font-bold text-primary">{req.min_sat}</div>
                 </div>
               )}
               {req.min_gpa !== null && (
                 <div className="bg-surface border border-[var(--hairline)] rounded-[var(--radius)] p-4">
-                  <div className="text-caption font-bold text-muted mb-1">Минимальный GPA</div>
-                  <div className="text-body-md font-bold text-primary">{req.min_gpa} / 4.0</div>
+                  <div className="text-caption font-bold text-muted mb-1">{t('program.minGpa')}</div>
+                  <div className="text-body-md font-bold text-primary">{t('program.gpaOutOfFour', { gpa: req.min_gpa })}</div>
                 </div>
               )}
             </div>
@@ -215,14 +224,14 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
         <>
           <div className="border-t border-[var(--hairline)]" />
           <div>
-            <DomainKicker>Гранты и стипендии</DomainKicker>
+            <DomainKicker>{t('program.grantsKicker')}</DomainKicker>
             {/* Grant text is often a full sentence (e.g. "President's
                 Undergraduate Scholarship для выдающихся иностранных
                 студентов..."), not a short tag — same white bordered
                 DomainListCard used by "Сильные стороны", not a pill. */}
             <div className="flex flex-col gap-3">
               {program.grants.map((grant, i) => (
-                <DomainListCard key={i} title={toDisplayString(grant)} />
+                <DomainListCard key={i} title={toDisplayString(grant, t)} />
               ))}
             </div>
           </div>
@@ -233,25 +242,23 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
 }
 
 export default function ProgramDetailPage() {
-  const navigate = useNavigate();
+  const { slug = '' } = useParams<{ slug: string }>();
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug)}/universities`);
+  const { t } = useTranslation('results');
   const { program, isLoading, error } = useProgramDetail();
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-brand text-label font-semibold hover:opacity-70 transition-opacity animate-fade-in"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Назад
-      </button>
+      <BackLink onClick={goBack} className="animate-fade-in">
+        {t('common:back')}
+      </BackLink>
 
       {isLoading ? (
         <ProgramDetailSkeleton />
       ) : error !== null || !program ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <p className="text-body text-danger">{error ?? 'Программа не найдена'}</p>
-          <Button variant="ghost" onClick={() => navigate(-1)}>Назад</Button>
+          <p className="text-body text-danger">{error ?? t('program.notFound')}</p>
+          <Button variant="ghost" onClick={goBack}>{t('common:back')}</Button>
         </div>
       ) : (
         <div className="flex flex-col gap-6 animate-fade-in">
@@ -277,19 +284,19 @@ export default function ProgramDetailPage() {
             return (
               <div className={desc && hasWhoFor ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' : 'grid grid-cols-1'}>
                 {desc && (
-                  <DomainCardFrame ariaLabel="Описание">
+                  <DomainCardFrame ariaLabel={t('program.descriptionKicker')}>
                     {/* Kicker + rating on the left, mascot on the right —
                         same layout/typography DirectionDetailPage's "Навыки
                         и предметы для развития" uses for its heading row. */}
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                       <div className="min-w-0 flex flex-col gap-2">
-                        <DomainKicker>Описание</DomainKicker>
+                        <DomainKicker>{t('program.descriptionKicker')}</DomainKicker>
                         {(() => {
-                          const rankLabels = getUniversityRankingLabels(program.university);
+                          const rankLabels = getUniversityRankingLabels(program.university, t);
                           if (rankLabels.length === 0) return null;
                           return (
                             <p className="text-body text-primary leading-relaxed">
-                              Рейтинг: {rankLabels.join(' · ')}
+                              {t('program.rankingLine', { labels: rankLabels.join(' · ') })}
                             </p>
                           );
                         })()}
@@ -302,7 +309,7 @@ export default function ProgramDetailPage() {
 
                 {hasWhoFor && (
                   <Card className="bg-brand-subtle">
-                    <SectionHeadingLocal icon={Target} className="mb-2.5">Для кого</SectionHeadingLocal>
+                    <SectionHeadingLocal icon={Target} className="mb-2.5">{t('program.forWhom')}</SectionHeadingLocal>
                     <p className="text-body text-primary leading-relaxed m-0">{program.who_its_for}</p>
                   </Card>
                 )}
@@ -312,14 +319,14 @@ export default function ProgramDetailPage() {
 
           {(program.career_options ?? []).length > 0 && (
             <div>
-              <SectionHeadingLocal icon={Briefcase} className="mb-2.5">Карьерные пути</SectionHeadingLocal>
+              <SectionHeadingLocal icon={Briefcase} className="mb-2.5">{t('program.careerPaths')}</SectionHeadingLocal>
               <div className="flex gap-2 flex-wrap">
                 {program.career_options.map((career, i) => (
                   <span
                     key={i}
                     className="bg-brand-subtle text-brand text-sm font-bold px-4 py-2 rounded-pill"
                   >
-                    {toDisplayString(career)}
+                    {toDisplayString(career, t)}
                   </span>
                 ))}
               </div>
@@ -345,7 +352,7 @@ export default function ProgramDetailPage() {
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-2 min-h-12 px-6 py-3.5 text-body-md font-medium font-sans rounded-[var(--radius)] bg-brand text-on-brand hover:bg-brand-hover transition-colors press-scale focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]"
                 >
-                  Перейти на сайт вуза
+                  {t('program.visitSite')}
                 </a>
               );
             })()}

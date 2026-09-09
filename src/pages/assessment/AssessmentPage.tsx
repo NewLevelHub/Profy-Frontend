@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -10,6 +11,7 @@ import { ExitAssessmentModal } from './components/ExitAssessmentModal';
 import { AssessmentIntro } from './components/AssessmentIntro';
 
 export default function AssessmentPage() {
+  const { t } = useTranslation('assessment');
   const {
     phase,
     pageIndex,
@@ -41,8 +43,8 @@ export default function AssessmentPage() {
 
   const headerTitle =
     phase === 'question' && totalPages > 0
-      ? `Страница ${pageIndex + 1} из ${totalPages}`
-      : 'Диагностика';
+      ? t('rail.pageOf', { current: pageIndex + 1, total: totalPages })
+      : t('rail.sectionDiagnostic');
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -58,8 +60,8 @@ export default function AssessmentPage() {
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
         title={headerTitle}
-        sectionLabel="Диагностика"
-        progressAriaLabel="Прогресс теста"
+        sectionLabel={t('rail.sectionDiagnostic')}
+        progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
         showBack={phase === 'question' && pageIndex > 0}
         onBack={handleBack}
@@ -77,12 +79,12 @@ export default function AssessmentPage() {
         )}
         {phase === 'intro' && (
           <AssessmentIntro
-            kicker="Диагностика"
-            title="Узнаем твои склонности"
-            subtitle="Отвечай честно: правильных и неправильных ответов здесь нет"
-            itemCountLabel={`${totalItems} вопросов`}
-            durationLabel={`~${Math.max(1, Math.ceil(totalItems / 20))} мин`}
-            ctaLabel="Начать тест"
+            kicker={t('intro.diagnostic.kicker')}
+            title={t('intro.diagnostic.title')}
+            subtitle={t('intro.diagnostic.subtitle')}
+            itemCountLabel={t('intro.itemCount', { count: totalItems })}
+            durationLabel={t('intro.durationMin', { count: Math.max(1, Math.ceil(totalItems / 20)) })}
+            ctaLabel={t('intro.diagnostic.cta')}
             onStart={handleStartIntro}
           />
         )}
@@ -95,7 +97,7 @@ export default function AssessmentPage() {
                 <div className="mb-4 p-3 rounded-xl bg-danger-subtle text-danger text-caption text-center">
                   <p>{error}</p>
                   <button type="button" onClick={retry} className="mt-2 font-semibold underline">
-                    Попробовать снова
+                    {t('error.retry')}
                   </button>
                 </div>
               )}
@@ -126,7 +128,7 @@ export default function AssessmentPage() {
                   )}
                 >
                   <Heading level="display-md" as="h2" className="text-primary mb-8 text-center">
-                    Что тебе ближе?
+                    {t('format.pickCloser')}
                   </Heading>
                   <PairChoice
                     frame={currentPair.frame}
@@ -142,7 +144,7 @@ export default function AssessmentPage() {
             {currentLikertQuestions !== undefined && (
               <div className="px-3 py-5 sm:px-4 lg:px-6" style={{ borderTop: '1px solid var(--line)' }}>
                 <Text variant="body-sm" className="text-muted">
-                  Нет неправильных ответов
+                  {t('format.noWrongAnswers')}
                 </Text>
               </div>
             )}

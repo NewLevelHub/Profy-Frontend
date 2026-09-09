@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import type { CareerTier } from '@/shared/types';
 
@@ -15,11 +16,12 @@ import type { CareerTier } from '@/shared/types';
  */
 export type MatchLevel = 1 | 2 | 3 | 4;
 
+// i18n keys — the ru copy lives in results/matchLadder.{1..4}.
 const LEVEL_LABEL: Record<MatchLevel, string> = {
-  4: 'СИЛЬНО СОВПАДАЕТ',
-  3: 'ХОРОШО СОВПАДАЕТ',
-  2: 'ЧАСТИЧНО СОВПАДАЕТ',
-  1: 'СОВПАДАЕТ ОДНОЙ СТОРОНОЙ',
+  4: 'results:matchLadder.4',
+  3: 'results:matchLadder.3',
+  2: 'results:matchLadder.2',
+  1: 'results:matchLadder.1',
 };
 
 const LEVEL_FILL_COLOR: Record<MatchLevel, string> = {
@@ -62,13 +64,15 @@ export interface MatchLadderProps {
 }
 
 export function MatchLadder({ level, showLabel = true, size = 'md', className }: MatchLadderProps) {
+  const { t } = useTranslation('results');
+  const label = t(LEVEL_LABEL[level]);
   const filledColor = LEVEL_FILL_COLOR[level];
   const pillW = size === 'sm' ? 5 : 6;
   const pillH = size === 'sm' ? 9 : 11;
 
   return (
     <div className={cn('inline-flex items-center gap-1.5', className)}>
-      <div className="inline-flex items-center gap-[3px]" role="img" aria-label={LEVEL_LABEL[level]}>
+      <div className="inline-flex items-center gap-[3px]" role="img" aria-label={label}>
         {[1, 2, 3, 4].map((i) => (
           <span
             key={i}
@@ -91,7 +95,7 @@ export function MatchLadder({ level, showLabel = true, size = 'md', className }:
           )}
           style={{ color: filledColor }}
         >
-          {LEVEL_LABEL[level]}
+          {label}
         </span>
       )}
     </div>

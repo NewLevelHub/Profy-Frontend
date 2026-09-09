@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
+import { formatNumber } from '@/shared/i18n/format';
 import { buttonClasses, type ButtonSize } from '@/shared/ui/Button';
 import { useCountUp, useInView, scrollToAnchor } from '../hooks';
 
@@ -44,7 +46,7 @@ export function Reveal({
 export function Eyebrow({ children, center = false }: { children: ReactNode; center?: boolean }) {
   return (
     <span
-      className="eyebrow inline-flex items-center gap-[0.72rem] font-mono text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-muted max-[560px]:text-[0.67rem] max-[560px]:gap-[0.55rem] max-[560px]:tracking-[0.16em]"
+      className="eyebrow inline-flex items-center gap-[0.72rem] font-mono text-mono-xs font-semibold uppercase tracking-[0.2em] text-muted max-[560px]:gap-[0.55rem] max-[560px]:tracking-[0.16em]"
       data-center={center ? 'true' : undefined}
     >
       {children}
@@ -73,11 +75,11 @@ export function SectionHead({
   return (
     <div className={cn('max-w-[680px] mb-[clamp(2.5rem,5vw,4rem)]', center && 'mx-auto text-center', className)}>
       <Eyebrow center={center}>{eyebrow}</Eyebrow>
-      <h2 className="font-display font-bold text-[clamp(1.6rem,3.2vw,2.25rem)] leading-[1.2] tracking-[-0.03em] mt-4 text-balance" style={{ color: 'var(--midnight)' }}>
+      <h2 className="font-display font-bold text-display-lg leading-[1.2] tracking-[-0.03em] mt-4 text-balance" style={{ color: 'var(--text-heading)' }}>
         {title}
       </h2>
       {sub && (
-        <p className={cn('text-secondary text-[clamp(1rem,1.4vw,1.1rem)] mt-4 max-w-[56ch]', center && 'mx-auto')}>
+        <p className={cn('text-secondary text-body-md mt-4 max-w-[56ch]', center && 'mx-auto')}>
           {sub}
         </p>
       )}
@@ -91,7 +93,7 @@ export function Counter({ target, className }: { target: number; className?: str
   const value = useCountUp(target, inView);
   return (
     <span ref={ref} className={className}>
-      {value.toLocaleString('ru-RU')}
+      {formatNumber(value)}
     </span>
   );
 }
@@ -194,31 +196,28 @@ export function CheckIcon({ className, style }: { className?: string; style?: Re
 }
 
 /** Строка «прогресс сохраняется · можно прерваться · без оценок». */
-export const TRUST_POINTS = [
-  'Прогресс сохраняется',
-  'Можно прерваться и вернуться',
-  'Без оценок и баллов',
-] as const;
+const TRUST_KEYS = ['trust.saveProgress', 'trust.pauseResume', 'trust.noGrades'] as const;
 
 export function TrustRow({
   inverted = false,
   center = false,
   className,
 }: { inverted?: boolean; center?: boolean; className?: string }) {
+  const { t } = useTranslation('landing');
   return (
     <div className={cn('flex flex-wrap gap-y-[0.7rem] gap-x-[1.4rem] mt-[1.8rem]', center ? 'justify-center' : 'max-w-[52ch]', className)}>
-      {TRUST_POINTS.map(point => (
+      {TRUST_KEYS.map(key => (
         <span
-          key={point}
-          className="flex items-center gap-[0.45rem] text-[0.86rem] font-medium"
+          key={key}
+          className="flex items-center gap-[0.45rem] text-caption font-medium"
           style={{
             // На инвертированном блоке призыва текст идёт по заливке --pine,
             // поэтому и подпись, и галочка светлеют.
-            color: inverted ? 'color-mix(in srgb, var(--paper) 70%, transparent)' : 'var(--text-subtle)',
+            color: inverted ? 'color-mix(in srgb, var(--on-brand-solid) 70%, transparent)' : 'var(--text-subtle)',
           }}
         >
           <CheckIcon style={{ color: inverted ? 'var(--dawn-light)' : 'var(--pine-light)' }} />
-          {point}
+          {t(key)}
         </span>
       ))}
     </div>

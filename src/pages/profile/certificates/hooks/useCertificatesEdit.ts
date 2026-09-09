@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
+import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
 import type { CertificateItem, CertificateType } from '@/shared/types';
 import { CERTIFICATE_TYPES, validateCertificateScore } from '@/shared/config/certificates';
 
@@ -17,6 +19,7 @@ function scoreOf(items: CertificateItem[], type: CertificateType): string {
 
 export function useCertificatesEdit() {
   const navigate = useNavigate();
+  const { t } = useTranslation('profile');
   const queryClient = useQueryClient();
   const userId = useAuthStore(s => s.user?.id);
   const profile = useProfileStore(s => s.profile);
@@ -60,6 +63,17 @@ export function useCertificatesEdit() {
     },
   });
 
+  // Экран с «Сохранить» и «Отмена», который до сих пор молча терял
+  // введённые баллы: та же защита, что уже стоит на админских формах.
+  // Во время сохранения и после него предупреждать не о чем — уход со
+  // страницы там наш собственный.
+  const dirty = useMemo(() => {
+    if (!hasHydrated || !profile) return false;
+    return CERTIFICATE_TYPES.some(t => scores[t] !== scoreOf(profile.certificates, t));
+  }, [hasHydrated, profile, scores]);
+
+  useUnsavedGuard(dirty && !saveMutation.isPending && !saveMutation.isSuccess);
+
   // Every row is optional here (this screen is opened to fill scores in, not
   // to complete a required step), so a blank field is never an error — only
   // an out-of-range one is. Onboarding's block reuses the same validator with
@@ -67,7 +81,7 @@ export function useCertificatesEdit() {
   function validate(): boolean {
     const nextErrors: FieldErrors = {};
     for (const type of CERTIFICATE_TYPES) {
-      nextErrors[type] = validateCertificateScore(type, scores[type]);
+      nextErrors[type] = validateCertificateScore(type, scores[type], { t });
     }
     setErrors(nextErrors);
     return Object.values(nextErrors).every(e => e === undefined);
