@@ -377,6 +377,26 @@ export interface StudentCareer {
 
 export interface PsychValiditySection {
   consent_ok: boolean;
+  /** Specialist signal. red = careless fill; yellow = likely faking-good
+   *  (sd_raw >= sd_bounds[1] + 1); green = fine (incl. the 9–15 "normative
+   *  conformity" band). */
+  traffic_light: 'green' | 'yellow' | 'red';
+  /** MC-SDS raw score, 0–20. */
+  sd_raw: number;
+  /** Finer band than the traffic light: `social_desirability` (9–15) is still
+   *  green — see psych-block-spec.md §A5. */
+  sd_level: 'ok' | 'social_desirability' | 'high';
+  /** [ok_max, sd_max] applied — the "yellow starts at sd_max + 1" threshold. */
+  sd_bounds: [number, number];
+  /** Longest run of identical raw answers across the whole battery. */
+  longstring_max: number;
+  /** Inter-item response SD within the protocol. */
+  irv: number;
+  /** Attention-check traps failed (answer != the only plausible one). */
+  infrequency_failed: number;
+  careless_flag: boolean;
+  /** Which validity_thresholds.json version produced the verdict. */
+  thresholds_version: number;
 }
 
 export interface PsychEmotionalSection {
