@@ -416,8 +416,109 @@ export interface PsychValiditySection {
   thresholds_version: number;
 }
 
+export type PsychoAnxietyLevel = 'low' | 'moderate' | 'high' | 'very_high';
+export type PsychoCompensationLevel = 'low' | 'moderate' | 'high';
+export type PsychoSoLevel = 'norm' | 'elevated' | 'high';
+export type PsychoVkLevel = 'low_tone' | 'reduced' | 'balance' | 'overexcited';
+export type PsychoPairSign = 'plus' | 'cross' | 'equal' | 'minus';
+
+export interface PsychoEmotionalPositionalPair {
+  sign: PsychoPairSign;
+  /** Colour ids (0–7) on those two positions of choice 2. */
+  colors: [number, number];
+}
+
+export interface PsychoEmotionalSplitPair {
+  colors: [number, number];
+  /** true → the pair stayed together `( )`; false → it split `[ ]`. */
+  stable: boolean;
+}
+
+export interface PsychoEmotionalIndex {
+  score: number;
+  level: PsychoAnxietyLevel | PsychoCompensationLevel;
+  /** colour id → its contribution to the sum. */
+  breakdown: Record<string, number>;
+}
+
+export interface PsychoEmotionalCompensation extends PsychoEmotionalIndex {
+  level: PsychoCompensationLevel;
+  /** Purple (id 5) sits in positions 1–3 — a note, it scores nothing. */
+  purple_forward: boolean;
+  purple_position: number;
+}
+
+export interface PsychoEmotionalStructural {
+  /** Р: lower sum → higher working capacity (6–21). */
+  performance: number;
+  /** higher → inward; lower → outward. */
+  concentricity: number;
+  /** higher → passive/dependent; lower → initiative. */
+  heteronomy: number;
+  /** constructiveness: lower → the situation feels unbearable. */
+  kkp: number;
+}
+
+export interface PsychoEmotionalHistoryItem {
+  run_number: number;
+  completed_at: string;
+  so: number | null;
+  anxiety_score: number | null;
+  validity_flag: 'ok' | 'caution' | 'low' | null;
+}
+
+/**
+ * «Психоэмоциональный тест» (МЦВ Собчик) — the full specialist-facing
+ * composition (§B8 / PRO-309). `null` in the report until the latest run is
+ * scored by the engine (PRO-307), same as validity.
+ */
 export interface PsychEmotionalSection {
   consent_ok: boolean;
+  /** Which psychoemotional_thresholds.json version produced the run. */
+  thresholds_version: number | null;
+
+  /** This run's ordinal (1 = first) + past runs for the dynamics list. */
+  run_number: number;
+  completed_at: string;
+  history: PsychoEmotionalHistoryItem[];
+
+  /** 3 one-tap check-in answers; not scored. Shape owned by content (PRO-303). */
+  checkin: Record<string, string>;
+
+  /** Run-validity flag (§B7 / PRO-308), computed separately from the metrics:
+   *  ok (0 signs) / caution (1) / low (2+). Null until the run is scored. */
+  validity_flag: 'ok' | 'caution' | 'low' | null;
+  /** Behavioural signs that fired (§B7): `mechanical_pick`, `too_fast_overall`,
+   *  `identical_lists`, `unstable_choices`, `pause_not_held`. */
+  validity_reasons: string[];
+
+  /** Colour choices by position (colour ids 0–7) + divergence D (§B5.7). */
+  choice_1: number[];
+  choice_2: number[];
+  d_value: number;
+  d_memory: boolean;
+  d_situationally_unstable: boolean;
+
+  /** Functional pairs (§B5.1–B5.2). */
+  positional_pairs: PsychoEmotionalPositionalPair[];
+  root_conflict: [number, number];
+  split_pairs: PsychoEmotionalSplitPair[];
+  split_count: number;
+  instability: boolean;
+
+  anxiety: PsychoEmotionalIndex;
+  compensation: PsychoEmotionalCompensation;
+  so_value: number;
+  so_level: PsychoSoLevel;
+  vk_value: number;
+  vk_level: PsychoVkLevel;
+  structural: PsychoEmotionalStructural;
+
+  /** §B6 red flag: black (id 7) in position 1 — a highlight for the talk. */
+  black_first: boolean;
+
+  /** Ready specialist hint texts, already priority-ordered (§8). No AI. */
+  hints: string[];
 }
 
 export interface PsychMacSection {
