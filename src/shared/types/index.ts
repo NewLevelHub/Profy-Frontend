@@ -1,11 +1,17 @@
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
+/** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
+ *  this (`is_admin === (role === 'admin')`) and kept only for back-compat. */
+export type UserRole = 'student' | 'admin' | 'psychologist';
+
 export interface User {
   id: string;
   email: string;
   name?: string;
   is_active?: boolean;
   is_verified?: boolean;
+  /** Prefer this over `is_admin` when branching by staff vs student. */
+  role?: UserRole;
   is_admin?: boolean;
 }
 
@@ -639,10 +645,6 @@ export interface ProgramDetail extends ProgramBrief {
 
 // ─── Admin ─────────────────────────────────────────────────────────────────────
 
-/** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
- *  this (`is_admin === (role === 'admin')`) and kept only for back-compat. */
-export type UserRole = 'student' | 'admin' | 'psychologist';
-
 export interface AdminUserListItem {
   id: string;
   email: string;
@@ -903,12 +905,54 @@ export interface AdminProgramDetail {
 
 // ─── Admin roles ────────────────────────────────────────────────────────────────
 //
-// `UserRole` (above, `pro-281`) closes the gap PRO-242 flagged here: the API
-// now has a real role concept (`student` / `admin` / `psychologist`), and
-// `is_admin` is a derived, back-compat view of it. `RequireAdmin` still gates
-// `/admin/*` on `is_admin` alone — a `psychologist` cabinet is a later
-// milestone, not yet built server-side, see
-// docs/user-roles-integration-plan.md Milestones 2–3.
+// `UserRole` (auth section, `pro-281`) is the source of truth. `/admin/*` still
+// gates on `is_admin`; `/psychologist/*` gates on `role === 'psychologist'`.
+
+// ─── Psychologist cabinet ───────────────────────────────────────────────────────
+
+export interface PsychologistStudentListItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age_group: AgeGroup | null;
+  assigned_at: string;
+}
+
+export interface PsychologistAssessmentSummary {
+  id: string;
+  goal: AssessmentGoal;
+  status: AssessmentStatus;
+  answered_count: number;
+  total_questions: number;
+  created_at: string;
+  completed_at: string | null;
+  has_result: boolean;
+  has_roadmap: boolean;
+}
+
+/** Separate from `AdminUserDetail` — no `role` / `is_admin` in the payload. */
+export interface PsychologistStudentDetail {
+  id: string;
+  email: string;
+  is_verified: boolean;
+  is_active: boolean;
+  created_at: string;
+  profile: ProfileResponse | null;
+  artifacts: ArtifactItem[];
+  assessments: PsychologistAssessmentSummary[];
+}
+
+export interface PsychologistNote {
+  id: string;
+  psychologist_id: string;
+  student_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface PsychologistNoteWrite {
+  content: string;
+}
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
