@@ -236,6 +236,23 @@ export interface SubmitPairAnswersResponse {
   completed: boolean;
 }
 
+// ─── Psychoemotional (МЦВ Собчик) — PRO-306 ────────────────────────────────────
+// Сырое прохождение: 2 круга по 8 ID цветов (0–7) + Δt каждого выбора + пауза
+// + check-in. Метрики/интерпретацию бэкенд не возвращает (§5.6).
+export interface SubmitPsychoEmotionalPayload {
+  list1: number[];
+  list2: number[];
+  list1_dt_ms: number[];
+  list2_dt_ms: number[];
+  pause_actual_sec: number;
+  checkin: Record<string, string>;
+}
+
+export interface SubmitPsychoEmotionalResponse {
+  run_id: string;
+  tech_invalid: boolean;
+}
+
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {

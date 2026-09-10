@@ -1,0 +1,74 @@
+/*
+ * Колориметрия §4 — ПРИЁМОЧНЫЕ КРИТЕРИИ, не рекомендации.
+ * Всё, что касается предъявления цвета, живёт здесь и заскоплено на .pe-block,
+ * чтобы тема приложения / пользователя не смогла ничего исказить.
+ */
+
+/* Нейтральный светлый фон без градиента; тёмная тема принудительно выключена
+   независимо от data-theme / prefers-color-scheme. */
+.pe-block {
+  color-scheme: light;
+  min-height: 100dvh;
+  background: #f4f4f5;
+  color: #18181b;
+}
+.pe-block,
+.pe-block * {
+  color-scheme: light !important;
+}
+:root[data-theme='dark'] .pe-block,
+.pe-block[data-theme] {
+  background: #f4f4f5;
+  color: #18181b;
+}
+@media (prefers-color-scheme: dark) {
+  .pe-block {
+    background: #f4f4f5;
+    color: #18181b;
+  }
+}
+
+/* Плашка цвета: HEX задаётся инлайном из таблицы §4. Запрещены hover-эффекты,
+   изменение яркости/насыщенности/прозрачности, цветные тени, CSS-фильтры. */
+.pe-swatch {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none;
+}
+.pe-swatch:hover,
+.pe-swatch:focus,
+.pe-swatch:active,
+.pe-swatch:focus-visible {
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+/* Клавиатурная доступность без цветового искажения — тонкая нейтральная рамка. */
+.pe-swatch:focus-visible {
+  outline: 2px solid #52525b;
+  outline-offset: 3px;
+}
+
+/* Нейтральные серые фигуры микро-задания паузы — тоже без фильтров/переходов. */
+.pe-shape {
+  background: #d9d9d9;
+  border: 0;
+  filter: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+}
