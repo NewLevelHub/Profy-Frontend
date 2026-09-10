@@ -16,10 +16,6 @@ export function PsychoEmotionalSection({ section }: PsychoEmotionalSectionProps)
   if (!section) return null;
 
   return (
-    <PsychSectionShell
-      emoji="🎨"
-      title="Психоэмоциональный тест"
-      consentOk={section.consent_ok}
-    />
+    <PsychSectionShell emoji="🎨" title="Психоэмоциональный тест" />
   );
 }

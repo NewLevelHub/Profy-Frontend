@@ -53,7 +53,7 @@ export function ValiditySection({ section }: ValiditySectionProps) {
   const yellowThreshold = section.sd_bounds[1] + 1;
 
   return (
-    <PsychSectionShell emoji="🛡️" title="Достоверность протокола" consentOk={section.consent_ok}>
+    <PsychSectionShell emoji="🛡️" title="Достоверность протокола">
       <div className="flex flex-col gap-3">
         <div className="flex items-start gap-2.5">
           <span
@@ -91,9 +91,6 @@ export function ValiditySection({ section }: ValiditySectionProps) {
         </details>
 
         <p className="text-caption text-muted leading-snug">{DISCLAIMER}</p>
-        <p className="text-caption text-muted leading-snug">
-          Пороги ориентировочны до локальной калибровки (версия {section.thresholds_version}).
-        </p>
       </div>
     </PsychSectionShell>
   );

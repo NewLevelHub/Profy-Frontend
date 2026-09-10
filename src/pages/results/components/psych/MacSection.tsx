@@ -16,10 +16,6 @@ export function MacSection({ section }: MacSectionProps) {
   if (!section) return null;
 
   return (
-    <PsychSectionShell
-      emoji="🃏"
-      title="Метафорические карты"
-      consentOk={section.consent_ok}
-    />
+    <PsychSectionShell emoji="🃏" title="Метафорические карты" />
   );
 }
