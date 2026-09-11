@@ -77,4 +77,10 @@ export const API = {
     directions: '/admin/directions',
     directionDetail: (id: string) => `/admin/directions/${id}`,
   },
+  psychologist: {
+    students: '/psychologist/students',
+    studentDetail: (id: string) => `/psychologist/students/${id}`,
+    studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
+    noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
+  },
 } as const;

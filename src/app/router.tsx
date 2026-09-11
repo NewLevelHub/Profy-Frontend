@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireAdmin } from '@/shared/guards/RequireAdmin';
+import { RequirePsychologist } from '@/shared/guards/RequirePsychologist';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
@@ -67,6 +68,10 @@ import AdminMotivationPairDetailPage from '@/pages/admin/content/AdminMotivation
 import AdminDirectionsPage from '@/pages/admin/content/AdminDirectionsPage';
 import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetailPage';
 
+// ── Psychologist cabinet ──────────────────────────────────────────────────────
+import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
+import PsychologistStudentDetailPage from '@/pages/psychologist/PsychologistStudentDetailPage';
+
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
@@ -101,6 +106,25 @@ export const router = createBrowserRouter([
       { path: '/welcome', element: <WelcomePage /> },
       { path: '/onboarding/profile', element: <ProfileSetupPage /> },
       { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
+
+      // Psychologist cabinet — outside RequireProfile: staff have no student Profile
+      // and student APIs would 403 them. Gated by role alone.
+      {
+        element: <RequirePsychologist />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { path: '/psychologist', element: <Navigate to="/psychologist/students" replace /> },
+              { path: '/psychologist/students', element: <PsychologistStudentsPage /> },
+              {
+                path: '/psychologist/students/:studentId',
+                element: <PsychologistStudentDetailPage />,
+              },
+            ],
+          },
+        ],
+      },
 
       // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
       { path: '/assessment/goal', element: <GoalSelectionPage /> },
