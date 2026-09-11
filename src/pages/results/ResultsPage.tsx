@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { Download } from 'lucide-react';
+import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
@@ -7,7 +9,6 @@ import { useResults } from './hooks/useResults';
 import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
-import { ResultsCoverBand } from './components/ResultsCoverBand';
 import { ResultsReveal } from './components/ResultsReveal';
 import { SummaryCard } from './components/SummaryCard';
 import { InterestDomainSection } from './components/InterestDomainSection';
@@ -96,15 +97,17 @@ export default function ResultsPage() {
 
   return (
     <PageContainer className="flex flex-col gap-6">
-      <ResultsCoverBand
-        report={report}
-        isJunior={isJunior}
-        onDownloadPdf={() => navigate('/results/print?auto=1')}
-        onExploreDirections={() => {
-          const el = document.getElementById('results-goal-branch');
-          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }}
-      />
+      {/* Обложка «Что мы узнали о тебе» снята: её чипсы (интересы, сильная
+          сторона, направление) и кнопка «Смотреть направления» слово в слово
+          повторяли секции ниже — отчёт начинался с пересказа самого себя.
+          Из неё остаётся только выход в PDF: /results/print больше ниоткуда
+          не открывается, поэтому кнопка живёт здесь отдельной строкой. */}
+      <div className="flex justify-end">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/results/print?auto=1')}>
+          <Download size={16} aria-hidden="true" />
+          {t('page.downloadPdf')}
+        </Button>
+      </div>
 
       <ResultsReveal>
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
