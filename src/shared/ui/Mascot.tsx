@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import {
   ALL_SPRITES,
@@ -84,7 +85,9 @@ export function Mascot({
   celebrate = false,
   className,
 }: MascotProps) {
+  const { t } = useTranslation('common');
   const entry = ALL_SPRITES[state];
+  const alt = t(entry.alt);
   const resolvedSize = size ?? (compact ? DEFAULT_SIZE_COMPACT : DEFAULT_SIZE_FULL);
   const [blinking, setBlinking] = useState(false);
   const timeoutIdsRef = useRef<number[]>([]);
@@ -138,7 +141,7 @@ export function Mascot({
       >
         <img
           src={src}
-          alt={entry.alt}
+          alt={alt}
           className="absolute max-w-none"
           style={{
             width: `${ZOOM * 100}%`,
@@ -154,7 +157,7 @@ export function Mascot({
 
   const poseLayer = (
     <>
-      <img src={src} alt={entry.alt} className="block w-full h-auto" />
+      <img src={src} alt={alt} className="mascot-sprite block w-full h-auto" />
       {blinking && entry.eyes && entry.eyes.map((eye, index) => <Eyelid key={index} box={eye} />)}
     </>
   );

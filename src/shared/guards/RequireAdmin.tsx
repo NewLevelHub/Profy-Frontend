@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router';
 import { authApi } from '@/shared/api/auth';
 import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
+import { toPath } from '@/shared/lib/returnTo';
 
 export function RequireAdmin() {
   const token = useAuthStore((s) => s.token);
@@ -55,7 +56,7 @@ export function RequireAdmin() {
   }
 
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: toPath(location) }} replace />;
   }
 
   if (!isAdmin) {

@@ -233,7 +233,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
             color: MUTE,
           }}
         >
-          Profy · результаты диагностики
+          Profile · результаты диагностики
         </p>
         <h1 style={{ fontSize: '17pt', fontWeight: 600, margin: '1.5mm 0 0' }}>{name}</h1>
         <p style={{ margin: '1mm 0 0', color: MUTE }}>

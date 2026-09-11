@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ThinkingStyleNote } from '@/shared/types';
 import { DomainCardFrame, DomainKicker, DomainEmptyState } from './DomainCardParts';
 
@@ -13,17 +14,18 @@ export function ThinkingStyleMotivationSection({
   thinkingStyleNotes,
   motivationHighlights,
 }: ThinkingStyleMotivationSectionProps) {
+  const { t } = useTranslation('results');
   return (
-    <DomainCardFrame ariaLabel="Стиль мышления и мотивация">
+    <DomainCardFrame ariaLabel={t('thinkingMotivation.aria')}>
       <div>
-        <DomainKicker>СТИЛЬ МЫШЛЕНИЯ</DomainKicker>
+        <DomainKicker>{t('thinkingMotivation.kickerThinking')}</DomainKicker>
         {thinkingStyleNotes.length === 0 ? (
-          <DomainEmptyState>Появится по мере новых ответов.</DomainEmptyState>
+          <DomainEmptyState>{t('domain.emptyMore')}</DomainEmptyState>
         ) : (
           <div className="flex flex-col gap-3">
             {thinkingStyleNotes.map((note, i) => (
               <div key={i}>
-                <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">
+                <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">
                   {note.title}
                 </p>
                 <p className="text-caption leading-snug mt-0.5" style={{ color: 'var(--ink)' }}>
@@ -38,15 +40,15 @@ export function ThinkingStyleMotivationSection({
       <div className="border-t border-[var(--hairline)]" />
 
       <div>
-        <DomainKicker>МОТИВАЦИЯ</DomainKicker>
+        <DomainKicker>{t('thinkingMotivation.kickerMotivation')}</DomainKicker>
         {motivationHighlights.length === 0 ? (
-          <DomainEmptyState>Появится по мере новых ответов.</DomainEmptyState>
+          <DomainEmptyState>{t('domain.emptyMore')}</DomainEmptyState>
         ) : (
           <div className="flex flex-col gap-2">
             {motivationHighlights.map((text, i) => (
               <p
                 key={i}
-                className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug"
+                className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug"
               >
                 {text}
               </p>

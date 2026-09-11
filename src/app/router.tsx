@@ -25,13 +25,12 @@ import WelcomePage from '@/pages/onboarding/WelcomePage';
 import ProfileSetupPage from '@/pages/onboarding/ProfileSetupPage';
 import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
 
-// ── Assessment flow (mobile: GoalSelection → Assessment → Praise → ResultLoading)
+// ── Assessment flow (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
 import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
 import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
 import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
-import PraisePage from '@/pages/assessment/PraisePage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
@@ -47,6 +46,8 @@ import DirectionInquiryPage from '@/pages/results/inquiry/DirectionInquiryPage';
 import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
 import RoadmapPage from '@/pages/roadmap/RoadmapPage';
+import UniversitiesPage from '@/pages/universities/UniversitiesPage';
+import UniversityDetailPage from '@/pages/universities/UniversityDetailPage';
 import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
@@ -125,12 +126,11 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → Praise → ResultLoading)
+      // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
       { path: '/assessment/goal', element: <GoalSelectionPage /> },
       { path: '/assessment', element: <AssessmentPage /> },
       { path: '/assessment/pairs', element: <PairAssessmentPage /> },
       { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
-      { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/rest', element: <RestStopPage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
       { path: '/assessment/goal-check', element: <GoalCheckPage /> },
@@ -155,6 +155,12 @@ export const router = createBrowserRouter([
               { path: '/results', element: <ResultsPage /> },
               { path: '/profile', element: <ProfilePage /> },
               { path: '/roadmap', element: <RoadmapPage /> },
+
+              // Standalone university catalogue (PRO-265) — a top-level tab,
+              // deliberately outside /results: unlike the direction-scoped
+              // picker below it needs no assessment and no senior gate.
+              { path: '/universities', element: <UniversitiesPage /> },
+              { path: '/universities/:universityId', element: <UniversityDetailPage /> },
 
               // Detail screens (mobile: App stack over tabs)
               { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
@@ -203,7 +209,6 @@ export const router = createBrowserRouter([
                 ],
               },
 
-              { path: '*', element: <NotFoundPage /> },
             ],
           },
         ],
@@ -211,6 +216,15 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Catch-all
+  // Единственный 404 на всё приложение.
+  //
+  // Раньше их было два: этот и такой же `*` внутри AppLayout. У обоих
+  // одинаковый путь, поэтому побеждал вложенный — а он лежит под
+  // RequireAuth и RequireProfile, и несуществующий адрес оборачивался
+  // не сообщением «страница не найдена», а редиректом: гостя уводило на
+  // /login, человека без профиля — на онбординг. Увидеть 404 мог только
+  // полностью настроенный пользователь. Один маршрут снаружи гвард даёт
+  // всем один и тот же честный ответ; выход с него NotFoundPage
+  // подбирает по тому, вошёл человек или нет.
   { path: '*', element: <NotFoundPage /> },
 ]);

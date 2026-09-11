@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useAuthStore } from '@/shared/store/auth';
-import { useProfileStore } from '@/shared/store/profile';
+import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import type { AssessmentGoal } from '@/shared/types';
 import type { AxiosError } from 'axios';
 
@@ -17,12 +18,16 @@ export function useGoalGuard() {
 }
 
 export function useGoalSelection() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const fromRestart = !!(location.state as { fromRestart?: boolean } | null)?.fromRestart;
   const setAssessment = useAssessmentStore(s => s.setAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
-  const ageGroup = useProfileStore(s => s.profile?.age_group ?? 'middle');
+  // Экран вне RequireProfile: без запроса профиля восьмилетний после F5
+  // читал бы формулировки для средней школы.
+  const { profile } = useEnsureProfile();
+  const ageGroup = profile?.age_group ?? 'middle';
 
   const [resumeOpen, setResumeOpen] = useState(false);
   const [restartOpen, setRestartOpen] = useState(false);
@@ -126,7 +131,7 @@ export function useGoalSelection() {
     ageGroup,
     isLoading: startMutation.isPending,
     isCheckingCurrent,
-    error: startMutation.isError ? 'Не удалось начать тест. Попробуй ещё раз.' : null,
+    error: startMutation.isError ? t('assessment:error.startTest') : null,
     resumeOpen,
     restartOpen,
     currentGoal: current?.goal ?? null,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import { roadmapApi } from '@/shared/api/roadmap';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -7,6 +8,7 @@ import { useResultStore } from '@/shared/store/result';
 import type { RoadmapHorizonKey } from '@/shared/types';
 
 export function useRoadmap() {
+  const { t } = useTranslation('roadmap');
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
@@ -42,7 +44,7 @@ export function useRoadmap() {
     setSelectedHorizon(null);
   }, [roadmap?.id]);
 
-  const loadError = error && !is404 && !is403 ? 'Не удалось загрузить роадмап. Попробуй ещё раз.' : null;
+  const loadError = error && !is404 && !is403 ? t('error.load') : null;
 
   const generateMutation = useMutation({
     mutationFn: (programId?: string) => roadmapApi.generate(assessmentId!, programId),
@@ -60,7 +62,7 @@ export function useRoadmap() {
     notGenerated: hasCompletedAssessment && !isLoading && !roadmap && !loadError,
     isGenerating: generateMutation.isPending,
     generateError: generateMutation.isError
-      ? 'Не удалось составить план. Попробуй ещё раз.'
+      ? t('error.generate')
       : null,
     generate: (programId?: string) => generateMutation.mutate(programId),
     refetch,

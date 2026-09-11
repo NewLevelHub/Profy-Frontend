@@ -47,14 +47,14 @@ export function PrintLevelRows({ rows }: { rows: PrintLevelRow[] }) {
           >
             <span
               className="flex-shrink-0 w-[136px] font-mono text-tiny font-bold uppercase tracking-label leading-tight"
-              style={{ color: isLow ? 'var(--text-muted)' : 'var(--midnight)' }}
+              style={{ color: isLow ? 'var(--text-muted)' : 'var(--text-heading)' }}
             >
               {row.status}
             </span>
             <div className="min-w-0">
               <p
                 className="text-body-sm font-semibold leading-snug"
-                style={{ color: isLow ? 'var(--text-secondary)' : 'var(--midnight)' }}
+                style={{ color: isLow ? 'var(--text-secondary)' : 'var(--text-heading)' }}
               >
                 {row.title}
               </p>

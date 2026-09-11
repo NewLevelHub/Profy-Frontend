@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
@@ -12,6 +13,7 @@ import { AssessmentIntro } from '../components/AssessmentIntro';
 // Format (SPPC): pick a camp, then rate intensity, instead of the 3-way
 // MOST/LEAST triplets senior uses (MotivationTripletFlow.tsx).
 export default function MotivationHarterFlow() {
+  const { t } = useTranslation('assessment');
   const {
     phase,
     pairIndex,
@@ -37,8 +39,8 @@ export default function MotivationHarterFlow() {
 
   const headerTitle =
     phase === 'question' && totalPairs > 0
-      ? `Вопрос ${pairIndex + 1} из ${totalPairs}`
-      : 'Что тебя драйвит';
+      ? t('rail.questionOf', { current: pairIndex + 1, total: totalPairs })
+      : t('rail.sectionMotivation');
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -49,8 +51,8 @@ export default function MotivationHarterFlow() {
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
         title={headerTitle}
-        sectionLabel="Что тебя драйвит"
-        progressAriaLabel="Прогресс блока мотивации"
+        sectionLabel={t('rail.sectionMotivation')}
+        progressAriaLabel={t('rail.progressAriaMotivation')}
         progress={progress}
         showBack={phase === 'question' && pairIndex > 0}
         onBack={handleBack}
@@ -69,12 +71,12 @@ export default function MotivationHarterFlow() {
 
         {phase === 'intro' && (
           <AssessmentIntro
-            kicker="Последний блок"
-            title="Что тебя драйвит"
-            subtitle="Выбери, какие ребята тебе ближе — а потом уточни, насколько точно"
-            itemCountLabel={`${totalPairs} вопросов`}
-            durationLabel="~2 мин"
-            ctaLabel="Начать"
+            kicker={t('intro.motivationHarter.kicker')}
+            title={t('intro.motivationHarter.title')}
+            subtitle={t('intro.motivationHarter.subtitle')}
+            itemCountLabel={t('intro.itemCount', { count: totalPairs })}
+            durationLabel={t('intro.duration2min')}
+            ctaLabel={t('intro.motivationHarter.cta')}
             onStart={handleStartIntro}
           />
         )}
@@ -87,7 +89,7 @@ export default function MotivationHarterFlow() {
                 <div className="mb-4 p-3 rounded-xl bg-danger-subtle text-danger text-caption text-center">
                   <p>{error}</p>
                   <button type="button" onClick={retry} className="mt-2 font-semibold underline">
-                    Попробовать снова
+                    {t('error.retry')}
                   </button>
                 </div>
               )}
@@ -100,7 +102,7 @@ export default function MotivationHarterFlow() {
                   )}
                 >
                   <Heading level="display-sm" as="h2" className="text-primary mb-6 text-center">
-                    Какие ребята тебе ближе?
+                    {t('format.whichKidsCloser')}
                   </Heading>
                   <HarterChoice
                     textA={currentPair.text_a}
@@ -111,14 +113,14 @@ export default function MotivationHarterFlow() {
 
                   {chosenSide !== null && (
                     <div className="flex flex-col gap-2 mt-6" style={{ animation: 'fade-in-up 0.3s ease both' }}>
-                      <p className="text-caption text-secondary text-center mb-1">Насколько это про тебя?</p>
+                      <p className="text-caption text-secondary text-center mb-1">{t('format.howMuchAboutYou')}</p>
                       <Button
                         onClick={() => handleSelectIntensity('high')}
                         disabled={saving}
                         size="lg"
                         className="w-full rounded-pill"
                       >
-                        Точно про меня
+                        {t('format.harterExactly')}
                       </Button>
                       <Button
                         onClick={() => handleSelectIntensity('medium')}
@@ -127,7 +129,7 @@ export default function MotivationHarterFlow() {
                         size="lg"
                         className="w-full rounded-pill"
                       >
-                        Немного про меня
+                        {t('format.harterSomewhat')}
                       </Button>
                     </div>
                   )}

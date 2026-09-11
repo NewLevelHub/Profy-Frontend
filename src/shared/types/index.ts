@@ -13,6 +13,9 @@ export interface User {
   /** Prefer this over `is_admin` when branching by staff vs student. */
   role?: UserRole;
   is_admin?: boolean;
+  /** UI locale from the backend (`users.locale`). "kk" is stored but not
+   *  runtime-honored until KZ-603. */
+  locale?: 'ru' | 'kk';
 }
 
 export interface TokenResponse {
@@ -565,6 +568,9 @@ export interface AdmissionScoreItem {
 export interface UniversityBrief {
   id: string;
   name: string;
+  // "kk" when a Kazakh official name is served (Kazakhstan universities,
+  // KZ-206 follow-up), "ru" otherwise. Currently only KZ universities have it.
+  name_locale: string;
   country: string;
   city: string;
   website: string | null;
@@ -575,7 +581,47 @@ export interface UniversityBrief {
   uniranks_kz_rank: number | null;
   uniranks_world_rank: number | null;
   description: string | null;
+  // KZ-501: which language `description` is actually served in ("kk" when the
+  // override exists, "ru" otherwise). Kept for completeness; not rendered.
+  description_locale: string;
   image_url: string | null;
+  /** Whether the signed-in user starred this university (PRO-265). Always
+   *  false for an anonymous request — the backend fills it per-caller. */
+  is_favorite: boolean;
+}
+
+export interface UniversityListItem extends UniversityBrief {
+  programs_count: number;
+}
+
+export interface UniversityListResponse {
+  items: UniversityListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UniversityCountry {
+  country: string;
+  count: number;
+}
+
+export interface UniversityDetail extends UniversityBrief {
+  contacts: Record<string, string>;
+  facilities: Record<string, unknown>;
+  source_url: string | null;
+  programs: ProgramBrief[];
+}
+
+export interface UniversityListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  country?: string;
+  city?: string;
+  only_favorites?: boolean;
+  sort?: 'ranking' | 'name' | 'kz_rank';
+  order?: 'asc' | 'desc';
 }
 
 export interface ProgramGrant {
@@ -623,10 +669,15 @@ export interface ProgramBrief {
   id: string;
   name: string;
   profession_slugs: string[];
+  // "kk" when a Kazakh program-name (направление) override is served
+  // (Kazakhstan universities), "ru" otherwise.
+  name_locale: string;
+  direction_slug: string;
   language: string;
   cost_per_year: number | null;
   cost_label: string | null;
   description: string | null;
+  description_locale: string;
   university: UniversityBrief;
   cost_currency: string | null;
   cost_per_year_min: number | null;
@@ -635,6 +686,7 @@ export interface ProgramBrief {
 
 export interface ProgramDetail extends ProgramBrief {
   who_its_for: string | null;
+  who_its_for_locale: string;
   career_options: unknown[];
   requirements: Record<string, unknown>;
   deadlines: Record<string, unknown>;

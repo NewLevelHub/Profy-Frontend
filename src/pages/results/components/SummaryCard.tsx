@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 
@@ -10,9 +11,10 @@ interface SummaryCardProps {
 // meaning — disclaimer is a fixed, server-authored guarantee, summary is
 // the personalized (LLM or fallback) text (contract §4.2).
 export function SummaryCard({ summary, disclaimer }: SummaryCardProps) {
+  const { t } = useTranslation('results');
   return (
-    <section aria-label="Резюме">
-      <Card className="bg-brand-subtle flex flex-col gap-3">
+    <section aria-label={t('summary.aria')}>
+      <Card className="panel-glass flex flex-col gap-3 !bg-[color-mix(in_srgb,var(--pine)_6%,var(--paper))]">
         <p className="text-body text-primary leading-relaxed">{summary}</p>
         <p className="text-caption text-secondary border-t border-default pt-3">{disclaimer}</p>
       </Card>

@@ -1,20 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useProfileStore } from '@/shared/store/profile';
+import { formatDate } from '@/shared/i18n/format';
 import { useResults } from '../../hooks/useResults';
-
-/**
- * Browsers use `document.title` as the default filename in the print →
- * "Сохранить как PDF" dialog, so the title IS the export's filename — hence
- * setting it here rather than leaving the app's generic "Profy".
- */
-function buildDocumentTitle(name: string | undefined, createdAt: string | undefined): string {
-  const date = createdAt ? new Date(createdAt) : new Date();
-  const stamp = Number.isNaN(date.getTime())
-    ? ''
-    : ` — ${date.toLocaleDateString('ru-RU')}`;
-  return `Profy — результат теста${name ? ` — ${name}` : ''}${stamp}`;
-}
 
 /**
  * Logic layer for the printable result. Reuses `useResults` wholesale — the
@@ -24,6 +13,7 @@ function buildDocumentTitle(name: string | undefined, createdAt: string | undefi
  * filename, the print trigger, and the way back.
  */
 export function useResultPrint() {
+  const { t } = useTranslation('results');
   const results = useResults();
   const profile = useProfileStore((s) => s.profile);
   const [searchParams] = useSearchParams();
@@ -33,13 +23,19 @@ export function useResultPrint() {
   const autoPrint = searchParams.get('auto') === '1';
   const hasAutoPrinted = useRef(false);
 
+  // Browsers use `document.title` as the default filename in the print →
+  // "Save as PDF" dialog, so the title IS the export's filename.
   useEffect(() => {
     const previous = document.title;
-    document.title = buildDocumentTitle(profile?.name, report?.created_at);
+    const raw = report?.created_at ? new Date(report.created_at) : new Date();
+    const stamp = Number.isNaN(raw.getTime()) ? '' : ` — ${formatDate(raw)}`;
+    document.title = t('print.docTitle', {
+      name: profile?.name ? ` — ${profile.name}` : '',
+    }) + stamp;
     return () => {
       document.title = previous;
     };
-  }, [profile?.name, report?.created_at]);
+  }, [profile?.name, report?.created_at, t]);
 
   const print = useCallback(() => window.print(), []);
 
