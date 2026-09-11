@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
-import { plural, pluralize } from '@/shared/lib/plural';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import {
@@ -43,10 +43,10 @@ import type { AdminFeedbackListItem, AgeGroup } from '@/shared/types';
 
 type SliceKey = 'age' | 'scenario' | 'direction';
 
-const SLICES: { key: SliceKey; label: string }[] = [
-  { key: 'age', label: 'Возраст' },
-  { key: 'scenario', label: 'Сценарий отчёта' },
-  { key: 'direction', label: 'Ведущее направление' },
+const SLICES: { key: SliceKey; labelKey: string }[] = [
+  { key: 'age', labelKey: 'admin:common.col.age' },
+  { key: 'scenario', labelKey: 'admin:overview.slice.scenario' },
+  { key: 'direction', labelKey: 'admin:overview.slice.direction' },
 ];
 
 /** Beyond this a direction breakdown is a list, not a comparison. */
@@ -77,26 +77,27 @@ export function FeedbackOverview({
   activeScore,
   activeSection,
 }: FeedbackOverviewProps) {
+  const { t } = useTranslation('admin');
   const [slice, setSlice] = useState<SliceKey>('age');
 
   if (scoreBase.length === 0 && sectionBase.length === 0) return null;
 
   const avg = averageScore(scoreBase);
   const distribution = scoreDistribution(scoreBase);
-  const sections = sectionTally(sectionBase);
+  const sections = sectionTally(sectionBase, t);
   const low = countLowScores(scoreBase);
   const high = countHighScores(scoreBase);
   const noSections = sectionBase.filter((item) => item.helpful_sections.length === 0).length;
 
   const scope = (count: number) =>
     filtered
-      ? `по ${pluralize(count, 'отзыву', 'отзывам', 'отзывам')} в текущем фильтре`
-      : `по всем ${pluralize(count, 'отзыву', 'отзывам', 'отзывам')}`;
+      ? t('overview.scopeFiltered', { count })
+      : t('overview.scopeAll', { count });
 
   return (
     <div className="flex flex-col gap-3">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-stretch">
-        <AdminCard title="Насколько отчёт про них" description={scope(scoreBase.length)}>
+        <AdminCard title={t('overview.scoreTitle')} description={scope(scoreBase.length)}>
           {/* Вопрос под отчётом — «Насколько это про тебя?», поэтому шкала
               читается как «узнал себя / не узнал», а не как «доволен». */}
           <div className="flex items-end gap-6 flex-wrap">
@@ -106,12 +107,12 @@ export function FeedbackOverview({
               <p className="font-mono text-display-sm font-medium text-primary tabular-nums m-0 leading-none">
                 {avg?.toFixed(1) ?? '—'}
               </p>
-              <p className={cn(ADMIN_META, 'mt-1.5')}>из {MAX_SCORE}</p>
+              <p className={cn(ADMIN_META, 'mt-1.5')}>{t('overview.outOf', { max: MAX_SCORE })}</p>
             </div>
             <ScoreShortcut
               count={high}
               total={scoreBase.length}
-              label={`узнали себя (${HIGH_SCORE_MIN}–${MAX_SCORE})`}
+              label={t('overview.recognized', { min: HIGH_SCORE_MIN, max: MAX_SCORE })}
               toneClass="text-brand"
               activeClass="bg-brand-subtle"
               active={activeScore === 'high'}
@@ -120,7 +121,7 @@ export function FeedbackOverview({
             <ScoreShortcut
               count={low}
               total={scoreBase.length}
-              label={`не про них (1–${LOW_SCORE_MAX})`}
+              label={t('overview.notThem', { max: LOW_SCORE_MAX })}
               toneClass="text-accent"
               activeClass="bg-accent-soft"
               active={activeScore === 'low'}
@@ -139,8 +140,8 @@ export function FeedbackOverview({
                   disabled={bar.count === 0}
                   title={
                     bar.count === 0
-                      ? `Оценку ${bar.score} никто не поставил`
-                      : `Показать только оценку ${bar.score}`
+                      ? t('overview.noneWithScore', { score: bar.score })
+                    : t('overview.showOnlyScore', { score: bar.score })
                   }
                   className={cn(
                     'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-0.5 transition-colors text-left',
@@ -166,8 +167,8 @@ export function FeedbackOverview({
         </AdminCard>
 
         <AdminCard
-          title="Что назвали полезным"
-          description={`Доля отзывов, отметивших раздел, ${scope(sectionBase.length)}. Разделов можно выбрать несколько, поэтому сумма больше 100%.`}
+          title={t('overview.usefulTitle')}
+          description={t('overview.usefulDescription', { scope: scope(sectionBase.length) })}
         >
           <div className="flex flex-col gap-1">
             {sections.map((section) => {
@@ -180,8 +181,8 @@ export function FeedbackOverview({
                   disabled={section.count === 0}
                   title={
                     section.count === 0
-                      ? 'Этот раздел не отметил никто'
-                      : `Показать отзывы, отметившие раздел «${section.label}»`
+                      ? t('overview.sectionNobody')
+                      : t('feedback.showWithSection', { section: section.label })
                   }
                   className={cn(
                     'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-1 transition-colors text-left',
@@ -223,8 +224,7 @@ export function FeedbackOverview({
           </div>
           {noSections > 0 && (
             <p className={cn(ADMIN_META, 'm-0 pt-2 border-t border-default')}>
-              {noSections} {plural(noSections, 'отзыв', 'отзыва', 'отзывов')} не{' '}
-              {plural(noSections, 'отметил', 'отметили', 'отметили')} ни одного раздела.
+              {t('overview.noSections', { count: noSections })}
             </p>
           )}
         </AdminCard>
@@ -259,6 +259,7 @@ function ScoreShortcut({
   active: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation('admin');
   const share = total > 0 ? Math.round((count / total) * 100) : 0;
 
   return (
@@ -266,7 +267,7 @@ function ScoreShortcut({
       type="button"
       onClick={onClick}
       disabled={count === 0}
-      title={count === 0 ? 'Таких отзывов нет' : `Показать только эти отзывы`}
+      title={count === 0 ? t('overview.noSuchFeedback') : t('overview.showOnlyThese')}
       className={cn(
         'text-left rounded-[3px] px-2 py-1.5 -mx-2 transition-colors',
         count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
@@ -299,6 +300,7 @@ function SliceCard({
   slice: SliceKey;
   onSliceChange: (slice: SliceKey) => void;
 }) {
+  const { t } = useTranslation('admin');
   const [expanded, setExpanded] = useState(false);
   const buckets = buildSlice(items, slice);
   const shown = expanded ? buckets : buckets.slice(0, SLICE_ROW_LIMIT);
@@ -310,14 +312,14 @@ function SliceCard({
 
   return (
     <AdminCard
-      title="Средняя оценка по срезам"
+      title={t('overview.slicesTitle')}
       description={
         slice === 'direction'
-          ? 'Направления — начиная с самых обсуждаемых. Средняя по трём отзывам ничего не доказывает, поэтому объём всегда рядом.'
-          : 'Где отчёт заходит хуже — по возрасту и по сценарию, под который он собран.'
+          ? t('overview.slicesDirectionHint')
+          : t('overview.slicesOtherHint')
       }
       aside={
-        <div role="group" aria-label="Срез" className="inline-flex rounded-[3px] border border-default overflow-hidden">
+        <div role="group" aria-label={t('overview.slice.aria')} className="inline-flex rounded-[3px] border border-default overflow-hidden">
           {SLICES.map((option) => (
             <button
               key={option.key}
@@ -332,7 +334,7 @@ function SliceCard({
                   : 'text-muted hover:text-primary hover:bg-hover',
               )}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
@@ -341,8 +343,8 @@ function SliceCard({
       {buckets.length === 0 ? (
         <p className={cn(ADMIN_META, 'm-0')}>
           {slice === 'direction'
-            ? 'Ни у одного отзыва нет разбора — направление берётся из результатов диагностики.'
-            : 'Нет данных по этому срезу.'}
+            ? t('overview.noBreakdown')
+            : t('overview.noSliceData')}
         </p>
       ) : (
         <div className="flex flex-col gap-1">
@@ -382,9 +384,9 @@ function SliceCard({
                 <span className={cn(ADMIN_NUM, 'w-8 text-right text-primary')}>{bucket.avg.toFixed(1)}</span>
                 <span
                   className={cn(ADMIN_NUM, 'w-14 text-right text-muted')}
-                  title={`${bucket.count} из ${items.length} отзывов в выборке`}
+                  title={t('overview.bucketShare', { count: bucket.count, total: items.length })}
                 >
-                  {bucket.count} отз.
+                  {t('overview.bucketCount', { count: bucket.count })}
                 </span>
               </div>
             ))}
@@ -393,7 +395,7 @@ function SliceCard({
           <div className="flex items-baseline justify-between gap-4 flex-wrap mt-1">
             {overall != null ? (
               <p className={cn(ADMIN_META, 'm-0')}>
-                Вертикальная засечка — общая средняя по выборке, {overall.toFixed(1)}.
+                {t('overview.tickLegend', { average: overall.toFixed(1) })}
               </p>
             ) : (
               <span />
@@ -407,8 +409,8 @@ function SliceCard({
                 className={cn(ADMIN_TEXT, 'text-brand hover:underline')}
               >
                 {expanded
-                  ? 'Свернуть'
-                  : `Показать ещё ${hidden} ${plural(hidden, 'строку', 'строки', 'строк')}`}
+                  ? t('common.collapse')
+              : t('overview.showMoreRows', { count: hidden })}
               </button>
             )}
           </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Check, Lock, Undo2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -50,6 +51,7 @@ export function AdminSaveBar({
   locksOnSave,
   blockedReason,
 }: AdminSaveBarProps) {
+  const { t } = useTranslation('admin');
   const [showSaved, setShowSaved] = useState(false);
 
   // The success confirmation is transient; the old UI left "СОХРАНЕНО" on
@@ -70,14 +72,14 @@ export function AdminSaveBar({
     <div
       className="sticky bottom-0 z-30 -mx-4 sm:mx-0 border-t border-strong sm:border sm:rounded-[3px] bg-surface"
       role="region"
-      aria-label="Сохранение изменений"
+      aria-label={t('saveBar.aria')}
     >
       <div className="px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0 flex-1">
           {settled && showSaved ? (
             <p className={cn(ADMIN_TEXT, 'flex items-center gap-1.5 text-brand font-semibold m-0')}>
               <Check size={14} />
-              Сохранено
+              {t('saveBar.saved')}
             </p>
           ) : state.kind === 'error' && !dirty ? (
             <p className={cn(ADMIN_TEXT, 'flex items-center gap-1.5 text-danger font-semibold m-0')}>
@@ -88,8 +90,8 @@ export function AdminSaveBar({
             <>
               <p className={cn(ADMIN_TEXT, 'text-primary font-semibold m-0')}>
                 {changedLabels.length > 0
-                  ? `Изменено: ${changedLabels.join(', ')}`
-                  : 'Есть несохранённые изменения'}
+                  ? t('saveBar.changed', { fields: changedLabels.join(', ') })
+                  : t('saveBar.unsaved')}
               </p>
               {locksOnSave && changedLabels.length > 0 && (
                 // Предложение, а не машинная метка: моноширинный капс здесь
@@ -97,11 +99,7 @@ export function AdminSaveBar({
                 <p className={cn(ADMIN_META, 'flex items-start gap-1.5 mt-1')}>
                   <Lock size={11} className="mt-[3px] flex-shrink-0" />
                   <span>
-                    После сохранения{' '}
-                    {changedLabels.length === 1
-                      ? 'это поле перестанет'
-                      : 'эти поля перестанут'}{' '}
-                    обновляться из контент-банка при деплое
+                    {t('saveBar.locksOnSave', { count: changedLabels.length })}
                   </span>
                 </p>
               )}
@@ -116,7 +114,7 @@ export function AdminSaveBar({
           <div className="flex items-center gap-2 flex-shrink-0">
             <button type="button" onClick={onReset} disabled={saving} className={cn(ADMIN_BUTTON, ADMIN_TEXT)}>
               <Undo2 size={12} />
-              Отменить
+              {t('saveBar.cancel')}
             </button>
             <Button
               size="sm"
@@ -126,7 +124,7 @@ export function AdminSaveBar({
               disabled={Boolean(blockedReason)}
               title={blockedReason ?? undefined}
             >
-              Сохранить
+              {t('saveBar.save')}
             </Button>
           </div>
         )}

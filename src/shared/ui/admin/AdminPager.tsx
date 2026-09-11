@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
-import { plural } from '@/shared/lib/plural';
 import { ADMIN_BUTTON, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 
 interface AdminPagerProps {
@@ -9,12 +9,15 @@ interface AdminPagerProps {
   pageSize: number;
   onPageChange: (page: number) => void;
   /**
-   * Russian plural forms of what is being counted — «пара / пары / пар».
+   * What is being counted, as a key under `admin:pager.count.*` — the catalog
+   * carries the plural forms per locale (ICU), so this component never builds
+   * a phrase out of a number and a word (KZ-209).
+   *
    * Without it the footer read "1–20 из 67": a bare number that never says what
    * 67 is, so every list repeated the same figure with its noun up in the
    * filter row, and the screen showed one count twice in two places.
    */
-  noun?: readonly [string, string, string];
+  countKey?: string;
 }
 
 /**
@@ -25,7 +28,8 @@ interface AdminPagerProps {
  * on feedback) — and adds numbered pages, without which 314 questions were 16
  * ПРЕД/СЛЕД clicks from end to end with no way to jump.
  */
-export function AdminPager({ page, total, pageSize, onPageChange, noun }: AdminPagerProps) {
+export function AdminPager({ page, total, pageSize, onPageChange, countKey }: AdminPagerProps) {
+  const { t } = useTranslation('admin');
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (total === 0) return null;
 
@@ -40,9 +44,9 @@ export function AdminPager({ page, total, pageSize, onPageChange, noun }: AdminP
    * нужен объём, названный своим словом.
    */
   return (
-    <nav className="flex items-center justify-between flex-wrap gap-3" aria-label="Постраничная навигация">
+    <nav className="flex items-center justify-between flex-wrap gap-3" aria-label={t('pager.aria')}>
       <span className={ADMIN_META}>
-        {noun ? `${capitalize(plural(total, noun[0], noun[1], noun[2]))}: ` : 'Всего: '}
+        {countKey ? `${t(`pager.count.${countKey}`, { count: total })}: ` : `${t('pager.total')}: `}
         <span className={ADMIN_NUM}>{total}</span>
       </span>
 
@@ -52,7 +56,7 @@ export function AdminPager({ page, total, pageSize, onPageChange, noun }: AdminP
             type="button"
             disabled={page <= 1}
             onClick={() => onPageChange(page - 1)}
-            aria-label="Предыдущая страница"
+            aria-label={t('pager.prev')}
             className={cn(ADMIN_BUTTON, 'px-2')}
           >
             <ChevronLeft size={14} />
@@ -87,7 +91,7 @@ export function AdminPager({ page, total, pageSize, onPageChange, noun }: AdminP
             type="button"
             disabled={page >= totalPages}
             onClick={() => onPageChange(page + 1)}
-            aria-label="Следующая страница"
+            aria-label={t('pager.next')}
             className={cn(ADMIN_BUTTON, 'px-2')}
           >
             <ChevronRight size={14} />
@@ -117,8 +121,4 @@ function buildPageWindow(page: number, totalPages: number): (number | 'gap')[] {
   entries.push(totalPages);
 
   return entries;
-}
-
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
@@ -11,6 +12,7 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
+import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
 import type { AdminDirectionDetail, AdminDirectionUpdateRequest } from '@/shared/types';
 
 const EDITABLE_KEYS = [
@@ -24,13 +26,13 @@ const EDITABLE_KEYS = [
 ] as const satisfies readonly (keyof AdminDirectionUpdateRequest)[];
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
-  name: 'название',
+  name: 'admin:directions.field.name',
   holland_code: 'Holland code',
-  description: 'описание',
-  professions: 'профессии',
-  skills_needed: 'навыки',
-  subjects_to_develop: 'предметы',
-  first_steps: 'первые шаги',
+  description: 'admin:directions.field.description',
+  professions: 'admin:directions.field.professions',
+  skills_needed: 'admin:directions.field.skills',
+  subjects_to_develop: 'admin:directions.field.subjects',
+  first_steps: 'admin:directions.field.firstSteps',
 };
 
 interface FormState {
@@ -56,7 +58,7 @@ function toFormState(detail: AdminDirectionDetail): FormState {
 }
 
 const LOCK_REASON =
-  'Значение задано вручную. Автообновление контент-банка не перезапишет его и не удалит строку.';
+  'admin:common.lockReason';
 
 const HOLLAND_LETTERS = 'RIASEC';
 
@@ -65,18 +67,19 @@ const HOLLAND_LETTERS = 'RIASEC';
  * The field was a free text input: "XYZ" saved happily and then matched no
  * assessment result, silently taking the direction out of every recommendation.
  */
-function validateHollandCode(code: string): string | undefined {
+function validateHollandCode(code: string, t: (key: string, opts?: Record<string, unknown>) => string): string | undefined {
   const trimmed = code.trim().toUpperCase();
-  if (!trimmed) return 'Код обязателен — по нему направление подбирается ученику.';
+  if (!trimmed) return t('directions.codeRequired');
   const invalid = [...trimmed].filter((letter) => !HOLLAND_LETTERS.includes(letter));
   if (invalid.length > 0) {
-    return `Допустимы только буквы R, I, A, S, E, C. Лишние: ${[...new Set(invalid)].join(', ')}`;
+    return t('directions.codeInvalid', { letters: [...new Set(invalid)].join(', ') });
   }
-  if (new Set(trimmed).size !== trimmed.length) return 'Буквы не должны повторяться.';
+  if (new Set(trimmed).size !== trimmed.length) return t('directions.codeDuplicate');
   return undefined;
 }
 
 export default function AdminDirectionDetailPage() {
+  const { t } = useTranslation('admin');
   const { directionId } = useParams<{ directionId: string }>();
   const [detail, setDetail] = useState<AdminDirectionDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,7 +97,7 @@ export default function AdminDirectionDetailPage() {
         const data = await adminApi.getDirection(directionId!);
         if (!cancelled) setDetail(data);
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить направление');
+        if (!cancelled) setLoadError(t('directions.loadOneError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -123,13 +126,13 @@ export default function AdminDirectionDetailPage() {
     },
   });
 
-  if (loading) return <AdminLoading label="Загрузка направления" />;
+  if (loading) return <AdminLoading label={t('directions.loadingOne')} />;
   if (loadError || !detail || !form) {
-    return <AdminError message={loadError || 'Направление не найдено'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('directions.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(Object.keys(detail.overrides));
-  const hollandError = validateHollandCode(form.holland_code);
+  const hollandError = validateHollandCode(form.holland_code, t);
   const nameChanged = 'name' in patch;
   const catalogEmpty =
     form.professions.length === 0 &&
@@ -140,23 +143,27 @@ export default function AdminDirectionDetailPage() {
   return (
     <>
       <AdminPageHeader
-        crumbs={[{ label: 'Направления', to: listReturnPath('/admin/content/directions') }, { label: detail.name }]}
+        crumbs={[{ label: t('directions.title'), to: listReturnPath('/admin/content/directions') }, { label: detail.name }]}
         title={detail.name}
-        meta={`${detail.holland_code} · ${detail.slug}`}
+        meta={
+          <span className="flex items-center gap-2">
+            <LocaleBadge locale={detail.locale} />
+            {`${detail.holland_code} · ${detail.slug}`}
+          </span>
+        }
       />
 
-      <AdminCard title="Основное" description="Название и код, по которому направление подбирается ученику.">
+      <AdminCard title={t('directions.mainCard')} description={t('directions.mainDescription')}>
         <div className="grid gap-3.5 sm:grid-cols-[1fr_200px]">
           <AdminField
-            label="Название"
+            label={t('directions.field.nameLabel')}
             locked={locked.has('name')}
             lockReason={LOCK_REASON}
             hint={
               nameChanged ? (
                 <>
-                  Адрес направления останется прежним:{' '}
-                  <span className="font-mono text-mono-xs">{detail.slug}</span> — slug не
-                  перегенерируется.
+                  {t('directions.slugStays')}{' '}
+                  <span className="font-mono text-mono-xs">{detail.slug}</span>{t('directions.slugStaysTail')}
                 </>
               ) : undefined
             }
@@ -177,7 +184,7 @@ export default function AdminDirectionDetailPage() {
             locked={locked.has('holland_code')}
             lockReason={LOCK_REASON}
             error={hollandError}
-            hint={hollandError ? undefined : 'Буквы RIASEC, ведущая — первой.'}
+            hint={hollandError ? undefined : t('directions.codeHintShort')}
           >
             {({ id, invalid, describedBy }) => (
               <input
@@ -193,7 +200,7 @@ export default function AdminDirectionDetailPage() {
           </AdminField>
         </div>
 
-        <AdminField label="Описание" locked={locked.has('description')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -207,43 +214,43 @@ export default function AdminDirectionDetailPage() {
       </AdminCard>
 
       <AdminCard
-        title="Каталог направления"
+        title={t('directions.catalogCard')}
         description={
           catalogEmpty
-            ? 'Пока пусто. Сид заполняет только название и код — остальное заполняется вручную и после этого не перезаписывается.'
-            : 'Что ученик увидит на странице направления.'
+            ? t('directions.catalogEmpty')
+            : t('directions.catalogFilled')
         }
       >
-        <AdminField label="Профессии" locked={locked.has('professions')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.professionsLabel')} locked={locked.has('professions')} lockReason={LOCK_REASON}>
           <StringListEditor
             values={form.professions}
             onChange={(v) => setField('professions', v)}
-            placeholder="Например, Инженер-конструктор"
-            emptyNote="Пусто. Список профессий уходит в отчёт ученика и в контекст, по которому генерируются разбор направления и роадмап — там сейчас пусто."
+            placeholder={t('directions.professionsPlaceholder')}
+            emptyNote={t('directions.professionsEmptyNote')}
           />
         </AdminField>
 
-        <AdminField label="Нужные навыки" locked={locked.has('skills_needed')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.skillsLabel')} locked={locked.has('skills_needed')} lockReason={LOCK_REASON}>
           <StringListEditor
             values={form.skills_needed}
             onChange={(v) => setField('skills_needed', v)}
-            placeholder="Например, Работа с чертежами"
+            placeholder={t('directions.skillsPlaceholder')}
           />
         </AdminField>
 
-        <AdminField label="Предметы для развития" locked={locked.has('subjects_to_develop')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.subjectsLabel')} locked={locked.has('subjects_to_develop')} lockReason={LOCK_REASON}>
           <StringListEditor
             values={form.subjects_to_develop}
             onChange={(v) => setField('subjects_to_develop', v)}
-            placeholder="Например, Физика"
+            placeholder={t('directions.subjectsPlaceholder')}
           />
         </AdminField>
 
         <AdminField
-          label="Первые шаги"
+          label={t('directions.field.firstStepsLabel')}
           locked={locked.has('first_steps')}
           lockReason={LOCK_REASON}
-          hint="Порядок важен — ученик идёт по шагам сверху вниз."
+          hint={t('directions.firstStepsHint')}
         >
           {/* `ordered` here and not on the lists above: the other three are
               sets, this one is a sequence the student follows. */}
@@ -251,13 +258,13 @@ export default function AdminDirectionDetailPage() {
             ordered
             values={form.first_steps}
             onChange={(v) => setField('first_steps', v)}
-            placeholder="Например, Сходить на день открытых дверей"
+            placeholder={t('directions.firstStepsPlaceholder')}
           />
         </AdminField>
       </AdminCard>
 
       <p className={ADMIN_META}>
-        Slug ({detail.slug}) — адрес направления в продукте, задаётся при создании и здесь не меняется.
+        {t('directions.slugNote', { slug: detail.slug })}
       </p>
 
       <AdminSaveBar

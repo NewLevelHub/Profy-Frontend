@@ -12,6 +12,7 @@ import ruRoadmap from './locales/ru/roadmap.json';
 import ruProfile from './locales/ru/profile.json';
 import ruErrors from './locales/ru/errors.json';
 import ruLanding from './locales/ru/landing.json';
+import ruAdmin from './locales/ru/admin.json';
 
 import kkCommon from './locales/kk/common.json';
 import kkAuth from './locales/kk/auth.json';
@@ -22,10 +23,12 @@ import kkRoadmap from './locales/kk/roadmap.json';
 import kkProfile from './locales/kk/profile.json';
 import kkErrors from './locales/kk/errors.json';
 import kkLanding from './locales/kk/landing.json';
+import kkAdmin from './locales/kk/admin.json';
 
 // One namespace per product area. Mirror this list when adding a namespace, in
-// both locales, and in the parity check (KZ-211 / KZ-602). Admin has no
-// namespace — /admin/* is ru-only by decision (KZ-210).
+// both locales, and in the parity check (KZ-211 / KZ-602). `admin` covers
+// /admin/* — it was ru-only under KZ-210, and that decision was reversed on
+// review: the panel is localized like any other area.
 export const NAMESPACES = [
   'common',
   'auth',
@@ -36,6 +39,7 @@ export const NAMESPACES = [
   'profile',
   'errors',
   'landing',
+  'admin',
 ] as const;
 
 const resources = {
@@ -49,6 +53,7 @@ const resources = {
     profile: ruProfile,
     errors: ruErrors,
     landing: ruLanding,
+    admin: ruAdmin,
   },
   kk: {
     common: kkCommon,
@@ -60,6 +65,7 @@ const resources = {
     profile: kkProfile,
     errors: kkErrors,
     landing: kkLanding,
+    admin: kkAdmin,
   },
 } as const;
 

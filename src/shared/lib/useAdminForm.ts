@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { buildPatchBody } from '@/shared/lib/adminPatch';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
 import type { SaveState } from '@/shared/ui/admin/AdminSaveBar';
@@ -8,6 +9,8 @@ interface UseAdminFormOptions<TForm extends object, TDetail> {
   initial: TForm | null;
   keys: readonly (keyof TForm)[];
   /** Human names per key, used by the save bar to say what is about to change. */
+  /** Field → i18n key (KZ-202): the caller's map is an index, the wording is in
+      the catalog. Resolved here, where the hook already has `t`. */
   labels: Partial<Record<keyof TForm, string>>;
   onSave: (patch: Partial<TForm>) => Promise<TDetail>;
   /** Re-derives form state from the server's response after a successful save. */
@@ -35,8 +38,9 @@ export function useAdminForm<TForm extends object, TDetail>({
   labels,
   onSave,
   toForm,
-  errorMessage = 'Не удалось сохранить изменения',
+  errorMessage,
 }: UseAdminFormOptions<TForm, TDetail>) {
+  const { t } = useTranslation('admin');
   const [baseline, setBaseline] = useState<TForm | null>(initial);
   const [form, setForm] = useState<TForm | null>(initial);
   const [saving, setSaving] = useState(false);
@@ -62,7 +66,10 @@ export function useAdminForm<TForm extends object, TDetail>({
 
   useUnsavedGuard(dirty);
 
-  const changedLabels = changedKeys.map((key) => labels[key] ?? String(key));
+  const changedLabels = changedKeys.map((key) => {
+    const labelKey = labels[key];
+    return labelKey ? t(labelKey) : String(key);
+  });
 
   const setField = useCallback(<K extends keyof TForm>(key: K, value: TForm[K]) => {
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -87,13 +94,13 @@ export function useAdminForm<TForm extends object, TDetail>({
       } catch (error) {
         setState({
           kind: 'error',
-          message: error instanceof Error && error.message ? error.message : errorMessage,
+          message: error instanceof Error && error.message ? error.message : (errorMessage ?? t('form.saveError')),
         });
       } finally {
         setSaving(false);
       }
     },
-    [dirty, onSave, patch, toForm, errorMessage],
+    [dirty, onSave, patch, toForm, errorMessage, t],
   );
 
   return { form, setForm, setField, patch, dirty, changedKeys, changedLabels, saving, state, reset, save };

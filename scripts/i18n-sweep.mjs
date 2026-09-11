@@ -32,6 +32,11 @@ const EXCLUDE_PREFIXES = [
 // source file. Structure: [relPath, lineRegex, reason].
 const ALLOW = [
   // KZ-206 — Cyrillic used to match/parse ru-only backend data, never shown.
+  // The admin panel is localized (KZ-210 reversed on review), so these three
+  // are the only Cyrillic literals left in it — none of them is UI copy.
+  ['src/pages/admin/AdminUniversitiesPage.tsx', /Казахстан|replace\(\/ё\/g/, 'backend country value + ё-normalizer for search'],
+  ['src/pages/admin/AdminFeedbackPage.tsx', /replace\(\/ё\/g/, 'ё-normalizer for search'],
+  ['src/pages/admin/AdminUserDetailPage.tsx', /^\s*[а-яё]: '[^']*',/, 'Cyrillic→Latin transliteration table for filenames'],
   ['src/pages/results/utils/programUtils.ts', /Казахстан|Қазақстан|тенге|евро|фунт|юан|вон|крон|рупи|франк|иен|йен|рэнд|ранд|реал|доллар|А-ЯA-Z/, 'backend-data matcher/parser'],
   ['src/pages/results/ProgramDetailPage.tsx', /Казахстан|Общий конкурс|проходной балл/, 'backend admission-score parser'],
   ['src/pages/results/hooks/useUniversityList.ts', /Казахстан/, 'backend country value match'],

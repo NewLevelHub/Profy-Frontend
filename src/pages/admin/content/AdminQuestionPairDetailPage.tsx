@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
@@ -11,6 +12,7 @@ import { AdminField } from '@/shared/ui/admin/AdminField';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
 import type { AdminQuestionPairDetail, AdminQuestionPairUpdateRequest } from '@/shared/types';
 
 const EDITABLE_KEYS = [
@@ -22,11 +24,11 @@ const EDITABLE_KEYS = [
 ] as const satisfies readonly (keyof AdminQuestionPairUpdateRequest)[];
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
-  frame: 'фрейм',
-  option_a_text: 'текст стороны A',
-  option_b_text: 'текст стороны B',
-  option_a_icon: 'иконка A',
-  option_b_icon: 'иконка B',
+  frame: 'admin:questionPairs.field.frame',
+  option_a_text: 'admin:questionPairs.field.textA',
+  option_b_text: 'admin:questionPairs.field.textB',
+  option_a_icon: 'admin:questionPairs.field.iconA',
+  option_b_icon: 'admin:questionPairs.field.iconB',
 };
 
 interface FormState {
@@ -48,7 +50,7 @@ function toFormState(detail: AdminQuestionPairDetail): FormState {
 }
 
 const LOCK_REASON =
-  'Значение задано вручную. Автообновление контент-банка не перезапишет его и не удалит строку.';
+  'admin:common.lockReason';
 
 /** Text and icon of a linked question — what a blank option falls back to. */
 interface Fallback {
@@ -57,6 +59,7 @@ interface Fallback {
 }
 
 export default function AdminQuestionPairDetailPage() {
+  const { t } = useTranslation('admin');
   const { pairId } = useParams<{ pairId: string }>();
   const [detail, setDetail] = useState<AdminQuestionPairDetail | null>(null);
   const [fallbacks, setFallbacks] = useState<{ a: Fallback | null; b: Fallback | null }>({ a: null, b: null });
@@ -92,7 +95,7 @@ export default function AdminQuestionPairDetailPage() {
           b: b.status === 'fulfilled' ? { text: b.value.short_text ?? b.value.text, icon: b.value.icon ?? '' } : null,
         });
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить пару вопросов');
+        if (!cancelled) setLoadError(t('questionPairs.loadOneError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -121,9 +124,9 @@ export default function AdminQuestionPairDetailPage() {
     },
   });
 
-  if (loading) return <AdminLoading label="Загрузка пары" />;
+  if (loading) return <AdminLoading label={t('questionPairs.loadingOne')} />;
   if (loadError || !detail || !form) {
-    return <AdminError message={loadError || 'Пара не найдена'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('questionPairs.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(Object.keys(detail.overrides));
@@ -150,11 +153,16 @@ export default function AdminQuestionPairDetailPage() {
     <>
       <AdminPageHeader
         crumbs={[
-          { label: 'Пары вопросов', to: listReturnPath('/admin/content/question-pairs') },
-          { label: `Пара #${detail.pair_index}` },
+          { label: t('questionPairs.title'), to: listReturnPath('/admin/content/question-pairs') },
+          { label: t('questionPairs.pairNo', { index: detail.pair_index }) },
         ]}
-        title={`Пара вопросов #${detail.pair_index}`}
-        meta={`${INSTRUMENT_LABELS[detail.instrument]} · ${AGE_TIER_LABELS[detail.age_tier]}`}
+        title={t('questionPairs.detailTitle', { index: detail.pair_index })}
+        meta={
+          <span className="flex items-center gap-2">
+            <LocaleBadge locale={detail.locale} />
+            {`${INSTRUMENT_LABELS[detail.instrument]} · ${AGE_TIER_LABELS[detail.age_tier]}`}
+          </span>
+        }
       />
 
       <PairPreview
@@ -164,10 +172,10 @@ export default function AdminQuestionPairDetailPage() {
       />
 
       <AdminCard
-        title="Сценарий"
-        description="Общая формулировка над двумя вариантами. Если очистить — ученик увидит два варианта без общего вопроса."
+        title={t('questionPairs.frameTitle')}
+        description={t('questionPairs.frameDescription')}
       >
-        <AdminField label="Фрейм" locked={locked.has('frame')} lockReason={LOCK_REASON}>
+        <AdminField label={t('questionPairs.field.frameLabel')} locked={locked.has('frame')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <input
               id={id}
@@ -175,7 +183,7 @@ export default function AdminQuestionPairDetailPage() {
               className={ADMIN_INPUT}
               value={form.frame}
               onChange={(e) => setField('frame', e.target.value)}
-              placeholder="Например: Что тебе ближе?"
+              placeholder={t('questionPairs.framePlaceholder')}
             />
           )}
         </AdminField>
@@ -183,7 +191,7 @@ export default function AdminQuestionPairDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <PairSideCard
-          label="Сторона A"
+          label={t('questionPairs.sideA')}
           questionId={detail.question_a_id}
           fallback={fallbacks.a}
           text={form.option_a_text}
@@ -194,7 +202,7 @@ export default function AdminQuestionPairDetailPage() {
           iconLocked={locked.has('option_a_icon')}
         />
         <PairSideCard
-          label="Сторона B"
+          label={t('questionPairs.sideB')}
           questionId={detail.question_b_id}
           fallback={fallbacks.b}
           text={form.option_b_text}
@@ -209,7 +217,7 @@ export default function AdminQuestionPairDetailPage() {
       {/* Одна строка под обеими карточками, а не одинаковый абзац в каждой:
           «со вопросом» вместо «с вопросом» — заодно правка опечатки. */}
       <p className={cn(ADMIN_META, 'm-0')}>
-        Какие два вопроса образуют пару — задаётся контент-банком и в админке не меняется.
+        {t('questionPairs.boundQuestions')}
       </p>
 
       <AdminSaveBar
@@ -234,9 +242,10 @@ function PairPreview({
   a: { text: string; icon: string };
   b: { text: string; icon: string };
 }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="bg-raised border border-default rounded-[3px] p-4">
-      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>Как увидит ученик</p>
+      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>
       {frame && <p className="font-sans text-body-md text-primary text-center mb-3">{frame}</p>}
       <div className="grid grid-cols-2 gap-3">
         {[a, b].map((side, index) => (
@@ -278,6 +287,7 @@ function PairSideCard({
   textLocked: boolean;
   iconLocked: boolean;
 }) {
+  const { t } = useTranslation('admin');
   const usingFallbackText = text.trim() === '';
   const usingFallbackIcon = icon.trim() === '';
 
@@ -289,26 +299,26 @@ function PairSideCard({
           to={`/admin/content/questions/${questionId}`}
           className={cn(ADMIN_TEXT, 'text-brand hover:underline')}
         >
-          Открыть вопрос
+          {t('questionPairs.openQuestion')}
         </Link>
       }
     >
       <AdminField
-        label="Текст варианта"
+        label={t('questionPairs.optionText')}
         locked={textLocked}
         lockReason={LOCK_REASON}
         hint={
           usingFallbackText ? (
             fallback ? (
               <>
-                Пусто — используется текст вопроса:{' '}
+                {t('questionPairs.emptyUsesQuestion')}{' '}
                 <span className="text-secondary">«{fallback.text}»</span>
               </>
             ) : (
-              'Пусто — используется текст связанного вопроса (не удалось его загрузить).'
+              t('questionPairs.emptyUsesQuestionUnloaded')
             )
           ) : (
-            'Переопределяет текст связанного вопроса на этом экране.'
+            t('questionPairs.overridesQuestion')
           )
         }
       >
@@ -319,16 +329,16 @@ function PairSideCard({
             className={ADMIN_INPUT}
             value={text}
             onChange={(e) => onTextChange(e.target.value)}
-            placeholder={fallback?.text ?? 'Текст связанного вопроса'}
+            placeholder={fallback?.text ?? t('questionPairs.boundQuestionText')}
           />
         )}
       </AdminField>
 
       <AdminField
-        label="Иконка"
+        label={t('questionPairs.icon')}
         locked={iconLocked}
         lockReason={LOCK_REASON}
-        hint={usingFallbackIcon ? 'Пусто — берётся иконка связанного вопроса.' : undefined}
+        hint={usingFallbackIcon ? t('questionPairs.emptyUsesQuestionIcon') : undefined}
       >
         {({ id, describedBy }) => (
           <input

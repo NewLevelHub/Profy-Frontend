@@ -1,25 +1,34 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
-import { pluralize } from '@/shared/lib/plural';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
-import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
+import { MOTIVATION_CATEGORY_LABELS, contentLocaleOptions } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
+import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
+import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { useDetailPreviews } from './useDetailPreviews';
 import type { AdminMotivationPairListItem } from '@/shared/types';
+import type { Locale } from '@/shared/store/locale';
 
-const PAGE_SIZE = 20;
+// 18 logical pairs, one row per locale since KZ-301 — the whole bank is 36
+// rows. The balance check below only runs when the entire list is on screen,
+// so the page has to stay big enough to hold it (endpoint caps `limit` at 100).
+const PAGE_SIZE = 40;
+const FILTER_KEYS = ['locale'] as const;
 
 export default function AdminMotivationPairsPage() {
-  const { page, setPage } = useAdminListParams([] as const);
+  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  const { t } = useTranslation('admin');
+  const { locale } = values;
   useRememberListQuery('/admin/content/motivation-pairs');
   const [items, setItems] = useState<AdminMotivationPairListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -34,12 +43,16 @@ export default function AdminMotivationPairsPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await adminApi.listMotivationPairs({ page, limit: PAGE_SIZE });
+        const data = await adminApi.listMotivationPairs({
+          page,
+          limit: PAGE_SIZE,
+          locale: (locale as Locale) || undefined,
+        });
         if (cancelled) return;
         setItems(data.items);
         setTotal(data.total);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить пары мотивации');
+        if (!cancelled) setError(t('motivationPairs.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -49,7 +62,7 @@ export default function AdminMotivationPairsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, reloadToken]);
+  }, [page, locale, reloadToken]);
 
   const previews = useDetailPreviews('motivation-pairs', items.map((item) => item.id), (id) =>
     adminApi.getMotivationPair(id).then((detail) => ({ textA: detail.text_a, textB: detail.text_b })),
@@ -64,11 +77,17 @@ export default function AdminMotivationPairsPage() {
    * одной странице такой вывод был бы неверным.
    */
   const wholeList = !loading && items.length === total;
+  // Counted per (locale, category), not per category: every locale carries its
+  // own complete set of pairs, so counting across locales makes each category
+  // look like it has 4 — the whole bank would report as unbalanced.
   const unbalanced = wholeList
     ? [...items.reduce((counts, item) => {
-        counts.set(item.category_a, (counts.get(item.category_a) ?? 0) + 1);
+        const key = `${item.locale}:${item.category_a}`;
+        counts.set(key, (counts.get(key) ?? 0) + 1);
         return counts;
-      }, new Map<string, number>())].filter(([, count]) => count !== 2)
+      }, new Map<string, number>())]
+        .filter(([, count]) => count !== 2)
+        .map(([key, count]) => [key.slice(key.indexOf(':') + 1), count] as [string, number])
     : [];
 
   const columns: AdminColumn<AdminMotivationPairListItem>[] = [
@@ -84,32 +103,32 @@ export default function AdminMotivationPairsPage() {
       // две строки с одинаковой подписью. «Пара #1 · Интерес к делу» и «Пара #2
       // · Интерес к делу» ничем не отличались; строку опознаёт её текст.
       key: 'text',
-      header: 'Мотив выражен',
+      header: t('motivationPairs.col.side'),
       mobile: 'title',
       headerTitle:
-        'Сторона A — формулировка, где мотив выражен. Противоположный полюс (сторона B) — в карточке пары.',
+        t('motivationPairs.col.sideHint'),
       cell: (item) => {
         const preview = previews.get(item.id);
         return (
           <Link
             to={`/admin/content/motivation-pairs/${item.id}`}
-            title={preview?.textB ? `Противоположный полюс: ${preview.textB}` : undefined}
+            title={preview?.textB ? t('motivationPairs.oppositePole', { text: preview.textB }) : undefined}
             className={cn(ADMIN_TEXT, 'font-medium text-primary hover:text-brand hover:underline')}
           >
-            {preview?.textA ?? <span className="text-muted">Пара #{item.pair_index}</span>}
+            {preview?.textA ?? <span className="text-muted">{t('questionPairs.pairNo', { index: item.pair_index })}</span>}
           </Link>
         );
       },
     },
     {
       key: 'category',
-      header: 'Категория',
+      header: t('motivationPairs.col.category'),
       width: '200px',
       mobile: 'subtitle',
-      headerTitle: 'Обе стороны пары — полюса одной категории',
+      headerTitle: t('motivationPairs.col.categoryHint'),
       cell: (item) => (
         <span className={cn(ADMIN_TEXT, 'text-secondary')}>
-          {MOTIVATION_CATEGORY_LABELS[item.category_a]}
+          {t(MOTIVATION_CATEGORY_LABELS[item.category_a])}
         </span>
       ),
     },
@@ -124,9 +143,17 @@ export default function AdminMotivationPairsPage() {
         item.category_a !== item.category_b ? (
           <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1 text-danger font-semibold whitespace-nowrap')}>
             <AlertTriangle size={12} />
-            Стороны из разных категорий
+            {t('motivationPairs.sidesMismatch')}
           </span>
         ) : null,
+    },
+    {
+      key: 'locale',
+      header: t('common.col.locale'),
+      width: '88px',
+      mobile: 'badge',
+      headerTitle: t('questionPairs.col.localeHint'),
+      cell: (item) => <LocaleBadge locale={item.locale} />,
     },
     {
       key: 'overrides',
@@ -141,8 +168,21 @@ export default function AdminMotivationPairsPage() {
   return (
     <>
       <AdminListHeader
-        title="Пары мотивации"
-        description="Формат Harter: ученик выбирает между двумя полюсами одной и той же категории, а не между разными категориями."
+        title={t('motivationPairs.title')}
+        description={t('motivationPairs.description')}
+      />
+
+      <AdminToolbar
+        selects={[
+          {
+            key: 'locale',
+            label: t('common.col.locale'),
+            value: locale,
+            options: contentLocaleOptions(t),
+          },
+        ]}
+        onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
+        onClearAll={clearFilters}
       />
 
       {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
@@ -151,34 +191,34 @@ export default function AdminMotivationPairsPage() {
       {mismatched > 0 && (
         <p className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger m-0')}>
           <AlertTriangle size={13} />
-          {pluralize(mismatched, 'пара', 'пары', 'пар')} со сторонами из разных категорий
+          {t('motivationPairs.mismatchedCount', { count: mismatched })}
         </p>
       )}
 
       {unbalanced.length > 0 && (
         <p className={cn(ADMIN_META, 'm-0')}>
-          На категорию должно приходиться по 2 пары — сейчас не так у:{' '}
+          {t('motivationPairs.unbalanced')}{' '}
           {unbalanced
             .map(
               ([category, count]) =>
-                `${MOTIVATION_CATEGORY_LABELS[category as keyof typeof MOTIVATION_CATEGORY_LABELS] ?? category} (${count})`,
+                `${t(MOTIVATION_CATEGORY_LABELS[category as keyof typeof MOTIVATION_CATEGORY_LABELS]) ?? category} (${count})`,
             )
             .join(', ')}
-          . Мотивы получат разный вес в подсчёте.
+          {t('motivationPairs.unbalancedTail')}
         </p>
       )}
 
       <AdminDataTable
-        label="Пары мотивации"
+        label={t('motivationPairs.title')}
         columns={columns}
         rows={items}
         rowKey={(item) => item.id}
         rowHref={(item) => `/admin/content/motivation-pairs/${item.id}`}
         loading={loading}
-        emptyTitle="Пары не найдены"
+        emptyTitle={t('questionPairs.empty')}
       />
 
-      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['пара', 'пары', 'пар']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="pairs" />
     </>
   );
 }

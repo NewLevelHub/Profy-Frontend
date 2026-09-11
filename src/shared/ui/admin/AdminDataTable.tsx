@@ -1,4 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { ArrowUp } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -91,13 +92,14 @@ export function AdminDataTable<T>({
   rowKey,
   loading,
   rowHref,
-  emptyTitle = 'Ничего не найдено',
+  emptyTitle,
   emptyHint,
   emptyAction,
   sort,
   onSortChange,
   label,
 }: AdminDataTableProps<T>) {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
 
   if (loading) {
@@ -111,7 +113,7 @@ export function AdminDataTable<T>({
   if (rows.length === 0) {
     return (
       <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
-        <AdminEmpty title={emptyTitle} hint={emptyHint} action={emptyAction} />
+        <AdminEmpty title={emptyTitle ?? t('table.empty')} hint={emptyHint} action={emptyAction} />
       </div>
     );
   }
@@ -323,6 +325,7 @@ function SortableHeader<T>({
   sort?: AdminSort;
   onSortChange: (sort: AdminSort) => void;
 }) {
+  const { t } = useTranslation('admin');
   const isActive = sort?.key === column.sortKey;
   const nextOrder: AdminSort['order'] = isActive && sort?.order === 'asc' ? 'desc' : 'asc';
 
@@ -330,7 +333,7 @@ function SortableHeader<T>({
     <button
       type="button"
       onClick={() => onSortChange({ key: column.sortKey!, order: nextOrder })}
-      title={`Сортировать по «${typeof column.header === 'string' ? column.header : column.key}»`}
+      title={t('table.sortBy', { column: typeof column.header === 'string' ? column.header : column.key })}
       className={cn(
         'group/sort inline-flex items-center gap-1 transition-colors',
         isActive ? 'text-brand' : 'hover:text-primary',

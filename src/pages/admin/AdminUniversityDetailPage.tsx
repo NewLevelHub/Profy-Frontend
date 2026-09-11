@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatDate, formatNumber } from '@/shared/i18n/format';
 import { Link, useParams } from 'react-router';
 import { ExternalLink } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
-import { pluralize } from '@/shared/lib/plural';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -33,20 +34,20 @@ const EDITABLE_KEYS = [
 ] as const satisfies readonly (keyof AdminUniversityUpdateRequest)[];
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
-  name: 'название',
-  short_name: 'короткое имя',
-  aliases: 'алиасы',
-  city: 'город',
-  country: 'страна',
-  location: 'адрес',
-  website: 'сайт',
-  source_url: 'источник',
-  description: 'описание',
-  ranking: 'рейтинг',
-  ranking_label: 'подпись рейтинга',
+  name: 'admin:uni.field.name',
+  short_name: 'admin:uni.field.shortName',
+  aliases: 'admin:uni.field.aliases',
+  city: 'admin:uni.field.city',
+  country: 'admin:uni.field.country',
+  location: 'admin:uni.field.location',
+  website: 'admin:uni.field.website',
+  source_url: 'admin:uni.field.source',
+  description: 'admin:uni.field.description',
+  ranking: 'admin:uni.field.ranking',
+  ranking_label: 'admin:uni.field.rankingLabel',
   uniranks_kz_rank: 'Uniranks KZ',
   uniranks_world_rank: 'Uniranks World',
-  uniranks_note: 'примечание Uniranks',
+  uniranks_note: 'admin:uni.field.uniranksNote',
 };
 
 // Decoupled from the wire type's nullability: the UI represents "empty" as ''
@@ -88,9 +89,10 @@ function toFormState(detail: AdminUniversityDetail): FormState {
 }
 
 const LOCK_REASON =
-  'Значение задано вручную. Сиды и бэкфиллы при следующем деплое его не перезапишут.';
+  'admin:uni.lockReason';
 
 export default function AdminUniversityDetailPage() {
+  const { t } = useTranslation('admin');
   const { universityId } = useParams<{ universityId: string }>();
   const [detail, setDetail] = useState<AdminUniversityDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +110,7 @@ export default function AdminUniversityDetailPage() {
         const data = await adminApi.getUniversity(universityId!);
         if (!cancelled) setDetail(data);
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить университет');
+        if (!cancelled) setLoadError(t('uni.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -137,9 +139,9 @@ export default function AdminUniversityDetailPage() {
     },
   });
 
-  if (loading) return <AdminLoading label="Загрузка университета" />;
+  if (loading) return <AdminLoading label={t('uni.loading')} />;
   if (loadError || !detail || !form) {
-    return <AdminError message={loadError || 'Университет не найден'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('uni.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(detail.admin_locked_fields);
@@ -147,9 +149,9 @@ export default function AdminUniversityDetailPage() {
   return (
     <>
       <AdminPageHeader
-        crumbs={[{ label: 'Университеты', to: listReturnPath('/admin/universities') }, { label: detail.name }]}
+        crumbs={[{ label: t('nav.universities'), to: listReturnPath('/admin/universities') }, { label: detail.name }]}
         title={detail.name}
-        meta={`${detail.slug} · ${pluralize(detail.programs.length, 'программа', 'программы', 'программ')}`}
+        meta={`${detail.slug} · ${t('uni.programCount', { count: detail.programs.length })}`}
         actions={
           detail.website ? (
             <a
@@ -158,25 +160,25 @@ export default function AdminUniversityDetailPage() {
               rel="noreferrer"
               className={cn(MONO_LABEL, 'inline-flex items-center gap-1.5 text-brand hover:underline')}
             >
-              Сайт вуза
+              {t('uni.websiteLink')}
               <ExternalLink size={12} />
             </a>
           ) : null
         }
       />
 
-      <AdminCard title="Основное">
+      <AdminCard title={t('directions.mainCard')}>
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <AdminField label="Название" locked={locked.has('name')} lockReason={LOCK_REASON}>
+          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input id={id} className={ADMIN_INPUT} value={form.name} onChange={(e) => setField('name', e.target.value)} />
             )}
           </AdminField>
           <AdminField
-            label="Короткое имя"
+            label={t('uni.field.shortNameLabel')}
             locked={locked.has('short_name')}
             lockReason={LOCK_REASON}
-            hint="Аббревиатура для карточек и списков."
+            hint={t('uni.shortNameHint')}
           >
             {({ id, describedBy }) => (
               <input
@@ -188,12 +190,12 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label="Город" locked={locked.has('city')} lockReason={LOCK_REASON}>
+          <AdminField label={t('universities.col.city')} locked={locked.has('city')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input id={id} className={ADMIN_INPUT} value={form.city} onChange={(e) => setField('city', e.target.value)} />
             )}
           </AdminField>
-          <AdminField label="Страна" locked={locked.has('country')} lockReason={LOCK_REASON}>
+          <AdminField label={t('universities.col.country')} locked={locked.has('country')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -204,7 +206,7 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label="Адрес" locked={locked.has('location')} lockReason={LOCK_REASON} className="sm:col-span-2">
+          <AdminField label={t('uni.field.locationLabel')} locked={locked.has('location')} lockReason={LOCK_REASON} className="sm:col-span-2">
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -215,7 +217,7 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label="Сайт" locked={locked.has('website')} lockReason={LOCK_REASON}>
+          <AdminField label={t('uni.field.websiteLabel')} locked={locked.has('website')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -228,10 +230,10 @@ export default function AdminUniversityDetailPage() {
             )}
           </AdminField>
           <AdminField
-            label="Источник"
+            label={t('uni.field.sourceLabel')}
             locked={locked.has('source_url')}
             lockReason={LOCK_REASON}
-            hint="Откуда взяты данные — для проверки следующим редактором."
+            hint={t('uni.sourceHint')}
           >
             {({ id, describedBy }) => (
               <input
@@ -247,19 +249,19 @@ export default function AdminUniversityDetailPage() {
         </div>
 
         <AdminField
-          label="Алиасы"
+          label={t('uni.field.aliasesLabel')}
           locked={locked.has('aliases')}
           lockReason={LOCK_REASON}
-          hint="Другие названия вуза. На поиск в этой админке пока не влияют — только на сопоставление данных."
+          hint={t('uni.aliasesHint')}
         >
           <StringListEditor
             values={form.aliases}
             onChange={(v) => setField('aliases', v)}
-            placeholder="Например, КазНУ"
+            placeholder={t('uni.aliasesPlaceholder')}
           />
         </AdminField>
 
-        <AdminField label="Описание" locked={locked.has('description')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -273,17 +275,17 @@ export default function AdminUniversityDetailPage() {
       </AdminCard>
 
       <AdminCard
-        title="Рейтинги"
-        description="Пустое поле означает «не проверяли». Если вуза в рейтинге нет — так и напишите в примечании, иначе следующий редактор будет искать заново."
+        title={t('uni.rankingsCard')}
+        description={t('uni.rankingsDescription')}
       >
         <div className="grid gap-3.5 sm:grid-cols-2">
           <NumberField
-            label="Рейтинг (национальный)"
+            label={t('uni.field.rankingLabelNational')}
             locked={locked.has('ranking')}
             value={form.ranking}
             onChange={(v) => setField('ranking', v)}
           />
-          <AdminField label="Подпись рейтинга" locked={locked.has('ranking_label')} lockReason={LOCK_REASON}>
+          <AdminField label={t('uni.field.rankingLabelLabel')} locked={locked.has('ranking_label')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -307,11 +309,11 @@ export default function AdminUniversityDetailPage() {
             onChange={(v) => setField('uniranks_world_rank', v)}
           />
           <AdminField
-            label="Примечание Uniranks"
+            label={t('uni.field.uniranksNoteLabel')}
             locked={locked.has('uniranks_note')}
             lockReason={LOCK_REASON}
             className="sm:col-span-2"
-            hint='Например: «Н/Р» — проверено, в рейтинге не найден.'
+            hint={t('uni.uniranksNoteHint')}
           >
             {({ id, describedBy }) => (
               <input
@@ -327,21 +329,21 @@ export default function AdminUniversityDetailPage() {
       </AdminCard>
 
       <AdminCard
-        title="Программы"
-        description="Добавление и удаление программ в админке недоступно — только правка существующих."
+        title={t('uni.programsCard')}
+        description={t('uni.programsDescription')}
         aside={<span className={MONO_MUTE}>{detail.programs.length}</span>}
       >
         {detail.programs.length === 0 ? (
-          <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>У этого вуза пока нет программ.</p>
+          <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>{t('uni.noPrograms')}</p>
         ) : (
           <div className="overflow-x-auto -mx-4 px-4">
             <table className={cn('w-full', ADMIN_TEXT)}>
               <thead className="border-b border-default">
                 <tr>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted font-medium')}>Программа</th>
-                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted font-medium')}>Язык</th>
+                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted font-medium')}>{t('uni.programCol')}</th>
+                  <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted font-medium')}>{t('uni.languageCol')}</th>
                   <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-right text-muted font-medium')}>
-                    Стоимость / год
+                    {t('uni.costPerYear')}
                   </th>
                 </tr>
               </thead>
@@ -362,7 +364,7 @@ export default function AdminUniversityDetailPage() {
                     <td className={cn(ADMIN_CELL, 'align-top text-right font-mono text-mono-sm text-secondary tabular-nums')}>
                       {program.cost_label ??
                         (program.cost_per_year != null
-                          ? `${program.cost_per_year.toLocaleString('ru-RU')} ₸`
+                          ? `${formatNumber(program.cost_per_year)} ₸`
                           : '—')}
                     </td>
                   </tr>
@@ -374,8 +376,8 @@ export default function AdminUniversityDetailPage() {
       </AdminCard>
 
       <p className={cn(MONO_MUTE, 'normal-case tracking-normal')}>
-        Создан {new Date(detail.created_at).toLocaleDateString('ru-RU')}
-        {detail.updated_at ? ` · обновлён ${new Date(detail.updated_at).toLocaleDateString('ru-RU')}` : ''}
+        {t('uni.createdOn', { date: formatDate(detail.created_at) })}
+        {detail.updated_at ? t('uni.updatedOn', { date: formatDate(detail.updated_at) }) : ''}
       </p>
 
       <AdminSaveBar
@@ -407,6 +409,7 @@ function NumberField({
   value: number | null;
   onChange: (value: number | null) => void;
 }) {
+  const { t } = useTranslation('admin');
   const [draft, setDraft] = useState(value == null ? '' : String(value));
   const [touched, setTouched] = useState(false);
 
@@ -421,7 +424,7 @@ function NumberField({
       label={label}
       locked={locked}
       lockReason={LOCK_REASON}
-      error={invalid ? 'Только целое число или пусто.' : undefined}
+      error={invalid ? t('uni.integerOnly') : undefined}
     >
       {({ id, invalid: fieldInvalid, describedBy }) => (
         <input

@@ -1,4 +1,5 @@
 import { Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { MONO_LABEL } from '@/shared/ui/admin/density';
@@ -13,8 +14,9 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
  * question an admin has before a deploy.
  */
 export function OverrideBadge() {
+  const { t } = useTranslation('admin');
   return (
-    <Tooltip content="В строке есть поля, отредактированные вручную — автообновление их не тронет">
+    <Tooltip content={t('badge.overrideReason')}>
       <span
         tabIndex={0}
         className={cn(
@@ -24,7 +26,7 @@ export function OverrideBadge() {
         )}
       >
         <Lock size={10} />
-        Вручную
+        {t('badge.manual')}
       </span>
     </Tooltip>
   );

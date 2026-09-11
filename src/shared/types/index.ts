@@ -1,3 +1,5 @@
+import type { Locale } from '@/shared/store/locale';
+
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
 export interface User {
@@ -953,6 +955,7 @@ export type QuestionKeyed = 'plus' | 'minus';
 
 export interface AdminQuestionListItem {
   id: string;
+  locale: Locale;
   instrument: Instrument;
   text: string;
   order: number;
@@ -972,6 +975,7 @@ export interface AdminQuestionListResponse {
 
 export interface AdminQuestionDetail {
   id: string;
+  locale: Locale;
   instrument: Instrument;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
@@ -1005,6 +1009,7 @@ export type AdminQuestionUpdateRequest = Partial<{
 
 export interface AdminQuestionPairListItem {
   id: string;
+  locale: Locale;
   instrument: Instrument;
   age_tier: AgeGroup;
   pair_index: number;
@@ -1020,6 +1025,7 @@ export interface AdminQuestionPairListResponse {
 
 export interface AdminQuestionPairDetail {
   id: string;
+  locale: Locale;
   instrument: Instrument;
   age_tier: AgeGroup;
   pair_index: number;
@@ -1047,6 +1053,7 @@ export type AdminQuestionPairUpdateRequest = Partial<{
 
 export interface AdminMotivationStatementListItem {
   id: string;
+  locale: Locale;
   triplet_index: number;
   order: number;
   category: MotivationCategory;
@@ -1063,6 +1070,7 @@ export interface AdminMotivationStatementListResponse {
 
 export interface AdminMotivationStatementDetail {
   id: string;
+  locale: Locale;
   triplet_index: number;
   order: number;
   category: MotivationCategory;
@@ -1080,6 +1088,7 @@ export type AdminMotivationStatementUpdateRequest = Partial<{
 
 export interface AdminMotivationPairListItem {
   id: string;
+  locale: Locale;
   pair_index: number;
   category_a: MotivationCategory;
   category_b: MotivationCategory;
@@ -1095,6 +1104,7 @@ export interface AdminMotivationPairListResponse {
 
 export interface AdminMotivationPairDetail {
   id: string;
+  locale: Locale;
   pair_index: number;
   /** Always equal — both sides are the SAME category, `text_a` its positive
    *  pole and `text_b` its negative pole (not two different categories). */
@@ -1114,6 +1124,7 @@ export type AdminMotivationPairUpdateRequest = Partial<{
 
 export interface AdminDirectionListItem {
   id: string;
+  locale: Locale;
   name: string;
   slug: string;
   holland_code: string;
@@ -1129,6 +1140,7 @@ export interface AdminDirectionListResponse {
 
 export interface AdminDirectionDetail {
   id: string;
+  locale: Locale;
   name: string;
   /** Read-only — generated once from `name` by the seed script, does not
    *  re-derive if `name` is edited afterward (expected drift, not a bug). */

@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -29,10 +30,11 @@ interface AdminPageHeaderProps {
  * bookmark or a shared link.
  */
 export function AdminPageHeader({ crumbs, title, meta, actions }: AdminPageHeaderProps) {
+  const { t } = useTranslation('admin');
   return (
     <div className="flex items-start justify-between gap-4 flex-wrap">
       <div className="min-w-0">
-        <nav aria-label="Хлебные крошки" className="flex items-center gap-1 flex-wrap mb-1.5">
+        <nav aria-label={t('breadcrumbs.aria')} className="flex items-center gap-1 flex-wrap mb-1.5">
           {crumbs.map((crumb, index) => (
             <Fragment key={`${crumb.label}-${index}`}>
               {index > 0 && <ChevronRight size={11} className="text-muted flex-shrink-0" aria-hidden="true" />}

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '@/shared/i18n/format';
 import { useParams } from 'react-router';
 import { AlertTriangle, Check } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
@@ -26,13 +28,13 @@ const SIMPLE_KEYS = [
 ] as const satisfies readonly (keyof AdminProgramUpdateRequest)[];
 
 const SIMPLE_LABELS: Record<(typeof SIMPLE_KEYS)[number], string> = {
-  name: 'название',
-  language: 'язык обучения',
-  cost_per_year: 'стоимость',
-  cost_label: 'подпись стоимости',
-  description: 'описание',
-  who_its_for: 'кому подходит',
-  source_url: 'источник',
+  name: 'admin:prog.field.name',
+  language: 'admin:prog.field.language',
+  cost_per_year: 'admin:prog.field.cost',
+  cost_label: 'admin:prog.field.costLabel',
+  description: 'admin:prog.field.description',
+  who_its_for: 'admin:prog.field.whoItsFor',
+  source_url: 'admin:prog.field.source',
 };
 
 interface SimpleForm {
@@ -96,9 +98,10 @@ function toDeadlinesForm(deadlines: Record<string, unknown>): DeadlinesForm {
   };
 }
 
-const LOCK_REASON = 'Значение задано вручную. Сиды и бэкфиллы при следующем деплое его не перезапишут.';
+const LOCK_REASON = 'admin:uni.lockReason';
 
 export default function AdminProgramDetailPage() {
+  const { t } = useTranslation('admin');
   const { programId } = useParams<{ programId: string }>();
   const [detail, setDetail] = useState<AdminProgramDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -148,7 +151,7 @@ export default function AdminProgramDetailPage() {
         const data = await adminApi.getProgram(programId!);
         if (!cancelled) hydrate(data);
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить программу');
+        if (!cancelled) setLoadError(t('prog.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -177,21 +180,21 @@ export default function AdminProgramDetailPage() {
   );
   const grantsDirty = grantsText !== initialGrantsText;
 
-  const grantsError = useMemo(() => validateGrants(grantsText), [grantsText]);
+  const grantsError = useMemo(() => validateGrants(grantsText, t), [grantsText, t]);
 
   const changedLabels = [
     ...(Object.keys(simplePatch) as (keyof SimpleForm)[]).map((key) => SIMPLE_LABELS[key]),
-    ...(Object.keys(reqPatch).length > 0 ? ['требования'] : []),
-    ...(Object.keys(deadlinesPatch).length > 0 ? ['дедлайны'] : []),
-    ...(grantsDirty ? ['гранты'] : []),
+    ...(Object.keys(reqPatch).length > 0 ? [t('prog.group.requirements')] : []),
+    ...(Object.keys(deadlinesPatch).length > 0 ? [t('prog.group.deadlines')] : []),
+    ...(grantsDirty ? [t('prog.group.grants')] : []),
   ];
   const dirty = changedLabels.length > 0;
 
   useUnsavedGuard(dirty);
 
-  if (loading) return <AdminLoading label="Загрузка программы" />;
+  if (loading) return <AdminLoading label={t('prog.loading')} />;
   if (loadError || !detail || !simple || !req || !deadlines) {
-    return <AdminError message={loadError || 'Программа не найдена'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('prog.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(detail.admin_locked_fields);
@@ -234,7 +237,7 @@ export default function AdminProgramDetailPage() {
       hydrate(updated);
       setSaveState({ kind: 'saved' });
     } catch {
-      setSaveState({ kind: 'error', message: 'Не удалось сохранить изменения' });
+      setSaveState({ kind: 'error', message: t('form.saveError') });
     } finally {
       setSaving(false);
     }
@@ -249,7 +252,7 @@ export default function AdminProgramDetailPage() {
     <>
       <AdminPageHeader
         crumbs={[
-          { label: 'Университеты', to: listReturnPath('/admin/universities') },
+          { label: t('nav.universities'), to: listReturnPath('/admin/universities') },
           { label: detail.university.name, to: `/admin/universities/${detail.university.id}` },
           { label: detail.name },
         ]}
@@ -257,9 +260,9 @@ export default function AdminProgramDetailPage() {
         meta={detail.university.name}
       />
 
-      <AdminCard title="Основное">
+      <AdminCard title={t('directions.mainCard')}>
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <AdminField label="Название" locked={locked.has('name')} lockReason={LOCK_REASON}>
+          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -270,7 +273,7 @@ export default function AdminProgramDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label="Язык обучения" locked={locked.has('language')} lockReason={LOCK_REASON}>
+          <AdminField label={t('prog.field.languageLabel')} locked={locked.has('language')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -282,10 +285,10 @@ export default function AdminProgramDetailPage() {
             )}
           </AdminField>
           <AdminField
-            label="Стоимость за год, ₸"
+            label={t('prog.field.costLabelLabel')}
             locked={locked.has('cost_per_year')}
             lockReason={LOCK_REASON}
-            hint="Число для фильтров и сравнения."
+            hint={t('prog.costHint')}
           >
             {({ id, describedBy }) => (
               <input
@@ -299,10 +302,10 @@ export default function AdminProgramDetailPage() {
             )}
           </AdminField>
           <AdminField
-            label="Подпись стоимости"
+            label={t('prog.field.costCaptionLabel')}
             locked={locked.has('cost_label')}
             lockReason={LOCK_REASON}
-            hint="Показывается ученику вместо числа: «бесплатно», «по гранту»."
+            hint={t('prog.costCaptionHint')}
           >
             {({ id, describedBy }) => (
               <input
@@ -315,7 +318,7 @@ export default function AdminProgramDetailPage() {
             )}
           </AdminField>
           <AdminField
-            label="Источник"
+            label={t('uni.field.sourceLabel')}
             locked={locked.has('source_url')}
             lockReason={LOCK_REASON}
             className="sm:col-span-2"
@@ -333,7 +336,7 @@ export default function AdminProgramDetailPage() {
           </AdminField>
         </div>
 
-        <AdminField label="Описание" locked={locked.has('description')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -344,7 +347,7 @@ export default function AdminProgramDetailPage() {
             />
           )}
         </AdminField>
-        <AdminField label="Кому подходит" locked={locked.has('who_its_for')} lockReason={LOCK_REASON}>
+        <AdminField label={t('prog.field.whoItsForLabel')} locked={locked.has('who_its_for')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -358,55 +361,55 @@ export default function AdminProgramDetailPage() {
       </AdminCard>
 
       <AdminCard
-        title="Требования к поступлению"
-        aside={locked.has('requirements') ? <span className={cn(MONO_LABEL, 'text-brand')}>Задано вручную</span> : null}
+        title={t('prog.requirementsCard')}
+        aside={locked.has('requirements') ? <span className={cn(MONO_LABEL, 'text-brand')}>{t('prog.setManually')}</span> : null}
       >
         <div className="grid gap-2 sm:grid-cols-2">
           <RequirementCheckbox
-            label="Нужно портфолио"
+            label={t('prog.needsPortfolio')}
             checked={req.needs_portfolio}
             onChange={(v) => setReqField('needs_portfolio', v)}
           />
           <RequirementCheckbox
-            label="Нужно эссе"
+            label={t('prog.needsEssay')}
             checked={req.needs_essay}
             onChange={(v) => setReqField('needs_essay', v)}
           />
           <RequirementCheckbox
-            label="Нужны рекомендации"
+            label={t('prog.needsRecommendations')}
             checked={req.needs_recommendations}
             onChange={(v) => setReqField('needs_recommendations', v)}
           />
           <RequirementCheckbox
-            label="Нужно собеседование"
+            label={t('prog.needsInterview')}
             checked={req.needs_interview}
             onChange={(v) => setReqField('needs_interview', v)}
           />
         </div>
 
-        <AdminField label="Экзамены">
+        <AdminField label={t('prog.exams')}>
           <StringListEditor
             values={req.exams}
             onChange={(v) => setReqField('exams', v)}
-            placeholder="Например, Математика"
+            placeholder={t('directions.subjectsPlaceholder')}
           />
         </AdminField>
-        <AdminField label="Примечания">
+        <AdminField label={t('prog.notes')}>
           <StringListEditor
             values={req.notes}
             onChange={(v) => setReqField('notes', v)}
-            placeholder="Свободный текст"
+            placeholder={t('prog.freeText')}
           />
         </AdminField>
 
         {untouchedRequirementKeys.length > 0 && (
-          <UnmanagedKeys title="Другие поля требований" keys={untouchedRequirementKeys} />
+          <UnmanagedKeys title={t('prog.otherRequirementFields')} keys={untouchedRequirementKeys} />
         )}
       </AdminCard>
 
-      <AdminCard title="Дедлайны">
+      <AdminCard title={t('prog.deadlinesCard')}>
         <AdminField
-          label="Окончание приёма заявок"
+          label={t('prog.applicationClose')}
           locked={locked.has('deadlines')}
           lockReason={LOCK_REASON}
           className="max-w-[240px]"
@@ -424,14 +427,14 @@ export default function AdminProgramDetailPage() {
         </AdminField>
 
         {untouchedDeadlineKeys.length > 0 && (
-          <UnmanagedKeys title="Другие поля дедлайнов" keys={untouchedDeadlineKeys} />
+          <UnmanagedKeys title={t('prog.otherDeadlineFields')} keys={untouchedDeadlineKeys} />
         )}
       </AdminCard>
 
       <AdminCard
-        title="Гранты"
-        description="Форма записи гранта не зафиксирована в API, поэтому список редактируется как JSON. Проверка синтаксиса — ниже; смысл значений админка проверить не может."
-        aside={locked.has('grants') ? <span className={cn(MONO_LABEL, 'text-brand')}>Задано вручную</span> : null}
+        title={t('prog.grantsCard')}
+        description={t('prog.grantsDescription')}
+        aside={locked.has('grants') ? <span className={cn(MONO_LABEL, 'text-brand')}>{t('prog.setManually')}</span> : null}
       >
         <textarea
           className={cn(
@@ -443,7 +446,7 @@ export default function AdminProgramDetailPage() {
           onChange={(e) => setGrantsText(e.target.value)}
           spellCheck={false}
           aria-invalid={Boolean(grantsError)}
-          aria-label="Гранты в формате JSON"
+          aria-label={t('prog.grantsJsonAria')}
         />
         {grantsError ? (
           <p className={cn(ADMIN_TEXT, 'flex items-start gap-1.5 text-danger m-0')}>
@@ -453,14 +456,14 @@ export default function AdminProgramDetailPage() {
         ) : (
           <p className={cn(ADMIN_TEXT, 'flex items-center gap-1.5 text-muted m-0')}>
             <Check size={13} className="text-brand flex-shrink-0" />
-            JSON корректен{grantsDirty ? ' — изменения не сохранены' : ''}
+            {t('prog.jsonValid')}{grantsDirty ? t('prog.jsonUnsaved') : ''}
           </p>
         )}
       </AdminCard>
 
       <p className={cn(MONO_MUTE, 'normal-case tracking-normal')}>
-        Создана {new Date(detail.created_at).toLocaleDateString('ru-RU')}
-        {detail.updated_at ? ` · обновлена ${new Date(detail.updated_at).toLocaleDateString('ru-RU')}` : ''}
+        {t('prog.createdOn', { date: formatDate(detail.created_at) })}
+        {detail.updated_at ? t('prog.updatedOn', { date: formatDate(detail.updated_at) }) : ''}
       </p>
 
       <AdminSaveBar
@@ -471,7 +474,7 @@ export default function AdminProgramDetailPage() {
         onReset={handleReset}
         state={saveState}
         locksOnSave
-        blockedReason={grantsDirty && grantsError ? `Гранты: ${grantsError}` : null}
+        blockedReason={grantsDirty && grantsError ? t('prog.grantsBlocked', { error: grantsError }) : null}
       />
     </>
   );
@@ -484,11 +487,12 @@ export default function AdminProgramDetailPage() {
  * lived in the object they were about to replace.
  */
 function UnmanagedKeys({ title, keys }: { title: string; keys: string[] }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="border border-default rounded-[3px] p-2.5 bg-page">
       <p className={cn(MONO_LABEL, 'text-muted mb-1.5')}>{title}</p>
       <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>
-        Здесь не редактируются, но сохраняются как есть:{' '}
+        {t('prog.unmanagedNote')}{' '}
         <span className="font-mono text-mono-xs text-secondary">{keys.join(', ')}</span>
       </p>
     </div>
@@ -529,13 +533,13 @@ function toFloatOrNull(value: string): number | null {
  * would have to guess at fields and could corrupt real entries. What it CAN
  * check honestly: the text parses, and it is a list.
  */
-function validateGrants(text: string): string | null {
-  if (text.trim() === '') return 'Пусто. Для «грантов нет» оставьте пустой список: []';
+function validateGrants(text: string, t: (key: string, opts?: Record<string, unknown>) => string): string | null {
+  if (text.trim() === '') return t('prog.grantsEmpty');
   try {
     const parsed = JSON.parse(text);
-    if (!Array.isArray(parsed)) return 'Ожидается список записей — JSON-массив в квадратных скобках.';
+    if (!Array.isArray(parsed)) return t('prog.grantsNotArray');
     return null;
   } catch (error) {
-    return error instanceof Error ? `Некорректный JSON: ${error.message}` : 'Некорректный JSON';
+    return error instanceof Error ? t('prog.grantsBadJson', { message: error.message }) : t('prog.grantsBadJsonShort');
   }
 }

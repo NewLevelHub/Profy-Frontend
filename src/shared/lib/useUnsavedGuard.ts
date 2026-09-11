@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useBlocker } from 'react-router';
-
-const MESSAGE = 'Изменения не сохранены. Уйти со страницы?';
 
 /**
  * Warns before losing unsaved admin form edits — both for in-app navigation
@@ -13,6 +12,8 @@ const MESSAGE = 'Изменения не сохранены. Уйти со ст�
  * discarded a rewritten question text.
  */
 export function useUnsavedGuard(dirty: boolean) {
+  const { t } = useTranslation('admin');
+  const MESSAGE = t('form.unsavedWarning');
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) => dirty && currentLocation.pathname !== nextLocation.pathname,
   );

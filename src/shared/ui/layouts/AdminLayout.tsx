@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { BookOpen, Building2, MessageSquare, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -26,31 +27,34 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
 
 interface AdminNavItem {
   to: string;
-  label: string;
+  /** Catalog key under `admin:nav.*` — resolved at render, not here: this is a
+      module-level constant and cannot call `t` (same shape as KZ-202's
+      constants.ts). */
+  labelKey: string;
   icon?: typeof Users;
 }
 
 interface AdminNavGroup {
-  label?: string;
+  labelKey?: string;
   items: readonly AdminNavItem[];
 }
 
 const ADMIN_NAV: readonly AdminNavGroup[] = [
   {
     items: [
-      { to: '/admin/users', label: 'Пользователи', icon: Users },
-      { to: '/admin/universities', label: 'Университеты', icon: Building2 },
-      { to: '/admin/feedback', label: 'Фидбэк', icon: MessageSquare },
+      { to: '/admin/users', labelKey: 'nav.users', icon: Users },
+      { to: '/admin/universities', labelKey: 'nav.universities', icon: Building2 },
+      { to: '/admin/feedback', labelKey: 'nav.feedback', icon: MessageSquare },
     ],
   },
   {
-    label: 'Контент диагностики',
+    labelKey: 'nav.contentGroup',
     items: [
-      { to: '/admin/content/questions', label: 'Вопросы', icon: BookOpen },
-      { to: '/admin/content/question-pairs', label: 'Пары вопросов' },
-      { to: '/admin/content/motivation-statements', label: 'Утверждения мотивации' },
-      { to: '/admin/content/motivation-pairs', label: 'Пары мотивации' },
-      { to: '/admin/content/directions', label: 'Направления' },
+      { to: '/admin/content/questions', labelKey: 'nav.questions', icon: BookOpen },
+      { to: '/admin/content/question-pairs', labelKey: 'nav.questionPairs' },
+      { to: '/admin/content/motivation-statements', labelKey: 'nav.motivationStatements' },
+      { to: '/admin/content/motivation-pairs', labelKey: 'nav.motivationPairs' },
+      { to: '/admin/content/directions', labelKey: 'nav.directions' },
     ],
   },
 ];
@@ -58,26 +62,27 @@ const ADMIN_NAV: readonly AdminNavGroup[] = [
 const ALL_ITEMS = ADMIN_NAV.flatMap((group) => group.items);
 
 export function AdminLayout() {
+  const { t } = useTranslation('admin');
   const location = useLocation();
 
   return (
     <PageContainer className="flex flex-col lg:flex-row gap-5 lg:gap-8">
       {/* lg+: side rail. Below lg: one horizontally scrollable row, so the nav
           costs one line instead of wrapping into three stacked rows. */}
-      <nav aria-label="Разделы админки" className="lg:w-[200px] lg:flex-shrink-0">
+      <nav aria-label={t('nav.aria')} className="lg:w-[200px] lg:flex-shrink-0">
         {/* `AppLayout`'s <main> is the scroll container, so the rail sticks to
             the top of that scrollport, not to the viewport. */}
         <div className="lg:sticky lg:top-0 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-2 lg:pb-0">
           {ADMIN_NAV.map((group, groupIndex) => (
-            <div key={group.label ?? groupIndex} className="flex lg:flex-col gap-1 lg:gap-0.5">
-              {group.label && (
+            <div key={group.labelKey ?? groupIndex} className="flex lg:flex-col gap-1 lg:gap-0.5">
+              {group.labelKey && (
                 <span
                   className={cn(
                     MONO_LABEL,
                     'hidden lg:block text-muted px-2.5 pt-4 pb-1.5',
                   )}
                 >
-                  {group.label}
+                  {t(group.labelKey)}
                 </span>
               )}
               {group.items.map((item) => (
@@ -96,6 +101,7 @@ export function AdminLayout() {
 }
 
 function AdminNavLink({ item, pathname }: { item: AdminNavItem; pathname: string }) {
+  const { t } = useTranslation('admin');
   const Icon = item.icon;
   // Prefix matching, but the longest matching route wins — otherwise
   // `/admin/content/questions` would also light up `/admin/content/question-pairs`
@@ -120,7 +126,7 @@ function AdminNavLink({ item, pathname }: { item: AdminNavItem; pathname: string
       aria-current={active ? 'page' : undefined}
     >
       {Icon && <Icon size={14} className="flex-shrink-0" />}
-      {item.label}
+      {t(item.labelKey)}
     </NavLink>
   );
 }

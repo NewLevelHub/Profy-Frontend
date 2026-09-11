@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/shared/api/admin';
 import type { AdminUniversityListItem } from '@/shared/types';
 
@@ -42,6 +43,7 @@ interface Catalog {
  * `?sort=`; it is a workaround, not an architecture.
  */
 export function useUniversityCatalog(): Catalog {
+  const { t } = useTranslation('admin');
   const [items, setItems] = useState<AdminUniversityListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,7 @@ export function useUniversityCatalog(): Catalog {
         setTotal(first.total);
         setTruncated(first.total > MAX_ITEMS);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить каталог вузов');
+        if (!cancelled) setError(t('universities.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }

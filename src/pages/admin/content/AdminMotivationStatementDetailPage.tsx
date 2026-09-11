@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
@@ -13,6 +14,7 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
 import type {
   AdminMotivationStatementDetail,
   AdminMotivationStatementListItem,
@@ -23,9 +25,9 @@ import type {
 const EDITABLE_KEYS = ['category', 'text', 'text_junior'] as const satisfies readonly (keyof AdminMotivationStatementUpdateRequest)[];
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
-  category: 'категория',
-  text: 'текст',
-  text_junior: 'текст для junior',
+  category: 'admin:statements.field.category',
+  text: 'admin:statements.field.text',
+  text_junior: 'admin:statements.field.textJunior',
 };
 
 interface FormState {
@@ -43,12 +45,13 @@ function toFormState(detail: AdminMotivationStatementDetail): FormState {
 }
 
 const LOCK_REASON =
-  'Значение задано вручную. Автообновление контент-банка не перезапишет его и не удалит строку.';
+  'admin:common.lockReason';
 
 /** Enough to cover the whole statement bank in one request; see the list page. */
 const SIBLING_FETCH_LIMIT = 99;
 
 export default function AdminMotivationStatementDetailPage() {
+  const { t } = useTranslation('admin');
   const { statementId } = useParams<{ statementId: string }>();
   const [detail, setDetail] = useState<AdminMotivationStatementDetail | null>(null);
   const [siblings, setSiblings] = useState<AdminMotivationStatementListItem[]>([]);
@@ -78,7 +81,7 @@ export default function AdminMotivationStatementDetailPage() {
           list.items.filter((item) => item.triplet_index === data.triplet_index && item.id !== data.id),
         );
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить утверждение');
+        if (!cancelled) setLoadError(t('statements.loadOneError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -109,9 +112,9 @@ export default function AdminMotivationStatementDetailPage() {
     },
   });
 
-  if (loading) return <AdminLoading label="Загрузка утверждения" />;
+  if (loading) return <AdminLoading label={t('statements.loadingOne')} />;
   if (loadError || !detail || !form) {
-    return <AdminError message={loadError || 'Утверждение не найдено'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('statements.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(Object.keys(detail.overrides));
@@ -121,29 +124,29 @@ export default function AdminMotivationStatementDetailPage() {
     <>
       <AdminPageHeader
         crumbs={[
-          { label: 'Утверждения мотивации', to: listReturnPath('/admin/content/motivation-statements') },
-          { label: `Тройка ${detail.triplet_index}` },
+          { label: t('statements.title'), to: listReturnPath('/admin/content/motivation-statements') },
+          { label: t('statements.triplet', { index: detail.triplet_index }) },
         ]}
         title={detail.text}
         meta={
           <p className={cn(ADMIN_META, 'm-0')}>
-            Тройка {detail.triplet_index} · {MOTIVATION_CATEGORY_LABELS[detail.category]}. Ученик
-            ранжирует три утверждения тройки: важнее всего / нейтрально / менее всего.
+            <LocaleBadge locale={detail.locale} />{' '}
+            {t('statements.detailMeta', { index: detail.triplet_index, category: t(MOTIVATION_CATEGORY_LABELS[detail.category]) })}
           </p>
         }
       />
 
       <AdminCard
-        title="Содержание"
-        description="Взрослая формулировка используется для middle и senior; junior-вариант заменяет её на младшем треке."
+        title={t('common.contentCard')}
+        description={t('statements.contentDescription')}
       >
         <AdminField
-          label="Категория"
+          label={t('motivationPairs.col.category')}
           locked={locked.has('category')}
           lockReason={LOCK_REASON}
           error={
             conflicting.length > 0
-              ? `Эта категория уже занята в тройке ${detail.triplet_index}. Три утверждения тройки должны быть из разных категорий — иначе ранжирование их не различает.`
+              ? t('statements.categoryTaken', { index: detail.triplet_index })
               : undefined
           }
         >
@@ -158,14 +161,14 @@ export default function AdminMotivationStatementDetailPage() {
             >
               {(Object.keys(MOTIVATION_CATEGORY_LABELS) as MotivationCategory[]).map((key) => (
                 <option key={key} value={key}>
-                  {MOTIVATION_CATEGORY_LABELS[key]}
+                  {t(MOTIVATION_CATEGORY_LABELS[key])}
                 </option>
               ))}
             </AdminSelect>
           )}
         </AdminField>
 
-        <AdminField label="Текст" locked={locked.has('text')} lockReason={LOCK_REASON}>
+        <AdminField label={t('statements.field.textLabel')} locked={locked.has('text')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -178,10 +181,10 @@ export default function AdminMotivationStatementDetailPage() {
         </AdminField>
 
         <AdminField
-          label="Текст для junior"
+          label={t('statements.field.textJuniorLabel')}
           locked={locked.has('text_junior')}
           lockReason={LOCK_REASON}
-          hint="Пусто — на всех возрастах покажется текст выше."
+          hint={t('statements.juniorHint')}
         >
           {({ id, describedBy }) => (
             <textarea
@@ -196,19 +199,19 @@ export default function AdminMotivationStatementDetailPage() {
       </AdminCard>
 
       <AdminCard
-        title={`Остальные утверждения тройки ${detail.triplet_index}`}
-        description="Категории всех трёх должны отличаться. Бэкенд это не проверяет — сверка здесь."
+        title={t('statements.siblingsTitle', { index: detail.triplet_index })}
+        description={t('statements.siblingsDescription')}
         aside={
           conflicting.length > 0 ? (
             <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-semibold')}>
               <AlertTriangle size={13} />
-              Категория повторяется
+              {t('statements.duplicateShort')}
             </span>
           ) : null
         }
       >
         {siblings.length === 0 ? (
-          <p className={cn(ADMIN_META, 'm-0')}>Другие утверждения тройки не найдены.</p>
+          <p className={cn(ADMIN_META, 'm-0')}>{t('statements.noSiblings')}</p>
         ) : (
           <ul className="flex flex-col gap-2 m-0 p-0 list-none">
             {siblings.map((sibling) => {
@@ -229,7 +232,7 @@ export default function AdminMotivationStatementDetailPage() {
                       {sibling.text}
                     </Link>
                     <p className={cn(ADMIN_META, 'mt-1', clash && 'text-danger')}>
-                      {MOTIVATION_CATEGORY_LABELS[sibling.category]}
+                      {t(MOTIVATION_CATEGORY_LABELS[sibling.category])}
                     </p>
                   </div>
                 </li>
@@ -249,7 +252,7 @@ export default function AdminMotivationStatementDetailPage() {
         locksOnSave
         blockedReason={
           conflicting.length > 0 && 'category' in patch
-            ? 'Нельзя сохранить: категория повторяется внутри тройки.'
+            ? t('statements.cannotSave')
             : null
         }
       />
