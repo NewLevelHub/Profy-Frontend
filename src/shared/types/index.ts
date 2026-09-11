@@ -731,14 +731,27 @@ export interface AdminResponseItem {
   created_at: string;
 }
 
+/** Один отвеченный триплет блока мотивации.
+ *
+ *  Ученику показывают три утверждения, он отмечает одно как САМОЕ важное и
+ *  одно как НАИМЕНЕЕ важное. Третье он не трогает — оно выводится как
+ *  оставшееся и никогда не хранится как отдельный выбор, поэтому у него нет
+ *  своего «picked».
+ *
+ *  Имена полей повторяют ответ API дословно. Раньше тут стояли выдуманные
+ *  `most_text` / `least_text` / `neutral_text`, которых сервер не присылает:
+ *  тип описывал API неверно, TypeScript поэтому ничего не заметил, а на
+ *  экране рендерились подписи без единого утверждения рядом. */
 export interface AdminMotivationResponseItem {
   triplet_index: number;
-  most_text: string;
-  most_category: string;
-  least_text: string;
-  least_category: string;
-  neutral_text: string;
-  neutral_category: string;
+  picked_most_text: string;
+  picked_most_category: string;
+  picked_least_text: string;
+  picked_least_category: string;
+  /** Третье утверждение триплета — то, которое ученик НЕ выбрал ни одним из
+   *  двух способов. Это вывод, а не его действие. */
+  not_picked_text: string;
+  not_picked_category: string;
   created_at: string;
 }
 

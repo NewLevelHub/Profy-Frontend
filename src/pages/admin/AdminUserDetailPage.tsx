@@ -259,10 +259,29 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
   );
 }
 
+/** Заглушка бэкенда для утверждения, которого больше нет в банке
+ *  (admin_service.get_assessment_detail). */
+const MISSING_STATEMENT = '?';
+
 function motivationCategoryLabel(category: string): string {
   return MOTIVATION_CATEGORY_LABELS[category as MotivationCategory] ?? category;
 }
 
+/**
+ * Как ученик расставил утверждения внутри тройки.
+ *
+ * Формат блока: показывают три утверждения, ученик отмечает одно как самое
+ * важное и одно как наименее важное — третье он не трогает, оно выводится как
+ * оставшееся. То есть это ранжирование, и читаться должно как ранжирование:
+ * нумерованный список сверху вниз, а не три подписи подряд.
+ *
+ * Раньше тут рендерились только подписи «ВАЖНЕЕ ВСЕГО / НЕЙТРАЛЬНО / МЕНЕЕ
+ * ВСЕГО», а самих утверждений не было: компонент читал поля `most_text`,
+ * `neutral_text`, `least_text`, которых сервер не присылает (он отдаёт
+ * `picked_most_text`, `not_picked_text`, `picked_least_text`). Тип во фронте
+ * описывал API неверно, поэтому TypeScript молчал, и экран показывал разметку
+ * без данных.
+ */
 function MotivationResponsesSection({ responses }: { responses: AdminMotivationResponseItem[] }) {
   if (!responses.length) {
     return <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>Блок мотивации ещё не пройден.</p>;
@@ -273,11 +292,30 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
       {responses.map((item) => (
         <li key={item.triplet_index} className="p-2.5 rounded-[2px] bg-page border border-default">
           <p className={cn(ADMIN_META, 'mb-1.5')}>Тройка {item.triplet_index}</p>
-          <div className="flex flex-col gap-1">
-            <RankedLine rank="Важнее всего" text={item.most_text} category={item.most_category} tone="brand" />
-            <RankedLine rank="Нейтрально" text={item.neutral_text} category={item.neutral_category} tone="muted" />
-            <RankedLine rank="Менее всего" text={item.least_text} category={item.least_category} tone="danger" />
-          </div>
+          <ol className="flex flex-col gap-1 m-0 p-0 list-none">
+            <RankedLine
+              position={1}
+              rank="Важнее всего"
+              text={item.picked_most_text}
+              category={item.picked_most_category}
+              tone="brand"
+            />
+            <RankedLine
+              position={2}
+              rank="Осталось"
+              hint="Ученик это утверждение не отмечал — оно третье по остаточному принципу, а не выбрано как среднее"
+              text={item.not_picked_text}
+              category={item.not_picked_category}
+              tone="muted"
+            />
+            <RankedLine
+              position={3}
+              rank="Менее всего"
+              text={item.picked_least_text}
+              category={item.picked_least_category}
+              tone="danger"
+            />
+          </ol>
         </li>
       ))}
     </ul>
@@ -285,18 +323,24 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
 }
 
 function RankedLine({
+  position,
   rank,
+  hint,
   text,
   category,
   tone,
 }: {
+  position: number;
   rank: string;
+  hint?: string;
   text: string;
   category: string;
   tone: 'brand' | 'muted' | 'danger';
 }) {
   return (
-    <p className={cn(ADMIN_TEXT, 'flex items-baseline gap-2 m-0')}>
+    <li className={cn(ADMIN_TEXT, 'flex items-baseline gap-2 m-0')} title={hint}>
+      {/* Номер позиции: именно он делает из трёх строк ранжирование. */}
+      <span className={cn(ADMIN_NUM, 'w-3 flex-shrink-0 text-muted')}>{position}</span>
       <span
         className={cn(
           MONO_LABEL,
@@ -308,9 +352,18 @@ function RankedLine({
       >
         {rank}
       </span>
-      <span className="text-primary">{text}</span>
-      <span className={ADMIN_META}>{motivationCategoryLabel(category)}</span>
-    </p>
+      {/* Бэкенд ставит "?", если утверждение не нашлось в банке — например
+          после его перестройки. Голый вопросительный знак в админке читается
+          как сбой интерфейса, поэтому здесь он назван словами. */}
+      {text === MISSING_STATEMENT ? (
+        <span className={cn(ADMIN_META, 'italic')}>утверждение больше не найдено в банке</span>
+      ) : (
+        <>
+          <span className="text-primary min-w-0">{text}</span>
+          <span className={cn(ADMIN_META, 'flex-shrink-0')}>{motivationCategoryLabel(category)}</span>
+        </>
+      )}
+    </li>
   );
 }
 
