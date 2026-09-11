@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
@@ -7,10 +7,12 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
-import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
+import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
 import type { AdminDirectionDetail, AdminDirectionUpdateRequest } from '@/shared/types';
 
 const EDITABLE_KEYS = [
@@ -123,12 +125,30 @@ export default function AdminDirectionDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminDirectionDetail>({
+    resource: 'directions',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label="Загрузка направления" />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || 'Направление не найдено'} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(Object.keys(detail.overrides));
+
   const hollandError = validateHollandCode(form.holland_code);
   const nameChanged = 'name' in patch;
   const catalogEmpty =
@@ -145,11 +165,23 @@ export default function AdminDirectionDetailPage() {
         meta={`${detail.holland_code} · ${detail.slug}`}
       />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
       <AdminCard title="Основное" description="Название и код, по которому направление подбирается ученику.">
         <div className="grid gap-3.5 sm:grid-cols-[1fr_200px]">
           <AdminField
             label="Название"
-            locked={locked.has('name')}
+            locked={locked.has('name')} revert={fieldRevert('name')}
             lockReason={LOCK_REASON}
             hint={
               nameChanged ? (
@@ -174,7 +206,7 @@ export default function AdminDirectionDetailPage() {
 
           <AdminField
             label="Holland code"
-            locked={locked.has('holland_code')}
+            locked={locked.has('holland_code')} revert={fieldRevert('holland_code')}
             lockReason={LOCK_REASON}
             error={hollandError}
             hint={hollandError ? undefined : 'Буквы RIASEC, ведущая — первой.'}
@@ -193,7 +225,7 @@ export default function AdminDirectionDetailPage() {
           </AdminField>
         </div>
 
-        <AdminField label="Описание" locked={locked.has('description')} lockReason={LOCK_REASON}>
+        <AdminField label="Описание" locked={locked.has('description')} revert={fieldRevert('description')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -214,7 +246,7 @@ export default function AdminDirectionDetailPage() {
             : 'Что ученик увидит на странице направления.'
         }
       >
-        <AdminField label="Профессии" locked={locked.has('professions')} lockReason={LOCK_REASON}>
+        <AdminField label="Профессии" locked={locked.has('professions')} revert={fieldRevert('professions')} lockReason={LOCK_REASON}>
           <StringListEditor
             values={form.professions}
             onChange={(v) => setField('professions', v)}
@@ -223,7 +255,7 @@ export default function AdminDirectionDetailPage() {
           />
         </AdminField>
 
-        <AdminField label="Нужные навыки" locked={locked.has('skills_needed')} lockReason={LOCK_REASON}>
+        <AdminField label="Нужные навыки" locked={locked.has('skills_needed')} revert={fieldRevert('skills_needed')} lockReason={LOCK_REASON}>
           <StringListEditor
             values={form.skills_needed}
             onChange={(v) => setField('skills_needed', v)}
@@ -231,7 +263,7 @@ export default function AdminDirectionDetailPage() {
           />
         </AdminField>
 
-        <AdminField label="Предметы для развития" locked={locked.has('subjects_to_develop')} lockReason={LOCK_REASON}>
+        <AdminField label="Предметы для развития" locked={locked.has('subjects_to_develop')} revert={fieldRevert('subjects_to_develop')} lockReason={LOCK_REASON}>
           <StringListEditor
             values={form.subjects_to_develop}
             onChange={(v) => setField('subjects_to_develop', v)}
@@ -241,7 +273,7 @@ export default function AdminDirectionDetailPage() {
 
         <AdminField
           label="Первые шаги"
-          locked={locked.has('first_steps')}
+          locked={locked.has('first_steps')} revert={fieldRevert('first_steps')}
           lockReason={LOCK_REASON}
           hint="Порядок важен — ученик идёт по шагам сверху вниз."
         >
@@ -254,6 +286,38 @@ export default function AdminDirectionDetailPage() {
             placeholder="Например, Сходить на день открытых дверей"
           />
         </AdminField>
+      </AdminCard>
+
+      <AdminCard
+        title="Программы вузов"
+        description="Привязка через program_directions — именно она решает, попадёт ли направление в подбор ученику. Меняется не отсюда, а скриптами контент-пайплайна."
+      >
+        {detail.programs.length === 0 ? (
+          // Не пустое место: направление без единой программы никогда не
+          // выпадет ученику, и это важнее, чем «список пуст».
+          <p className={cn(ADMIN_TEXT, 'text-danger m-0')}>
+            К направлению не привязана ни одна программа — оно не может попасть в подбор.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1 m-0 p-0 list-none">
+            {detail.programs.map((program) => (
+              <li key={program.id} className="flex items-baseline gap-2 flex-wrap">
+                <Link
+                  to={`/admin/programs/${program.id}`}
+                  className={cn(ADMIN_TEXT, 'text-primary hover:text-brand hover:underline')}
+                >
+                  {program.name}
+                </Link>
+                <Link
+                  to={`/admin/universities/${program.university_id}`}
+                  className={cn(ADMIN_META, 'hover:text-primary hover:underline')}
+                >
+                  {program.university_name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </AdminCard>
 
       <p className={ADMIN_META}>

@@ -10,17 +10,15 @@ import {
   LOW_SCORE_MAX,
   MAX_SCORE,
   ageLabel,
-  averageScore,
-  breakdown,
-  countHighScores,
-  countLowScores,
+  countInScoreBand,
   scenarioLabel,
   scoreDistribution,
   scoreTone,
   sectionTally,
+  toBuckets,
   type Bucket,
 } from '@/pages/admin/feedbackModel';
-import type { AdminFeedbackListItem, AgeGroup } from '@/shared/types';
+import type { AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
 
 /**
  * The summary above the feedback table.
@@ -32,9 +30,12 @@ import type { AdminFeedbackListItem, AgeGroup } from '@/shared/types';
  * between 5s and 3s — and the top-four cut meant the section nobody found
  * useful was the one section never shown.
  *
- * Every figure here is computed from the rows the filters left, so the summary
- * answers the question the admin is currently asking ("how do juniors rate it")
- * instead of restating the all-time totals beside a filtered table.
+ * Every figure here describes the rows the filters left, so the summary answers
+ * the question the admin is currently asking ("how do juniors rate it") instead
+ * of restating the all-time totals beside a filtered table. The aggregates come
+ * from `GET /admin/feedback/stats`, which takes the same filters as the list;
+ * this screen used to download every review and recompute them locally because
+ * the endpoint could only ever describe the whole table.
  *
  * The bars are also the fastest filter on the screen: clicking a score or a
  * section narrows the table to it. Reading a chart and then hunting for the
@@ -53,12 +54,12 @@ const SLICES: { key: SliceKey; label: string }[] = [
 const SLICE_ROW_LIMIT = 8;
 
 interface FeedbackOverviewProps {
-  /** Everything the filters left — the set the table is showing. */
-  items: readonly AdminFeedbackListItem[];
-  /** Same set, but ignoring the score filter, so the histogram stays whole. */
-  scoreBase: readonly AdminFeedbackListItem[];
-  /** Same set, but ignoring the section filter, for the same reason. */
-  sectionBase: readonly AdminFeedbackListItem[];
+  /** Aggregates over everything the filters left — the set the table shows. */
+  stats: AdminFeedbackStatsResponse;
+  /** Same, but ignoring the score filter, so the histogram stays whole. */
+  scoreBase: AdminFeedbackStatsResponse;
+  /** Same, but ignoring the section filter, for the same reason. */
+  sectionBase: AdminFeedbackStatsResponse;
   /** True when the numbers describe a filtered subset, not everything. */
   filtered: boolean;
   onPickScore: (value: string) => void;
@@ -68,7 +69,7 @@ interface FeedbackOverviewProps {
 }
 
 export function FeedbackOverview({
-  items,
+  stats,
   scoreBase,
   sectionBase,
   filtered,
@@ -79,24 +80,37 @@ export function FeedbackOverview({
 }: FeedbackOverviewProps) {
   const [slice, setSlice] = useState<SliceKey>('age');
 
-  if (scoreBase.length === 0 && sectionBase.length === 0) return null;
+  if (scoreBase.total === 0 && sectionBase.total === 0) return null;
 
-  const avg = averageScore(scoreBase);
+  const avg = scoreBase.avg_relevance_score;
   const distribution = scoreDistribution(scoreBase);
   const sections = sectionTally(sectionBase);
-  const low = countLowScores(scoreBase);
-  const high = countHighScores(scoreBase);
-  const noSections = sectionBase.filter((item) => item.helpful_sections.length === 0).length;
+  const low = countInScoreBand(scoreBase, 1, LOW_SCORE_MAX);
+  const high = countInScoreBand(scoreBase, HIGH_SCORE_MIN, MAX_SCORE);
+  const noSections = sectionBase.no_sections_count;
 
-  const scope = (count: number) =>
-    filtered
-      ? `по ${pluralize(count, 'отзыву', 'отзывам', 'отзывам')} в текущем фильтре`
-      : `по всем ${pluralize(count, 'отзыву', 'отзывам', 'отзывам')}`;
+  /**
+   * Что именно описывает карточка.
+   *
+   * У каждой из двух карточек своё измерение выключено из фильтра, иначе
+   * график схлопнулся бы в один столбик и вернуться было бы нечем. Из-за
+   * этого её число НЕ совпадает с числом строк в таблице, и подпись «в
+   * текущем фильтре» была бы прямой неправдой: при выбранной оценке шкала
+   * показывала 63 отзыва, а таблица под ней — 6.
+   */
+  const scope = (count: number, ownDimensionFiltered = false) => {
+    const noun = pluralize(count, 'отзыву', 'отзывам', 'отзывам');
+    if (ownDimensionFiltered) return `по ${noun} — без учёта фильтра этой шкалы`;
+    return filtered ? `по ${noun} в текущем фильтре` : `по всем ${noun}`;
+  };
 
   return (
     <div className="flex flex-col gap-3">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-stretch">
-        <AdminCard title="Насколько отчёт про них" description={scope(scoreBase.length)}>
+        <AdminCard
+          title="Насколько отчёт про них"
+          description={scope(scoreBase.total, Boolean(activeScore))}
+        >
           {/* Вопрос под отчётом — «Насколько это про тебя?», поэтому шкала
               читается как «узнал себя / не узнал», а не как «доволен». */}
           <div className="flex items-end gap-6 flex-wrap">
@@ -110,7 +124,7 @@ export function FeedbackOverview({
             </div>
             <ScoreShortcut
               count={high}
-              total={scoreBase.length}
+              total={scoreBase.total}
               label={`узнали себя (${HIGH_SCORE_MIN}–${MAX_SCORE})`}
               toneClass="text-brand"
               activeClass="bg-brand-subtle"
@@ -119,7 +133,7 @@ export function FeedbackOverview({
             />
             <ScoreShortcut
               count={low}
-              total={scoreBase.length}
+              total={scoreBase.total}
               label={`не про них (1–${LOW_SCORE_MAX})`}
               toneClass="text-accent"
               activeClass="bg-accent-soft"
@@ -167,7 +181,7 @@ export function FeedbackOverview({
 
         <AdminCard
           title="Что назвали полезным"
-          description={`Доля отзывов, отметивших раздел, ${scope(sectionBase.length)}. Разделов можно выбрать несколько, поэтому сумма больше 100%.`}
+          description={`Доля отзывов, отметивших раздел, ${scope(sectionBase.total, Boolean(activeSection))}. Разделов можно выбрать несколько, поэтому сумма больше 100%.`}
         >
           <div className="flex flex-col gap-1">
             {sections.map((section) => {
@@ -230,7 +244,7 @@ export function FeedbackOverview({
         </AdminCard>
       </div>
 
-      <SliceCard items={items} slice={slice} onSliceChange={setSlice} />
+      <SliceCard stats={stats} slice={slice} onSliceChange={setSlice} />
     </div>
   );
 }
@@ -291,19 +305,19 @@ function ScoreShortcut({
  * внутри одного среза, а не между ними.
  */
 function SliceCard({
-  items,
+  stats,
   slice,
   onSliceChange,
 }: {
-  items: readonly AdminFeedbackListItem[];
+  stats: AdminFeedbackStatsResponse;
   slice: SliceKey;
   onSliceChange: (slice: SliceKey) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const buckets = buildSlice(items, slice);
+  const buckets = buildSlice(stats, slice);
   const shown = expanded ? buckets : buckets.slice(0, SLICE_ROW_LIMIT);
   const hidden = buckets.length - shown.length;
-  const overall = averageScore(items);
+  const overall = stats.avg_relevance_score;
   // Больше четырёх строк — в две колонки: карточка на всю ширину, а список в
   // один столбец оставлял её правую половину пустой.
   const twoColumns = shown.length > 4;
@@ -382,7 +396,7 @@ function SliceCard({
                 <span className={cn(ADMIN_NUM, 'w-8 text-right text-primary')}>{bucket.avg.toFixed(1)}</span>
                 <span
                   className={cn(ADMIN_NUM, 'w-14 text-right text-muted')}
-                  title={`${bucket.count} из ${items.length} отзывов в выборке`}
+                  title={`${bucket.count} из ${stats.total} отзывов в выборке`}
                 >
                   {bucket.count} отз.
                 </span>
@@ -420,19 +434,18 @@ function SliceCard({
 
 type SliceBucket = Bucket & { hint?: string };
 
-function buildSlice(items: readonly AdminFeedbackListItem[], slice: SliceKey): SliceBucket[] {
+/** All three slices are already computed server-side; the screen used to show
+ *  only the first, leaving two ready breakdowns unused in the response. */
+function buildSlice(stats: AdminFeedbackStatsResponse, slice: SliceKey): SliceBucket[] {
   if (slice === 'age') {
-    const buckets = breakdown(items, (item) => item.age_group, ageLabel);
-    return buckets
+    return toBuckets(stats.by_age_group, ageLabel)
       .map((bucket) => ({ ...bucket, hint: AGE_RANGE_HINT[bucket.key as AgeGroup] }))
       .sort((a, b) => AGE_ORDER.indexOf(a.key as AgeGroup) - AGE_ORDER.indexOf(b.key as AgeGroup));
   }
   if (slice === 'scenario') {
-    return breakdown(items, (item) => item.scenario, scenarioLabel).sort((a, b) =>
-      a.key.localeCompare(b.key),
-    );
+    return toBuckets(stats.by_scenario, scenarioLabel).sort((a, b) => a.key.localeCompare(b.key));
   }
-  return breakdown(items, (item) => item.top_direction_name).sort(
+  return toBuckets(stats.by_top_direction).sort(
     (a, b) => b.count - a.count || a.label.localeCompare(b.label, 'ru'),
   );
 }

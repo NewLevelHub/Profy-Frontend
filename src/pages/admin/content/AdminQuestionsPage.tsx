@@ -22,6 +22,9 @@ import type { AdminQuestionListItem, AgeGroup, BigFiveDomain, HollandType, Instr
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['order', 'instrument', 'age_tier', 'text'] as const;
 
 /**
  * The scored category, named rather than coded.
@@ -51,7 +54,8 @@ function resolveTypeLabel(item: AdminQuestionListItem): string | null {
 }
 
 export default function AdminQuestionsPage() {
-  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/questions');
   const [items, setItems] = useState<AdminQuestionListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -74,6 +78,8 @@ export default function AdminQuestionsPage() {
           instrument: (instrument as Instrument) || undefined,
           age_tier: (ageTier as AgeGroup) || undefined,
           search: search || undefined,
+          sort: sort?.key,
+          order: sort?.order,
         });
         if (cancelled) return;
         setItems(data.items);
@@ -89,7 +95,7 @@ export default function AdminQuestionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, instrument, ageTier, search, reloadToken]);
+  }, [page, instrument, ageTier, search, sort?.key, sort?.order, reloadToken]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
 
@@ -97,6 +103,7 @@ export default function AdminQuestionsPage() {
     {
       key: 'text',
       header: 'Вопрос',
+      sortKey: 'text',
       mobile: 'title',
       // Long question texts wrap inside the growing column instead of being
       // clipped to a fixed width.
@@ -113,6 +120,7 @@ export default function AdminQuestionsPage() {
     {
       key: 'instrument',
       header: 'Инструмент',
+      sortKey: 'instrument',
       width: '112px',
       mobile: 'field',
       cell: (item) => <span className="text-secondary">{INSTRUMENT_LABELS[item.instrument]}</span>,
@@ -130,6 +138,7 @@ export default function AdminQuestionsPage() {
     {
       key: 'age',
       header: 'Возраст',
+      sortKey: 'age_tier',
       width: '104px',
       mobile: 'field',
       headerTitle: 'Минимальная группа: вопрос виден ей и всем старшим',
@@ -138,6 +147,7 @@ export default function AdminQuestionsPage() {
     {
       key: 'order',
       header: 'Порядок',
+      sortKey: 'order',
       align: 'right',
       width: '92px',
       mobile: 'field',
@@ -152,7 +162,7 @@ export default function AdminQuestionsPage() {
       align: 'right',
       // Колонка-маркер: пустой заголовок над 112px пустоты читался как
       // обрезанная таблица и отнимал место у самого вопроса.
-      width: '72px',
+      width: '104px',
       mobile: 'badge',
       cell: (item) => (item.has_overrides ? <OverrideBadge /> : null),
     },
@@ -199,6 +209,8 @@ export default function AdminQuestionsPage() {
         rows={items}
         rowKey={(item) => item.id}
         rowHref={(item) => `/admin/content/questions/${item.id}`}
+        sort={sort}
+        onSortChange={setSort}
         loading={loading}
         emptyTitle="Вопросы не найдены"
         emptyHint="Попробуйте снять фильтр по инструменту или возрасту."

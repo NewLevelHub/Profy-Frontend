@@ -9,11 +9,16 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { useLockRelease } from './useLockRelease';
 import { AdminSaveBar, type SaveState } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
 import { ADMIN_INPUT, ADMIN_TEXT, ADMIN_TEXTAREA, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminProgramDetail, AdminProgramUpdateRequest } from '@/shared/types';
+import type {
+  AdminProgramDetail,
+  AdminProgramGrant,
+  AdminProgramUpdateRequest,
+} from '@/shared/types';
 
 const SIMPLE_KEYS = [
   'name',
@@ -111,8 +116,8 @@ export default function AdminProgramDetailPage() {
   const [req, setReq] = useState<RequirementsForm | null>(null);
   const [initialDeadlines, setInitialDeadlines] = useState<DeadlinesForm | null>(null);
   const [deadlines, setDeadlines] = useState<DeadlinesForm | null>(null);
-  const [initialGrantsText, setInitialGrantsText] = useState('');
-  const [grantsText, setGrantsText] = useState('');
+  const [initialGrants, setInitialGrants] = useState<AdminProgramGrant[]>([]);
+  const [grants, setGrants] = useState<AdminProgramGrant[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' });
@@ -132,9 +137,8 @@ export default function AdminProgramDetailPage() {
     setInitialDeadlines(deadlinesState);
     setDeadlines(deadlinesState);
 
-    const grantsJson = JSON.stringify(data.grants, null, 2);
-    setInitialGrantsText(grantsJson);
-    setGrantsText(grantsJson);
+    setInitialGrants(data.grants);
+    setGrants(data.grants);
   }
 
   useEffect(() => {
@@ -175,9 +179,9 @@ export default function AdminProgramDetailPage() {
         : {},
     [initialDeadlines, deadlines],
   );
-  const grantsDirty = grantsText !== initialGrantsText;
+  const grantsDirty = JSON.stringify(grants) !== JSON.stringify(initialGrants);
 
-  const grantsError = useMemo(() => validateGrants(grantsText), [grantsText]);
+  const grantsError = useMemo(() => validateGrants(grants), [grants]);
 
   const changedLabels = [
     ...(Object.keys(simplePatch) as (keyof SimpleForm)[]).map((key) => SIMPLE_LABELS[key]),
@@ -188,6 +192,20 @@ export default function AdminProgramDetailPage() {
   const dirty = changedLabels.length > 0;
 
   useUnsavedGuard(dirty);
+
+  // До ранних return'ов: хук обязан вызываться на каждом рендере, иначе после
+  // загрузки данных число хуков меняется и React роняет экран.
+  const {
+    fieldRelease,
+    error: releaseError,
+    notice: releaseNotice,
+  } = useLockRelease<AdminProgramDetail>({
+    kind: 'program',
+    id: detail?.id,
+    lockedFields: detail?.admin_locked_fields ?? [],
+    dirty,
+    onReleased: setDetail,
+  });
 
   if (loading) return <AdminLoading label="Загрузка программы" />;
   if (loadError || !detail || !simple || !req || !deadlines) {
@@ -224,7 +242,7 @@ export default function AdminProgramDetailPage() {
         setSaveState({ kind: 'error', message: grantsError });
         return;
       }
-      patch.grants = JSON.parse(grantsText);
+      patch.grants = grants;
     }
 
     setSaving(true);
@@ -257,9 +275,16 @@ export default function AdminProgramDetailPage() {
         meta={detail.university.name}
       />
 
+      {releaseError && <AdminError message={releaseError} />}
+      {/* Снятие замка меняет на экране только исчезнувший бейдж — значение
+          остаётся прежним, поэтому результат надо назвать словами. */}
+      {!releaseError && releaseNotice && (
+        <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>{releaseNotice}</p>
+      )}
+
       <AdminCard title="Основное">
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <AdminField label="Название" locked={locked.has('name')} lockReason={LOCK_REASON}>
+          <AdminField label="Название" locked={locked.has('name')} revert={fieldRelease('name')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -270,7 +295,7 @@ export default function AdminProgramDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label="Язык обучения" locked={locked.has('language')} lockReason={LOCK_REASON}>
+          <AdminField label="Язык обучения" locked={locked.has('language')} revert={fieldRelease('language')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -283,7 +308,7 @@ export default function AdminProgramDetailPage() {
           </AdminField>
           <AdminField
             label="Стоимость за год, ₸"
-            locked={locked.has('cost_per_year')}
+            locked={locked.has('cost_per_year')} revert={fieldRelease('cost_per_year')}
             lockReason={LOCK_REASON}
             hint="Число для фильтров и сравнения."
           >
@@ -300,7 +325,7 @@ export default function AdminProgramDetailPage() {
           </AdminField>
           <AdminField
             label="Подпись стоимости"
-            locked={locked.has('cost_label')}
+            locked={locked.has('cost_label')} revert={fieldRelease('cost_label')}
             lockReason={LOCK_REASON}
             hint="Показывается ученику вместо числа: «бесплатно», «по гранту»."
           >
@@ -316,7 +341,7 @@ export default function AdminProgramDetailPage() {
           </AdminField>
           <AdminField
             label="Источник"
-            locked={locked.has('source_url')}
+            locked={locked.has('source_url')} revert={fieldRelease('source_url')}
             lockReason={LOCK_REASON}
             className="sm:col-span-2"
           >
@@ -333,7 +358,7 @@ export default function AdminProgramDetailPage() {
           </AdminField>
         </div>
 
-        <AdminField label="Описание" locked={locked.has('description')} lockReason={LOCK_REASON}>
+        <AdminField label="Описание" locked={locked.has('description')} revert={fieldRelease('description')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -344,7 +369,7 @@ export default function AdminProgramDetailPage() {
             />
           )}
         </AdminField>
-        <AdminField label="Кому подходит" locked={locked.has('who_its_for')} lockReason={LOCK_REASON}>
+        <AdminField label="Кому подходит" locked={locked.has('who_its_for')} revert={fieldRelease('who_its_for')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -407,7 +432,7 @@ export default function AdminProgramDetailPage() {
       <AdminCard title="Дедлайны">
         <AdminField
           label="Окончание приёма заявок"
-          locked={locked.has('deadlines')}
+          locked={locked.has('deadlines')} revert={fieldRelease('deadlines')}
           lockReason={LOCK_REASON}
           className="max-w-[240px]"
         >
@@ -430,32 +455,10 @@ export default function AdminProgramDetailPage() {
 
       <AdminCard
         title="Гранты"
-        description="Форма записи гранта не зафиксирована в API, поэтому список редактируется как JSON. Проверка синтаксиса — ниже; смысл значений админка проверить не может."
+        description="Стипендии и гранты программы. Название обязательно, сумма и условия — по желанию."
         aside={locked.has('grants') ? <span className={cn(MONO_LABEL, 'text-brand')}>Задано вручную</span> : null}
       >
-        <textarea
-          className={cn(
-            ADMIN_TEXTAREA,
-            'font-mono text-mono-sm min-h-[160px]',
-            grantsError && 'border-danger',
-          )}
-          value={grantsText}
-          onChange={(e) => setGrantsText(e.target.value)}
-          spellCheck={false}
-          aria-invalid={Boolean(grantsError)}
-          aria-label="Гранты в формате JSON"
-        />
-        {grantsError ? (
-          <p className={cn(ADMIN_TEXT, 'flex items-start gap-1.5 text-danger m-0')}>
-            <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />
-            {grantsError}
-          </p>
-        ) : (
-          <p className={cn(ADMIN_TEXT, 'flex items-center gap-1.5 text-muted m-0')}>
-            <Check size={13} className="text-brand flex-shrink-0" />
-            JSON корректен{grantsDirty ? ' — изменения не сохранены' : ''}
-          </p>
-        )}
+        <GrantsEditor entries={grants} onChange={setGrants} error={grantsError} />
       </AdminCard>
 
       <p className={cn(MONO_MUTE, 'normal-case tracking-normal')}>
@@ -529,13 +532,120 @@ function toFloatOrNull(value: string): number | null {
  * would have to guess at fields and could corrupt real entries. What it CAN
  * check honestly: the text parses, and it is a list.
  */
-function validateGrants(text: string): string | null {
-  if (text.trim() === '') return 'Пусто. Для «грантов нет» оставьте пустой список: []';
-  try {
-    const parsed = JSON.parse(text);
-    if (!Array.isArray(parsed)) return 'Ожидается список записей — JSON-массив в квадратных скобках.';
-    return null;
-  } catch (error) {
-    return error instanceof Error ? `Некорректный JSON: ${error.message}` : 'Некорректный JSON';
-  }
+/**
+ * Название — единственное обязательное поле записи гранта, и это же
+ * единственное, что реально лежит во всех живых данных.
+ *
+ * Раньше гранты правились как сырой JSON в textarea, потому что форма записи
+ * не была описана нигде: одна опечатка — и сохранение падало, а при неудачной
+ * структуре можно было молча испортить данные. Теперь форма зафиксирована в
+ * схеме API, и проверять остаётся только заполненность.
+ */
+function validateGrants(entries: readonly AdminProgramGrant[]): string | null {
+  const empty = entries.findIndex((entry) => !entry.name?.trim());
+  return empty === -1 ? null : `У записи №${empty + 1} не заполнено название.`;
+}
+
+/**
+ * Структурный редактор грантов вместо сырого JSON.
+ *
+ * Раньше это была textarea с JSON: одна опечатка — и сохранение падало, а при
+ * неудачной структуре можно было молча записать то, что ниже по пайплайну
+ * никто не прочитает. Форма записи теперь зафиксирована в схеме API
+ * (`name` + необязательные `amount`/`conditions`), поэтому её можно править
+ * полями.
+ *
+ * Незнакомые ключи не теряются: строка правится копией исходного объекта, а не
+ * собирается заново из трёх полей — импортёр мог положить в запись поле, о
+ * котором эта форма ещё не знает.
+ */
+function GrantsEditor({
+  entries,
+  onChange,
+  error,
+}: {
+  entries: readonly AdminProgramGrant[];
+  onChange: (next: AdminProgramGrant[]) => void;
+  error: string | null;
+}) {
+  const patch = (index: number, field: 'name' | 'amount' | 'conditions', value: string) => {
+    onChange(
+      entries.map((entry, i) => {
+        if (i !== index) return entry;
+        if (value.trim() === '') {
+          // Убрать ключ, а не записать null: сервер его не присылал, и запись
+          // null сделала бы форму «грязной» навсегда — а сохранение записало
+          // бы гранты в admin_locked_fields, выведя их из-под автообновления
+          // без единой настоящей правки.
+          const { [field]: _removed, ...rest } = entry;
+          return rest as typeof entry;
+        }
+        return { ...entry, [field]: value };
+      }),
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      {entries.length === 0 ? (
+        <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>Грантов не указано.</p>
+      ) : (
+        entries.map((entry, index) => (
+          <div
+            key={index}
+            className="flex flex-col gap-2 border border-default rounded-[3px] p-3 bg-raised"
+          >
+            <div className="flex items-start gap-2">
+              <input
+                className={cn(ADMIN_INPUT, 'flex-1', !entry.name?.trim() && 'border-danger')}
+                value={entry.name ?? ''}
+                placeholder="Название гранта"
+                aria-label={`Название гранта ${index + 1}`}
+                onChange={(e) => patch(index, 'name', e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => onChange(entries.filter((_, i) => i !== index))}
+                title="Удалить запись"
+                className={cn(ADMIN_TEXT, 'px-2 py-1.5 rounded-[3px] text-muted hover:text-danger hover:bg-hover')}
+              >
+                Удалить
+              </button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <input
+                className={ADMIN_INPUT}
+                value={entry.amount ?? ''}
+                placeholder="Сумма (например, 1 200 000 ₸)"
+                aria-label={`Сумма гранта ${index + 1}`}
+                onChange={(e) => patch(index, 'amount', e.target.value)}
+              />
+              <input
+                className={ADMIN_INPUT}
+                value={entry.conditions ?? ''}
+                placeholder="Условия получения"
+                aria-label={`Условия гранта ${index + 1}`}
+                onChange={(e) => patch(index, 'conditions', e.target.value)}
+              />
+            </div>
+          </div>
+        ))
+      )}
+
+      {error && (
+        <p className={cn(ADMIN_TEXT, 'flex items-start gap-1.5 text-danger m-0')}>
+          <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />
+          {error}
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={() => onChange([...entries, { name: '' }])}
+        className={cn(ADMIN_TEXT, 'self-start px-2 py-1 rounded-[3px] text-muted hover:text-primary hover:bg-hover')}
+      >
+        + Добавить грант
+      </button>
+    </div>
+  );
 }

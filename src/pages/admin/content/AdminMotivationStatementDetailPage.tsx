@@ -9,6 +9,8 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
@@ -109,12 +111,30 @@ export default function AdminMotivationStatementDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminMotivationStatementDetail>({
+    resource: 'motivation-statements',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label="Загрузка утверждения" />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || 'Утверждение не найдено'} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const locked = new Set(Object.keys(detail.overrides));
+
   const conflicting = siblings.filter((sibling) => sibling.category === form.category);
 
   return (
@@ -133,13 +153,25 @@ export default function AdminMotivationStatementDetailPage() {
         }
       />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
       <AdminCard
         title="Содержание"
         description="Взрослая формулировка используется для middle и senior; junior-вариант заменяет её на младшем треке."
       >
         <AdminField
           label="Категория"
-          locked={locked.has('category')}
+          locked={locked.has('category')} revert={fieldRevert('category')}
           lockReason={LOCK_REASON}
           error={
             conflicting.length > 0
@@ -165,7 +197,7 @@ export default function AdminMotivationStatementDetailPage() {
           )}
         </AdminField>
 
-        <AdminField label="Текст" locked={locked.has('text')} lockReason={LOCK_REASON}>
+        <AdminField label="Текст" locked={locked.has('text')} revert={fieldRevert('text')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -179,7 +211,7 @@ export default function AdminMotivationStatementDetailPage() {
 
         <AdminField
           label="Текст для junior"
-          locked={locked.has('text_junior')}
+          locked={locked.has('text_junior')} revert={fieldRevert('text_junior')}
           lockReason={LOCK_REASON}
           hint="Пусто — на всех возрастах покажется текст выше."
         >
