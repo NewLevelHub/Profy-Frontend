@@ -144,15 +144,19 @@ export function AuthLayout() {
 
   return (
     <div className="auth-page relative min-h-screen bg-page flex flex-col">
-      {/* pt подобран так, чтобы верх текста совпадал с верхом слова «Profy»
-          на лендинге (37px от края окна, измерено — там высоту строки шапки
-          задают кнопки навигации, а не сам текст, так что формулой из одних
-          отступов её не вывести). Лендинг теперь домержен, поэтому знак —
-          настоящая ссылка (на dev до этого стоял <span>-заглушка: без
-          лендинга переход по нему упирался бы в 404). LanguageSwitcher и
-          ThemeToggle — справа в той же строке; LanguageSwitcher до KZ-603
-          рендерит null. */}
-      <div className={`relative z-[1] pt-[2.2rem] pb-8 lg:pb-0 pl-4 flex items-center justify-between gap-4 ${column}`}>
+      {/* pt подобран так, чтобы верх текста совпадал с верхом вордмарка на
+          лендинге — там высоту строки шапки задают кнопки навигации, а не сам
+          текст, так что формулой из одних отступов её не вывести, только
+          замером. После beauty-плана шапка лендинга подросла и знак уехал:
+          замер на 1440px давал top=34px на лендинге против 42px здесь — те
+          самые «шапки как будто разные». Семейство и метрики у обеих одни
+          (Onest / 700 / 19.52px / -0.045em, проверено computed-стилями),
+          расходилась только вертикаль. 1.7rem возвращает 34px.
+          Лендинг домержен, поэтому знак — настоящая ссылка (на dev до этого
+          стоял <span>-заглушка: без лендинга переход упирался бы в 404).
+          ThemeToggle — справа в той же строке; LanguageSwitcher рядом с ним
+          рендерит null, пока язык один (см. store/locale.ts). */}
+      <div className={`relative z-[1] pt-[1.7rem] pb-8 lg:pb-0 pl-4 flex items-center justify-between gap-4 ${column}`}>
         <Link
           to="/"
           className="brand-wordmark auth-enter inline-flex hover:opacity-70 transition-opacity"
