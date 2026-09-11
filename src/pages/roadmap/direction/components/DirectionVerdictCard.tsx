@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 
 interface DirectionVerdictCardProps {
@@ -26,11 +27,12 @@ interface DirectionVerdictCardProps {
  */
 export function DirectionVerdictCard({ directionName, inquiryPath }: DirectionVerdictCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('roadmap');
 
   return (
     <div className="flex flex-col gap-3">
       <span className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
-        Подходит ли тебе это — вердикт
+        {t('verdict.kicker')}
       </span>
 
       <div
@@ -46,12 +48,10 @@ export function DirectionVerdictCard({ directionName, inquiryPath }: DirectionVe
           className="font-sans font-semibold text-body-lg leading-snug"
           style={{ color: 'var(--pine)' }}
         >
-          Сверься с направлением
+          {t('verdict.title')}
         </p>
         <p className="text-body-md text-primary leading-relaxed">
-          Ты уже проходил опрос по «{directionName}» — вывод показывается сразу после ответов
-          и не сохраняется здесь. Пройди его ещё раз за пару минут, если хочешь свежий взгляд
-          на то, что совпадает, а что расходится.
+          {t('verdict.body', { name: directionName })}
         </p>
         <Button
           variant="primary"
@@ -59,7 +59,7 @@ export function DirectionVerdictCard({ directionName, inquiryPath }: DirectionVe
           className="self-start mt-1"
           onClick={() => navigate(inquiryPath)}
         >
-          Пройти опрос
+          {t('direction.takeInquiry')}
         </Button>
       </div>
     </div>

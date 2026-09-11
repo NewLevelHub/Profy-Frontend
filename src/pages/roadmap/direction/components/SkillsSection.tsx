@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
+
 interface SkillsSectionProps {
   skills: string[];
   subjects: string[];
 }
 
 export function SkillsSection({ skills, subjects }: SkillsSectionProps) {
+  const { t } = useTranslation('roadmap');
   if (skills.length === 0 && subjects.length === 0) return null;
 
   return (
@@ -12,7 +15,7 @@ export function SkillsSection({ skills, subjects }: SkillsSectionProps) {
         <div>
           <h2 className="text-label font-bold text-primary flex items-center gap-2 mb-3">
             <span aria-hidden="true">🛠️</span>
-            Навыки, которые построишь
+            {t('skills.skillsTitle')}
           </h2>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, i) => (
@@ -31,7 +34,7 @@ export function SkillsSection({ skills, subjects }: SkillsSectionProps) {
         <div>
           <h2 className="text-label font-bold text-primary flex items-center gap-2 mb-3">
             <span aria-hidden="true">📚</span>
-            Предметы в фокусе
+            {t('skills.subjectsTitle')}
           </h2>
           <div className="flex flex-wrap gap-2">
             {subjects.map((subject, i) => (

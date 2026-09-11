@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -23,8 +24,7 @@ type Level = InterestMapItem['level'];
 
 // Icon color — the fill-contrast cell goes solid Pine at `high` and solid
 // Dawn at `medium`, so both flip to --text-on-brand (readable on either
-// fill) instead of a color-on-same-color icon. Muted #9A9287 (--text-
-// subtle's exact light-mode value, dark-mode-safe via the token) for
+// fill) instead of a color-on-same-color icon. Muted --text-subtle for
 // barely-present — the cell's own opacity-45 does the rest of the dimming.
 const ICON_COLOR: Record<Level, string> = {
   high: 'var(--text-on-brand)',
@@ -41,20 +41,29 @@ const ICON_COLOR: Record<Level, string> = {
  * treatment, it has no ranking concept.
  */
 export function InterestDomainSection({ isJunior, interestMap, interestMapNote }: InterestDomainSectionProps) {
-  const labels = isJunior ? MI_LABELS : RIASEC_LABELS;
-  const descriptions = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
+  const { t } = useTranslation();
+  const labelKeys = isJunior ? MI_LABELS : RIASEC_LABELS;
+  const descriptionKeys = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
+  // Resolve the i18n key maps to display text once, so the pure headline
+  // helpers keep taking a plain code -> string record.
+  const labels = Object.fromEntries(
+    Object.entries(labelKeys).map(([code, key]) => [code, t(key)]),
+  ) as Record<string, string>;
+  const descriptions = Object.fromEntries(
+    Object.entries(descriptionKeys).map(([code, key]) => [code, t(key)]),
+  ) as Record<string, string>;
   const headline = buildHeadline(interestMap, labels);
   const secondaryNote = buildSecondaryNote(interestMap, labels);
 
   return (
-    <DomainCardFrame ariaLabel={isJunior ? 'Ведущие способности' : 'Карьерные интересы'}>
+    <DomainCardFrame ariaLabel={t(isJunior ? 'results:interestDomain.ariaMi' : 'results:interestDomain.ariaRiasec')}>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
           <DomainKicker>
-            {isJunior ? 'ВЕДУЩИЕ СПОСОБНОСТИ' : 'КАРЬЕРНЫЕ ИНТЕРЕСЫ'}
+            {t(isJunior ? 'results:interestDomain.kickerMi' : 'results:interestDomain.kickerRiasec')}
           </DomainKicker>
           {headline && (
-            <Heading level="display-md" as="h2" className="text-[color:var(--midnight)]">
+            <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
               {headline}
             </Heading>
           )}
@@ -62,7 +71,7 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
         <div className="flex items-center gap-3 flex-shrink-0">
           {secondaryNote && (
             <p className="font-mono text-mono-xs text-right leading-snug max-w-[220px]" style={{ color: 'var(--ink)' }}>
-              Также заметно: {secondaryNote}
+              {t('results:interestDomain.alsoNotable', { items: secondaryNote })}
             </p>
           )}
           <Mascot state="completion" size={68} celebrate />
@@ -72,9 +81,16 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
       {interestMap.length > 0 && (
         <div className="flex flex-col gap-3">
           <p className="text-caption leading-relaxed" style={{ color: 'var(--ink)' }}>
-            Ниже — {isJunior ? 'восемь направлений интересов' : 'шесть типов интересов'}: у каждого
-            своя окраска — от «ведущее» (это ближе всего) до «почти не проявилось».{' '}
-            {headline && <>Выделенные — <strong className="font-semibold">{headline}</strong> — твоя карта интересов.</>}
+            {t('results:interestDomain.legendIntro', {
+              kinds: t(isJunior ? 'results:interestDomain.kindsMi' : 'results:interestDomain.kindsRiasec'),
+            })}
+            {headline && (
+              <Trans
+                i18nKey="results:interestDomain.legendHighlight"
+                values={{ headline }}
+                components={{ 1: <strong className="font-semibold" /> }}
+              />
+            )}
           </p>
           <DomainGrid
             columnsClassName={isJunior ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'}
@@ -84,7 +100,7 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
                 key={item.code}
                 icon={<TypeIcon item={item} isJunior={isJunior} />}
                 title={item.sphere}
-                status={LEVEL_STATUS_LABEL[item.level]}
+                status={t(LEVEL_STATUS_LABEL[item.level])}
                 description={descriptions[item.code]}
                 level={item.level}
               />
@@ -112,7 +128,7 @@ function TypeIcon({ item, isJunior }: { item: InterestMapItem; isJunior: boolean
       <span
         className={cn(
           'w-9 h-9 rounded-full flex items-center justify-center text-lg select-none',
-          (item.level === 'high' || item.level === 'medium') && 'bg-white/25',
+          (item.level === 'high' || item.level === 'medium') && 'bg-[color:color-mix(in_srgb,var(--text-on-brand)_22%,transparent)]',
           item.level === 'low' && 'bg-surface border border-default',
         )}
         aria-hidden="true"

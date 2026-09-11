@@ -30,7 +30,7 @@ export function AdminBadge({ tone = 'neutral', dot, children, className, title }
       title={title}
       className={cn(
         ADMIN_TEXT,
-        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] whitespace-nowrap font-medium',
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-pill whitespace-nowrap font-medium',
         tone === 'neutral' && 'bg-raised text-secondary',
         tone === 'brand' && 'bg-brand-subtle text-brand',
         tone === 'accent' && 'bg-accent-soft text-accent',

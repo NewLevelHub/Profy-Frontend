@@ -1,4 +1,5 @@
 import { ClipboardEvent, KeyboardEvent, ChangeEvent, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 
 // Placeholder for a not-yet-filled cell within the fixed-length code string.
@@ -45,6 +46,7 @@ export function OtpInput({
   className,
   'aria-label': ariaLabel,
 }: OtpInputProps) {
+  const { t } = useTranslation('common');
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [justFilledIndex, setJustFilledIndex] = useState<number | null>(null);
@@ -169,8 +171,8 @@ export function OtpInput({
               onPaste={handlePaste}
               onFocus={(e) => { setFocusedIndex(i); e.target.select(); }}
               onBlur={() => setFocusedIndex((cur) => (cur === i ? null : cur))}
-              aria-label={`Цифра ${i + 1} из ${length}`}
-              className="w-full h-full text-center bg-transparent border-0 outline-none font-mono text-display-sm text-[color:var(--midnight)] disabled:opacity-50"
+              aria-label={t('otp.cellLabel', { index: i + 1, total: length })}
+              className="w-full h-full text-center bg-transparent border-0 outline-none font-mono text-display-sm text-[color:var(--text-heading)] disabled:opacity-50"
             />
           </div>
         );

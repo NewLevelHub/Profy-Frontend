@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 
 export interface PasswordStrengthMeterProps {
@@ -7,14 +8,19 @@ export interface PasswordStrengthMeterProps {
 
 const SEGMENTS = 4;
 
-const LABELS = ['СЛАБЫЙ ПАРОЛЬ', 'СРЕДНИЙ ПАРОЛЬ', 'ХОРОШИЙ ПАРОЛЬ', 'ОТЛИЧНЫЙ ПАРОЛЬ'] as const;
+const LABEL_KEYS = [
+  'passwordStrength.weak',
+  'passwordStrength.medium',
+  'passwordStrength.good',
+  'passwordStrength.excellent',
+] as const;
 
 /**
  * Real (if simple) strength heuristic — length + character-class variety.
  * Not cryptographically rigorous, just an honest reflection of the live
  * password field rather than a fabricated/static bar.
  */
-function computeStrength(password: string): { score: number; label: string } {
+function computeStrength(password: string): { score: number; labelKey: string } {
   let points = 0;
   if (password.length >= 8) points++;
   if (password.length >= 12) points++;
@@ -22,23 +28,15 @@ function computeStrength(password: string): { score: number; label: string } {
   if (/[^A-Za-z0-9]/.test(password)) points++;
 
   const score = Math.min(points, SEGMENTS);
-  const labelIndex = Math.max(0, Math.min(LABELS.length - 1, score - 1));
-  const label = score === 0 ? LABELS[0] : LABELS[labelIndex];
-  return { score, label };
-}
-
-function pluralCharacters(n: number): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return 'символ';
-  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return 'символа';
-  return 'символов';
+  const labelIndex = Math.max(0, Math.min(LABEL_KEYS.length - 1, score - 1));
+  return { score, labelKey: score === 0 ? LABEL_KEYS[0] : LABEL_KEYS[labelIndex] };
 }
 
 export function PasswordStrengthMeter({ password, className }: PasswordStrengthMeterProps) {
+  const { t } = useTranslation('common');
   if (!password) return null;
 
-  const { score, label } = computeStrength(password);
+  const { score, labelKey } = computeStrength(password);
 
   return (
     <div className={cn('mt-2', className)} role="status" aria-live="polite">
@@ -52,7 +50,7 @@ export function PasswordStrengthMeter({ password, className }: PasswordStrengthM
         ))}
       </div>
       <p className="font-mono text-mono-xs tracking-label uppercase text-muted mt-1.5">
-        {label} · {password.length} {pluralCharacters(password.length)}
+        {t(labelKey)} · {t('passwordStrength.count', { count: password.length })}
       </p>
     </div>
   );

@@ -235,14 +235,14 @@ function PairPreview({
   b: { text: string; icon: string };
 }) {
   return (
-    <div className="bg-raised border border-default rounded-[3px] p-4">
+    <div className="bg-raised border border-default rounded-[14px] p-4">
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>Как увидит ученик</p>
       {frame && <p className="font-sans text-body-md text-primary text-center mb-3">{frame}</p>}
       <div className="grid grid-cols-2 gap-3">
         {[a, b].map((side, index) => (
           <div
             key={index}
-            className="bg-surface border border-default rounded-[3px] p-3 flex flex-col items-center gap-2 text-center"
+            className="bg-surface border border-default rounded-[14px] p-3 flex flex-col items-center gap-2 text-center"
           >
             {side.icon && (
               <span className="text-2xl leading-none" aria-hidden="true">

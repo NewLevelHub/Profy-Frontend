@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import { directionRoadmapApi } from '@/shared/api/directionRoadmap';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -18,11 +19,12 @@ function errorKind(err: unknown): RoadmapErrorKind {
   return 'generic';
 }
 
-const ERROR_MESSAGES: Record<RoadmapErrorKind, string> = {
-  ai_unavailable: 'ИИ временно недоступен. Попробуй ещё раз — план не потеряется.',
-  needs_inquiry: 'Сначала пройди опрос по этому направлению — план строится по его результатам.',
-  forbidden: 'Эта возможность пока недоступна для твоего возраста.',
-  generic: 'Не удалось составить план. Попробуй ещё раз.',
+// i18n keys — the ru/kk copy lives in roadmap/directionError.*
+const ERROR_MESSAGE_KEYS: Record<RoadmapErrorKind, string> = {
+  ai_unavailable: 'roadmap:directionError.ai_unavailable',
+  needs_inquiry: 'roadmap:directionError.needs_inquiry',
+  forbidden: 'roadmap:directionError.forbidden',
+  generic: 'roadmap:directionError.generic',
 };
 
 interface NavigationState {
@@ -31,6 +33,7 @@ interface NavigationState {
 }
 
 export function useDirectionRoadmap(slug: string) {
+  const { t } = useTranslation();
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const setRoadmap = useDirectionRoadmapStore(s => s.setRoadmap);
   const queryClient = useQueryClient();
@@ -90,7 +93,7 @@ export function useDirectionRoadmap(slug: string) {
     /** No plan yet and nothing is running — show the "build my plan" CTA. */
     notGenerated: notGenerated && !generateMutation.isPending && !generateMutation.isError,
     errorKind: kind,
-    errorMessage: kind ? ERROR_MESSAGES[kind] : null,
+    errorMessage: kind ? t(ERROR_MESSAGE_KEYS[kind]) : null,
     generate,
   };
 }
