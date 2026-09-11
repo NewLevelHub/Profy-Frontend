@@ -9,6 +9,11 @@ interface GoalBranchSectionProps {
    *  started — the sole source of which scenario renders here. Not a
    *  switcher seed: there is no runtime way to change it from this page. */
   initialGoal: AssessmentGoal | null;
+  /** Psychologist's read-only view of a student's report
+   *  (PsychologistStudentReportPage) — see ScenarioProfessional/
+   *  DirectionMatchList's own docs. ScenarioA has nothing clickable, so it's
+   *  unaffected. */
+  readOnly?: boolean;
 }
 
 /**
@@ -22,7 +27,7 @@ interface GoalBranchSectionProps {
  * already-fetched `report` (plus the already-loaded profile store); no
  * network requests happen on this page after initial load.
  */
-export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchSectionProps) {
+export function GoalBranchSection({ report, ageGroup, initialGoal, readOnly = false }: GoalBranchSectionProps) {
   const isJunior = ageGroup === 'junior';
   const goal: AssessmentGoal = initialGoal ?? 'explore';
 
@@ -40,6 +45,7 @@ export function GoalBranchSection({ report, ageGroup, initialGoal }: GoalBranchS
       <ScenarioProfessional
         careers={report.careers}
         ageGroup={ageGroup ?? 'middle'}
+        readOnly={readOnly}
       />
     );
 

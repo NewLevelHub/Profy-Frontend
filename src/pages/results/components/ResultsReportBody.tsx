@@ -23,6 +23,12 @@ interface ResultsReportBodyProps {
   ageGroup: AgeGroup | undefined;
   goal: AssessmentGoal | null | undefined;
   isJunior: boolean;
+  /** Psychologist's view (PsychologistStudentReportPage): the "Направления
+   *  под цель" list is informational only there, not a doorway into the
+   *  student's own direction/university browsing flow — see
+   *  GoalBranchSection/ScenarioProfessional/DirectionMatchList. Defaults to
+   *  the student's normal, clickable behaviour. */
+  readOnly?: boolean;
 }
 
 /**
@@ -33,11 +39,11 @@ interface ResultsReportBodyProps {
  * identical body. Page chrome (header, "Скачать PDF", feedback) stays on the
  * pages, not here.
  *
- * The psych-block «Дополнительно для специалиста» block is gated server-side
+ * The psych-block (validity/psychoemotional/mac) is gated server-side
  * (report_service.psych_sections_for → psychologist/admin only), so on the
  * student's page `hasPsych` is always false and nothing renders.
  */
-export function ResultsReportBody({ report, ageGroup, goal, isJunior }: ResultsReportBodyProps) {
+export function ResultsReportBody({ report, ageGroup, goal, isJunior, readOnly = false }: ResultsReportBodyProps) {
   const psychSections = {
     validity: report.validity ?? null,
     psychoemotional: report.psychoemotional ?? null,
@@ -90,7 +96,7 @@ export function ResultsReportBody({ report, ageGroup, goal, isJunior }: ResultsR
       </AnimatedBlock>
 
       <AnimatedBlock>
-        <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal ?? null} />
+        <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal ?? null} readOnly={readOnly} />
       </AnimatedBlock>
 
       {hasPsych && (

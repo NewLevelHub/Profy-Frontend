@@ -14,14 +14,23 @@ interface DirectionMatchListProps {
    *  tier's detail page has nothing university-shaped to point at yet, so
    *  the hint would be a promise the click doesn't keep. */
   showUniversitiesHint?: boolean;
+  /** Psychologist's read-only view of a student's report
+   *  (PsychologistStudentReportPage): a plain list, not a doorway into the
+   *  student's own browsing flow (direction detail → universities/programs).
+   *  Rows render as static, not as buttons — no navigate, no arrow, no
+   *  "открой направление" CTA. */
+  readOnly?: boolean;
 }
 
 /**
  * Shared "direction + match ladder" table — used by scenario B's
  * "НАПРАВЛЕНИЯ И ПРОФЕССИИ ПОД ЦЕЛЬ" and scenario C's step 01 "Направления
  * под цель". A single hairline-bordered list, not individually-bordered
- * cards — every row is a real `<button>` (native keyboard/focus support,
- * no synthetic click-div) that navigates to the direction detail page.
+ * cards. By default every row is a real `<button>` (native keyboard/focus
+ * support, no synthetic click-div) that navigates to the direction detail
+ * page; `readOnly` (the psychologist's view of a student's report) renders
+ * plain `<div>` rows instead — no navigation, no arrow, no "открой
+ * направление" CTA, just the list itself.
  * Always the complete list, including the top-ranked direction already
  * headlined above it — this table is meant to be the full reference, not
  * "everything except the one already shown." Deeper follow-through beyond
@@ -32,6 +41,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
   careers,
   emptyText = 'Подходящих направлений пока нет.',
   showUniversitiesHint = false,
+  readOnly = false,
 }: DirectionMatchListProps) {
   const navigate = useNavigate();
 
@@ -43,16 +53,13 @@ export const DirectionMatchList = memo(function DirectionMatchList({
     <div className="grid grid-cols-1 gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden">
       {careers.map((career, i) => {
         const isTop = i === 0;
-        return (
-          <button
-            key={career.slug}
-            type="button"
-            onClick={() => navigate(`/results/directions/${encodeURIComponent(career.slug)}`)}
-            className={cn(
-              'w-full flex flex-col gap-3 text-left bg-surface hover:bg-hover transition-colors cursor-pointer',
-              isTop ? 'px-5 py-5' : 'px-5 py-4',
-            )}
-          >
+        const rowClassName = cn(
+          'w-full flex flex-col gap-3 text-left bg-surface transition-colors',
+          readOnly ? 'cursor-default' : 'hover:bg-hover cursor-pointer',
+          isTop ? 'px-5 py-5' : 'px-5 py-4',
+        );
+        const rowContent = (
+          <>
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <p
@@ -66,10 +73,12 @@ export const DirectionMatchList = memo(function DirectionMatchList({
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
                 <CareerMatchLadder tier={career.tier} showLabel={isTop} />
-                <span className="flex items-center gap-1 text-muted">
-                  {showUniversitiesHint && <GraduationCap className="w-3.5 h-3.5" aria-hidden="true" />}
-                  <span aria-hidden="true">→</span>
-                </span>
+                {(showUniversitiesHint || !readOnly) && (
+                  <span className="flex items-center gap-1 text-muted">
+                    {showUniversitiesHint && <GraduationCap className="w-3.5 h-3.5" aria-hidden="true" />}
+                    {!readOnly && <span aria-hidden="true">→</span>}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -92,7 +101,8 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                 <p className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
                   {career.why}
                 </p>
-                {showUniversitiesHint && (
+                {/* CTA — only makes sense where the row itself is clickable. */}
+                {showUniversitiesHint && !readOnly && (
                   <p
                     className="flex items-center gap-1.5 text-caption font-semibold mt-2.5 pt-2.5"
                     style={{ color: 'var(--lake)', borderTop: '1px solid color-mix(in srgb, var(--lake) 25%, transparent)' }}
@@ -103,6 +113,21 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                 )}
               </div>
             )}
+          </>
+        );
+
+        return readOnly ? (
+          <div key={career.slug} className={rowClassName}>
+            {rowContent}
+          </div>
+        ) : (
+          <button
+            key={career.slug}
+            type="button"
+            onClick={() => navigate(`/results/directions/${encodeURIComponent(career.slug)}`)}
+            className={rowClassName}
+          >
+            {rowContent}
           </button>
         );
       })}

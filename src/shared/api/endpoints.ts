@@ -30,6 +30,12 @@ export const API = {
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
     psychoemotional: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional`,
   },
+  mac: {
+    session: '/mac/session',
+    draw: (sessionId: string) => `/mac/session/${sessionId}/draw`,
+    spread: (exerciseId: string) => `/mac/exercise/${exerciseId}/spread`,
+    response: '/mac/response',
+  },
   result: {
     generate: '/result/generate',
     get: (assessmentId: string) => `/result/${assessmentId}`,

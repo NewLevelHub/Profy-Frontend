@@ -6,7 +6,7 @@ import { psychoEmotionalApi } from '@/shared/api/psychoemotional';
 
 /**
  * Логика блока психоэмоционального теста (PRO-306): checkin → круг 1 → пауза
- * → круг 2 → submit → основной поток (`/assessment/loading`). Никакого
+ * → круг 2 → submit → блок МАК (`/assessment/mac`). Никакого
  * результата пользователю (§5.6). Состояние прохождения — в
  * `usePsychoEmotionalStore` (не персистится: бросил → при следующем заходе
  * заново).
@@ -59,7 +59,7 @@ export function usePsychoEmotional() {
       // Не запираем пользователя на сетевой ошибке.
     } finally {
       reset();
-      navigate('/assessment/loading');
+      navigate('/assessment/mac');
     }
   }
 

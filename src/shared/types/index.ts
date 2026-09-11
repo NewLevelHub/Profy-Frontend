@@ -522,13 +522,76 @@ export interface PsychEmotionalSection {
 
   /** §B6 red flag: black (id 7) in position 1 — a highlight for the talk. */
   black_first: boolean;
+}
 
-  /** Ready specialist hint texts, already priority-ordered (§8). No AI. */
-  hints: string[];
+export interface MacFeedItem {
+  exercise_code: string;
+  exercise_title: string;
+  stimulus_question: string;
+  /** Absolute URLs (backend's STORAGE_PUBLIC_BASE_URL + storage key) — served
+   *  from the shared media folder (nginx `/media/`), not from this repo. */
+  card_image_urls: string[];
+  followup_questions: string[];
+  /** Verbatim, index-aligned with `followup_questions`. */
+  followup_answers: string[];
+  time_spent_ms: number;
+  revision_count: number;
 }
 
 export interface PsychMacSection {
   consent_ok: boolean;
+  completed: boolean;
+  feed: MacFeedItem[];
+}
+
+// ─── МАК (метафорические ассоциативные карты) — assessment flow ────────────────
+// v1 demo (PRO-314…317): only exercise E1 is active — no scoring, no AI, the
+// child just writes free text about a drawn card (тестМак.md §8/§C).
+
+export type MacDrawMode = 'blind' | 'open';
+
+export interface MacExerciseItem {
+  id: string;
+  code: string;
+  order: number;
+  title: string;
+  stimulus_question: string;
+  draw_mode: MacDrawMode;
+  spread_size: number | null;
+  pick_count: number;
+  followup_questions: string[];
+}
+
+export interface MacSessionResponse {
+  session_id: string;
+  completed: boolean;
+  exercises: MacExerciseItem[];
+}
+
+export interface MacCard {
+  id: string;
+  /** Absolute URL — ready to use as-is in <img src>, never a bare storage key. */
+  image_url: string;
+  kind: 'abstract' | 'scenic' | 'portrait';
+}
+
+export interface MacSpreadResponse {
+  cards: MacCard[];
+  pick_count: number;
+}
+
+export interface SubmitMacResponsePayload {
+  session_id: string;
+  exercise_id: string;
+  card_ids: string[];
+  followup_answers: string[];
+  time_spent_ms: number;
+  revision_count: number;
+}
+
+export interface SubmitMacResponseResponse {
+  response_id: string;
+  session_completed: boolean;
 }
 
 interface ResultResponseBase {

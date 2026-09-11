@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 import { LAYOUT, PSYCHO_COLOR_BY_ID, CHOICE_COUNT } from '../data/colors';
 import { ColorSwatch } from './ColorSwatch';
 
@@ -33,12 +35,12 @@ export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProp
   const remaining = LAYOUT.filter((id) => !picked.includes(id));
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-8 p-6">
-      <p className="max-w-[420px] text-center text-lg font-medium leading-snug">
+    <div className="flex flex-col items-center gap-6">
+      <Heading level="display-sm" as="h2" className="text-primary text-center">
         {instruction}
-      </p>
+      </Heading>
       <div
-        className="grid w-full max-w-[420px] gap-4"
+        className="grid w-full max-w-[420px] gap-3"
         style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}
       >
         {remaining.map((id) => (
@@ -49,9 +51,9 @@ export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProp
           />
         ))}
       </div>
-      <p className="text-sm" style={{ color: '#71717A' }}>
+      <Text variant="body-sm" className="text-muted">
         Выбрано {picked.length} из {CHOICE_COUNT}
-      </p>
+      </Text>
     </div>
   );
 }

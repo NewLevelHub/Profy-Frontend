@@ -19,7 +19,9 @@ import type {
  * RIASEC / Big Five + the «Психоэмоциональный тест» and «Достоверность
  * протокола» sections (attached server-side because the viewer is a
  * psychologist). Reuses ResultsReportBody so the body is identical to what
- * the student sees, minus the psych block.
+ * the student sees, plus the psych block; `readOnly` there turns the
+ * "Направления под цель" list into plain rows — no navigation into the
+ * student's own direction/university browsing flow.
  */
 export default function PsychologistStudentReportPage() {
   const { studentId = '', assessmentId = '' } = useParams<{
@@ -93,6 +95,7 @@ export default function PsychologistStudentReportPage() {
           ageGroup={ageGroup}
           goal={goal}
           isJunior={isJunior}
+          readOnly
         />
       )}
     </PageContainer>

@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react';
 import { Card } from '@/shared/ui/Card';
-import { SectionHeading } from '@/shared/ui/SectionHeading';
 
 interface PsychSectionShellProps {
-  emoji: string;
   title: string;
   /** Section body. Omitted in the Phase-0 skeleton → the "appears later"
    *  placeholder is shown instead; Фазы 1/2/3 pass their real content. */
@@ -15,12 +13,18 @@ const PLACEHOLDER = 'Раздел появится позже — блок ещ�
 /**
  * Shared frame for the three psych-block sections — same heading + card
  * shell so ValiditySection / PsychoEmotionalSection / MacSection only carry
- * their own emoji/title and (later) their own body.
+ * their own title and body. Title uses the same mono-caps kicker recipe as
+ * the rest of /result's report sections (e.g. "НАПРАВЛЕНИЯ ПОД ЦЕЛЬ" in
+ * ScenarioProfessional.tsx) instead of the emoji + <SectionHeading> style
+ * used by the profile-facing cards elsewhere on the page — these three are
+ * specialist-only and read as report sections, not student-facing cards.
  */
-export function PsychSectionShell({ emoji, title, children }: PsychSectionShellProps) {
+export function PsychSectionShell({ title, children }: PsychSectionShellProps) {
   return (
     <section aria-label={title}>
-      <SectionHeading emoji={emoji} title={title} as="h3" />
+      <p className="text-label font-bold text-primary font-mono uppercase tracking-label mb-4">
+        {title}
+      </p>
       <Card className="flex flex-col gap-2">
         {children ?? (
           <p className="text-body text-secondary leading-relaxed">{PLACEHOLDER}</p>

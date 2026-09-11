@@ -17,15 +17,11 @@ function shuffled<T>(items: T[]): T[] {
   return copy;
 }
 
-/** Dev-only helper: answers every remaining plain Likert question (RIASEC +
- * Big Five, minus whatever's been pulled into pairs — see
- * buildDisplaySequence.ts) with a random 1-5 value, every pair (middle's
- * Dilemma/Scenario subset, or junior's whole test if this profile somehow
- * still hits this page) by picking a random option, then the motivation
- * phase — Harter pairs for junior/middle, MOST/LEAST triplets for senior
- * (app/routers/motivation_pairs.py vs motivation.py) — so the whole test
- * completes in three requests instead of up to ~278 clicks. */
-export async function autofillAssessment(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
+/** The Likert+pairs part shared by autofillAssessment (below) and the
+ * "dev, reach the motivation block" shortcut (autofillUntilMotivation) —
+ * factored out so the latter can stop right before motivation instead of
+ * also filling it in. */
+async function fillLikertAndPairs(assessmentId: string): Promise<void> {
   const [questions, pairs] = await Promise.all([
     assessmentApi.getQuestions(assessmentId),
     pairsApi.getPairs(assessmentId),
@@ -47,6 +43,22 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
       })),
     });
   }
+}
+
+/** Dev-only helper: fills every remaining Likert/pair question, then stops —
+ * landing the caller right at /assessment/motivation ("Что тебя драйвит")
+ * instead of racing through it, so that block can be tested by hand. */
+export async function autofillUntilMotivation(assessmentId: string): Promise<void> {
+  await fillLikertAndPairs(assessmentId);
+}
+
+/** Dev-only helper: fills the Likert+pairs phase (see fillLikertAndPairs
+ * above), then the motivation phase — Harter pairs for junior/middle,
+ * MOST/LEAST triplets for senior (app/routers/motivation_pairs.py vs
+ * motivation.py) — so the whole test completes in three requests instead of
+ * up to ~278 clicks. */
+export async function autofillAssessment(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
+  await fillLikertAndPairs(assessmentId);
 
   if (ageGroup === 'senior') {
     const triplets = await motivationApi.getTriplets(assessmentId);

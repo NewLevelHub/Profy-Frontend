@@ -8,8 +8,10 @@ import type {
   PsychoPairSign,
 } from '@/shared/types';
 import { PSYCHO_COLOR_BY_ID } from '@/shared/config/psychoColors';
+import { CHECKIN_QUESTION_BY_KEY } from '@/shared/config/psychoCheckin';
 import { cn } from '@/shared/lib/cn';
 import { PsychSectionShell } from './PsychSectionShell';
+import { MetricList } from './MetricList';
 
 interface PsychoEmotionalSectionProps {
   section?: PsychEmotionalSection | null;
@@ -17,11 +19,14 @@ interface PsychoEmotionalSectionProps {
 
 /**
  * «Психоэмоциональный тест» (МЦВ Собчик — the name «Люшер» is never shown,
- * PRO-282 §4). The full specialist-facing composition (§B8 / PRO-309): the
- * two colour rows, D, functional pairs with ( )/[ ], the anxiety /
- * compensation / СО / ВК indices with levels + breakdowns, the structural
- * indices without levels, priority-ordered hint texts, and a compact
- * dynamics list of past runs.
+ * PRO-282 §4). The specialist-facing composition (§B8 / PRO-309): the two
+ * colour rows, D, functional pairs with ( )/[ ], the anxiety / compensation /
+ * СО / ВК indices with levels + breakdowns, and a compact dynamics list of
+ * past runs. No canned hint texts — removed by product decision: the reader
+ * is a licensed psychologist, who doesn't need research-derived phrasing and
+ * could find it confusing. The structural indices (Р/concentricity/
+ * heteronomy/Ккп) block was dropped too, 2026-09-11 — product decided they
+ * won't be shown.
  *
  * `null` section → renders nothing (report generated before the run was
  * scored, or scoring failed). Section-object prop only — no hook/store
@@ -30,9 +35,6 @@ interface PsychoEmotionalSectionProps {
  * Strings are hardcoded RU (the rest of the results page is too); PRO-293
  * moves them to the `psychEmotional` i18n namespace.
  */
-
-const ADULT_SCALE_NOTE =
-  'Шкала взрослая, для подростка ориентировочно; трактовать с учётом беседы.';
 
 const VALIDITY_FLAG = {
   ok: { dot: 'bg-success', label: 'Достоверно' },
@@ -91,13 +93,6 @@ const LEVEL_TONE: Record<string, string> = {
   overexcited: 'text-danger',
 };
 
-const STRUCTURAL: { key: keyof PsychEmotionalSection['structural']; label: string; direction: string }[] = [
-  { key: 'performance', label: 'Работоспособность (Р)', direction: 'меньше сумма → выше работоспособность' },
-  { key: 'concentricity', label: 'Концентричность', direction: 'выше → на себя; ниже → вовне' },
-  { key: 'heteronomy', label: 'Гетерономность', direction: 'выше → пассивность, зависимость; ниже → инициативность' },
-  { key: 'kkp', label: 'Конструктивность (Ккп)', direction: 'ниже → ситуация переживается как невыносимая' },
-];
-
 export function PsychoEmotionalSection({ section }: PsychoEmotionalSectionProps) {
   if (!section) return null;
 
@@ -108,7 +103,7 @@ export function PsychoEmotionalSection({ section }: PsychoEmotionalSectionProps)
     : completed.toLocaleDateString('ru-RU');
 
   return (
-    <PsychSectionShell emoji="🎨" title="Психоэмоциональный тест">
+    <PsychSectionShell title="Психоэмоциональный тест">
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <p className="text-body font-semibold text-primary leading-snug">
@@ -167,21 +162,58 @@ export function PsychoEmotionalSection({ section }: PsychoEmotionalSectionProps)
         </Block>
 
         <Block title="Индексы">
-          <IndexRow
-            label="Индекс тревоги"
-            value={section.anxiety.score}
-            outOf={12}
-            level={ANXIETY_LEVEL[section.anxiety.level]}
-            levelKey={section.anxiety.level}
-            breakdown={section.anxiety.breakdown}
-          />
-          <IndexRow
-            label="Индекс компенсации"
-            value={section.compensation.score}
-            outOf={9}
-            level={COMPENSATION_LEVEL[section.compensation.level]}
-            levelKey={section.compensation.level}
-            breakdown={section.compensation.breakdown}
+          <MetricList
+            rows={[
+              {
+                key: 'anxiety',
+                label: 'Индекс тревоги',
+                value: (
+                  <IndexValue
+                    value={section.anxiety.score}
+                    outOf={12}
+                    level={ANXIETY_LEVEL[section.anxiety.level]}
+                    levelKey={section.anxiety.level}
+                    contributors={section.anxiety.breakdown}
+                  />
+                ),
+              },
+              {
+                key: 'compensation',
+                label: 'Индекс компенсации',
+                value: (
+                  <IndexValue
+                    value={section.compensation.score}
+                    outOf={9}
+                    level={COMPENSATION_LEVEL[section.compensation.level]}
+                    levelKey={section.compensation.level}
+                    contributors={section.compensation.breakdown}
+                  />
+                ),
+              },
+              {
+                key: 'so',
+                label: 'СО (отклонение от аутогенной нормы)',
+                value: (
+                  <IndexValue
+                    value={section.so_value}
+                    outOf={32}
+                    level={SO_LEVEL[section.so_level]}
+                    levelKey={section.so_level}
+                  />
+                ),
+              },
+              {
+                key: 'vk',
+                label: 'ВК (вегетативный коэффициент)',
+                value: (
+                  <IndexValue
+                    value={section.vk_value.toFixed(2)}
+                    level={VK_LEVEL[section.vk_level]}
+                    levelKey={section.vk_level}
+                  />
+                ),
+              },
+            ]}
           />
           {section.compensation.purple_forward && (
             <p className="text-caption text-secondary">
@@ -194,52 +226,7 @@ export function PsychoEmotionalSection({ section }: PsychoEmotionalSectionProps)
               ⚠ Чёрный на первой позиции — подростковый маркер риска, обсудить в беседе.
             </p>
           )}
-          <ScalarRow
-            label="СО (отклонение от аутогенной нормы)"
-            value={section.so_value}
-            outOf={32}
-            level={SO_LEVEL[section.so_level]}
-            levelKey={section.so_level}
-          />
-          <ScalarRow
-            label="ВК (вегетативный коэффициент)"
-            value={section.vk_value.toFixed(2)}
-            level={VK_LEVEL[section.vk_level]}
-            levelKey={section.vk_level}
-          />
         </Block>
-
-        <Block title="Структурные индексы">
-          <p className="text-caption text-muted">Справочно, без зон нормы.</p>
-          <dl className="flex flex-col gap-1.5 text-caption">
-            {STRUCTURAL.map(({ key, label, direction }) => (
-              <div key={key} className="flex flex-col gap-0.5">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-secondary">{label}</dt>
-                  <dd className="shrink-0 font-mono text-primary">
-                    {key === 'kkp'
-                      ? section.structural.kkp.toFixed(2)
-                      : section.structural[key]}
-                  </dd>
-                </div>
-                <p className="text-muted">{direction}</p>
-              </div>
-            ))}
-          </dl>
-        </Block>
-
-        {section.hints.length > 0 && (
-          <Block title="Подсказки специалисту">
-            <p className="text-caption text-muted">
-              Готовые формулировки-гипотезы по приоритету. Не заключение.
-            </p>
-            <ul className="flex flex-col gap-2 text-caption text-secondary leading-relaxed">
-              {section.hints.map((hint, i) => (
-                <li key={i}>{hint}</li>
-              ))}
-            </ul>
-          </Block>
-        )}
 
         {section.history.length > 0 && (
           <Block title="Динамика по предыдущим прохождениям">
@@ -250,10 +237,6 @@ export function PsychoEmotionalSection({ section }: PsychoEmotionalSectionProps)
             </ul>
           </Block>
         )}
-
-        <p className="text-caption text-muted leading-snug border-t border-default pt-2">
-          {ADULT_SCALE_NOTE}
-        </p>
       </div>
     </PsychSectionShell>
   );
@@ -325,71 +308,42 @@ function SplitPairRow({ pair }: { pair: PsychoEmotionalSplitPair }) {
   );
 }
 
-function IndexRow({
-  label,
+function IndexValue({
   value,
   outOf,
   level,
   levelKey,
-  breakdown,
+  contributors,
 }: {
-  label: string;
-  value: number;
-  outOf: number;
-  level: string;
-  levelKey: string;
-  breakdown: Record<string, number>;
-}) {
-  const contributors = Object.entries(breakdown).filter(([, v]) => v > 0);
-  return (
-    <div className="flex flex-col gap-1">
-      <div className="flex justify-between gap-4 text-caption">
-        <span className="text-secondary">{label}</span>
-        <span className="shrink-0">
-          <span className="font-mono text-primary">
-            {value} из {outOf}
-          </span>{' '}
-          · <span className={cn('font-medium', LEVEL_TONE[levelKey] ?? 'text-secondary')}>{level}</span>
-        </span>
-      </div>
-      {contributors.length > 0 && (
-        <p className="flex flex-wrap items-center gap-1 text-caption text-muted">
-          Вклад:
-          {contributors.map(([id, v]) => (
-            <span key={id} className="inline-flex items-center gap-0.5">
-              <ColourChip id={Number(id)} />+{v}
-            </span>
-          ))}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function ScalarRow({
-  label,
-  value,
-  outOf,
-  level,
-  levelKey,
-}: {
-  label: string;
   value: number | string;
   outOf?: number;
   level: string;
   levelKey: string;
+  contributors?: Record<string, number>;
 }) {
+  const contributorEntries = contributors
+    ? Object.entries(contributors).filter(([, v]) => v > 0)
+    : [];
   return (
-    <div className="flex justify-between gap-4 text-caption">
-      <span className="text-secondary">{label}</span>
-      <span className="shrink-0">
+    <span className="flex flex-col items-end gap-1">
+      <span>
         <span className="font-mono text-primary">
           {value}
           {outOf != null && ` из ${outOf}`}
         </span>{' '}
         · <span className={cn('font-medium', LEVEL_TONE[levelKey] ?? 'text-secondary')}>{level}</span>
       </span>
-    </div>
+      {contributorEntries.length > 0 && (
+        <span className="flex flex-wrap items-center justify-end gap-1 text-muted">
+          Вклад:
+          {contributorEntries.map(([id, v]) => (
+            <span key={id} className="inline-flex items-center gap-0.5">
+              <ColourChip id={Number(id)} />+{v}
+            </span>
+          ))}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -402,14 +356,14 @@ function CheckIn({ checkin }: { checkin: Record<string, string> }) {
         <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden />
         Самочувствие перед тестом (check-in)
       </summary>
-      <dl className="mt-2 flex flex-col gap-1 text-caption text-secondary">
-        {entries.map(([key, answer]) => (
-          <div key={key} className="flex justify-between gap-4">
-            <dt className="text-muted">{key}</dt>
-            <dd className="shrink-0 text-primary">{answer}</dd>
-          </div>
-        ))}
-      </dl>
+      <MetricList
+        className="mt-2"
+        rows={entries.map(([key, answer]) => ({
+          key,
+          label: CHECKIN_QUESTION_BY_KEY[key]?.label ?? key,
+          value: <span className="text-primary">{answer}</span>,
+        }))}
+      />
     </details>
   );
 }

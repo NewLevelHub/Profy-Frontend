@@ -18,6 +18,12 @@ export interface AssessmentRailProps {
   /** Dev-only "autofill" affordance already present on these flows; kept as
    *  a 4th, dev-gated slot rather than folded into the 3 production slots. */
   devAutofill?: { onClick: () => void; loading: boolean };
+  /** Dev-only "skip to the motivation block" affordance — fills everything
+   *  up to /assessment/motivation ("Что тебя драйвит") and stops there, so
+   *  that block can be reached quickly but still tested by hand. Only
+   *  offered on the pages that lead into motivation (AssessmentPage,
+   *  PairAssessmentPage). */
+  devAutofillToMotivation?: { onClick: () => void; loading: boolean };
 }
 
 // The single collapsed rail used by every assessment-flow screen
@@ -40,6 +46,7 @@ export function AssessmentRail({
   onBack,
   onExit,
   devAutofill,
+  devAutofillToMotivation,
 }: AssessmentRailProps) {
   const { soundEnabled, toggleSound } = useSoundEnabled();
 
@@ -82,6 +89,22 @@ export function AssessmentRail({
               style={{ boxShadow: 'var(--shadow-pop)' }}
             >
               {devAutofill.loading ? '…' : '⚡ Автозаполнить'}
+            </button>
+          )}
+
+          {/* Dev-only "skip to motivation" — stops right at "Что тебя
+             драйвит" instead of racing through it too */}
+          {import.meta.env.DEV && devAutofillToMotivation && (
+            <button
+              type="button"
+              onClick={devAutofillToMotivation.onClick}
+              disabled={devAutofillToMotivation.loading}
+              aria-label="Дойти до психотеста (dev)"
+              title="Заполнить тест случайными ответами до блока «Что тебя драйвит» (только в dev)"
+              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-caption font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+              style={{ boxShadow: 'var(--shadow-pop)' }}
+            >
+              {devAutofillToMotivation.loading ? '…' : '🧠 До психотеста'}
             </button>
           )}
 

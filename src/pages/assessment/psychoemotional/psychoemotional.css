@@ -4,28 +4,76 @@
  * чтобы тема приложения / пользователя не смогла ничего исказить.
  */
 
-/* Нейтральный светлый фон без градиента; тёмная тема принудительно выключена
-   независимо от data-theme / prefers-color-scheme. */
+/* Принудительно светлая тема, но НЕ generic-серая: .pe-block переобъявляет
+   design-токены продукта («Тропа», см. src/styles/theme.css) их же светлыми
+   значениями. CSS custom properties наследуются по каскаду, поэтому любой
+   компонент внутри блока (AssessmentRail, Button, Spine, Heading/Text),
+   написанный через var(--brand)/var(--bg-page)/…, автоматически рендерится
+   в светлой палитре продукта независимо от .dark на родителе — раньше здесь
+   был отдельный zinc-серый набор хексов, из-за которого блок выглядел как
+   чужая, ничем не связанная с остальным тестом форма. */
 .pe-block {
   color-scheme: light;
+
+  --midnight: #131C1B;
+  --ink:      #26332F;
+  --mute:     #6B7671;
+  --fog:      #EDE9DF;
+  --paper:    #F7F5EF;
+  --line:     #D2CCBE;
+  --hairline: #BDB6A6;
+  --pine:     #0E4A41;
+  --dawn:     #DB7F2E;
+  --lake:     #2C6A8C;
+  --clay:     #A6572F;
+  --pine-light: #4FA093;
+  --dawn-light: #E89654;
+  --lake-light: #5B93B4;
+  --dawn-deep:  #C06A1E;
+
+  --bg-page:    var(--fog);
+  --bg-surface: var(--paper);
+  --bg-raised:  #E7E2D5;
+  --bg-hover:   #EFEBE1;
+  --bg-active:  rgba(14, 74, 65, 0.07);
+  --bg-sidebar: var(--fog);
+
+  --border:        var(--line);
+  --border-strong: var(--hairline);
+  --border-faint:  #E3DDCE;
+
+  --text-primary:     var(--ink);
+  --text-secondary:   var(--mute);
+  --text-muted:       var(--mute);
+  --text-subtle:      #9A9287;
+  --text-placeholder: var(--mute);
+  --text-on-brand:    var(--fog);
+
+  --brand:          var(--pine);
+  --brand-hover:    #0B3B34;
+  --brand-subtle:   rgba(14, 74, 65, 0.07);
+  --brand-text:     var(--pine);
+  --brand-disabled: #6E9B93;
+
+  --accent:      var(--dawn);
+  --accent-soft: rgba(219, 127, 46, 0.12);
+  --accent-text: var(--dawn);
+
+  --danger:      var(--clay);
+  --danger-bg:   rgba(166, 87, 47, 0.10);
+  --danger-text: var(--clay);
+
+  --shadow-card:   none;
+  --shadow-pop:    0 0 0 1px var(--hairline);
+  --shadow-button: none;
+
   min-height: 100dvh;
-  background: #f4f4f5;
-  color: #18181b;
+  background: var(--bg-page);
+  color: var(--text-primary);
 }
 .pe-block,
 .pe-block * {
   color-scheme: light !important;
-}
-:root[data-theme='dark'] .pe-block,
-.pe-block[data-theme] {
-  background: #f4f4f5;
-  color: #18181b;
-}
-@media (prefers-color-scheme: dark) {
-  .pe-block {
-    background: #f4f4f5;
-    color: #18181b;
-  }
 }
 
 /* Плашка цвета: HEX задаётся инлайном из таблицы §4. Запрещены hover-эффекты,
@@ -62,13 +110,4 @@
 .pe-swatch:focus-visible {
   outline: 2px solid #52525b;
   outline-offset: 3px;
-}
-
-/* Нейтральные серые фигуры микро-задания паузы — тоже без фильтров/переходов. */
-.pe-shape {
-  background: #d9d9d9;
-  border: 0;
-  filter: none !important;
-  transition: none !important;
-  box-shadow: none !important;
 }

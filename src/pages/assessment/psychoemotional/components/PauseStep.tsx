@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/ui/Button';
-import { PausePerceptualTask } from './PausePerceptualTask';
+import { Mascot } from '@/shared/ui/Mascot';
+import { Heading } from '@/shared/ui/typography/Heading';
+import { Text } from '@/shared/ui/typography/Text';
 
 /** §5.4: пауза ≥ 120 с (ориентир 120–180). Нельзя пропустить/сократить. */
 export const PAUSE_MIN_SEC = 120;
@@ -31,19 +33,24 @@ export function PauseStep({ startedAt, onContinue }: PauseStepProps) {
   }, [unlocked]);
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-10 p-6">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <p className="text-lg font-medium">Небольшая пауза</p>
-        <p className="max-w-[360px] text-sm" style={{ color: '#71717A' }}>
-          Отвлекись на пару минут на это задание. Кнопка появится сама.
-        </p>
+    <div className="flex flex-col items-center gap-8 text-center">
+      {/* `pause` — тот же маскот, что уже держит паузу в ExitAssessmentModal.
+         `interactive` включает лёгкое idle-дыхание — экран держит ≥120с, так
+         что маскот должен читаться живым/занятым, а не статичной картинкой. */}
+      <Mascot state="pause" size={120} interactive />
+      <div className="flex flex-col items-center gap-2">
+        <Heading level="display-sm" as="h2" className="text-primary">
+          Небольшая пауза
+        </Heading>
+        <Text variant="body-sm" className="text-muted max-w-[320px]">
+          Отвлекись на пару минут. Кнопка появится сама.
+        </Text>
       </div>
-
-      <PausePerceptualTask />
 
       {unlocked && (
         <Button
           size="lg"
+          className="w-full rounded-pill"
           onClick={() =>
             onContinue(Math.round((Date.now() - startedAtRef.current) / 1000))
           }
