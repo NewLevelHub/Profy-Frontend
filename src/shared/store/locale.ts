@@ -11,18 +11,28 @@ export type Locale = 'ru' | 'kk';
 export const KNOWN_LOCALES: readonly Locale[] = ['ru', 'kk'];
 
 /**
- * Locales actually offered to the user right now. KZ-603 (2026-09-08) added
- * 'kk' — no feature flag. `revert` that change to go back to ['ru'] and the
- * LanguageSwitcher hides itself again.
+ * Locales actually offered to the user right now.
+ *
+ * KZ-603 (2026-09-08) added 'kk'. Временно свёрнуто обратно к ['ru'] на
+ * время PRO-278: казахский перевод неполон, правится в PRO-254. Ничего не
+ * удалено — переключатель, каталог kk и persist-логика на месте; чтобы
+ * вернуть выбор языка, допиши сюда 'kk' обратно:
+ *
+ *   export const SUPPORTED_LOCALES: readonly Locale[] = ['ru', 'kk'];
+ *
+ * Одна эта строка гасит LanguageSwitcher во всех хостах (он сам рендерит
+ * null при одной опции), скрывает строку «Язык» в настройках и в мобильных
+ * меню через LOCALE_SWITCH_ENABLED, а уже сохранённый в localStorage 'kk'
+ * зажимается resolveLocale обратно в 'ru'.
  */
-export const SUPPORTED_LOCALES: readonly Locale[] = ['ru', 'kk'];
+export const SUPPORTED_LOCALES: readonly Locale[] = ['ru'];
 
 export const DEFAULT_LOCALE: Locale = 'ru';
 
 /**
- * Whether the user is offered a language choice at all. `true` since KZ-603
- * added 'kk' to SUPPORTED_LOCALES — drives whether the LanguageSwitcher and
- * its host rows render.
+ * Whether the user is offered a language choice at all. `false` пока
+ * SUPPORTED_LOCALES свёрнут к одному языку (см. выше) — им закрыты строки-хосты
+ * переключателя, которые иначе остались бы пустыми рамками.
  */
 export const LOCALE_SWITCH_ENABLED = SUPPORTED_LOCALES.length > 1;
 

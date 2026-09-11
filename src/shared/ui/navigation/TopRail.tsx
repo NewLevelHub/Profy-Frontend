@@ -5,6 +5,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
+import { LOCALE_SWITCH_ENABLED } from '@/shared/store/locale';
 import { playClick } from '@/shared/lib/sounds';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useAuth } from '@/shared/hooks/useAuth';
@@ -152,9 +153,11 @@ export function TopRail() {
               {t(item.label)}
             </NavLink>
           ))}
-          <div className="px-3 py-2.5">
-            <LanguageSwitcher />
-          </div>
+          {LOCALE_SWITCH_ENABLED && (
+            <div className="px-3 py-2.5">
+              <LanguageSwitcher />
+            </div>
+          )}
           <button
             type="button"
             onClick={handleLogout}
