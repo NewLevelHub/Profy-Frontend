@@ -6,7 +6,7 @@ import { env } from '@/shared/config/env';
 import { playClick } from '@/shared/lib/sounds';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useProfileStore } from '@/shared/store/profile';
-import { NAV_ITEMS, ADMIN_NAV_ITEM, isNavActive, type NavItem } from './navItems';
+import { NAV_ITEMS, ADMIN_NAV_ITEM, PSYCHOLOGIST_NAV_ITEMS, isNavActive, type NavItem } from './navItems';
 
 // TopRail replaces the old two-piece nav shell (a desktop-only left
 // <Sidebar> + a separate mobile-only top <Header> with its own duplicated
@@ -19,7 +19,13 @@ export function TopRail() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navItems: NavItem[] = user?.is_admin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : [...NAV_ITEMS];
+
+  const navItems: NavItem[] =
+    user?.role === 'psychologist'
+      ? [...PSYCHOLOGIST_NAV_ITEMS]
+      : user?.is_admin || user?.role === 'admin'
+        ? [...NAV_ITEMS, ADMIN_NAV_ITEM]
+        : [...NAV_ITEMS];
 
   function handleLogout() {
     logout();

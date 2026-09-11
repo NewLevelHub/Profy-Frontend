@@ -1,11 +1,17 @@
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
+/** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
+ *  this (`is_admin === (role === 'admin')`) and kept only for back-compat. */
+export type UserRole = 'student' | 'admin' | 'psychologist';
+
 export interface User {
   id: string;
   email: string;
   name?: string;
   is_active?: boolean;
   is_verified?: boolean;
+  /** Prefer this over `is_admin` when branching by staff vs student. */
+  role?: UserRole;
   is_admin?: boolean;
 }
 
@@ -644,6 +650,7 @@ export interface AdminUserListItem {
   email: string;
   is_verified: boolean;
   is_active: boolean;
+  role: UserRole;
   is_admin: boolean;
   created_at: string;
   has_profile: boolean;
@@ -688,11 +695,25 @@ export interface AdminUserDetail {
   email: string;
   is_verified: boolean;
   is_active: boolean;
+  role: UserRole;
   is_admin: boolean;
   created_at: string;
   profile: ProfileResponse | null;
   artifacts: ArtifactItem[];
   assessments: AdminAssessmentSummary[];
+}
+
+/** `role: 'student'` is rejected by the endpoint (422) — self-registration
+ *  creates students, this only creates staff accounts. */
+export type AdminStaffRole = Exclude<UserRole, 'student'>;
+
+export interface AdminUserCreateRequest {
+  email: string;
+  password: string;
+  role: AdminStaffRole;
+  /** Defaults to `true` server-side — no verification email is sent, unlike
+   *  self-registration. */
+  is_verified?: boolean;
 }
 
 export interface AdminResponseItem {
@@ -884,16 +905,54 @@ export interface AdminProgramDetail {
 
 // ─── Admin roles ────────────────────────────────────────────────────────────────
 //
-// NOTE (backend gap): the API has no admin role concept — `User.is_admin` /
-// `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are plain booleans,
-// with no `role` field anywhere in the response shape.
-//
-// A frontend-only `AdminRole` used to exist here, deriving "Оператор" from
-// `is_admin === false`. It was removed in PRO-242: `RequireAdmin` only lets
-// `is_admin` users into `/admin/*`, so the operator state was unreachable and
-// the role badge always read "Администратор". Rendering a permission tier the
-// server does not enforce is UI theatre — see
-// docs/admin-backend-requests-pro-242.md §9 for what a real role would need.
+// `UserRole` (auth section, `pro-281`) is the source of truth. `/admin/*` still
+// gates on `is_admin`; `/psychologist/*` gates on `role === 'psychologist'`.
+
+// ─── Psychologist cabinet ───────────────────────────────────────────────────────
+
+export interface PsychologistStudentListItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age_group: AgeGroup | null;
+  assigned_at: string;
+}
+
+export interface PsychologistAssessmentSummary {
+  id: string;
+  goal: AssessmentGoal;
+  status: AssessmentStatus;
+  answered_count: number;
+  total_questions: number;
+  created_at: string;
+  completed_at: string | null;
+  has_result: boolean;
+  has_roadmap: boolean;
+}
+
+/** Separate from `AdminUserDetail` — no `role` / `is_admin` in the payload. */
+export interface PsychologistStudentDetail {
+  id: string;
+  email: string;
+  is_verified: boolean;
+  is_active: boolean;
+  created_at: string;
+  profile: ProfileResponse | null;
+  artifacts: ArtifactItem[];
+  assessments: PsychologistAssessmentSummary[];
+}
+
+export interface PsychologistNote {
+  id: string;
+  psychologist_id: string;
+  student_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface PsychologistNoteWrite {
+  content: string;
+}
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
