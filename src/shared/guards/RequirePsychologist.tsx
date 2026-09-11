@@ -4,14 +4,14 @@ import { authApi } from '@/shared/api/auth';
 import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 
-export function RequireAdmin() {
+export function RequirePsychologist() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const setUser = useAuthStore((s) => s.setUser);
   const location = useLocation();
   const [checking, setChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
     if (!hasHydrated || !token) {
@@ -21,30 +21,30 @@ export function RequireAdmin() {
 
     let cancelled = false;
 
-    async function verifyAdmin() {
+    async function verify() {
       try {
         const me = await authApi.me();
         if (cancelled) return;
         setUser(me);
-        setIsAdmin(Boolean(me.is_admin) || me.role === 'admin');
+        setAllowed(me.role === 'psychologist');
       } catch {
-        if (!cancelled) setIsAdmin(false);
+        if (!cancelled) setAllowed(false);
       } finally {
         if (!cancelled) setChecking(false);
       }
     }
 
-    if (user?.is_admin || user?.role === 'admin') {
-      setIsAdmin(true);
+    if (user?.role === 'psychologist') {
+      setAllowed(true);
       setChecking(false);
       return;
     }
 
-    verifyAdmin();
+    verify();
     return () => {
       cancelled = true;
     };
-  }, [hasHydrated, token, user?.is_admin, user?.role, setUser]);
+  }, [hasHydrated, token, user?.role, setUser]);
 
   if (!hasHydrated || checking) {
     return (
@@ -58,7 +58,7 @@ export function RequireAdmin() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!isAdmin) {
+  if (!allowed) {
     return <Navigate to={homePathForUser(user)} replace />;
   }
 

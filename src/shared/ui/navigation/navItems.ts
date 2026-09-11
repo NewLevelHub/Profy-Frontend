@@ -13,7 +13,18 @@ export const ADMIN_NAV_ITEM = {
   matchPrefix: '/admin',
 } as const;
 
-export type NavItem = (typeof NAV_ITEMS)[number] | typeof ADMIN_NAV_ITEM;
+export const PSYCHOLOGIST_NAV_ITEMS = [
+  {
+    label: 'Ученики',
+    path: '/psychologist/students',
+    matchPrefix: '/psychologist',
+  },
+] as const;
+
+export type NavItem =
+  | (typeof NAV_ITEMS)[number]
+  | typeof ADMIN_NAV_ITEM
+  | (typeof PSYCHOLOGIST_NAV_ITEMS)[number];
 
 export function isNavActive(
   matchPrefix: string | undefined,

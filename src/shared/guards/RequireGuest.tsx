@@ -1,8 +1,10 @@
 import { Navigate, Outlet } from 'react-router';
+import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 
 export function RequireGuest() {
   const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
 
   if (!hasHydrated) {
@@ -14,12 +16,9 @@ export function RequireGuest() {
   }
 
   if (token) {
-    // RequireProfile (guarding /results and the rest of the main app) is what
-    // decides whether onboarding is still needed — this just hands off to
-    // the app root rather than hardcoding /welcome, which is no longer the
-    // universal "just logged in" landing spot (it now only shows once,
-    // right before a user's first assessment — see useGoalSelection).
-    return <Navigate to="/results" replace />;
+    // Staff (admin / psychologist) have role-specific homes; students still
+    // land on /results where RequireProfile decides onboarding.
+    return <Navigate to={homePathForUser(user)} replace />;
   }
 
   return <Outlet />;
