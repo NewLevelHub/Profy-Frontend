@@ -5,7 +5,7 @@ import { useProfileStore } from '@/shared/store/profile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
-import { autofillAssessment } from '@/shared/dev/autofillAssessment';
+import { autofillAssessment, autofillUntilMotivation } from '@/shared/dev/autofillAssessment';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, type Page } from '../utils/buildPages';
@@ -70,6 +70,7 @@ export function useAssessment() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
+  const [autofillingToMotivation, setAutofillingToMotivation] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
@@ -335,6 +336,20 @@ export function useAssessment() {
     }
   }
 
+  async function handleAutofillToMotivation() {
+    if (!assessmentId || autofillingToMotivation) return;
+    setAutofillingToMotivation(true);
+    setError(null);
+    try {
+      await autofillUntilMotivation(assessmentId);
+      navigate('/assessment/motivation');
+    } catch {
+      setError('Не удалось автозаполнить тест.');
+    } finally {
+      setAutofillingToMotivation(false);
+    }
+  }
+
   function handleExit() {
     setExitConfirmOpen(true);
   }
@@ -409,12 +424,14 @@ export function useAssessment() {
     exitConfirmOpen,
     exiting,
     autofilling,
+    autofillingToMotivation,
     handleBack,
     handleStartIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,

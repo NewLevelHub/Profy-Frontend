@@ -10,6 +10,10 @@ interface ScenarioProfessionalProps {
   careers: StudentCareer[];
   /** 'middle' | 'senior' only — junior never reaches this scenario. */
   ageGroup: AgeGroup;
+  /** Psychologist's read-only view (PsychologistStudentReportPage) — see
+   *  DirectionMatchList's own doc. Disables navigation here too, for the
+   *  "adjacent directions" mini-list in the МОСТ К ЦЕЛИ card. */
+  readOnly?: boolean;
 }
 
 // "ROADMAP ВЫБОРА" — middle tier: still narrowing down a direction, not yet
@@ -52,7 +56,7 @@ const ADMISSION_HORIZONS = [
  * best match) stands in for "the goal direction". Load-bearing for every
  * headline/copy string below.
  */
-export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessionalProps) {
+export function ScenarioProfessional({ careers, ageGroup, readOnly = false }: ScenarioProfessionalProps) {
   const navigate = useNavigate();
   const isMiddle = ageGroup === 'middle';
   const sorted = useMemo(() => [...careers].sort((a, b) => a.rank - b.rank), [careers]);
@@ -121,18 +125,25 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
               </p>
               {adjacent.length > 0 ? (
                 <ul className="flex flex-col gap-2">
-                  {adjacent.map((c) => (
-                    <li key={c.slug} className="flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/results/directions/${encodeURIComponent(c.slug)}`)}
-                        className="text-caption font-semibold text-primary hover:text-brand text-left"
-                      >
-                        {c.name}
-                      </button>
-                      <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
-                    </li>
-                  ))}
+                  {adjacent.map((c) =>
+                    readOnly ? (
+                      <li key={c.slug} className="flex items-center justify-between gap-2">
+                        <span className="text-caption font-semibold text-primary text-left">{c.name}</span>
+                        <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
+                      </li>
+                    ) : (
+                      <li key={c.slug} className="flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/results/directions/${encodeURIComponent(c.slug)}`)}
+                          className="text-caption font-semibold text-primary hover:text-brand text-left"
+                        >
+                          {c.name}
+                        </button>
+                        <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
+                      </li>
+                    ),
+                  )}
                 </ul>
               ) : (
                 <p className="text-caption text-muted">Пока нет других направлений с той же сильной стороной.</p>
@@ -149,12 +160,14 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
             {isMiddle ? 'НАПРАВЛЕНИЯ И ПРОФЕССИИ ПОД ЦЕЛЬ' : 'НАПРАВЛЕНИЯ ПОД ЦЕЛЬ'}
           </p>
           <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
-            {isMiddle
-              ? 'Профессии, которые подходят по твоему профилю — открой любую, чтобы узнать больше.'
-              : 'Профессии, которые подходят по твоему профилю — открой любую, чтобы увидеть вузы и программы по ней.'}
+            {readOnly
+              ? 'Профессии, которые подходят по профилю ученика.'
+              : isMiddle
+                ? 'Профессии, которые подходят по твоему профилю — открой любую, чтобы узнать больше.'
+                : 'Профессии, которые подходят по твоему профилю — открой любую, чтобы увидеть вузы и программы по ней.'}
           </p>
         </div>
-        <DirectionMatchList careers={sorted} showUniversitiesHint={!isMiddle} />
+        <DirectionMatchList careers={sorted} showUniversitiesHint={!isMiddle && !readOnly} readOnly={readOnly} />
       </section>
 
       {isMiddle && (

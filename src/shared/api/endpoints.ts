@@ -28,6 +28,13 @@ export const API = {
     motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
+    psychoemotional: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional`,
+  },
+  mac: {
+    session: '/mac/session',
+    draw: (sessionId: string) => `/mac/session/${sessionId}/draw`,
+    spread: (exerciseId: string) => `/mac/exercise/${exerciseId}/spread`,
+    response: '/mac/response',
   },
   result: {
     generate: '/result/generate',
@@ -76,6 +83,8 @@ export const API = {
   psychologist: {
     students: '/psychologist/students',
     studentDetail: (id: string) => `/psychologist/students/${id}`,
+    studentResult: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/result/${assessmentId}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
   },

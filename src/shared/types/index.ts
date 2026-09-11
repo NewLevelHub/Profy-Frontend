@@ -242,6 +242,23 @@ export interface SubmitPairAnswersResponse {
   completed: boolean;
 }
 
+// ─── Psychoemotional (МЦВ Собчик) — PRO-306 ────────────────────────────────────
+// Сырое прохождение: 2 круга по 8 ID цветов (0–7) + Δt каждого выбора + пауза
+// + check-in. Метрики/интерпретацию бэкенд не возвращает (§5.6).
+export interface SubmitPsychoEmotionalPayload {
+  list1: number[];
+  list2: number[];
+  list1_dt_ms: number[];
+  list2_dt_ms: number[];
+  pause_actual_sec: number;
+  checkin: Record<string, string>;
+}
+
+export interface SubmitPsychoEmotionalResponse {
+  run_id: string;
+  tech_invalid: boolean;
+}
+
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {
@@ -371,6 +388,212 @@ export interface StudentCareer {
   subjects_to_develop: string[];
 }
 
+// ─── Psychology block (PRO-282 epic) ──────────────────────────────────────────
+// Three auxiliary sections a psychologist reviews at the in-person meeting:
+// достоверность протокола («шкала лжи»), психоэмоциональный тест (МЦВ Собчик —
+// the name «Люшер» is never shown), МАК (метафорические карты). MVP: returned
+// to the student too (backend gate `psych_sections_for`; PRO-321 narrows it to
+// psychologist/admin). Each model is a Phase-0 skeleton — every phase extends
+// its own with concrete fields (validity → Фаза 1, psychoemotional → Фаза 2,
+// mac → Фаза 3). `consent_ok` mirrors the recorded parental consent; it is a
+// flag, not a gate. See profi-backend/docs/psych-block-contract.md.
+
+export interface PsychValiditySection {
+  consent_ok: boolean;
+  /** Specialist signal. red = careless fill; yellow = likely faking-good
+   *  (sd_raw >= sd_bounds[1] + 1); green = fine (incl. the 9–15 "normative
+   *  conformity" band). */
+  traffic_light: 'green' | 'yellow' | 'red';
+  /** MC-SDS raw score, 0–20. */
+  sd_raw: number;
+  /** Finer band than the traffic light: `social_desirability` (9–15) is still
+   *  green — see psych-block-spec.md §A5. */
+  sd_level: 'ok' | 'social_desirability' | 'high';
+  /** [ok_max, sd_max] applied — the "yellow starts at sd_max + 1" threshold. */
+  sd_bounds: [number, number];
+  /** Longest run of identical raw answers across the whole battery. */
+  longstring_max: number;
+  /** Inter-item response SD within the protocol. */
+  irv: number;
+  /** Attention-check traps failed (answer != the only plausible one). */
+  infrequency_failed: number;
+  careless_flag: boolean;
+  /** Which validity_thresholds.json version produced the verdict. */
+  thresholds_version: number;
+}
+
+export type PsychoAnxietyLevel = 'low' | 'moderate' | 'high' | 'very_high';
+export type PsychoCompensationLevel = 'low' | 'moderate' | 'high';
+export type PsychoSoLevel = 'norm' | 'elevated' | 'high';
+export type PsychoVkLevel = 'low_tone' | 'reduced' | 'balance' | 'overexcited';
+export type PsychoPairSign = 'plus' | 'cross' | 'equal' | 'minus';
+
+export interface PsychoEmotionalPositionalPair {
+  sign: PsychoPairSign;
+  /** Colour ids (0–7) on those two positions of choice 2. */
+  colors: [number, number];
+}
+
+export interface PsychoEmotionalSplitPair {
+  colors: [number, number];
+  /** true → the pair stayed together `( )`; false → it split `[ ]`. */
+  stable: boolean;
+}
+
+export interface PsychoEmotionalIndex {
+  score: number;
+  level: PsychoAnxietyLevel | PsychoCompensationLevel;
+  /** colour id → its contribution to the sum. */
+  breakdown: Record<string, number>;
+}
+
+export interface PsychoEmotionalCompensation extends PsychoEmotionalIndex {
+  level: PsychoCompensationLevel;
+  /** Purple (id 5) sits in positions 1–3 — a note, it scores nothing. */
+  purple_forward: boolean;
+  purple_position: number;
+}
+
+export interface PsychoEmotionalStructural {
+  /** Р: lower sum → higher working capacity (6–21). */
+  performance: number;
+  /** higher → inward; lower → outward. */
+  concentricity: number;
+  /** higher → passive/dependent; lower → initiative. */
+  heteronomy: number;
+  /** constructiveness: lower → the situation feels unbearable. */
+  kkp: number;
+}
+
+export interface PsychoEmotionalHistoryItem {
+  run_number: number;
+  completed_at: string;
+  so: number | null;
+  anxiety_score: number | null;
+  validity_flag: 'ok' | 'caution' | 'low' | null;
+}
+
+/**
+ * «Психоэмоциональный тест» (МЦВ Собчик) — the full specialist-facing
+ * composition (§B8 / PRO-309). `null` in the report until the latest run is
+ * scored by the engine (PRO-307), same as validity.
+ */
+export interface PsychEmotionalSection {
+  consent_ok: boolean;
+  /** Which psychoemotional_thresholds.json version produced the run. */
+  thresholds_version: number | null;
+
+  /** This run's ordinal (1 = first) + past runs for the dynamics list. */
+  run_number: number;
+  completed_at: string;
+  history: PsychoEmotionalHistoryItem[];
+
+  /** 3 one-tap check-in answers; not scored. Shape owned by content (PRO-303). */
+  checkin: Record<string, string>;
+
+  /** Run-validity flag (§B7 / PRO-308), computed separately from the metrics:
+   *  ok (0 signs) / caution (1) / low (2+). Null until the run is scored. */
+  validity_flag: 'ok' | 'caution' | 'low' | null;
+  /** Behavioural signs that fired (§B7): `mechanical_pick`, `too_fast_overall`,
+   *  `identical_lists`, `unstable_choices`, `pause_not_held`. */
+  validity_reasons: string[];
+
+  /** Colour choices by position (colour ids 0–7) + divergence D (§B5.7). */
+  choice_1: number[];
+  choice_2: number[];
+  d_value: number;
+  d_memory: boolean;
+  d_situationally_unstable: boolean;
+
+  /** Functional pairs (§B5.1–B5.2). */
+  positional_pairs: PsychoEmotionalPositionalPair[];
+  root_conflict: [number, number];
+  split_pairs: PsychoEmotionalSplitPair[];
+  split_count: number;
+  instability: boolean;
+
+  anxiety: PsychoEmotionalIndex;
+  compensation: PsychoEmotionalCompensation;
+  so_value: number;
+  so_level: PsychoSoLevel;
+  vk_value: number;
+  vk_level: PsychoVkLevel;
+  structural: PsychoEmotionalStructural;
+
+  /** §B6 red flag: black (id 7) in position 1 — a highlight for the talk. */
+  black_first: boolean;
+}
+
+export interface MacFeedItem {
+  exercise_code: string;
+  exercise_title: string;
+  stimulus_question: string;
+  /** Absolute URLs (backend's STORAGE_PUBLIC_BASE_URL + storage key) — served
+   *  from the shared media folder (nginx `/media/`), not from this repo. */
+  card_image_urls: string[];
+  followup_questions: string[];
+  /** Verbatim, index-aligned with `followup_questions`. */
+  followup_answers: string[];
+  time_spent_ms: number;
+  revision_count: number;
+}
+
+export interface PsychMacSection {
+  consent_ok: boolean;
+  completed: boolean;
+  feed: MacFeedItem[];
+}
+
+// ─── МАК (метафорические ассоциативные карты) — assessment flow ────────────────
+// v1 demo (PRO-314…317): only exercise E1 is active — no scoring, no AI, the
+// child just writes free text about a drawn card (тестМак.md §8/§C).
+
+export type MacDrawMode = 'blind' | 'open';
+
+export interface MacExerciseItem {
+  id: string;
+  code: string;
+  order: number;
+  title: string;
+  stimulus_question: string;
+  draw_mode: MacDrawMode;
+  spread_size: number | null;
+  pick_count: number;
+  followup_questions: string[];
+}
+
+export interface MacSessionResponse {
+  session_id: string;
+  completed: boolean;
+  exercises: MacExerciseItem[];
+}
+
+export interface MacCard {
+  id: string;
+  /** Absolute URL — ready to use as-is in <img src>, never a bare storage key. */
+  image_url: string;
+  kind: 'abstract' | 'scenic' | 'portrait';
+}
+
+export interface MacSpreadResponse {
+  cards: MacCard[];
+  pick_count: number;
+}
+
+export interface SubmitMacResponsePayload {
+  session_id: string;
+  exercise_id: string;
+  card_ids: string[];
+  followup_answers: string[];
+  time_spent_ms: number;
+  revision_count: number;
+}
+
+export interface SubmitMacResponseResponse {
+  response_id: string;
+  session_completed: boolean;
+}
+
 interface ResultResponseBase {
   report_version: 2;
   assessment_id: string;
@@ -387,6 +610,13 @@ interface ResultResponseBase {
   exploration_note: string;
   final_analysis: string;
   created_at: string;
+  // Psychology block — see Psych*Section above. Optional + nullable: `null`
+  // on every report until the matching phase's calculation lands on the
+  // backend. Rendered by SpecialistSectionsBlock (results/components/psych)
+  // below the main report; a `null` section is simply not shown.
+  validity?: PsychValiditySection | null;
+  psychoemotional?: PsychEmotionalSection | null;
+  mac?: PsychMacSection | null;
 }
 
 export interface MiResultResponse extends ResultResponseBase {
@@ -915,7 +1145,9 @@ export interface PsychologistStudentListItem {
   email: string;
   profile_name: string | null;
   age_group: AgeGroup | null;
-  assigned_at: string;
+  /** Student's registration date — a psychologist sees every student, there
+   *  is no assignment step. */
+  registered_at: string;
 }
 
 export interface PsychologistAssessmentSummary {

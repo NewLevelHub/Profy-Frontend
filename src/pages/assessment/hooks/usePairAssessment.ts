@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { pairsApi } from '@/shared/api/pairs';
-import { autofillPairAssessment } from '@/shared/dev/autofillPairAssessment';
+import { autofillPairAssessment, autofillPairsUntilMotivation } from '@/shared/dev/autofillPairAssessment';
 import type { QuestionPair } from '@/shared/types';
 import type { RestStopState } from '../utils/restStop';
 
@@ -28,6 +28,7 @@ export function usePairAssessment() {
   const [retryCount, setRetryCount] = useState(0);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
+  const [autofillingToMotivation, setAutofillingToMotivation] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
@@ -189,6 +190,20 @@ export function usePairAssessment() {
     }
   }
 
+  async function handleAutofillToMotivation() {
+    if (!assessmentId || autofillingToMotivation) return;
+    setAutofillingToMotivation(true);
+    setError(null);
+    try {
+      await autofillPairsUntilMotivation(assessmentId);
+      navigate('/assessment/motivation');
+    } catch {
+      setError('Не удалось автозаполнить тест.');
+    } finally {
+      setAutofillingToMotivation(false);
+    }
+  }
+
   function handleExit() {
     setExitConfirmOpen(true);
   }
@@ -218,10 +233,12 @@ export function usePairAssessment() {
     progress,
     exitConfirmOpen,
     autofilling,
+    autofillingToMotivation,
     handleBack,
     handleStartIntro,
     handleAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,

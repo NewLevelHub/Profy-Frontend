@@ -27,12 +27,14 @@ export default function AssessmentPage() {
     exitConfirmOpen,
     exiting,
     autofilling,
+    autofillingToMotivation,
     handleBack,
     handleStartIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,
@@ -65,6 +67,7 @@ export default function AssessmentPage() {
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
+        devAutofillToMotivation={{ onClick: handleAutofillToMotivation, loading: autofillingToMotivation }}
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}

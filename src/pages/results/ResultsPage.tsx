@@ -4,21 +4,11 @@ import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { SectionHeading } from '@/shared/ui/SectionHeading';
-import type { StudentCareer } from '@/shared/types';
 import { useResults } from './hooks/useResults';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
-import { SummaryCard } from './components/SummaryCard';
-import { InterestDomainSection } from './components/InterestDomainSection';
-import { StrengthsDomainSection } from './components/StrengthsDomainSection';
-import { PersonalityDomainSection } from './components/PersonalityDomainSection';
-import { ThinkingStyleMotivationSection } from './components/ThinkingStyleMotivationSection';
-import { CareerCard } from './components/CareerCard';
-import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
-import { FinalAnalysisSection } from './components/FinalAnalysisSection';
-import { GoalBranchSection } from './components/GoalBranchSection';
 import { FeedbackSection } from './components/FeedbackSection';
+import { ResultsReportBody } from './components/ResultsReportBody';
 
 function AnimatedBlock({ children }: { children: React.ReactNode }) {
   return (
@@ -88,14 +78,6 @@ export default function ResultsPage() {
     );
   }
 
-  function handleCareerDetail(career: StudentCareer) {
-    navigate(`/results/directions/${encodeURIComponent(career.slug)}`);
-  }
-
-  function handleUniversity(career: StudentCareer) {
-    navigate(`/results/directions/${encodeURIComponent(career.slug)}/universities`);
-  }
-
   return (
     <PageContainer className="flex flex-col gap-6">
 
@@ -124,79 +106,18 @@ export default function ResultsPage() {
         </Button>
       </div>
 
-      {/* Порядок разделов ниже — как в TZ_Profi.md §18.2 / result-report-
-          redesign-plan.md "Флоу для нетехнического пользователя": резюме →
-          общая диагностика, теперь как отдельно озаглавленные домены, все в
-          одной визуальной системе (DomainCardParts) — карьерные интересы/
-          ведущие способности → сильные стороны → личностный профиль →
-          стиль мышления и мотивация (один card) → "что делать дальше"
-          (профессии/занятия) — последним, не первым. */}
-
-      <AnimatedBlock>
-        <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <InterestDomainSection
-          isJunior={isJunior}
-          interestMap={report.interest_map}
-          interestMapNote={report.interest_map_note}
-        />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <StrengthsDomainSection strengthCards={report.strength_cards} />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <PersonalityDomainSection
-          personalityNotes={report.personality_notes}
-          personalityNote={report.personality_note}
-        />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <ThinkingStyleMotivationSection
-          thinkingStyleNotes={report.thinking_style_notes}
-          motivationHighlights={report.motivation_highlights}
-        />
-      </AnimatedBlock>
-
-      {/* {report.careers.length > 0 && (
-        <AnimatedBlock>
-          <section aria-label="Подходящие направления">
-            <SectionHeading emoji="👥" title="Подходящие профессии" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
-              {report.careers.map(career => (
-                <CareerCard
-                  key={career.slug}
-                  career={career}
-                  showUniversityBtn={showUniversityBtn}
-                  onDetail={handleCareerDetail}
-                  onUniversity={handleUniversity}
-                />
-              ))}
-            </div>
-          </section>
-        </AnimatedBlock>
-      )} */}
-
-      <AnimatedBlock>
-        <ExplorationActivitiesSection activities={report.exploration_activities} note={report.exploration_note} />
-      </AnimatedBlock>
-
-      <AnimatedBlock>
-        <FinalAnalysisSection text={report.final_analysis} />
-      </AnimatedBlock>
-
-      {/* ── Update boundary ──────────────────────────────────────────────
-          Everything above is the shared diagnostic block — identical
-          regardless of goal, and never re-rendered by the goal switcher
-          below (GoalBranchSection owns its own local state; nothing above
-          this line reads it). See GoalBranchSection.tsx. */}
-      <AnimatedBlock>
-        <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal} />
-      </AnimatedBlock>
+      {/* Порядок разделов — TZ_Profi.md §18.2. Тело отчёта вынесено в
+          ResultsReportBody и переиспользуется на экране психолога
+          (PsychologistStudentReportPage). Психоблок «Дополнительно для
+          специалиста» там же — на стороне бэкенда он отдаётся только
+          психологу/админу (report_service.psych_sections_for), у ученика
+          `validity`/`psychoemotional` = null и блок не рендерится. */}
+      <ResultsReportBody
+        report={report}
+        ageGroup={ageGroup}
+        goal={goal}
+        isJunior={isJunior}
+      />
 
       <AnimatedBlock>
         <FeedbackSection assessmentId={assessmentId} />
