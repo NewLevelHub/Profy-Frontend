@@ -170,7 +170,7 @@ export function AdminDataTable<T>({
               />
             ))}
           </colgroup>
-          <thead className="bg-raised border-b border-default">
+          <thead className="bg-[color-mix(in_srgb,var(--paper)_62%,transparent)] border-b border-[color:color-mix(in_srgb,var(--border)_70%,transparent)]">
             <tr>
               {columns.map((column) => (
                 <th

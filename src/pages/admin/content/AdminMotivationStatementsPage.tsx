@@ -11,7 +11,7 @@ import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminEmpty, AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { ADMIN_CARD, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AdminMotivationStatementListItem } from '@/shared/types';
 
 /**
@@ -119,11 +119,11 @@ export default function AdminMotivationStatementsPage() {
       </div>
 
       {loading ? (
-        <div className="bg-surface border border-default rounded-[3px] p-0 overflow-hidden">
+        <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
           <AdminTableSkeleton rows={8} columns={3} />
         </div>
       ) : triplets.length === 0 ? (
-        <div className="bg-surface border border-default rounded-[3px]">
+        <div className={ADMIN_CARD}>
           <AdminEmpty title="Утверждения не найдены" />
         </div>
       ) : (
@@ -146,11 +146,11 @@ function TripletCard({ triplet }: { triplet: Triplet }) {
   return (
     <li
       className={cn(
-        'bg-surface border rounded-[3px] overflow-hidden',
-        duplicates.length > 0 ? 'border-danger' : 'border-default',
+        'field-tile overflow-hidden',
+        duplicates.length > 0 && 'border-danger',
       )}
     >
-      <div className="flex items-center justify-between gap-3 px-3 py-2 bg-raised border-b border-default">
+      <div className="flex items-center justify-between gap-3 px-3 py-2 bg-[color-mix(in_srgb,var(--paper)_62%,transparent)] border-b border-[color:color-mix(in_srgb,var(--border)_70%,transparent)]">
         <span className={cn(ADMIN_TEXT, 'font-semibold text-primary tabular-nums')}>
           Тройка {triplet.index}
         </span>

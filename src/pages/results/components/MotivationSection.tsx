@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 
@@ -6,11 +7,12 @@ interface MotivationSectionProps {
 }
 
 export function MotivationSection({ highlights }: MotivationSectionProps) {
+  const { t } = useTranslation('results');
   if (highlights.length === 0) return null;
 
   return (
-    <section aria-label="Что тебя мотивирует">
-      <SectionHeading emoji="🔥" title="Что тебя мотивирует" />
+    <section aria-label={t('legacy.motivationTitle')}>
+      <SectionHeading emoji="🔥" title={t('legacy.motivationTitle')} />
       <div className="flex flex-col gap-2.5">
         {highlights.map((phrase, i) => (
           <Card key={i} className="flex flex-row items-center gap-2.5">

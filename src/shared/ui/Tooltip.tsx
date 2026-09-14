@@ -21,7 +21,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
         className={cn(
           'pointer-events-none absolute left-1/2 bottom-full z-50 mb-2 -translate-x-1/2',
           'whitespace-nowrap rounded-[6px] px-2.5 py-1.5 text-xs font-semibold',
-          'bg-[color:var(--midnight)] text-white',
+          'bg-inverse text-inverse',
           'opacity-0 scale-95 transition-all duration-150',
           'group-hover/tooltip:opacity-100 group-hover/tooltip:scale-100',
           'group-focus-within/tooltip:opacity-100 group-focus-within/tooltip:scale-100',

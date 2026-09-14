@@ -217,7 +217,7 @@ export default function AdminMotivationStatementDetailPage() {
                 <li
                   key={sibling.id}
                   className={cn(
-                    'flex items-start gap-3 p-2.5 rounded-[3px] border',
+                    'flex items-start gap-3 p-2.5 rounded-[14px] border',
                     clash ? 'border-danger bg-danger-subtle' : 'border-default bg-page',
                   )}
                 >

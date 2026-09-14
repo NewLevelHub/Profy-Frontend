@@ -24,7 +24,7 @@ export function PrintNoteList({ items, emptyText }: PrintNoteListProps) {
     <ul className="space-y-2">
       {items.map((item, i) => (
         <li key={i} className="print-block border-l-2 border-[var(--hairline)] pl-3">
-          <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">
+          <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">
             {item.title}
           </p>
           {item.description && (

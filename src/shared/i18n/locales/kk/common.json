@@ -1,0 +1,115 @@
+{
+  "logout": "Шығу",
+  "loading": "Жүктелуде…",
+  "retry": "Қайталау",
+  "back": "Артқа",
+  "backToResults": "Нәтижелерге қайту",
+  "details": "Толығырақ",
+  "next": "Келесі",
+  "save": "Сақтау",
+  "cancel": "Болдырмау",
+  "goHome": "Басты бетке",
+  "reloadPage": "Бетті жаңарту",
+  "pageInDevelopment": "Бет әзірленуде",
+  "menu": "Мәзір",
+  "yes": "Иә",
+  "no": "Жоқ",
+  "emptyValue": "—",
+  "ageYears_one": "{{count}} жаста",
+  "ageYears_other": "{{count}} жаста",
+  "errorBoundary": {
+    "title": "Бірдеңе дұрыс болмады",
+    "body": "Күтпеген қате шықты. Бетті жаңартып көр."
+  },
+  "notFound": {
+    "title": "Бет табылмады"
+  },
+  "nav": {
+    "results": "Нәтижелер",
+    "universities": "Университеттер",
+    "profile": "Профиль",
+    "admin": "Әкімші"
+  },
+  "sound": {
+    "enable": "Дыбысты қосу",
+    "disable": "Дыбысты өшіру"
+  },
+  "ageGroup": {
+    "junior": "5–7 сынып",
+    "middle": "8–9 сынып",
+    "senior": "10–11 сынып"
+  },
+  "celebrationSound": {
+    "chime": {
+      "label": "Қоңырау",
+      "desc": "Екі жеңіл нота соғысы"
+    },
+    "sparkle": {
+      "label": "Ұшқындар",
+      "desc": "Жылдам көтерілетін әуезді «та-да»"
+    },
+    "fanfare": {
+      "label": "Фанфаралар",
+      "desc": "Салтанатты қысқа фанфара"
+    },
+    "soft": {
+      "label": "Жұмсақ",
+      "desc": "Тыныш бір үнді аккорд"
+    },
+    "party": {
+      "label": "Мереке",
+      "desc": "Көңілді жылдам тізбек"
+    }
+  },
+  "otp": {
+    "cellLabel": "{{index}}-сан ({{total}} ішінен)"
+  },
+  "passwordStrength": {
+    "weak": "ӘЛСІЗ ҚҰПИЯ СӨЗ",
+    "medium": "ОРТАША ҚҰПИЯ СӨЗ",
+    "good": "ЖАҚСЫ ҚҰПИЯ СӨЗ",
+    "excellent": "МЫҚТЫ ҚҰПИЯ СӨЗ",
+    "count_one": "{{count}} таңба",
+    "count_other": "{{count}} таңба"
+  },
+  "languageSwitcherAria": "Тіл / Язык",
+  "themeLabel": "Тақырып",
+  "favoriteAdd": "Таңдаулыға қосу",
+  "favoriteRemove": "Таңдаулыдан алу",
+  "mascot": {
+    "welcome": "Profile маскоты · сәлемдесу",
+    "transition": "Profile маскоты · блоктар арасындағы ауысу",
+    "rest": "Profile маскоты · демалыс",
+    "completion": "Profile маскоты · аяқтау",
+    "waiting": "Profile маскоты · күту",
+    "pause": "Profile маскоты · үзіліс",
+    "graduate": "Profile маскоты · университет",
+    "doctor": "Profile маскоты · дәрігер",
+    "engineer": "Profile маскоты · инженер",
+    "developer": "Profile маскоты · бағдарламашы",
+    "chemist": "Profile маскоты · химик",
+    "artist": "Profile маскоты · суретші",
+    "musician": "Profile маскоты · музыкант",
+    "chef": "Profile маскоты · аспаз",
+    "architect": "Profile маскоты · сәулетші",
+    "footballer": "Profile маскоты · футболшы",
+    "pilot": "Profile маскоты · ұшқыш",
+    "photographer": "Profile маскоты · фотограф",
+    "lawyer": "Profile маскоты · заңгер",
+    "vet": "Profile маскоты · мал дәрігері",
+    "gardener": "Profile маскоты · бағбан",
+    "actor": "Profile маскоты · актёр",
+    "journalist": "Profile маскоты · журналист",
+    "gamer": "Profile маскоты · геймер",
+    "baker": "Profile маскоты · наубайшы",
+    "astronomer": "Profile маскоты · астроном",
+    "entrepreneur": "Profile маскоты · кәсіпкер"
+  },
+  "toHome": "Басты бетке",
+  "examLabel": {
+    "ielts": "IELTS",
+    "unt": "ҰБТ",
+    "sat": "SAT",
+    "toefl": "TOEFL"
+  }
+}

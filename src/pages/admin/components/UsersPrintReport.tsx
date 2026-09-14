@@ -70,7 +70,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
             color: MUTE,
           }}
         >
-          Profy · админка
+          Profile · админка
         </p>
         <h1 style={{ fontSize: '16pt', fontWeight: 600, margin: '1.5mm 0 0' }}>Пользователи</h1>
         <p style={{ margin: '1.5mm 0 0', color: MUTE }}>

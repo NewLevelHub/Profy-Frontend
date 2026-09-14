@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
 import { Button } from '@/shared/ui/Button';
@@ -49,8 +50,10 @@ export const PriorityRanking = React.memo(function PriorityRanking({
   initialRanking,
   onChange,
   onContinue,
-  continueLabel = 'Дальше',
+  continueLabel,
 }: PriorityRankingProps) {
+  const { t } = useTranslation('assessment');
+  const cLabel = continueLabel ?? t('priority.continue');
   const [explicit, setExplicit] = useState<string[]>(() => deriveExplicit(initialRanking, options));
 
   const ranking = useMemo(() => deriveDisplay(explicit, options), [explicit, options]);
@@ -110,7 +113,9 @@ export const PriorityRanking = React.memo(function PriorityRanking({
               )}
               style={{ borderRadius: 18 }}
               aria-label={
-                isRanked ? `${option.text}, приоритет ${position + 1}` : `${option.text}, не отмечено`
+                isRanked
+                  ? t('priority.rankedAria', { text: option.text, position: position + 1 })
+                  : t('priority.unrankedAria', { text: option.text })
               }
             >
               <span
@@ -140,17 +145,17 @@ export const PriorityRanking = React.memo(function PriorityRanking({
           disabled={explicit.length === 0}
           className="font-semibold text-secondary text-body-sm underline underline-offset-4 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          сбросить
+          {t('priority.reset')}
         </button>
         {!isComplete && (
           <span className="text-caption text-secondary">
-            осталось отметить: {remaining}
+            {t('priority.remaining', { count: remaining })}
           </span>
         )}
       </div>
 
       <Button onClick={onContinue} disabled={!isComplete} size="lg" className="w-full rounded-pill">
-        {continueLabel}
+        {cLabel}
       </Button>
     </div>
   );

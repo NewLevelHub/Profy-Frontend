@@ -7,17 +7,19 @@ export type SoundVariant = 'default' | 'soft';
 
 export type CelebrationSoundId = 'chime' | 'sparkle' | 'fanfare' | 'soft' | 'party';
 
+// `label`/`description` are i18n keys (common namespace) — resolve with `t()`
+// at the (future) sound-picker call site, same convention as config/constants.
 export const CELEBRATION_SOUNDS: ReadonlyArray<{
   id: CelebrationSoundId;
   label: string;
   description: string;
   emoji: string;
 }> = [
-  { id: 'chime', label: 'Колокольчик', description: 'Два лёгких нотных удара', emoji: '🔔' },
-  { id: 'sparkle', label: 'Искры', description: 'Быстрое восходящее мелодичное «та-да»', emoji: '✨' },
-  { id: 'fanfare', label: 'Фанфары', description: 'Торжественная короткая фанфара', emoji: '🎺' },
-  { id: 'soft', label: 'Мягкое', description: 'Спокойный однотонный аккорд', emoji: '🌸' },
-  { id: 'party', label: 'Праздник', description: 'Весёлая быстрая последовательность', emoji: '🎉' },
+  { id: 'chime', label: 'common:celebrationSound.chime.label', description: 'common:celebrationSound.chime.desc', emoji: '🔔' },
+  { id: 'sparkle', label: 'common:celebrationSound.sparkle.label', description: 'common:celebrationSound.sparkle.desc', emoji: '✨' },
+  { id: 'fanfare', label: 'common:celebrationSound.fanfare.label', description: 'common:celebrationSound.fanfare.desc', emoji: '🎺' },
+  { id: 'soft', label: 'common:celebrationSound.soft.label', description: 'common:celebrationSound.soft.desc', emoji: '🌸' },
+  { id: 'party', label: 'common:celebrationSound.party.label', description: 'common:celebrationSound.party.desc', emoji: '🎉' },
 ];
 
 type ToneNote = {

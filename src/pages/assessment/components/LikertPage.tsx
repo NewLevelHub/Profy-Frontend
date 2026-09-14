@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
 import type { Question } from '@/shared/types';
@@ -21,6 +22,7 @@ interface LikertPageProps {
 }
 
 export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
+  const { t } = useTranslation('common');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
 
   // The next unanswered question on this page — answering one "cuts" to
@@ -47,7 +49,8 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
   }, [activeQuestion?.id]);
 
   return (
-    <div className="flex flex-col gap-28">
+    <div className="assessment-stage mx-auto w-full max-w-[720px]">
+      <div className="assessment-stage__shell journey-shell flex flex-col gap-28 !p-6 sm:!p-8">
       {questions.map(question => (
         <div
           key={question.id}
@@ -57,7 +60,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
           className="flex flex-col gap-6 scroll-mt-24 text-center"
         >
           <p
-            className="font-sans font-semibold text-[color:var(--midnight)]"
+            className="font-sans font-semibold text-[color:var(--text-heading)]"
             style={{ fontSize: '1.375rem', lineHeight: 1.55 }}
           >
             {question.text}
@@ -78,8 +81,9 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
         className="w-full max-w-[560px] mx-auto rounded-pill text-body-lg font-extrabold"
         style={{ height: 60 }}
       >
-        Далее
+        {t('next')}
       </Button>
+      </div>
     </div>
   );
 }

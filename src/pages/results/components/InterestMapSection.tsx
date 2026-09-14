@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
 import { RIASEC_ICONS, MI_ICONS, INTEREST_LEVEL_LABELS } from '@/shared/config/constants';
@@ -15,12 +16,14 @@ interface InterestMapSectionProps {
 // medium/high level (contract §5) — never a percentage, so this renders a
 // 3-dot indicator instead of a progress bar to avoid implying a score.
 export function InterestMapSection({ items, note, isJunior }: InterestMapSectionProps) {
+  const { t } = useTranslation();
   if (items.length === 0) return null;
   const icons = isJunior ? MI_ICONS : RIASEC_ICONS;
 
+  const titleKey = isJunior ? 'results:legacy.interestMapTitleJunior' : 'results:legacy.interestMapTitleAdult';
   return (
-    <section aria-label={isJunior ? 'Твоя карта интересов' : 'Твой профиль интересов'}>
-      <SectionHeading emoji="📊" title={isJunior ? 'Твоя карта интересов' : 'Твой профиль интересов'} />
+    <section aria-label={t(titleKey)}>
+      <SectionHeading emoji="📊" title={t(titleKey)} />
       {note && <p className="text-body text-secondary mb-3">{note}</p>}
       <Card className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {items.map((item) => (
@@ -34,7 +37,7 @@ export function InterestMapSection({ items, note, isJunior }: InterestMapSection
             <div className="min-w-0 flex-1">
               <p className="font-extrabold text-primary truncate" style={{ fontSize: 14.5 }}>{item.sphere}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="flex gap-1" role="img" aria-label={INTEREST_LEVEL_LABELS[item.level]}>
+                <div className="flex gap-1" role="img" aria-label={t(INTEREST_LEVEL_LABELS[item.level])}>
                   {[0, 1, 2].map((i) => (
                     <span
                       key={i}
@@ -43,7 +46,7 @@ export function InterestMapSection({ items, note, isJunior }: InterestMapSection
                     />
                   ))}
                 </div>
-                <span className="text-caption text-secondary">{INTEREST_LEVEL_LABELS[item.level]}</span>
+                <span className="text-caption text-secondary">{t(INTEREST_LEVEL_LABELS[item.level])}</span>
               </div>
             </div>
           </div>

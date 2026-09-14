@@ -1,4 +1,6 @@
 import { memo } from 'react';
+import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { CareerMatchLadder } from '@/shared/ui/MatchLadder';
@@ -8,21 +10,23 @@ import type { StudentCareer } from '@/shared/types';
 interface CareerCardProps {
   career: StudentCareer;
   showUniversityBtn: boolean;
-  onDetail: (c: StudentCareer) => void;
-  onUniversity: (c: StudentCareer) => void;
 }
 
-export const CareerCard = memo(function CareerCard({
-  career,
-  showUniversityBtn,
-  onDetail,
-  onUniversity,
-}: CareerCardProps) {
+/**
+ * Переходы отсюда — настоящие ссылки, а не onClick на карточке: направление
+ * можно открыть в новой вкладке и переслать, до него доходит табуляция.
+ *
+ * «Подробнее о направлении» растянута на всю карточку через `after:inset-0`,
+ * поэтому кликается и она сама, и любое место карточки, но в разметке это
+ * по-прежнему одна ссылка с адресом. «Найти университеты» лежит выше по
+ * z-оси, иначе растянутая ссылка перехватывала бы клики по ней.
+ */
+export const CareerCard = memo(function CareerCard({ career, showUniversityBtn }: CareerCardProps) {
+  const { t } = useTranslation('results');
+  const slug = encodeURIComponent(career.slug);
+
   return (
-    <Card
-      onClick={() => onDetail(career)}
-      className="!p-[22px] flex flex-col gap-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-pop"
-    >
+    <Card className="relative !p-[22px] flex flex-col gap-3 transition-all hover:-translate-y-0.5 hover:shadow-pop">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[26px]" aria-hidden="true">{getIconForCareer(career.name)}</span>
         <CareerMatchLadder tier={career.tier} size="sm" />
@@ -32,23 +36,21 @@ export const CareerCard = memo(function CareerCard({
         <p className="text-muted font-medium leading-snug text-caption">{career.why}</p>
       </div>
       {showUniversityBtn && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onUniversity(career); }}
-          className="flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
+        <Link
+          to={`/results/directions/${slug}/universities`}
+          className="relative z-10 self-start flex items-center gap-1.5 text-brand font-semibold text-caption hover:opacity-75 transition-opacity"
         >
           <GraduationCap className="w-3.5 h-3.5" />
-          Найти университеты
-        </button>
+          {t('career.findUniversities')}
+        </Link>
       )}
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onDetail(career); }}
-        className="font-extrabold text-center text-caption hover:opacity-75 transition-opacity"
+      <Link
+        to={`/results/directions/${slug}`}
+        className="font-extrabold text-center text-caption hover:opacity-75 transition-opacity after:absolute after:inset-0 after:rounded-[var(--radius)]"
         style={{ color: 'var(--brand)', padding: 4 }}
       >
-        Подробнее о направлении →
-      </button>
+        {t('career.moreAboutDirection')}
+      </Link>
     </Card>
   );
 });

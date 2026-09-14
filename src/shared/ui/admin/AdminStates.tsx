@@ -26,7 +26,7 @@ export function AdminTableSkeleton({ rows = 6, columns = 4 }: { rows?: number; c
           {Array.from({ length: columns }).map((__, colIndex) => (
             <Skeleton
               key={colIndex}
-              className="h-3.5 rounded-[2px]"
+              className="h-3.5 rounded-[8px]"
               style={{ flex: colIndex === 0 ? 3 : 1, opacity: 1 - rowIndex * 0.1 }}
             />
           ))}
@@ -79,7 +79,7 @@ export function AdminError({ message, onRetry }: AdminErrorProps) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-3 p-3 rounded-[3px] border border-danger bg-danger-subtle"
+      className="flex items-start gap-3 p-3 rounded-[14px] border border-danger bg-danger-subtle"
     >
       <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">

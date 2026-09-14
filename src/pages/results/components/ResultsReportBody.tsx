@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
 import type { AgeGroup, AssessmentGoal, ResultResponse } from '@/shared/types';
+import { ResultsReveal } from './ResultsReveal';
 import { SummaryCard } from './SummaryCard';
 import { InterestDomainSection } from './InterestDomainSection';
 import { StrengthsDomainSection } from './StrengthsDomainSection';
@@ -9,14 +9,6 @@ import { ExplorationActivitiesSection } from './ExplorationActivitiesSection';
 import { FinalAnalysisSection } from './FinalAnalysisSection';
 import { GoalBranchSection } from './GoalBranchSection';
 import { SpecialistSectionsBlock } from './psych/SpecialistSectionsBlock';
-
-function AnimatedBlock({ children }: { children: ReactNode }) {
-  return (
-    <div style={{ animation: 'fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both' }}>
-      {children}
-    </div>
-  );
-}
 
 interface ResultsReportBodyProps {
   report: ResultResponse;
@@ -52,55 +44,57 @@ export function ResultsReportBody({ report, ageGroup, goal, isJunior, readOnly =
 
   return (
     <>
-      <AnimatedBlock>
+      <ResultsReveal>
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
-      </AnimatedBlock>
+      </ResultsReveal>
 
-      <AnimatedBlock>
+      <ResultsReveal delay={1}>
         <InterestDomainSection
           isJunior={isJunior}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
         />
-      </AnimatedBlock>
+      </ResultsReveal>
 
-      <AnimatedBlock>
+      <ResultsReveal delay={1}>
         <StrengthsDomainSection strengthCards={report.strength_cards} />
-      </AnimatedBlock>
+      </ResultsReveal>
 
-      <AnimatedBlock>
+      <ResultsReveal>
         <PersonalityDomainSection
           personalityNotes={report.personality_notes}
           personalityNote={report.personality_note}
         />
-      </AnimatedBlock>
+      </ResultsReveal>
 
-      <AnimatedBlock>
+      <ResultsReveal>
         <ThinkingStyleMotivationSection
           thinkingStyleNotes={report.thinking_style_notes}
           motivationHighlights={report.motivation_highlights}
         />
-      </AnimatedBlock>
+      </ResultsReveal>
 
-      <AnimatedBlock>
+      <ResultsReveal>
         <ExplorationActivitiesSection
           activities={report.exploration_activities}
           note={report.exploration_note}
         />
-      </AnimatedBlock>
+      </ResultsReveal>
 
-      <AnimatedBlock>
+      <ResultsReveal>
         <FinalAnalysisSection text={report.final_analysis} />
-      </AnimatedBlock>
+      </ResultsReveal>
 
-      <AnimatedBlock>
-        <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal ?? null} readOnly={readOnly} />
-      </AnimatedBlock>
+      <div id="results-goal-branch">
+        <ResultsReveal>
+          <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal ?? null} readOnly={readOnly} />
+        </ResultsReveal>
+      </div>
 
       {hasPsych && (
-        <AnimatedBlock>
+        <ResultsReveal>
           <SpecialistSectionsBlock {...psychSections} />
-        </AnimatedBlock>
+        </ResultsReveal>
       )}
     </>
   );

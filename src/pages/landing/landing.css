@@ -26,7 +26,7 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: radial-gradient(color-mix(in srgb, var(--midnight) 5%, transparent) 1px, transparent 1px);
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
   opacity: 0.6;
   mask-image: radial-gradient(ellipse 100% 55% at 50% 0%, black 35%, transparent 90%);
@@ -340,6 +340,114 @@
     radial-gradient(ellipse 70% 60% at 22% 18%, color-mix(in srgb, var(--paper) 85%, transparent), transparent 70%);
 }
 
+/* How path connector (Jinaq-style step line, pine/dawn) */
+.landing .how-path__line {
+  position: absolute;
+  top: 2.65rem;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--pine) 35%, transparent),
+    color-mix(in srgb, var(--dawn) 45%, transparent),
+    color-mix(in srgb, var(--pine) 35%, transparent)
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+.landing .how-path__step {
+  z-index: 1;
+}
+.landing .how-path__step--active {
+  border-color: color-mix(in srgb, var(--pine) 40%, var(--border));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--pine) 8%, transparent);
+}
+
+/* Demo loop shell */
+.landing-demo-shell {
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, #fff 45%, var(--border));
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--midnight) 8%, transparent);
+  overflow: hidden;
+}
+.landing-demo-chrome {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-faint);
+}
+.landing-demo-chrome span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--muted, var(--text-muted)) 35%, transparent);
+}
+.landing-demo-stage {
+  position: relative;
+  min-height: 220px;
+  padding: 1.25rem 1.35rem 1.5rem;
+}
+.landing-demo-frame {
+  transition: opacity 380ms ease, transform 380ms ease;
+}
+.landing-demo-frame--idle {
+  position: absolute;
+  inset: 1.25rem 1.35rem 1.5rem;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+.landing-demo-frame--active {
+  position: relative;
+  opacity: 1;
+  transform: translateY(0);
+}
+.landing-demo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--fog) 55%, transparent);
+  border: 1px solid var(--border-faint);
+}
+.landing-demo-bar {
+  display: block;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--pine) 28%, transparent);
+}
+.landing-demo-pill {
+  width: 2.4rem;
+  height: 0.7rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--dawn) 35%, transparent);
+  flex-shrink: 0;
+}
+.landing-demo-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0 1rem 1rem;
+}
+.landing-demo-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--text-muted) 40%, transparent);
+}
+.landing-demo-dot--on {
+  background: var(--pine);
+  width: 1.1rem;
+}
+
 /* ─── Уважение к prefers-reduced-motion ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .landing *,
@@ -349,4 +457,7 @@
     transition-duration: 0.01ms !important;
   }
   .landing .pv-window::after { display: none; }
+  .landing-demo-frame { opacity: 1; transform: none; position: relative; inset: auto; }
+  .landing-demo-frame:not(.landing-demo-frame--active) { display: none; }
 }
+

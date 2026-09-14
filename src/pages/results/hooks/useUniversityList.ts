@@ -1,10 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { universityApi } from '@/shared/api/university';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
+import { useLocaleStore } from '@/shared/store/locale';
 import { canSeeUniversities } from '@/shared/lib/assessmentGoal';
+import { useFavoriteUniversity } from '@/shared/hooks/useFavoriteUniversity';
 import type { ProgramBrief } from '@/shared/types';
 
 export interface CountryFilter {
@@ -34,6 +37,15 @@ function getKzRankScore(p: ProgramBrief): number | null {
   return null;
 }
 
+// Starred universities lead the list regardless of rank (PRO-265). The
+// backend already returns them first, but this hook re-sorts client-side on
+// every filter/direction change, so the rule has to be repeated here or the
+// re-sort would silently undo it.
+function compareByFavorite(a: ProgramBrief, b: ProgramBrief): number {
+  if (a.university.is_favorite === b.university.is_favorite) return 0;
+  return a.university.is_favorite ? -1 : 1;
+}
+
 // Universities with no score on the active scale always sort to the end, as
 // their own group, regardless of asc/desc — they must never get silently
 // blended into the middle of the ranked list via a fallback score.
@@ -54,18 +66,25 @@ function compareByRank(
 export function useUniversityList() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation('results');
   const goal = useAssessmentStore(s => s.goal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
   const [activeCountry, setActiveCountry] = useState<string | undefined>(undefined);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const isAllowed = canSeeUniversities(goal, ageGroup);
+  const { toggleFavorite } = useFavoriteUniversity();
+  // Program/university `name` and `description` are resolved server-side per
+  // request locale (Accept-Language, set by the api interceptor from this same
+  // store). Without locale in the key, switching language serves the stale
+  // cached response — the localized names only appeared after a reload.
+  const locale = useLocaleStore(s => s.locale);
 
   // Program.profession_slugs directly lists which professions a specialty
   // prepares someone for, so the university search keys off the profession's
   // own slug — no intermediate category to bridge through.
   const { data: allPrograms = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['programs', slug] as const,
+    queryKey: ['programs', slug, locale] as const,
     queryFn: () => universityApi.getPrograms(slug!),
     enabled: !!slug && isAllowed,
   });
@@ -91,8 +110,8 @@ export function useUniversityList() {
     const countries = Array.from(new Set(allPrograms.map(p => p.university.country))).sort((a, b) =>
       a.localeCompare(b, 'ru'),
     );
-    return [{ label: 'Все', value: undefined }, ...countries.map(country => ({ label: country, value: country }))];
-  }, [allPrograms]);
+    return [{ label: t('programList.allCountries'), value: undefined }, ...countries.map(country => ({ label: country, value: country }))];
+  }, [allPrograms, t]);
 
   const programs = useMemo(() => {
     const filtered = activeCountry
@@ -100,29 +119,35 @@ export function useUniversityList() {
       : allPrograms;
 
     // Country filter decides which ranking scale is meaningful to sort by:
-    // "Все" (no filter) → the general cross-country `ranking`; "Казахстан"
-    // → `uniranks_kz_rank`, the only scale that's actually comparable
-    // within a KZ-only result set.
+    // no filter → the general cross-country `ranking`; KZ → `uniranks_kz_rank`,
+    // the only scale that's actually comparable within a KZ-only result set.
+    // `activeCountry` holds a backend `country` value (ru-only data), so the
+    // literal here is a data match, not UI copy.
     const getScore = activeCountry === 'Казахстан' ? getKzRankScore : getGeneralRankScore;
-    return [...filtered].sort((a, b) => compareByRank(a, b, getScore, sortDirection));
+    return [...filtered].sort(
+      (a, b) => compareByFavorite(a, b) || compareByRank(a, b, getScore, sortDirection),
+    );
   }, [allPrograms, activeCountry, sortDirection]);
 
-  const handleProgramClick = useCallback((programId: string) => {
-    navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
-  }, [navigate, slug]);
+  // Адрес, а не переход: карточка программы рендерит его как обычную ссылку.
+  const programDetailPath = useCallback(
+    (programId: string) => `/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`,
+    [slug],
+  );
 
   return {
     slug,
     programs,
     isLoading,
-    error: error ? 'Не удалось загрузить программы. Попробуй ещё раз.' : null,
+    error: error ? t('error.loadPrograms') : null,
     activeCountry,
     setActiveCountry: handleCountryChange,
     countryFilters,
     sortDirection,
     toggleSortDirection,
     isAllowed,
-    handleProgramClick,
+    programDetailPath,
+    toggleFavorite,
     refetch,
   };
 }

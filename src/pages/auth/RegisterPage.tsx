@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
@@ -11,20 +12,23 @@ import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
 import { PasswordStrengthMeter } from '@/shared/ui/PasswordStrengthMeter';
 
-function validateEmail(email: string): string {
-  return email.includes('@') ? '' : 'Введите корректный email';
+// Validators return an i18n key (or '') — the component resolves it with t().
+function validateEmailKey(email: string): string {
+  return email.includes('@') ? '' : 'validation.emailInvalid';
 }
 
-function validatePassword(password: string): string {
-  if (password.length < 8) return 'Минимум 8 символов';
-  if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву';
-  if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру';
+function validatePasswordKey(password: string): string {
+  if (password.length < 8) return 'validation.passwordMin8';
+  if (!/[A-Za-z]/.test(password)) return 'validation.passwordNeedsLetter';
+  if (!/\d/.test(password)) return 'validation.passwordNeedsDigit';
   return '';
 }
 
 export default function RegisterPage() {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const storeLogin = useAuthStore(s => s.login);
+  const tErr = (key: string) => (key ? t(key) : '');
 
   // Шаги 1 и 2 живут здесь, третий — на /verify-email: там уже реализован ввод
   // кода, повторная отправка и обратный отсчёт.
@@ -44,8 +48,8 @@ export default function RegisterPage() {
 
   function handleEmailStep(e: React.FormEvent) {
     e.preventDefault();
-    const eErr = validateEmail(email);
-    setEmailError(eErr);
+    const eErr = validateEmailKey(email);
+    setEmailError(tErr(eErr));
     if (eErr) return;
     setFormError('');
     setStep('password');
@@ -53,17 +57,21 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const pErr = validatePassword(password);
-    setPasswordError(pErr);
-    const cErr = password !== confirm ? 'Пароли не совпадают' : '';
-    setConfirmError(cErr);
+    const pErr = validatePasswordKey(password);
+    setPasswordError(tErr(pErr));
+    const cErr = password !== confirm ? 'validation.passwordsMismatch' : '';
+    setConfirmError(tErr(cErr));
     if (pErr || cErr) return;
 
     setFormError('');
     setIsLoading(true);
     try {
       await authApi.register(email.trim(), password);
-      navigate(`/verify-email?email=${encodeURIComponent(email.trim())}&step=3`);
+      // Аккаунт уже создан — возвращаться к форме регистрации незачем.
+      // Без replace «назад» с экрана кода показывал форму заново (и
+      // только потом RequireGuest уводил дальше), что читалось как
+      // «регистрация не прошла».
+      navigate(`/verify-email?email=${encodeURIComponent(email.trim())}&step=3`, { replace: true });
     } catch (err) {
       setPassword('');
       setConfirm('');
@@ -76,13 +84,13 @@ export default function RegisterPage() {
           // пароля стояла бы там, где её никто не ждёт, и исправить её было бы
           // негде.
           setStep('email');
-          setEmailError('Этот email уже зарегистрирован');
+          setEmailError(t('error.emailTaken'));
         } else {
-          setFormError('Ошибка регистрации. Попробуйте позже');
+          setFormError(t('error.registerGeneric'));
           setTimeout(() => passwordRef.current?.focus(), 0);
         }
       } else {
-        setFormError('Ошибка. Попробуйте позже');
+        setFormError(t('error.generic'));
         setTimeout(() => passwordRef.current?.focus(), 0);
       }
     } finally {
@@ -98,7 +106,7 @@ export default function RegisterPage() {
       storeLogin(access_token, user);
       navigate('/results', { replace: true });
     } catch {
-      setFormError('Не удалось зарегистрироваться через Google. Попробуйте ещё раз');
+      setFormError(t('error.googleSignUpFailed'));
     } finally {
       setGoogleSubmitting(false);
     }
@@ -106,9 +114,9 @@ export default function RegisterPage() {
 
   const loginLink = (
     <div className="text-center mt-[20px] text-body-sm">
-      <span className="text-muted">Уже есть аккаунт? </span>
+      <span className="text-muted">{t('register.haveAccount')} </span>
       <Link to="/login" className="text-brand underline underline-offset-2 hover:opacity-70 transition-opacity">
-        Войти
+        {t('register.signIn')}
       </Link>
     </div>
   );
@@ -117,13 +125,13 @@ export default function RegisterPage() {
     return (
       <>
         <AuthStepper current={1} />
-        <h1 className="auth-card-title">Почта</h1>
-        <p className="auth-card-sub">На неё придёт код подтверждения.</p>
+        <h1 className="auth-card-title">{t('register.emailStep.title')}</h1>
+        <p className="auth-card-sub">{t('register.emailStep.subtitle')}</p>
 
         <form onSubmit={handleEmailStep} noValidate>
           <div className="mt-[26px]">
             <Input
-              label="Электронная почта"
+              label={t('field.emailLong')}
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -136,14 +144,14 @@ export default function RegisterPage() {
           </div>
 
           <Button type="submit" size="lg" className="w-full mt-[32px]">
-            Далее
+            {t('register.next')}
           </Button>
 
           {env.GOOGLE_CLIENT_ID && (
             <>
               <div className="flex items-center gap-3 mt-[24px]">
                 <div className="h-px flex-1 bg-[var(--hairline)]" />
-                <span className="text-body-sm text-muted">или</span>
+                <span className="text-body-sm text-muted">{t('divider')}</span>
                 <div className="h-px flex-1 bg-[var(--hairline)]" />
               </div>
 
@@ -170,14 +178,14 @@ export default function RegisterPage() {
   return (
     <>
       <AuthStepper current={2} />
-      <h1 className="auth-card-title">Пароль</h1>
-      <p className="auth-card-sub">Минимум 8 символов, буква и цифра.</p>
+      <h1 className="auth-card-title">{t('register.passwordStep.title')}</h1>
+      <p className="auth-card-sub">{t('register.passwordStep.subtitle')}</p>
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="mt-[26px]">
           <Input
             ref={passwordRef}
-            label="Пароль"
+            label={t('field.password')}
             className="pr-10"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
@@ -192,7 +200,7 @@ export default function RegisterPage() {
                 tabIndex={-1}
                 onClick={() => setShowPassword(v => !v)}
                 className="text-muted hover:text-secondary transition-colors"
-                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={showPassword ? t('field.hidePassword') : t('field.showPassword')}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -203,7 +211,7 @@ export default function RegisterPage() {
 
         <div className="mt-[24px]">
           <Input
-            label="Повторите пароль"
+            label={t('field.passwordRepeat')}
             className="pr-10"
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••"
@@ -217,7 +225,7 @@ export default function RegisterPage() {
                 tabIndex={-1}
                 onClick={() => setShowConfirm(v => !v)}
                 className="text-muted hover:text-secondary transition-colors"
-                aria-label={showConfirm ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={showConfirm ? t('field.hidePassword') : t('field.showPassword')}
               >
                 {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -235,10 +243,10 @@ export default function RegisterPage() {
             onClick={() => { setStep('email'); setFormError(''); }}
             className="text-body-sm text-muted underline underline-offset-2 hover:opacity-70 transition-opacity"
           >
-            Назад
+            {t('register.back')}
           </button>
           <Button type="submit" isLoading={isLoading} size="lg" className="flex-1">
-            {isLoading ? 'Создаём...' : 'Создать аккаунт'}
+            {isLoading ? t('register.submitCreating') : t('register.submitCreate')}
           </Button>
         </div>
 

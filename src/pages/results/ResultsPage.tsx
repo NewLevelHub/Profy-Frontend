@@ -1,22 +1,17 @@
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Download } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
+import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { useResults } from './hooks/useResults';
+import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
+import { ResultsReveal } from './components/ResultsReveal';
 import { FeedbackSection } from './components/FeedbackSection';
 import { ResultsReportBody } from './components/ResultsReportBody';
-
-function AnimatedBlock({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ animation: 'fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both' }}>
-      {children}
-    </div>
-  );
-}
 
 function ResultsSkeleton() {
   return (
@@ -33,10 +28,12 @@ function ResultsSkeleton() {
 
 export default function ResultsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('results');
 
   const {
     report,
     isLoading,
+    isTranslating,
     error,
     hasCompletedAssessment,
     assessmentId,
@@ -65,44 +62,43 @@ export default function ResultsPage() {
     );
   }
 
-  if (isLoading) return <ResultsSkeleton />;
+  if (isLoading) {
+    return <ResultsSkeleton />;
+  }
+
+  if (isTranslating) {
+    return (
+      <PageContainer>
+        <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
 
   if (error || !report) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
-        <h2 className="text-h1 font-extrabold text-primary">Что-то пошло не так</h2>
-        <p className="text-body text-secondary">{error ?? 'Не удалось загрузить результаты.'}</p>
-        <Button onClick={() => refetch()}>Повторить</Button>
-      </div>
+      <PageContainer>
+        <JourneyEmptyState
+          mascotState="pause"
+          title={t('error.somethingWrong')}
+          body={error ?? t('error.loadResults')}
+          actionLabel={t('common:retry')}
+          onAction={() => refetch()}
+        />
+      </PageContainer>
     );
   }
 
   return (
     <PageContainer className="flex flex-col gap-6">
-
-      {/* Same-tab navigate, deliberately not a new tab (tried that — Safari
-          treats `window.print()` from a script-opened tab as its own
-          ephemeral "print preview" surface, and the underlying content tab
-          can end up blank once the dialog closes, occasionally clipping the
-          save itself). Standard single-tab print flow instead: the dialog
-          layers over this same tab, and "К результатам" on the printable
-          view navigates back here when done. `?auto=1` opens the print
-          dialog itself as soon as the printable view has its fonts, so this
-          stays one click. */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <PageHeader
-          title="Что мы узнали о тебе"
-          subtitle={isJunior ? 'Что тебе интересно и что стоит попробовать' : 'Твой профиль интересов и рекомендованное направление'}
-        />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-shrink-0"
-          onClick={() => navigate('/results/print?auto=1')}
-        >
+      {/* Обложка «Что мы узнали о тебе» снята: её чипсы (интересы, сильная
+          сторона, направление) и кнопка «Смотреть направления» слово в слово
+          повторяли секции ниже — отчёт начинался с пересказа самого себя.
+          Из неё остаётся только выход в PDF: /results/print больше ниоткуда
+          не открывается, поэтому кнопка живёт здесь отдельной строкой. */}
+      <div className="flex justify-end">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/results/print?auto=1')}>
           <Download size={16} aria-hidden="true" />
-          Скачать PDF
+          {t('page.downloadPdf')}
         </Button>
       </div>
 
@@ -119,10 +115,9 @@ export default function ResultsPage() {
         isJunior={isJunior}
       />
 
-      <AnimatedBlock>
+      <ResultsReveal>
         <FeedbackSection assessmentId={assessmentId} />
-      </AnimatedBlock>
-
+      </ResultsReveal>
     </PageContainer>
   );
 }
