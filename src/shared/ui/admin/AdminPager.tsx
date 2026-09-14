@@ -72,7 +72,7 @@ export function AdminPager({ page, total, pageSize, onPageChange, noun }: AdminP
                 className={cn(
                   ADMIN_TEXT,
                   ADMIN_NUM,
-                  'min-w-[28px] px-2 py-1 rounded-[3px] border transition-colors',
+                  'min-w-[28px] px-2 py-1 rounded-[10px] border transition-colors',
                   entry === page
                     ? 'border-brand bg-brand-subtle text-brand font-medium'
                     : 'border-transparent text-muted hover:text-primary hover:border-default',

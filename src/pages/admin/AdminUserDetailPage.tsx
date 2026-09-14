@@ -156,11 +156,17 @@ function ChipField({ label, items }: { label: string; items: string[] }) {
       {items.length === 0 ? (
         <span className={cn(ADMIN_TEXT, 'text-muted')}>—</span>
       ) : (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 min-w-0">
           {items.map((item) => (
             <span
               key={item}
-              className={cn(ADMIN_TEXT, 'px-1.5 py-0.5 rounded-[2px] bg-brand-subtle text-brand')}
+              className={cn(
+                ADMIN_TEXT,
+                'max-w-full px-1.5 py-0.5 rounded-[2px] bg-brand-subtle text-brand',
+                // Без пробелов (мусор в «Мечтах») иначе раздувает колонку сетки
+                // и уезжает за край карточки — break-word тут не спасает.
+                'break-all [overflow-wrap:anywhere]',
+              )}
             >
               {item}
             </span>
@@ -201,7 +207,7 @@ function Section({
   const [open, setOpen] = useState(Boolean(defaultOpen));
 
   return (
-    <div className="border border-default rounded-[3px] overflow-hidden bg-surface">
+    <div className="border border-default rounded-[14px] overflow-hidden bg-surface">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -678,9 +684,16 @@ function AssessmentPanel({
 function AccountFlags({ user }: { user: AdminUserDetail }) {
   return (
     <span className="flex items-center gap-1.5 flex-wrap">
-      {user.is_admin && (
+      {/* `role` is the source of truth (pro-281); `is_admin` is its derived
+          boolean, kept in the API for back-compat but no longer read here. */}
+      {user.role === 'admin' && (
         <AdminBadge tone="brand" title="Имеет доступ в админку">
           Админ
+        </AdminBadge>
+      )}
+      {user.role === 'psychologist' && (
+        <AdminBadge tone="accent" title="Кабинет психолога">
+          Психолог
         </AdminBadge>
       )}
       {!user.is_active && (
@@ -848,7 +861,7 @@ export default function AdminUserDetailPage() {
                 <li
                   key={item.id}
                   className={cn(
-                    'rounded-[3px] border transition-colors',
+                    'rounded-[14px] border transition-colors',
                     isOpen ? 'border-brand' : 'border-default',
                   )}
                 >
@@ -856,7 +869,7 @@ export default function AdminUserDetailPage() {
                     type="button"
                     onClick={() => toggleAssessment(item.id)}
                     aria-expanded={isOpen}
-                    className="w-full text-left p-3 flex items-center justify-between gap-3 hover:bg-hover transition-colors rounded-[3px]"
+                    className="w-full text-left p-3 flex items-center justify-between gap-3 hover:bg-hover transition-colors rounded-[14px]"
                   >
                     <div className="min-w-0">
                       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>

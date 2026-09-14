@@ -485,7 +485,7 @@ export default function AdminProgramDetailPage() {
  */
 function UnmanagedKeys({ title, keys }: { title: string; keys: string[] }) {
   return (
-    <div className="border border-default rounded-[3px] p-2.5 bg-page">
+    <div className="border border-default rounded-[14px] p-2.5 bg-page">
       <p className={cn(MONO_LABEL, 'text-muted mb-1.5')}>{title}</p>
       <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>
         Здесь не редактируются, но сохраняются как есть:{' '}

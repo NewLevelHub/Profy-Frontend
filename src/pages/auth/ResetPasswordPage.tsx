@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { Eye, EyeOff, XCircle } from 'lucide-react';
@@ -15,6 +16,7 @@ const RESEND_SECONDS = 60;
 const CODE_COMPLETE = /^\d{6}$/;
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email');
@@ -45,20 +47,20 @@ export default function ResetPasswordPage() {
 
   function validatePassword(): boolean {
     let valid = true;
-    const pwdErr = (() => {
-      if (password.length < 8) return 'Минимум 8 символов';
-      if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву';
-      if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру';
+    const pwdErrKey = (() => {
+      if (password.length < 8) return 'auth:validation.passwordMin8';
+      if (!/[A-Za-z]/.test(password)) return 'auth:validation.passwordNeedsLetter';
+      if (!/\d/.test(password)) return 'auth:validation.passwordNeedsDigit';
       return '';
     })();
-    if (pwdErr) {
-      setPasswordError(pwdErr);
+    if (pwdErrKey) {
+      setPasswordError(t(pwdErrKey));
       valid = false;
     } else {
       setPasswordError('');
     }
     if (password !== confirm) {
-      setConfirmError('Пароли не совпадают');
+      setConfirmError(t('auth:validation.passwordsMismatch'));
       valid = false;
     } else {
       setConfirmError('');
@@ -69,7 +71,7 @@ export default function ResetPasswordPage() {
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     if (!CODE_COMPLETE.test(code)) {
-      setCodeError('Введите 6-значный код');
+      setCodeError(t('auth:validation.codeIncomplete'));
       return;
     }
     setCodeError('');
@@ -79,9 +81,9 @@ export default function ResetPasswordPage() {
       setStep('password');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
-        setCodeError('Слишком много попыток. Подождите и попробуйте снова');
+        setCodeError(t('auth:error.tooManyAttempts'));
       } else {
-        setCodeError('Неверный или истёкший код');
+        setCodeError(t('auth:error.invalidOrExpiredCode'));
       }
     } finally {
       setIsCodeLoading(false);
@@ -99,7 +101,7 @@ export default function ResetPasswordPage() {
       navigate('/login', { replace: true });
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
-        setFormError('Слишком много попыток. Подождите и попробуйте снова');
+        setFormError(t('auth:error.tooManyAttempts'));
       } else if (axios.isAxiosError(err) && err.response?.status === 400) {
         // Код прошёл проверку на шаге 1, но успел истечь (>15 минут) или был
         // погашен параллельной попыткой — возвращаем на ввод кода, а не
@@ -108,11 +110,11 @@ export default function ResetPasswordPage() {
         // активна по заполненности — иначе повторный сабмит даст ту же ошибку.
         setStep('code');
         setCode('');
-        setCodeError('Код истёк. Запросите новый и попробуйте снова');
+        setCodeError(t('auth:error.codeExpiredRetry'));
       } else {
         // Сеть или 5xx — код тут ни при чём. Не выбрасываем с шага пароля:
         // введённый пароль сохраняется, человек просто повторяет отправку.
-        setFormError('Ошибка. Попробуйте позже');
+        setFormError(t('auth:error.generic'));
       }
     } finally {
       setIsLoading(false);
@@ -128,12 +130,12 @@ export default function ResetPasswordPage() {
     setCodeError('');
     try {
       await authApi.forgotPassword(email);
-      setResendMessage('Если аккаунт существует — новый код уже отправлен');
+      setResendMessage(t('auth:reset.resentMaybe'));
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
-        setResendMessage('Подождите перед повторной отправкой');
+        setResendMessage(t('auth:error.waitBeforeResend'));
       } else {
-        setResendMessage('Не удалось отправить код. Попробуйте позже');
+        setResendMessage(t('auth:error.resendFailed'));
       }
     }
   }
@@ -142,18 +144,16 @@ export default function ResetPasswordPage() {
     return (
       <div className="flex flex-col items-center text-center gap-4 py-6">
         <XCircle size={40} className="text-danger" />
-        <h1 className="auth-headline-sm">Что-то пошло не так</h1>
-        <p className="text-body text-secondary">
-          Запросите код для сброса пароля заново.
-        </p>
+        <h1 className="auth-headline-sm">{t('auth:reset.noEmailTitle')}</h1>
+        <p className="text-body text-secondary">{t('auth:reset.noEmailBody')}</p>
         <Link
           to="/forgot-password"
           className="mt-1 inline-flex items-center justify-center w-full min-h-12 px-6 bg-brand text-on-brand font-medium text-label rounded-[var(--radius)] hover:bg-brand-hover transition-colors press-scale"
         >
-          Запросить код заново
+          {t('auth:reset.requestAgain')}
         </Link>
         <Link to="/login" className="text-caption text-muted hover:opacity-70 transition-opacity">
-          ← Вернуться ко входу
+          {t('auth:backToLogin')}
         </Link>
       </div>
     );
@@ -162,10 +162,13 @@ export default function ResetPasswordPage() {
   if (step === 'code') {
     return (
       <>
-        <h1 className="auth-headline-sm mt-[20px]">Введите код</h1>
+        <h1 className="auth-headline-sm mt-[20px]">{t('auth:reset.codeTitle')}</h1>
         <p className="auth-sub">
-          Если аккаунт с адресом <span className="font-semibold text-primary">{email}</span> существует,
-          {' '}код уже отправлен на эту почту.
+          <Trans
+            i18nKey="auth:reset.codeSubtitle"
+            values={{ email }}
+            components={{ b: <span className="font-semibold text-primary" /> }}
+          />
         </p>
 
         <form onSubmit={handleVerifyCode} noValidate>
@@ -177,7 +180,7 @@ export default function ResetPasswordPage() {
               error={!!codeError}
               disabled={isCodeLoading}
               autoFocus
-              aria-label="Код из письма"
+              aria-label={t('auth:verify.otpAria')}
             />
             {codeError && (
               <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
@@ -193,14 +196,14 @@ export default function ResetPasswordPage() {
             size="lg"
             className="w-full mt-[28px]"
           >
-            {isCodeLoading ? 'Проверяем...' : 'Подтвердить код'}
+            {isCodeLoading ? t('auth:reset.codeSubmitting') : t('auth:reset.codeSubmit')}
           </Button>
         </form>
 
         <div className="flex flex-col items-center gap-1 mt-[24px]">
           {resendCountdown > 0 ? (
             <p className="font-mono text-mono-xs tracking-label uppercase text-muted">
-              Отправить заново через {resendCountdown}
+              {t('auth:verify.resendIn', { seconds: resendCountdown })}
             </p>
           ) : (
             <button
@@ -208,20 +211,18 @@ export default function ResetPasswordPage() {
               onClick={handleResend}
               className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity"
             >
-              Отправить код повторно
+              {t('auth:verify.resend')}
             </button>
           )}
           {resendMessage && (
             <p className="text-small text-secondary text-center">{resendMessage}</p>
           )}
-          <p className="text-caption text-muted text-center mt-1">
-            Не пришло письмо? Проверьте папку «Спам» и правильность адреса.
-          </p>
+          <p className="text-caption text-muted text-center mt-1">{t('auth:checkSpamAddress')}</p>
           <Link
             to="/login"
             className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
           >
-            ← Вернуться ко входу
+            {t('auth:backToLogin')}
           </Link>
         </div>
       </>
@@ -230,13 +231,13 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <h1 className="auth-headline-sm mt-[20px]">Новый пароль</h1>
-      <p className="auth-sub">Придумайте новый пароль для входа.</p>
+      <h1 className="auth-headline-sm mt-[20px]">{t('auth:reset.passwordTitle')}</h1>
+      <p className="auth-sub">{t('auth:reset.passwordSubtitle')}</p>
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="mt-[32px]">
           <Input
-            label="Новый пароль"
+            label={t('auth:reset.newLabel')}
             className="pr-10"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
@@ -251,7 +252,7 @@ export default function ResetPasswordPage() {
                 tabIndex={-1}
                 onClick={() => setShowPassword(v => !v)}
                 className="text-muted hover:text-secondary transition-colors"
-                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={t(showPassword ? 'auth:field.hidePassword' : 'auth:field.showPassword')}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -262,7 +263,7 @@ export default function ResetPasswordPage() {
 
         <div className="mt-[24px]">
           <Input
-            label="Повторите пароль"
+            label={t('auth:reset.confirmLabel')}
             className="pr-10"
             type={showConfirm ? 'text' : 'password'}
             placeholder="••••••••"
@@ -276,7 +277,7 @@ export default function ResetPasswordPage() {
                 tabIndex={-1}
                 onClick={() => setShowConfirm(v => !v)}
                 className="text-muted hover:text-secondary transition-colors"
-                aria-label={showConfirm ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={t(showConfirm ? 'auth:field.hidePassword' : 'auth:field.showPassword')}
               >
                 {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -289,7 +290,7 @@ export default function ResetPasswordPage() {
         )}
 
         <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[28px]">
-          {isLoading ? 'Сохраняем...' : 'Сохранить пароль'}
+          {isLoading ? t('auth:reset.submitting') : t('auth:reset.submit')}
         </Button>
       </form>
 
@@ -298,7 +299,7 @@ export default function ResetPasswordPage() {
           to="/login"
           className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
         >
-          ← Вернуться ко входу
+          {t('auth:backToLogin')}
         </Link>
       </div>
     </>

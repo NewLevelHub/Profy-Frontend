@@ -1,13 +1,18 @@
-import { useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 
 export default function UniversityListPage() {
   const navigate = useNavigate();
+  const { slug = '' } = useParams<{ slug: string }>();
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug)}`);
+  const { t } = useTranslation('results');
   const {
     programs,
     isLoading,
@@ -18,7 +23,8 @@ export default function UniversityListPage() {
     sortDirection,
     toggleSortDirection,
     isAllowed,
-    handleProgramClick,
+    programDetailPath,
+    toggleFavorite,
     refetch,
   } = useUniversityList();
 
@@ -26,11 +32,11 @@ export default function UniversityListPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
         <span className="text-5xl select-none" aria-hidden="true">🔒</span>
-        <h2 className="text-h1 font-extrabold text-primary">Раздел недоступен</h2>
+        <h2 className="text-h1 font-extrabold text-primary">{t('universityList.lockedTitle')}</h2>
         <p className="text-body text-secondary max-w-md">
-          Этот раздел открыт для учеников старшей школы, планирующих поступление в вуз.
+          {t('universityList.lockedBody')}
         </p>
-        <Button onClick={() => navigate('/results')}>Назад к результатам</Button>
+        <Button onClick={() => navigate('/results')}>{t('common:backToResults')}</Button>
       </div>
     );
   }
@@ -38,14 +44,10 @@ export default function UniversityListPage() {
   return (
     <PageContainer className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-brand text-label font-extrabold hover:opacity-70 transition-opacity shrink-0"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Назад
-        </button>
-        <PageHeader title="Университеты" className="flex-1 min-w-0" />
+        <BackLink onClick={goBack} className="shrink-0 font-extrabold">
+          {t('common:back')}
+        </BackLink>
+        <PageHeader title={t('universityList.title')} className="flex-1 min-w-0" />
       </div>
 
       <ProgramListSection
@@ -56,7 +58,8 @@ export default function UniversityListPage() {
         onCountryChange={setActiveCountry}
         countryFilters={countryFilters}
         refetch={refetch}
-        onViewDetail={handleProgramClick}
+        detailPathFor={programDetailPath}
+        onToggleFavorite={toggleFavorite}
         sortDirection={sortDirection}
         onToggleSort={toggleSortDirection}
       />

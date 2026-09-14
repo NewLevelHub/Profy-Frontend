@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { i18n } from '@/shared/i18n';
 
 interface Props {
   children: ReactNode;
@@ -29,9 +30,11 @@ export class ErrorBoundary extends Component<Props, State> {
       <div className="min-h-screen flex flex-col items-center justify-center px-6 gap-6 text-center bg-page">
         <span className="text-5xl select-none" aria-hidden="true">💥</span>
         <div className="flex flex-col gap-2">
-          <h1 className="text-h1 font-extrabold text-primary">Что-то пошло не так</h1>
+          <h1 className="text-h1 font-extrabold text-primary">
+            {i18n.t('common:errorBoundary.title')}
+          </h1>
           <p className="text-body text-secondary max-w-xs">
-            Произошла непредвиденная ошибка. Попробуй обновить страницу.
+            {i18n.t('common:errorBoundary.body')}
           </p>
         </div>
         {import.meta.env.DEV && (
@@ -44,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
             onClick={() => window.location.reload()}
             className="px-6 py-3 bg-brand text-on-brand font-semibold rounded-pill text-base transition-opacity hover:opacity-80"
           >
-            Обновить страницу
+            {i18n.t('common:reloadPage')}
           </button>
           <button
             onClick={() => {
@@ -53,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
             }}
             className="px-6 py-3 bg-transparent text-brand font-semibold rounded-pill text-base border border-default transition-colors hover:bg-raised"
           >
-            На главную
+            {i18n.t('common:goHome')}
           </button>
         </div>
       </div>

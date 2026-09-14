@@ -149,7 +149,7 @@ export default function AdminMotivationPairDetailPage() {
         meta={MOTIVATION_CATEGORY_LABELS[detail.category_a]}
       />
 
-      <div className="bg-raised border border-default rounded-[3px] p-4">
+      <div className="bg-raised border border-default rounded-[14px] p-4">
         <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>Как увидит ученик</p>
         <div className="grid grid-cols-2 gap-3">
           {[form.text_a, form.text_b].map((text, index) => (
@@ -158,7 +158,7 @@ export default function AdminMotivationPairDetailPage() {
               // Одинаковая высота и вертикальный центр: одна сторона почти
               // всегда переносится на две строки, другая нет, и без этого
               // короткая висела в верхнем углу своей карточки.
-              className="bg-surface border border-default rounded-[3px] p-4 min-h-[72px] flex items-center justify-center text-center"
+              className="bg-surface border border-default rounded-[14px] p-4 min-h-[72px] flex items-center justify-center text-center"
             >
               <span className={cn(ADMIN_TEXT, 'text-primary text-balance')}>{text || '—'}</span>
             </div>
@@ -172,7 +172,7 @@ export default function AdminMotivationPairDetailPage() {
       {categoriesDiverged && (
         <div
           role="alert"
-          className="flex items-start gap-3 p-3 rounded-[3px] border border-danger bg-danger-subtle"
+          className="flex items-start gap-3 p-3 rounded-[14px] border border-danger bg-danger-subtle"
         >
           <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
           <div>

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { authApi } from '@/shared/api/auth';
+import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
+import { toPath } from '@/shared/lib/returnTo';
 
 export function RequireAdmin() {
   const token = useAuthStore((s) => s.token);
@@ -25,7 +27,7 @@ export function RequireAdmin() {
         const me = await authApi.me();
         if (cancelled) return;
         setUser(me);
-        setIsAdmin(Boolean(me.is_admin));
+        setIsAdmin(Boolean(me.is_admin) || me.role === 'admin');
       } catch {
         if (!cancelled) setIsAdmin(false);
       } finally {
@@ -33,7 +35,7 @@ export function RequireAdmin() {
       }
     }
 
-    if (user?.is_admin) {
+    if (user?.is_admin || user?.role === 'admin') {
       setIsAdmin(true);
       setChecking(false);
       return;
@@ -43,7 +45,7 @@ export function RequireAdmin() {
     return () => {
       cancelled = true;
     };
-  }, [hasHydrated, token, user?.is_admin, setUser]);
+  }, [hasHydrated, token, user?.is_admin, user?.role, setUser]);
 
   if (!hasHydrated || checking) {
     return (
@@ -54,11 +56,11 @@ export function RequireAdmin() {
   }
 
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: toPath(location) }} replace />;
   }
 
   if (!isAdmin) {
-    return <Navigate to="/results" replace />;
+    return <Navigate to={homePathForUser(user)} replace />;
   }
 
   return <Outlet />;

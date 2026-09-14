@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, UserPlus } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
@@ -9,7 +9,7 @@ import { printWithTitle } from '@/shared/lib/printDocument';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AGE_TIER_LABELS, USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
@@ -17,8 +17,9 @@ import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { UsersPrintReport } from './components/UsersPrintReport';
+import { CreateStaffModal } from './components/CreateStaffModal';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import type { AdminUserListItem, AgeGroup, AssessmentGoal, AssessmentStatus } from '@/shared/types';
+import type { AdminUserDetail, AdminUserListItem, AgeGroup, AssessmentGoal, AssessmentStatus } from '@/shared/types';
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'age_group', 'status', 'goal'] as const;
@@ -129,6 +130,8 @@ export default function AdminUsersPage() {
   } | null>(null);
   const [exportError, setExportError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createdUser, setCreatedUser] = useState<AdminUserDetail | null>(null);
 
   const { search, age_group: ageGroup, status, goal } = values;
 
@@ -268,9 +271,16 @@ export default function AdminUsersPage() {
               >
                 {named ? item.profile_name : item.email}
               </Link>
-              {item.is_admin && (
+              {/* `role` is the source of truth (pro-281) — `is_admin` is just
+                  its derived boolean, no longer the thing rendered here. */}
+              {item.role === 'admin' && (
                 <AdminBadge tone="brand" title="Имеет доступ в админку">
                   Админ
+                </AdminBadge>
+              )}
+              {item.role === 'psychologist' && (
+                <AdminBadge tone="accent" title="Кабинет психолога">
+                  Психолог
                 </AdminBadge>
               )}
             </span>
@@ -359,9 +369,34 @@ export default function AdminUsersPage() {
               <Download size={14} />
               Экспорт CSV
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              muteSound
+              onClick={() => {
+                setCreatedUser(null);
+                setCreateOpen(true);
+              }}
+            >
+              <UserPlus size={14} />
+              Создать сотрудника
+            </Button>
           </>
         }
       />
+
+      {createdUser && (
+        <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-[3px] border border-brand bg-brand-subtle">
+          <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>
+            Создан сотрудник <span className={ADMIN_NUM}>{createdUser.email}</span> ·{' '}
+            {USER_ROLE_LABELS[createdUser.role]}. По умолчанию список показывает только учеников — сотрудник
+            в нём не появится.
+          </p>
+          <Link to={`/admin/users/${createdUser.id}`} className={cn(ADMIN_TEXT, 'text-brand font-semibold underline whitespace-nowrap')}>
+            Открыть карточку
+          </Link>
+        </div>
+      )}
 
       <AdminToolbar
         search={{ value: search, onChange: handleSearch, placeholder: 'Email' }}
@@ -432,6 +467,12 @@ export default function AdminUsersPage() {
           filters={activeFilterLabels}
         />
       )}
+
+      <CreateStaffModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(user) => setCreatedUser(user)}
+      />
     </>
   );
 }

@@ -68,7 +68,7 @@ export function AdminSaveBar({
 
   return (
     <div
-      className="sticky bottom-0 z-30 -mx-4 sm:mx-0 border-t border-strong sm:border sm:rounded-[3px] bg-surface"
+      className="sticky bottom-0 z-30 -mx-4 sm:mx-0 border-t border-strong sm:border sm:rounded-[14px] field-tile"
       role="region"
       aria-label="Сохранение изменений"
     >

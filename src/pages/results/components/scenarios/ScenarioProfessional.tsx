@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { CareerMatchLadder, careerTierToLevel } from '@/shared/ui/MatchLadder';
 import type { AgeGroup, StudentCareer } from '@/shared/types';
@@ -11,26 +12,6 @@ interface ScenarioProfessionalProps {
   /** 'middle' | 'senior' only — junior never reaches this scenario. */
   ageGroup: AgeGroup;
 }
-
-// "ROADMAP ВЫБОРА" — middle tier: still narrowing down a direction, not yet
-// admission-specific (matches ScenarioCDowngrade's original reasoning that
-// the subject profile isn't locked in at 12–14).
-const CHOICE_HORIZONS = [
-  { id: 'h1', label: '1 МЕСЯЦ', title: 'Проверить направление на практике', description: 'Мини-проект, стажировка на день, разговор с кем-то из профессии.' },
-  { id: 'h2', label: '3 МЕСЯЦА', title: 'Сузить до 1–2 вариантов', description: 'Сравнить, что реально понравилось делать, а не только звучало интересно.' },
-  { id: 'h3', label: '6 МЕСЯЦЕВ', title: 'Принять решение', description: 'Выбрать направление и спланировать следующие конкретные шаги.' },
-];
-
-// "ROADMAP ПОСТУПЛЕНИЯ" — senior only: admission is close enough to plan
-// concretely. Temporarily hidden (the "02 · ПУТЬ ДО ПОСТУПЛЕНИЯ" section
-// below is switched off) — kept here, unused, so it's a one-line revert.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ADMISSION_HORIZONS = [
-  { id: 'h1', label: '1 МЕСЯЦ', title: 'Выбрать программы', description: 'Короткий список вузов и программ по направлению — из списка ниже.' },
-  { id: 'h2', label: '3 МЕСЯЦА', title: 'Закрыть требования', description: 'Экзамены, языковые сертификаты, портфолио — по требованиям программ.' },
-  { id: 'h3', label: '1 ГОД', title: 'Подать документы', description: 'Заявки в основные и резервные программы, дедлайны по каждой.' },
-  { id: 'h4', label: 'ДО ПОСТУПЛЕНИЯ', title: 'Получить решение', description: 'Ответы от вузов, выбор из предложений, зачисление.' },
-];
 
 /**
  * Merged "профессия + университет" scenario — `profession` and
@@ -53,13 +34,22 @@ const ADMISSION_HORIZONS = [
  * headline/copy string below.
  */
 export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessionalProps) {
-  const navigate = useNavigate();
+  const { t } = useTranslation('results');
   const isMiddle = ageGroup === 'middle';
   const sorted = useMemo(() => [...careers].sort((a, b) => a.rank - b.rank), [careers]);
   const top = sorted[0];
 
+  // "ROADMAP ВЫБОРА" — middle tier: still narrowing down a direction, not yet
+  // admission-specific (the subject profile isn't locked in at 12–14).
+  const choiceHorizons = (['h1', 'h2', 'h3'] as const).map((id) => ({
+    id,
+    label: t(`choiceHorizons.${id}.label`),
+    title: t(`choiceHorizons.${id}.title`),
+    description: t(`choiceHorizons.${id}.description`),
+  }));
+
   if (!top) {
-    return <p className="text-body text-secondary">Пока недостаточно данных, чтобы предложить направление.</p>;
+    return <p className="text-body text-secondary">{t('scenarioProfessional.notEnoughData')}</p>;
   }
 
   const level = careerTierToLevel(top.tier);
@@ -76,14 +66,13 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
   return (
     <div className="flex flex-col gap-6">
       {isBridge && (
-        <Card style={{ borderColor: 'var(--lake)', background: 'color-mix(in srgb, var(--lake) 6%, transparent)' }}>
+        <Card className="panel-glass !border-[color:color-mix(in_srgb,var(--lake)_35%,var(--border))] bg-[color-mix(in_srgb,var(--lake)_6%,var(--paper))]">
           <div className="mb-4">
-            <p className="text-label font-bold text-primary flex items-center gap-2">
-              <span aria-hidden="true">🌉</span>
-              МОСТ К ЦЕЛИ
-            </p>
-            <p className="text-caption text-secondary leading-snug mt-1">
-              Ни Глины, ни отказа: расхождение — это задача, а не приговор.
+            <span className="journey-kicker" style={{ color: 'var(--lake)' }}>
+              {t('scenarioProfessional.bridgeLabel')}
+            </span>
+            <p className="text-body-sm text-secondary leading-snug mt-1.5 m-0">
+              {t('scenarioProfessional.bridgeSubtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -92,10 +81,10 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
                 className="text-tiny font-mono font-bold uppercase tracking-label mb-2"
                 style={{ color: 'var(--pine)' }}
               >
-                УЖЕ РАБОТАЕТ В ПОЛЬЗУ ЦЕЛИ
+                {t('scenarioProfessional.alreadyWorksLabel')}
               </p>
               <ul className="flex flex-col gap-1.5">
-                {(top.matched_strengths.length > 0 ? top.matched_strengths.slice(0, 3) : ['Есть база для старта — см. «Почему подходит»']).map((s, i) => (
+                {(top.matched_strengths.length > 0 ? top.matched_strengths.slice(0, 3) : [t('scenarioProfessional.baseForStart')]).map((s, i) => (
                   <li key={i} className="text-caption text-primary leading-snug">— {s}</li>
                 ))}
               </ul>
@@ -105,11 +94,11 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
                 className="text-tiny font-mono font-bold uppercase tracking-label mb-2"
                 style={{ color: 'var(--dawn)' }}
               >
-                ПРОВЕРИТЬ ДЕЙСТВИЕМ
+                {t('scenarioProfessional.checkByActionLabel')}
               </p>
               <ul className="flex flex-col gap-1.5">
                 <li className="text-caption text-primary leading-snug">— {top.try_now}</li>
-                <li className="text-caption text-primary leading-snug">— Поговорить с кем-то, кто уже в этой сфере</li>
+                <li className="text-caption text-primary leading-snug">— {t('scenarioProfessional.talkToSomeone')}</li>
               </ul>
             </div>
             <div>
@@ -117,41 +106,40 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
                 className="text-tiny font-mono font-bold uppercase tracking-label mb-2"
                 style={{ color: 'var(--lake)' }}
               >
-                РЯДОМ С ЦЕЛЬЮ · ТА ЖЕ СИЛЬНАЯ СТОРОНА
+                {t('scenarioProfessional.nearGoalLabel')}
               </p>
               {adjacent.length > 0 ? (
                 <ul className="flex flex-col gap-2">
                   {adjacent.map((c) => (
                     <li key={c.slug} className="flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/results/directions/${encodeURIComponent(c.slug)}`)}
+                      <Link
+                        to={`/results/directions/${encodeURIComponent(c.slug)}`}
                         className="text-caption font-semibold text-primary hover:text-brand text-left"
                       >
                         {c.name}
-                      </button>
+                      </Link>
                       <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-caption text-muted">Пока нет других направлений с той же сильной стороной.</p>
+                <p className="text-caption text-muted">{t('scenarioProfessional.noAdjacent')}</p>
               )}
-              <p className="text-tiny text-muted leading-snug mt-2">Не замена цели — просто рядом.</p>
+              <p className="text-tiny text-muted leading-snug mt-2">{t('scenarioProfessional.notReplacement')}</p>
             </div>
           </div>
         </Card>
       )}
 
-      <section aria-label="Направления и профессии под цель" className="flex flex-col gap-3">
-        <div>
-          <p className="text-label font-bold text-primary font-mono uppercase tracking-label">
-            {isMiddle ? 'НАПРАВЛЕНИЯ И ПРОФЕССИИ ПОД ЦЕЛЬ' : 'НАПРАВЛЕНИЯ ПОД ЦЕЛЬ'}
-          </p>
-          <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
+      <section aria-label={t('scenarioProfessional.directionsAria')} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <span className="journey-kicker">
+            {isMiddle ? t('scenarioProfessional.directionsTitleMiddle') : t('scenarioProfessional.directionsTitleSenior')}
+          </span>
+          <p className="text-body-sm text-secondary leading-relaxed m-0 max-w-[54ch]">
             {isMiddle
-              ? 'Профессии, которые подходят по твоему профилю — открой любую, чтобы узнать больше.'
-              : 'Профессии, которые подходят по твоему профилю — открой любую, чтобы увидеть вузы и программы по ней.'}
+              ? t('scenarioProfessional.directionsSubtitleMiddle')
+              : t('scenarioProfessional.directionsSubtitleSenior')}
           </p>
         </div>
         <DirectionMatchList careers={sorted} showUniversitiesHint={!isMiddle} />
@@ -159,9 +147,9 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
 
       {isMiddle && (
         <RoadmapHorizons
-          title="ROADMAP ВЫБОРА"
-          horizons={CHOICE_HORIZONS}
-          ariaLabel="Roadmap выбора профессии: 1 месяц, 3 месяца, 6 месяцев до решения"
+          title={t('scenarioProfessional.roadmapTitle')}
+          horizons={choiceHorizons}
+          ariaLabel={t('scenarioProfessional.roadmapAria')}
           lastNodeStyle="filled"
         />
       )}

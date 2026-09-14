@@ -1,9 +1,15 @@
-import type { AgeGroup, BigFiveDomain, HollandType, Instrument, MIType, MotivationCategory, QuestionKeyed } from '@/shared/types';
+import type { AgeGroup, BigFiveDomain, HollandType, Instrument, MIType, MotivationCategory, QuestionKeyed, UserRole } from '@/shared/types';
 
 export const INSTRUMENT_LABELS: Record<Instrument, string> = {
   riasec: 'RIASEC',
   big_five: 'Big Five',
   mi: 'MI',
+};
+
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  student: 'Ученик',
+  admin: 'Админ',
+  psychologist: 'Психолог',
 };
 
 export const AGE_TIER_LABELS: Record<AgeGroup, string> = {

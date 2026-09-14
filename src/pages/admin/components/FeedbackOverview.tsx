@@ -143,7 +143,7 @@ export function FeedbackOverview({
                       : `Показать только оценку ${bar.score}`
                   }
                   className={cn(
-                    'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-0.5 transition-colors text-left',
+                    'flex items-center gap-2.5 rounded-[14px] px-1.5 -mx-1.5 py-0.5 transition-colors text-left',
                     bar.count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
                     active && 'bg-active-tint',
                   )}
@@ -184,7 +184,7 @@ export function FeedbackOverview({
                       : `Показать отзывы, отметившие раздел «${section.label}»`
                   }
                   className={cn(
-                    'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-1 transition-colors text-left',
+                    'flex items-center gap-2.5 rounded-[14px] px-1.5 -mx-1.5 py-1 transition-colors text-left',
                     section.count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
                     active && 'bg-active-tint',
                   )}
@@ -268,7 +268,7 @@ function ScoreShortcut({
       disabled={count === 0}
       title={count === 0 ? 'Таких отзывов нет' : `Показать только эти отзывы`}
       className={cn(
-        'text-left rounded-[3px] px-2 py-1.5 -mx-2 transition-colors',
+        'text-left rounded-[14px] px-2 py-1.5 -mx-2 transition-colors',
         count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
         active && activeClass,
       )}
@@ -317,7 +317,7 @@ function SliceCard({
           : 'Где отчёт заходит хуже — по возрасту и по сценарию, под который он собран.'
       }
       aside={
-        <div role="group" aria-label="Срез" className="inline-flex rounded-[3px] border border-default overflow-hidden">
+        <div role="group" aria-label="Срез" className="inline-flex rounded-[14px] border border-default overflow-hidden">
           {SLICES.map((option) => (
             <button
               key={option.key}

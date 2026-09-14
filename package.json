@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "start": "vite preview --host 0.0.0.0 --port 3000",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "i18n:parity": "node scripts/i18n-parity.mjs",
+    "i18n:plurals": "node scripts/i18n-plurals.mjs",
+    "i18n:sweep": "node scripts/i18n-sweep.mjs",
+    "i18n:subjects": "node scripts/i18n-subjects.mjs",
+    "i18n:check": "npm run i18n:parity && npm run i18n:plurals && npm run i18n:sweep && npm run i18n:subjects"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -16,9 +21,11 @@
     "@tanstack/react-query": "^5.96.1",
     "axios": "^1.14.0",
     "clsx": "2.1.1",
+    "i18next": "^25.10.10",
     "lucide-react": "0.487.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-i18next": "^16.6.6",
     "react-router": "7.13.0",
     "tailwind-merge": "3.2.0",
     "zustand": "^5.0.12"

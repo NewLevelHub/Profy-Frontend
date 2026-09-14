@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { env } from '@/shared/config/env';
 import { loadGoogleIdentityScript } from '@/shared/lib/googleIdentity';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 const MAX_WIDTH = 400;
 
@@ -14,6 +15,11 @@ export interface GoogleSignInButtonProps {
 export function GoogleSignInButton({ onCredential, onLoadError, disabled, text = 'signin_with' }: GoogleSignInButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  // Кнопку рисует сам Google, темы у неё свои. На тёмном холсте светлый
+  // вариант читается как единственное белое пятно на экране, поэтому в
+  // тёмной теме берём filled_black — это предусмотренный Google вариант,
+  // а не перекраска его кнопки своими цветами.
+  const { theme } = useTheme();
 
   // Kept in refs so the GIS callback (registered once, on script load) always
   // calls the latest handler without forcing a re-init on every render.
@@ -46,14 +52,14 @@ export function GoogleSignInButton({ onCredential, onLoadError, disabled, text =
     const width = Math.min(containerRef.current.offsetWidth || MAX_WIDTH, MAX_WIDTH);
     window.google.accounts.id.renderButton(containerRef.current, {
       type: 'standard',
-      theme: 'outline',
+      theme: theme === 'dark' ? 'filled_black' : 'outline',
       size: 'large',
       shape: 'rectangular',
       locale: 'ru',
       text,
       width,
     });
-  }, [ready, text]);
+  }, [ready, text, theme]);
 
   if (!env.GOOGLE_CLIENT_ID) return null;
 

@@ -1,12 +1,12 @@
 import { type as typeClass } from '@/shared/ui/typography/tokens';
 
 /**
- * Admin-only density tokens — "the same system at minimum volume".
- * Caption (13/1.35) is the admin body; Bricolage is reserved for exactly
- * ONE heading per screen (the page title). Machine content uses monoLabel.
+ * Admin density tokens — same journey surface language as Profile / Universities
+ * (soft paper tiles, 14px radius), kept as className fragments so the exception
+ * cannot leak into Card/Button on student pages.
  *
- * Plain className fragments, not new CSS rules — kept out of theme.css so
- * the density exception cannot leak into Card/Button on student pages.
+ * Caption remains the table/body rhythm; the display face is reserved for the
+ * page title via PageHeader.
  */
 
 /** Base text rhythm for admin table rows and body copy. */
@@ -17,11 +17,11 @@ export const ADMIN_TEXT = typeClass.caption;
  *  block. Density still well below the product default `px-4 py-3`. */
 export const ADMIN_CELL = 'px-3 py-2.5';
 
-/** The admin-wide radius ceiling. Use instead of `rounded-[var(--radius)]`. */
-export const ADMIN_RADIUS = 'rounded-[3px]';
+/** Journey tile radius — matches `.field-tile` / `.journey-feature`. */
+export const ADMIN_RADIUS = 'rounded-[14px]';
 
-/** Card shell at admin density: ≤3px radius, hairline edge, no shadow. */
-export const ADMIN_CARD = `bg-surface border border-default ${ADMIN_RADIUS} p-3`;
+/** Soft paper card — same recipe as `.field-tile`, with room to breathe. */
+export const ADMIN_CARD = `field-tile p-4`;
 
 /**
  * Mono, uppercase, tracked. Reserved for exactly TWO jobs: table column
@@ -51,7 +51,7 @@ export const ADMIN_SANS = ADMIN_TEXT;
 
 /** Compact bordered text/number input for admin edit forms. */
 export const ADMIN_INPUT =
-  'w-full rounded-[3px] border border-default bg-page text-primary px-2.5 py-2 text-body-sm focus:outline-none focus:border-brand focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)] transition-colors disabled:opacity-50';
+  'w-full rounded-[14px] border border-default bg-[color-mix(in_srgb,var(--paper)_78%,transparent)] text-primary px-3 py-2.5 text-body-sm focus:outline-none focus:border-brand focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)] transition-colors disabled:opacity-50';
 
 /** Same as `ADMIN_INPUT`, sized for multi-line text. */
 export const ADMIN_TEXTAREA = `${ADMIN_INPUT} min-h-[80px] resize-y`;
@@ -61,8 +61,8 @@ export const ADMIN_TEXTAREA = `${ADMIN_INPUT} min-h-[80px] resize-y`;
  * sit inline in a dense bar rather than in a labelled form column.
  */
 export const ADMIN_CONTROL =
-  'rounded-[3px] border border-default bg-page text-primary px-2.5 py-1.5 font-mono text-mono-xs normal-case tracking-normal focus:outline-none focus:border-brand focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)] transition-colors';
+  'rounded-[14px] border border-default bg-[color-mix(in_srgb,var(--paper)_78%,transparent)] text-primary px-3 py-1.5 font-sans text-caption normal-case tracking-normal focus:outline-none focus:border-brand focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)] transition-colors';
 
-/** Small square-ish secondary button used in bars and pagers. */
+/** Small secondary button used in bars and pagers. */
 export const ADMIN_BUTTON =
-  'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[3px] border border-default text-secondary hover:border-strong hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)]';
+  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] border border-default text-secondary hover:border-strong hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)]';

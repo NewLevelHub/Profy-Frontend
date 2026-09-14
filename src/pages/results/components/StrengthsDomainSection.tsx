@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Sparkles, Layers, Users } from 'lucide-react';
 import type { StrengthCard } from '@/shared/types';
 import { DomainCardFrame, DomainKicker, DomainListCard, DomainEmptyState } from './DomainCardParts';
@@ -16,11 +17,12 @@ const STRENGTH_ICONS = [Sparkles, Layers, Users];
 // One card per row (not a grid) — descriptions here run longer than a
 // centered grid cell reads well for.
 export function StrengthsDomainSection({ strengthCards }: StrengthsDomainSectionProps) {
+  const { t } = useTranslation('results');
   return (
-    <DomainCardFrame ariaLabel="Сильные стороны">
-      <DomainKicker>СИЛЬНЫЕ СТОРОНЫ</DomainKicker>
+    <DomainCardFrame ariaLabel={t('strengths.aria')}>
+      <DomainKicker>{t('strengths.kicker')}</DomainKicker>
       {strengthCards.length === 0 ? (
-        <DomainEmptyState>Появится по мере новых ответов.</DomainEmptyState>
+        <DomainEmptyState>{t('domain.emptyMore')}</DomainEmptyState>
       ) : (
         <div className="flex flex-col gap-3">
           {strengthCards.map((card, i) => {

@@ -24,9 +24,9 @@ interface HeadingProps {
 }
 
 /**
- * Display-role heading. Bricolage Grotesque — use at most 1–2 times per screen
- * (page title, diagnostic step name, brand moment). Never for body copy or
- * repeating section/card titles; those go through <Text>.
+ * Display-role heading. Onest at display size — use at most 1–2 times per
+ * screen (page title, diagnostic step name, brand moment). Never for body
+ * copy or repeating section/card titles; those go through <Text>.
  */
 export function Heading({
   level = 'display-md',
