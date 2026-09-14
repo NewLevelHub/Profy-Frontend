@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import {
   AGE_TIER_LABELS,
   BIGFIVE_DOMAIN_LABELS,
@@ -20,7 +21,8 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type {
   AdminQuestionDetail,
   AdminQuestionUpdateRequest,
@@ -42,6 +44,13 @@ const EDITABLE_KEYS = [
   'facet',
   'mi_category',
 ] as const satisfies readonly (keyof AdminQuestionUpdateRequest)[];
+
+/** Which of the keys above are per-locale (`{ru,kk}` map on the row) rather
+ *  than structural — drives both the PATCH body's `locale` field and the
+ *  lock check. Kept in sync with `app/models/question.py::LOCALIZED_FIELDS`
+ *  on the backend by hand — there is no shared source, so a new localized
+ *  field needs updating here too. */
+const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>(['text', 'short_text']);
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
   text: 'admin:questions.field.text',
@@ -67,10 +76,14 @@ interface FormState {
   mi_category: MIType | null;
 }
 
-function toFormState(detail: AdminQuestionDetail): FormState {
+/** `text`/`short_text` are read for `locale` specifically — no cross-locale
+ *  fallback here (unlike the student-facing read path): a blank field means
+ *  "not translated to this language yet", which is exactly what an admin
+ *  editing it needs to see, not a borrowed ru value that looks already saved. */
+function toFormState(detail: AdminQuestionDetail, locale: Locale): FormState {
   return {
-    text: detail.text,
-    short_text: detail.short_text ?? '',
+    text: detail.text[locale] ?? '',
+    short_text: detail.short_text?.[locale] ?? '',
     icon: detail.icon ?? '',
     age_tier: detail.age_tier,
     riasec_type: detail.riasec_type,
@@ -88,6 +101,7 @@ export default function AdminQuestionDetailPage() {
   const { t } = useTranslation('admin');
   const { questionId } = useParams<{ questionId: string }>();
   const [detail, setDetail] = useState<AdminQuestionDetail | null>(null);
+  const [locale, setLocale] = useState<Locale>('ru');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -115,7 +129,7 @@ export default function AdminQuestionDetailPage() {
     };
   }, [questionId, reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -124,9 +138,9 @@ export default function AdminQuestionDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (patch) => {
-      const updated = await adminApi.updateQuestion(questionId!, patch as AdminQuestionUpdateRequest);
+      const updated = await adminApi.updateQuestion(questionId!, { ...patch, locale } as AdminQuestionUpdateRequest);
       setDetail(updated);
       return updated;
     },
@@ -137,7 +151,15 @@ export default function AdminQuestionDetailPage() {
     return <AdminError message={loadError || t('questions.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  const locked = new Set(
+    EDITABLE_KEYS.filter((key) =>
+      LOCALIZED_KEYS.has(key)
+        ? isLocalizedFieldLocked(detail.overrides, key, locale)
+        : key in detail.overrides,
+    ),
+  );
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.text[l]));
+  const headerText = detail.short_text?.[locale] || detail.text[locale] || detail.text.ru || '';
 
   return (
     <>
@@ -149,16 +171,17 @@ export default function AdminQuestionDetailPage() {
       <AdminPageHeader
         crumbs={[
           { label: t('questions.title'), to: listReturnPath('/admin/content/questions') },
-          { label: detail.short_text || detail.text },
+          { label: headerText },
         ]}
-        title={detail.short_text || detail.text}
+        title={headerText}
         meta={
           <p className={cn(ADMIN_META, 'm-0 flex items-center gap-2')}>
-            <LocaleBadge locale={detail.locale} />
             {INSTRUMENT_LABELS[detail.instrument]} · {AGE_TIER_LABELS[detail.age_tier]} · {t('questions.orderInline', { order: detail.order })}
           </p>
         }
       />
+
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
       {/* What the student actually sees, built from the values in the form —
           the previous screen was a bare list of inputs with no way to tell how

@@ -6,29 +6,24 @@ import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
-import { MOTIVATION_CATEGORY_LABELS, contentLocaleOptions } from '@/shared/lib/contentLabels';
+import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
-import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { useDetailPreviews } from './useDetailPreviews';
 import type { AdminMotivationPairListItem } from '@/shared/types';
-import type { Locale } from '@/shared/store/locale';
 
-// 18 logical pairs, one row per locale since KZ-301 — the whole bank is 36
-// rows. The balance check below only runs when the entire list is on screen,
-// so the page has to stay big enough to hold it (endpoint caps `limit` at 100).
+// 18 logical pairs, one row per pair now (no more per-locale duplication).
+// The balance check below only runs when the entire list is on screen, so the
+// page has to stay big enough to hold it (endpoint caps `limit` at 100).
 const PAGE_SIZE = 40;
-const FILTER_KEYS = ['locale'] as const;
 
 export default function AdminMotivationPairsPage() {
-  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  const { page, setPage } = useAdminListParams([]);
   const { t } = useTranslation('admin');
-  const { locale } = values;
   useRememberListQuery('/admin/content/motivation-pairs');
   const [items, setItems] = useState<AdminMotivationPairListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -43,11 +38,7 @@ export default function AdminMotivationPairsPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await adminApi.listMotivationPairs({
-          page,
-          limit: PAGE_SIZE,
-          locale: (locale as Locale) || undefined,
-        });
+        const data = await adminApi.listMotivationPairs({ page, limit: PAGE_SIZE });
         if (cancelled) return;
         setItems(data.items);
         setTotal(data.total);
@@ -62,10 +53,12 @@ export default function AdminMotivationPairsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, locale, reloadToken]);
+  }, [page, reloadToken]);
 
+  // The admin panel itself stays ru-only (i18n-contract §2) — the list
+  // preview always shows the ru text.
   const previews = useDetailPreviews('motivation-pairs', items.map((item) => item.id), (id) =>
-    adminApi.getMotivationPair(id).then((detail) => ({ textA: detail.text_a, textB: detail.text_b })),
+    adminApi.getMotivationPair(id).then((detail) => ({ textA: detail.text_a.ru, textB: detail.text_b.ru })),
   );
 
   const mismatched = items.filter((item) => item.category_a !== item.category_b).length;
@@ -77,17 +70,11 @@ export default function AdminMotivationPairsPage() {
    * одной странице такой вывод был бы неверным.
    */
   const wholeList = !loading && items.length === total;
-  // Counted per (locale, category), not per category: every locale carries its
-  // own complete set of pairs, so counting across locales makes each category
-  // look like it has 4 — the whole bank would report as unbalanced.
   const unbalanced = wholeList
     ? [...items.reduce((counts, item) => {
-        const key = `${item.locale}:${item.category_a}`;
-        counts.set(key, (counts.get(key) ?? 0) + 1);
+        counts.set(item.category_a, (counts.get(item.category_a) ?? 0) + 1);
         return counts;
-      }, new Map<string, number>())]
-        .filter(([, count]) => count !== 2)
-        .map(([key, count]) => [key.slice(key.indexOf(':') + 1), count] as [string, number])
+      }, new Map<string, number>())].filter(([, count]) => count !== 2)
     : [];
 
   const columns: AdminColumn<AdminMotivationPairListItem>[] = [
@@ -148,14 +135,6 @@ export default function AdminMotivationPairsPage() {
         ) : null,
     },
     {
-      key: 'locale',
-      header: t('common.col.locale'),
-      width: '88px',
-      mobile: 'badge',
-      headerTitle: t('questionPairs.col.localeHint'),
-      cell: (item) => <LocaleBadge locale={item.locale} />,
-    },
-    {
       key: 'overrides',
       header: '',
       align: 'right',
@@ -170,19 +149,6 @@ export default function AdminMotivationPairsPage() {
       <AdminListHeader
         title={t('motivationPairs.title')}
         description={t('motivationPairs.description')}
-      />
-
-      <AdminToolbar
-        selects={[
-          {
-            key: 'locale',
-            label: t('common.col.locale'),
-            value: locale,
-            options: contentLocaleOptions(t),
-          },
-        ]}
-        onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
-        onClearAll={clearFilters}
       />
 
       {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}

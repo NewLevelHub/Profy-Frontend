@@ -5,21 +5,19 @@ import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
-import { AGE_TIER_LABELS, INSTRUMENT_LABELS, contentLocaleOptions } from '@/shared/lib/contentLabels';
+import { AGE_TIER_LABELS, INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
 import { ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { useDetailPreviews } from './useDetailPreviews';
 import type { AdminQuestionPairListItem, AgeGroup, Instrument } from '@/shared/types';
-import type { Locale } from '@/shared/store/locale';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['instrument', 'age_tier', 'locale'] as const;
+const FILTER_KEYS = ['instrument', 'age_tier'] as const;
 
 export default function AdminQuestionPairsPage() {
   const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
@@ -31,12 +29,15 @@ export default function AdminQuestionPairsPage() {
   const [error, setError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
 
-  const { instrument, age_tier: ageTier, locale } = values;
+  const { instrument, age_tier: ageTier } = values;
+  // The admin panel itself stays ru-only (i18n-contract §2) — the list
+  // preview always shows the ru text, regardless of which language the row
+  // was last edited in.
   const previews = useDetailPreviews('question-pairs', items.map((item) => item.id), (id) =>
     adminApi.getQuestionPair(id).then((detail) => ({
-      optionA: detail.option_a_text,
-      optionB: detail.option_b_text,
-      frame: detail.frame,
+      optionA: detail.option_a_text?.ru ?? null,
+      optionB: detail.option_b_text?.ru ?? null,
+      frame: detail.frame?.ru ?? null,
     })),
   );
 
@@ -52,7 +53,6 @@ export default function AdminQuestionPairsPage() {
           limit: PAGE_SIZE,
           instrument: (instrument as Instrument) || undefined,
           age_tier: (ageTier as AgeGroup) || undefined,
-          locale: (locale as Locale) || undefined,
         });
         if (cancelled) return;
         setItems(data.items);
@@ -68,7 +68,7 @@ export default function AdminQuestionPairsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, instrument, ageTier, locale, reloadToken]);
+  }, [page, instrument, ageTier, reloadToken]);
 
   const columns: AdminColumn<AdminQuestionPairListItem>[] = [
     {
@@ -127,14 +127,6 @@ export default function AdminQuestionPairsPage() {
       cell: (item) => <span className="text-secondary">{AGE_TIER_LABELS[item.age_tier]}</span>,
     },
     {
-      key: 'locale',
-      header: t('common.col.locale'),
-      width: '88px',
-      mobile: 'badge',
-      headerTitle: t('questionPairs.col.localeHint'),
-      cell: (item) => <LocaleBadge locale={item.locale} />,
-    },
-    {
       key: 'overrides',
       header: '',
       align: 'right',
@@ -170,12 +162,6 @@ export default function AdminQuestionPairsPage() {
               value: key,
               label: AGE_TIER_LABELS[key],
             })),
-          },
-          {
-            key: 'locale',
-            label: t('common.col.locale'),
-            value: locale,
-            options: contentLocaleOptions(t),
           },
         ]}
         onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}

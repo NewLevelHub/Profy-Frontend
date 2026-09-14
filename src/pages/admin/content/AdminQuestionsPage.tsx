@@ -11,7 +11,6 @@ import {
   HOLLAND_TYPE_LABELS,
   INSTRUMENT_LABELS,
   MI_TYPE_LABELS,
-  contentLocaleOptions,
 } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
@@ -19,13 +18,11 @@ import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTab
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
 import { MONO_MUTE } from '@/shared/ui/admin/density';
 import type { AdminQuestionListItem, AgeGroup, BigFiveDomain, HollandType, Instrument, MIType } from '@/shared/types';
-import type { Locale } from '@/shared/store/locale';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['search', 'instrument', 'age_tier', 'locale'] as const;
+const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
 
 /**
  * The scored category, named rather than coded.
@@ -65,7 +62,7 @@ export default function AdminQuestionsPage() {
   const [error, setError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
 
-  const { search, instrument, age_tier: ageTier, locale } = values;
+  const { search, instrument, age_tier: ageTier } = values;
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +77,6 @@ export default function AdminQuestionsPage() {
           instrument: (instrument as Instrument) || undefined,
           age_tier: (ageTier as AgeGroup) || undefined,
           search: search || undefined,
-          locale: (locale as Locale) || undefined,
         });
         if (cancelled) return;
         setItems(data.items);
@@ -96,7 +92,7 @@ export default function AdminQuestionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, instrument, ageTier, search, locale, reloadToken]);
+  }, [page, instrument, ageTier, search, reloadToken]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
 
@@ -141,14 +137,6 @@ export default function AdminQuestionsPage() {
       mobile: 'field',
       headerTitle: t('questions.col.ageHint'),
       cell: (item) => <span className="text-secondary">{AGE_TIER_LABELS[item.age_tier]}</span>,
-    },
-    {
-      key: 'locale',
-      header: t('common.col.locale'),
-      width: '88px',
-      mobile: 'badge',
-      headerTitle: t('questions.col.localeHint'),
-      cell: (item) => <LocaleBadge locale={item.locale} />,
     },
     {
       key: 'order',
@@ -200,12 +188,6 @@ export default function AdminQuestionsPage() {
               value: key,
               label: AGE_TIER_LABELS[key],
             })),
-          },
-          {
-            key: 'locale',
-            label: t('common.col.locale'),
-            value: locale,
-            options: contentLocaleOptions(t),
           },
         ]}
         onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}

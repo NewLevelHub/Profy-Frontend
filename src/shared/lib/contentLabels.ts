@@ -1,5 +1,4 @@
 import type { AgeGroup, BigFiveDomain, HollandType, Instrument, MIType, MotivationCategory, QuestionKeyed } from '@/shared/types';
-import { KNOWN_LOCALES } from '@/shared/store/locale';
 import type { Locale } from '@/shared/store/locale';
 
 export const INSTRUMENT_LABELS: Record<Instrument, string> = {
@@ -65,31 +64,18 @@ export const MOTIVATION_CATEGORY_LABELS: Record<MotivationCategory, string> = {
 };
 
 /**
- * Locale of a bank-seeded content row. Since KZ-301 one logical content unit
- * is stored as one row per locale, so every admin content list shows both —
- * without this column the ru and kk copies of the same question are
- * indistinguishable, and it is not clear which one an edit will hit.
+ * Full/compact labels for a bank-seeded content row's language, used by
+ * `LocaleTabs` (the ru/kk view switcher on a content detail screen — one row
+ * per question/pair/statement/direction holds both languages now, so which
+ * one you're looking at is a view choice, not a row property).
  */
 export const CONTENT_LOCALE_LABELS: Record<Locale, string> = {
   ru: 'admin:locale.ru',
   kk: 'admin:locale.kk',
 };
 
-/** Compact form for the table cell, where the full name does not fit. */
+/** Compact form for the tab button, where the full name does not fit. */
 export const CONTENT_LOCALE_SHORT: Record<Locale, string> = {
   ru: 'RU',
   kk: 'KK',
 };
-
-/**
- * Toolbar filter options — one per locale the content tables can hold.
- *
- * A factory rather than a constant: the labels are catalog keys now (KZ-202),
- * and a module-level constant has no `t` to resolve them with.
- */
-export function contentLocaleOptions(t: (key: string) => string) {
-  return KNOWN_LOCALES.map((locale) => ({
-    value: locale,
-    label: t(CONTENT_LOCALE_LABELS[locale]),
-  }));
-}

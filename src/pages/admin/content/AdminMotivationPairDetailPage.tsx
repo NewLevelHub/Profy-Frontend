@@ -5,6 +5,7 @@ import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -14,7 +15,8 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type { AdminMotivationPairDetail, AdminMotivationPairUpdateRequest, MotivationCategory } from '@/shared/types';
 
 const EDITABLE_KEYS = ['category', 'text_a', 'text_b'] as const;
@@ -31,11 +33,11 @@ interface FormState {
   text_b: string;
 }
 
-function toFormState(detail: AdminMotivationPairDetail): FormState {
+function toFormState(detail: AdminMotivationPairDetail, locale: Locale): FormState {
   // `category_a` and `category_b` are meant to always be equal — a pair is two
   // poles of ONE category, not a comparison of two. The form exposes a single
   // selector and writes both on save.
-  return { category: detail.category_a, text_a: detail.text_a, text_b: detail.text_b };
+  return { category: detail.category_a, text_a: detail.text_a[locale] ?? '', text_b: detail.text_b[locale] ?? '' };
 }
 
 const LOCK_REASON =
@@ -45,6 +47,7 @@ export default function AdminMotivationPairDetailPage() {
   const { t } = useTranslation('admin');
   const { pairId } = useParams<{ pairId: string }>();
   const [detail, setDetail] = useState<AdminMotivationPairDetail | null>(null);
+  const [locale, setLocale] = useState<Locale>('ru');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -103,7 +106,7 @@ export default function AdminMotivationPairDetailPage() {
     };
   }, [reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, patch, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -112,9 +115,9 @@ export default function AdminMotivationPairDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (nextPatch) => {
-      const wire: AdminMotivationPairUpdateRequest = {};
+      const wire: AdminMotivationPairUpdateRequest = { locale };
       if ('category' in nextPatch) {
         wire.category_a = form!.category;
         wire.category_b = form!.category;
@@ -132,7 +135,15 @@ export default function AdminMotivationPairDetailPage() {
     return <AdminError message={loadError || t('questionPairs.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  // Not a plain `EDITABLE_KEYS.filter` like the other detail pages — the form
+  // exposes one `category` selector but writes wire/override keys
+  // `category_a`/`category_b` separately (see `onSave` below), so the two
+  // key sets don't line up 1:1.
+  const locked = new Set<string>();
+  if ('category_a' in detail.overrides || 'category_b' in detail.overrides) locked.add('category');
+  if (isLocalizedFieldLocked(detail.overrides, 'text_a', locale)) locked.add('text_a');
+  if (isLocalizedFieldLocked(detail.overrides, 'text_b', locale)) locked.add('text_b');
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.text_a[l]));
   const categoriesDiverged = detail.category_a !== detail.category_b;
 
   // Что станет с балансом, если сохранить выбранную сейчас категорию.
@@ -150,11 +161,12 @@ export default function AdminMotivationPairDetailPage() {
         title={t('motivationPairs.detailTitle', { index: detail.pair_index })}
         meta={
           <span className="flex items-center gap-2">
-            <LocaleBadge locale={detail.locale} />
             {t(MOTIVATION_CATEGORY_LABELS[detail.category_a])}
           </span>
         }
       />
+
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
       <div className="bg-raised border border-default rounded-[3px] p-4">
         <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>

@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import { AGE_TIER_LABELS, INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -12,8 +13,9 @@ import { AdminField } from '@/shared/ui/admin/AdminField';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
-import type { AdminQuestionPairDetail, AdminQuestionPairUpdateRequest } from '@/shared/types';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
+import type { AdminQuestionDetail, AdminQuestionPairDetail, AdminQuestionPairUpdateRequest } from '@/shared/types';
 
 const EDITABLE_KEYS = [
   'frame',
@@ -22,6 +24,11 @@ const EDITABLE_KEYS = [
   'option_a_icon',
   'option_b_icon',
 ] as const satisfies readonly (keyof AdminQuestionPairUpdateRequest)[];
+
+/** See `AdminQuestionDetailPage.LOCALIZED_KEYS` — kept in sync with
+ *  `app/models/question_pair.py::LOCALIZED_FIELDS` by hand. Icons are NOT
+ *  localized (shared emoji, per scripts/question_pairing.py's own docstring). */
+const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>(['frame', 'option_a_text', 'option_b_text']);
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
   frame: 'admin:questionPairs.field.frame',
@@ -39,11 +46,11 @@ interface FormState {
   option_b_icon: string;
 }
 
-function toFormState(detail: AdminQuestionPairDetail): FormState {
+function toFormState(detail: AdminQuestionPairDetail, locale: Locale): FormState {
   return {
-    frame: detail.frame ?? '',
-    option_a_text: detail.option_a_text ?? '',
-    option_b_text: detail.option_b_text ?? '',
+    frame: detail.frame?.[locale] ?? '',
+    option_a_text: detail.option_a_text?.[locale] ?? '',
+    option_b_text: detail.option_b_text?.[locale] ?? '',
     option_a_icon: detail.option_a_icon ?? '',
     option_b_icon: detail.option_b_icon ?? '',
   };
@@ -52,17 +59,34 @@ function toFormState(detail: AdminQuestionPairDetail): FormState {
 const LOCK_REASON =
   'admin:common.lockReason';
 
-/** Text and icon of a linked question — what a blank option falls back to. */
+/** Text and icon of a linked question, in the currently-viewed language —
+ *  what a blank option falls back to. */
 interface Fallback {
   text: string;
   icon: string;
+}
+
+/** One `Fallback` per known locale, resolved from a linked Question's own
+ *  `text`/`short_text` maps (falling back to `ru` per-locale, same as the
+ *  student-facing read path). */
+function toFallbackByLocale(question: AdminQuestionDetail): Record<Locale, Fallback> {
+  return Object.fromEntries(
+    KNOWN_LOCALES.map((l) => [
+      l,
+      { text: question.short_text?.[l] ?? question.text[l] ?? question.text.ru ?? '', icon: question.icon ?? '' },
+    ]),
+  ) as Record<Locale, Fallback>;
 }
 
 export default function AdminQuestionPairDetailPage() {
   const { t } = useTranslation('admin');
   const { pairId } = useParams<{ pairId: string }>();
   const [detail, setDetail] = useState<AdminQuestionPairDetail | null>(null);
-  const [fallbacks, setFallbacks] = useState<{ a: Fallback | null; b: Fallback | null }>({ a: null, b: null });
+  const [locale, setLocale] = useState<Locale>('ru');
+  const [fallbacks, setFallbacks] = useState<{ a: Record<Locale, Fallback> | null; b: Record<Locale, Fallback> | null }>({
+    a: null,
+    b: null,
+  });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -84,15 +108,17 @@ export default function AdminQuestionPairDetailPage() {
         // question, so without this the screen could not answer the only
         // question it exists to answer: what will the student actually see.
         // The detail endpoint does not resolve this itself — see
-        // docs/admin-backend-requests-pro-242.md §11.
+        // docs/admin-backend-requests-pro-242.md §11. Both languages are
+        // resolved up front too, so switching the locale tab doesn't need a
+        // second round trip.
         const [a, b] = await Promise.allSettled([
           adminApi.getQuestion(data.question_a_id),
           adminApi.getQuestion(data.question_b_id),
         ]);
         if (cancelled) return;
         setFallbacks({
-          a: a.status === 'fulfilled' ? { text: a.value.short_text ?? a.value.text, icon: a.value.icon ?? '' } : null,
-          b: b.status === 'fulfilled' ? { text: b.value.short_text ?? b.value.text, icon: b.value.icon ?? '' } : null,
+          a: a.status === 'fulfilled' ? toFallbackByLocale(a.value) : null,
+          b: b.status === 'fulfilled' ? toFallbackByLocale(b.value) : null,
         });
       } catch {
         if (!cancelled) setLoadError(t('questionPairs.loadOneError'));
@@ -107,7 +133,7 @@ export default function AdminQuestionPairDetailPage() {
     };
   }, [pairId, reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, patch, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -116,7 +142,7 @@ export default function AdminQuestionPairDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (nextPatch) => {
       const updated = await adminApi.updateQuestionPair(pairId!, nextPatch as AdminQuestionPairUpdateRequest);
       setDetail(updated);
@@ -129,25 +155,36 @@ export default function AdminQuestionPairDetailPage() {
     return <AdminError message={loadError || t('questionPairs.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  const locked = new Set(
+    EDITABLE_KEYS.filter((key) =>
+      LOCALIZED_KEYS.has(key)
+        ? isLocalizedFieldLocked(detail.overrides, key, locale)
+        : key in detail.overrides,
+    ),
+  );
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.frame?.[l] || detail.option_a_text?.[l]));
+  const fallbackA = fallbacks.a?.[locale] ?? null;
+  const fallbackB = fallbacks.b?.[locale] ?? null;
 
   /**
    * An empty box means "no override — use the linked question", and the wire
    * value for that is null, not ''. Converted at save time so the form can
-   * keep using '' for "empty" everywhere else.
+   * keep using '' for "empty" everywhere else. `locale` is attached whenever
+   * any localized field changed (option_a_icon/option_b_icon need it too, in
+   * this shared PATCH — backend ignores it when nothing localized is present).
    */
   function handleSave() {
-    const wire: AdminQuestionPairUpdateRequest = {};
+    const wire: AdminQuestionPairUpdateRequest = { locale };
     for (const key of Object.keys(patch) as (keyof FormState)[]) {
       wire[key] = form![key].trim() || null;
     }
     void save(wire as Partial<FormState>);
   }
 
-  const effectiveA = form.option_a_text.trim() || fallbacks.a?.text || '';
-  const effectiveB = form.option_b_text.trim() || fallbacks.b?.text || '';
-  const effectiveIconA = form.option_a_icon.trim() || fallbacks.a?.icon || '';
-  const effectiveIconB = form.option_b_icon.trim() || fallbacks.b?.icon || '';
+  const effectiveA = form.option_a_text.trim() || fallbackA?.text || '';
+  const effectiveB = form.option_b_text.trim() || fallbackB?.text || '';
+  const effectiveIconA = form.option_a_icon.trim() || fallbackA?.icon || '';
+  const effectiveIconB = form.option_b_icon.trim() || fallbackB?.icon || '';
 
   return (
     <>
@@ -159,11 +196,12 @@ export default function AdminQuestionPairDetailPage() {
         title={t('questionPairs.detailTitle', { index: detail.pair_index })}
         meta={
           <span className="flex items-center gap-2">
-            <LocaleBadge locale={detail.locale} />
             {`${INSTRUMENT_LABELS[detail.instrument]} · ${AGE_TIER_LABELS[detail.age_tier]}`}
           </span>
         }
       />
+
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
       <PairPreview
         frame={form.frame}
@@ -193,7 +231,7 @@ export default function AdminQuestionPairDetailPage() {
         <PairSideCard
           label={t('questionPairs.sideA')}
           questionId={detail.question_a_id}
-          fallback={fallbacks.a}
+          fallback={fallbackA}
           text={form.option_a_text}
           icon={form.option_a_icon}
           onTextChange={(v) => setField('option_a_text', v)}
@@ -204,7 +242,7 @@ export default function AdminQuestionPairDetailPage() {
         <PairSideCard
           label={t('questionPairs.sideB')}
           questionId={detail.question_b_id}
-          fallback={fallbacks.b}
+          fallback={fallbackB}
           text={form.option_b_text}
           icon={form.option_b_icon}
           onTextChange={(v) => setField('option_b_text', v)}

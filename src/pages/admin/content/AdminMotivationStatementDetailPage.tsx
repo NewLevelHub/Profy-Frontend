@@ -5,6 +5,7 @@ import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -14,7 +15,8 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type {
   AdminMotivationStatementDetail,
   AdminMotivationStatementListItem,
@@ -23,6 +25,10 @@ import type {
 } from '@/shared/types';
 
 const EDITABLE_KEYS = ['category', 'text', 'text_junior'] as const satisfies readonly (keyof AdminMotivationStatementUpdateRequest)[];
+
+/** See `AdminQuestionDetailPage.LOCALIZED_KEYS` — kept in sync with
+ *  `app/models/motivation.py::LOCALIZED_FIELDS` by hand. */
+const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>(['text', 'text_junior']);
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
   category: 'admin:statements.field.category',
@@ -36,11 +42,11 @@ interface FormState {
   text_junior: string;
 }
 
-function toFormState(detail: AdminMotivationStatementDetail): FormState {
+function toFormState(detail: AdminMotivationStatementDetail, locale: Locale): FormState {
   return {
     category: detail.category,
-    text: detail.text,
-    text_junior: detail.text_junior ?? '',
+    text: detail.text[locale] ?? '',
+    text_junior: detail.text_junior?.[locale] ?? '',
   };
 }
 
@@ -54,6 +60,7 @@ export default function AdminMotivationStatementDetailPage() {
   const { t } = useTranslation('admin');
   const { statementId } = useParams<{ statementId: string }>();
   const [detail, setDetail] = useState<AdminMotivationStatementDetail | null>(null);
+  const [locale, setLocale] = useState<Locale>('ru');
   const [siblings, setSiblings] = useState<AdminMotivationStatementListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -93,7 +100,7 @@ export default function AdminMotivationStatementDetailPage() {
     };
   }, [statementId, reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, patch, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -102,9 +109,9 @@ export default function AdminMotivationStatementDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (nextPatch) => {
-      const wire = { ...nextPatch } as AdminMotivationStatementUpdateRequest;
+      const wire = { ...nextPatch, locale } as AdminMotivationStatementUpdateRequest;
       if ('text_junior' in wire) wire.text_junior = form!.text_junior.trim() || null;
       const updated = await adminApi.updateMotivationStatement(statementId!, wire);
       setDetail(updated);
@@ -117,8 +124,16 @@ export default function AdminMotivationStatementDetailPage() {
     return <AdminError message={loadError || t('statements.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  const locked = new Set(
+    EDITABLE_KEYS.filter((key) =>
+      LOCALIZED_KEYS.has(key)
+        ? isLocalizedFieldLocked(detail.overrides, key, locale)
+        : key in detail.overrides,
+    ),
+  );
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.text[l]));
   const conflicting = siblings.filter((sibling) => sibling.category === form.category);
+  const headerText = detail.text[locale] || detail.text.ru || '';
 
   return (
     <>
@@ -127,14 +142,15 @@ export default function AdminMotivationStatementDetailPage() {
           { label: t('statements.title'), to: listReturnPath('/admin/content/motivation-statements') },
           { label: t('statements.triplet', { index: detail.triplet_index }) },
         ]}
-        title={detail.text}
+        title={headerText}
         meta={
           <p className={cn(ADMIN_META, 'm-0')}>
-            <LocaleBadge locale={detail.locale} />{' '}
             {t('statements.detailMeta', { index: detail.triplet_index, category: t(MOTIVATION_CATEGORY_LABELS[detail.category]) })}
           </p>
         }
       />
+
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
       <AdminCard
         title={t('common.contentCard')}

@@ -6,61 +6,47 @@ import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
-import { MOTIVATION_CATEGORY_LABELS, contentLocaleOptions } from '@/shared/lib/contentLabels';
+import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminEmpty, AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
-import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AdminMotivationStatementListItem } from '@/shared/types';
-import type { Locale } from '@/shared/store/locale';
 
 /**
  * A triplet (3 statements the student ranks MOST / NEUTRAL / LEAST) is the unit
  * of this content — a single statement in isolation is not editable content,
  * it is one third of a forced-choice screen. The endpoint takes `limit` up to
- * 100, and the bank holds ~36 statements, so a page of 33 triplets fetches the
- * whole set in one request and lets them be grouped honestly.
+ * 100, and the bank holds 36 statements (one row per statement now — see
+ * `groupByTriplet`), so a page of 12 triplets fetches the whole set in one
+ * request and lets them be grouped honestly.
  *
  * If the bank ever outgrows this, paging still works — a triplet split across
  * a page boundary would then render as a partial group, which the group header
  * calls out rather than hiding.
  */
 const PAGE_SIZE = 99;
-const FILTER_KEYS = ['locale'] as const;
 
 interface Triplet {
   index: number;
-  locale: Locale;
   items: AdminMotivationStatementListItem[];
 }
 
-/**
- * Grouped by (locale, triplet index) — NOT by index alone.
- *
- * Since KZ-301 each triplet exists once per locale, so keying on the index
- * alone merged the ru and the kk copy into one group of six in which every
- * category appears exactly twice. `findDuplicateCategories` then reported
- * every triplet in the bank as broken. A triplet is a per-locale unit: three
- * statements the student ranks, in one language.
- */
+/** One row per statement now — a triplet is just its 3 rows sharing an index. */
 function groupByTriplet(items: readonly AdminMotivationStatementListItem[]): Triplet[] {
-  const groups = new Map<string, AdminMotivationStatementListItem[]>();
+  const groups = new Map<number, AdminMotivationStatementListItem[]>();
   for (const item of items) {
-    const key = `${item.locale}:${item.triplet_index}`;
-    const list = groups.get(key) ?? [];
+    const list = groups.get(item.triplet_index) ?? [];
     list.push(item);
-    groups.set(key, list);
+    groups.set(item.triplet_index, list);
   }
   return [...groups.values()]
     .map((list) => ({
       index: list[0].triplet_index,
-      locale: list[0].locale,
       items: [...list].sort((a, b) => a.order - b.order),
     }))
-    .sort((a, b) => a.index - b.index || a.locale.localeCompare(b.locale));
+    .sort((a, b) => a.index - b.index);
 }
 
 /**
@@ -80,9 +66,8 @@ function findDuplicateCategories(triplet: Triplet): string[] {
 }
 
 export default function AdminMotivationStatementsPage() {
-  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  const { page, setPage } = useAdminListParams([]);
   const { t } = useTranslation('admin');
-  const { locale } = values;
   useRememberListQuery('/admin/content/motivation-statements');
   const [items, setItems] = useState<AdminMotivationStatementListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -97,11 +82,7 @@ export default function AdminMotivationStatementsPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await adminApi.listMotivationStatements({
-          page,
-          limit: PAGE_SIZE,
-          locale: (locale as Locale) || undefined,
-        });
+        const data = await adminApi.listMotivationStatements({ page, limit: PAGE_SIZE });
         if (cancelled) return;
         setItems(data.items);
         setTotal(data.total);
@@ -116,7 +97,7 @@ export default function AdminMotivationStatementsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, locale, reloadToken]);
+  }, [page, reloadToken]);
 
   const triplets = groupByTriplet(items);
   const brokenCount = triplets.filter((t) => findDuplicateCategories(t).length > 0).length;
@@ -126,19 +107,6 @@ export default function AdminMotivationStatementsPage() {
       <AdminListHeader
         title={t('statements.title')}
         description={t('statements.description')}
-      />
-
-      <AdminToolbar
-        selects={[
-          {
-            key: 'locale',
-            label: t('common.col.locale'),
-            value: locale,
-            options: contentLocaleOptions(t),
-          },
-        ]}
-        onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
-        onClearAll={clearFilters}
       />
 
       {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
@@ -167,7 +135,7 @@ export default function AdminMotivationStatementsPage() {
       ) : (
         <ul className="flex flex-col gap-3 m-0 p-0 list-none">
           {triplets.map((triplet) => (
-            <TripletCard key={`${triplet.locale}:${triplet.index}`} triplet={triplet} />
+            <TripletCard key={triplet.index} triplet={triplet} />
           ))}
         </ul>
       )}
@@ -192,7 +160,6 @@ function TripletCard({ triplet }: { triplet: Triplet }) {
       <div className="flex items-center justify-between gap-3 px-3 py-2 bg-raised border-b border-default">
         <span className={cn(ADMIN_TEXT, 'flex items-center gap-2 font-semibold text-primary tabular-nums')}>
           {t('statements.triplet', { index: triplet.index })}
-          <LocaleBadge locale={triplet.locale} />
         </span>
         {duplicates.length > 0 ? (
           <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-semibold')}>

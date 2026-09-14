@@ -10,13 +10,10 @@ import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTab
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
-import { contentLocaleOptions } from '@/shared/lib/contentLabels';
 import type { AdminDirectionListItem } from '@/shared/types';
-import type { Locale } from '@/shared/store/locale';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['search', 'locale'] as const;
+const FILTER_KEYS = ['search'] as const;
 
 export default function AdminDirectionsPage() {
   const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
@@ -28,7 +25,7 @@ export default function AdminDirectionsPage() {
   const [error, setError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
 
-  const { search, locale } = values;
+  const { search } = values;
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +38,6 @@ export default function AdminDirectionsPage() {
           page,
           limit: PAGE_SIZE,
           search: search || undefined,
-          locale: (locale as Locale) || undefined,
         });
         if (cancelled) return;
         setItems(data.items);
@@ -57,7 +53,7 @@ export default function AdminDirectionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, search, locale, reloadToken]);
+  }, [page, search, reloadToken]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
 
@@ -100,14 +96,6 @@ export default function AdminDirectionsPage() {
       ),
     },
     {
-      key: 'locale',
-      header: t('common.col.locale'),
-      width: '88px',
-      mobile: 'badge',
-      headerTitle: t('directions.col.localeHint'),
-      cell: (item) => <LocaleBadge locale={item.locale} />,
-    },
-    {
       key: 'overrides',
       header: '',
       align: 'right',
@@ -126,14 +114,6 @@ export default function AdminDirectionsPage() {
 
       <AdminToolbar
         search={{ value: search, onChange: handleSearch, placeholder: t('directions.searchPlaceholder') }}
-        selects={[
-          {
-            key: 'locale',
-            label: t('common.col.locale'),
-            value: locale,
-            options: contentLocaleOptions(t),
-          },
-        ]}
         onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
         onClearAll={clearFilters}
       />

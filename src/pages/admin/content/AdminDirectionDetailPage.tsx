@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -12,7 +13,8 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
-import { LocaleBadge } from '@/shared/ui/admin/LocaleBadge';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type { AdminDirectionDetail, AdminDirectionUpdateRequest } from '@/shared/types';
 
 const EDITABLE_KEYS = [
@@ -24,6 +26,18 @@ const EDITABLE_KEYS = [
   'subjects_to_develop',
   'first_steps',
 ] as const satisfies readonly (keyof AdminDirectionUpdateRequest)[];
+
+/** See `AdminQuestionDetailPage.LOCALIZED_KEYS` — kept in sync with
+ *  `app/models/direction.py::LOCALIZED_FIELDS` by hand. `holland_code` is the
+ *  only structural (non-localized) field here. */
+const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>([
+  'name',
+  'description',
+  'professions',
+  'skills_needed',
+  'subjects_to_develop',
+  'first_steps',
+]);
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
   name: 'admin:directions.field.name',
@@ -45,15 +59,15 @@ interface FormState {
   first_steps: string[];
 }
 
-function toFormState(detail: AdminDirectionDetail): FormState {
+function toFormState(detail: AdminDirectionDetail, locale: Locale): FormState {
   return {
-    name: detail.name,
+    name: detail.name[locale] ?? '',
     holland_code: detail.holland_code,
-    description: detail.description,
-    professions: detail.professions,
-    skills_needed: detail.skills_needed,
-    subjects_to_develop: detail.subjects_to_develop,
-    first_steps: detail.first_steps,
+    description: detail.description[locale] ?? '',
+    professions: detail.professions[locale] ?? [],
+    skills_needed: detail.skills_needed[locale] ?? [],
+    subjects_to_develop: detail.subjects_to_develop[locale] ?? [],
+    first_steps: detail.first_steps[locale] ?? [],
   };
 }
 
@@ -82,6 +96,7 @@ export default function AdminDirectionDetailPage() {
   const { t } = useTranslation('admin');
   const { directionId } = useParams<{ directionId: string }>();
   const [detail, setDetail] = useState<AdminDirectionDetail | null>(null);
+  const [locale, setLocale] = useState<Locale>('ru');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -109,7 +124,7 @@ export default function AdminDirectionDetailPage() {
     };
   }, [directionId, reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, patch, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -118,9 +133,9 @@ export default function AdminDirectionDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (nextPatch) => {
-      const updated = await adminApi.updateDirection(directionId!, nextPatch as AdminDirectionUpdateRequest);
+      const updated = await adminApi.updateDirection(directionId!, { ...nextPatch, locale } as AdminDirectionUpdateRequest);
       setDetail(updated);
       return updated;
     },
@@ -131,7 +146,14 @@ export default function AdminDirectionDetailPage() {
     return <AdminError message={loadError || t('directions.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  const locked = new Set(
+    EDITABLE_KEYS.filter((key) =>
+      LOCALIZED_KEYS.has(key)
+        ? isLocalizedFieldLocked(detail.overrides, key, locale)
+        : key in detail.overrides,
+    ),
+  );
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.name[l]));
   const hollandError = validateHollandCode(form.holland_code, t);
   const nameChanged = 'name' in patch;
   const catalogEmpty =
@@ -139,19 +161,21 @@ export default function AdminDirectionDetailPage() {
     form.skills_needed.length === 0 &&
     form.subjects_to_develop.length === 0 &&
     form.first_steps.length === 0;
+  const headerName = detail.name[locale] || detail.name.ru || '';
 
   return (
     <>
       <AdminPageHeader
-        crumbs={[{ label: t('directions.title'), to: listReturnPath('/admin/content/directions') }, { label: detail.name }]}
-        title={detail.name}
+        crumbs={[{ label: t('directions.title'), to: listReturnPath('/admin/content/directions') }, { label: headerName }]}
+        title={headerName}
         meta={
           <span className="flex items-center gap-2">
-            <LocaleBadge locale={detail.locale} />
             {`${detail.holland_code} · ${detail.slug}`}
           </span>
         }
       />
+
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
       <AdminCard title={t('directions.mainCard')} description={t('directions.mainDescription')}>
         <div className="grid gap-3.5 sm:grid-cols-[1fr_200px]">

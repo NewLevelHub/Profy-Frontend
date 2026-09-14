@@ -1,4 +1,3 @@
-import type { Locale } from '@/shared/store/locale';
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import type {
@@ -108,7 +107,7 @@ export const adminApi = {
       .patch<AdminProgramDetail>(API.admin.programDetail(programId), body)
       .then((r) => r.data),
 
-  listQuestions: (params?: { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup; search?: string; locale?: Locale }) =>
+  listQuestions: (params?: { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup; search?: string }) =>
     apiClient.get<AdminQuestionListResponse>(API.admin.questions, { params }).then((r) => r.data),
 
   getQuestion: (questionId: string) =>
@@ -117,7 +116,7 @@ export const adminApi = {
   updateQuestion: (questionId: string, body: AdminQuestionUpdateRequest) =>
     apiClient.patch<AdminQuestionDetail>(API.admin.questionDetail(questionId), body).then((r) => r.data),
 
-  listQuestionPairs: (params?: { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup; locale?: Locale }) =>
+  listQuestionPairs: (params?: { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup }) =>
     apiClient.get<AdminQuestionPairListResponse>(API.admin.questionPairs, { params }).then((r) => r.data),
 
   getQuestionPair: (pairId: string) =>
@@ -126,7 +125,7 @@ export const adminApi = {
   updateQuestionPair: (pairId: string, body: AdminQuestionPairUpdateRequest) =>
     apiClient.patch<AdminQuestionPairDetail>(API.admin.questionPairDetail(pairId), body).then((r) => r.data),
 
-  listMotivationStatements: (params?: { page?: number; limit?: number; locale?: Locale }) =>
+  listMotivationStatements: (params?: { page?: number; limit?: number }) =>
     apiClient
       .get<AdminMotivationStatementListResponse>(API.admin.motivationStatements, { params })
       .then((r) => r.data),
@@ -139,7 +138,7 @@ export const adminApi = {
       .patch<AdminMotivationStatementDetail>(API.admin.motivationStatementDetail(id), body)
       .then((r) => r.data),
 
-  listMotivationPairs: (params?: { page?: number; limit?: number; locale?: Locale }) =>
+  listMotivationPairs: (params?: { page?: number; limit?: number }) =>
     apiClient.get<AdminMotivationPairListResponse>(API.admin.motivationPairs, { params }).then((r) => r.data),
 
   getMotivationPair: (id: string) =>
@@ -148,7 +147,7 @@ export const adminApi = {
   updateMotivationPair: (id: string, body: AdminMotivationPairUpdateRequest) =>
     apiClient.patch<AdminMotivationPairDetail>(API.admin.motivationPairDetail(id), body).then((r) => r.data),
 
-  listDirections: (params?: { page?: number; limit?: number; search?: string; locale?: Locale }) =>
+  listDirections: (params?: { page?: number; limit?: number; search?: string }) =>
     apiClient.get<AdminDirectionListResponse>(API.admin.directions, { params }).then((r) => r.data),
 
   getDirection: (id: string) =>
