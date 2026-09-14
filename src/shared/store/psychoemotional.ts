@@ -1,52 +1,73 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 /**
- * Состояние прохождения психоэмоционального блока (PRO-306). **Не
- * персистится** — бросил на середине → при следующем заходе начинается
- * заново (UX-край PRO-302). Держит только сырые данные, которые уйдут в
- * `POST /assessment/{id}/psychoemotional`; шаг рендера выводится из них.
+ * Круг 1 (первый выбор цветов) теперь проходится ПЕРЕД основной батареей
+ * тестов, круг 2 — после неё (PRO-3xx redesign). Между ними — вся батарея +
+ * pairs + motivation, то есть много страниц и, возможно, перезагрузка
+ * вкладки, поэтому это состояние **персистится** (в отличие от
+ * `usePsychoEmotionalStore` ниже), пока не будет закрыто finish-запросом.
+ *
+ * Привязано к конкретному `assessmentId` — `hasPendingRun(id)` сверяет его,
+ * так что старый run от прошлого прохождения не подставится случайно.
  */
-export type PsychoStep = 'checkin' | 'circle1' | 'pause' | 'circle2';
-
-interface PsychoEmotionalState {
-  step: PsychoStep;
-  checkin: Record<string, string>;
-  /** Порядок выбора цветов (ID), от приятного к неприятному. */
+interface PsychoColorRunState {
+  assessmentId: string | null;
+  runId: string | null;
   list1: number[];
-  list2: number[];
-  /** Δt каждого выбора в мс (первый — время до первого выбора). */
   list1DtMs: number[];
-  list2DtMs: number[];
-  /** epoch ms начала паузы — для фактической длительности. */
-  pauseStartedAt: number | null;
-  pauseActualSec: number | null;
 
-  setCheckin: (checkin: Record<string, string>) => void;
-  recordCircle1: (order: number[], dtMs: number[]) => void;
-  startPause: () => void;
-  finishPause: (actualSec: number) => void;
-  recordCircle2: (order: number[], dtMs: number[]) => void;
+  setRun: (assessmentId: string, runId: string, list1: number[], list1DtMs: number[]) => void;
   reset: () => void;
 }
 
-const INITIAL = {
-  step: 'checkin' as PsychoStep,
-  checkin: {},
+const RUN_INITIAL = {
+  assessmentId: null as string | null,
+  runId: null as string | null,
   list1: [] as number[],
-  list2: [] as number[],
   list1DtMs: [] as number[],
-  list2DtMs: [] as number[],
-  pauseStartedAt: null as number | null,
-  pauseActualSec: null as number | null,
+};
+
+export const usePsychoColorRunStore = create<PsychoColorRunState>()(
+  persist(
+    (set) => ({
+      ...RUN_INITIAL,
+      setRun: (assessmentId, runId, list1, list1DtMs) =>
+        set({ assessmentId, runId, list1, list1DtMs }),
+      reset: () => set({ ...RUN_INITIAL }),
+    }),
+    { name: 'profy-psycho-color-run' },
+  ),
+);
+
+/** Круг 1 для `assessmentId` уже отправлен и ждёт finish. */
+export function hasPendingColorRun(assessmentId: string): boolean {
+  const s = usePsychoColorRunStore.getState();
+  return s.assessmentId === assessmentId && s.runId !== null;
+}
+
+/**
+ * Шаг-машина финального экрана психоблока (check-in → круг 2), PRO-3xx. Живёт
+ * только на странице `PsychoEmotionalPage` — **не персистится**, как и
+ * раньше: бросил на середине → при следующем заходе начинается заново.
+ */
+export type PsychoFinishStep = 'checkin' | 'circle2';
+
+interface PsychoEmotionalState {
+  step: PsychoFinishStep;
+  checkin: Record<string, string>;
+
+  setCheckin: (checkin: Record<string, string>) => void;
+  reset: () => void;
+}
+
+const FINISH_INITIAL = {
+  step: 'checkin' as PsychoFinishStep,
+  checkin: {} as Record<string, string>,
 };
 
 export const usePsychoEmotionalStore = create<PsychoEmotionalState>((set) => ({
-  ...INITIAL,
-  setCheckin: (checkin) => set({ checkin, step: 'circle1' }),
-  recordCircle1: (list1, list1DtMs) =>
-    set({ list1, list1DtMs, step: 'pause', pauseStartedAt: Date.now() }),
-  startPause: () => set({ pauseStartedAt: Date.now() }),
-  finishPause: (pauseActualSec) => set({ pauseActualSec, step: 'circle2' }),
-  recordCircle2: (list2, list2DtMs) => set({ list2, list2DtMs }),
-  reset: () => set({ ...INITIAL }),
+  ...FINISH_INITIAL,
+  setCheckin: (checkin) => set({ checkin, step: 'circle2' }),
+  reset: () => set({ ...FINISH_INITIAL }),
 }));

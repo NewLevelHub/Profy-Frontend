@@ -126,6 +126,11 @@ export interface Question {
   bigfive_domain: BigFiveDomain | null;
   text: string;
   order: number;
+  // Which Likert scale to render, decided by the server independently of
+  // `instrument` (protocol-validity items are wire-tagged `riasec` but keep
+  // the agree/disagree Big Five scale — see profi-backend
+  // app/services/question_service.py::_bigfive_scale).
+  bigfive_scale: boolean;
 }
 
 export interface AnswerPayload {
@@ -243,18 +248,25 @@ export interface SubmitPairAnswersResponse {
 }
 
 // ─── Psychoemotional (МЦВ Собчик) — PRO-306 ────────────────────────────────────
-// Сырое прохождение: 2 круга по 8 ID цветов (0–7) + Δt каждого выбора + пауза
-// + check-in. Метрики/интерпретацию бэкенд не возвращает (§5.6).
-export interface SubmitPsychoEmotionalPayload {
+// Сырое прохождение, двухфазно: круг 1 — перед основной батареей тестов
+// (start), круг 2 + check-in — в конце всего прохождения (finish), на той же
+// строке. Метрики/интерпретацию бэкенд не возвращает (§5.6).
+export interface StartPsychoEmotionalPayload {
   list1: number[];
-  list2: number[];
   list1_dt_ms: number[];
+}
+
+export interface StartPsychoEmotionalResponse {
+  run_id: string;
+}
+
+export interface FinishPsychoEmotionalPayload {
+  list2: number[];
   list2_dt_ms: number[];
-  pause_actual_sec: number;
   checkin: Record<string, string>;
 }
 
-export interface SubmitPsychoEmotionalResponse {
+export interface FinishPsychoEmotionalResponse {
   run_id: string;
   tech_invalid: boolean;
 }

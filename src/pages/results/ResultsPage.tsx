@@ -56,7 +56,7 @@ export default function ResultsPage() {
           <AssessmentInProgressCard
             answeredCount={answeredCount}
             totalQuestions={totalQuestions}
-            onContinue={() => navigate('/assessment')}
+            onContinue={() => navigate('/assessment/psychoemotional-start')}
           />
         ) : (
           <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />

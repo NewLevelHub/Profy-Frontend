@@ -28,7 +28,9 @@ export const API = {
     motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
-    psychoemotional: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional`,
+    psychoemotionalStart: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/start`,
+    psychoemotionalFinish: (assessmentId: string, runId: string) =>
+      `/assessment/${assessmentId}/psychoemotional/${runId}/finish`,
   },
   result: {
     generate: '/result/generate',

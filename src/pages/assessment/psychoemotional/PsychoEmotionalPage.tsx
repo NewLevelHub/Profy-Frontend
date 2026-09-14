@@ -7,32 +7,24 @@ import { AssessmentIntro } from '../components/AssessmentIntro';
 import { usePsychoEmotional } from './hooks/usePsychoEmotional';
 import { CheckInStep } from './components/CheckInStep';
 import { ColorCircleStep } from './components/ColorCircleStep';
-import { PauseStep } from './components/PauseStep';
-import type { PsychoStep } from '@/shared/store/psychoemotional';
+import type { PsychoFinishStep } from '@/shared/store/psychoemotional';
 
-const STEP_ORDER: readonly PsychoStep[] = ['checkin', 'circle1', 'pause', 'circle2'];
-const STEP_TITLE: Record<PsychoStep, string> = {
+const STEP_ORDER: readonly PsychoFinishStep[] = ['checkin', 'circle2'];
+const STEP_TITLE: Record<PsychoFinishStep, string> = {
   checkin: 'Пара вопросов',
-  circle1: 'Выбор цвета · 1',
-  pause: 'Пауза',
-  circle2: 'Выбор цвета · 2',
+  circle2: 'Выбор цвета',
 };
 const INTRO_AUTO_ADVANCE_MS = 2000;
 
 /**
- * Блок психоэмоционального теста (PRO-306). `data-theme="light"` +
- * `.pe-block` (см. psychoemotional.css) принудительно держат светлую тему —
- * колориметрия §4 это приёмочный критерий; `.pe-block` переобъявляет токены
- * продукта их светлыми значениями, поэтому `AssessmentRail`/`AssessmentIntro`
- * ниже рендерятся корректно независимо от темы приложения.
- *
- * Вступительный экран — тот же `AssessmentIntro` (мимо кикер/тайтл/мета/CTA
- * + 2с авто-переход), что стоит перед основной батареей (AssessmentPage) и
- * перед мотивацией (MotivationHarterFlow) — 2026-09-11: раньше блока не
- * было (§5.1 старой версии тикета), и переход сюда выглядел резким обрывом
- * на фоне остального теста. Каждый заход — с чистого листа
- * (usePsychoEmotional), поэтому интро показывается при каждом входе, без
- * sessionStorage-пометки "уже видел".
+ * Финальный экран психоэмоционального блока (PRO-3xx redesign): check-in +
+ * повторный выбор цвета (круг 2), в конце всего прохождения — после круга 1
+ * (`/assessment/psychoemotional-start`, перед основной батареей) и после всех
+ * тестов. Реальное время между кругами (вся батарея + pairs + motivation)
+ * заменяет прежнюю искусственную 120с-паузу — `pause_actual_sec` считает
+ * бэкенд на finish. `data-theme="light"` + `.pe-block` (см.
+ * psychoemotional.css) принудительно держат светлую тему — колориметрия §4
+ * это приёмочный критерий.
  */
 export default function PsychoEmotionalPage() {
   const navigate = useNavigate();
@@ -54,15 +46,7 @@ export default function PsychoEmotionalPage() {
     setIntroSeen(true);
   }
 
-  const {
-    step,
-    pauseStartedAt,
-    submitting,
-    handleCheckin,
-    handleCircle1,
-    handlePauseContinue,
-    handleCircle2,
-  } = usePsychoEmotional();
+  const { step, submitting, handleCheckin, handleCircle2 } = usePsychoEmotional();
 
   const progress = introSeen ? ((STEP_ORDER.indexOf(step) + 1) / STEP_ORDER.length) * 100 : 0;
 
@@ -85,10 +69,10 @@ export default function PsychoEmotionalPage() {
         {!introSeen ? (
           <AssessmentIntro
             kicker="Психоэмоциональный тест"
-            title="Выбери, что откликается"
-            subtitle="Пара вопросов, выбор цвета и короткая пауза — без правильных ответов"
-            itemCountLabel="4 шага"
-            durationLabel="~4 мин"
+            title="Ещё раз — как сейчас"
+            subtitle="Пара вопросов и повторный выбор цвета — без правильных ответов"
+            itemCountLabel="2 шага"
+            durationLabel="~2 мин"
             ctaLabel="Начать"
             onStart={handleStartIntro}
           />
@@ -99,18 +83,6 @@ export default function PsychoEmotionalPage() {
         ) : (
           <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:px-6">
             {step === 'checkin' && <CheckInStep onSubmit={handleCheckin} />}
-            {step === 'circle1' && (
-              <ColorCircleStep
-                instruction="Выбери цвет, который приятнее всего прямо сейчас"
-                onComplete={handleCircle1}
-              />
-            )}
-            {step === 'pause' && (
-              <PauseStep
-                startedAt={pauseStartedAt ?? Date.now()}
-                onContinue={handlePauseContinue}
-              />
-            )}
             {step === 'circle2' && (
               <ColorCircleStep
                 instruction="Выбери заново, как будто в первый раз. Не старайся вспомнить прошлый порядок"

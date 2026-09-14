@@ -1,17 +1,28 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import type {
-  SubmitPsychoEmotionalPayload,
-  SubmitPsychoEmotionalResponse,
+  FinishPsychoEmotionalPayload,
+  FinishPsychoEmotionalResponse,
+  StartPsychoEmotionalPayload,
+  StartPsychoEmotionalResponse,
 } from '@/shared/types';
 
 export const psychoEmotionalApi = {
-  /** Одно прохождение психоэмоционального теста. Результат пользователю не
-   *  возвращается (§5.6) — ответ несёт только `run_id` / `tech_invalid`. */
-  submit: (assessmentId: string, payload: SubmitPsychoEmotionalPayload) =>
+  /** Круг 1 — перед основной батареей тестов. Ответ несёт только `run_id`
+   *  (§5.6) — им закрывается finish в конце прохождения. */
+  start: (assessmentId: string, payload: StartPsychoEmotionalPayload) =>
     apiClient
-      .post<SubmitPsychoEmotionalResponse>(
-        API.assessment.psychoemotional(assessmentId),
+      .post<StartPsychoEmotionalResponse>(
+        API.assessment.psychoemotionalStart(assessmentId),
+        payload,
+      )
+      .then((r) => r.data),
+
+  /** Круг 2 + check-in — в конце всего прохождения, завершает строку из start. */
+  finish: (assessmentId: string, runId: string, payload: FinishPsychoEmotionalPayload) =>
+    apiClient
+      .post<FinishPsychoEmotionalResponse>(
+        API.assessment.psychoemotionalFinish(assessmentId, runId),
         payload,
       )
       .then((r) => r.data),
