@@ -11,8 +11,8 @@ interface PsychSectionShellProps {
 const PLACEHOLDER = 'Раздел появится позже — блок ещё в разработке.';
 
 /**
- * Shared frame for the three psych-block sections — same heading + card
- * shell so ValiditySection / PsychoEmotionalSection / MacSection only carry
+ * Shared frame for the two psych-block sections — same heading + card
+ * shell so ValiditySection / PsychoEmotionalSection only carry
  * their own title and body. Title uses the same mono-caps kicker recipe as
  * the rest of /result's report sections (e.g. "НАПРАВЛЕНИЯ ПОД ЦЕЛЬ" in
  * ScenarioProfessional.tsx) instead of the emoji + <SectionHeading> style

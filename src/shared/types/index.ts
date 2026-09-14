@@ -389,14 +389,14 @@ export interface StudentCareer {
 }
 
 // ─── Psychology block (PRO-282 epic) ──────────────────────────────────────────
-// Three auxiliary sections a psychologist reviews at the in-person meeting:
+// Two auxiliary sections a psychologist reviews at the in-person meeting:
 // достоверность протокола («шкала лжи»), психоэмоциональный тест (МЦВ Собчик —
-// the name «Люшер» is never shown), МАК (метафорические карты). MVP: returned
-// to the student too (backend gate `psych_sections_for`; PRO-321 narrows it to
-// psychologist/admin). Each model is a Phase-0 skeleton — every phase extends
-// its own with concrete fields (validity → Фаза 1, psychoemotional → Фаза 2,
-// mac → Фаза 3). `consent_ok` mirrors the recorded parental consent; it is a
-// flag, not a gate. See profi-backend/docs/psych-block-contract.md.
+// the name «Люшер» is never shown). Gated server-side (`psych_sections_for` →
+// psychologist/admin only, PRO-321) — a student's own /result never carries
+// them. Each model is a Phase-0 skeleton — every phase extends its own with
+// concrete fields (validity → Фаза 1, psychoemotional → Фаза 2). `consent_ok`
+// mirrors the recorded parental consent; it is a flag, not a gate. See
+// profi-backend/docs/psych-block-contract.md.
 
 export interface PsychValiditySection {
   consent_ok: boolean;
@@ -524,76 +524,6 @@ export interface PsychEmotionalSection {
   black_first: boolean;
 }
 
-export interface MacFeedItem {
-  exercise_code: string;
-  exercise_title: string;
-  stimulus_question: string;
-  /** Absolute URLs (backend's STORAGE_PUBLIC_BASE_URL + storage key) — served
-   *  from the shared media folder (nginx `/media/`), not from this repo. */
-  card_image_urls: string[];
-  followup_questions: string[];
-  /** Verbatim, index-aligned with `followup_questions`. */
-  followup_answers: string[];
-  time_spent_ms: number;
-  revision_count: number;
-}
-
-export interface PsychMacSection {
-  consent_ok: boolean;
-  completed: boolean;
-  feed: MacFeedItem[];
-}
-
-// ─── МАК (метафорические ассоциативные карты) — assessment flow ────────────────
-// v1 demo (PRO-314…317): only exercise E1 is active — no scoring, no AI, the
-// child just writes free text about a drawn card (тестМак.md §8/§C).
-
-export type MacDrawMode = 'blind' | 'open';
-
-export interface MacExerciseItem {
-  id: string;
-  code: string;
-  order: number;
-  title: string;
-  stimulus_question: string;
-  draw_mode: MacDrawMode;
-  spread_size: number | null;
-  pick_count: number;
-  followup_questions: string[];
-}
-
-export interface MacSessionResponse {
-  session_id: string;
-  completed: boolean;
-  exercises: MacExerciseItem[];
-}
-
-export interface MacCard {
-  id: string;
-  /** Absolute URL — ready to use as-is in <img src>, never a bare storage key. */
-  image_url: string;
-  kind: 'abstract' | 'scenic' | 'portrait';
-}
-
-export interface MacSpreadResponse {
-  cards: MacCard[];
-  pick_count: number;
-}
-
-export interface SubmitMacResponsePayload {
-  session_id: string;
-  exercise_id: string;
-  card_ids: string[];
-  followup_answers: string[];
-  time_spent_ms: number;
-  revision_count: number;
-}
-
-export interface SubmitMacResponseResponse {
-  response_id: string;
-  session_completed: boolean;
-}
-
 interface ResultResponseBase {
   report_version: 2;
   assessment_id: string;
@@ -616,7 +546,6 @@ interface ResultResponseBase {
   // below the main report; a `null` section is simply not shown.
   validity?: PsychValiditySection | null;
   psychoemotional?: PsychEmotionalSection | null;
-  mac?: PsychMacSection | null;
 }
 
 export interface MiResultResponse extends ResultResponseBase {

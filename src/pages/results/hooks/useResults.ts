@@ -27,7 +27,7 @@ export function useResults() {
 
   const { data, isLoading, error, refetch } = useQuery({
     // Keyed by assessment only. The optional psych-block sections
-    // (validity/psychoemotional/mac, PRO-292) travel inside the same
+    // (validity/psychoemotional, PRO-292) travel inside the same
     // /result payload and must NOT widen this key — their composition
     // doesn't identify a different resource. (Locale keying stays future
     // i18n scope — PRO-293.)
@@ -78,14 +78,12 @@ export function useResults() {
 
   // Psych-block slots (PRO-292) — pulled off the report here so the page
   // stays assembly-only. Every entry is `null` until its phase ships on the
-  // backend (validity → Фаза 1, psychoemotional → Фаза 2, mac → Фаза 3).
+  // backend (validity → Фаза 1, psychoemotional → Фаза 2).
   const psychSections = {
     validity: effectiveReport?.validity ?? null,
     psychoemotional: effectiveReport?.psychoemotional ?? null,
-    mac: effectiveReport?.mac ?? null,
   };
-  const hasPsychSections =
-    !!psychSections.validity || !!psychSections.psychoemotional || !!psychSections.mac;
+  const hasPsychSections = !!psychSections.validity || !!psychSections.psychoemotional;
 
   return {
     report: effectiveReport,

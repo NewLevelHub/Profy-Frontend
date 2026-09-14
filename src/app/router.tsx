@@ -32,7 +32,6 @@ import AssessmentPage from '@/pages/assessment/AssessmentPage';
 import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
 import PsychoEmotionalPage from '@/pages/assessment/psychoemotional/PsychoEmotionalPage';
-import MacPage from '@/pages/assessment/mac/MacPage';
 import PraisePage from '@/pages/assessment/PraisePage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
@@ -138,7 +137,6 @@ export const router = createBrowserRouter([
       { path: '/assessment/pairs', element: <PairAssessmentPage /> },
       { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
       { path: '/assessment/psychoemotional', element: <PsychoEmotionalPage /> },
-      { path: '/assessment/mac', element: <MacPage /> },
       { path: '/assessment/praise', element: <PraisePage /> },
       { path: '/assessment/rest', element: <RestStopPage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
