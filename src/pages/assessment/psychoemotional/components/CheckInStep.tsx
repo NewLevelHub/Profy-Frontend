@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
 import { CHECKIN_QUESTIONS, SKIPPED } from '../data/checkin';
@@ -12,6 +13,7 @@ interface CheckInStepProps {
  * Не оценивается, никакой обратной связи. Отправляется как есть.
  */
 export function CheckInStep({ onSubmit }: CheckInStepProps) {
+  const { t } = useTranslation('assessment');
   const [selected, setSelected] = useState<Record<string, string>>({});
 
   function submit() {
@@ -26,9 +28,11 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
     <div className="flex flex-col gap-6">
       {CHECKIN_QUESTIONS.map((q) => (
         <fieldset key={q.key} className="flex flex-col gap-3">
-          <legend className="mb-1 text-body-sm font-semibold text-primary">{q.label}</legend>
+          <legend className="mb-1 text-body-sm font-semibold text-primary">
+            {t(`psychoemotional.checkin.${q.key}.label`)}
+          </legend>
           <div className="flex flex-wrap gap-2">
-            {q.options.map((opt) => {
+            {q.options.map((opt, i) => {
               const isSelected = selected[q.key] === opt;
               return (
                 <button
@@ -47,7 +51,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
                     }))
                   }
                 >
-                  {opt}
+                  {t(`psychoemotional.checkin.${q.key}.options.${i}`)}
                 </button>
               );
             })}
@@ -55,7 +59,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
         </fieldset>
       ))}
       <Button onClick={submit} size="lg" className="mt-2 w-full rounded-pill">
-        Далее
+        {t('common:next')}
       </Button>
     </div>
   );

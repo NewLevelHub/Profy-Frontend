@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { LAYOUT, PSYCHO_COLOR_BY_ID, CHOICE_COUNT } from '../data/colors';
@@ -17,6 +18,7 @@ interface ColorCircleStepProps {
  * и Δt между кликами.
  */
 export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProps) {
+  const { t } = useTranslation('assessment');
   const [picked, setPicked] = useState<number[]>([]);
   const dtMsRef = useRef<number[]>([]);
   const lastPickAtRef = useRef<number>(Date.now());
@@ -52,7 +54,7 @@ export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProp
         ))}
       </div>
       <Text variant="body-sm" className="text-muted">
-        Выбрано {picked.length} из {CHOICE_COUNT}
+        {t('psychoemotional.pickedOfTotal', { picked: picked.length, total: CHOICE_COUNT })}
       </Text>
     </div>
   );

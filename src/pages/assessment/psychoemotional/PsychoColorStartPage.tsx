@@ -1,6 +1,7 @@
 import './psychoemotional.css';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { AssessmentIntro } from '../components/AssessmentIntro';
@@ -19,6 +20,7 @@ const INTRO_AUTO_ADVANCE_MS = 2000;
  */
 export default function PsychoColorStartPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('assessment');
   const [introSeen, setIntroSeen] = useState(false);
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,9 +45,9 @@ export default function PsychoColorStartPage() {
   return (
     <div className="pe-block flex flex-col min-h-screen" data-theme="light">
       <AssessmentRail
-        title={introSeen ? 'Выбор цвета' : 'Психоэмоциональный срез'}
-        sectionLabel="Психоэмоциональный срез"
-        progressAriaLabel="Прогресс психоэмоционального блока"
+        title={introSeen ? t('psychoemotional.circle1.railTitleActive') : t('psychoemotional.circle1.railTitleIntro')}
+        sectionLabel={t('psychoemotional.sectionLabel')}
+        progressAriaLabel={t('psychoemotional.progressAriaLabel')}
         progress={introSeen ? 50 : 0}
         onExit={() => navigate('/results')}
       />
@@ -57,12 +59,12 @@ export default function PsychoColorStartPage() {
           </div>
         ) : !introSeen ? (
           <AssessmentIntro
-            kicker="Психоэмоциональный тест"
-            title="Выбери, что откликается"
-            subtitle="Перед тестами — выбор цвета. Без правильных ответов, просто по ощущению"
-            itemCountLabel="1 шаг"
-            durationLabel="~30 сек"
-            ctaLabel="Начать"
+            kicker={t('psychoemotional.circle1.introKicker')}
+            title={t('psychoemotional.circle1.introTitle')}
+            subtitle={t('psychoemotional.circle1.introSubtitle')}
+            itemCountLabel={t('psychoemotional.circle1.introItemCount')}
+            durationLabel={t('psychoemotional.circle1.introDuration')}
+            ctaLabel={t('psychoemotional.circle1.introCta')}
             onStart={handleStartIntro}
           />
         ) : submitting ? (
@@ -72,7 +74,7 @@ export default function PsychoColorStartPage() {
         ) : (
           <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:px-6">
             <ColorCircleStep
-              instruction="Выбери цвет, который приятнее всего прямо сейчас"
+              instruction={t('psychoemotional.circle1.instruction')}
               onComplete={handleCircle1}
             />
           </div>

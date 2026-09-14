@@ -43,6 +43,11 @@ const ALLOW = [
   ['src/shared/ui/LanguageSwitcher.tsx', /'ҚАЗ'/, 'language-picker self-label'],
   // Dev-only affordance behind import.meta.env.DEV — stripped from prod build.
   ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить/, 'dev-only autofill (import.meta.env.DEV)'],
+  ['src/shared/ui/navigation/AssessmentRail.tsx', /психотеста|только в dev/, 'dev-only autofill-to-motivation (import.meta.env.DEV)'],
+  // Error path for the dev-only autofill-to-motivation handler above —
+  // unreachable outside that same DEV-gated button.
+  ['src/pages/assessment/hooks/useAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
+  ['src/pages/assessment/hooks/usePairAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
   // KZ-502 — ru→kk dictionary for catalog city/country strings (backend data).
   // Both sides are Cyrillic by nature; keys match backend values, values are
   // the localized output. Native review: KZ-502-вычитка-kk.md.
@@ -50,6 +55,16 @@ const ALLOW = [
   // Canonical ru subject label → onboarding `subject.<key>` map; the ru side is
   // the stored profile value, output is localized via t('onboarding:subject.*').
   ['src/shared/i18n/presets.ts', /^'[^']+':\s*'[a-z]+',$/, 'ru subject label → catalog key'],
+  // МЦВ stimulus material — id/hex are the accepted colorimetry (psych-block
+  // §B3, not localizable); `name` is canonical ru shared by the student-facing
+  // assessment flow (localized via t(`psychoemotional.color.${id}`) at the
+  // ColorSwatch call site) AND the excluded psychologist-only report section
+  // (src/pages/results/components/psych/**), which reads `name` as-is.
+  ['src/shared/config/psychoColors.ts', /name: '[а-яё]+'/, 'МЦВ canonical color name (id-keyed t() at call site)'],
+  // Check-in question bank — same dual-consumer shape as psychoColors.ts
+  // above: canonical ru read as-is by the excluded psychologist report
+  // section, localized via t(`psychoemotional.checkin.*`) in CheckInStep.tsx.
+  ['src/shared/config/psychoCheckin.ts', /'не указано'|label: '|options: \[/, 'psychoemotional check-in canonical ru (key-indexed t() at call site)'],
 ];
 
 function isExcluded(rel) {

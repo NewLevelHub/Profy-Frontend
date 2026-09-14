@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { PsychoColor } from '../data/colors';
 
 interface ColorSwatchProps {
@@ -13,12 +14,13 @@ interface ColorSwatchProps {
  * запрещено и заблокировано в `psychoemotional.css` (`.pe-swatch`).
  */
 function ColorSwatchBase({ color, onSelect, disabled }: ColorSwatchProps) {
+  const { t } = useTranslation('assessment');
   return (
     <button
       type="button"
       className="pe-swatch"
       style={{ backgroundColor: color.hex, width: '100%', aspectRatio: '1 / 1' }}
-      aria-label={`цвет ${color.name}`}
+      aria-label={t('psychoemotional.colorSwatchAria', { name: t(`psychoemotional.color.${color.id}`) })}
       disabled={disabled}
       onClick={() => onSelect(color.id)}
     />

@@ -1,11 +1,12 @@
 import { Moon, Sun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { useTheme } from '@/shared/hooks/useTheme';
 import type { ResolvedTheme } from '@/shared/lib/theme';
 
-const OPTIONS: { value: ResolvedTheme; label: string; Icon: typeof Sun }[] = [
-  { value: 'light', label: 'Светлая тема', Icon: Sun },
-  { value: 'dark', label: 'Тёмная тема', Icon: Moon },
+const OPTIONS: { value: ResolvedTheme; labelKey: string; Icon: typeof Sun }[] = [
+  { value: 'light', labelKey: 'theme.light', Icon: Sun },
+  { value: 'dark', labelKey: 'theme.dark', Icon: Moon },
 ];
 
 export interface ThemeToggleProps {
@@ -29,18 +30,20 @@ export interface ThemeToggleProps {
  */
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setChoice } = useTheme();
+  const { t } = useTranslation('common');
 
   return (
     <div
       role="radiogroup"
-      aria-label="Тема оформления"
+      aria-label={t('theme.ariaLabel')}
       className={cn(
         'inline-flex items-center gap-0.5 p-0.5 rounded-pill border border-default bg-surface',
         className,
       )}
     >
-      {OPTIONS.map(({ value, label, Icon }) => {
+      {OPTIONS.map(({ value, labelKey, Icon }) => {
         const active = theme === value;
+        const label = t(labelKey);
         return (
           <button
             key={value}

@@ -20,7 +20,7 @@ export const ADMIN_NAV_ITEM = {
 
 export const PSYCHOLOGIST_NAV_ITEMS = [
   {
-    label: 'Ученики',
+    label: 'common:nav.psychologist',
     path: '/psychologist/students',
     matchPrefix: '/psychologist',
   },

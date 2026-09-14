@@ -161,12 +161,12 @@ export function LandingHeader() {
         ))}
         {LOCALE_SWITCH_ENABLED && (
           <div className="flex items-center justify-between gap-3 mt-2">
-            <span className="text-body-sm font-semibold text-secondary">{t('cta.language', { defaultValue: 'Язык' })}</span>
+            <span className="text-body-sm font-semibold text-secondary">{t('cta.language')}</span>
             <LanguageSwitcher />
           </div>
         )}
         <div className="flex items-center justify-between gap-3">
-          <span className="text-body-sm font-semibold text-secondary">{t('cta.theme', { defaultValue: 'Тема' })}</span>
+          <span className="text-body-sm font-semibold text-secondary">{t('cta.theme')}</span>
           <ThemeToggle />
         </div>
 

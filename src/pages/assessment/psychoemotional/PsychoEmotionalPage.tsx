@@ -1,6 +1,7 @@
 import './psychoemotional.css';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { AssessmentIntro } from '../components/AssessmentIntro';
@@ -10,9 +11,9 @@ import { ColorCircleStep } from './components/ColorCircleStep';
 import type { PsychoFinishStep } from '@/shared/store/psychoemotional';
 
 const STEP_ORDER: readonly PsychoFinishStep[] = ['checkin', 'circle2'];
-const STEP_TITLE: Record<PsychoFinishStep, string> = {
-  checkin: 'Пара вопросов',
-  circle2: 'Выбор цвета',
+const STEP_TITLE_KEY: Record<PsychoFinishStep, string> = {
+  checkin: 'psychoemotional.circle2.stepTitleCheckin',
+  circle2: 'psychoemotional.circle2.stepTitleCircle2',
 };
 const INTRO_AUTO_ADVANCE_MS = 2000;
 
@@ -28,6 +29,7 @@ const INTRO_AUTO_ADVANCE_MS = 2000;
  */
 export default function PsychoEmotionalPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('assessment');
   const [introSeen, setIntroSeen] = useState(false);
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,9 +55,9 @@ export default function PsychoEmotionalPage() {
   return (
     <div className="pe-block flex flex-col min-h-screen" data-theme="light">
       <AssessmentRail
-        title={introSeen ? STEP_TITLE[step] : 'Психоэмоциональный срез'}
-        sectionLabel="Психоэмоциональный срез"
-        progressAriaLabel="Прогресс психоэмоционального блока"
+        title={introSeen ? t(STEP_TITLE_KEY[step]) : t('psychoemotional.circle1.railTitleIntro')}
+        sectionLabel={t('psychoemotional.sectionLabel')}
+        progressAriaLabel={t('psychoemotional.progressAriaLabel')}
         progress={progress}
         // Ничего не персистится между заходами (см. usePsychoEmotional —
         // "чистого листа"), поэтому выйти — не "бросить прогресс", а просто
@@ -68,12 +70,12 @@ export default function PsychoEmotionalPage() {
       <div className="flex-1 flex flex-col w-full max-w-2xl mx-auto">
         {!introSeen ? (
           <AssessmentIntro
-            kicker="Психоэмоциональный тест"
-            title="Ещё раз — как сейчас"
-            subtitle="Пара вопросов и повторный выбор цвета — без правильных ответов"
-            itemCountLabel="2 шага"
-            durationLabel="~2 мин"
-            ctaLabel="Начать"
+            kicker={t('psychoemotional.circle2.introKicker')}
+            title={t('psychoemotional.circle2.introTitle')}
+            subtitle={t('psychoemotional.circle2.introSubtitle')}
+            itemCountLabel={t('psychoemotional.circle2.introItemCount')}
+            durationLabel={t('psychoemotional.circle2.introDuration')}
+            ctaLabel={t('psychoemotional.circle2.introCta')}
             onStart={handleStartIntro}
           />
         ) : submitting ? (
@@ -85,7 +87,7 @@ export default function PsychoEmotionalPage() {
             {step === 'checkin' && <CheckInStep onSubmit={handleCheckin} />}
             {step === 'circle2' && (
               <ColorCircleStep
-                instruction="Выбери заново, как будто в первый раз. Не старайся вспомнить прошлый порядок"
+                instruction={t('psychoemotional.circle2.instruction')}
                 onComplete={handleCircle2}
               />
             )}

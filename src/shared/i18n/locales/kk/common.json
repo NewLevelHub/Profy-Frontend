@@ -28,7 +28,8 @@
     "results": "Нәтижелер",
     "universities": "Университеттер",
     "profile": "Профиль",
-    "admin": "Әкімші"
+    "admin": "Әкімші",
+    "psychologist": "Оқушылар"
   },
   "sound": {
     "enable": "Дыбысты қосу",
@@ -74,6 +75,11 @@
   },
   "languageSwitcherAria": "Тіл / Язык",
   "themeLabel": "Тақырып",
+  "theme": {
+    "ariaLabel": "Безендіру темасы",
+    "light": "Ашық тема",
+    "dark": "Қараңғы тема"
+  },
   "favoriteAdd": "Таңдаулыға қосу",
   "favoriteRemove": "Таңдаулыдан алу",
   "mascot": {
