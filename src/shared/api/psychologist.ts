@@ -3,6 +3,7 @@ import { API } from '@/shared/api/endpoints';
 import type {
   PsychologistNote,
   PsychologistNoteWrite,
+  PsychologistReportResponse,
   PsychologistStudentDetail,
   PsychologistStudentListItem,
 } from '@/shared/types';
@@ -35,4 +36,9 @@ export const psychologistApi = {
 
   deleteNote: (noteId: string) =>
     apiClient.delete(API.psychologist.noteDetail(noteId)).then((r) => r.data),
+
+  getReport: (studentId: string, assessmentId: string) =>
+    apiClient
+      .get<PsychologistReportResponse>(API.psychologist.studentAssessmentReport(studentId, assessmentId))
+      .then((r) => r.data),
 };

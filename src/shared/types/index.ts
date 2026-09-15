@@ -1006,6 +1006,64 @@ export interface PsychologistNoteWrite {
   content: string;
 }
 
+// ─── PRO-338 — specialist report: 6 new tests, never shown on student /result ────
+// Mirrors app/schemas/new_tests.py exactly (field-for-field) — every field is
+// optional because Ф0.2/Ф0.3 only laid the container/endpoint groundwork; the
+// scoring services that populate these land per-test in Фазы 1-3.
+
+export interface ProfessionalTypesSection {
+  scores: Record<string, number> | null;
+  top_type: string | null;
+  abilities_score: number | null;
+}
+
+export interface TeamRoleSection {
+  scores: Record<string, number> | null;
+  top_roles: string[] | null;
+  methodological_note: string | null;
+}
+
+export interface TemperamentSection {
+  extraversion: number | null;
+  neuroticism: number | null;
+  lie_scale: number | null;
+  quadrant: string | null;
+}
+
+export interface IntelligenceSection {
+  spn_group: number | null;
+  subtest_scores: Record<string, number> | null;
+  learning_profile: string | null;
+}
+
+export interface AspirationLevelSection {
+  score: number | null;
+  level: string | null;
+}
+
+export interface EmpathyConfidenceSection {
+  empathy_channels: Record<string, number> | null;
+  empathy_total: number | null;
+  confidence_stens: number | null;
+}
+
+export interface NewTestsSections {
+  professional_types: ProfessionalTypesSection | null;
+  team_role: TeamRoleSection | null;
+  temperament: TemperamentSection | null;
+  intelligence: IntelligenceSection | null;
+  aspiration_level: AspirationLevelSection | null;
+  empathy_confidence: EmpathyConfidenceSection | null;
+}
+
+/** GET /psychologist/students/{studentId}/assessments/{assessmentId}/report —
+ * `report` is the exact same shape the student's own /result returns
+ * (reused, not duplicated), `new_tests` is specialist-only. */
+export interface PsychologistReportResponse {
+  report: ResultResponse;
+  new_tests: NewTestsSections;
+}
+
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
 // NOTE (backend gap, found 2026-08-15 auditing `/profile`): there is no `/parent`

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import axios from 'axios';
-import { Pencil, Trash2 } from 'lucide-react';
+import { FileText, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
@@ -209,7 +209,7 @@ export default function PsychologistStudentDetailPage() {
       {student && student.assessments.length > 0 && (
         <AdminCard
           title="Диагностики"
-          description="Краткое саммари — полный отчёт психологу в этом релизе не отдаётся."
+          description="Полный отчёт доступен по кнопке «Отчёт» для завершённых диагностик."
         >
           <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
             {student.assessments.map((a) => (
@@ -224,8 +224,16 @@ export default function PsychologistStudentDetailPage() {
                   <AdminBadge tone={a.status === 'completed' ? 'quiet' : 'accent'}>
                     {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
                   </AdminBadge>
-                  {a.has_result && <AdminBadge tone="quiet">Результат</AdminBadge>}
                   {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
+                  {a.has_result && (
+                    <Link
+                      to={`/psychologist/students/${studentId}/assessments/${a.id}/report`}
+                      className={cn(ADMIN_BUTTON, 'gap-1.5')}
+                    >
+                      <FileText size={13} />
+                      Отчёт
+                    </Link>
+                  )}
                 </div>
               </li>
             ))}
