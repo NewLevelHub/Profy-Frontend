@@ -103,7 +103,14 @@ export type AssessmentGoal = 'explore' | 'profession' | 'university' | 'unsure';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
-export type Instrument = 'riasec' | 'big_five' | 'mi';
+// PRO-338 Ф0.2: professional_types (ДДО pairs, QuestionPair-based) /
+// professional_types_abilities (ДДО abilities, Likert-based) / eysenck /
+// elers (both Likert-based, binary Да/Нет scale — Ф0.5) mirror
+// app/models/question.py::QuestionInstrument 1:1. `validity` is
+// deliberately NOT here — PRO-282's protocol-validity items are masked as
+// `riasec` on the wire (PRO-298) and never reach the frontend as their own
+// instrument value.
+export type Instrument = 'riasec' | 'big_five' | 'mi' | 'professional_types' | 'professional_types_abilities' | 'eysenck' | 'elers';
 export type BigFiveDomain = 'N' | 'E' | 'O' | 'A' | 'C';
 // Junior's (6-9) interest instrument, replacing RIASEC — TZ_Profi.md §4.1
 // excludes career orientation for that age group. See MI_LABELS/MI_ICONS.

@@ -1,9 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
-import type { Question } from '@/shared/types';
+import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
+import type { Instrument, Question } from '@/shared/types';
 import { LikertScale } from './LikertScale';
+
+/** PRO-338 Ф0.5: eysenck/elers are Да/Нет (binary) instruments reusing this
+ * same Likert engine — 2 options instead of 5, everything else (big_five's
+ * own 5-point wording, and the plain 5-point default) unchanged. */
+function scaleForInstrument(instrument: Instrument) {
+  if (instrument === 'big_five') return BIGFIVE_LIKERT_SCALE;
+  if (instrument === 'eysenck' || instrument === 'elers') return YES_NO_SCALE;
+  return LIKERT_SCALE;
+}
 
 interface LikertPageProps {
   questions: Question[];
@@ -68,7 +77,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
           <LikertScale
             selected={answers[question.id] ?? null}
             onSelect={value => onSelect(question.id, value)}
-            scale={question.instrument === 'big_five' ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE}
+            scale={scaleForInstrument(question.instrument)}
           />
         </div>
       ))}

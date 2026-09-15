@@ -105,6 +105,16 @@ export const BIGFIVE_LIKERT_SCALE: { value: number; label: string }[] = [
   { value: 5, label: 'assessment:bigfiveLikert.5' },
 ];
 
+// PRO-338 Ф0.5 — Eysenck (57п.) and Elers (41п.) are Да/Нет instruments,
+// reusing the Likert engine with a 2-point scale instead of 5. Backend
+// write semantics (app/models/user_response.py, question_service): plain
+// answer_value 1=Нет, 2=Да — not the 5-point 1..5 semantics reused at a
+// different range, an explicit 2-value scale of its own.
+export const YES_NO_SCALE: { value: number; label: string }[] = [
+  { value: 1, label: 'assessment:yesNo.no' },
+  { value: 2, label: 'assessment:yesNo.yes' },
+];
+
 export const THINKING_STYLE_LABELS: Record<string, string> = {
   creative_think: 'results:thinkingStyle.creative_think',
   systematic: 'results:thinkingStyle.systematic',

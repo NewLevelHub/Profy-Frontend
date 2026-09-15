@@ -35,6 +35,49 @@ export const LikertScale = React.memo(function LikertScale({
   scale = LIKERT_SCALE,
 }: LikertScaleProps) {
   const { t } = useTranslation();
+
+  // PRO-338 Ф0.5: a 2-option (Да/Нет) scale renders as two labeled pill
+  // buttons, not dots — the "poleLeft…poleRight" flanking text below is
+  // meaningless for a plain yes/no question (there's no gradient to anchor),
+  // and the dot itself carries no visible text otherwise.
+  if (scale.length === 2) {
+    return (
+      <div
+        className="flex items-center justify-center gap-4"
+        role="radiogroup"
+        aria-label={t('assessment:scale.rateAria')}
+      >
+        {scale.map(({ value, label }) => {
+          const isSelected = selected === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => {
+                playClick('soft');
+                onSelect(value);
+              }}
+              role="radio"
+              aria-checked={isSelected}
+              className={cn(
+                'min-w-28 px-8 py-3.5 rounded-pill font-semibold text-body-lg border-2',
+                'transition-transform duration-150 hover:scale-105 active:scale-95',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
+              )}
+              style={{
+                borderColor: isSelected ? 'var(--brand)' : 'var(--hairline)',
+                background: isSelected ? 'var(--brand)' : 'transparent',
+                color: isSelected ? 'var(--text-on-brand)' : 'var(--text-heading)',
+              }}
+            >
+              {t(label)}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex items-center justify-center w-full gap-[clamp(0.4rem,2vw,1.5rem)]"
