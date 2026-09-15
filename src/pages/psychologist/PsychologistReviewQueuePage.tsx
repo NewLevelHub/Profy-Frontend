@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
@@ -11,6 +12,13 @@ import { AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_META, ADMIN_NUM, ADMIN_RADIUS, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import type { PsychologistReviewQueueItem } from '@/shared/types';
+
+// ASSESSMENT_GOAL_LABELS holds i18n keys (admin namespace) since the admin
+// panel was localized — render them through t(), never as-is.
+function GoalLabel({ goal }: { goal: PsychologistReviewQueueItem['goal'] }) {
+  const { t } = useTranslation();
+  return <span className={cn(ADMIN_TEXT, 'text-secondary')}>{t(ASSESSMENT_GOAL_LABELS[goal] ?? goal)}</span>;
+}
 
 function reviewPath(row: PsychologistReviewQueueItem) {
   return `/psychologist/students/${row.student_id}/results/${row.assessment_id}/review`;
@@ -61,7 +69,7 @@ const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
     mobile: 'field',
     mobileLabel: 'Цель',
     cell: (row) => (
-      <span className={cn(ADMIN_TEXT, 'text-secondary')}>{ASSESSMENT_GOAL_LABELS[row.goal] ?? row.goal}</span>
+      <GoalLabel goal={row.goal} />
     ),
   },
   {

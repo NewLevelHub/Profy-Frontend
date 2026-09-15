@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
@@ -35,6 +36,8 @@ function formatDate(value: string) {
 }
 
 export default function PsychologistStudentDetailPage() {
+  // Goal/status labels are i18n keys (admin namespace) — resolve with t().
+  const { t } = useTranslation();
   const { studentId = '' } = useParams<{ studentId: string }>();
   const [student, setStudent] = useState<PsychologistStudentDetail | null>(null);
   const [notes, setNotes] = useState<PsychologistNote[]>([]);
@@ -216,13 +219,13 @@ export default function PsychologistStudentDetailPage() {
               <li key={a.id} className="py-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-                    {ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal}
+                    {t(ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal)}
                   </p>
                   <p className={cn(ADMIN_NUM, 'text-muted m-0 mt-0.5')}>{formatDate(a.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <AdminBadge tone={a.status === 'completed' ? 'quiet' : 'accent'}>
-                    {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
+                    {t(ASSESSMENT_STATUS_LABELS[a.status] ?? a.status)}
                   </AdminBadge>
                   {a.review_status === 'pending_review' && (
                     <AdminBadge tone="accent">На проверке</AdminBadge>
