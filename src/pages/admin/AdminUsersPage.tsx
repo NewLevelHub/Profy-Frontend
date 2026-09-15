@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Download, FileText, UserPlus } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
@@ -20,6 +21,7 @@ import { UsersPrintReport } from './components/UsersPrintReport';
 import { CreateStaffModal } from './components/CreateStaffModal';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AdminUserDetail, AdminUserListItem, AgeGroup, AssessmentGoal, AssessmentStatus } from '@/shared/types';
+import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'age_group', 'status', 'goal'] as const;
@@ -31,12 +33,12 @@ const PRINT_MAX_ROWS = 1000;
 
 /** RIASEC letters, named. The list shows the two strongest by score. */
 const RIASEC_LABELS: Record<string, string> = {
-  R: 'Реалистичный',
-  I: 'Исследовательский',
-  A: 'Артистичный',
-  S: 'Социальный',
-  E: 'Предприимчивый',
-  C: 'Конвенциональный',
+  R: 'admin:riasecShort.R',
+  I: 'admin:riasecShort.I',
+  A: 'admin:riasecShort.A',
+  S: 'admin:riasecShort.S',
+  E: 'admin:riasecShort.E',
+  C: 'admin:riasecShort.C',
 };
 
 /**
@@ -48,8 +50,9 @@ const RIASEC_LABELS: Record<string, string> = {
  * bars already lives on the user's assessment panel.
  */
 function InterestsCell({ values }: { values: Record<string, number> | null }) {
+  const { t } = useTranslation('admin');
   if (!values) {
-    return <span className={ADMIN_META} title="Пусто у junior (проходят MI-тест) и до завершения диагностики">—</span>;
+    return <span className={ADMIN_META} title={t('users.interestsEmptyHint')}>—</span>;
   }
 
   const ranked = Object.entries(values)
@@ -85,35 +88,37 @@ function InterestsCell({ values }: { values: Record<string, number> | null }) {
  * "Не начата" was bare uppercase text, so one column looked like two.
  */
 function DiagnosticsCell({ status }: { status: AssessmentStatus | null }) {
+  const { t } = useTranslation('admin');
   if (!status) {
     return (
-      <AdminBadge tone="quiet" title="Пользователь не начинал диагностику">
-        Не начата
+      <AdminBadge tone="quiet" title={t('users.notStartedHint')}>
+        {t('users.status.notStarted')}
       </AdminBadge>
     );
   }
 
   return status === 'in_progress' ? (
     <AdminBadge tone="accent" dot>
-      В процессе
+      {t('status.in_progress')}
     </AdminBadge>
   ) : (
     <AdminBadge tone="neutral" dot>
-      Завершена
+      {t('users.status.done')}
     </AdminBadge>
   );
 }
 
-function formatRelative(value: string): string {
+function formatRelative(value: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
   const date = new Date(value);
   const diffDays = Math.floor((Date.now() - date.getTime()) / 86400000);
-  if (diffDays < 1) return 'сегодня';
-  if (diffDays === 1) return 'вчера';
-  if (diffDays < 30) return `${diffDays} дн. назад`;
-  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  if (diffDays < 1) return t('users.today');
+  if (diffDays === 1) return t('users.yesterday');
+  if (diffDays < 30) return t('users.daysAgo', { count: diffDays });
+  return formatIntlDate(date, { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation('admin');
   const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
   // So the breadcrumb on a user's card returns to this exact filtered page.
   useRememberListQuery('/admin/users');
@@ -154,7 +159,7 @@ export default function AdminUsersPage() {
         setItems(data.items);
         setTotal(data.total);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить пользователей');
+        if (!cancelled) setError(t('users.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -202,7 +207,7 @@ export default function AdminUsersPage() {
       const rows = [...first.items, ...rest.flatMap((r) => r.items)].slice(0, PRINT_MAX_ROWS);
       setPrintRows({ items: rows, total: first.total, truncated: first.total > PRINT_MAX_ROWS });
     } catch {
-      setExportError('Не удалось собрать PDF. Попробуйте сузить фильтры.');
+      setExportError(t('users.pdfError'));
       setPrinting(false);
     }
   }
@@ -219,7 +224,7 @@ export default function AdminUsersPage() {
       });
       downloadCsv(blob, 'users_export.csv');
     } catch {
-      setExportError('Не удалось выгрузить CSV. Возможно, выборка слишком большая — сузьте фильтры.');
+      setExportError(t('users.csvError'));
     } finally {
       setExporting(false);
     }
@@ -242,16 +247,16 @@ export default function AdminUsersPage() {
 
   /** Активные фильтры человеческим языком — печатаются в шапке листа. */
   const activeFilterLabels = [
-    search ? `Email содержит «${search}»` : null,
-    ageGroup ? `Возраст: ${AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup}` : null,
-    status ? `Есть тест со статусом: ${ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]}` : null,
-    goal ? `Есть тест с целью: ${ASSESSMENT_GOAL_LABELS[goal as AssessmentGoal]}` : null,
+    search ? t('users.filterEmail', { search }) : null,
+    ageGroup ? t('users.filterAge', { age: AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup }) : null,
+    status ? t('users.filterStatus', { status: t(ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]) }) : null,
+    goal ? t('users.filterGoal', { goal: t(ASSESSMENT_GOAL_LABELS[goal as AssessmentGoal]) }) : null,
   ].filter((value): value is string => value !== null);
 
   const columns: AdminColumn<AdminUserListItem>[] = [
     {
       key: 'user',
-      header: 'Пользователь',
+      header: t('feedback.col.user'),
       mobile: 'title',
       // Name and email in one cell. They were two columns, and since the name
       // falls back to the email when there's no profile, half the rows printed
@@ -274,13 +279,13 @@ export default function AdminUsersPage() {
               {/* `role` is the source of truth (pro-281) — `is_admin` is just
                   its derived boolean, no longer the thing rendered here. */}
               {item.role === 'admin' && (
-                <AdminBadge tone="brand" title="Имеет доступ в админку">
-                  Админ
+                <AdminBadge tone="brand" title={t('users.adminHint')}>
+                  {t('users.adminBadge')}
                 </AdminBadge>
               )}
               {item.role === 'psychologist' && (
-                <AdminBadge tone="accent" title="Кабинет психолога">
-                  Психолог
+                <AdminBadge tone="accent" title={t('users.psychologistHint')}>
+                  {t('users.psychologistBadge')}
                 </AdminBadge>
               )}
             </span>
@@ -293,7 +298,7 @@ export default function AdminUsersPage() {
     },
     {
       key: 'age',
-      header: 'Возраст',
+      header: t('common.col.age'),
       width: '104px',
       mobile: 'field',
       cell: (item) =>
@@ -305,18 +310,18 @@ export default function AdminUsersPage() {
     },
     {
       key: 'diagnostics',
-      header: 'Диагностика',
+      header: t('users.col.assessment'),
       width: '146px',
       mobile: 'badge',
       cell: (item) => <DiagnosticsCell status={item.latest_assessment_status} />,
     },
     {
       key: 'goal',
-      header: 'Цель теста',
+      header: t('users.col.goal'),
       width: '176px',
-      headerTitle: 'Цель последнего теста — не обязательно того, что совпал с фильтром «Цель»',
+      headerTitle: t('users.col.goalHint'),
       mobile: 'field',
-      mobileLabel: 'Цель',
+      mobileLabel: t('users.col.goalShort'),
       cell: (item) =>
         item.latest_assessment_goal ? (
           <span className={ADMIN_TEXT}>{ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal]}</span>
@@ -326,9 +331,9 @@ export default function AdminUsersPage() {
     },
     {
       key: 'interests',
-      header: 'Интересы',
+      header: t('users.col.interests'),
       width: '210px',
-      headerTitle: 'Два ведущих типа RIASEC. Полная раскладка — в карточке пользователя',
+      headerTitle: t('users.col.interestsHint'),
       mobile: 'field',
       cell: (item) => <InterestsCell values={item.riasec} />,
     },
@@ -337,12 +342,12 @@ export default function AdminUsersPage() {
       // Was "Активность" showing `created_at`, so someone who registered two
       // days ago and never came back read as "active 2 days ago". There is no
       // last-active field in the API — docs/admin-backend-requests-pro-242.md §5.
-      header: 'Регистрация',
+      header: t('users.col.registered'),
       width: '126px',
       align: 'right',
       mobile: 'field',
       cell: (item) => (
-        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at)}</span>
+        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at, t)}</span>
       ),
     },
   ];
@@ -350,8 +355,8 @@ export default function AdminUsersPage() {
   return (
     <>
       <AdminListHeader
-        title="Пользователи"
-        description="Учётные записи, их профили и прохождения диагностики."
+        title={t('nav.users')}
+        description={t('users.description')}
         actions={
           <>
             <Button
@@ -360,14 +365,14 @@ export default function AdminUsersPage() {
               muteSound
               isLoading={printing}
               onClick={handlePrint}
-              title="Откроется диалог печати — выберите «Сохранить как PDF»"
+              title={t('users.printHint')}
             >
               <FileText size={14} />
-              Экспорт PDF
+              {t('users.exportPdf')}
             </Button>
             <Button variant="ghost" size="sm" muteSound isLoading={exporting} onClick={handleExport}>
               <Download size={14} />
-              Экспорт CSV
+              {t('users.exportCsv')}
             </Button>
             <Button
               variant="ghost"
@@ -403,7 +408,7 @@ export default function AdminUsersPage() {
         selects={[
           {
             key: 'age_group',
-            label: 'Возраст',
+            label: t('common.col.age'),
             value: ageGroup,
             options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
               value: key,
@@ -412,7 +417,7 @@ export default function AdminUsersPage() {
           },
           {
             key: 'status',
-            label: 'Есть тест со статусом',
+            label: t('users.filter.status'),
             value: status,
             options: (Object.keys(ASSESSMENT_STATUS_LABELS) as AssessmentStatus[]).map((key) => ({
               value: key,
@@ -421,7 +426,7 @@ export default function AdminUsersPage() {
           },
           {
             key: 'goal',
-            label: 'Есть тест с целью',
+            label: t('users.filter.goal'),
             value: goal,
             options: (Object.keys(ASSESSMENT_GOAL_LABELS) as AssessmentGoal[]).map((key) => ({
               value: key,
@@ -438,8 +443,7 @@ export default function AdminUsersPage() {
           place, instead of hidden in a header tooltip. */}
       {(status || goal) && (
         <p className={cn(ADMIN_META, '-mt-1')}>
-          Фильтр находит пользователей, у которых есть хотя бы один подходящий тест. В колонке «Цель
-          теста» — всегда последний тест, он может отличаться.
+          {t('users.filterNote')}
         </p>
       )}
 
@@ -447,17 +451,17 @@ export default function AdminUsersPage() {
       {exportError && <AdminError message={exportError} />}
 
       <AdminDataTable
-        label="Пользователи"
+        label={t('nav.users')}
         columns={columns}
         rows={items}
         rowKey={(item) => item.id}
         rowHref={(item) => `/admin/users/${item.id}`}
         loading={loading}
-        emptyTitle="Пользователи не найдены"
-        emptyHint="Попробуйте изменить фильтры или очистить поиск."
+        emptyTitle={t('users.empty')}
+        emptyHint={t('users.emptyHint')}
       />
 
-      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['пользователь', 'пользователя', 'пользователей']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="users" />
 
       {printRows && (
         <UsersPrintReport
