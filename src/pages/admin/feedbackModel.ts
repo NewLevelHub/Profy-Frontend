@@ -14,7 +14,7 @@ import type { AdminFeedbackListItem, AgeGroup } from '@/shared/types';
  */
 
 export const MAX_SCORE = 5;
-export const SCORES = [5, 4, 3, 2, 1] as const;
+const SCORES = [5, 4, 3, 2, 1] as const;
 
 /** "Low" is the actionable half of the scale: these are the reviews to read. */
 export const LOW_SCORE_MAX = 2;
@@ -80,7 +80,7 @@ export function ageLabel(key: string): string {
 }
 
 /** A/B/C are the report scenarios the goal maps onto — opaque on their own. */
-export const SCENARIO_LABELS: Record<string, string> = {
+const SCENARIO_LABELS: Record<string, string> = {
   A: 'A · исследовать',
   B: 'B · выбрать профессию',
   C: 'C · поступить в вуз',
@@ -192,6 +192,3 @@ export function countHighScores(items: readonly AdminFeedbackListItem[]): number
   return items.filter((item) => item.relevance_score >= HIGH_SCORE_MIN).length;
 }
 
-export function countWithComment(items: readonly AdminFeedbackListItem[]): number {
-  return items.filter((item) => Boolean(item.comment?.trim())).length;
-}

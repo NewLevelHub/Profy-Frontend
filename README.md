@@ -90,7 +90,6 @@ src/
     lib/
       cn.ts          # clsx + tailwind-merge
       queryClient.ts # Singleton QueryClient
-      storage.ts     # Утилиты localStorage
     store/
       auth.ts        # Zustand + persist (token, user, _hasHydrated)
       assessment.ts  # Zustand + persist (assessmentId, goal, completedBlocks)
@@ -101,7 +100,6 @@ src/
     ui/
       layouts/       # AppLayout (Header + Outlet), AuthLayout (центрированная карточка)
       navigation/    # Header (горизонтальный nav, мобильный dropdown)
-      PageStub.tsx   # Заглушка для страниц в разработке
   styles/
     index.css        # Входная точка стилей
     tailwind.css     # Tailwind + @variant dark

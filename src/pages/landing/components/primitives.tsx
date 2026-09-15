@@ -179,7 +179,7 @@ export function ArrowIcon() {
 }
 
 /** Галочка в строках доверия под призывом. */
-export function CheckIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+function CheckIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg
       viewBox="0 0 24 24"
