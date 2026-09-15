@@ -5,6 +5,10 @@
 export const NAV_ITEMS = [
   { label: 'common:nav.results', path: '/results' },
   // 'План' (/roadmap) hidden from nav for now — route still exists, just not linked.
+  // matchPrefix keeps the tab lit on /universities/:id, which NavLink's own
+  // `isActive` would drop (it matches the exact path only for a nav item
+  // whose route has children).
+  { label: 'common:nav.universities', path: '/universities', matchPrefix: '/universities' },
   { label: 'common:nav.profile', path: '/profile' },
 ] as const;
 
@@ -14,7 +18,18 @@ export const ADMIN_NAV_ITEM = {
   matchPrefix: '/admin',
 } as const;
 
-export type NavItem = (typeof NAV_ITEMS)[number] | typeof ADMIN_NAV_ITEM;
+export const PSYCHOLOGIST_NAV_ITEMS = [
+  {
+    label: 'Ученики',
+    path: '/psychologist/students',
+    matchPrefix: '/psychologist',
+  },
+] as const;
+
+export type NavItem =
+  | (typeof NAV_ITEMS)[number]
+  | typeof ADMIN_NAV_ITEM
+  | (typeof PSYCHOLOGIST_NAV_ITEMS)[number];
 
 export function isNavActive(
   matchPrefix: string | undefined,

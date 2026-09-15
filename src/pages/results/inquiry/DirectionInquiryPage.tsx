@@ -1,9 +1,11 @@
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useDirectionInquiry } from './hooks/useDirectionInquiry';
 import { InquiryQuestion } from './components/InquiryQuestion';
 import { InquirySkeleton } from './components/InquirySkeleton';
@@ -12,6 +14,7 @@ import { InquiryVerdict } from './components/InquiryVerdict';
 export default function DirectionInquiryPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug ?? '')}`);
   const { t } = useTranslation('results');
   const {
     questions, isLoading, error,
@@ -21,13 +24,9 @@ export default function DirectionInquiryPage() {
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        className="flex items-center gap-1.5 text-brand font-semibold text-label hover:opacity-70 transition-opacity"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="w-4 h-4" />
+      <BackLink onClick={goBack}>
         {t('common:back')}
-      </button>
+      </BackLink>
 
       <PageHeader
         title={t('inquiry.title')}

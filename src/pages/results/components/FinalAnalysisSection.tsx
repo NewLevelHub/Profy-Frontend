@@ -14,7 +14,11 @@ export function FinalAnalysisSection({ text }: FinalAnalysisSectionProps) {
 
   return (
     <section aria-label={t('finalAnalysis.aria')}>
-      <Card className="bg-brand-subtle">
+      {/* rounded-[20px] — тот же радиус, что у .panel-glass на SummaryCard в
+          начале отчёта: два одинаковых по смыслу текстовых блока (вступление и
+          свод) не должны отличаться скруглением. Card по умолчанию берёт
+          --radius (8px). */}
+      <Card className="bg-brand-subtle rounded-[20px]">
         <p className="text-body text-primary leading-relaxed">{text}</p>
       </Card>
     </section>

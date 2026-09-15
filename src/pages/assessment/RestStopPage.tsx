@@ -1,4 +1,4 @@
-import { useNavigate, useLocation, useSearchParams } from 'react-router';
+import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Mascot } from '@/shared/ui/Mascot';
@@ -28,12 +28,13 @@ export type { RestStopState };
  * 25/50/75% of the way through the whole run (see
  * useAssessmentStore.recordQuestionAnswered), independent of whether a
  * question-block has closed. Visually the same card
- * family as PraisePage/ExitAssessmentModal/ResultLoadingPage (Paper card on
- * Fog background, hairline border via shadow-pop, Mascot, Spine progress),
- * but semantically different from PraisePage: PraisePage is a fact statement
- * with no question ("Молодец!" + "Дальше →" button); this always ends its
- * body copy on an invitation ("...Продолжаем?") and speaks only in
- * first-person-system voice ("замечаю"/"вижу"), never judging the student.
+ * family as ExitAssessmentModal/ResultLoadingPage (Paper card on Fog
+ * background, hairline border via shadow-pop, Mascot, Spine progress).
+ *
+ * Пришёл на смену экрану похвалы («Молодец!» + «Дальше →»), который был
+ * простой констатацией факта и удалён в PRO-266 как недостижимый: этот
+ * всегда заканчивает текст приглашением («...Продолжаем?») и говорит
+ * только от лица системы («замечаю»/«вижу»), никогда не оценивая ученика.
  *
  * Two content variants:
  *  - Normal — a micro-insight about the *process* of choosing, if one is
@@ -63,6 +64,11 @@ export default function RestStopPage() {
   // Real signal from useAssessmentStore.recordAnswerTiming, or the
   // `?variant=speed` QA/dev preview escape hatch — see doc comment above.
   const isSpeedVariant = state.isSpeedFlag === true || searchParams.get('variant') === 'speed';
+  // Привал существует только внутри прохождения: и прогресс, и адрес
+  // возврата приходят в состоянии перехода. По прямой ссылке экран
+  // показывал «Прошли 0, идём ровно» человеку вне теста. `?variant=speed`
+  // остаётся рабочей превьюшкой для QA — см. комментарий выше.
+  const openedOutOfFlow = location.state == null && searchParams.get('variant') === null;
   const hasInsight = !isSpeedVariant && Boolean(state.microInsight);
 
   function handleContinue() {
@@ -74,6 +80,8 @@ export default function RestStopPage() {
     // ExitAssessmentModal relies on) — pausing is just leaving.
     navigate('/results');
   }
+
+  if (openedOutOfFlow) return <Navigate to="/results" replace />;
 
   const kicker = isSpeedVariant || hasInsight ? t('restStop.kickerInsight') : t('restStop.kickerRest');
   const headline = isSpeedVariant

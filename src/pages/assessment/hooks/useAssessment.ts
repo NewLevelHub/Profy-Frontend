@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
-import { useProfileStore } from '@/shared/store/profile';
+import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
+import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
@@ -45,6 +46,7 @@ function loadStoredAnswers<T>(key: string | null): T | null {
 }
 
 export function useAssessment() {
+  useFinishedAssessmentGuard();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -52,7 +54,8 @@ export function useAssessment() {
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const totalQuestionsFromStore = useAssessmentStore(s => s.totalQuestions);
   const setProgress = useAssessmentStore(s => s.setProgress);
-  const ageGroup = useProfileStore(s => s.profile?.age_group);
+  const { profile } = useEnsureProfile();
+  const ageGroup = profile?.age_group;
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [pages, setPages] = useState<Page[]>([]);
@@ -70,6 +73,7 @@ export function useAssessment() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -340,8 +344,39 @@ export function useAssessment() {
     setExitConfirmOpen(true);
   }
 
-  function confirmExit() {
+  async function confirmExit() {
     setExitConfirmOpen(false);
+    // A Likert page only reaches the server on its "Далее" click
+    // (handleSubmitLikertPage) — a page abandoned before that click never
+    // sent anything, whether the user stopped partway through it or filled
+    // every question on it and exited instead of pressing "Далее". So this
+    // always flushes whatever's answered on the current page, not just a
+    // partial one — resubmitting a page that *did* already get its "Далее"
+    // click (e.g. after "Назад" back onto it) is a harmless no-op, same as
+    // the resume-recovery path in advance() above relies on.
+    // Pair pages don't have this gap: handlePairAnswer saves the single
+    // choice the moment it's made, before this page can even be showing an
+    // unsaved pick.
+    const page = pages[pageIndex];
+    if (assessmentId && page?.kind === 'likert') {
+      const answeredQuestions = page.questions.filter(q => likertAnswers[q.id] !== undefined);
+      if (answeredQuestions.length > 0) {
+        setExiting(true);
+        try {
+          const response = await assessmentApi.saveAnswers(assessmentId, {
+            answers: answeredQuestions.map(q => ({ question_id: q.id, value: likertAnswers[q.id] })),
+          });
+          setProgress(response.answered_count, response.total);
+        } catch (err) {
+          // Surfaced (not swallowed) so a failed flush is visible instead of
+          // silently leaving the displayed count stale — answers stay
+          // buffered in sessionStorage either way and retry next page load.
+          console.error('[assessment] failed to flush answers on exit', err);
+        } finally {
+          setExiting(false);
+        }
+      }
+    }
     navigate('/results');
   }
 
@@ -377,6 +412,7 @@ export function useAssessment() {
     currentPair,
     progress,
     exitConfirmOpen,
+    exiting,
     autofilling,
     handleBack,
     handleStartIntro,

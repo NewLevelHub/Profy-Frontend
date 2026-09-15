@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationPairsApi } from '@/shared/api/motivationPairs';
 import type { MotivationIntensity, MotivationPairItem, MotivationPairSide } from '@/shared/types';
@@ -15,6 +16,7 @@ interface Answer {
 }
 
 export function useMotivationHarter() {
+  useFinishedAssessmentGuard();
   const { t } = useTranslation();
   const navigate = useNavigate();
 

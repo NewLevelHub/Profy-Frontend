@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
 import type { MotivationTriplet } from '@/shared/types';
@@ -10,6 +11,7 @@ import type { RestStopState } from '../utils/restStop';
 export type MotivationPhase = 'loading' | 'intro' | 'question';
 
 export function useMotivationAssessment() {
+  useFinishedAssessmentGuard();
   const { t } = useTranslation();
   const navigate = useNavigate();
 

@@ -75,7 +75,7 @@ export function SectionHead({
   return (
     <div className={cn('max-w-[680px] mb-[clamp(2.5rem,5vw,4rem)]', center && 'mx-auto text-center', className)}>
       <Eyebrow center={center}>{eyebrow}</Eyebrow>
-      <h2 className="font-display font-bold text-[clamp(1.6rem,3.2vw,2.25rem)] leading-[1.2] tracking-[-0.03em] mt-4 text-balance" style={{ color: 'var(--midnight)' }}>
+      <h2 className="font-display font-bold text-[clamp(1.6rem,3.2vw,2.25rem)] leading-[1.2] tracking-[-0.03em] mt-4 text-balance" style={{ color: 'var(--text-heading)' }}>
         {title}
       </h2>
       {sub && (
@@ -213,7 +213,7 @@ export function TrustRow({
           style={{
             // На инвертированном блоке призыва текст идёт по заливке --pine,
             // поэтому и подпись, и галочка светлеют.
-            color: inverted ? 'color-mix(in srgb, var(--paper) 70%, transparent)' : 'var(--text-subtle)',
+            color: inverted ? 'color-mix(in srgb, var(--on-brand-solid) 70%, transparent)' : 'var(--text-subtle)',
           }}
         >
           <CheckIcon style={{ color: inverted ? 'var(--dawn-light)' : 'var(--pine-light)' }} />

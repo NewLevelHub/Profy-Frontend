@@ -39,7 +39,7 @@ export function LandingFooter() {
               type="button"
               onClick={() => scrollToAnchor('hero')}
               className="group inline-flex items-baseline font-display font-bold text-[1.35rem] tracking-[-0.045em] leading-none"
-              style={{ color: 'var(--midnight)' }}
+              style={{ color: 'var(--text-heading)' }}
               aria-label={env.APP_NAME}
             >
               {env.APP_NAME}

@@ -39,7 +39,59 @@ repurpose one of these for something outside its lane.
   won't.
 - Light and dark mode are both fully defined in `theme.css` (`:root` /
   `.dark`) with the same five-role structure — dark mode is not an
-  afterthought filter, it's a second calibration of the same tokens.
+  afterthought filter, it's a second calibration of the same tokens. See
+  "Dark mode" below for the six places where night behaves differently.
+- Never use a raw palette token (`--midnight`, `--fog`, `--paper`) as a text
+  or surface color in a component — reach for the role (`--text-heading`,
+  `--bg-page`, `--bg-surface`). Raw tokens flip meaning between themes:
+  `--midnight` is near-black in *both*, so a heading painted with it
+  disappears at night.
+
+## Dark mode
+
+The night calibration keeps every relationship from the day one — surface
+sits above canvas (1.15 vs 1.11), the hairline reads against the surface
+(2.08 vs 1.85) — so the product feels like the same product, not its
+negative. Six rules differ:
+
+1. **Dawn swaps roles.** By day dawn can't carry text (2.44 on Fog — that's
+   what `--dawn-deep` is for); at night it's the brightest thing on screen
+   (8.23), so it must not fill large areas. Mark, edge, current-step numeral,
+   the dot in the wordmark — nothing wider.
+2. **The button turns inside out.** Day: pine fill, cream label. Night: light
+   pine, near-black label (`--text-on-brand` #08110F, 7.09).
+3. **There is no white.** Primary text at night is the same cream that serves
+   as the day canvas (#EDE9DF). Pure `#fff` on the dark green rings and
+   haloes the letterforms.
+4. **Large brand planes don't lighten.** `--brand` is the interactive pine and
+   *does* lighten at night so it reads as a control; a half-screen plane
+   lightened the same way becomes a light source. Those surfaces (stats band,
+   final CTA, the hero shape) use `--brand-solid` / `--on-brand-solid`, which
+   stay deep in both themes.
+5. **Scrims are a token, not `bg-black/40`.** `--scrim` is 45% by day and 66%
+   at night, and the modal rises to `--bg-raised` instead of staying on the
+   surface color.
+6. **The mascot gets dimmed.** The sprites are drawn for a light canvas —
+   white body, dark outline. At night `.mascot-sprite` drops to
+   `brightness(0.93)` so the figure stays readable without glaring. No
+   re-export of the art needed.
+
+Print (`UsersPrintReport`, `AssessmentPrintReport`, `print.css`) is always
+day and holds its colors as hex on purpose — it's paper. Don't "fix" it onto
+tokens.
+
+The theme itself lives in `shared/lib/theme.ts` (three states: system /
+light / dark, class `dark` on `<html>`), is applied before first paint by the
+inline script in `index.html`, and is switched by `<ThemeToggle>` in the app
+header, the landing header and the auth screens.
+
+`<ThemeToggle>` deliberately shows **two** buttons for those three states.
+Until the toggle is touched the product silently follows the device, and the
+button that's highlighted is the theme currently in effect; the first click
+pins the choice and detaches the product from the OS setting. The usual third
+"system" button (a monitor glyph) is a system-settings convention that says
+nothing to a 6–18 audience — the cost of dropping it is that there's no way
+back to "follow the system" from the UI.
 
 ## Elevation: density and line, not blur
 
@@ -76,13 +128,27 @@ Three families, each with one job:
 
 | Family | Token | Used for |
 |---|---|---|
-| Instrument Sans | `--font-sans` / `--font-body` | Body copy, UI, anything a person reads as prose |
-| Bricolage Grotesque | `--font-display` | Screen titles / brand moments only — **max 1–2 per screen** |
-| IBM Plex Mono | `--font-mono` | Machine/system content: ids, dates, statuses, codes |
+| Onest | `--font-sans` / `--font-body` / `--font-display` | Body, UI, kickers, and screen titles |
+| IBM Plex Mono | `--font-mono` | Machine/system content: ids, dates, codes, spine numerals |
 
-Bricolage Grotesque ships no Cyrillic glyphs — its fallback chain is the same
-sans stack as `--font-sans`, not a serif, so Cyrillic headings degrade
-gracefully instead of silently switching to a mismatched serif face.
+**Every family here ships Cyrillic, and that is the requirement, not a
+preference.** The previous pair (Instrument Sans + Bricolage Grotesque) had
+no Cyrillic at all, so the entire Russian interface was rendered by whatever
+sans the OS supplied — the type system existed only for Latin text. Don't
+introduce a face without checking its subsets first.
+
+Display and body share **Onest**. Separate display faces (Unbounded, then
+Geologica) read as poster-bold on Cyrillic headlines like «Ты уже в пути».
+Hierarchy comes from size, weight (`font-semibold` via `<Heading>`), and
+tight tracking — not a second family. Landing brand moments may still use
+`font-bold` explicitly. Status kickers (`type.monoLabel` / `.journey-kicker`)
+are Onest uppercase with a dawn hairline — not mono. Mono stays for true
+machine content (spine digits, OTP, codes).
+
+Journey surfaces and the app canvas use a quiet **veil**, not a colour mesh:
+lighter paper fading in from above, a whisper of pine at the edges (opacity
+only), plus a soft grain. No sky/glow/iris washes on the page — those tokens
+remain available for small accent wells, not the canvas.
 
 **Always pick type through the role scale, not raw sizes.** Use
 `<Heading>`, `<Text>`, `<Mono>` (`src/shared/ui/typography/`) in JSX. Only
@@ -170,6 +236,8 @@ screen by screen.
 ## Checklist before shipping new UI
 
 - [ ] Colors come from `theme.css` variables/utilities — no hardcoded hex.
+- [ ] Checked in **both themes** — not just the one you're working in.
+- [ ] Text/surface colors use a role token, never a raw palette one (`--midnight`, `--paper`, …).
 - [ ] No new border-radius value — reuse `--radius` or `--radius-pill`.
 - [ ] No blurred drop shadow added for "elevation" — use a hairline border or fill/density instead.
 - [ ] Headings use `--font-display`, body uses `--font-sans`/`--font-body` — not mixed.

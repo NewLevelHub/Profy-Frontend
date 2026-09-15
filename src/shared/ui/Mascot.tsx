@@ -157,7 +157,7 @@ export function Mascot({
 
   const poseLayer = (
     <>
-      <img src={src} alt={alt} className="block w-full h-auto" />
+      <img src={src} alt={alt} className="mascot-sprite block w-full h-auto" />
       {blinking && entry.eyes && entry.eyes.map((eye, index) => <Eyelid key={index} box={eye} />)}
     </>
   );

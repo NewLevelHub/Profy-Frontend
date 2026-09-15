@@ -69,9 +69,8 @@ function MilestoneView({
       <button
         type="button"
         onClick={onBack}
-        className="flex items-center gap-1.5 mb-4 font-bold text-brand text-sm"
+        className="mb-4 font-bold text-brand text-sm hover:opacity-70 transition-opacity"
       >
-        <span className="text-lg leading-none">←</span>
         {t('roadmap:page.allHorizons')}
       </button>
 

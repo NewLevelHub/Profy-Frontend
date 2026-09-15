@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { Heading } from '@/shared/ui/typography/Heading';
 
 export interface Crumb {
   label: string;
@@ -54,7 +55,9 @@ export function AdminPageHeader({ crumbs, title, meta, actions }: AdminPageHeade
           ))}
         </nav>
 
-        <h1 className="font-display text-display-sm font-semibold text-primary text-balance m-0">{title}</h1>
+        <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance">
+          {title}
+        </Heading>
         {meta && <div className="mt-1.5">{meta}</div>}
       </div>
 

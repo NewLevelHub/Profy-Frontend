@@ -9,9 +9,9 @@ export interface ChipProps {
 }
 
 const VARIANT_CLASS: Record<ChipVariant, string> = {
-  solid: 'bg-brand text-on-brand',
-  outline: 'border border-brand text-brand bg-transparent',
-  muted: 'border border-default text-secondary bg-surface',
+  solid: 'bg-brand text-on-brand shadow-[0_6px_14px_color-mix(in_srgb,var(--pine)_22%,transparent)]',
+  outline: 'border border-[color:color-mix(in_srgb,var(--pine)_35%,var(--border))] text-brand bg-[color-mix(in_srgb,var(--pine)_7%,transparent)]',
+  muted: 'border border-[color:color-mix(in_srgb,#fff_45%,var(--border))] text-secondary field-tile',
 };
 
 function ChipBase({ label, variant = 'solid' }: ChipProps) {

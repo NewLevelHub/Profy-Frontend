@@ -27,6 +27,7 @@ export default function AssessmentPage() {
     currentPair,
     progress,
     exitConfirmOpen,
+    exiting,
     autofilling,
     handleBack,
     handleStartIntro,
@@ -49,7 +50,12 @@ export default function AssessmentPage() {
     <div className="flex flex-col min-h-screen bg-page">
 
       {/* ── Exit confirmation modal ─────────────────────────────────── */}
-      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
+      <ExitAssessmentModal
+        open={exitConfirmOpen}
+        onSaveAndExit={confirmExit}
+        onContinue={cancelExit}
+        exiting={exiting}
+      />
 
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail

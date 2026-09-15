@@ -24,8 +24,7 @@ type Level = InterestMapItem['level'];
 
 // Icon color — the fill-contrast cell goes solid Pine at `high` and solid
 // Dawn at `medium`, so both flip to --text-on-brand (readable on either
-// fill) instead of a color-on-same-color icon. Muted #9A9287 (--text-
-// subtle's exact light-mode value, dark-mode-safe via the token) for
+// fill) instead of a color-on-same-color icon. Muted --text-subtle for
 // barely-present — the cell's own opacity-45 does the rest of the dimming.
 const ICON_COLOR: Record<Level, string> = {
   high: 'var(--text-on-brand)',
@@ -64,7 +63,7 @@ export function InterestDomainSection({ isJunior, interestMap, interestMapNote }
             {t(isJunior ? 'results:interestDomain.kickerMi' : 'results:interestDomain.kickerRiasec')}
           </DomainKicker>
           {headline && (
-            <Heading level="display-md" as="h2" className="text-[color:var(--midnight)]">
+            <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
               {headline}
             </Heading>
           )}
@@ -129,7 +128,7 @@ function TypeIcon({ item, isJunior }: { item: InterestMapItem; isJunior: boolean
       <span
         className={cn(
           'w-9 h-9 rounded-full flex items-center justify-center text-lg select-none',
-          (item.level === 'high' || item.level === 'medium') && 'bg-white/25',
+          (item.level === 'high' || item.level === 'medium') && 'bg-[color:color-mix(in_srgb,var(--text-on-brand)_22%,transparent)]',
           item.level === 'low' && 'bg-surface border border-default',
         )}
         aria-hidden="true"

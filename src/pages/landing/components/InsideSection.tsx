@@ -62,13 +62,13 @@ export function InsideSection() {
                 className="w-[38px] h-[38px] rounded-[var(--radius)] mb-4 flex items-center justify-center"
                 style={{ background: group.color }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--paper)" strokeWidth="1.9" className="w-5 h-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-on-brand)" strokeWidth="1.9" className="w-5 h-5">
                   {group.icon}
                 </svg>
               </div>
               <h4
                 className="font-display text-[0.94rem] font-semibold tracking-[-0.02em] mb-2"
-                style={{ color: `color-mix(in srgb, ${group.color} 72%, var(--midnight))` }}
+                style={{ color: `color-mix(in srgb, ${group.color} 72%, var(--text-heading))` }}
               >
                 {group.name}
               </h4>
@@ -80,7 +80,7 @@ export function InsideSection() {
                     className="text-[0.72rem] font-semibold px-[0.7rem] py-[0.35rem] rounded-pill border bg-surface"
                     style={{
                       borderColor: `color-mix(in srgb, ${group.color} 34%, var(--bg-surface))`,
-                      color: `color-mix(in srgb, ${group.color} 78%, var(--midnight))`,
+                      color: `color-mix(in srgb, ${group.color} 78%, var(--text-heading))`,
                     }}
                   >
                     {chip}

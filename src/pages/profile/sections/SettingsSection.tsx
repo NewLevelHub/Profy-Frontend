@@ -34,14 +34,14 @@ export function SettingsSection({
   const { t } = useTranslation('profile');
   return (
     <LedgerSection id="settings" number="05" title={t('settings.title')}>
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-2.5">
         {/* Rendered only once more than one locale is offered (KZ-603). */}
         {LOCALE_SWITCH_ENABLED && (
-          <div className="flex items-center justify-between gap-4 pb-4 border-b border-[color:var(--border-faint)]">
+          <div className="field-tile flex items-center justify-between gap-4 px-4 py-3.5">
             <div className="flex items-center gap-3 min-w-0">
               <Languages size={18} className="text-brand flex-none" />
               <div>
-                <p className="font-bold text-primary text-body-sm">{t('settings.languageLabel')}</p>
+                <p className="font-semibold text-primary text-body-sm">{t('settings.languageLabel')}</p>
                 <p className="text-caption text-secondary">{t('settings.languageHint')}</p>
               </div>
             </div>
@@ -49,7 +49,7 @@ export function SettingsSection({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4 py-4 border-b border-[color:var(--border-faint)]">
+        <div className="field-tile flex items-center justify-between gap-4 px-4 py-3.5">
           <div className="flex items-center gap-3 min-w-0">
             {soundEnabled ? (
               <Volume2 size={18} className="text-brand flex-none" />
@@ -57,7 +57,7 @@ export function SettingsSection({
               <VolumeX size={18} className="text-muted flex-none" />
             )}
             <div>
-              <p className="font-bold text-primary text-body-sm">{t('settings.soundLabel')}</p>
+              <p className="font-semibold text-primary text-body-sm">{t('settings.soundLabel')}</p>
               <p className="text-caption text-secondary">
                 {prefersReducedMotion && !soundEnabled
                   ? t('settings.soundReducedMotion')
@@ -86,8 +86,8 @@ export function SettingsSection({
         </div>
 
         {confirmRestart ? (
-          <div className="py-4 border-b border-[color:var(--border-faint)]">
-            <p className="text-body-sm font-bold text-primary mb-1">{t('settings.restartConfirmTitle')}</p>
+          <div className="field-tile px-4 py-3.5">
+            <p className="text-body-sm font-semibold text-primary mb-1">{t('settings.restartConfirmTitle')}</p>
             <p className="text-caption text-secondary mb-3">
               {t('settings.restartConfirmBody')}
             </p>
@@ -101,15 +101,15 @@ export function SettingsSection({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-4 py-4 border-b border-[color:var(--border-faint)]">
+          <div className="field-tile flex items-center justify-between gap-4 px-4 py-3.5">
             <div>
-              <p className="font-bold text-primary text-body-sm">{t('settings.restartLabel')}</p>
+              <p className="font-semibold text-primary text-body-sm">{t('settings.restartLabel')}</p>
               <p className="text-caption text-secondary">{t('settings.restartHint')}</p>
             </div>
             <button
               type="button"
               onClick={onRestartRequest}
-              className="text-body-sm font-bold text-danger border border-danger rounded-[var(--radius)] px-3.5 py-1.5 hover:bg-danger-subtle transition-colors flex-none"
+              className="text-body-sm font-semibold text-danger border border-danger rounded-[14px] px-3.5 py-1.5 hover:bg-danger-subtle transition-colors flex-none"
             >
               {t('settings.restartAction')}
             </button>
@@ -119,7 +119,7 @@ export function SettingsSection({
         <button
           type="button"
           onClick={onLogout}
-          className="flex items-center gap-2 pt-4 text-body-sm font-bold text-secondary hover:text-danger transition-colors"
+          className="field-tile flex items-center gap-2 px-4 py-3.5 text-body-sm font-semibold text-secondary hover:text-danger transition-colors"
         >
           <LogOut size={14} />
           {t('settings.logout')}

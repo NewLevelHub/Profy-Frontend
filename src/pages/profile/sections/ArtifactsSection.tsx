@@ -26,8 +26,8 @@ function joinValues(items: ArtifactItem[], type: ArtifactType): string | null {
 }
 
 // Mirrors the onboarding "Твои увлечения и цели" step's own groups (see
-// ArtifactsSetupPage) so this reads as the same data, laid out as the
-// ledger reference's label/value rows instead of a chip list.
+// ArtifactsSetupPage) so this reads as the same data, laid out as soft
+// field tiles instead of bare label/value rows on beige.
 export function ArtifactsSection({ artifacts, onEdit }: ArtifactsSectionProps) {
   const { t } = useTranslation('profile');
   const hasAny = artifacts.length > 0;
@@ -44,17 +44,26 @@ export function ArtifactsSection({ artifacts, onEdit }: ArtifactsSectionProps) {
       onEdit={onEdit}
     >
       {hasAny ? (
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+        <div className="grid sm:grid-cols-2 gap-2.5">
           {rows.map((r) => (
-            <div key={r.type} className="flex flex-col gap-1">
+            <div key={r.type} className="field-tile flex flex-col gap-1 px-4 py-3.5 min-w-0">
               <p className="text-caption text-secondary">{t(r.labelKey)}</p>
-              <p className="text-body-md text-primary">{r.value}</p>
+              <p className="text-body-md font-semibold text-[color:var(--text-heading)] wrap-anywhere">
+                {r.value}
+              </p>
             </div>
           ))}
-          <div className="flex flex-col gap-1">
+          <div className="field-tile flex flex-col gap-1 px-4 py-3.5 sm:col-span-2 min-w-0">
             <p className="text-caption text-secondary">{t('artifacts.dream')}</p>
+            {/* wrap-anywhere, а не break-words: значение вводит человек, и «мечта»
+                одной строкой без пробелов раздувала колонку. break-word ломает строку
+                визуально, но НЕ уменьшает min-content, а плитка — элемент grid с
+                min-width: auto, поэтому дорожка всё равно раздувалась и текст уезжал
+                за карточку. anywhere уменьшает и min-content тоже. */}
             {dream ? (
-              <p className="text-body-md text-primary">{dream}</p>
+              <p className="text-body-md font-semibold text-[color:var(--text-heading)] wrap-anywhere">
+                {dream}
+              </p>
             ) : (
               <p className="text-body-sm text-secondary flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent flex-none" aria-hidden="true" />
@@ -62,7 +71,7 @@ export function ArtifactsSection({ artifacts, onEdit }: ArtifactsSectionProps) {
                 <button
                   type="button"
                   onClick={onEdit}
-                  className="text-brand font-bold hover:opacity-75 transition-opacity"
+                  className="text-brand font-semibold hover:opacity-75 transition-opacity"
                 >
                   {t('artifacts.dreamEmptyAction')}
                 </button>

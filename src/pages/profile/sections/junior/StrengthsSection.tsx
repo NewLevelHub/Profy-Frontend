@@ -40,7 +40,7 @@ export function StrengthsSection({ cards }: StrengthsSectionProps) {
               >
                 <Sparkles size={16} />
               </span>
-              <span className="text-body font-medium" style={{ color: 'var(--midnight)', fontSize: 16 }}>
+              <span className="text-body font-medium" style={{ color: 'var(--text-heading)', fontSize: 16 }}>
                 {card.title}
               </span>
             </Card>

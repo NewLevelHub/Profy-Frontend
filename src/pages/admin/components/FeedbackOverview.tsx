@@ -144,7 +144,7 @@ export function FeedbackOverview({
                     : t('overview.showOnlyScore', { score: bar.score })
                   }
                   className={cn(
-                    'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-0.5 transition-colors text-left',
+                    'flex items-center gap-2.5 rounded-[14px] px-1.5 -mx-1.5 py-0.5 transition-colors text-left',
                     bar.count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
                     active && 'bg-active-tint',
                   )}
@@ -185,7 +185,7 @@ export function FeedbackOverview({
                       : t('feedback.showWithSection', { section: section.label })
                   }
                   className={cn(
-                    'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-1 transition-colors text-left',
+                    'flex items-center gap-2.5 rounded-[14px] px-1.5 -mx-1.5 py-1 transition-colors text-left',
                     section.count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
                     active && 'bg-active-tint',
                   )}
@@ -269,7 +269,7 @@ function ScoreShortcut({
       disabled={count === 0}
       title={count === 0 ? t('overview.noSuchFeedback') : t('overview.showOnlyThese')}
       className={cn(
-        'text-left rounded-[3px] px-2 py-1.5 -mx-2 transition-colors',
+        'text-left rounded-[14px] px-2 py-1.5 -mx-2 transition-colors',
         count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
         active && activeClass,
       )}
@@ -319,7 +319,7 @@ function SliceCard({
           : t('overview.slicesOtherHint')
       }
       aside={
-        <div role="group" aria-label={t('overview.slice.aria')} className="inline-flex rounded-[3px] border border-default overflow-hidden">
+        <div role="group" aria-label={t('overview.slice.aria')} className="inline-flex rounded-[14px] border border-default overflow-hidden">
           {SLICES.map((option) => (
             <button
               key={option.key}

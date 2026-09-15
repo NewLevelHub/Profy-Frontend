@@ -7,6 +7,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { useLocaleStore } from '@/shared/store/locale';
 import { canSeeUniversities } from '@/shared/lib/assessmentGoal';
+import { useFavoriteUniversity } from '@/shared/hooks/useFavoriteUniversity';
 import type { ProgramBrief } from '@/shared/types';
 
 export interface CountryFilter {
@@ -36,6 +37,15 @@ function getKzRankScore(p: ProgramBrief): number | null {
   return null;
 }
 
+// Starred universities lead the list regardless of rank (PRO-265). The
+// backend already returns them first, but this hook re-sorts client-side on
+// every filter/direction change, so the rule has to be repeated here or the
+// re-sort would silently undo it.
+function compareByFavorite(a: ProgramBrief, b: ProgramBrief): number {
+  if (a.university.is_favorite === b.university.is_favorite) return 0;
+  return a.university.is_favorite ? -1 : 1;
+}
+
 // Universities with no score on the active scale always sort to the end, as
 // their own group, regardless of asc/desc — they must never get silently
 // blended into the middle of the ranked list via a fallback score.
@@ -63,6 +73,7 @@ export function useUniversityList() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const isAllowed = canSeeUniversities(goal, ageGroup);
+  const { toggleFavorite } = useFavoriteUniversity();
   // Program/university `name` and `description` are resolved server-side per
   // request locale (Accept-Language, set by the api interceptor from this same
   // store). Without locale in the key, switching language serves the stale
@@ -113,12 +124,16 @@ export function useUniversityList() {
     // `activeCountry` holds a backend `country` value (ru-only data), so the
     // literal here is a data match, not UI copy.
     const getScore = activeCountry === 'Казахстан' ? getKzRankScore : getGeneralRankScore;
-    return [...filtered].sort((a, b) => compareByRank(a, b, getScore, sortDirection));
+    return [...filtered].sort(
+      (a, b) => compareByFavorite(a, b) || compareByRank(a, b, getScore, sortDirection),
+    );
   }, [allPrograms, activeCountry, sortDirection]);
 
-  const handleProgramClick = useCallback((programId: string) => {
-    navigate(`/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`);
-  }, [navigate, slug]);
+  // Адрес, а не переход: карточка программы рендерит его как обычную ссылку.
+  const programDetailPath = useCallback(
+    (programId: string) => `/results/directions/${encodeURIComponent(slug!)}/universities/${programId}`,
+    [slug],
+  );
 
   return {
     slug,
@@ -131,7 +146,8 @@ export function useUniversityList() {
     sortDirection,
     toggleSortDirection,
     isAllowed,
-    handleProgramClick,
+    programDetailPath,
+    toggleFavorite,
     refetch,
   };
 }

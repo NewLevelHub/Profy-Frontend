@@ -1,18 +1,21 @@
-import { useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import {
-  ArrowLeft, Target,
+  Target,
   Briefcase,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { BackLink } from '@/shared/ui/BackLink';
 import { Card } from '@/shared/ui/Card';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { toDisplayString, splitRequirementNotes, getUniversityRankingLabels } from '@/pages/results/utils/programUtils';
+import { toDisplayString, splitRequirementNotes } from '@/pages/results/utils/programUtils';
+import { getUniversityRankingLabels } from '@/shared/lib/universityDisplay';
+import { useBackTo } from '@/shared/lib/useBackTo';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { DomainCardFrame, DomainKicker, DomainListCard } from '@/pages/results/components/DomainCardParts';
 import type { ProgramDetail } from '@/shared/types';
@@ -48,7 +51,7 @@ function ProgramDetailSkeleton() {
 // don't stack into a double gap.
 function SectionHeadingLocal({ icon: Icon, children, className }: { icon: LucideIcon; children: string; className?: string }) {
   return (
-    <h3 className={cn('text-body-lg font-semibold text-[color:var(--midnight)] flex items-center gap-2', className)}>
+    <h3 className={cn('text-body-lg font-semibold text-[color:var(--text-heading)] flex items-center gap-2', className)}>
       <Icon className="w-4 h-4 text-muted shrink-0" />
       {children}
     </h3>
@@ -239,26 +242,23 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
 }
 
 export default function ProgramDetailPage() {
-  const navigate = useNavigate();
+  const { slug = '' } = useParams<{ slug: string }>();
+  const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug)}/universities`);
   const { t } = useTranslation('results');
   const { program, isLoading, error } = useProgramDetail();
 
   return (
     <PageContainer className="space-y-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-brand text-label font-semibold hover:opacity-70 transition-opacity animate-fade-in"
-      >
-        <ArrowLeft className="w-4 h-4" />
+      <BackLink onClick={goBack} className="animate-fade-in">
         {t('common:back')}
-      </button>
+      </BackLink>
 
       {isLoading ? (
         <ProgramDetailSkeleton />
       ) : error !== null || !program ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <p className="text-body text-danger">{error ?? t('program.notFound')}</p>
-          <Button variant="ghost" onClick={() => navigate(-1)}>{t('common:back')}</Button>
+          <Button variant="ghost" onClick={goBack}>{t('common:back')}</Button>
         </div>
       ) : (
         <div className="flex flex-col gap-6 animate-fade-in">

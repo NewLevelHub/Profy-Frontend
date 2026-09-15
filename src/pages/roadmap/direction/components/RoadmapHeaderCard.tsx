@@ -25,7 +25,7 @@ export function RoadmapHeaderCard({ directionName, targetYear }: RoadmapHeaderCa
         borderRadius: 'var(--radius)',
       }}
     >
-      <Heading level="display-md" className="text-[color:var(--midnight)]">
+      <Heading level="display-md" className="text-[color:var(--text-heading)]">
         {t('header.pathTo', { name: directionName })}
       </Heading>
 

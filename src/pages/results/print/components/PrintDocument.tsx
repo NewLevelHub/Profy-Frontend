@@ -52,7 +52,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
   const showSpheres = isJuniorAge || (goal ?? 'explore') === 'explore';
 
   return (
-    <article className="print-sheet space-y-6">
+    <article className="theme-day print-sheet space-y-6">
       <PrintCover
         profile={profile}
         subtitle={isJunior ? t('page.subtitleJunior') : t('page.subtitleAdult')}
@@ -129,7 +129,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
             {report.motivation_highlights.map((text, i) => (
               <li
                 key={i}
-                className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug"
+                className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug"
               >
                 {text}
               </li>
@@ -144,7 +144,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
             {report.exploration_activities.map((activity, i) => (
               <li
                 key={i}
-                className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug"
+                className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug"
               >
                 {activity}
               </li>

@@ -400,7 +400,7 @@ export default function AdminQuestionDetailPage() {
 function QuestionPreview({ text, shortText, icon }: { text: string; shortText: string; icon: string }) {
   const { t } = useTranslation('admin');
   return (
-    <div className="bg-raised border border-default rounded-[3px] p-4">
+    <div className="bg-raised border border-default rounded-[14px] p-4">
       {/* Заголовок панели, а не подпись поля: моношириный капс по density.ts
           оставлен за заголовками колонок и подписями полей. */}
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>

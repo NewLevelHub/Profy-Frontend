@@ -6,16 +6,22 @@ import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import { useUser } from '@/shared/hooks/useAuth';
 import { useAuthStore } from '@/shared/store/auth';
-import { DEFAULT_LOCALE, isLocale, resolveLocale, useLocaleStore } from '@/shared/store/locale';
+import {
+  DEFAULT_LOCALE,
+  LOCALE_SWITCH_ENABLED,
+  isLocale,
+  resolveLocale,
+  useLocaleStore,
+} from '@/shared/store/locale';
 
 /**
  * Keeps i18next's active language and <html lang> in sync with the locale
  * store, and reconciles it with the server-side preference (`user.locale`)
  * once the user logs in. Renders nothing.
  *
- * Note: the store may hold "kk" while `resolveLocale` still clamps to "ru"
- * (SUPPORTED_LOCALES gates it until KZ-603) — that's intentional, the choice
- * is remembered but dormant.
+ * If SUPPORTED_LOCALES is ever collapsed back to one locale, `resolveLocale`
+ * clamps the interface to it while the store keeps the real preference — see
+ * the reset effect below for why that alone isn't enough for the account.
  */
 export function LocaleGate() {
   const locale = useLocaleStore((s) => s.locale);
@@ -24,6 +30,8 @@ export function LocaleGate() {
   const setUser = useAuthStore((s) => s.setUser);
   const serverLocale = user?.locale;
   const queryClient = useQueryClient();
+  // Одна попытка на сессию: если PATCH не прошёл, не долбим его на каждый рендер.
+  const localeResetRef = useRef(false);
   // Tracks the locale we last applied, so the refetch below fires only on a
   // real switch — not on first mount.
   const appliedLocaleRef = useRef<string | null>(null);
@@ -54,6 +62,37 @@ export function LocaleGate() {
     }
   }, [serverLocale, locale, user, setLocale, setUser]);
 
+  // Пока выбор языка выключен (SUPPORTED_LOCALES свёрнут к одному), аккаунт,
+  // застрявший на другом языке, надо вернуть на язык по умолчанию — и именно
+  // на сервере.
+  //
+  // Гасить переключатель на фронте недостаточно: отчёт рендерится по
+  // `users.locale` его владельца, а не по Accept-Language запроса (это
+  // сознательное решение бэкенда — админ на ru должен видеть отчёт kk-ученика
+  // на kk, см. report_service._resolve_owner_locale). Поэтому у аккаунта с
+  // users.locale='kk' интерфейс встанет русским, а текст отчёта продолжит
+  // генерироваться казахским — экран поедет на двух языках.
+  //
+  // Цена: у того, кто успел выбрать kk, выбор стирается и после возврата
+  // переключателя его придётся сделать заново. Осознанно: kk сейчас и прячут
+  // потому, что перевод неполон (PRO-254).
+  useEffect(() => {
+    if (LOCALE_SWITCH_ENABLED || localeResetRef.current) return;
+    if (!user || !isLocale(serverLocale) || serverLocale === DEFAULT_LOCALE) return;
+
+    localeResetRef.current = true;
+    void (async () => {
+      try {
+        await apiClient.patch(API.auth.me, { locale: DEFAULT_LOCALE });
+        setUser({ ...user, locale: DEFAULT_LOCALE });
+        setLocale(DEFAULT_LOCALE);
+      } catch {
+        // Бэкенд может не принимать `locale` — не повод ломать сессию.
+        // Интерфейс всё равно уже зажат resolveLocale в язык по умолчанию.
+      }
+    })();
+  }, [user, serverLocale, setUser, setLocale]);
+
   // Apply the (clamped) locale to i18next and the document, and drop cached
   // server responses so DB-backed static content re-translates at once.
   useEffect(() => {
@@ -75,6 +114,10 @@ export function LocaleGate() {
     const previous = appliedLocaleRef.current;
     appliedLocaleRef.current = active;
     if (previous !== null && previous !== active) {
+      document.documentElement.classList.add('locale-crossfade');
+      window.setTimeout(() => {
+        document.documentElement.classList.remove('locale-crossfade');
+      }, 280);
       void queryClient.invalidateQueries();
     }
   }, [locale, queryClient]);

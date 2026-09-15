@@ -56,7 +56,7 @@ Dev-сервер проксирует `/api/*` на `http://localhost:8000` — 
 | Переменная | Пример | Описание |
 |---|---|---|
 | `VITE_API_URL` | `/api/v1` | Базовый URL API. Dev — Vite proxy. Prod — `https://profy.newlevelhub.kz/api/v1` |
-| `VITE_APP_NAME` | `Profy` | Название приложения |
+| `VITE_APP_NAME` | `Profile` | Название приложения |
 
 Доступ к переменным — только через `src/shared/config/env.ts`.
 

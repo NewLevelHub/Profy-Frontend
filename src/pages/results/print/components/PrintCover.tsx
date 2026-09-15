@@ -38,7 +38,7 @@ export function PrintCover({ profile, subtitle, createdAt }: PrintCoverProps) {
         )}
       </div>
       <div>
-        <Heading level="display-md" className="text-[color:var(--midnight)]">
+        <Heading level="display-md" className="text-[color:var(--text-heading)]">
           {t('page.title')}
         </Heading>
         <Text variant="body-sm" className="text-secondary font-semibold mt-[3px]">

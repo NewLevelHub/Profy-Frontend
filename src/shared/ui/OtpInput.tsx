@@ -172,7 +172,7 @@ export function OtpInput({
               onFocus={(e) => { setFocusedIndex(i); e.target.select(); }}
               onBlur={() => setFocusedIndex((cur) => (cur === i ? null : cur))}
               aria-label={t('otp.cellLabel', { index: i + 1, total: length })}
-              className="w-full h-full text-center bg-transparent border-0 outline-none font-mono text-display-sm text-[color:var(--midnight)] disabled:opacity-50"
+              className="w-full h-full text-center bg-transparent border-0 outline-none font-mono text-display-sm text-[color:var(--text-heading)] disabled:opacity-50"
             />
           </div>
         );

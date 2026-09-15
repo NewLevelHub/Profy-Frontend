@@ -39,6 +39,8 @@
     "gradeRange": "Сынып: 1-ден 12-ге дейін"
   },
   "profile": {
+    "kickerIntro": "Профиль · Танысу қадамы",
+    "kickerSubjects": "Профиль · Пәндер",
     "nameQuestion": "Атың кім?",
     "nameLabel": "Ат",
     "namePlaceholder": "Мысалы, Арман",
@@ -86,7 +88,9 @@
     "editSubtitle": "Немен айналысатыныңды және не туралы армандайтыныңды айт",
     "tablistAria": "Артефакт топтары",
     "saveFailed": "Сақтау мүмкін болмады. Қайта көр.",
-    "done": "Дайын ✓",
+    "done": "Дайын",
+    "kickerInterests": "Профиль · Қызығушылықтар мен мақсаттар",
+    "kickerDreams": "Профиль · Армандар",
     "nextGroup": "Әрі қарай",
     "skipGroup": "Бұл топты өткізіп жіберу",
     "groupCounter": "Топ: {{current}} / {{total}}",

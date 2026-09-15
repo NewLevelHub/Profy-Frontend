@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { env } from '@/shared/config/env';
 import { loadGoogleIdentityScript } from '@/shared/lib/googleIdentity';
 import { resolveLocale, useLocaleStore } from '@/shared/store/locale';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 const MAX_WIDTH = 400;
 
@@ -17,6 +18,11 @@ export function GoogleSignInButton({ onCredential, onLoadError, disabled, text =
   const [ready, setReady] = useState(false);
   const [gisLocale, setGisLocale] = useState<string | null>(null);
   const locale = useLocaleStore((s) => resolveLocale(s.locale));
+  // Кнопку рисует сам Google, темы у неё свои. На тёмном холсте светлый
+  // вариант читается как единственное белое пятно на экране, поэтому в
+  // тёмной теме берём filled_black — это предусмотренный Google вариант,
+  // а не перекраска его кнопки своими цветами.
+  const { theme } = useTheme();
 
   // Kept in refs so the GIS callback always calls the latest handler.
   // initialize() re-runs only when the app locale changes (GIS script reload).
@@ -50,14 +56,14 @@ export function GoogleSignInButton({ onCredential, onLoadError, disabled, text =
     const width = Math.min(containerRef.current.offsetWidth || MAX_WIDTH, MAX_WIDTH);
     window.google.accounts.id.renderButton(containerRef.current, {
       type: 'standard',
-      theme: 'outline',
+      theme: theme === 'dark' ? 'filled_black' : 'outline',
       size: 'large',
       shape: 'rectangular',
       locale,
       text,
       width,
     });
-  }, [ready, gisLocale, locale, text]);
+  }, [ready, gisLocale, locale, text, theme]);
 
   if (!env.GOOGLE_CLIENT_ID) return null;
 

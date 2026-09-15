@@ -30,7 +30,7 @@ export function DomainCardFrame({
 }) {
   return (
     <section
-      className="border border-strong rounded-[var(--radius)] bg-page p-5 sm:p-6 flex flex-col gap-6"
+      className="panel-glass p-5 sm:p-7 flex flex-col gap-6"
       aria-label={ariaLabel}
     >
       {children}
@@ -40,7 +40,7 @@ export function DomainCardFrame({
 
 export function DomainKicker({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted mb-2">
+    <p className="journey-kicker mb-2">
       {children}
     </p>
   );
@@ -111,7 +111,7 @@ export function DomainCell({
   const fill = level ? LEVEL_FILL[level] : undefined;
   const isFilled = fill !== undefined;
   const isLow = level === 'low';
-  const fg = isFilled ? 'var(--text-on-brand)' : 'var(--midnight)';
+  const fg = isFilled ? 'var(--text-on-brand)' : 'var(--text-heading)';
   const descFg = isFilled ? 'var(--text-on-brand)' : 'var(--ink)';
   const statusFg = isFilled ? 'var(--text-on-brand)' : 'var(--text-muted)';
   return (
@@ -158,7 +158,7 @@ export function DomainListCard({
     <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
       {icon}
       <div className="min-w-0">
-        <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">{title}</p>
+        <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">{title}</p>
         {description && (
           <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
             {description}

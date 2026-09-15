@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { Check, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { apiClient } from '@/shared/api/client';
@@ -13,12 +14,12 @@ import {
   type Locale,
 } from '@/shared/store/locale';
 
-// Each option is shown in its own script — a language picker convention, not
-// translatable UI copy.
-const LABEL: Record<Locale, string> = { ru: 'RU', kk: 'ҚАЗ' };
+// Compact codes — same convention as jinaq.kz (EN / RU / KZ). Not UI copy.
+const LABEL: Record<Locale, string> = {
+  ru: 'RU',
+  kk: 'KZ',
+};
 
-// Locales actually offered right now — ['ru', 'kk'] since KZ-603. If this ever
-// has ≤1 entry (KZ-603 reverted) the component renders nothing.
 const OPTIONS = KNOWN_LOCALES.filter((l) => (SUPPORTED_LOCALES as readonly string[]).includes(l));
 
 export interface LanguageSwitcherProps {
@@ -26,9 +27,12 @@ export interface LanguageSwitcherProps {
 }
 
 /**
- * RU / ҚАЗ toggle. Anonymous: local + persisted (LocaleGate applies it to
- * i18next). Authenticated: also PATCH /auth/me; on failure the UI reverts.
- * Renders `null` until there is more than one supported locale.
+ * Language dropdown (RU / KZ today; EN when the catalog lands).
+ *
+ * UI locale always flips locally via the store → LocaleGate → i18next.
+ * If the user is signed in we also best-effort PATCH /auth/me so the
+ * account preference sticks — but a missing/older backend without `locale`
+ * must not block the switch or flash a cryptic "!" (that was the bug).
  */
 export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const { t } = useTranslation('common');
@@ -37,69 +41,119 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const isAuthenticated = useIsAuthenticated();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const [failed, setFailed] = useState(false);
+  const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   if (OPTIONS.length <= 1) return null;
 
   async function choose(next: Locale) {
-    if (next === locale || pending) return;
-    setFailed(false);
-
-    // For a signed-in user the results report — and the directions/descriptions
-    // it carries — is rendered in the *account* language (backend reads
-    // users.locale, not Accept-Language: KZ-403/405). The server must commit
-    // the new locale BEFORE the UI flips, otherwise the immediate `/result`
-    // re-fetch races the PATCH and caches the old-language report under the new
-    // key. So persist first, then switch.
-    if (isAuthenticated) {
-      setPending(true);
-      try {
-        await apiClient.patch(API.auth.me, { locale: next });
-        if (user) setUser({ ...user, locale: next });
-      } catch {
-        setFailed(true);
-        setPending(false);
-        return;
-      }
-      setPending(false);
+    if (next === locale || pending) {
+      setOpen(false);
+      return;
     }
 
+    // Flip the UI immediately — translations live on the client.
     setLocale(next);
+    setOpen(false);
+
+    if (!isAuthenticated) return;
+
+    // Persist on the account when the API supports it. Failure is non-fatal:
+    // the session keeps the new UI language in localStorage.
+    setPending(true);
+    try {
+      await apiClient.patch(API.auth.me, { locale: next });
+      if (user) setUser({ ...user, locale: next });
+    } catch {
+      // Backend may not accept `locale` yet (frontend ahead of deploy).
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-0.5 rounded-pill border border-strong p-0.5',
-        className,
-      )}
-      role="group"
-      aria-label={t('languageSwitcherAria')}
-      aria-busy={pending}
-    >
-      {OPTIONS.map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => choose(l)}
-          disabled={pending}
-          aria-pressed={l === locale}
+    <div ref={rootRef} className={cn('relative inline-flex', className)}>
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listId}
+        aria-label={t('languageSwitcherAria')}
+        aria-busy={pending}
+        disabled={pending}
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          'inline-flex items-center gap-1 rounded-[10px] px-2.5 py-1.5',
+          'text-body-sm font-semibold text-[color:var(--text-heading)]',
+          'hover:bg-hover transition-colors press-scale',
+          pending && 'opacity-60',
+        )}
+      >
+        {LABEL[locale]}
+        <ChevronDown
+          size={14}
+          strokeWidth={2.25}
+          aria-hidden="true"
+          className={cn('text-muted transition-transform', open && 'rotate-180')}
+        />
+      </button>
+
+      {open && (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label={t('languageSwitcherAria')}
           className={cn(
-            'rounded-pill px-2 py-0.5 text-caption font-bold transition-colors press-scale',
-            pending && 'opacity-60',
-            l === locale
-              ? 'bg-brand text-on-brand'
-              : 'text-muted hover:text-primary',
+            'absolute right-0 top-[calc(100%+6px)] z-50 min-w-[7.5rem]',
+            'flex flex-col gap-0.5 p-1.5 rounded-[14px]',
+            'bg-[color-mix(in_srgb,var(--paper)_94%,transparent)] backdrop-blur-md',
+            'border border-[color:color-mix(in_srgb,#fff_55%,var(--border))]',
+            'shadow-[0_16px_36px_color-mix(in_srgb,var(--midnight)_10%,transparent)]',
           )}
         >
-          {LABEL[l]}
-        </button>
-      ))}
-      {failed && (
-        <span role="alert" className="ml-1 text-caption text-danger">
-          !
-        </span>
+          {OPTIONS.map((l) => {
+            const active = l === locale;
+            return (
+              <li key={l} role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  disabled={pending}
+                  onClick={() => choose(l)}
+                  className={cn(
+                    'w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2',
+                    'text-body-sm font-semibold transition-colors',
+                    active
+                      ? 'bg-[color:var(--bg-raised)] text-[color:var(--text-heading)]'
+                      : 'text-secondary hover:bg-hover hover:text-primary',
+                  )}
+                >
+                  <span>{LABEL[l]}</span>
+                  {active && <Check size={14} strokeWidth={2.5} aria-hidden="true" className="text-brand" />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );

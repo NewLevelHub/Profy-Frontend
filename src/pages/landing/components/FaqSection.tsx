@@ -16,7 +16,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
         aria-expanded={open}
         className="w-full flex items-center justify-between gap-4 px-6 py-[1.3rem] text-left"
       >
-        <span className="font-display font-medium text-[0.92rem] tracking-[-0.02em]" style={{ color: 'var(--midnight)' }}>
+        <span className="font-display font-medium text-[0.92rem] tracking-[-0.02em]" style={{ color: 'var(--text-heading)' }}>
           {q}
         </span>
         <span
@@ -26,7 +26,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
           )}
           style={{ background: open ? 'var(--pine)' : 'var(--bg-page)' }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[11px] h-[11px]" style={{ color: open ? 'var(--paper)' : 'var(--midnight)' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[11px] h-[11px]" style={{ color: open ? 'var(--text-on-brand)' : 'var(--text-heading)' }}>
             <path d="M6 9l6 6 6-6" />
           </svg>
         </span>

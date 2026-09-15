@@ -76,7 +76,7 @@ export function SelfDescriptionSection() {
           {grouped.map(([type, values]) => (
             <div key={type}>
               <p className="text-caption font-bold text-muted mb-1">{ARTIFACT_LABEL_KEYS[type] ? t(ARTIFACT_LABEL_KEYS[type]) : type}</p>
-              <p className="text-body font-medium" style={{ color: 'var(--midnight)' }}>
+              <p className="text-body font-medium" style={{ color: 'var(--text-heading)' }}>
                 {values.join(', ')}
               </p>
             </div>

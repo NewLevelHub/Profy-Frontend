@@ -25,7 +25,7 @@ export function ThinkingStyleMotivationSection({
           <div className="flex flex-col gap-3">
             {thinkingStyleNotes.map((note, i) => (
               <div key={i}>
-                <p className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug">
+                <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">
                   {note.title}
                 </p>
                 <p className="text-caption leading-snug mt-0.5" style={{ color: 'var(--ink)' }}>
@@ -48,7 +48,7 @@ export function ThinkingStyleMotivationSection({
             {motivationHighlights.map((text, i) => (
               <p
                 key={i}
-                className="text-body-sm font-semibold text-[color:var(--midnight)] leading-snug"
+                className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug"
               >
                 {text}
               </p>
