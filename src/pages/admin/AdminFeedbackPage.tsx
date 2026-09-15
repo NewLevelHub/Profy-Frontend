@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { ChevronDown } from 'lucide-react';
 import { REPORT_SECTIONS } from '@/shared/api/feedback';
 import { cn } from '@/shared/lib/cn';
-import { pluralize } from '@/shared/lib/plural';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
@@ -26,6 +26,7 @@ import {
   sectionShortLabel,
 } from './feedbackModel';
 import type { AdminFeedbackListItem, AgeGroup } from '@/shared/types';
+import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 const PAGE_SIZE = 25;
 const FILTER_KEYS = ['search', 'score', 'age', 'section', 'comment', 'sort', 'order'] as const;
@@ -77,10 +78,11 @@ function matchesFilters(
  * "this isn't me" is a finding, not a failure of the system.
  */
 function ScoreCell({ value }: { value: number }) {
+  const { t } = useTranslation('admin');
   const tone = scoreTone(value);
 
   return (
-    <span className="inline-flex items-center gap-2" title={`${value} из ${MAX_SCORE}`}>
+    <span className="inline-flex items-center gap-2" title={t('feedback.scoreOf', { value, max: MAX_SCORE })}>
       <span className="flex gap-[3px]" aria-hidden="true">
         {Array.from({ length: MAX_SCORE }).map((_, index) => (
           <span
@@ -100,11 +102,12 @@ function ScoreCell({ value }: { value: number }) {
  * Long ones expand in place — there is no comment detail endpoint to link to.
  */
 function CommentCell({ comment }: { comment: string | null }) {
+  const { t } = useTranslation('admin');
   const [expanded, setExpanded] = useState(false);
   if (!comment?.trim()) {
     // Subtle, not muted: примерно половина строк без комментария, и они не
     // должны спорить за внимание с теми, где текст есть.
-    return <span className={cn(ADMIN_TEXT, 'text-subtle')}>без комментария</span>;
+    return <span className={cn(ADMIN_TEXT, 'text-subtle')}>{t('feedback.noComment')}</span>;
   }
 
   const long = comment.length > 160;
@@ -118,7 +121,7 @@ function CommentCell({ comment }: { comment: string | null }) {
           onClick={() => setExpanded((value) => !value)}
           className={cn(ADMIN_TEXT, 'mt-1 text-brand hover:underline inline-flex items-center gap-1')}
         >
-          {expanded ? 'Свернуть' : 'Читать полностью'}
+          {expanded ? t('common.collapse') : t('feedback.readFull')}
           <ChevronDown size={11} className={cn('transition-transform', expanded && 'rotate-180')} />
         </button>
       )}
@@ -127,6 +130,7 @@ function CommentCell({ comment }: { comment: string | null }) {
 }
 
 export default function AdminFeedbackPage() {
+  const { t } = useTranslation('admin');
   const { page, values, setFilter, setFilters, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
   const { items, loading, error, truncated, reload } = useFeedbackFeed();
 
@@ -193,7 +197,7 @@ export default function AdminFeedbackPage() {
     // Короткие подписи: ширина нативного `<select>` — это ширина самой длинной
     // опции, и «Профессии и направления» растягивал контрол на треть строки
     // фильтров, даже когда в нём стояло «любой».
-    return [...known, ...extra].map((key) => ({ value: key, label: sectionShortLabel(key) }));
+    return [...known, ...extra].map((key) => ({ value: key, label: sectionShortLabel(key, t) }));
   }, [items]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
@@ -205,16 +209,16 @@ export default function AdminFeedbackPage() {
   const columns: AdminColumn<AdminFeedbackListItem>[] = [
     {
       key: 'score',
-      header: 'Оценка',
+      header: t('feedback.col.score'),
       sortKey: 'score',
       width: '92px',
       mobile: 'badge',
-      headerTitle: '«Насколько это про тебя?» — 1–5, вопрос после отчёта',
+      headerTitle: t('feedback.col.scoreHint'),
       cell: (item) => <ScoreCell value={item.relevance_score} />,
     },
     {
       key: 'user',
-      header: 'Пользователь',
+      header: t('feedback.col.user'),
       width: '172px',
       wrap: true,
       mobile: 'title',
@@ -237,7 +241,7 @@ export default function AdminFeedbackPage() {
     },
     {
       key: 'comment',
-      header: 'Комментарий',
+      header: t('feedback.col.comment'),
       // The comment is the content of this screen, so it takes the slack
       // rather than the user column that happens to be the mobile title.
       grow: true,
@@ -246,11 +250,11 @@ export default function AdminFeedbackPage() {
     },
     {
       key: 'sections',
-      header: 'Полезные разделы',
+      header: t('feedback.col.sections'),
       width: '160px',
       wrap: true,
       mobile: 'field',
-      headerTitle: 'Что ученик отметил как полезное. Полные названия — в сводке над таблицей.',
+      headerTitle: t('feedback.col.sectionsHint'),
       // Слова через точку, не плашки: пять серых прямоугольников разной ширины
       // весили в строке больше, чем комментарий, ради которого строку и читают.
       cell: (item) =>
@@ -262,14 +266,14 @@ export default function AdminFeedbackPage() {
                 <button
                   type="button"
                   onClick={() => setFilter('section', section === key ? '' : key)}
-                  title={`Показать отзывы с разделом «${sectionLabel(key)}»`}
+                  title={t('feedback.showWithSection', { section: sectionLabel(key, t) })}
                   className={cn(
                     ADMIN_TEXT,
                     'hover:underline transition-colors',
                     section === key ? 'text-brand font-medium' : 'text-secondary hover:text-primary',
                   )}
                 >
-                  {sectionShortLabel(key)}
+                  {sectionShortLabel(key, t)}
                 </button>
               </span>
             ))}
@@ -280,16 +284,16 @@ export default function AdminFeedbackPage() {
     },
     {
       key: 'context',
-      header: 'Контекст',
+      header: t('feedback.col.context'),
       width: '156px',
       wrap: true,
       mobile: 'field',
       headerTitle:
-        'Возрастная группа и сценарий отчёта на момент отзыва, ниже — направление, выпавшее первым',
+        t('feedback.col.contextHint'),
       cell: (item) => {
         const head: string[] = [];
         if (item.age_group) head.push(ageLabel(item.age_group));
-        if (item.scenario) head.push(`сценарий ${item.scenario}`);
+        if (item.scenario) head.push(t('feedback.scenario', { scenario: item.scenario }));
         if (head.length === 0 && !item.top_direction_name) {
           return <span className={ADMIN_META}>—</span>;
         }
@@ -319,7 +323,7 @@ export default function AdminFeedbackPage() {
     },
     {
       key: 'created',
-      header: 'Дата',
+      header: t('feedback.col.date'),
       sortKey: 'date',
       align: 'right',
       width: '112px',
@@ -331,10 +335,10 @@ export default function AdminFeedbackPage() {
           <div>
             {/* Год целиком: «03.09.26» читается как обрезанное «03.09.2026». */}
             <p className={cn(ADMIN_NUM, 'text-secondary m-0')}>
-              {date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+              {formatIntlDate(date, { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </p>
             <p className={cn(ADMIN_NUM, 'text-mono-xs text-muted m-0')}>
-              {date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+              {formatIntlDate(date, { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
         );
@@ -345,14 +349,14 @@ export default function AdminFeedbackPage() {
   return (
     <>
       <AdminListHeader
-        title="Фидбэк"
-        description="Опрос после отчёта: насколько он оказался про них, какие разделы пригодились и что не подошло."
+        title={t('nav.feedback')}
+        description={t('feedback.description')}
       />
 
       {error && <AdminError message={error} onRetry={reload} />}
 
       {truncated && (
-        <AdminError message="Отзывов больше тысячи — сводка и фильтры охватывают только последнюю тысячу." />
+        <AdminError message={t('feedback.overThousand')} />
       )}
 
       {!loading && (
@@ -369,15 +373,15 @@ export default function AdminFeedbackPage() {
       )}
 
       <AdminToolbar
-        search={{ value: search, onChange: handleSearch, placeholder: 'Имя, email или текст' }}
+        search={{ value: search, onChange: handleSearch, placeholder: t('feedback.searchPlaceholder') }}
         selects={[
           {
             key: 'score',
-            label: 'Оценка',
+            label: t('feedback.col.score'),
             value: score,
             options: [
-              { value: 'low', label: `низкие (1–${LOW_SCORE_MAX})` },
-              { value: 'high', label: `высокие (${HIGH_SCORE_MIN}–${MAX_SCORE})` },
+              { value: 'low', label: t('feedback.scoreLow', { max: LOW_SCORE_MAX }) },
+              { value: 'high', label: t('feedback.scoreHigh', { min: HIGH_SCORE_MIN, max: MAX_SCORE }) },
               { value: '5', label: '5' },
               { value: '4', label: '4' },
               { value: '3', label: '3' },
@@ -385,25 +389,25 @@ export default function AdminFeedbackPage() {
               { value: '1', label: '1' },
             ],
           },
-          { key: 'age', label: 'Возраст', value: age, options: ageOptions },
-          { key: 'section', label: 'Раздел', value: section, options: sectionOptions },
+          { key: 'age', label: t('common.col.age'), value: age, options: ageOptions },
+          { key: 'section', label: t('feedback.col.section'), value: section, options: sectionOptions },
           {
             key: 'comment',
-            label: 'Комментарий',
+            label: t('feedback.col.comment'),
             value: comment,
             options: [
-              { value: 'yes', label: 'есть' },
-              { value: 'no', label: 'нет' },
+              { value: 'yes', label: t('common.yes') },
+              { value: 'no', label: t('common.no') },
             ],
           },
         ]}
         onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
         onClearAll={clearFilters}
-        summary={loading ? 'загрузка отзывов…' : undefined}
+        summary={loading ? t('feedback.loadingInline') : undefined}
       />
 
       <AdminDataTable
-        label="Отзывы об отчёте"
+        label={t('feedback.tableLabel')}
         columns={columns}
         rows={pageItems}
         rowKey={(item) => item.id}
@@ -411,22 +415,22 @@ export default function AdminFeedbackPage() {
         loading={loading}
         sort={sort}
         onSortChange={handleSortChange}
-        emptyTitle={hasFilters ? 'Под фильтры ничего не подошло' : 'Фидбэка пока нет'}
+        emptyTitle={hasFilters ? t('feedback.emptyFiltered') : t('feedback.empty')}
         emptyHint={
           hasFilters
-            ? 'Поиск идёт по комментарию, имени, email и названию направления.'
-            : 'Отзывы появляются после того, как ученик дошёл до отчёта и ответил на три вопроса под ним.'
+            ? t('feedback.emptyFilteredHint')
+            : t('feedback.emptyHint')
         }
         emptyAction={
           hasFilters ? (
             <button type="button" onClick={clearFilters} className={cn(ADMIN_BUTTON, ADMIN_TEXT)}>
-              Сбросить фильтры
+              {t('feedback.resetFilters')}
             </button>
           ) : undefined
         }
       />
 
-      <AdminPager page={page} total={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['отзыв', 'отзыва', 'отзывов']} />
+      <AdminPager page={page} total={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="feedback" />
     </>
   );
 }

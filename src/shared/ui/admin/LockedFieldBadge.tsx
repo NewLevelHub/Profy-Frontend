@@ -1,4 +1,5 @@
 import { Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Tooltip } from '@/shared/ui/Tooltip';
 import { MONO_LABEL } from '@/shared/ui/admin/density';
@@ -16,11 +17,12 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
  * only in a tooltip.
  */
 export function LockedFieldBadge({ reason }: { reason?: string }) {
+  const { t } = useTranslation('admin');
   return (
     <Tooltip
       content={
         reason ??
-        'Значение задано вручную. Автообновление контента при деплое его не перезапишет.'
+        t('badge.lockedReason')
       }
     >
       <span
@@ -32,7 +34,7 @@ export function LockedFieldBadge({ reason }: { reason?: string }) {
         )}
       >
         <Lock size={10} />
-        Вручную
+        {t('badge.manual')}
       </span>
     </Tooltip>
   );
