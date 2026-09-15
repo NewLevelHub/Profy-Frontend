@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import axios from 'axios';
+import { ArrowLeft } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -94,6 +95,7 @@ function errorMessage(err: unknown, fallback: string): string {
 
 export default function PsychologistResultReviewPage() {
   const { studentId = '', assessmentId = '' } = useParams<{ studentId: string; assessmentId: string }>();
+  const navigate = useNavigate();
   const [detail, setDetail] = useState<PsychologistResultDetail | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [studentLabel, setStudentLabel] = useState<string | null>(null);
@@ -189,6 +191,26 @@ export default function PsychologistResultReviewPage() {
     }
   }
 
+  function goBack() {
+    if (isDirty && !window.confirm('Есть несохранённые изменения. Уйти со страницы без сохранения?')) {
+      return;
+    }
+    // react-router stores its position in history.state.idx — 0 means this
+    // page was opened cold (direct link, refresh), where "back" would leave
+    // the app entirely. Fall back to the queue, not to a hardcoded parent
+    // that would lie about where the psychologist actually came from.
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+    if (idx > 0) navigate(-1);
+    else navigate('/psychologist/reviews');
+  }
+
+  const backButton = (
+    <button type="button" className={cn(ADMIN_BUTTON, 'self-start')} onClick={goBack}>
+      <ArrowLeft size={13} />
+      Назад
+    </button>
+  );
+
   const crumbs = [
     { label: 'Проверка отчётов', to: '/psychologist/reviews' },
     { label: studentLabel ?? 'Ученик', to: `/psychologist/students/${studentId}` },
@@ -206,6 +228,7 @@ export default function PsychologistResultReviewPage() {
   if (loadError || !detail || !draft) {
     return (
       <PageContainer className="pb-10 flex flex-col gap-4">
+        {backButton}
         <AdminPageHeader crumbs={crumbs} title="Отчёт недоступен" />
         <AdminError message={loadError ?? 'Не удалось загрузить отчёт'} onRetry={() => void load()} />
       </PageContainer>
@@ -216,6 +239,7 @@ export default function PsychologistResultReviewPage() {
 
   return (
     <PageContainer className="flex flex-col gap-5 pb-10">
+      {backButton}
       <AdminPageHeader
         crumbs={crumbs}
         title={studentLabel ? `Отчёт: ${studentLabel}` : 'Отчёт ученика'}
