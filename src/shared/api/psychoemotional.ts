@@ -8,8 +8,8 @@ import type {
 } from '@/shared/types';
 
 export const psychoEmotionalApi = {
-  /** Круг 1 — перед основной батареей тестов. Ответ несёт только `run_id`
-   *  (§5.6) — им закрывается finish в конце прохождения. */
+  /** Check-in + круг 1 — перед основной батареей тестов. Ответ несёт только
+   *  `run_id` (§5.6) — им закрывается finish в конце прохождения. */
   start: (assessmentId: string, payload: StartPsychoEmotionalPayload) =>
     apiClient
       .post<StartPsychoEmotionalResponse>(
@@ -18,7 +18,7 @@ export const psychoEmotionalApi = {
       )
       .then((r) => r.data),
 
-  /** Круг 2 + check-in — в конце всего прохождения, завершает строку из start. */
+  /** Круг 2 — в конце всего прохождения, завершает строку из start. */
   finish: (assessmentId: string, runId: string, payload: FinishPsychoEmotionalPayload) =>
     apiClient
       .post<FinishPsychoEmotionalResponse>(

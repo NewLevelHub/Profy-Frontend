@@ -6,17 +6,24 @@ import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 import { usePsychoColorStart } from './hooks/usePsychoColorStart';
+import { CheckInStep } from './components/CheckInStep';
 import { ColorCircleStep } from './components/ColorCircleStep';
+import type { PsychoStartStep } from '@/shared/store/psychoemotional';
 
+const STEP_ORDER: readonly PsychoStartStep[] = ['checkin', 'circle1'];
+const STEP_TITLE_KEY: Record<PsychoStartStep, string> = {
+  checkin: 'psychoemotional.circle1.stepTitleCheckin',
+  circle1: 'psychoemotional.circle1.stepTitleCircle1',
+};
 const INTRO_AUTO_ADVANCE_MS = 2000;
 
 /**
- * Круг 1 психоэмоционального теста (PRO-3xx redesign) — единственный экран
- * этой страницы, идёт ПЕРЕД основной батареей тестов (после выбора цели,
- * перед `/assessment`). Круг 2 + check-in — на `/assessment/psychoemotional`,
- * в конце всего прохождения. `data-theme="light"` + `.pe-block` держат
- * светлую тему принудительно — колориметрия §4 приёмочный критерий, как и на
- * финальном экране.
+ * Стартовый экран психоблока (PRO-3xx redesign, §B4 п.1-2): check-in + круг 1,
+ * идут ПЕРЕД основной батареей тестов (после выбора цели, перед
+ * `/assessment`) — check-in первым, как в спеке. Круг 2 — на
+ * `/assessment/psychoemotional`, в конце всего прохождения. `data-theme="light"`
+ * + `.pe-block` держат светлую тему принудительно — колориметрия §4
+ * приёмочный критерий, как и на финальном экране.
  */
 export default function PsychoColorStartPage() {
   const navigate = useNavigate();
@@ -24,7 +31,8 @@ export default function PsychoColorStartPage() {
   const [introSeen, setIntroSeen] = useState(false);
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { ready, submitting, handleCircle1 } = usePsychoColorStart();
+  const { ready, submitting, step, handleCheckin, handleCircle1 } = usePsychoColorStart();
+  const progress = introSeen ? ((STEP_ORDER.indexOf(step) + 1) / STEP_ORDER.length) * 100 : 0;
 
   useEffect(() => {
     if (!ready) return;
@@ -45,10 +53,10 @@ export default function PsychoColorStartPage() {
   return (
     <div className="pe-block flex flex-col min-h-screen" data-theme="light">
       <AssessmentRail
-        title={introSeen ? t('psychoemotional.circle1.railTitleActive') : t('psychoemotional.circle1.railTitleIntro')}
+        title={introSeen ? t(STEP_TITLE_KEY[step]) : t('psychoemotional.circle1.railTitleIntro')}
         sectionLabel={t('psychoemotional.sectionLabel')}
         progressAriaLabel={t('psychoemotional.progressAriaLabel')}
-        progress={introSeen ? 50 : 0}
+        progress={progress}
         onExit={() => navigate('/results')}
       />
 
@@ -73,10 +81,13 @@ export default function PsychoColorStartPage() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:px-6">
-            <ColorCircleStep
-              instruction={t('psychoemotional.circle1.instruction')}
-              onComplete={handleCircle1}
-            />
+            {step === 'checkin' && <CheckInStep onSubmit={handleCheckin} />}
+            {step === 'circle1' && (
+              <ColorCircleStep
+                instruction={t('psychoemotional.circle1.instruction')}
+                onComplete={handleCircle1}
+              />
+            )}
           </div>
         )}
       </div>

@@ -251,12 +251,14 @@ export interface SubmitPairAnswersResponse {
 }
 
 // ─── Psychoemotional (МЦВ Собчик) — PRO-306 ────────────────────────────────────
-// Сырое прохождение, двухфазно: круг 1 — перед основной батареей тестов
-// (start), круг 2 + check-in — в конце всего прохождения (finish), на той же
-// строке. Метрики/интерпретацию бэкенд не возвращает (§5.6).
+// Сырое прохождение, двухфазно: check-in + круг 1 — перед основной батареей
+// тестов (start, §B4 п.1-2 — check-in идёт первым), круг 2 — в конце всего
+// прохождения (finish), на той же строке. Метрики/интерпретацию бэкенд не
+// возвращает (§5.6).
 export interface StartPsychoEmotionalPayload {
   list1: number[];
   list1_dt_ms: number[];
+  checkin: Record<string, string>;
 }
 
 export interface StartPsychoEmotionalResponse {
@@ -266,7 +268,6 @@ export interface StartPsychoEmotionalResponse {
 export interface FinishPsychoEmotionalPayload {
   list2: number[];
   list2_dt_ms: number[];
-  checkin: Record<string, string>;
 }
 
 export interface FinishPsychoEmotionalResponse {

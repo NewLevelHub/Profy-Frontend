@@ -143,23 +143,23 @@
     },
     "circle1": {
       "railTitleIntro": "Психоэмоционалды сынама",
-      "railTitleActive": "Түс таңдау",
+      "stepTitleCheckin": "Бірнеше сұрақ",
+      "stepTitleCircle1": "Түс таңдау",
       "introKicker": "Психоэмоционалды тест",
-      "introTitle": "Жаныңа жақынын таңда",
-      "introSubtitle": "Тесттер алдында — түс таңдау. Дұрыс жауап жоқ, тек сезіміңе сүйен",
-      "introItemCount": "1 қадам",
-      "introDuration": "~30 сек",
+      "introTitle": "Бірнеше сұрақ және түс таңдау",
+      "introSubtitle": "Тесттер алдында — өз-өзіңді сезіну туралы бірнеше сұрақ және түс таңдау. Дұрыс жауап жоқ, тек сезіміңе сүйен",
+      "introItemCount": "2 қадам",
+      "introDuration": "~1 мин",
       "introCta": "Бастау",
       "instruction": "Дәл қазір ең ұнайтын түсті таңда"
     },
     "circle2": {
-      "stepTitleCheckin": "Бірнеше сұрақ",
       "stepTitleCircle2": "Түс таңдау",
       "introKicker": "Психоэмоционалды тест",
       "introTitle": "Тағы да — қазір қалай",
-      "introSubtitle": "Бірнеше сұрақ және түсті қайта таңдау — дұрыс жауап жоқ",
-      "introItemCount": "2 қадам",
-      "introDuration": "~2 мин",
+      "introSubtitle": "Түсті қайта таңдау — дұрыс жауап жоқ",
+      "introItemCount": "1 қадам",
+      "introDuration": "~30 сек",
       "introCta": "Бастау",
       "instruction": "Бірінші рет таңдағандай, қайтадан таңда. Бұрынғы ретті есіне түсіруге тырыспа"
     }

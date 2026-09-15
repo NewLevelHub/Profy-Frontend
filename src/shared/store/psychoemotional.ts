@@ -2,11 +2,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 /**
- * Круг 1 (первый выбор цветов) теперь проходится ПЕРЕД основной батареей
- * тестов, круг 2 — после неё (PRO-3xx redesign). Между ними — вся батарея +
- * pairs + motivation, то есть много страниц и, возможно, перезагрузка
- * вкладки, поэтому это состояние **персистится** (в отличие от
- * `usePsychoEmotionalStore` ниже), пока не будет закрыто finish-запросом.
+ * Круг 1 (первый выбор цветов, вместе с check-in) теперь проходится ПЕРЕД
+ * основной батареей тестов, круг 2 — после неё (PRO-3xx redesign). Между
+ * ними — вся батарея + pairs + motivation, то есть много страниц и,
+ * возможно, перезагрузка вкладки, поэтому это состояние **персистится** (в
+ * отличие от `usePsychoStartStore` ниже), пока не будет закрыто
+ * finish-запросом.
  *
  * Привязано к конкретному `assessmentId` — `hasPendingRun(id)` сверяет его,
  * так что старый run от прошлого прохождения не подставится случайно.
@@ -47,27 +48,28 @@ export function hasPendingColorRun(assessmentId: string): boolean {
 }
 
 /**
- * Шаг-машина финального экрана психоблока (check-in → круг 2), PRO-3xx. Живёт
- * только на странице `PsychoEmotionalPage` — **не персистится**, как и
- * раньше: бросил на середине → при следующем заходе начинается заново.
+ * Шаг-машина стартового экрана психоблока (check-in → круг 1), §B4 п.1-2 —
+ * check-in идёт первым, перед основной батареей тестов. Живёт только на
+ * странице `PsychoColorStartPage` — **не персистится**: бросил на середине →
+ * при следующем заходе начинается заново.
  */
-export type PsychoFinishStep = 'checkin' | 'circle2';
+export type PsychoStartStep = 'checkin' | 'circle1';
 
-interface PsychoEmotionalState {
-  step: PsychoFinishStep;
+interface PsychoStartState {
+  step: PsychoStartStep;
   checkin: Record<string, string>;
 
   setCheckin: (checkin: Record<string, string>) => void;
   reset: () => void;
 }
 
-const FINISH_INITIAL = {
-  step: 'checkin' as PsychoFinishStep,
+const START_STEP_INITIAL = {
+  step: 'checkin' as PsychoStartStep,
   checkin: {} as Record<string, string>,
 };
 
-export const usePsychoEmotionalStore = create<PsychoEmotionalState>((set) => ({
-  ...FINISH_INITIAL,
-  setCheckin: (checkin) => set({ checkin, step: 'circle2' }),
-  reset: () => set({ ...FINISH_INITIAL }),
+export const usePsychoStartStore = create<PsychoStartState>((set) => ({
+  ...START_STEP_INITIAL,
+  setCheckin: (checkin) => set({ checkin, step: 'circle1' }),
+  reset: () => set({ ...START_STEP_INITIAL }),
 }));
