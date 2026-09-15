@@ -8,10 +8,13 @@ interface ReviewCardsEditorProps {
   onChange: (cards: PsychologistReviewCard[]) => void;
   disabled?: boolean;
   addLabel: string;
+  /** Genitive name of one card ("сильной стороны") — both sections on the
+   *  page use this editor, so the field labels must say which one is which. */
+  itemName: string;
 }
 
 /** Title + description cards — "Сильные стороны", "Стиль мышления". */
-export function ReviewCardsEditor({ cards, onChange, disabled, addLabel }: ReviewCardsEditorProps) {
+export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemName }: ReviewCardsEditorProps) {
   function patchCard(index: number, patch: Partial<PsychologistReviewCard>) {
     onChange(cards.map((card, i) => (i === index ? { ...card, ...patch } : card)));
   }
@@ -30,7 +33,7 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel }: Revie
                   onChange={(e) => patchCard(index, { title: e.target.value })}
                   disabled={disabled}
                   placeholder="Заголовок"
-                  aria-label="Заголовок карточки"
+                  aria-label={`Заголовок ${itemName}`}
                   className={cn(ADMIN_INPUT, 'font-semibold')}
                 />
                 <textarea
@@ -39,7 +42,7 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel }: Revie
                   disabled={disabled}
                   rows={3}
                   placeholder="Описание"
-                  aria-label="Описание карточки"
+                  aria-label={`Описание ${itemName}`}
                   className={ADMIN_TEXTAREA}
                 />
               </div>
@@ -47,7 +50,7 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel }: Revie
                 <button
                   type="button"
                   className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
-                  aria-label="Удалить карточку"
+                  aria-label={`Удалить: ${card.title.trim() || itemName}`}
                   onClick={() => onChange(cards.filter((_, i) => i !== index))}
                 >
                   <Trash2 size={13} />

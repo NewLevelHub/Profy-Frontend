@@ -59,9 +59,16 @@ function buildPatch(detail: PsychologistResultDetail, draft: Draft): Psychologis
 function validateDraft(draft: Draft): string | null {
   if (!draft.summary.trim()) return 'Сводка не может быть пустой';
   if (!draft.final_analysis.trim()) return 'Итог не может быть пустым';
-  const cards = [...draft.strength_cards, ...draft.thinking_style_notes];
-  if (cards.some((card) => !card.title.trim() || !card.description.trim())) {
-    return 'У каждой карточки должны быть заголовок и описание';
+  // Named per section: an empty card can be far off-screen, and "какая-то
+  // карточка пустая" leaves the psychologist hunting for it.
+  const sections: [string, typeof draft.strength_cards][] = [
+    ['Сильные стороны', draft.strength_cards],
+    ['Стиль мышления', draft.thinking_style_notes],
+  ];
+  for (const [name, cards] of sections) {
+    if (cards.some((card) => !card.title.trim() || !card.description.trim())) {
+      return `В блоке «${name}» есть карточка без заголовка или описания`;
+    }
   }
   if (draft.motivation_highlights.some((item) => !item.trim())) {
     return 'Удалите пустые пункты мотивации';
@@ -307,6 +314,7 @@ export default function PsychologistResultReviewPage() {
           onChange={(value) => update('strength_cards', value)}
           disabled={locked}
           addLabel="Добавить сильную сторону"
+          itemName="сильной стороны"
         />
       </AdminCard>
 
@@ -327,6 +335,7 @@ export default function PsychologistResultReviewPage() {
           onChange={(value) => update('thinking_style_notes', value)}
           disabled={locked}
           addLabel="Добавить заметку"
+          itemName="заметки о мышлении"
         />
       </AdminCard>
 
