@@ -25,6 +25,7 @@ export default function AssessmentPage() {
     error,
     currentLikertQuestions,
     currentPair,
+    isAdditionalTestsSection,
     progress,
     exitConfirmOpen,
     exiting,
@@ -41,10 +42,17 @@ export default function AssessmentPage() {
     retry,
   } = useAssessment();
 
+  // PRO-338 Ф0.8: professional_types_abilities/eysenck/elers render as one
+  // contiguous, non-interleaved sub-section right after MI — the rail's
+  // section label switches for exactly that run of pages (see
+  // useAssessment's isAdditionalTestsSection).
+  const sectionLabel = isAdditionalTestsSection
+    ? t('rail.sectionAdditionalTests')
+    : t('rail.sectionDiagnostic');
   const headerTitle =
     phase === 'question' && totalPages > 0
       ? t('rail.pageOf', { current: pageIndex + 1, total: totalPages })
-      : t('rail.sectionDiagnostic');
+      : sectionLabel;
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -60,7 +68,7 @@ export default function AssessmentPage() {
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
         title={headerTitle}
-        sectionLabel={t('rail.sectionDiagnostic')}
+        sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
         showBack={phase === 'question' && pageIndex > 0}

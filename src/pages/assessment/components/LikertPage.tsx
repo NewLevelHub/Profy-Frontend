@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
+import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE, YES_NO_SCALE, ABILITIES_LIKERT_SCALE } from '@/shared/config/constants';
 import type { Instrument, Question } from '@/shared/types';
 import { LikertScale } from './LikertScale';
 
@@ -11,6 +11,7 @@ import { LikertScale } from './LikertScale';
 function scaleForInstrument(instrument: Instrument) {
   if (instrument === 'big_five') return BIGFIVE_LIKERT_SCALE;
   if (instrument === 'eysenck' || instrument === 'elers') return YES_NO_SCALE;
+  if (instrument === 'professional_types_abilities') return ABILITIES_LIKERT_SCALE;
   return LIKERT_SCALE;
 }
 
@@ -32,6 +33,7 @@ interface LikertPageProps {
 
 export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
   const { t } = useTranslation('common');
+  const { t: tAssessment } = useTranslation('assessment');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
 
   // The next unanswered question on this page — answering one "cuts" to
@@ -78,6 +80,8 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
             selected={answers[question.id] ?? null}
             onSelect={value => onSelect(question.id, value)}
             scale={scaleForInstrument(question.instrument)}
+            poleLeft={question.instrument === 'professional_types_abilities' ? tAssessment('scale.poleLeftAbilities') : undefined}
+            poleRight={question.instrument === 'professional_types_abilities' ? tAssessment('scale.poleRightAbilities') : undefined}
           />
         </div>
       ))}

@@ -12,6 +12,22 @@ import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
+import type { Instrument } from '@/shared/types';
+
+// PRO-338 Ф0.8 — professional_types_abilities/eysenck/elers land as one
+// contiguous, non-interleaved sub-section right after MI/RIASEC/BigFive
+// (app/services/question_service.py::get_all_questions, backed by the
+// order ranges in scripts/{professional_types,eysenck,elers}_bank.py) —
+// the rail's section label switches to "Дополнительные тесты" for exactly
+// this run of pages, distinguishing it from the main "Диагностика" block.
+// Belbin/АСТУР are deliberately never part of this list — they don't flow
+// through this screen at all (own routes, launched only from the
+// psychologist cabinet, see 01-Фаза0-Фундамент.md Ф0.8).
+const ADDITIONAL_TESTS_INSTRUMENTS: ReadonlySet<Instrument> = new Set([
+  'professional_types_abilities',
+  'eysenck',
+  'elers',
+]);
 
 // Below this, a save reads as instant — showing a spinner for it would be
 // the flash the button was glitching with, not a fix for it. Only a request
@@ -387,6 +403,13 @@ export function useAssessment() {
   const currentPage = pages[pageIndex];
   const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
   const currentPair = currentPage?.kind === 'pair' ? currentPage.pair : undefined;
+  // Pages group 5 Likert questions regardless of instrument boundaries
+  // (buildPages), so the single page straddling MI's last few items and
+  // the new block's first ones is a real mix, not an edge case to ignore —
+  // `some()` flips the label as soon as any additional-tests question is
+  // visible, rather than one page late.
+  const isAdditionalTestsSection =
+    currentLikertQuestions?.some(q => ADDITIONAL_TESTS_INSTRUMENTS.has(q.instrument)) ?? false;
   const totalPages = pages.length;
   // "N вопросов" / time-estimate copy on the intro screen counts each
   // question and each pair as one unit, same as before pagination.
@@ -410,6 +433,7 @@ export function useAssessment() {
     error,
     currentLikertQuestions,
     currentPair,
+    isAdditionalTestsSection,
     progress,
     exitConfirmOpen,
     exiting,

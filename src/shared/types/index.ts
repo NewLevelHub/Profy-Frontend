@@ -1019,9 +1019,9 @@ export interface PsychologistNoteWrite {
 // scoring services that populate these land per-test in Фазы 1-3.
 
 export interface ProfessionalTypesSection {
-  scores: Record<string, number> | null;
-  top_type: string | null;
-  abilities_score: number | null;
+  interest_scores: Record<string, number> | null;
+  hybrid_profile: string[] | null;
+  abilities_scores: Record<string, number> | null;
 }
 
 export interface TeamRoleSection {
@@ -1031,9 +1031,14 @@ export interface TeamRoleSection {
 }
 
 export interface TemperamentSection {
-  extraversion: number | null;
-  neuroticism: number | null;
-  lie_scale: number | null;
+  extraversion_raw: number | null;
+  neuroticism_raw: number | null;
+  lie_scale_raw: number | null;
+  extraversion_level: string | null;
+  neuroticism_level: string | null;
+  protocol_flagged: boolean | null;
+  // One of choleric/sanguine/phlegmatic/melancholic (Ф1.6) — rendered as
+  // the Scatter Plot's 4 quadrants.
   quadrant: string | null;
 }
 

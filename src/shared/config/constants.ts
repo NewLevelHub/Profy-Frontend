@@ -115,6 +115,19 @@ export const YES_NO_SCALE: { value: number; label: string }[] = [
   { value: 2, label: 'assessment:yesNo.yes' },
 ];
 
+// PRO-338 Ф1.2 — ДДО "способности" (professional_types_abilities) is a
+// genuine 0-3 scale in the source spec ("совсем не выражено".."ярко
+// выражено"), not a shifted 1-5 — backend stores the literal 0-3
+// answer_value (app/schemas/response.py widened its floor to 0 for this),
+// so professional_types_service reads raw scores directly with no +1/-1
+// conversion anywhere.
+export const ABILITIES_LIKERT_SCALE: { value: number; label: string }[] = [
+  { value: 0, label: 'assessment:abilitiesLikert.0' },
+  { value: 1, label: 'assessment:abilitiesLikert.1' },
+  { value: 2, label: 'assessment:abilitiesLikert.2' },
+  { value: 3, label: 'assessment:abilitiesLikert.3' },
+];
+
 export const THINKING_STYLE_LABELS: Record<string, string> = {
   creative_think: 'results:thinkingStyle.creative_think',
   systematic: 'results:thinkingStyle.systematic',

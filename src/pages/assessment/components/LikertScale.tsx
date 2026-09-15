@@ -9,6 +9,11 @@ interface LikertScaleProps {
   selected: number | null;
   onSelect: (value: number) => void;
   scale?: { value: number; label: string }[];
+  /** Override the flanking pole text — PRO-338 Ф1.2: the generic "Совсем не
+   * моё…Точно моё" doesn't fit professional_types_abilities' "выражено"
+   * framing. Defaults to the generic pair, unused by the 2-option branch. */
+  poleLeft?: string;
+  poleRight?: string;
 }
 
 const POLE_LEFT = 'var(--pole-left)';
@@ -33,6 +38,8 @@ export const LikertScale = React.memo(function LikertScale({
   selected,
   onSelect,
   scale = LIKERT_SCALE,
+  poleLeft,
+  poleRight,
 }: LikertScaleProps) {
   const { t } = useTranslation();
 
@@ -88,7 +95,7 @@ export const LikertScale = React.memo(function LikertScale({
         className="shrink-0 text-right font-semibold leading-tight"
         style={{ color: POLE_LEFT, fontSize: 'clamp(0.75rem, 1.6vw, 1rem)', maxWidth: 'clamp(4.5rem, 14vw, 7.5rem)' }}
       >
-        {t('assessment:scale.poleLeft')}
+        {poleLeft ?? t('assessment:scale.poleLeft')}
       </span>
 
       {scale.map(({ value, label }, index) => {
@@ -142,7 +149,7 @@ export const LikertScale = React.memo(function LikertScale({
         className="shrink-0 text-left font-semibold leading-tight"
         style={{ color: POLE_RIGHT, fontSize: 'clamp(0.75rem, 1.6vw, 1rem)', maxWidth: 'clamp(4.5rem, 14vw, 7.5rem)' }}
       >
-        {t('assessment:scale.poleRight')}
+        {poleRight ?? t('assessment:scale.poleRight')}
       </span>
     </div>
   );

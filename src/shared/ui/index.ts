@@ -12,6 +12,9 @@ export { LazyMedia } from './LazyMedia';
 export { ProgressBar } from './ProgressBar';
 export type { ProgressBarProps, ProgressBarVariant } from './ProgressBar';
 
+export { PointAllocator } from './PointAllocator';
+export type { PointAllocatorProps, PointAllocatorItem } from './PointAllocator';
+
 export { Spine } from './Spine';
 export type { SpineProps, SpineNode, SpineNodeStatus, SpineSegmentStyle } from './Spine';
 

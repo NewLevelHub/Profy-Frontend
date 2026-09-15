@@ -22,9 +22,16 @@
     "no": "Нет",
     "yes": "Да"
   },
+  "abilitiesLikert": {
+    "0": "Совсем не выражено",
+    "1": "Слабо выражено",
+    "2": "Умеренно выражено",
+    "3": "Ярко выражено"
+  },
   "rail": {
     "exit": "Выйти из теста",
     "sectionDiagnostic": "Диагностика",
+    "sectionAdditionalTests": "Дополнительные тесты",
     "sectionPairs": "Выбери, что тебе ближе",
     "sectionMotivation": "Что тебя драйвит",
     "progressAriaTest": "Прогресс теста",
@@ -88,6 +95,8 @@
     "rateAria": "Оцени по шкале",
     "poleLeft": "Совсем не моё",
     "poleRight": "Точно моё",
+    "poleLeftAbilities": "Совсем не выражено",
+    "poleRightAbilities": "Ярко выражено",
     "valueOfFive": "{{value}} из 5"
   },
   "priority": {

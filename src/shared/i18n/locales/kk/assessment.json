@@ -22,9 +22,16 @@
     "no": "Жоқ",
     "yes": "Иә"
   },
+  "abilitiesLikert": {
+    "0": "Мүлдем байқалмайды",
+    "1": "Әлсіз байқалады",
+    "2": "Орташа байқалады",
+    "3": "Айқын байқалады"
+  },
   "rail": {
     "exit": "Тестен шығу",
     "sectionDiagnostic": "Диагностика",
+    "sectionAdditionalTests": "Қосымша тесттер",
     "sectionPairs": "Саған не жақынырақ екенін таңда",
     "sectionMotivation": "Сені не жігерлендіреді",
     "progressAriaTest": "Тест барысы",
@@ -86,6 +93,8 @@
     "rateAria": "Шкала бойынша бағала",
     "poleLeft": "Мүлдем менікі емес",
     "poleRight": "Нақ менікі",
+    "poleLeftAbilities": "Мүлдем байқалмайды",
+    "poleRightAbilities": "Айқын байқалады",
     "valueOfFive": "{{value}} / 5"
   },
   "priority": {
