@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
-import { resultApi } from '@/shared/api/result';
+import { isPendingReview, resultApi } from '@/shared/api/result';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
@@ -66,14 +66,22 @@ export function useResults() {
       if (err instanceof Error && err.message === 'legacy_result_shape') return false;
       return failureCount < 2;
     },
+    // The report waits for a psychologist to publish it (PRO-337) — poll so
+    // the student sees it without reloading, on top of the email they get.
+    refetchInterval: (query) => (isPendingReview(query.state.data) ? 60_000 : false),
   });
+
+  // The pending-review envelope is only this hook's return value — it never
+  // goes into the result store, which stays typed as a real report.
+  const pendingReview = isPendingReview(data);
+  const fetchedReport = data && !isPendingReview(data) ? data : null;
 
   useEffect(() => {
     // Adopt a report freshly fetched for the current locale, tagging it so a
     // later language switch is detected. Only runs when the stored one doesn't
     // already cover this locale — never overwrites a matching report.
-    if (data && !reportMatchesLocale) setReport(data, reportLocale);
-  }, [data, reportMatchesLocale, reportLocale, setReport]);
+    if (fetchedReport && !reportMatchesLocale) setReport(fetchedReport, reportLocale);
+  }, [fetchedReport, reportMatchesLocale, reportLocale, setReport]);
 
   // Stale assessmentId from a previous user's session — clear it
   const is403 = (error as AxiosError | null)?.response?.status === 403;
@@ -87,7 +95,7 @@ export function useResults() {
   // Prefer a report that matches the current locale; otherwise show a
   // freshly-fetched one, falling back to the stale-locale report so a switch
   // (or a failed re-fetch after one) never leaves the page blank (KZ-406).
-  const effectiveReport = (reportMatchesLocale ? report : null) ?? data ?? report ?? null;
+  const effectiveReport = (reportMatchesLocale ? report : null) ?? fetchedReport ?? report ?? null;
 
   // A finished report is on screen but still in the previous language, and
   // the query for the newly-picked locale is in flight. The backend is
@@ -113,6 +121,7 @@ export function useResults() {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
     isTranslating,
+    isPendingReview: pendingReview && !effectiveReport,
     error: isLegacyShape
       ? t('error.legacyShape')
       // A background failure while a (possibly stale-locale) report is still on

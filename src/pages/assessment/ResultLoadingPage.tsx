@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { useLocaleStore } from '@/shared/store/locale';
-import { resultApi } from '@/shared/api/result';
+import { isPendingReview, resultApi } from '@/shared/api/result';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { Button } from '@/shared/ui/Button';
 import { ResultLoadingView } from './components/ResultLoadingView';
@@ -41,8 +41,9 @@ export default function ResultLoadingPage() {
         // Tag with the locale the backend just served it in (the api
         // interceptor sends this same value as Accept-Language). Without a
         // real tag, useResults treats the report as matching *any* locale and
-        // never re-fetches on a language switch.
-        setReport(result, useLocaleStore.getState().locale);
+        // never re-fetches on a language switch. A report still waiting for
+        // psychologist review isn't stored — /results shows the waiting state.
+        if (!isPendingReview(result)) setReport(result, useLocaleStore.getState().locale);
         navigate('/results', { replace: true });
       }).catch(() => navigate('/results', { replace: true }));
       return;
@@ -55,12 +56,18 @@ export default function ResultLoadingPage() {
       try {
         const result = await resultApi.generate(assessmentId!);
         if (!cancelled) {
-          setReport(result, useLocaleStore.getState().locale);
           completeAssessment();
           // Full assessment completion should use the shipped finale audio
           // file, same as other final-completion moments.
           playBlockFinishAudio(1, 1);
-          navigate(postResultPath, { replace: true });
+          if (isPendingReview(result)) {
+            // Nothing to suggest on goal-check without a report — go straight
+            // to /results, which shows the "psychologist is reviewing" state.
+            navigate('/results', { replace: true });
+          } else {
+            setReport(result, useLocaleStore.getState().locale);
+            navigate(postResultPath, { replace: true });
+          }
         }
       } catch {
         if (!cancelled) {
@@ -68,10 +75,14 @@ export default function ResultLoadingPage() {
           try {
             const existing = await resultApi.get(assessmentId!);
             if (!cancelled) {
-              setReport(existing, useLocaleStore.getState().locale);
               completeAssessment();
               playBlockFinishAudio(1, 1);
-              navigate(postResultPath, { replace: true });
+              if (isPendingReview(existing)) {
+                navigate('/results', { replace: true });
+              } else {
+                setReport(existing, useLocaleStore.getState().locale);
+                navigate(postResultPath, { replace: true });
+              }
             }
           } catch {
             if (!cancelled) {

@@ -3,6 +3,9 @@ import { API } from '@/shared/api/endpoints';
 import type {
   PsychologistNote,
   PsychologistNoteWrite,
+  PsychologistResultDetail,
+  PsychologistResultPatch,
+  PsychologistReviewQueueItem,
   PsychologistStudentDetail,
   PsychologistStudentListItem,
 } from '@/shared/types';
@@ -35,4 +38,24 @@ export const psychologistApi = {
 
   deleteNote: (noteId: string) =>
     apiClient.delete(API.psychologist.noteDetail(noteId)).then((r) => r.data),
+
+  listReviews: () =>
+    apiClient
+      .get<PsychologistReviewQueueItem[]>(API.psychologist.reviews)
+      .then((r) => r.data),
+
+  getResultForReview: (studentId: string, assessmentId: string) =>
+    apiClient
+      .get<PsychologistResultDetail>(API.psychologist.resultReview(studentId, assessmentId))
+      .then((r) => r.data),
+
+  updateResultContent: (studentId: string, assessmentId: string, patch: PsychologistResultPatch) =>
+    apiClient
+      .patch<PsychologistResultDetail>(API.psychologist.resultReview(studentId, assessmentId), patch)
+      .then((r) => r.data),
+
+  publishResult: (studentId: string, assessmentId: string) =>
+    apiClient
+      .post<PsychologistResultDetail>(API.psychologist.publishResult(studentId, assessmentId), {})
+      .then((r) => r.data),
 };

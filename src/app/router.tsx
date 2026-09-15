@@ -71,6 +71,8 @@ import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetail
 // ── Psychologist cabinet ──────────────────────────────────────────────────────
 import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
 import PsychologistStudentDetailPage from '@/pages/psychologist/PsychologistStudentDetailPage';
+import PsychologistReviewQueuePage from '@/pages/psychologist/PsychologistReviewQueuePage';
+import PsychologistResultReviewPage from '@/pages/psychologist/PsychologistResultReviewPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -120,6 +122,11 @@ export const router = createBrowserRouter([
               {
                 path: '/psychologist/students/:studentId',
                 element: <PsychologistStudentDetailPage />,
+              },
+              { path: '/psychologist/reviews', element: <PsychologistReviewQueuePage /> },
+              {
+                path: '/psychologist/students/:studentId/results/:assessmentId/review',
+                element: <PsychologistResultReviewPage />,
               },
             ],
           },

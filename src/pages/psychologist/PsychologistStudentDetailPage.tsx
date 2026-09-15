@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import axios from 'axios';
 import { Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
@@ -209,7 +209,7 @@ export default function PsychologistStudentDetailPage() {
       {student && student.assessments.length > 0 && (
         <AdminCard
           title="Диагностики"
-          description="Краткое саммари — полный отчёт психологу в этом релизе не отдаётся."
+          description="Отчёт становится виден ученику только после того, как вы его проверите и опубликуете."
         >
           <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
             {student.assessments.map((a) => (
@@ -224,8 +224,26 @@ export default function PsychologistStudentDetailPage() {
                   <AdminBadge tone={a.status === 'completed' ? 'quiet' : 'accent'}>
                     {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
                   </AdminBadge>
-                  {a.has_result && <AdminBadge tone="quiet">Результат</AdminBadge>}
+                  {a.review_status === 'pending_review' && (
+                    <AdminBadge tone="accent">На проверке</AdminBadge>
+                  )}
+                  {a.review_status === 'published' && (
+                    <AdminBadge tone="brand">Опубликовано</AdminBadge>
+                  )}
+                  {a.has_result && !a.review_status && <AdminBadge tone="quiet">Результат</AdminBadge>}
                   {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
+                  {a.review_status && (
+                    <Link
+                      to={`/psychologist/students/${studentId}/results/${a.id}/review`}
+                      className={cn(
+                        ADMIN_BUTTON,
+                        a.review_status === 'pending_review' &&
+                          'bg-brand text-on-brand border-brand hover:bg-brand-hover hover:border-brand-hover hover:text-on-brand',
+                      )}
+                    >
+                      {a.review_status === 'pending_review' ? 'Проверить отчёт' : 'Открыть отчёт'}
+                    </Link>
+                  )}
                 </div>
               </li>
             ))}

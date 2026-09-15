@@ -39,6 +39,16 @@ GET /api/v1/result/{assessment_id}
 result (проценты, баллы, `match_score`, коды) доступен только через admin
 API — см. §9.
 
+**Исключение — отчёт на проверке у психолога (PRO-337).** Пока психолог не
+опубликовал отчёт, оба эндпоинта отвечают `200` с
+`{"status": "pending_review", "assessment_id": "uuid"}` (`ResultPendingReview`
+в `src/shared/types/index.ts`). `resultApi` пропускает этот конверт мимо
+`legacy_result_shape`-проверки (`isPendingReview` в
+`src/shared/api/result.ts`), `useResults` не кладёт его в стор, опрашивает
+эндпоинт раз в минуту и возвращает `isPendingReview`, а `ResultsPage`
+показывает экран ожидания (`results:pendingReview`). Дизайн —
+`docs/psychologist-review-frontend-plan.md`.
+
 ## 2. Возрастные ветки assessment
 
 - **junior (6–9)**: MI + Big Five + Harter motivation pairs.
@@ -287,6 +297,7 @@ career-oriented (methodology), профессии ему не подбирают
 | `403` | `assessment_id` принадлежит другому пользователю |
 | `404` | `assessment_id` не существует (`POST`), либо отчёт ещё не сгенерирован (`GET`) |
 | `409` | обязательные ответы для этого возраста ещё не завершены |
+| `200` + `status: "pending_review"` | отчёт готов, но ещё не опубликован психологом — не ошибка (см. §1) |
 
 Ошибка LLM или недоступность Redis **никогда** не превращаются в `5xx`:
 backend всегда возвращает валидный `200` той же v2-формы — либо
