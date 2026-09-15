@@ -320,7 +320,7 @@ export default function PsychologistResultReviewPage() {
 
       <AdminCard
         title="Характер"
-        description="Сейчас в отчёте ученика этот блок собирается автоматически из шкал — правки здесь сохраняются, но ученику пока не показываются."
+        description="Это текст, который читает ученик. Он рассчитан по шкалам — правьте только то, что нужно исправить: нетронутые черты продолжат считаться автоматически."
       >
         <ReviewPersonalityNotesEditor
           notes={draft.personality_notes}
