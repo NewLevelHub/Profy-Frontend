@@ -108,7 +108,7 @@ function OtpVerify({ email, showStepper }: { email: string; showStepper: boolean
       const { access_token, user } = await authApi.verifyEmailByCode(email, code.trim());
       storeLogin(access_token, user);
       // Navigation is handled by RequireGuest — it detects the token
-      // and renders <Navigate to="/results" replace /> declaratively.
+      // and sends the user to homePathForUser (role home).
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
