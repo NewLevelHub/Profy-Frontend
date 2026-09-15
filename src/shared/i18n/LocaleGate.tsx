@@ -32,6 +32,15 @@ export function LocaleGate() {
   const queryClient = useQueryClient();
   // Одна попытка на сессию: если PATCH не прошёл, не долбим его на каждый рендер.
   const localeResetRef = useRef(false);
+  // Which user.id this reconciliation has already run for. Without this gate
+  // the effect below re-fires on every `locale` change — including the one
+  // caused by the user's own click — and races its stale `serverLocale`
+  // against the in-flight PATCH from that very click, snapping the switch
+  // straight back (see the incident: switching away from a saved non-default
+  // locale back to the default got stuck, because the effect kept treating
+  // the pre-click serverLocale as authoritative). Reconciling once per login
+  // is enough — after that, LanguageSwitcher's own PATCH is the only writer.
+  const reconciledUserIdRef = useRef<string | null>(null);
   // Tracks the locale we last applied, so the refetch below fires only on a
   // real switch — not on first mount.
   const appliedLocaleRef = useRef<string | null>(null);
@@ -42,9 +51,17 @@ export function LocaleGate() {
   // backend default ("ru") — treat that as "no real preference yet" rather
   // than blindly overwriting a locale the user just chose. A non-default
   // server value, on the other hand, is only ever set by an explicit switch
-  // (here or on another device), so it always wins.
+  // (here or on another device), so it wins — but only at this one login-time
+  // reconciliation, not on every later render.
   useEffect(() => {
-    if (!user || !isLocale(serverLocale) || serverLocale === locale) return;
+    if (!user) {
+      reconciledUserIdRef.current = null;
+      return;
+    }
+    if (reconciledUserIdRef.current === user.id || !isLocale(serverLocale)) return;
+    reconciledUserIdRef.current = user.id;
+
+    if (serverLocale === locale) return;
 
     if (serverLocale !== DEFAULT_LOCALE) {
       setLocale(serverLocale);
