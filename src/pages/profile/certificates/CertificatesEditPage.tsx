@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Heading, Button, Input, Mascot } from '@/shared/ui';
+import { Heading, Button, FullScreenPreferences, Input, Mascot } from '@/shared/ui';
 import { useCertificatesEdit } from './hooks/useCertificatesEdit';
 import {
   CERTIFICATE_TYPES,
@@ -24,6 +24,11 @@ export default function CertificatesEditPage() {
 
   return (
     <div className="min-h-screen bg-page flex flex-col">
+      <div className="px-5 pt-4 lg:px-8">
+        <div className="max-w-2xl mx-auto">
+          <FullScreenPreferences />
+        </div>
+      </div>
       <div className="flex-1 overflow-y-auto px-5 py-8 lg:py-12">
         <div className="max-w-2xl mx-auto flex flex-col gap-6">
 

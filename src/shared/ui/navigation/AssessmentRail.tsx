@@ -2,6 +2,7 @@ import { ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { Spine } from '@/shared/ui/Spine';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 export interface AssessmentRailProps {
   /** Text next to the back button (e.g. "Вопрос 3 из 20" or the flow's static title). */
@@ -87,6 +88,8 @@ export function AssessmentRail({
             </button>
           )}
 
+          <ThemeToggle />
+
           {/* Slot 2: sound toggle */}
           <button
             type="button"
@@ -107,7 +110,7 @@ export function AssessmentRail({
             onClick={onExit}
             aria-label={t('assessment:rail.exit')}
             className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
-            style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)' }}
+            style={{ boxShadow: 'var(--shadow-pop)' }}
           >
             ✕
           </button>

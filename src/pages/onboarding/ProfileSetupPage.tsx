@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
-import { Button, Input, Mascot } from '@/shared/ui';
+import { Button, FullScreenPreferences, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
@@ -155,7 +155,8 @@ export default function ProfileSetupPage() {
           ничего не скрывала, зато клала плоский фог поверх градиента холста и
           давала видимый горизонтальный шов. */}
       <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto flex flex-col gap-3">
+          <FullScreenPreferences />
           <OnboardingProgress current={step} total={TOTAL_ONBOARDING_STEPS} />
         </div>
       </div>

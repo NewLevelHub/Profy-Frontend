@@ -25,6 +25,7 @@ export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant } from './Badge';
 
 export { ThemeToggle } from './ThemeToggle';
+export { FullScreenPreferences } from './FullScreenPreferences';
 export type { ThemeToggleProps } from './ThemeToggle';
 
 export { Spinner } from './Spinner';
