@@ -1,8 +1,9 @@
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { pluralize } from '@/shared/lib/plural';
 import type { AdminUserListItem, AgeGroup } from '@/shared/types';
+import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 /**
  * Печатная версия списка пользователей.
@@ -25,7 +26,7 @@ const MUTE = '#6B7671';
 const LINE = '#D2CCBE';
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString('ru-RU', {
+  return formatIntlDate(value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -49,6 +50,7 @@ interface UsersPrintReportProps {
 }
 
 export function UsersPrintReport({ items, total, filters, truncated }: UsersPrintReportProps) {
+  const { t } = useTranslation('admin');
   const body = (
     <div
       style={{
@@ -70,13 +72,13 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
             color: MUTE,
           }}
         >
-          Profy · админка
+          {t('print.brand')}
         </p>
-        <h1 style={{ fontSize: '16pt', fontWeight: 600, margin: '1.5mm 0 0' }}>Пользователи</h1>
+        <h1 style={{ fontSize: '16pt', fontWeight: 600, margin: '1.5mm 0 0' }}>{t('nav.users')}</h1>
         <p style={{ margin: '1.5mm 0 0', color: MUTE }}>
-          {pluralize(items.length, 'пользователь', 'пользователя', 'пользователей')} в выгрузке
-          {items.length !== total ? ` из ${total} подошедших под фильтры` : ''} · выгружено{' '}
-          {new Date().toLocaleString('ru-RU', {
+          {t('print.usersInExport', { count: items.length })}
+          {items.length !== total ? t('print.ofMatching', { total }) : ''} · {t('print.exportedAt')}{' '}
+          {formatIntlDate(new Date(), {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -87,11 +89,11 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
         {/* Без этой строки лист через неделю не интерпретировать: непонятно,
             срез это или все пользователи. */}
         <p style={{ margin: '1mm 0 0', color: MUTE }}>
-          {filters.length > 0 ? `Фильтры: ${filters.join(' · ')}` : 'Фильтры не применялись'}
+          {filters.length > 0 ? t('print.filters', { filters: filters.join(' · ') }) : t('print.noFilters')}
         </p>
         {truncated && (
           <p style={{ margin: '1mm 0 0', color: '#A6572F' }}>
-            Выгрузка оборвана на {items.length} строках — на листе не весь срез. Сузьте фильтры.
+            {t('print.truncated', { count: items.length })}
           </p>
         )}
       </header>
@@ -99,7 +101,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4mm' }}>
         <thead>
           <tr>
-            {['Пользователь', 'Возраст', 'Диагностика', 'Цель теста', 'Тестов', 'Регистрация'].map(
+            {[t('feedback.col.user'), t('common.col.age'), t('users.col.assessment'), t('users.col.goal'), t('print.testsCount'), t('users.col.registered')].map(
               (header, index) => (
                 <th
                   key={header}
@@ -135,7 +137,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
               <td style={CELL}>
                 {item.latest_assessment_status
                   ? ASSESSMENT_STATUS_LABELS[item.latest_assessment_status]
-                  : 'Не начата'}
+                  : t('users.status.notStarted')}
               </td>
               <td style={CELL}>
                 {item.latest_assessment_goal
@@ -169,8 +171,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
       </table>
 
       <footer style={{ marginTop: '5mm', color: MUTE, fontSize: '8pt' }}>
-        Сырые баллы RIASEC и Big Five в PDF не входят — одиннадцать чисел на строку на листе не
-        читаются. Они есть в выгрузке CSV.
+        {t('print.rawScoresNote')}
       </footer>
     </div>
   );

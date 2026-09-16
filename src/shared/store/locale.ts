@@ -11,18 +11,20 @@ export type Locale = 'ru' | 'kk';
 export const KNOWN_LOCALES: readonly Locale[] = ['ru', 'kk'];
 
 /**
- * Locales actually offered to the user right now. KZ-603 (2026-09-08) added
- * 'kk' — no feature flag. `revert` that change to go back to ['ru'] and the
- * LanguageSwitcher hides itself again.
+ * Locales actually offered to the user right now.
+ *
+ * KZ-603 (2026-09-08) added 'kk'; PRO-278 briefly collapsed it back to
+ * ['ru'] while the kk translation was incomplete. PRO-254 finished localizing
+ * the admin panel, so the choice is back on for everyone.
  */
 export const SUPPORTED_LOCALES: readonly Locale[] = ['ru', 'kk'];
 
 export const DEFAULT_LOCALE: Locale = 'ru';
 
 /**
- * Whether the user is offered a language choice at all. `true` since KZ-603
- * added 'kk' to SUPPORTED_LOCALES — drives whether the LanguageSwitcher and
- * its host rows render.
+ * Whether the user is offered a language choice at all. `false` пока
+ * SUPPORTED_LOCALES свёрнут к одному языку (см. выше) — им закрыты строки-хосты
+ * переключателя, которые иначе остались бы пустыми рамками.
  */
 export const LOCALE_SWITCH_ENABLED = SUPPORTED_LOCALES.length > 1;
 

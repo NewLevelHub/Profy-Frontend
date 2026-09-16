@@ -24,12 +24,14 @@ import type {
   AdminUniversityDetail,
   AdminUniversityListResponse,
   AdminUniversityUpdateRequest,
+  AdminUserCreateRequest,
   AdminUserDetail,
   AdminUserListResponse,
   AgeGroup,
   AssessmentGoal,
   AssessmentStatus,
   Instrument,
+  UserRole,
 } from '@/shared/types';
 
 interface AdminUserFilterParams {
@@ -37,6 +39,10 @@ interface AdminUserFilterParams {
   age_group?: AgeGroup;
   status?: AssessmentStatus;
   goal?: AssessmentGoal;
+  /** Defaults to `student` server-side when omitted — the list historically
+   *  only showed students, so staff accounts created via `createUser` stay
+   *  out of it unless this is passed explicitly. */
+  role?: UserRole;
 }
 
 export const adminApi = {
@@ -55,6 +61,12 @@ export const adminApi = {
 
   getUser: (userId: string) =>
     apiClient.get<AdminUserDetail>(API.admin.userDetail(userId)).then((r) => r.data),
+
+  /** Creates an `admin`/`psychologist` account — self-registration never
+   *  produces staff, so this is the only way to create one. `role: 'student'`
+   *  is rejected (422) by design, see `AdminUserCreateRequest`. */
+  createUser: (body: AdminUserCreateRequest) =>
+    apiClient.post<AdminUserDetail>(API.admin.users, body).then((r) => r.data),
 
   getAssessment: (assessmentId: string) =>
     apiClient

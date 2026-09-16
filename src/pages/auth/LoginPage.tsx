@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
 import { env } from '@/shared/config/env';
+import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 import { resolveReturnTo } from '@/shared/lib/returnTo';
 import { Button } from '@/shared/ui/Button';
@@ -56,8 +57,10 @@ export default function LoginPage() {
       storeLogin(access_token, user);
       // Один и тот же разбор адреса назначения, что и в RequireGuest —
       // гварда перерисуется от нового токена и уведёт туда же, так что
-      // неважно, кто из них сработает первым.
-      navigate(resolveReturnTo(location) ?? '/results', { replace: true });
+      // неважно, кто из них сработает первым. Явный возврат важнее роли:
+      // на него человек шёл осознанно, а домашний экран роли — это ответ
+      // на «вести некуда».
+      navigate(resolveReturnTo(location) ?? homePathForUser(user), { replace: true });
     } catch (err) {
       setPassword('');
       if (axios.isAxiosError(err)) {
@@ -94,7 +97,7 @@ export default function LoginPage() {
     try {
       const { access_token, user } = await authApi.googleLogin(idToken);
       storeLogin(access_token, user);
-      navigate(resolveReturnTo(location) ?? '/results', { replace: true });
+      navigate(resolveReturnTo(location) ?? homePathForUser(user), { replace: true });
     } catch {
       setFormError(t('auth:error.googleSignInFailed'));
     } finally {

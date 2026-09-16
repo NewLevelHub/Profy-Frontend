@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
+import { LOCALE_SWITCH_ENABLED } from '@/shared/store/locale';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { CtaLink, ArrowIcon } from './primitives';
 import { useScrollProgress, scrollToAnchor } from '../hooks';
@@ -158,10 +159,12 @@ export function LandingHeader() {
             {item.label}
           </button>
         ))}
-        <div className="flex items-center justify-between gap-3 mt-2">
-          <span className="text-body-sm font-semibold text-secondary">{t('cta.language', { defaultValue: 'Язык' })}</span>
-          <LanguageSwitcher />
-        </div>
+        {LOCALE_SWITCH_ENABLED && (
+          <div className="flex items-center justify-between gap-3 mt-2">
+            <span className="text-body-sm font-semibold text-secondary">{t('cta.language', { defaultValue: 'Язык' })}</span>
+            <LanguageSwitcher />
+          </div>
+        )}
         <div className="flex items-center justify-between gap-3">
           <span className="text-body-sm font-semibold text-secondary">{t('cta.theme', { defaultValue: 'Тема' })}</span>
           <ThemeToggle />

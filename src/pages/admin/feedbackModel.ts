@@ -35,8 +35,8 @@ export function scoreTone(score: number): string {
   return 'var(--lake)';
 }
 
-const SECTION_LABELS: Record<string, string> = Object.fromEntries(
-  REPORT_SECTIONS.map((section) => [section.value, section.label]),
+const SECTION_LABEL_KEYS: Record<string, string> = Object.fromEntries(
+  REPORT_SECTIONS.map((section) => [section.value, section.labelKey]),
 );
 
 /**
@@ -47,22 +47,24 @@ const SECTION_LABELS: Record<string, string> = Object.fromEntries(
  * stayed at one. The full names live in the summary above the table, which is
  * where they read as a legend.
  */
-const SECTION_SHORT_LABELS: Record<string, string> = {
-  interests: 'Интересы',
-  personality: 'Характер',
-  careers: 'Профессии',
-  thinking_style: 'Мышление',
-  motivation: 'Мотивация',
+const SECTION_SHORT_LABEL_KEYS: Record<string, string> = {
+  interests: 'admin:feedback.sectionShort.interests',
+  personality: 'admin:feedback.sectionShort.personality',
+  careers: 'admin:feedback.sectionShort.careers',
+  thinking_style: 'admin:feedback.sectionShort.thinking_style',
+  motivation: 'admin:feedback.sectionShort.motivation',
 };
 
 /** Falls back to the raw key: sections are free-form strings server-side, so a
  *  section retired from `REPORT_SECTIONS` still has rows pointing at it. */
-export function sectionLabel(key: string): string {
-  return SECTION_LABELS[key] ?? key;
+export function sectionLabel(key: string, t: (key: string) => string): string {
+  const labelKey = SECTION_LABEL_KEYS[key];
+  return labelKey ? t(labelKey) : key;
 }
 
-export function sectionShortLabel(key: string): string {
-  return SECTION_SHORT_LABELS[key] ?? sectionLabel(key);
+export function sectionShortLabel(key: string, t: (key: string) => string): string {
+  const labelKey = SECTION_SHORT_LABEL_KEYS[key];
+  return labelKey ? t(labelKey) : sectionLabel(key, t);
 }
 
 /** Tiers in age order, not the alphabetical order the API returns them in. */
@@ -70,9 +72,9 @@ export const AGE_ORDER: AgeGroup[] = ['junior', 'middle', 'senior'];
 
 /** Mirrors `compute_age_group` in app/models/profile.py. */
 export const AGE_RANGE_HINT: Record<AgeGroup, string> = {
-  junior: 'до 9 лет',
-  middle: '10–13 лет',
-  senior: '14 лет и старше',
+  junior: 'admin:feedback.age.junior',
+  middle: 'admin:feedback.age.middle',
+  senior: 'admin:feedback.age.senior',
 };
 
 export function ageLabel(key: string): string {
@@ -81,9 +83,9 @@ export function ageLabel(key: string): string {
 
 /** A/B/C are the report scenarios the goal maps onto — opaque on their own. */
 export const SCENARIO_LABELS: Record<string, string> = {
-  A: 'A · исследовать',
-  B: 'B · выбрать профессию',
-  C: 'C · поступить в вуз',
+  A: 'admin:feedback.goal.A',
+  B: 'admin:feedback.goal.B',
+  C: 'admin:feedback.goal.C',
 };
 
 export function scenarioLabel(key: string): string {
@@ -161,7 +163,7 @@ export interface SectionTally {
  * is the finding, and dropping the row hides it. The previous version showed
  * only the top four, so the weakest section was never visible.
  */
-export function sectionTally(items: readonly AdminFeedbackListItem[]): SectionTally[] {
+export function sectionTally(items: readonly AdminFeedbackListItem[], t: (key: string) => string): SectionTally[] {
   const counts = new Map<string, number>();
   for (const section of REPORT_SECTIONS) counts.set(section.value, 0);
   for (const item of items) {
@@ -172,7 +174,7 @@ export function sectionTally(items: readonly AdminFeedbackListItem[]): SectionTa
   return [...counts.entries()]
     .map(([key, count]) => ({
       key,
-      label: sectionLabel(key),
+      label: sectionLabel(key, t),
       count,
       share: items.length > 0 ? count / items.length : 0,
     }))
