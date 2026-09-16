@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Download, FileText, UserPlus } from 'lucide-react';
@@ -20,11 +20,29 @@ import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { UsersPrintReport } from './components/UsersPrintReport';
 import { CreateStaffModal } from './components/CreateStaffModal';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import type { AdminUserDetail, AdminUserListItem, AgeGroup, AssessmentGoal, AssessmentStatus } from '@/shared/types';
+import type {
+  AdminUserDetail,
+  AdminUserListItem,
+  AdminUserStats,
+  AgeGroup,
+  AssessmentGoal,
+  AssessmentStatus,
+} from '@/shared/types';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['search', 'age_group', 'status', 'goal'] as const;
+const FILTER_KEYS = ['search', 'age_group', 'status', 'goal', 'inactive_days'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['created_at', 'last_active_at', 'email', 'age_group', 'latest_assessment_status'] as const;
+
+/** Порог «давно не заходил». Регистрация считается активностью, поэтому
+ *  свежий аккаунт под фильтр не попадает. */
+const INACTIVE_OPTIONS = [
+  { value: '7', label: 'больше недели' },
+  { value: '30', label: 'больше месяца' },
+  { value: '90', label: 'больше трёх месяцев' },
+];
 
 /** Эндпоинта list потолок — `limit: le=100`. */
 const PRINT_PAGE_LIMIT = 100;
@@ -71,7 +89,7 @@ function InterestsCell({ values }: { values: Record<string, number> | null }) {
             index === 0 ? 'text-primary' : 'text-muted',
           )}
         >
-          <span>{RIASEC_LABELS[letter] ?? letter}</span>
+          <span>{t(RIASEC_LABELS[letter] ?? letter)}</span>
           <span className={cn(ADMIN_NUM, 'text-muted text-mono-xs')}>{Math.round(value)}</span>
         </span>
       ))}
@@ -119,7 +137,8 @@ function formatRelative(value: string, t: (key: string, opts?: Record<string, un
 
 export default function AdminUsersPage() {
   const { t } = useTranslation('admin');
-  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   // So the breadcrumb on a user's card returns to this exact filtered page.
   useRememberListQuery('/admin/users');
   const [items, setItems] = useState<AdminUserListItem[]>([]);
@@ -138,7 +157,26 @@ export default function AdminUsersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createdUser, setCreatedUser] = useState<AdminUserDetail | null>(null);
 
-  const { search, age_group: ageGroup, status, goal } = values;
+  const { search, age_group: ageGroup, status, goal, inactive_days: inactiveDays } = values;
+  const [stats, setStats] = useState<AdminUserStats | null>(null);
+
+  /**
+   * Один источник фильтров на таблицу, CSV и PDF.
+   *
+   * Раньше каждый из трёх собирал их у себя, и добавление фильтра означало
+   * правку в трёх местах: пропустили один — и выгрузка молча содержит всех
+   * пользователей, хотя на экране отфильтрованная выборка.
+   */
+  const filters = useMemo(
+    () => ({
+      search: search || undefined,
+      age_group: (ageGroup as AgeGroup) || undefined,
+      status: (status as AssessmentStatus) || undefined,
+      goal: (goal as AssessmentGoal) || undefined,
+      inactive_days: inactiveDays ? Number(inactiveDays) : undefined,
+    }),
+    [search, ageGroup, status, goal, inactiveDays],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -148,12 +186,11 @@ export default function AdminUsersPage() {
       setError('');
       try {
         const data = await adminApi.listUsers({
+          ...filters,
           page,
           limit: PAGE_SIZE,
-          search: search || undefined,
-          age_group: (ageGroup as AgeGroup) || undefined,
-          status: (status as AssessmentStatus) || undefined,
-          goal: (goal as AssessmentGoal) || undefined,
+          sort: sort?.key,
+          order: sort?.order,
         });
         if (cancelled) return;
         setItems(data.items);
@@ -169,7 +206,25 @@ export default function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, search, ageGroup, status, goal, reloadToken]);
+  }, [page, filters, sort?.key, sort?.order, reloadToken]);
+
+  // Whole-table counts, independent of the filters: they answer "what is
+  // happening overall", which is the question a filtered page cannot.
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .getUserStats()
+      .then((data) => {
+        if (!cancelled) setStats(data);
+      })
+      .catch(() => {
+        // Tiles are context, not the content — their absence must not take the
+        // table down with them.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
 
@@ -190,12 +245,6 @@ export default function AdminUsersPage() {
     setPrinting(true);
     setExportError('');
     try {
-      const filters = {
-        search: search || undefined,
-        age_group: (ageGroup as AgeGroup) || undefined,
-        status: (status as AssessmentStatus) || undefined,
-        goal: (goal as AssessmentGoal) || undefined,
-      };
       const first = await adminApi.listUsers({ ...filters, page: 1, limit: PRINT_PAGE_LIMIT });
       const reachable = Math.min(first.total, PRINT_MAX_ROWS);
       const pageCount = Math.ceil(reachable / PRINT_PAGE_LIMIT);
@@ -216,12 +265,7 @@ export default function AdminUsersPage() {
     setExporting(true);
     setExportError('');
     try {
-      const blob = await adminApi.exportUsers({
-        search: search || undefined,
-        age_group: (ageGroup as AgeGroup) || undefined,
-        status: (status as AssessmentStatus) || undefined,
-        goal: (goal as AssessmentGoal) || undefined,
-      });
+      const blob = await adminApi.exportUsers(filters);
       downloadCsv(blob, 'users_export.csv');
     } catch {
       setExportError(t('users.csvError'));
@@ -251,6 +295,7 @@ export default function AdminUsersPage() {
     ageGroup ? t('users.filterAge', { age: AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup }) : null,
     status ? t('users.filterStatus', { status: t(ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]) }) : null,
     goal ? t('users.filterGoal', { goal: t(ASSESSMENT_GOAL_LABELS[goal as AssessmentGoal]) }) : null,
+    inactiveDays ? `Не заходил дольше ${inactiveDays} дн.` : null,
   ].filter((value): value is string => value !== null);
 
   const columns: AdminColumn<AdminUserListItem>[] = [
@@ -324,7 +369,7 @@ export default function AdminUsersPage() {
       mobileLabel: t('users.col.goalShort'),
       cell: (item) =>
         item.latest_assessment_goal ? (
-          <span className={ADMIN_TEXT}>{ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal]}</span>
+          <span className={ADMIN_TEXT}>{t(ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal])}</span>
         ) : (
           <span className={ADMIN_META}>—</span>
         ),
@@ -339,16 +384,40 @@ export default function AdminUsersPage() {
     },
     {
       key: 'created',
-      // Was "Активность" showing `created_at`, so someone who registered two
-      // days ago and never came back read as "active 2 days ago". There is no
-      // last-active field in the API — docs/admin-backend-requests-pro-242.md §5.
+      // Раньше эта колонка называлась «Активность» и показывала created_at,
+      // то есть зарегистрировавшийся два дня назад и ни разу не вернувшийся
+      // читался как «заходил 2 дня назад». Настоящая активность теперь есть
+      // и стоит отдельной колонкой справа.
       header: t('users.col.registered'),
+      sortKey: 'created_at',
       width: '126px',
       align: 'right',
       mobile: 'field',
       cell: (item) => (
         <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at, t)}</span>
       ),
+    },
+    {
+      key: 'active',
+      header: 'Активность',
+      sortKey: 'last_active_at',
+      width: '126px',
+      align: 'right',
+      mobile: 'field',
+      headerTitle:
+        'Когда пользователя видели в последний раз. Обновляется при любом запросе, но не чаще раза в 5 минут.',
+      cell: (item) =>
+        item.last_active_at ? (
+          <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>
+            {formatRelative(item.last_active_at, t)}
+          </span>
+        ) : (
+          // Не прочерк: «не видели ни разу» — это факт о пользователе, а
+          // прочерк читается как отсутствие данных о нём.
+          <span className={ADMIN_META} title="С момента появления отслеживания активности не заходил">
+            не заходил
+          </span>
+        ),
     },
   ];
 
@@ -390,6 +459,8 @@ export default function AdminUsersPage() {
         }
       />
 
+      {stats && <UserStatsTiles stats={stats} />}
+
       {createdUser && (
         <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-[3px] border border-brand bg-brand-subtle">
           <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>
@@ -421,7 +492,7 @@ export default function AdminUsersPage() {
             value: status,
             options: (Object.keys(ASSESSMENT_STATUS_LABELS) as AssessmentStatus[]).map((key) => ({
               value: key,
-              label: ASSESSMENT_STATUS_LABELS[key],
+              label: t(ASSESSMENT_STATUS_LABELS[key]),
             })),
           },
           {
@@ -430,8 +501,14 @@ export default function AdminUsersPage() {
             value: goal,
             options: (Object.keys(ASSESSMENT_GOAL_LABELS) as AssessmentGoal[]).map((key) => ({
               value: key,
-              label: ASSESSMENT_GOAL_LABELS[key],
+              label: t(ASSESSMENT_GOAL_LABELS[key]),
             })),
+          },
+          {
+            key: 'inactive_days',
+            label: 'Не заходил',
+            value: inactiveDays,
+            options: INACTIVE_OPTIONS,
           },
         ]}
         onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
@@ -456,6 +533,8 @@ export default function AdminUsersPage() {
         rows={items}
         rowKey={(item) => item.id}
         rowHref={(item) => `/admin/users/${item.id}`}
+        sort={sort}
+        onSortChange={setSort}
         loading={loading}
         emptyTitle={t('users.empty')}
         emptyHint={t('users.emptyHint')}
@@ -478,5 +557,47 @@ export default function AdminUsersPage() {
         onCreated={(user) => setCreatedUser(user)}
       />
     </>
+  );
+}
+
+/**
+ * Что происходит по всей базе, а не на текущей странице.
+ *
+ * Все четыре числа — срез по всей таблице, поэтому посчитать их на клиенте из
+ * страницы в двадцать строк было нельзя: в редизайне на этом месте стояла
+ * строка «БРОШЕНО НА ДИАГНОСТИКЕ: НЕТ ДАННЫХ», и её убрали как визуальный
+ * мусор. Теперь данные есть.
+ *
+ * Плашки НЕ следуют за фильтрами таблицы: они отвечают на вопрос «что вообще
+ * происходит», а не «что в текущей выборке». Иначе «брошено на диагностике: 0»
+ * при фильтре «завершённые» читалось бы как хорошая новость.
+ */
+function UserStatsTiles({ stats }: { stats: AdminUserStats }) {
+  const tiles = [
+    { label: 'Всего пользователей', value: stats.total, hint: undefined },
+    { label: 'Регистраций за неделю', value: stats.signups_last_7d, hint: undefined },
+    { label: 'Диагностик завершено', value: stats.completed_diagnostics, hint: undefined },
+    {
+      label: 'Брошено на диагностике',
+      value: stats.abandoned_diagnostics,
+      hint: `Тест не завершён, и пользователя не видели больше ${stats.inactive_days_threshold} дн.`,
+    },
+  ];
+
+  return (
+    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      {tiles.map((tile) => (
+        <div
+          key={tile.label}
+          className="bg-surface border border-default rounded-[3px] px-3 py-2.5"
+          title={tile.hint}
+        >
+          <p className="font-mono text-display-sm font-medium text-primary tabular-nums m-0 leading-none">
+            {tile.value}
+          </p>
+          <p className={cn(ADMIN_META, 'mt-1.5')}>{tile.label}</p>
+        </div>
+      ))}
+    </div>
   );
 }
