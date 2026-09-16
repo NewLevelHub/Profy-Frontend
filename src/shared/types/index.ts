@@ -290,6 +290,100 @@ export interface SubmitBelbinResponse {
   role_totals: Record<string, number>;
 }
 
+// ─── АСТУР (ипсативный/таймированный блок, вне обычного /assessment потока) ─────
+
+export type AsturSubtestKey =
+  | 'awareness'
+  | 'analogies'
+  | 'lability'
+  | 'classification'
+  | 'generalization'
+  | 'logical_schemas'
+  | 'numeric_series';
+
+export interface AsturAwarenessItem {
+  text: string;
+  options: string[];
+}
+
+export interface AsturAnalogyItem {
+  pair: [string, string];
+  third: string;
+  options: string[];
+}
+
+export type AsturLabilityAnswerFormat = 'digit' | 'shape' | 'symbol' | 'word' | 'letter';
+
+export interface AsturLabilityItem {
+  instruction: string;
+  answer_format: AsturLabilityAnswerFormat;
+}
+
+export interface AsturClassificationItem {
+  words: string[];
+}
+
+export interface AsturGeneralizationItem {
+  pair: [string, string];
+}
+
+export interface AsturLogicalSchemaItem {
+  /** Уже перемешано бэкендом — не порядок ответа. */
+  concepts: string[];
+}
+
+export interface AsturNumericSeriesItem {
+  sequence: number[];
+}
+
+export type AsturContentItem =
+  | AsturAwarenessItem
+  | AsturAnalogyItem
+  | AsturLabilityItem
+  | AsturClassificationItem
+  | AsturGeneralizationItem
+  | AsturLogicalSchemaItem
+  | AsturNumericSeriesItem;
+
+export interface AsturContentSubtest {
+  number: number;
+  key: AsturSubtestKey;
+  name: string;
+  instruction: string;
+  item_count: number;
+  scored: boolean;
+  /** `null` только у `lability` — у неё свой лимит на команду, не на весь субтест. */
+  time_limit_sec: number | null;
+  items: AsturContentItem[];
+}
+
+export interface AsturContent {
+  subtests: AsturContentSubtest[];
+  lability_item_limit_ms: number;
+}
+
+export interface StartAsturSubtestResponse {
+  run_id: string;
+  subtest: string;
+  started_at: string;
+}
+
+export interface SubmitAsturSubtestPayload {
+  /** Форма значения зависит от субтеста: строка (MC/обобщение), 2 строки
+   *  (классификации), список понятий (логические схемы), 2 числа (ряды),
+   *  строка per-формату лабильности. */
+  answers: Record<string, unknown>;
+  /** Только для лабильности — время на каждую команду. */
+  elapsed_ms?: Record<string, number>;
+}
+
+export interface SubmitAsturSubtestResponse {
+  run_id: string;
+  subtest: string;
+  actual_ms: number | null;
+  over_limit_items: string[];
+}
+
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {
@@ -419,6 +513,99 @@ export interface StudentCareer {
   subjects_to_develop: string[];
 }
 
+// ─── PRO-282 psych-block sections — «Достоверность протокола» + «Психоэмоц.
+// тест» (МЦВ Собчик). `null` on a student's own /result (never shown to
+// them); attached only for a psychologist/admin viewer
+// (report_service.psych_sections_for — the ONLY place that decides
+// visibility, never re-implemented here). МАК is out of scope (PRO-282 §4)
+// — mirrors app/schemas/result_v2.py field-for-field. Wired into
+// ReportSectionsBlock at Ф4.1 (PRO-338) — this type existed on the backend
+// since PRO-282/PRO-300 but had no frontend counterpart in this branch
+// until now (PRO-282's own frontend was never merged here).
+
+export type ValidityTrafficLight = 'green' | 'yellow' | 'red';
+export type SdLevel = 'ok' | 'social_desirability' | 'high';
+
+export interface ValiditySection {
+  consent_ok: boolean;
+  traffic_light: ValidityTrafficLight;
+  sd_raw: number;
+  sd_level: SdLevel;
+  sd_bounds: [number, number];
+  longstring_max: number;
+  irv: number;
+  infrequency_failed: number;
+  careless_flag: boolean;
+  thresholds_version: number;
+}
+
+export type PsychoEmotionalValidityFlag = 'ok' | 'caution' | 'low';
+export type PsychoAnxietyLevel = 'low' | 'moderate' | 'high' | 'very_high';
+export type PsychoCompensationLevel = 'low' | 'moderate' | 'high';
+export type PsychoSoLevel = 'norm' | 'elevated' | 'high';
+export type PsychoVkLevel = 'low_tone' | 'reduced' | 'balance' | 'overexcited';
+export type PsychoFunctionalSign = 'plus' | 'cross' | 'equal' | 'minus';
+
+export interface PsychoEmotionalPositionalPair {
+  sign: PsychoFunctionalSign;
+  colors: [number, number];
+}
+
+export interface PsychoEmotionalSplitPair {
+  colors: [number, number];
+  stable: boolean;
+}
+
+export interface PsychoEmotionalAnxiety {
+  score: number;
+  level: PsychoAnxietyLevel;
+  breakdown: Record<string, number>;
+}
+
+export interface PsychoEmotionalCompensation {
+  score: number;
+  level: PsychoCompensationLevel;
+  breakdown: Record<string, number>;
+  purple_forward: boolean;
+  purple_position: number;
+}
+
+export interface PsychoEmotionalHistoryItem {
+  run_number: number;
+  completed_at: string;
+  so: number | null;
+  anxiety_score: number | null;
+  validity_flag: PsychoEmotionalValidityFlag | null;
+}
+
+export interface PsychoEmotionalSection {
+  consent_ok: boolean;
+  thresholds_version: number | null;
+  run_number: number;
+  completed_at: string;
+  history: PsychoEmotionalHistoryItem[];
+  checkin: Record<string, unknown>;
+  validity_flag: PsychoEmotionalValidityFlag | null;
+  validity_reasons: string[];
+  choice_1: number[];
+  choice_2: number[];
+  d_value: number;
+  d_memory: boolean;
+  d_situationally_unstable: boolean;
+  positional_pairs: PsychoEmotionalPositionalPair[];
+  root_conflict: [number, number];
+  split_pairs: PsychoEmotionalSplitPair[];
+  split_count: number;
+  instability: boolean;
+  anxiety: PsychoEmotionalAnxiety;
+  compensation: PsychoEmotionalCompensation;
+  so_value: number;
+  so_level: PsychoSoLevel;
+  vk_value: number;
+  vk_level: PsychoVkLevel;
+  black_first: boolean;
+}
+
 interface ResultResponseBase {
   report_version: 2;
   assessment_id: string;
@@ -435,6 +622,10 @@ interface ResultResponseBase {
   exploration_note: string;
   final_analysis: string;
   created_at: string;
+  /** `null` unless the viewer is a psychologist/admin AND the calc has run. */
+  validity: ValiditySection | null;
+  /** `null` unless the viewer is a psychologist/admin AND a run exists. */
+  psychoemotional: PsychoEmotionalSection | null;
 }
 
 export interface MiResultResponse extends ResultResponseBase {
@@ -1087,9 +1278,14 @@ export interface TemperamentSection {
 }
 
 export interface IntelligenceSection {
-  spn_group: number | null;
+  raw_score: number | null;
   subtest_scores: Record<string, number> | null;
+  spn_group: number | null;
   learning_profile: string | null;
+  learning_profile_shares: Record<string, number> | null;
+  lability_first_half_accuracy: number | null;
+  lability_second_half_accuracy: number | null;
+  lability_fatigue_signal: boolean | null;
 }
 
 export interface AspirationLevelSection {

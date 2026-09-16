@@ -30,6 +30,9 @@ export const API = {
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
     belbinContent: '/assessment/belbin/content',
     belbin: (assessmentId: string) => `/assessment/${assessmentId}/belbin`,
+    asturContent: '/assessment/astur/content',
+    asturStart: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/start`,
+    asturSubtest: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}`,
   },
   result: {
     generate: '/result/generate',

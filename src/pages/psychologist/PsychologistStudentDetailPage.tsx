@@ -225,16 +225,25 @@ export default function PsychologistStudentDetailPage() {
                     {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
                   </AdminBadge>
                   {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
-                  {/* PRO-338 Ф2.6 — Belbin — опциональный расширенный блок,
-                      вне обычного потока ученика; ссылка ведёт на отдельный
-                      маршрут, который проходит сам ученик (не психолог). */}
+                  {/* PRO-338 Ф2.6/Ф3.6 — Belbin/АСТУР — опциональные
+                      расширенные блоки, вне обычного потока ученика; ссылки
+                      ведут на отдельные маршруты, которые проходит сам
+                      ученик (не психолог). */}
                   <Link
                     to={`/assessment/extended/belbin/${a.id}`}
                     className={cn(ADMIN_BUTTON, 'gap-1.5')}
                     title="Открывает отдельный экран для ученика — Belbin BTRSPI"
                   >
                     <ListChecks size={13} />
-                    Расширенный блок
+                    Belbin
+                  </Link>
+                  <Link
+                    to={`/assessment/extended/astur/${a.id}`}
+                    className={cn(ADMIN_BUTTON, 'gap-1.5')}
+                    title="Открывает отдельный экран для ученика — АСТУР"
+                  >
+                    <ListChecks size={13} />
+                    АСТУР
                   </Link>
                   {a.has_result && (
                     <Link
