@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
-import { plural, pluralize } from '@/shared/lib/plural';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import {
@@ -44,10 +44,10 @@ import type { AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
 
 type SliceKey = 'age' | 'scenario' | 'direction';
 
-const SLICES: { key: SliceKey; label: string }[] = [
-  { key: 'age', label: 'Возраст' },
-  { key: 'scenario', label: 'Сценарий отчёта' },
-  { key: 'direction', label: 'Ведущее направление' },
+const SLICES: { key: SliceKey; labelKey: string }[] = [
+  { key: 'age', labelKey: 'common.col.age' },
+  { key: 'scenario', labelKey: 'overview.slice.scenario' },
+  { key: 'direction', labelKey: 'overview.slice.direction' },
 ];
 
 /** Beyond this a direction breakdown is a list, not a comparison. */
@@ -78,13 +78,14 @@ export function FeedbackOverview({
   activeScore,
   activeSection,
 }: FeedbackOverviewProps) {
+  const { t } = useTranslation('admin');
   const [slice, setSlice] = useState<SliceKey>('age');
 
   if (scoreBase.total === 0 && sectionBase.total === 0) return null;
 
   const avg = scoreBase.avg_relevance_score;
   const distribution = scoreDistribution(scoreBase);
-  const sections = sectionTally(sectionBase);
+  const sections = sectionTally(sectionBase, t);
   const low = countInScoreBand(scoreBase, 1, LOW_SCORE_MAX);
   const high = countInScoreBand(scoreBase, HIGH_SCORE_MIN, MAX_SCORE);
   const noSections = sectionBase.no_sections_count;
@@ -99,16 +100,21 @@ export function FeedbackOverview({
    * показывала 63 отзыва, а таблица под ней — 6.
    */
   const scope = (count: number, ownDimensionFiltered = false) => {
-    const noun = pluralize(count, 'отзыву', 'отзывам', 'отзывам');
-    if (ownDimensionFiltered) return `по ${noun} — без учёта фильтра этой шкалы`;
-    return filtered ? `по ${noun} в текущем фильтре` : `по всем ${noun}`;
+    if (ownDimensionFiltered) {
+      // HEAD nuance: chart ignores its own filter dimension. No catalog key yet.
+      return t('overview.scopeFiltered', { count }).replace(
+        ' в текущем фильтре',
+        ' — без учёта фильтра этой шкалы',
+      );
+    }
+    return filtered ? t('overview.scopeFiltered', { count }) : t('overview.scopeAll', { count });
   };
 
   return (
     <div className="flex flex-col gap-3">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-stretch">
         <AdminCard
-          title="Насколько отчёт про них"
+          title={t('overview.scoreTitle')}
           description={scope(scoreBase.total, Boolean(activeScore))}
         >
           {/* Вопрос под отчётом — «Насколько это про тебя?», поэтому шкала
@@ -120,12 +126,12 @@ export function FeedbackOverview({
               <p className="font-mono text-display-sm font-medium text-primary tabular-nums m-0 leading-none">
                 {avg?.toFixed(1) ?? '—'}
               </p>
-              <p className={cn(ADMIN_META, 'mt-1.5')}>из {MAX_SCORE}</p>
+              <p className={cn(ADMIN_META, 'mt-1.5')}>{t('overview.outOf', { max: MAX_SCORE })}</p>
             </div>
             <ScoreShortcut
               count={high}
               total={scoreBase.total}
-              label={`узнали себя (${HIGH_SCORE_MIN}–${MAX_SCORE})`}
+              label={t('overview.recognized', { min: HIGH_SCORE_MIN, max: MAX_SCORE })}
               toneClass="text-brand"
               activeClass="bg-brand-subtle"
               active={activeScore === 'high'}
@@ -134,7 +140,7 @@ export function FeedbackOverview({
             <ScoreShortcut
               count={low}
               total={scoreBase.total}
-              label={`не про них (1–${LOW_SCORE_MAX})`}
+              label={t('overview.notThem', { max: LOW_SCORE_MAX })}
               toneClass="text-accent"
               activeClass="bg-accent-soft"
               active={activeScore === 'low'}
@@ -153,11 +159,11 @@ export function FeedbackOverview({
                   disabled={bar.count === 0}
                   title={
                     bar.count === 0
-                      ? `Оценку ${bar.score} никто не поставил`
-                      : `Показать только оценку ${bar.score}`
+                      ? t('overview.noneWithScore', { score: bar.score })
+                    : t('overview.showOnlyScore', { score: bar.score })
                   }
                   className={cn(
-                    'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-0.5 transition-colors text-left',
+                    'flex items-center gap-2.5 rounded-[14px] px-1.5 -mx-1.5 py-0.5 transition-colors text-left',
                     bar.count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
                     active && 'bg-active-tint',
                   )}
@@ -180,8 +186,10 @@ export function FeedbackOverview({
         </AdminCard>
 
         <AdminCard
-          title="Что назвали полезным"
-          description={`Доля отзывов, отметивших раздел, ${scope(sectionBase.total, Boolean(activeSection))}. Разделов можно выбрать несколько, поэтому сумма больше 100%.`}
+          title={t('overview.usefulTitle')}
+          description={t('overview.usefulDescription', {
+            scope: scope(sectionBase.total, Boolean(activeSection)),
+          })}
         >
           <div className="flex flex-col gap-1">
             {sections.map((section) => {
@@ -194,11 +202,11 @@ export function FeedbackOverview({
                   disabled={section.count === 0}
                   title={
                     section.count === 0
-                      ? 'Этот раздел не отметил никто'
-                      : `Показать отзывы, отметившие раздел «${section.label}»`
+                      ? t('overview.sectionNobody')
+                      : t('feedback.showWithSection', { section: section.label })
                   }
                   className={cn(
-                    'flex items-center gap-2.5 rounded-[3px] px-1.5 -mx-1.5 py-1 transition-colors text-left',
+                    'flex items-center gap-2.5 rounded-[14px] px-1.5 -mx-1.5 py-1 transition-colors text-left',
                     section.count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
                     active && 'bg-active-tint',
                   )}
@@ -237,8 +245,7 @@ export function FeedbackOverview({
           </div>
           {noSections > 0 && (
             <p className={cn(ADMIN_META, 'm-0 pt-2 border-t border-default')}>
-              {noSections} {plural(noSections, 'отзыв', 'отзыва', 'отзывов')} не{' '}
-              {plural(noSections, 'отметил', 'отметили', 'отметили')} ни одного раздела.
+              {t('overview.noSections', { count: noSections })}
             </p>
           )}
         </AdminCard>
@@ -273,6 +280,7 @@ function ScoreShortcut({
   active: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation('admin');
   const share = total > 0 ? Math.round((count / total) * 100) : 0;
 
   return (
@@ -280,9 +288,9 @@ function ScoreShortcut({
       type="button"
       onClick={onClick}
       disabled={count === 0}
-      title={count === 0 ? 'Таких отзывов нет' : `Показать только эти отзывы`}
+      title={count === 0 ? t('overview.noSuchFeedback') : t('overview.showOnlyThese')}
       className={cn(
-        'text-left rounded-[3px] px-2 py-1.5 -mx-2 transition-colors',
+        'text-left rounded-[14px] px-2 py-1.5 -mx-2 transition-colors',
         count > 0 ? 'hover:bg-hover cursor-pointer' : 'cursor-default',
         active && activeClass,
       )}
@@ -313,8 +321,9 @@ function SliceCard({
   slice: SliceKey;
   onSliceChange: (slice: SliceKey) => void;
 }) {
+  const { t } = useTranslation('admin');
   const [expanded, setExpanded] = useState(false);
-  const buckets = buildSlice(stats, slice);
+  const buckets = buildSlice(stats, slice, t);
   const shown = expanded ? buckets : buckets.slice(0, SLICE_ROW_LIMIT);
   const hidden = buckets.length - shown.length;
   const overall = stats.avg_relevance_score;
@@ -324,14 +333,14 @@ function SliceCard({
 
   return (
     <AdminCard
-      title="Средняя оценка по срезам"
+      title={t('overview.slicesTitle')}
       description={
         slice === 'direction'
-          ? 'Направления — начиная с самых обсуждаемых. Средняя по трём отзывам ничего не доказывает, поэтому объём всегда рядом.'
-          : 'Где отчёт заходит хуже — по возрасту и по сценарию, под который он собран.'
+          ? t('overview.slicesDirectionHint')
+          : t('overview.slicesOtherHint')
       }
       aside={
-        <div role="group" aria-label="Срез" className="inline-flex rounded-[3px] border border-default overflow-hidden">
+        <div role="group" aria-label={t('overview.slice.aria')} className="inline-flex rounded-[14px] border border-default overflow-hidden">
           {SLICES.map((option) => (
             <button
               key={option.key}
@@ -346,7 +355,7 @@ function SliceCard({
                   : 'text-muted hover:text-primary hover:bg-hover',
               )}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
@@ -355,8 +364,8 @@ function SliceCard({
       {buckets.length === 0 ? (
         <p className={cn(ADMIN_META, 'm-0')}>
           {slice === 'direction'
-            ? 'Ни у одного отзыва нет разбора — направление берётся из результатов диагностики.'
-            : 'Нет данных по этому срезу.'}
+            ? t('overview.noBreakdown')
+            : t('overview.noSliceData')}
         </p>
       ) : (
         <div className="flex flex-col gap-1">
@@ -396,9 +405,9 @@ function SliceCard({
                 <span className={cn(ADMIN_NUM, 'w-8 text-right text-primary')}>{bucket.avg.toFixed(1)}</span>
                 <span
                   className={cn(ADMIN_NUM, 'w-14 text-right text-muted')}
-                  title={`${bucket.count} из ${stats.total} отзывов в выборке`}
+                  title={t('overview.bucketShare', { count: bucket.count, total: stats.total })}
                 >
-                  {bucket.count} отз.
+                  {t('overview.bucketCount', { count: bucket.count })}
                 </span>
               </div>
             ))}
@@ -407,7 +416,7 @@ function SliceCard({
           <div className="flex items-baseline justify-between gap-4 flex-wrap mt-1">
             {overall != null ? (
               <p className={cn(ADMIN_META, 'm-0')}>
-                Вертикальная засечка — общая средняя по выборке, {overall.toFixed(1)}.
+                {t('overview.tickLegend', { average: overall.toFixed(1) })}
               </p>
             ) : (
               <span />
@@ -421,8 +430,8 @@ function SliceCard({
                 className={cn(ADMIN_TEXT, 'text-brand hover:underline')}
               >
                 {expanded
-                  ? 'Свернуть'
-                  : `Показать ещё ${hidden} ${plural(hidden, 'строку', 'строки', 'строк')}`}
+                  ? t('common.collapse')
+              : t('overview.showMoreRows', { count: hidden })}
               </button>
             )}
           </div>
@@ -436,14 +445,20 @@ type SliceBucket = Bucket & { hint?: string };
 
 /** All three slices are already computed server-side; the screen used to show
  *  only the first, leaving two ready breakdowns unused in the response. */
-function buildSlice(stats: AdminFeedbackStatsResponse, slice: SliceKey): SliceBucket[] {
+function buildSlice(
+  stats: AdminFeedbackStatsResponse,
+  slice: SliceKey,
+  t: (key: string) => string,
+): SliceBucket[] {
   if (slice === 'age') {
     return toBuckets(stats.by_age_group, ageLabel)
-      .map((bucket) => ({ ...bucket, hint: AGE_RANGE_HINT[bucket.key as AgeGroup] }))
+      .map((bucket) => ({ ...bucket, hint: t(AGE_RANGE_HINT[bucket.key as AgeGroup]) }))
       .sort((a, b) => AGE_ORDER.indexOf(a.key as AgeGroup) - AGE_ORDER.indexOf(b.key as AgeGroup));
   }
   if (slice === 'scenario') {
-    return toBuckets(stats.by_scenario, scenarioLabel).sort((a, b) => a.key.localeCompare(b.key));
+    return toBuckets(stats.by_scenario, (key) => t(scenarioLabel(key))).sort((a, b) =>
+      a.key.localeCompare(b.key),
+    );
   }
   return toBuckets(stats.by_top_direction).sort(
     (a, b) => b.count - a.count || a.label.localeCompare(b.label, 'ru'),

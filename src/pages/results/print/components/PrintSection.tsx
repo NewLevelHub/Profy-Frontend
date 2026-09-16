@@ -31,7 +31,7 @@ export function PrintSection({ kicker, title, children, className }: PrintSectio
     <section className={cn('space-y-2', className)} aria-label={title ?? kicker}>
       <p className={cn(typeClass.monoLabel, 'text-muted')}>{kicker}</p>
       {title && (
-        <p className="text-body-md font-semibold text-[color:var(--midnight)] leading-snug">
+        <p className="text-body-md font-semibold text-[color:var(--text-heading)] leading-snug">
           {title}
         </p>
       )}

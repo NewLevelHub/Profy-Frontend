@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, RotateCw, SearchX } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -18,15 +19,16 @@ import { ADMIN_BUTTON, ADMIN_CELL, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/s
  * load makes a dense table feel broken, so the placeholder holds the space.
  */
 export function AdminTableSkeleton({ rows = 6, columns = 4 }: { rows?: number; columns?: number }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="divide-y divide-[var(--border)]" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Загрузка</span>
+      <span className="sr-only">{t('states.loading')}</span>
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div key={rowIndex} className={cn(ADMIN_CELL, 'flex items-center gap-4')}>
           {Array.from({ length: columns }).map((__, colIndex) => (
             <Skeleton
               key={colIndex}
-              className="h-3.5 rounded-[2px]"
+              className="h-3.5 rounded-[8px]"
               style={{ flex: colIndex === 0 ? 3 : 1, opacity: 1 - rowIndex * 0.1 }}
             />
           ))}
@@ -37,11 +39,12 @@ export function AdminTableSkeleton({ rows = 6, columns = 4 }: { rows?: number; c
 }
 
 /** Centered block for detail screens, which have no table shape to mimic. */
-export function AdminLoading({ label = 'Загрузка' }: { label?: string }) {
+export function AdminLoading({ label }: { label?: string }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="py-16 flex flex-col items-center gap-3" aria-busy="true" aria-live="polite">
       <span className="w-6 h-6 rounded-full border-2 border-brand border-t-transparent animate-spin" />
-      <span className={MONO_MUTE}>{label}</span>
+      <span className={MONO_MUTE}>{label ?? t('states.loading')}</span>
     </div>
   );
 }
@@ -76,10 +79,11 @@ interface AdminErrorProps {
  * message forces a full page reload to recover.
  */
 export function AdminError({ message, onRetry }: AdminErrorProps) {
+  const { t } = useTranslation('admin');
   return (
     <div
       role="alert"
-      className="flex items-start gap-3 p-3 rounded-[3px] border border-danger bg-danger-subtle"
+      className="flex items-start gap-3 p-3 rounded-[14px] border border-danger bg-danger-subtle"
     >
       <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
@@ -88,7 +92,7 @@ export function AdminError({ message, onRetry }: AdminErrorProps) {
       {onRetry && (
         <button type="button" onClick={onRetry} className={cn(ADMIN_BUTTON, MONO_LABEL, 'flex-shrink-0')}>
           <RotateCw size={12} />
-          Повторить
+          {t('states.retry')}
         </button>
       )}
     </div>

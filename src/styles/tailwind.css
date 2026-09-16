@@ -6,13 +6,15 @@
 
 @theme {
   /* ── Font roles (Duolingo-style: one family per job) ───────────────── */
-  --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  /* Bricolage Grotesque has no Cyrillic glyphs (latin/latin-ext/vietnamese
-     only) — Georgia as a fallback made every Cyrillic heading silently
-     render as serif instead of sans. Fall back through the same sans chain
-     as --font-sans so Cyrillic headings stay sans, just not branded. */
-  --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Onest — переменный гротеск с родной кириллицей. Заменил Instrument Sans,
+     у которого кириллических начертаний нет вовсе: до этого весь русский
+     интерфейс рисовал системный шрифт устройства, а фирменная типографика
+     существовала только на латинице. Метрики близки, поэтому замена не
+     переверстала существующие экраны. */
+  --font-sans: 'Onest', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-body: 'Onest', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Дисплей = Onest. Вес/трекинг, не вторая гарнитура. */
+  --font-display: 'Onest', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --font-weight-book: 450;
@@ -20,8 +22,8 @@
   /* Machine-label tracking (ids, dates, statuses, kickers) */
   --tracking-label: 0.08em;
 
-  /* Display scale — Bricolage Grotesque, max 1–2 uses per screen */
-  --text-display-lg: 2.5rem; /* 40px */
+  /* Display scale — Onest, max 1–2 uses per screen */
+  --text-display-lg: 2.25rem; /* 36px — мягче прежних 38–40 на жирном display-face */
   --text-display-lg--line-height: 1.15;
   --text-display-lg--letter-spacing: -0.02em;
 
@@ -33,7 +35,7 @@
   --text-display-sm--line-height: 1.25;
   --text-display-sm--letter-spacing: -0.01em;
 
-  /* Body scale — Instrument Sans, default for all human-authored copy */
+  /* Body scale — Onest, default for all human-authored copy */
   --text-body-lg: 1.1875rem; /* 19px — assessment question size */
   --text-body-lg--line-height: 1.62;
 

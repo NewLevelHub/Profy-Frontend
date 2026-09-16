@@ -1,4 +1,10 @@
+import type { Locale } from '@/shared/store/locale';
+
 // ─── Auth ──────────────────────────────────────────────────────────────────────
+
+/** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
+ *  this (`is_admin === (role === 'admin')`) and kept only for back-compat. */
+export type UserRole = 'student' | 'admin' | 'psychologist';
 
 export interface User {
   id: string;
@@ -6,7 +12,12 @@ export interface User {
   name?: string;
   is_active?: boolean;
   is_verified?: boolean;
+  /** Prefer this over `is_admin` when branching by staff vs student. */
+  role?: UserRole;
   is_admin?: boolean;
+  /** UI locale from the backend (`users.locale`). "kk" is stored but not
+   *  runtime-honored until KZ-603. */
+  locale?: 'ru' | 'kk';
 }
 
 export interface TokenResponse {
@@ -559,6 +570,9 @@ export interface AdmissionScoreItem {
 export interface UniversityBrief {
   id: string;
   name: string;
+  // "kk" when a Kazakh official name is served (Kazakhstan universities,
+  // KZ-206 follow-up), "ru" otherwise. Currently only KZ universities have it.
+  name_locale: string;
   country: string;
   city: string;
   website: string | null;
@@ -569,7 +583,47 @@ export interface UniversityBrief {
   uniranks_kz_rank: number | null;
   uniranks_world_rank: number | null;
   description: string | null;
+  // KZ-501: which language `description` is actually served in ("kk" when the
+  // override exists, "ru" otherwise). Kept for completeness; not rendered.
+  description_locale: string;
   image_url: string | null;
+  /** Whether the signed-in user starred this university (PRO-265). Always
+   *  false for an anonymous request — the backend fills it per-caller. */
+  is_favorite: boolean;
+}
+
+export interface UniversityListItem extends UniversityBrief {
+  programs_count: number;
+}
+
+export interface UniversityListResponse {
+  items: UniversityListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UniversityCountry {
+  country: string;
+  count: number;
+}
+
+export interface UniversityDetail extends UniversityBrief {
+  contacts: Record<string, string>;
+  facilities: Record<string, unknown>;
+  source_url: string | null;
+  programs: ProgramBrief[];
+}
+
+export interface UniversityListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  country?: string;
+  city?: string;
+  only_favorites?: boolean;
+  sort?: 'ranking' | 'name' | 'kz_rank';
+  order?: 'asc' | 'desc';
 }
 
 export interface ProgramGrant {
@@ -616,16 +670,25 @@ export interface UniversityRequirement {
 export interface ProgramBrief {
   id: string;
   name: string;
+  profession_slugs: string[];
+  // "kk" when a Kazakh program-name (направление) override is served
+  // (Kazakhstan universities), "ru" otherwise.
+  name_locale: string;
   direction_slug: string;
   language: string;
   cost_per_year: number | null;
   cost_label: string | null;
   description: string | null;
+  description_locale: string;
   university: UniversityBrief;
+  cost_currency: string | null;
+  cost_per_year_min: number | null;
+  cost_per_year_max: number | null;
 }
 
 export interface ProgramDetail extends ProgramBrief {
   who_its_for: string | null;
+  who_its_for_locale: string;
   career_options: unknown[];
   requirements: Record<string, unknown>;
   deadlines: Record<string, unknown>;
@@ -641,6 +704,7 @@ export interface AdminUserListItem {
   email: string;
   is_verified: boolean;
   is_active: boolean;
+  role: UserRole;
   is_admin: boolean;
   created_at: string;
   /** Last time the user was actually seen — refreshed by any authenticated
@@ -713,11 +777,25 @@ export interface AdminUserDetail {
   email: string;
   is_verified: boolean;
   is_active: boolean;
+  role: UserRole;
   is_admin: boolean;
   created_at: string;
   profile: ProfileResponse | null;
   artifacts: ArtifactItem[];
   assessments: AdminAssessmentSummary[];
+}
+
+/** `role: 'student'` is rejected by the endpoint (422) — self-registration
+ *  creates students, this only creates staff accounts. */
+export type AdminStaffRole = Exclude<UserRole, 'student'>;
+
+export interface AdminUserCreateRequest {
+  email: string;
+  password: string;
+  role: AdminStaffRole;
+  /** Defaults to `true` server-side — no verification email is sent, unlike
+   *  self-registration. */
+  is_verified?: boolean;
 }
 
 export interface AdminResponseItem {
@@ -901,7 +979,7 @@ export interface AdminUniversityDetail {
   id: string;
   name: string;
   /** Read-only — not part of `AdminUniversityUpdateRequest`. */
-  slug: string;
+  slug: string | null;
   short_name: string | null;
   aliases: string[];
   location: string | null;
@@ -958,16 +1036,54 @@ export interface AdminProgramDetail {
 
 // ─── Admin roles ────────────────────────────────────────────────────────────────
 //
-// NOTE (backend gap): the API has no admin role concept — `User.is_admin` /
-// `AdminUserListItem.is_admin` / `AdminUserDetail.is_admin` are plain booleans,
-// with no `role` field anywhere in the response shape.
-//
-// A frontend-only `AdminRole` used to exist here, deriving "Оператор" from
-// `is_admin === false`. It was removed in PRO-242: `RequireAdmin` only lets
-// `is_admin` users into `/admin/*`, so the operator state was unreachable and
-// the role badge always read "Администратор". Rendering a permission tier the
-// server does not enforce is UI theatre — see
-// docs/admin-backend-requests-pro-242.md §9 for what a real role would need.
+// `UserRole` (auth section, `pro-281`) is the source of truth. `/admin/*` still
+// gates on `is_admin`; `/psychologist/*` gates on `role === 'psychologist'`.
+
+// ─── Psychologist cabinet ───────────────────────────────────────────────────────
+
+export interface PsychologistStudentListItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age_group: AgeGroup | null;
+  assigned_at: string;
+}
+
+export interface PsychologistAssessmentSummary {
+  id: string;
+  goal: AssessmentGoal;
+  status: AssessmentStatus;
+  answered_count: number;
+  total_questions: number;
+  created_at: string;
+  completed_at: string | null;
+  has_result: boolean;
+  has_roadmap: boolean;
+}
+
+/** Separate from `AdminUserDetail` — no `role` / `is_admin` in the payload. */
+export interface PsychologistStudentDetail {
+  id: string;
+  email: string;
+  is_verified: boolean;
+  is_active: boolean;
+  created_at: string;
+  profile: ProfileResponse | null;
+  artifacts: ArtifactItem[];
+  assessments: PsychologistAssessmentSummary[];
+}
+
+export interface PsychologistNote {
+  id: string;
+  psychologist_id: string;
+  student_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface PsychologistNoteWrite {
+  content: string;
+}
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
@@ -1043,6 +1159,8 @@ export type QuestionKeyed = 'plus' | 'minus';
 export interface AdminQuestionListItem {
   id: string;
   instrument: Instrument;
+  /** Resolved to `ru` by the backend — the admin panel itself stays ru-only
+   *  (i18n-contract §2); edit both languages from the detail screen. */
   text: string;
   order: number;
   age_tier: AgeGroup;
@@ -1067,25 +1185,34 @@ export interface AdminQuestionDetail {
   mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
-  text: string;
-  short_text: string | null;
+  /** One row per question now — both languages live on this one row as a
+   *  `{"ru": ..., "kk": ...}` map. A missing key means untranslated, not "". */
+  text: Partial<Record<Locale, string>>;
+  short_text: Partial<Record<Locale, string>> | null;
   icon: string | null;
   /** Read-only — structural, not part of `AdminQuestionUpdateRequest`. */
   order: number;
   age_tier: AgeGroup;
-  /** Field name → overridden value. Presence of a key both locks the field
-   *  and protects the whole row from bank-reorg deletion (see the content
-   *  contract's §3 — unlike university's `admin_locked_fields: string[]`,
-   *  this dict is self-contained and IS the edited value). */
+  /** Field name → overridden value; for a localized field (`text`/
+   *  `short_text`) the value is itself a `{locale: value}` map — only the
+   *  edited locale's key is present, so overriding kk never locks ru.
+   *  Presence of a key both locks the field and protects the whole row from
+   *  bank-reorg deletion (see the content contract's §3 — unlike university's
+   *  `admin_locked_fields: string[]`, this dict is self-contained and IS the
+   *  edited value). */
   overrides: AdminOverrides;
 }
 
 export type AdminQuestionUpdateRequest = Partial<{
+  /** Required whenever `text`/`short_text` is present — which language is
+   *  being edited. Ignored for a patch that only touches structural fields. */
+  locale: Locale;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
   mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
+  /** The value for `locale` only — the other language's text is untouched. */
   text: string;
   age_tier: AgeGroup;
   short_text: string | null;
@@ -1125,13 +1252,14 @@ export interface AdminQuestionPairDetail {
    *  out of scope for this API. */
   question_a_id: string;
   question_b_id: string;
-  frame: string | null;
-  /** null = fall back to the linked Question's short_text/text on read.
-   *  The fallback the null resolves to is inlined below as
-   *  `question_a`/`question_b`, so the form can show it without a second
-   *  request per option. */
-  option_a_text: string | null;
-  option_b_text: string | null;
+  /** One row per pair now — see `AdminQuestionDetail.text`. A missing key
+   *  (or a `null` map) means "no override for this language" — falls back to
+   *  the linked Question's short_text/text on read. The fallback is also
+   *  inlined below as `question_a`/`question_b`, so the form can show it
+   *  without a second request per option. */
+  frame: Partial<Record<Locale, string>> | null;
+  option_a_text: Partial<Record<Locale, string>> | null;
+  option_b_text: Partial<Record<Locale, string>> | null;
   option_a_icon: string | null;
   option_b_icon: string | null;
   question_a: AdminLinkedQuestion | null;
@@ -1149,6 +1277,8 @@ export interface AdminLinkedQuestion {
 }
 
 export type AdminQuestionPairUpdateRequest = Partial<{
+  /** Required whenever `frame`/`option_a_text`/`option_b_text` is present. */
+  locale: Locale;
   frame: string | null;
   option_a_text: string | null;
   option_b_text: string | null;
@@ -1161,6 +1291,7 @@ export interface AdminMotivationStatementListItem {
   triplet_index: number;
   order: number;
   category: MotivationCategory;
+  /** Resolved to `ru` by the backend — see `AdminQuestionListItem.text`. */
   text: string;
   has_overrides: boolean;
 }
@@ -1177,13 +1308,15 @@ export interface AdminMotivationStatementDetail {
   triplet_index: number;
   order: number;
   category: MotivationCategory;
-  text: string;
-  /** null = the senior `text` is reused for junior too. */
-  text_junior: string | null;
+  text: Partial<Record<Locale, string>>;
+  /** null = the senior `text` is reused for junior too, in every language. */
+  text_junior: Partial<Record<Locale, string>> | null;
   overrides: AdminOverrides;
 }
 
 export type AdminMotivationStatementUpdateRequest = Partial<{
+  /** Required whenever `text`/`text_junior` is present. */
+  locale: Locale;
   category: MotivationCategory;
   text: string;
   text_junior: string | null;
@@ -1216,12 +1349,14 @@ export interface AdminMotivationPairDetail {
    *  pole and `text_b` its negative pole (not two different categories). */
   category_a: MotivationCategory;
   category_b: MotivationCategory;
-  text_a: string;
-  text_b: string;
+  text_a: Partial<Record<Locale, string>>;
+  text_b: Partial<Record<Locale, string>>;
   overrides: AdminOverrides;
 }
 
 export type AdminMotivationPairUpdateRequest = Partial<{
+  /** Required whenever `text_a`/`text_b` is present. */
+  locale: Locale;
   category_a: MotivationCategory;
   category_b: MotivationCategory;
   text_a: string;
@@ -1230,6 +1365,7 @@ export type AdminMotivationPairUpdateRequest = Partial<{
 
 export interface AdminDirectionListItem {
   id: string;
+  /** Resolved to `ru` by the backend — see `AdminQuestionListItem.text`. */
   name: string;
   slug: string;
   holland_code: string;
@@ -1262,21 +1398,21 @@ export interface AdminDirectionProgram {
 
 export interface AdminDirectionDetail {
   id: string;
-  name: string;
-  /** Read-only — generated once from `name` by the seed script, does not
+  name: Partial<Record<Locale, string>>;
+  /** Read-only — generated once from `name.ru` by the seed script, does not
    *  re-derive if `name` is edited afterward (expected drift, not a bug). */
   slug: string;
   holland_code: string;
-  description: string;
+  description: Partial<Record<Locale, string>>;
   /** Empty on **all 92** directions as of 2026-09 — measured, not estimated.
    *  Every other catalog field (description, skills, subjects, first steps) is
    *  filled everywhere. `Direction.professions` feeds the student's report and
    *  the LLM context for the direction inquiry and roadmap, so all three get an
    *  empty list today — see docs/admin-backend-requests-pro-242.md §13. */
-  professions: string[];
-  skills_needed: string[];
-  subjects_to_develop: string[];
-  first_steps: string[];
+  professions: Partial<Record<Locale, string[]>>;
+  skills_needed: Partial<Record<Locale, string[]>>;
+  subjects_to_develop: Partial<Record<Locale, string[]>>;
+  first_steps: Partial<Record<Locale, string[]>>;
   /** Программы вузов, привязанные к направлению через program_directions.
    *  Именно эта связь решает, попадёт ли направление в подбор ученику, а из
    *  админки её раньше не было видно вообще. */
@@ -1285,6 +1421,10 @@ export interface AdminDirectionDetail {
 }
 
 export type AdminDirectionUpdateRequest = Partial<{
+  /** Required whenever `name`/`description`/`professions`/`skills_needed`/
+   *  `subjects_to_develop`/`first_steps` is present. `holland_code` is the
+   *  only structural (non-localized) field here — needs no `locale`. */
+  locale: Locale;
   name: string;
   holland_code: string;
   description: string;

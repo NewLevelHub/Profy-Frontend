@@ -1,8 +1,10 @@
 import { Fragment, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { Heading } from '@/shared/ui/typography/Heading';
 
 export interface Crumb {
   label: string;
@@ -29,10 +31,11 @@ interface AdminPageHeaderProps {
  * bookmark or a shared link.
  */
 export function AdminPageHeader({ crumbs, title, meta, actions }: AdminPageHeaderProps) {
+  const { t } = useTranslation('admin');
   return (
     <div className="flex items-start justify-between gap-4 flex-wrap">
       <div className="min-w-0">
-        <nav aria-label="Хлебные крошки" className="flex items-center gap-1 flex-wrap mb-1.5">
+        <nav aria-label={t('breadcrumbs.aria')} className="flex items-center gap-1 flex-wrap mb-1.5">
           {crumbs.map((crumb, index) => (
             <Fragment key={`${crumb.label}-${index}`}>
               {index > 0 && <ChevronRight size={11} className="text-muted flex-shrink-0" aria-hidden="true" />}
@@ -52,7 +55,9 @@ export function AdminPageHeader({ crumbs, title, meta, actions }: AdminPageHeade
           ))}
         </nav>
 
-        <h1 className="font-display text-display-sm font-semibold text-primary text-balance m-0">{title}</h1>
+        <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance">
+          {title}
+        </Heading>
         {meta && <div className="mt-1.5">{meta}</div>}
       </div>
 

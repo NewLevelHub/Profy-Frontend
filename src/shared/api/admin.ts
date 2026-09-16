@@ -26,6 +26,7 @@ import type {
   AdminUniversityDetail,
   AdminUniversityListResponse,
   AdminUniversityUpdateRequest,
+  AdminUserCreateRequest,
   AdminUserDetail,
   AdminUserListResponse,
   AdminUserStats,
@@ -33,6 +34,7 @@ import type {
   AssessmentGoal,
   AssessmentStatus,
   Instrument,
+  UserRole,
 } from '@/shared/types';
 
 interface AdminUserFilterParams {
@@ -43,6 +45,10 @@ interface AdminUserFilterParams {
   /** Only users not seen for at least this many days. Registration counts as
    *  activity, so a fresh account is never "quiet". */
   inactive_days?: number;
+  /** Defaults to `student` server-side when omitted — the list historically
+   *  only showed students, so staff accounts created via `createUser` stay
+   *  out of it unless this is passed explicitly. */
+  role?: UserRole;
 }
 
 /** Filters shared by GET /admin/feedback and GET /admin/feedback/stats — the
@@ -92,6 +98,12 @@ export const adminApi = {
 
   getUser: (userId: string) =>
     apiClient.get<AdminUserDetail>(API.admin.userDetail(userId)).then((r) => r.data),
+
+  /** Creates an `admin`/`psychologist` account — self-registration never
+   *  produces staff, so this is the only way to create one. `role: 'student'`
+   *  is rejected (422) by design, see `AdminUserCreateRequest`. */
+  createUser: (body: AdminUserCreateRequest) =>
+    apiClient.post<AdminUserDetail>(API.admin.users, body).then((r) => r.data),
 
   getAssessment: (assessmentId: string) =>
     apiClient

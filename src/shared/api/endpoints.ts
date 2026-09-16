@@ -52,6 +52,10 @@ export const API = {
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
+    list: '/universities',
+    countries: '/universities/countries',
+    detail: (id: string) => `/universities/${id}`,
+    favorite: (id: string) => `/universities/${id}/favorite`,
   },
   inquiry: {
     questions: (assessmentId: string, slug: string) =>
@@ -97,5 +101,11 @@ export const API = {
     programLocks: (id: string) => `/admin/programs/${id}/locks`,
     programLockField: (id: string, field: string) =>
       `/admin/programs/${id}/locks/${encodeURIComponent(field)}`,
+  },
+  psychologist: {
+    students: '/psychologist/students',
+    studentDetail: (id: string) => `/psychologist/students/${id}`,
+    studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
+    noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
   },
 } as const;

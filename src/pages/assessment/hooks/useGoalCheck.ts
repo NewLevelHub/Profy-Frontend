@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -26,7 +27,7 @@ function buildRiasecSuggestions(careers: StudentCareer[]): GoalSuggestion[] {
     }));
 }
 
-function buildInterestMapSuggestions(items: InterestMapItem[]): GoalSuggestion[] {
+function buildInterestMapSuggestions(items: InterestMapItem[], strongLabel: string): GoalSuggestion[] {
   // Prefer clearly-expressed interests; only reach into medium-level ones
   // if there aren't at least 2 high ones — still real diagnostic data,
   // just a lower confidence tier, never a fabricated default.
@@ -36,7 +37,7 @@ function buildInterestMapSuggestions(items: InterestMapItem[]): GoalSuggestion[]
     key: i.code,
     icon: '🧭',
     title: i.sphere,
-    subtitle: 'Ярко проявилось в твоих ответах',
+    subtitle: strongLabel,
   }));
 }
 
@@ -54,14 +55,15 @@ function buildStrengthSuggestions(cards: StrengthCard[]): GoalSuggestion[] {
 // describe the student themself (strengths, then interest spheres as a
 // fallback), never on `careers`/job titles — those would contradict a goal
 // that's about self-understanding, not career matching.
-function buildSelfInsightSuggestions(report: ResultResponse): GoalSuggestion[] {
+function buildSelfInsightSuggestions(report: ResultResponse, strongLabel: string): GoalSuggestion[] {
   if (report.strength_cards.length >= 2) {
     return buildStrengthSuggestions(report.strength_cards);
   }
-  return buildInterestMapSuggestions(report.interest_map);
+  return buildInterestMapSuggestions(report.interest_map, strongLabel);
 }
 
 export function useGoalCheck() {
+  const { t } = useTranslation('assessment');
   const navigate = useNavigate();
   const report = useResultStore(s => s.report);
   const goal = useAssessmentStore(s => s.goal);
@@ -79,8 +81,8 @@ export function useGoalCheck() {
     if (showsCareers && report.interest_instrument === 'riasec') {
       return buildRiasecSuggestions(report.careers);
     }
-    return buildSelfInsightSuggestions(report);
-  }, [report, showsCareers]);
+    return buildSelfInsightSuggestions(report, t('goalCheck.strongInAnswers'));
+  }, [report, showsCareers, t]);
 
   function handleContinue() {
     navigate('/results', { replace: true });

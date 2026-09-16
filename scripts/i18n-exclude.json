@@ -1,0 +1,6 @@
+{
+  "_comment": "Single source of truth for paths deliberately NOT localized. Consumed by the i18n CI guards (KZ-602) and any rg/pseudo-locale wrapper — do not hardcode these globs anywhere else. Everything here stays ru-only: no t()/<Trans>, Cyrillic string literals are expected. /admin/* used to live here under KZ-210; that decision was reversed on review and the panel is now localized like any other area, so the guard checks it.",
+  "globs": [],
+  "files": [],
+  "comments": {}
+}

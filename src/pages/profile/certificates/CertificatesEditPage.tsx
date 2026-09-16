@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Heading, Button, Input, Mascot } from '@/shared/ui';
 import { useCertificatesEdit } from './hooks/useCertificatesEdit';
 import {
@@ -13,6 +14,7 @@ import {
 const MASCOT_EDIT_SIZE = 64;
 
 export default function CertificatesEditPage() {
+  const { t } = useTranslation('profile');
   const {
     scores, setScore,
     errors,
@@ -26,8 +28,8 @@ export default function CertificatesEditPage() {
         <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
           <div>
-            <h1 className="text-h1 font-black text-primary tracking-tight mb-1">Баллы за экзамены</h1>
-            <p className="text-body text-secondary">Баллы IELTS, ЕНТ, SAT и TOEFL — если уже сдавал</p>
+            <h1 className="text-h1 font-black text-primary tracking-tight mb-1">{t('edit.title')}</h1>
+            <p className="text-body text-secondary">{t('edit.subtitle')}</p>
           </div>
 
           <div
@@ -36,9 +38,9 @@ export default function CertificatesEditPage() {
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
-                <Heading level="display-md" as="h2">Языковые и вступительные баллы</Heading>
+                <Heading level="display-md" as="h2">{t('edit.scoresHeading')}</Heading>
                 <p className="text-body-md" style={{ color: 'var(--mute)' }}>
-                  Заполни то, что уже сдавал — остальное можно оставить пустым
+                  {t('edit.scoresHint')}
                 </p>
               </div>
               <Mascot state="welcome" size={MASCOT_EDIT_SIZE} className="shrink-0" />
@@ -53,12 +55,12 @@ export default function CertificatesEditPage() {
                 return (
                   <Input
                     key={type}
-                    label={CERTIFICATE_LABELS[type]}
+                    label={t(CERTIFICATE_LABELS[type])}
                     type="number"
                     inputMode="decimal"
                     value={scores[type]}
                     onChange={e => setScore(type, e.target.value)}
-                    placeholder={`от ${range.min} до ${range.max}`}
+                    placeholder={t('edit.rangePlaceholder', { min: range.min, max: range.max })}
                     min={range.min}
                     max={range.max}
                     step={range.step}
@@ -69,7 +71,7 @@ export default function CertificatesEditPage() {
             </div>
 
             {saveError && (
-              <p className="text-xs text-danger text-center">Не удалось сохранить. Попробуй ещё раз.</p>
+              <p className="text-xs text-danger text-center">{t('edit.saveError')}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-default">
@@ -79,10 +81,10 @@ export default function CertificatesEditPage() {
                 className="h-12 rounded-pill font-extrabold shadow-button"
                 onClick={handleSave}
               >
-                Сохранить
+                {t('common:save')}
               </Button>
               <Button variant="ghost" size="lg" className="h-12 rounded-pill" onClick={handleCancel}>
-                Отмена
+                {t('common:cancel')}
               </Button>
             </div>
           </div>

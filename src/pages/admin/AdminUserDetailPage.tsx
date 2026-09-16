@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { ChevronDown, Download, FileText } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -17,6 +18,7 @@ import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT, MONO_LABEL } from '@/shared/ui/admin/density';
 import { DiagnosticSummaryBlock } from './components/DiagnosticSummaryBlock';
 import { AssessmentPrintReport } from './components/AssessmentPrintReport';
+import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 import type {
   AdminAssessmentDetail,
   AgeGroup,
@@ -28,53 +30,53 @@ import type {
 } from '@/shared/types';
 
 const PERSONALITY_TRAIT_LABELS: Record<PersonalityTrait, string> = {
-  openness: 'Открытость опыту',
-  conscientiousness: 'Добросовестность',
-  extraversion: 'Экстраверсия',
-  agreeableness: 'Доброжелательность',
-  emotional_stability: 'Эмоциональная устойчивость',
+  openness: 'admin:trait.openness',
+  conscientiousness: 'admin:trait.conscientiousness',
+  extraversion: 'admin:trait.extraversion',
+  agreeableness: 'admin:trait.agreeableness',
+  emotional_stability: 'admin:trait.emotional_stability',
 };
 
 const ARTIFACT_LABELS: Record<string, string> = {
-  hobby: 'Хобби',
-  club: 'Кружки',
-  sport: 'Спорт',
-  achievement: 'Достижения',
-  goal: 'Мечты',
-  book: 'Книги',
-  game: 'Игры',
-  topic: 'Темы',
-  profession: 'Профессии',
-  university: 'Вузы',
-  dream: 'Мечты',
+  hobby: 'admin:artifact.hobby',
+  club: 'admin:artifact.club',
+  sport: 'admin:artifact.sport',
+  achievement: 'admin:artifact.achievement',
+  goal: 'admin:artifact.goal',
+  book: 'admin:artifact.book',
+  game: 'admin:artifact.game',
+  topic: 'admin:artifact.topic',
+  profession: 'admin:artifact.profession',
+  university: 'admin:artifact.university',
+  dream: 'admin:artifact.dream',
 };
 
 const RIASEC_TYPE_LABELS: Record<string, string> = {
-  R: 'Реалистичный',
-  I: 'Исследовательский',
-  A: 'Артистичный',
-  S: 'Социальный',
-  E: 'Предприимчивый',
-  C: 'Конвенциональный',
+  R: 'admin:riasecShort.R',
+  I: 'admin:riasecShort.I',
+  A: 'admin:riasecShort.A',
+  S: 'admin:riasecShort.S',
+  E: 'admin:riasecShort.E',
+  C: 'admin:riasecShort.C',
 };
 
 const BIGFIVE_DOMAIN_LABELS: Record<string, string> = {
-  N: 'Эмоциональная чувствительность',
-  E: 'Экстраверсия',
-  O: 'Открытость опыту',
-  A: 'Доброжелательность',
-  C: 'Добросовестность',
+  N: 'admin:bigfive.N',
+  E: 'admin:bigfive.E',
+  O: 'admin:bigfive.O',
+  A: 'admin:bigfive.A',
+  C: 'admin:bigfive.C',
 };
 
 const MI_TYPE_LABELS: Record<string, string> = {
-  verbal: 'Слова и истории',
-  logical: 'Логика и счёт',
-  musical: 'Музыка и ритм',
-  visual: 'Картинки и образы',
-  bodily: 'Движение и руки',
-  interpersonal: 'Дружба и команда',
-  intrapersonal: 'Своё мнение',
-  naturalistic: 'Природа и животные',
+  verbal: 'admin:mi.verbal',
+  logical: 'admin:mi.logical',
+  musical: 'admin:mi.musical',
+  visual: 'admin:mi.visual',
+  bodily: 'admin:mi.bodily',
+  interpersonal: 'admin:mi.interpersonal',
+  intrapersonal: 'admin:mi.intrapersonal',
+  naturalistic: 'admin:mi.naturalistic',
 };
 
 /**
@@ -88,19 +90,20 @@ const MI_TYPE_LABELS: Record<string, string> = {
 const MAX_MATCH_SCORE = 14;
 
 /** RIASEC letter → its name, for the fields the API returns as bare letters. */
-function riasecName(letter: string): string {
-  return RIASEC_TYPE_LABELS[letter] ?? letter;
+function riasecName(letter: string, t: (key: string) => string): string {
+  const key = RIASEC_TYPE_LABELS[letter];
+  return key ? t(key) : letter;
 }
 
-function groupLabel(instrument: string, category: string): string {
-  if (instrument === 'big_five') return `Big Five: ${BIGFIVE_DOMAIN_LABELS[category] ?? category}`;
-  if (instrument === 'riasec') return `RIASEC: ${RIASEC_TYPE_LABELS[category] ?? category}`;
-  if (instrument === 'mi') return `MI: ${MI_TYPE_LABELS[category] ?? category}`;
-  return 'Прочее';
+function groupLabel(instrument: string, category: string, t: (key: string) => string): string {
+  if (instrument === 'big_five') return `Big Five: ${t(BIGFIVE_DOMAIN_LABELS[category]) ?? category}`;
+  if (instrument === 'riasec') return `RIASEC: ${riasecName(category, t)}`;
+  if (instrument === 'mi') return `MI: ${t(MI_TYPE_LABELS[category]) ?? category}`;
+  return t('users.other');
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleString('ru-RU', {
+  return formatIntlDate(value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -156,11 +159,17 @@ function ChipField({ label, items }: { label: string; items: string[] }) {
       {items.length === 0 ? (
         <span className={cn(ADMIN_TEXT, 'text-muted')}>—</span>
       ) : (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 min-w-0">
           {items.map((item) => (
             <span
               key={item}
-              className={cn(ADMIN_TEXT, 'px-1.5 py-0.5 rounded-[2px] bg-brand-subtle text-brand')}
+              className={cn(
+                ADMIN_TEXT,
+                'max-w-full px-1.5 py-0.5 rounded-[2px] bg-brand-subtle text-brand',
+                // Без пробелов (мусор в «Мечтах») иначе раздувает колонку сетки
+                // и уезжает за край карточки — break-word тут не спасает.
+                'break-all [overflow-wrap:anywhere]',
+              )}
             >
               {item}
             </span>
@@ -201,7 +210,7 @@ function Section({
   const [open, setOpen] = useState(Boolean(defaultOpen));
 
   return (
-    <div className="border border-default rounded-[3px] overflow-hidden bg-surface">
+    <div className="border border-default rounded-[14px] overflow-hidden bg-surface">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -223,8 +232,9 @@ function Section({
 }
 
 function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
+  const { t } = useTranslation('admin');
   if (!responses.length) {
-    return <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>Пользователь ещё не ответил на вопросы.</p>;
+    return <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>{t('users.noAnswers')}</p>;
   }
 
   const groups = new Map<string, AdminResponseItem[]>();
@@ -238,7 +248,7 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
       {[...groups.entries()].map(([key, items]) => (
         <div key={key}>
           <p className={cn(MONO_LABEL, 'text-muted mb-2')}>
-            {groupLabel(items[0].instrument, items[0].category)} · {items.length}
+            {groupLabel(items[0].instrument, items[0].category, t)} · {items.length}
           </p>
           <ul className="flex flex-col gap-1.5 m-0 p-0 list-none">
             {items.map((item, index) => (
@@ -263,8 +273,8 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
  *  (admin_service.get_assessment_detail). */
 const MISSING_STATEMENT = '?';
 
-function motivationCategoryLabel(category: string): string {
-  return MOTIVATION_CATEGORY_LABELS[category as MotivationCategory] ?? category;
+function motivationCategoryLabel(category: string, t: (key: string) => string): string {
+  return t(MOTIVATION_CATEGORY_LABELS[category as MotivationCategory]) ?? category;
 }
 
 /**
@@ -283,26 +293,27 @@ function motivationCategoryLabel(category: string): string {
  * без данных.
  */
 function MotivationResponsesSection({ responses }: { responses: AdminMotivationResponseItem[] }) {
+  const { t } = useTranslation('admin');
   if (!responses.length) {
-    return <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>Блок мотивации ещё не пройден.</p>;
+    return <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>{t('users.noMotivation')}</p>;
   }
 
   return (
     <ul className="flex flex-col gap-2 m-0 p-0 list-none">
       {responses.map((item) => (
         <li key={item.triplet_index} className="p-2.5 rounded-[2px] bg-page border border-default">
-          <p className={cn(ADMIN_META, 'mb-1.5')}>Тройка {item.triplet_index}</p>
+          <p className={cn(ADMIN_META, 'mb-1.5')}>{t('statements.triplet', { index: item.triplet_index })}</p>
           <ol className="flex flex-col gap-1 m-0 p-0 list-none">
             <RankedLine
               position={1}
-              rank="Важнее всего"
+              rank={t('users.rank.most')}
               text={item.picked_most_text}
               category={item.picked_most_category}
               tone="brand"
             />
             <RankedLine
               position={2}
-              rank="Осталось"
+              rank={t('users.rank.neutral')}
               hint="Ученик это утверждение не отмечал — оно третье по остаточному принципу, а не выбрано как среднее"
               text={item.not_picked_text}
               category={item.not_picked_category}
@@ -310,7 +321,7 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
             />
             <RankedLine
               position={3}
-              rank="Менее всего"
+              rank={t('users.rank.least')}
               text={item.picked_least_text}
               category={item.picked_least_category}
               tone="danger"
@@ -337,6 +348,7 @@ function RankedLine({
   category: string;
   tone: 'brand' | 'muted' | 'danger';
 }) {
+  const { t } = useTranslation('admin');
   return (
     <li className={cn(ADMIN_TEXT, 'flex items-baseline gap-2 m-0')} title={hint}>
       {/* Номер позиции: именно он делает из трёх строк ранжирование. */}
@@ -360,7 +372,7 @@ function RankedLine({
       ) : (
         <>
           <span className="text-primary min-w-0">{text}</span>
-          <span className={cn(ADMIN_META, 'flex-shrink-0')}>{motivationCategoryLabel(category)}</span>
+          <span className={cn(ADMIN_META, 'flex-shrink-0')}>{motivationCategoryLabel(category, t)}</span>
         </>
       )}
     </li>
@@ -417,6 +429,7 @@ function AssessmentExportButtons({
   userLabel: string;
   index: number;
 }) {
+  const { t } = useTranslation('admin');
   const [exporting, setExporting] = useState(false);
   const [failed, setFailed] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -443,20 +456,20 @@ function AssessmentExportButtons({
 
   return (
     <span className="flex items-center gap-2 flex-wrap">
-      {failed && <span className={cn(ADMIN_TEXT, 'text-danger')}>Не удалось выгрузить</span>}
+      {failed && <span className={cn(ADMIN_TEXT, 'text-danger')}>{t('users.exportFailed')}</span>}
       <Button
         variant="ghost"
         size="sm"
         muteSound
         onClick={handlePrint}
-        title="Откроется диалог печати — выберите «Сохранить как PDF»"
+        title={t('users.printHint')}
       >
         <FileText size={14} />
-        Скачать PDF
+        {t('users.downloadPdf')}
       </Button>
       <Button variant="ghost" size="sm" muteSound isLoading={exporting} onClick={handleExport}>
         <Download size={14} />
-        Скачать ZIP
+        {t('users.downloadZip')}
       </Button>
       {printing && <AssessmentPrintReport user={user} assessment={assessment} index={index} />}
     </span>
@@ -483,6 +496,7 @@ function ValueList({
   /** Ranks descending — for counts where "what came out on top" is the point. */
   sorted?: boolean;
 }) {
+  const { t } = useTranslation('admin');
   const entries = Object.entries(values);
   if (!entries.length) return null;
   const ordered = sorted ? [...entries].sort((a, b) => b[1] - a[1]) : entries;
@@ -496,7 +510,7 @@ function ValueList({
             key={key}
             className={cn(ADMIN_TEXT, 'flex items-baseline justify-between gap-2 px-2 py-1.5 rounded-[2px] bg-page border border-default')}
           >
-            <span className="text-muted min-w-0 truncate">{labels[key] ?? key}</span>
+            <span className="text-muted min-w-0 truncate">{labels[key] ? t(labels[key]) : key}</span>
             <span className="font-mono text-mono-sm text-primary tabular-nums">{value}</span>
           </div>
         ))}
@@ -514,6 +528,7 @@ function TextNoteList({
   notes: Record<string, string>;
   labels: Record<string, string>;
 }) {
+  const { t } = useTranslation('admin');
   const entries = Object.entries(notes).filter(([, text]) => text);
   if (!entries.length) return null;
   return (
@@ -522,7 +537,7 @@ function TextNoteList({
       <div className="flex flex-col gap-1.5">
         {entries.map(([key, text]) => (
           <div key={key} className="p-2.5 rounded-[2px] bg-page border border-default">
-            <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{labels[key] ?? key}</p>
+            <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{labels[key] ? t(labels[key]) : key}</p>
             <p className={cn(ADMIN_TEXT, 'text-secondary mt-1')}>{text}</p>
           </div>
         ))}
@@ -549,25 +564,26 @@ function CardList({ label, cards }: { label: string; cards: { title: string; des
 }
 
 function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDetail['analysis_result']> }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <p className={cn(ADMIN_TEXT, 'text-primary m-0 max-w-[70ch]')}>{analysis.summary}</p>
-        <span className={ADMIN_META}>версия отчёта {analysis.report_version}</span>
+        <span className={ADMIN_META}>{t('users.reportVersion', { version: analysis.report_version })}</span>
       </div>
 
       <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
         {/* `strengths`/`weaknesses` come back as bare RIASEC letters
             (["S","E","R"]) — three one-character chips that said nothing. */}
-        <ChipList label="Сильные типы" items={analysis.strengths.map(riasecName)} />
-        <ChipList label="Слабые типы" items={analysis.weaknesses.map(riasecName)} />
-        <ChipList label="План развития: усиливать" items={analysis.development_plan.reinforce} />
-        <ChipList label="План развития: компенсировать" items={analysis.development_plan.compensate} />
+        <ChipList label={t('users.strongTypes')} items={analysis.strengths.map((letter) => riasecName(letter, t))} />
+        <ChipList label={t('users.weakTypes')} items={analysis.weaknesses.map((letter) => riasecName(letter, t))} />
+        <ChipList label={t('users.planReinforce')} items={analysis.development_plan.reinforce} />
+        <ChipList label={t('users.planCompensate')} items={analysis.development_plan.compensate} />
       </div>
 
       {analysis.careers.length > 0 && (
         <div>
-          <p className={cn(MONO_LABEL, 'text-muted mb-2')}>Подобранные направления</p>
+          <p className={cn(MONO_LABEL, 'text-muted mb-2')}>{t('print.section.directions')}</p>
           <div className="grid gap-1.5 xl:grid-cols-2">
             {analysis.careers.map((career) => (
               <div
@@ -592,48 +608,48 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
       )}
 
       <ValueList
-        label="Стиль мышления"
+        label={t('print.section.thinking')}
         values={analysis.thinking_style as unknown as Record<string, number>}
         labels={{
-          creative_think: 'Творческое',
-          systematic: 'Системность',
-          strategic: 'Стратегичность',
-          practical: 'Практичность',
+          creative_think: 'admin:thinkingLong.creative_think',
+          systematic: 'admin:thinkingLong.systematic',
+          strategic: 'admin:thinkingLong.strategic',
+          practical: 'admin:thinkingLong.practical',
         }}
       />
-      <ChipList label="Личностные особенности" items={analysis.personality_highlights} />
+      <ChipList label={t('users.personalityHighlights')} items={analysis.personality_highlights} />
       <ValueList
-        label="Личностный профиль"
+        label={t('users.personalityProfile')}
         // Same five numbers as the Big Five bars in the summary above, under
         // trait names instead of letters (with N inverted into "эмоциональная
         // устойчивость"). Saying so beats letting an admin wonder which of two
         // near-identical tables is the real one.
-        hint="Те же баллы Big Five, что в сводке выше, но по названиям черт."
+        hint={t('users.personalityProfileHint')}
         values={analysis.personality_profile}
         labels={PERSONALITY_TRAIT_LABELS}
       />
       <TextNoteList
-        label="Заметки по личностным чертам"
+        label={t('users.personalityNotes')}
         notes={analysis.personality_notes}
         labels={PERSONALITY_TRAIT_LABELS}
       />
       <ChipList
-        label="Топ мотивации"
-        items={analysis.motivation_top.map((key) => MOTIVATION_CATEGORY_LABELS[key] ?? key)}
+        label={t('users.motivationTop')}
+        items={analysis.motivation_top.map((key) => t(MOTIVATION_CATEGORY_LABELS[key]) ?? key)}
       />
-      <ChipList label="Мотивация — формулировки для ученика" items={analysis.motivation_highlights} />
+      <ChipList label={t('users.motivationHighlights')} items={analysis.motivation_highlights} />
       <ValueList
-        label="Мотивация — баллы"
+        label={t('users.motivationScores')}
         // Ranked, not in API order: the question this table answers is which
         // motives came out on top, and the raw order buried the leader in the
         // middle of a nine-cell grid.
         sorted
-        hint="Сколько раз мотив выбран как важнейший в тройках."
+        hint={t('users.motivationScoresHint')}
         values={analysis.motivation}
         labels={MOTIVATION_CATEGORY_LABELS}
       />
-      <CardList label="Карточки сильных сторон" cards={analysis.strength_cards} />
-      <CardList label="Заметки о стиле мышления" cards={analysis.thinking_style_notes} />
+      <CardList label={t('users.strengthCards')} cards={analysis.strength_cards} />
+      <CardList label={t('users.thinkingNotes')} cards={analysis.thinking_style_notes} />
     </div>
   );
 }
@@ -649,6 +665,7 @@ function AssessmentPanel({
   userLabel: string;
   index: number;
 }) {
+  const { t } = useTranslation('admin');
   const incomplete = assessment.answered_count < assessment.total_questions;
 
   return (
@@ -656,9 +673,9 @@ function AssessmentPanel({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="min-w-0">
           <p className={cn(ADMIN_TEXT, 'text-secondary m-0')}>
-            Отвечено{' '}
+            {t('print.answered')}{' '}
             <span className={cn(ADMIN_NUM, 'text-primary')}>
-              {assessment.answered_count} из {assessment.total_questions}
+              {t('print.answeredOf', { count: assessment.answered_count, total: assessment.total_questions })}
             </span>
           </p>
           {/* A progress bar on a finished test is a bar that always reads
@@ -668,7 +685,7 @@ function AssessmentPanel({
               <Spine
                 value={(assessment.answered_count / assessment.total_questions) * 100}
                 thickness={0.85}
-                ariaLabel={`Отвечено ${assessment.answered_count} из ${assessment.total_questions} вопросов`}
+                ariaLabel={t('users.answeredAria', { count: assessment.answered_count, total: assessment.total_questions })}
               />
             </div>
           )}
@@ -684,16 +701,16 @@ function AssessmentPanel({
       <DiagnosticSummaryBlock assessment={assessment} />
 
       {assessment.analysis_result && (
-        <Section title="Результат анализа" defaultOpen>
+        <Section title={t('users.analysisResult')} defaultOpen>
           <AnalysisSection analysis={assessment.analysis_result} />
         </Section>
       )}
 
-      <Section title="Вопросы и ответы" count={assessment.responses.length}>
+      <Section title={t('users.questionsAnswers')} count={assessment.responses.length}>
         <ResponsesSection responses={assessment.responses} />
       </Section>
 
-      <Section title="Мотивация — тройки" count={assessment.motivation_responses.length}>
+      <Section title={t('users.motivationTriplets')} count={assessment.motivation_responses.length}>
         <MotivationResponsesSection responses={assessment.motivation_responses} />
       </Section>
 
@@ -729,21 +746,29 @@ function AssessmentPanel({
  * docs/admin-backend-requests-pro-242.md §10.
  */
 function AccountFlags({ user }: { user: AdminUserDetail }) {
+  const { t } = useTranslation('admin');
   return (
     <span className="flex items-center gap-1.5 flex-wrap">
-      {user.is_admin && (
-        <AdminBadge tone="brand" title="Имеет доступ в админку">
-          Админ
+      {/* `role` is the source of truth (pro-281); `is_admin` is its derived
+          boolean, kept in the API for back-compat but no longer read here. */}
+      {user.role === 'admin' && (
+        <AdminBadge tone="brand" title={t('users.adminHint')}>
+          {t('users.adminBadge')}
+        </AdminBadge>
+      )}
+      {user.role === 'psychologist' && (
+        <AdminBadge tone="accent" title={t('users.psychologistHint')}>
+          {t('users.psychologistBadge')}
         </AdminBadge>
       )}
       {!user.is_active && (
-        <AdminBadge tone="danger" dot title="Аккаунт отключён — вход невозможен">
-          Аккаунт отключён
+        <AdminBadge tone="danger" dot title={t('users.disabledHint')}>
+          {t('users.disabled')}
         </AdminBadge>
       )}
       {!user.is_verified && (
-        <AdminBadge tone="accent" dot title="Пользователь не подтвердил email">
-          Email не подтверждён
+        <AdminBadge tone="accent" dot title={t('users.emailUnverifiedHint')}>
+          {t('users.emailUnverified')}
         </AdminBadge>
       )}
     </span>
@@ -751,6 +776,7 @@ function AccountFlags({ user }: { user: AdminUserDetail }) {
 }
 
 export default function AdminUserDetailPage() {
+  const { t } = useTranslation('admin');
   const { userId } = useParams<{ userId: string }>();
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [openAssessmentId, setOpenAssessmentId] = useState<string | null>(null);
@@ -772,7 +798,7 @@ export default function AdminUserDetailPage() {
         const data = await adminApi.getUser(userId!);
         if (!cancelled) setUser(data);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить пользователя');
+        if (!cancelled) setError(t('users.loadOneError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -802,15 +828,15 @@ export default function AdminUserDetailPage() {
     try {
       setAssessment(await adminApi.getAssessment(assessmentId));
     } catch {
-      setAssessmentError('Не удалось загрузить тест');
+      setAssessmentError(t('users.loadAssessmentError'));
     } finally {
       setAssessmentLoading(false);
     }
   }
 
-  if (loading) return <AdminLoading label="Загрузка пользователя" />;
+  if (loading) return <AdminLoading label={t('users.loadingOne')} />;
   if (error || !user) {
-    return <AdminError message={error || 'Пользователь не найден'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={error || t('users.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
   const artifactsByType = user.artifacts.reduce<Record<string, string[]>>((acc, item) => {
@@ -823,7 +849,7 @@ export default function AdminUserDetailPage() {
       <AdminPageHeader
         crumbs={[
           // Returns to the list as it was left — same filters, same page.
-          { label: 'Пользователи', to: listReturnPath('/admin/users') },
+          { label: t('nav.users'), to: listReturnPath('/admin/users') },
           { label: user.profile?.name || user.email },
         ]}
         title={user.profile?.name || user.email}
@@ -834,15 +860,15 @@ export default function AdminUserDetailPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <span className={cn(ADMIN_NUM, 'text-muted')}>{user.email}</span>
             <span className={ADMIN_META}>·</span>
-            <span className={ADMIN_META}>зарегистрирован {formatDate(user.created_at)}</span>
+            <span className={ADMIN_META}>{t('users.registeredOn', { date: formatDate(user.created_at) })}</span>
             <AccountFlags user={user} />
           </div>
         }
       />
 
       <AdminCard
-        title="Профиль"
-        description={user.profile ? undefined : 'Пользователь не заполнил профиль.'}
+        title={t('print.section.profile')}
+        description={user.profile ? undefined : t('users.noProfile')}
       >
         {user.profile && (
           <>
@@ -850,10 +876,10 @@ export default function AdminUserDetailPage() {
                 next to a much taller profile card, so a third of the screen was
                 empty box stretched to match its neighbour. */}
             <div className="grid gap-x-6 gap-y-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
-              <Field label="Возраст" value={user.profile.age} />
-              <Field label="Класс" value={user.profile.grade} />
+              <Field label={t('common.col.age')} value={user.profile.age} />
+              <Field label={t('print.grade')} value={user.profile.grade} />
               <Field
-                label="Ступень"
+                label={t('users.tier')}
                 // Was printed raw from the DB — a lowercase latin "senior" in a
                 // column of Russian values.
                 value={
@@ -862,37 +888,37 @@ export default function AdminUserDetailPage() {
                     : null
                 }
               />
-              <Field label="Город" value={user.profile.city} />
-              <Field label="Страна" value={user.profile.country} />
-              <Field label="Язык" value={user.profile.language} />
+              <Field label={t('universities.col.city')} value={user.profile.city} />
+              <Field label={t('universities.col.country')} value={user.profile.country} />
+              <Field label={t('uni.languageCol')} value={user.profile.language} />
             </div>
 
             <div className="grid gap-x-6 gap-y-4 grid-cols-2 xl:grid-cols-4 pt-3.5 border-t border-default">
-              <ChipField label="Нравятся" items={profileSubjects(user.profile, 'liked')} />
-              <ChipField label="Не нравятся" items={profileSubjects(user.profile, 'disliked')} />
-              <ChipField label="Легко даются" items={profileSubjects(user.profile, 'easy')} />
-              <ChipField label="Сложные" items={profileSubjects(user.profile, 'hard')} />
+              <ChipField label={t('users.subjects.liked')} items={profileSubjects(user.profile, 'liked')} />
+              <ChipField label={t('users.subjects.disliked')} items={profileSubjects(user.profile, 'disliked')} />
+              <ChipField label={t('users.subjects.easy')} items={profileSubjects(user.profile, 'easy')} />
+              <ChipField label={t('users.subjects.hard')} items={profileSubjects(user.profile, 'hard')} />
             </div>
           </>
         )}
       </AdminCard>
 
       {Object.keys(artifactsByType).length > 0 && (
-        <AdminCard title="Артефакты" description="Что пользователь рассказал о себе на онбординге.">
+        <AdminCard title={t('users.artifacts')} description={t('users.artifactsDescription')}>
           <div className="grid gap-x-6 gap-y-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-4">
             {Object.entries(artifactsByType).map(([type, valuesList]) => (
-              <ChipList key={type} label={ARTIFACT_LABELS[type] ?? type} items={valuesList} />
+              <ChipList key={type} label={ARTIFACT_LABELS[type] ? t(ARTIFACT_LABELS[type]) : type} items={valuesList} />
             ))}
           </div>
         </AdminCard>
       )}
 
       <AdminCard
-        title="Тестирования"
+        title={t('users.assessments')}
         aside={<span className={ADMIN_META}>{user.assessments.length}</span>}
       >
         {user.assessments.length === 0 ? (
-          <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>Тесты не начинались.</p>
+          <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>{t('users.noAssessments')}</p>
         ) : (
           <ul className="flex flex-col gap-2 m-0 p-0 list-none">
             {user.assessments.map((item, index) => {
@@ -922,10 +948,10 @@ export default function AdminUserDetailPage() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {item.has_result ? (
-                        <AdminBadge tone="neutral">Есть результат</AdminBadge>
+                        <AdminBadge tone="neutral">{t('users.hasResult')}</AdminBadge>
                       ) : (
-                        <AdminBadge tone="quiet" title="Тест не дошёл до расчёта отчёта">
-                          Без результата
+                        <AdminBadge tone="quiet" title={t('users.noResultHint')}>
+                          {t('users.noResult')}
                         </AdminBadge>
                       )}
                       {item.has_roadmap && <AdminBadge tone="brand">Roadmap</AdminBadge>}
@@ -939,7 +965,7 @@ export default function AdminUserDetailPage() {
                   {isOpen && (
                     <div className="px-3 pb-3">
                       {assessmentLoading ? (
-                        <AdminLoading label="Загрузка теста" />
+                        <AdminLoading label={t('users.loadingAssessment')} />
                       ) : assessmentError ? (
                         <AdminError message={assessmentError} onRetry={() => toggleAssessment(item.id)} />
                       ) : assessment ? (

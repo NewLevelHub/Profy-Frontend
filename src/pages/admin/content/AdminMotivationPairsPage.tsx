@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
-import { pluralize } from '@/shared/lib/plural';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
@@ -23,6 +23,7 @@ const FILTER_KEYS = ['search', 'category'] as const;
 const SORTABLE_KEYS = ['pair_index', 'category_a'] as const;
 
 export default function AdminMotivationPairsPage() {
+  const { t } = useTranslation('admin');
   const { page, values, sort, setSort, setFilter, setPage, clearFilters, activeCount } =
     useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/motivation-pairs');
@@ -53,7 +54,7 @@ export default function AdminMotivationPairsPage() {
         setItems(data.items);
         setTotal(data.total);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить пары мотивации');
+        if (!cancelled) setError(t('motivationPairs.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -98,16 +99,16 @@ export default function AdminMotivationPairsPage() {
       // две строки с одинаковой подписью. «Пара #1 · Интерес к делу» и «Пара #2
       // · Интерес к делу» ничем не отличались; строку опознаёт её текст.
       key: 'text',
-      header: 'Мотив выражен',
+      header: t('motivationPairs.col.side'),
       mobile: 'title',
       headerTitle:
-        'Сторона A — формулировка, где мотив выражен. Противоположный полюс (сторона B) — в карточке пары.',
+        t('motivationPairs.col.sideHint'),
       // Текст приходит прямо в строке списка — раньше на каждую строку
       // страницы уходил отдельный запрос за карточкой пары.
       cell: (item) => (
         <Link
           to={`/admin/content/motivation-pairs/${item.id}`}
-          title={`Противоположный полюс: ${item.text_b}`}
+          title={t('motivationPairs.oppositePole', { text: item.text_b })}
           className={cn(ADMIN_TEXT, 'font-medium text-primary hover:text-brand hover:underline')}
         >
           {item.text_a}
@@ -116,14 +117,14 @@ export default function AdminMotivationPairsPage() {
     },
     {
       key: 'category',
-      header: 'Категория',
+      header: t('motivationPairs.col.category'),
       sortKey: 'category_a',
       width: '200px',
       mobile: 'subtitle',
-      headerTitle: 'Обе стороны пары — полюса одной категории',
+      headerTitle: t('motivationPairs.col.categoryHint'),
       cell: (item) => (
         <span className={cn(ADMIN_TEXT, 'text-secondary')}>
-          {MOTIVATION_CATEGORY_LABELS[item.category_a]}
+          {t(MOTIVATION_CATEGORY_LABELS[item.category_a])}
         </span>
       ),
     },
@@ -138,7 +139,7 @@ export default function AdminMotivationPairsPage() {
         item.category_a !== item.category_b ? (
           <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1 text-danger font-semibold whitespace-nowrap')}>
             <AlertTriangle size={12} />
-            Стороны из разных категорий
+            {t('motivationPairs.sidesMismatch')}
           </span>
         ) : null,
     },
@@ -155,8 +156,8 @@ export default function AdminMotivationPairsPage() {
   return (
     <>
       <AdminListHeader
-        title="Пары мотивации"
-        description="Формат Harter: ученик выбирает между двумя полюсами одной и той же категории, а не между разными категориями."
+        title={t('motivationPairs.title')}
+        description={t('motivationPairs.description')}
       />
 
       <AdminToolbar
@@ -172,7 +173,7 @@ export default function AdminMotivationPairsPage() {
             value: category,
             options: (Object.keys(MOTIVATION_CATEGORY_LABELS) as MotivationCategory[]).map((key) => ({
               value: key,
-              label: MOTIVATION_CATEGORY_LABELS[key],
+              label: t(MOTIVATION_CATEGORY_LABELS[key]),
             })),
           },
         ]}
@@ -186,25 +187,25 @@ export default function AdminMotivationPairsPage() {
       {mismatched > 0 && (
         <p className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger m-0')}>
           <AlertTriangle size={13} />
-          {pluralize(mismatched, 'пара', 'пары', 'пар')} со сторонами из разных категорий
+          {t('motivationPairs.mismatchedCount', { count: mismatched })}
         </p>
       )}
 
       {unbalanced.length > 0 && (
         <p className={cn(ADMIN_META, 'm-0')}>
-          На категорию должно приходиться по 2 пары — сейчас не так у:{' '}
+          {t('motivationPairs.unbalanced')}{' '}
           {unbalanced
             .map(
               ([category, count]) =>
-                `${MOTIVATION_CATEGORY_LABELS[category as keyof typeof MOTIVATION_CATEGORY_LABELS] ?? category} (${count})`,
+                `${t(MOTIVATION_CATEGORY_LABELS[category as keyof typeof MOTIVATION_CATEGORY_LABELS]) ?? category} (${count})`,
             )
             .join(', ')}
-          . Мотивы получат разный вес в подсчёте.
+          {t('motivationPairs.unbalancedTail')}
         </p>
       )}
 
       <AdminDataTable
-        label="Пары мотивации"
+        label={t('motivationPairs.title')}
         columns={columns}
         rows={items}
         rowKey={(item) => item.id}
@@ -212,10 +213,10 @@ export default function AdminMotivationPairsPage() {
         sort={sort}
         onSortChange={setSort}
         loading={loading}
-        emptyTitle="Пары не найдены"
+        emptyTitle={t('questionPairs.empty')}
       />
 
-      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['пара', 'пары', 'пар']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="pairs" />
     </>
   );
 }

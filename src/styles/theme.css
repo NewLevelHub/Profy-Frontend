@@ -2,23 +2,34 @@
 /* "Тропа" — Profy visual system v2. One visual language for ages 6–18: */
 /* fog is the canvas the whole product sits on, pine is structure/action, */
 /* dawn marks a finding/current step, lake is data, clay is reserved for errors. */
-:root {
+/* `.theme-day` — та же дневная калибровка, но включаемая на отдельной
+   поверхности. Нужна там, где тёмная тема не имеет смысла: лист печати
+   всегда белая бумага, и токены внутри него должны остаться дневными,
+   даже когда всё приложение вокруг ночное. */
+:root,
+.theme-day {
+  /* Нативные контролы, скроллбары и автозаполнение рисуются под тему. */
+  color-scheme: light;
+
   --font-size: 16px;
-  --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  /* Bricolage Grotesque ships latin/latin-ext/vietnamese only — no Cyrillic
-     glyphs (confirmed via Google Fonts metadata). Georgia used to be the
-     fallback, which meant every Cyrillic heading silently rendered as a
-     serif face instead of a sans one — a jarring mismatch against the rest
-     of the sans-serif UI. Same sans fallback chain as --font-sans instead,
-     so Cyrillic headings degrade to the OS sans, not a serif. */
-  --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Onest — переменный гротеск с родной кириллицей. Заменил Instrument Sans,
+     у которого кириллических начертаний нет вовсе: до этого весь русский
+     интерфейс рисовал системный шрифт устройства, а фирменная типографика
+     существовала только на латинице. Метрики близки, поэтому замена не
+     переверстала существующие экраны. */
+  --font-sans: 'Onest', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-body: 'Onest', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Дисплей = тот же Onest. Отдельный display-face (Unbounded, потом
+     Geologica) на кириллице давал плакатную жирность. Иерархия — через
+     размер, вес и трекинг, а не через вторую гарнитуру. */
+  --font-display: 'Onest', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   /* Raw palette */
   --midnight: #131C1B;
   --ink:      #26332F;
-  --mute:     #6B7671;
+  --mute:     #5E6A64;
   --fog:      #EDE9DF;
   --paper:    #F7F5EF;
   --line:     #D2CCBE;
@@ -35,10 +46,37 @@
   --lake-light: #5B93B4;
   /* Углублённый dawn — та же тёплая роль, но читается как текст на Fog
      (3.2:1 в крупном кегле), тогда как плоский --dawn даёт только 2.4:1. */
-  --dawn-deep:  #C06A1E;
+  --dawn-deep:  #B8631A;
+
+  /* Atmosphere — quiet depth, not a colour mesh. Soft opacity fades of
+     paper/pine only: enough air that the canvas isn't flat fog, without
+     the rainbow washes that read as "gradient UI". */
+  --sky:        #C5D8EC;
+  --sky-deep:   #8EB4D6;
+  --glow:       #F6D9A6;
+  --glow-hot:   #F0C070;
+  --iris:       #9B8BC4;
+  --iris-soft:  rgba(155, 139, 196, 0.16);
 
   /* Page background — Fog, the canvas the whole product sits on */
   --bg-page:        var(--fog);
+  /* Soft veil: lighter pool from above + whisper of pine at the edges.
+     Reads as transparent depth, not a multi-stop gradient. */
+  --bg-atmosphere:
+    radial-gradient(ellipse 110% 70% at 50% -15%, color-mix(in srgb, var(--paper) 90%, transparent), transparent 58%),
+    radial-gradient(ellipse 55% 45% at -5% 95%, color-mix(in srgb, var(--pine) 6%, transparent), transparent 62%),
+    radial-gradient(ellipse 50% 40% at 105% 85%, color-mix(in srgb, var(--pine-light) 7%, transparent), transparent 60%),
+    var(--fog);
+  /* Тёплая калибровка того же холста: намёк --pine-light сверху справа,
+     --dawn снизу слева поверх перехода сливки → беж. Живёт токеном, потому
+     что этим фоном пользуются две разные поверхности — экраны входа и
+     онбординг, — и держать рецепт в одной из них значило бы, что второй
+     молча отстанет при первой же правке. Тёмной пары не нужно: все пять
+     остановок сами по себе токены и ночью пересчитываются. */
+  --bg-atmosphere-lit:
+    radial-gradient(1100px 620px at 88% 6%, color-mix(in srgb, var(--pine-light) 13%, transparent), transparent 62%),
+    radial-gradient(900px 520px at 6% 96%, color-mix(in srgb, var(--dawn) 9%, transparent), transparent 60%),
+    linear-gradient(158deg, var(--paper) 0%, var(--fog) 52%, var(--bg-raised) 100%);
   /* Card / panel surfaces — Paper, lighter than Fog so cards lift off the canvas without a shadow */
   --bg-surface:     var(--paper);
   /* Slightly elevated surface (hover rows, skeletons) */
@@ -56,10 +94,14 @@
   --border-faint:   #E3DDCE;
 
   /* Text */
+  /* Заголовочный текст. Отдельная роль, а не прямой вызов --midnight:
+     сырой цвет палитры в тёмной теме становится почти чёрным, и заголовок,
+     покрашенный им напрямую, исчезал бы на тёмном холсте. */
+  --text-heading:   var(--midnight);
   --text-primary:   var(--ink);
   --text-secondary: var(--mute);
   --text-muted:     var(--mute);
-  --text-subtle:    #9A9287;
+  --text-subtle:    #8A8175;
   --text-placeholder: var(--mute);
   --text-on-brand:  var(--fog);
 
@@ -69,6 +111,14 @@
   --brand-subtle:   rgba(14, 74, 65, 0.07);
   --brand-text:     var(--pine);
   --brand-disabled: #6E9B93;
+
+  /* Крупная брендовая плоскость — полоса цифр, финальный призыв, форма в
+     шапке лендинга. Отдельный токен, а не --brand: интерактивный пайн ночью
+     светлеет, чтобы читаться кнопкой на тёмном, а плоскость в пол-экрана,
+     светлеющая тем же движением, превращается в источник света посреди
+     тёмной страницы. Эта роль ночью остаётся глубокой. */
+  --brand-solid:    var(--pine);
+  --on-brand-solid: var(--paper);
 
   /* Accent — Dawn (finding, "aha") */
   --accent:         var(--dawn);
@@ -88,9 +138,24 @@
   --danger-text:    var(--clay);
   --info:           var(--lake);
 
+  /* Затемнение под модалками. Одного bg-black/40 на обе темы не хватает:
+     в темноте 40% чёрного почти не отделяют модалку от холста. */
+  --scrim:          rgba(19, 28, 27, 0.45);
+
+  /* Вывернутая поверхность — подсказки и тосты, которые должны читаться
+     как «не часть страницы». В светлой это тёмная плашка, в тёмной — светлая. */
+  --inverse-surface: var(--midnight);
+  --inverse-text:    var(--paper);
+
+  /* Полюса шкалы согласия. Раньше стояли хексами в LikertScale и были
+     шестым и седьмым цветом вне системы; здесь они хотя бы получают
+     тёмную пару. Свести их к ролям палитры — отдельный вопрос к команде. */
+  --pole-left:      #7A5F7D;
+  --pole-right:     #6F8F6A;
+
   /* Nav */
   --nav-active-bg:     rgba(14, 74, 65, 0.07);
-  --nav-active-text:   var(--midnight);
+  --nav-active-text:   var(--text-heading);
   --nav-active-border: var(--pine);
   --nav-text:          var(--mute);
   --nav-hover-bg:      var(--bg-hover);
@@ -110,6 +175,9 @@
   /* Layout */
   --header-h: 56px;
   --tap: 48px;
+  /* Вертикальный паддинг <main> в AppLayout. Токен, чтобы отступ страницы
+     и любые расчёты от него не разъезжались по разным местам. */
+  --main-pad-y: 1.5rem;
 
   /* Legacy size aliases → role tokens in @theme. New code must use
      text-display-* / text-body-* / text-caption / text-mono-* or <Heading>/<Text>/<Mono>. */
@@ -157,69 +225,114 @@
   --color-surface: var(--bg-surface);
 }
 
+/* Ночная калибровка тех же ролей — не инверсия светлой темы фильтром, а
+   второй расчёт. Отношения между слоями держатся теми же, что днём:
+   поверхность светлее холста (1.15 против 1.11), кромка к поверхности
+   2.08 против 1.85 — поэтому ночью продукт ощущается тем же продуктом.
+   Контрасты посчитаны по WCAG 2.1 к ночному холсту #111A18. */
 .dark {
-  --midnight: #0A0F0E;
+  color-scheme: dark;
+
+  --midnight: #08110F;
   --ink:      #EDE9DF;
-  --mute:     #9A9287;
-  --fog:      #16211F;
-  --paper:    #1C2926;
-  --line:     #2C3A36;
-  --hairline: #3C4C47;
-  --pine:     #4FA093;
-  --dawn:     #E89654;
-  --lake:     #5B93B4;
-  --clay:     #C07850;
-  --pine-light: #6FBFB1;
-  --dawn-light: #F0AC76;
-  --lake-light: #7FB0CD;
-  --dawn-deep:  #E89654;
+  --mute:     #9EAAA4;
+  --fog:      #111A18;
+  --paper:    #1B2725;
+  --line:     #33413C;
+  --hairline: #4A5952;
+  --pine:     #56AC9D;
+  --dawn:     #EE9F5E;
+  --lake:     #6BA0C0;
+  --clay:     #D08A62;
+  --pine-light: #7FCBBC;
+  --dawn-light: #F5B784;
+  --lake-light: #8FBBD6;
+  /* Днём dawn нельзя ставить текстом (2.44 к Fog) — для этого есть dawn-deep.
+     Ночью сам dawn даёт 8.23, и углублять его незачем. */
+  --dawn-deep:  #EE9F5E;
+
+  --sky:        #24384A;
+  --sky-deep:   #3D6A8F;
+  --glow:       #5A4120;
+  --glow-hot:   #8A6230;
+  --iris:       #8F7DB8;
+  --iris-soft:  rgba(143, 125, 184, 0.18);
 
   --bg-page:        var(--fog);
+  --bg-atmosphere:
+    radial-gradient(ellipse 110% 70% at 50% -15%, color-mix(in srgb, var(--paper) 35%, transparent), transparent 55%),
+    radial-gradient(ellipse 55% 45% at -5% 95%, color-mix(in srgb, var(--pine) 10%, transparent), transparent 62%),
+    radial-gradient(ellipse 50% 40% at 105% 85%, color-mix(in srgb, var(--pine-light) 8%, transparent), transparent 60%),
+    var(--fog);
   --bg-surface:     var(--paper);
-  --bg-raised:      #223330;
-  --bg-hover:       #253935;
-  --bg-active:      rgba(79, 160, 147, 0.14);
+  --bg-raised:      #24312E;
+  --bg-hover:       #212E2B;
+  --bg-active:      rgba(86, 172, 157, 0.14);
   --bg-sidebar:     var(--fog);
 
   --border:         var(--line);
   --border-strong:  var(--hairline);
-  --border-faint:   #1F2E2B;
+  --border-faint:   #26332F;
 
+  --text-heading:   #F5F2E9;
+  /* Кремовый, а не #fff: чистый белый на тёмно-зелёном звенит и даёт ореол. */
   --text-primary:   var(--ink);
   --text-secondary: var(--mute);
   --text-muted:     var(--mute);
-  --text-subtle:    #6E7A73;
+  --text-subtle:    #6F7C76;
   --text-placeholder: var(--mute);
-  --text-on-brand:  #0A0F0E;
+  /* Кнопка выворачивается: днём светлая подпись на тёмной заливке,
+     ночью почти чёрная подпись на светлом пайне (7.09). */
+  --text-on-brand:  #08110F;
 
   --brand:          var(--pine);
-  --brand-hover:    #62B3A5;
-  --brand-subtle:   rgba(79, 160, 147, 0.14);
+  --brand-hover:    #68BBAC;
+  --brand-subtle:   rgba(86, 172, 157, 0.14);
   --brand-text:     var(--pine);
+  --brand-disabled: #3E6E66;
+
+  /* Глубокий хвойный: 9.19 к кремовому тексту — тот же контраст, что у
+     дневной пары (9.29), и 1.59 к холсту, поэтому плоскость видно. */
+  --brand-solid:    #1A423A;
+  --on-brand-solid: #EDE9DF;
 
   --accent:         var(--dawn);
-  --accent-soft:    rgba(232, 150, 84, 0.16);
+  --accent-soft:    rgba(238, 159, 94, 0.16);
   --accent-text:    var(--dawn);
 
   --success:        var(--pine);
-  --success-bg:     rgba(79, 160, 147, 0.14);
+  --success-bg:     rgba(86, 172, 157, 0.14);
   --success-text:   var(--pine);
   --warning:        var(--dawn);
-  --warning-bg:     rgba(232, 150, 84, 0.16);
+  --warning-bg:     rgba(238, 159, 94, 0.16);
   --warning-text:   var(--dawn);
   --danger:         var(--clay);
-  --danger-bg:      rgba(192, 120, 80, 0.16);
+  --danger-bg:      rgba(208, 138, 98, 0.16);
   --danger-text:    var(--clay);
   --info:           var(--lake);
 
-  --nav-active-bg:     rgba(79, 160, 147, 0.14);
-  --nav-active-text:   var(--ink);
+  --scrim:          rgba(6, 11, 10, 0.66);
+  --inverse-surface: #EDE9DF;
+  --inverse-text:    #111A18;
+
+  --pole-left:      #A98BAC;
+  --pole-right:     #93B88E;
+
+  --nav-active-bg:     rgba(86, 172, 157, 0.14);
+  --nav-active-text:   var(--text-heading);
   --nav-active-border: var(--pine);
   --nav-text:          var(--mute);
   --nav-hover-bg:      var(--bg-hover);
 
   --shadow-card: none;
   --shadow-pop:  0 0 0 1px var(--hairline);
+}
+
+@media (min-width: 1024px) {
+  :root,
+  .theme-day {
+    --main-pad-y: 2.5rem;
+  }
 }
 
 /* ─── Base Styles ─── */
@@ -231,14 +344,42 @@
     font-family: var(--font-sans);
   }
 
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+
   body {
     background-color: var(--bg-page);
+    background-image: var(--bg-atmosphere);
+    background-attachment: fixed;
     color: var(--text-primary);
     letter-spacing: var(--tracking-base);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
+  }
+
+  /* Soft grain — depth without colour. Opacity-only; disappears under
+     prefers-reduced-transparency isn't a thing, but reduced-motion is fine. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--midnight) 5.5%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, black 20%, transparent 85%);
+  }
+  .dark body::before {
+    background-image: radial-gradient(rgba(237, 233, 223, 0.05) 1px, transparent 1px);
+    opacity: 0.35;
   }
 
   a { color: var(--brand-text); }
@@ -252,7 +393,7 @@
 
 /* ─── Semantic Utilities ─── */
 @layer utilities {
-  .bg-page          { background-color: var(--bg-page); }
+  .bg-page          { background-color: transparent; background-image: none; }
   .bg-surface       { background-color: var(--bg-surface); }
   .bg-raised        { background-color: var(--bg-raised); }
   .bg-hover         { background-color: var(--bg-hover); }
@@ -260,6 +401,8 @@
   .bg-sidebar       { background-color: var(--bg-sidebar); }
   .bg-brand         { background-color: var(--brand); }
   .bg-brand-subtle  { background-color: var(--brand-subtle); }
+  .bg-brand-solid   { background-color: var(--brand-solid); }
+  .text-on-brand-solid { color: var(--on-brand-solid); }
   .bg-brand-hover   { background-color: var(--brand-hover); }
   .bg-accent        { background-color: var(--accent); }
   .bg-accent-soft   { background-color: var(--accent-soft); }
@@ -277,6 +420,10 @@
   .text-placeholder { color: var(--text-placeholder); }
   .text-brand       { color: var(--brand-text); }
   .text-white       { color: #ffffff; }
+  .text-heading     { color: var(--text-heading); }
+  .bg-scrim         { background-color: var(--scrim); }
+  .bg-inverse       { background-color: var(--inverse-surface); }
+  .text-inverse     { color: var(--inverse-text); }
   .text-on-brand    { color: var(--text-on-brand); }
 
   /* Brand buttons/links always use on-brand label text (not theme-dependent). */
@@ -348,8 +495,31 @@
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to   { opacity: 1; transform: translateY(0);    }
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Вход страницы внутри AppLayout. Один приём на все вкладки шапки
+   (Результаты / Университеты / Профиль) и вложенные экраны под ними —
+   раньше fadeSlideUp жил только в ProfilePage и в готовом отчёте
+   ResultsPage, поэтому соседние вкладки открывались рывком. */
+/* `backwards`, а не `both`. Разница решающая и неочевидная: при `both`
+   анимированные значения остаются на элементе НАВСЕГДА после её окончания, и
+   `to { transform: none }` тут не спасает — анимированный transform вычисляется
+   в матрицу, так что на .page-enter вечно висит matrix(1, 0, 0, 1, 0, 0).
+   Единичная матрица — всё равно transform, а трансформированный предок:
+     * создаёт containing block, из-за чего ломался position:sticky у фильтров
+       на /universities (лечили это ключевым кадром — лечило симптом);
+     * и отключает backdrop-filter у ВСЕХ потомков. То есть всё стекло внутри
+       AppLayout (.panel-glass, карточки вузов, панель фильтров) на деле ничего
+       не размывало — просто полупрозрачная заливка.
+   `backwards` даёт то же появление (значения `from` действуют до старта), но
+   по окончании элемент возвращается к собственным стилям: transform: none. */
+.page-enter {
+  animation: fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
 }
 
 /* Update-boundary content swap on /results (goal switcher) — deliberately
@@ -358,6 +528,15 @@
 @keyframes resultsFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* Спрайты маскота нарисованы под светлый холст: белое тело и тёмный контур.
+   Ночью контур сливается с фоном, а тело становится самым ярким объектом
+   экрана — маскот начинает спорить за внимание с содержанием. Лечится не
+   перерисовкой артов, а лёгким приглушением: фигура остаётся читаемой,
+   но перестаёт слепить. */
+.dark .mascot-sprite {
+  filter: brightness(0.93) saturate(1.03);
 }
 
 /* ─── Auth screens ("spine of clarity" entry) ───────────────────────────── */
@@ -402,7 +581,7 @@
   font-size: 1.22rem;
   letter-spacing: -0.045em;
   line-height: 1;
-  color: var(--midnight);
+  color: var(--text-heading);
 }
 .brand-wordmark .brand-dot {
   color: var(--dawn);
@@ -418,10 +597,7 @@
    быть плоской заливкой, но не спорит с карточкой. Все три остановки —
    токены, поэтому тёмная тема пересчитывается сама. */
 .auth-page {
-  background:
-    radial-gradient(1100px 620px at 88% 6%, rgba(79, 160, 147, 0.13), transparent 62%),
-    radial-gradient(900px 520px at 6% 96%, rgba(219, 127, 46, 0.09), transparent 60%),
-    linear-gradient(158deg, var(--paper) 0%, var(--fog) 52%, var(--bg-raised) 100%);
+  background: var(--bg-atmosphere-lit);
 }
 .auth-page::before {
   content: "";
@@ -448,7 +624,7 @@
   font-size: var(--text-display-lg);
   letter-spacing: -0.02em;
   line-height: 1.15;
-  color: var(--midnight);
+  color: var(--text-heading);
 }
 .auth-headline-sm {
   font-family: var(--font-display);
@@ -456,7 +632,7 @@
   font-size: var(--text-display-md);
   letter-spacing: -0.015em;
   line-height: 1.2;
-  color: var(--midnight);
+  color: var(--text-heading);
 }
 /* Заголовок внутри карточки: на двухколоночном входе крупный заголовок живёт
    в левой колонке, карточке остаётся короткое имя шага. */
@@ -466,7 +642,7 @@
   font-size: var(--text-display-md);
   letter-spacing: -0.015em;
   line-height: 1.2;
-  color: var(--midnight);
+  color: var(--text-heading);
 }
 .auth-card-sub {
   font-family: var(--font-sans);
@@ -509,7 +685,7 @@
   font-size: 2.5rem;
   letter-spacing: -0.02em;
   line-height: 1.16;
-  color: var(--midnight);
+  color: var(--text-heading);
   text-wrap: balance;
 }
 /* --dawn на кегле заголовка даёт лишь 2.4:1; --dawn-deep — 3.2:1 (см. лендинг). */
@@ -598,6 +774,264 @@
 
 @media (prefers-reduced-motion: reduce) {
   .triplet-drag-lift { transform: none; }
+}
+
+/* ─── Journey surfaces (pre-test welcome + diagnostic gate cards) ─────────── */
+/* Same quiet veil as the app canvas — paper lift + pine whisper, no colour mesh. */
+.journey-page {
+  position: relative;
+  isolation: isolate;
+  background: var(--bg-atmosphere);
+}
+.journey-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--midnight) 5%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 20%, black 25%, transparent 88%);
+}
+.dark .journey-page::before {
+  background-image: radial-gradient(rgba(237, 233, 223, 0.05) 1px, transparent 1px);
+}
+
+/* Тот же тёплый холст, что на экранах входа. Модификатор, а не отдельный
+   класс: разметке нужны и позиционирование с isolation от .journey-page, и
+   её точечная текстура — меняется только слой фона. */
+.journey-page--lit {
+  background: var(--bg-atmosphere-lit);
+}
+
+/* Подложка под фиксированной панелью действий (узкие экраны, где футер
+   онбординга висит над прокруткой). Плоская заливка тут не годится:
+   --bg-page — это ровный фог, и поверх градиентного холста он давал видимую
+   горизонтальную границу там, где начинался. Градиент гасится кверху, поэтому
+   у подложки нет края — она просто уплотняется к низу. Блюра нет намеренно:
+   backdrop-filter размывает весь прямоугольник целиком и вернул бы ту же
+   резкую кромку, которую убирает градиент. */
+.action-bar-scrim {
+  background: linear-gradient(
+    to top,
+    var(--bg-page) 28%,
+    color-mix(in srgb, var(--bg-page) 70%, transparent) 68%,
+    transparent 100%
+  );
+}
+@media (min-width: 1024px) {
+  /* На широких экранах панель встаёт в поток (lg:static) и прятать ей нечего. */
+  .action-bar-scrim { background: none; }
+}
+
+.journey-shell {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, #ffffff 55%, var(--border));
+  border-radius: 20px;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 70%, transparent) inset,
+    0 18px 40px color-mix(in srgb, var(--midnight) 6%, transparent);
+}
+.dark .journey-shell {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  border-color: color-mix(in srgb, var(--hairline) 55%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 6%, transparent) inset,
+    0 18px 40px rgba(0, 0, 0, 0.3);
+}
+.journey-shell::after {
+  content: "";
+  position: absolute;
+  width: min(280px, 48vw);
+  height: min(280px, 48vw);
+  right: -56px;
+  top: -72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--pine) 7%, transparent), transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+.journey-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.journey-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.journey-kicker::before {
+  content: "";
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--pine);
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.journey-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.05rem;
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 45%, var(--border-faint));
+  border-radius: 14px;
+}
+.dark .journey-feature {
+  background: color-mix(in srgb, var(--bg-raised) 70%, transparent);
+  border-color: var(--border-faint);
+}
+.journey-feature-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.journey-feature-icon--pine {
+  background: color-mix(in srgb, var(--pine) 12%, transparent);
+  color: var(--pine);
+}
+.journey-feature-icon--dawn {
+  background: var(--accent-soft);
+  color: var(--dawn-deep);
+}
+.dark .journey-feature-icon--dawn { color: var(--dawn); }
+.journey-feature-icon--lake {
+  background: color-mix(in srgb, var(--lake) 14%, transparent);
+  color: var(--lake);
+}
+.journey-feature-icon--iris {
+  background: var(--iris-soft);
+  color: var(--iris);
+}
+
+.journey-mascot-well {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--pine-light) 14%, transparent), transparent 55%),
+    color-mix(in srgb, var(--paper) 80%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 55%, var(--border));
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--midnight) 6%, transparent);
+}
+.journey-mascot-well--lg {
+  width: 148px;
+  height: 148px;
+}
+
+.journey-progress {
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--pine) 5%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--pine) 12%, var(--border));
+}
+.dark .journey-progress {
+  background: color-mix(in srgb, var(--pine) 8%, var(--bg-raised));
+  border-color: color-mix(in srgb, var(--pine) 14%, var(--border));
+}
+
+.journey-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--pine) 5%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--pine) 10%, var(--border));
+  color: var(--text-primary);
+}
+.journey-tip-dot {
+  margin-top: 0.35rem;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  background: var(--pine);
+}
+.journey-accent {
+  color: var(--pine);
+}
+
+/* Glass chrome over the quiet canvas (app header) */
+.app-chrome {
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid color-mix(in srgb, #ffffff 40%, var(--border-strong));
+}
+.dark .app-chrome {
+  background: color-mix(in srgb, var(--fog) 82%, transparent);
+  border-bottom-color: var(--border-strong);
+}
+
+/* Floating glass panel — profile ledger, university cards */
+.panel-glass {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, #ffffff 55%, var(--border));
+  border-radius: 20px;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 70%, transparent) inset,
+    0 16px 36px color-mix(in srgb, var(--midnight) 6%, transparent);
+}
+.dark .panel-glass {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  border-color: color-mix(in srgb, var(--hairline) 55%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 6%, transparent) inset,
+    0 16px 36px rgba(0, 0, 0, 0.28);
+}
+
+/* Soft data tiles — replace the old beige ruled-table cells */
+.field-tile {
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 45%, var(--border-faint));
+  border-radius: 14px;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--midnight) 4%, transparent);
+}
+.dark .field-tile {
+  background: color-mix(in srgb, var(--bg-raised) 75%, transparent);
+  border-color: var(--border-faint);
+  box-shadow: none;
+}
+
+.identity-rail {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%, color-mix(in srgb, var(--pine) 6%, transparent), transparent 70%),
+    color-mix(in srgb, var(--paper) 65%, transparent);
+}
+.dark .identity-rail {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%, color-mix(in srgb, var(--pine) 10%, transparent), transparent 70%),
+    color-mix(in srgb, var(--bg-raised) 55%, transparent);
 }
 
 /* ─── Onboarding step 1 (welcome) ────────────────────────────────────────── */
@@ -745,3 +1179,167 @@
   .mascot-breath       { animation: none; }
   .mascot-hop          { animation: none; }
 }
+
+/* ─── Beauty plan: results cover, reveal, university filters, micro-delight ─── */
+.results-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 420ms ease-out, transform 420ms ease-out;
+}
+.results-reveal--in {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .results-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+.results-cover-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 8.5rem;
+  max-width: 14rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  border: 1px solid color-mix(in srgb, #fff 50%, var(--border));
+  backdrop-filter: blur(8px);
+}
+.results-cover-chip__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.results-cover-chip__label::before {
+  content: "";
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 9999px;
+  background: var(--chip-dot, var(--pine));
+}
+.results-cover-chip__value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-heading);
+}
+
+/* Остров фильтров в обычном потоке страницы — уезжает вверх вместе с
+   контентом при прокрутке (без sticky/fixed). Обёртка только даёт вертикальный
+   зазор; фон, тень и стекло — на .filters-island. */
+.universities-filters {
+  padding-block: 0.375rem 0.9rem;
+}
+
+/* Рецепт поверхности — ровно как у острова лендинга: --bg-surface 82%,
+   blur(16px) saturate(150%), волосяная обводка, общий радиус. */
+.filters-island {
+  padding: 0.75rem 1rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-surface) 82%, transparent);
+  /* Размытие сильнее лендинговых 16px: там под шапкой проезжают крупные
+     блоки, здесь — плотный мелкий текст карточек, и на 16px сквозь остров
+     читались подписи рейтинга. Плотность не трогаем — она и делает плашку
+     лёгкой. */
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  /* Тень мягкая и почти без смещения: оторвать плашку от фона, а не
+     подложить под неё плиту. */
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 55%, transparent) inset,
+    0 10px 26px color-mix(in srgb, var(--midnight) 6%, transparent);
+}
+.dark .filters-island {
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #ffffff 5%, transparent) inset,
+    0 10px 26px rgba(0, 0, 0, 0.3);
+}
+@media (min-width: 640px) {
+  .filters-island { padding-inline: 1.25rem; }
+}
+
+/* Строка стран прокручивается вбок и раньше обрывалась о край панели: чип
+   резало пополам вертикальной кромкой, и это читалось как поломка вёрстки,
+   а не как «здесь ещё есть». Затухание говорит то же самое, но без среза.
+   Ширина затухания приходит из data-атрибутов, которые ставит сам компонент
+   по scrollLeft: статическая маска слева приглушала бы активный чип «Все»
+   в покое, когда прокручивать влево нечего. */
+.filter-strip-fade {
+  --fade-start: 0rem;
+  --fade-end: 0rem;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0, #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)), transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0, #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)), transparent 100%
+  );
+}
+.filter-strip-fade[data-fade-start] { --fade-start: 2.5rem; }
+.filter-strip-fade[data-fade-end]   { --fade-end: 3.5rem; }
+
+.uni-card-media__img {
+  transition: transform 480ms ease-out;
+}
+.panel-glass:hover .uni-card-media__img {
+  transform: scale(1.04);
+}
+@media (prefers-reduced-motion: reduce) {
+  .uni-card-media__img { transition: none; }
+  .panel-glass:hover .uni-card-media__img { transform: none; }
+}
+
+@keyframes favoriteBurst {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--dawn) 45%, transparent); transform: scale(1); }
+  40%  { box-shadow: 0 0 0 10px color-mix(in srgb, var(--dawn) 0%, transparent); transform: scale(1.12); }
+  100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
+}
+.favorite-burst {
+  animation: favoriteBurst 420ms ease-out;
+  color: var(--dawn) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .favorite-burst { animation: none; }
+}
+
+.assessment-stage__shell {
+  position: relative;
+}
+.assessment-stage__shell::before {
+  content: "";
+  position: absolute;
+  inset: -12% -8% auto;
+  height: 42%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--dawn) 10%, transparent), transparent 70%);
+  z-index: 0;
+}
+
+html.theme-crossfade,
+html.theme-crossfade body {
+  transition: background-color 280ms ease, color 280ms ease;
+}
+html.locale-crossfade body {
+  animation: localeFade 280ms ease;
+}
+@keyframes localeFade {
+  0% { opacity: 0.72; }
+  100% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-crossfade,
+  html.theme-crossfade body { transition: none; }
+  html.locale-crossfade body { animation: none; }
+}
+

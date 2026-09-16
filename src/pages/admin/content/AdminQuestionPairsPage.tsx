@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
@@ -21,6 +22,7 @@ const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
 const SORTABLE_KEYS = ['pair_index', 'instrument', 'age_tier'] as const;
 
 export default function AdminQuestionPairsPage() {
+  const { t } = useTranslation('admin');
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
     useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/question-pairs');
@@ -52,7 +54,7 @@ export default function AdminQuestionPairsPage() {
         setItems(data.items);
         setTotal(data.total);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить пары вопросов');
+        if (!cancelled) setError(t('questionPairs.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -76,7 +78,7 @@ export default function AdminQuestionPairsPage() {
       // нумерация, а порядок выдачи: бэкенд сортирует по инструменту, потом по
       // номеру, поэтому после junior RIASEC сразу идёт middle RIASEC.
       headerTitle:
-        'Сквозной номер пары в банке. Список отсортирован по инструменту, поэтому номера идут блоками — пропуск не означает потерянную пару.',
+        t('questionPairs.col.indexHint'),
       cell: (item) => <span className={cn(ADMIN_NUM, 'text-muted')}>{item.pair_index}</span>,
     },
     {
@@ -88,7 +90,7 @@ export default function AdminQuestionPairsPage() {
       // связанный вопрос — то есть это ровно то, что видит ученик. Раньше их
       // приходилось дотягивать отдельным запросом на каждую строку страницы.
       key: 'options',
-      header: 'Варианты',
+      header: t('questionPairs.col.options'),
       mobile: 'title',
       cell: (item) => (
         <Link
@@ -104,7 +106,7 @@ export default function AdminQuestionPairsPage() {
     },
     {
       key: 'instrument',
-      header: 'Инструмент',
+      header: t('questions.col.instrument'),
       sortKey: 'instrument',
       width: '112px',
       mobile: 'field',
@@ -112,7 +114,7 @@ export default function AdminQuestionPairsPage() {
     },
     {
       key: 'age',
-      header: 'Возраст',
+      header: t('common.col.age'),
       sortKey: 'age_tier',
       width: '104px',
       mobile: 'field',
@@ -131,8 +133,8 @@ export default function AdminQuestionPairsPage() {
   return (
     <>
       <AdminListHeader
-        title="Пары вопросов"
-        description="Экраны выбора «или / или»: две стороны, каждая связана со своим вопросом. Номер сквозной по всему банку, а список сгруппирован по инструменту — поэтому нумерация идёт блоками, а не подряд."
+        title={t('questionPairs.title')}
+        description={t('questionPairs.description')}
       />
 
       <AdminToolbar
@@ -144,7 +146,7 @@ export default function AdminQuestionPairsPage() {
         selects={[
           {
             key: 'instrument',
-            label: 'Инструмент',
+            label: t('questions.col.instrument'),
             value: instrument,
             options: (Object.keys(INSTRUMENT_LABELS) as Instrument[]).map((key) => ({
               value: key,
@@ -153,7 +155,7 @@ export default function AdminQuestionPairsPage() {
           },
           {
             key: 'age_tier',
-            label: 'Возраст',
+            label: t('common.col.age'),
             value: ageTier,
             options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
               value: key,
@@ -168,7 +170,7 @@ export default function AdminQuestionPairsPage() {
       {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
 
       <AdminDataTable
-        label="Пары вопросов"
+        label={t('questionPairs.title')}
         columns={columns}
         rows={items}
         rowKey={(item) => item.id}
@@ -176,11 +178,11 @@ export default function AdminQuestionPairsPage() {
         sort={sort}
         onSortChange={setSort}
         loading={loading}
-        emptyTitle="Пары не найдены"
-        emptyHint="Попробуйте снять фильтр по инструменту или возрасту."
+        emptyTitle={t('questionPairs.empty')}
+        emptyHint={t('questions.emptyHint')}
       />
 
-      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['пара', 'пары', 'пар']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="pairs" />
     </>
   );
 }

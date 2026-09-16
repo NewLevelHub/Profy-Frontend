@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationPairsApi } from '@/shared/api/motivationPairs';
 import type { MotivationIntensity, MotivationPairItem, MotivationPairSide } from '@/shared/types';
@@ -14,6 +16,8 @@ interface Answer {
 }
 
 export function useMotivationHarter() {
+  useFinishedAssessmentGuard();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
@@ -81,7 +85,7 @@ export function useMotivationHarter() {
         }
       } catch {
         if (!cancelled) {
-          setError('Не удалось загрузить вопросы. Попробуй ещё раз.');
+          setError(t('assessment:error.loadQuestions'));
           setPhase('question');
         }
       }
@@ -186,7 +190,7 @@ export function useMotivationHarter() {
         setSaving(false);
       }, 300);
     } catch {
-      setError('Не удалось сохранить ответ. Попробуй ещё раз.');
+      setError(t('assessment:error.saveAnswer'));
       setSaving(false);
     }
   }
@@ -205,7 +209,7 @@ export function useMotivationHarter() {
       });
       navigate('/assessment/loading');
     } catch {
-      setError('Не удалось автозаполнить тест.');
+      setError(t('assessment:error.autofill'));
     } finally {
       setAutofilling(false);
     }

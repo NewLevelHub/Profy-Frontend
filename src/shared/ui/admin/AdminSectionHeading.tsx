@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
-import { ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { ADMIN_CARD, ADMIN_TEXT } from '@/shared/ui/admin/density';
 
 interface AdminSectionHeadingProps {
   title: string;
@@ -40,7 +40,7 @@ export function AdminCard({
   className,
 }: AdminSectionHeadingProps & { children: ReactNode }) {
   return (
-    <section className={cn('bg-surface border border-default rounded-[3px] p-4 flex flex-col gap-3.5', className)}>
+    <section className={cn(ADMIN_CARD, 'flex flex-col gap-3.5', className)}>
       <AdminSectionHeading title={title} description={description} aside={aside} />
       {children}
     </section>

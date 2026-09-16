@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
-import { pluralize } from '@/shared/lib/plural';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
@@ -11,15 +11,16 @@ import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminEmpty, AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
-import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { ADMIN_CARD, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AdminMotivationStatementListItem } from '@/shared/types';
 
 /**
  * A triplet (3 statements the student ranks MOST / NEUTRAL / LEAST) is the unit
  * of this content — a single statement in isolation is not editable content,
  * it is one third of a forced-choice screen. The endpoint takes `limit` up to
- * 100, and the bank holds ~36 statements, so a page of 33 triplets fetches the
- * whole set in one request and lets them be grouped honestly.
+ * 100, and the bank holds 36 statements (one row per statement now — see
+ * `groupByTriplet`), so a page of 12 triplets fetches the whole set in one
+ * request and lets them be grouped honestly.
  *
  * If the bank ever outgrows this, paging still works — a triplet split across
  * a page boundary would then render as a partial group, which the group header
@@ -32,6 +33,7 @@ interface Triplet {
   items: AdminMotivationStatementListItem[];
 }
 
+/** One row per statement now — a triplet is just its 3 rows sharing an index. */
 function groupByTriplet(items: readonly AdminMotivationStatementListItem[]): Triplet[] {
   const groups = new Map<number, AdminMotivationStatementListItem[]>();
   for (const item of items) {
@@ -39,9 +41,12 @@ function groupByTriplet(items: readonly AdminMotivationStatementListItem[]): Tri
     list.push(item);
     groups.set(item.triplet_index, list);
   }
-  return [...groups.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .map(([index, list]) => ({ index, items: [...list].sort((a, b) => a.order - b.order) }));
+  return [...groups.values()]
+    .map((list) => ({
+      index: list[0].triplet_index,
+      items: [...list].sort((a, b) => a.order - b.order),
+    }))
+    .sort((a, b) => a.index - b.index);
 }
 
 /**
@@ -63,7 +68,8 @@ function findDuplicateCategories(triplet: Triplet): string[] {
 }
 
 export default function AdminMotivationStatementsPage() {
-  const { page, setPage } = useAdminListParams([] as const);
+  const { page, setPage } = useAdminListParams([]);
+  const { t } = useTranslation('admin');
   useRememberListQuery('/admin/content/motivation-statements');
   const [items, setItems] = useState<AdminMotivationStatementListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -83,7 +89,7 @@ export default function AdminMotivationStatementsPage() {
         setItems(data.items);
         setTotal(data.total);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить утверждения');
+        if (!cancelled) setError(t('statements.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -101,8 +107,8 @@ export default function AdminMotivationStatementsPage() {
   return (
     <>
       <AdminListHeader
-        title="Утверждения мотивации"
-        description="Блок MOST / LEAST: ученик ранжирует тройку утверждений. Внутри тройки все три категории должны быть разными."
+        title={t('statements.title')}
+        description={t('statements.description')}
       />
 
       {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
@@ -110,23 +116,23 @@ export default function AdminMotivationStatementsPage() {
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         {/* Число утверждений называет подвал — здесь только то, чего там нет. */}
         <span className={ADMIN_META}>
-          {loading ? 'загрузка…' : pluralize(triplets.length, 'тройка', 'тройки', 'троек')}
+          {loading ? t('common.loadingInline') : t('statements.tripletCount', { count: triplets.length })}
         </span>
         {brokenCount > 0 && (
           <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-medium')}>
             <AlertTriangle size={13} />
-            {pluralize(brokenCount, 'тройка', 'тройки', 'троек')} с повторяющейся категорией
+            {t('statements.brokenCount', { count: brokenCount })}
           </span>
         )}
       </div>
 
       {loading ? (
-        <div className="bg-surface border border-default rounded-[3px] p-0 overflow-hidden">
+        <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
           <AdminTableSkeleton rows={8} columns={3} />
         </div>
       ) : triplets.length === 0 ? (
-        <div className="bg-surface border border-default rounded-[3px]">
-          <AdminEmpty title="Утверждения не найдены" />
+        <div className={ADMIN_CARD}>
+          <AdminEmpty title={t('statements.empty')} />
         </div>
       ) : (
         <ul className="flex flex-col gap-3 m-0 p-0 list-none">
@@ -136,35 +142,36 @@ export default function AdminMotivationStatementsPage() {
         </ul>
       )}
 
-      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['утверждение', 'утверждения', 'утверждений']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="statements" />
     </>
   );
 }
 
 function TripletCard({ triplet }: { triplet: Triplet }) {
+  const { t } = useTranslation('admin');
   const duplicates = findDuplicateCategories(triplet);
   const incomplete = triplet.items.length !== 3;
 
   return (
     <li
       className={cn(
-        'bg-surface border rounded-[3px] overflow-hidden',
-        duplicates.length > 0 ? 'border-danger' : 'border-default',
+        'field-tile overflow-hidden',
+        duplicates.length > 0 && 'border-danger',
       )}
     >
-      <div className="flex items-center justify-between gap-3 px-3 py-2 bg-raised border-b border-default">
-        <span className={cn(ADMIN_TEXT, 'font-semibold text-primary tabular-nums')}>
-          Тройка {triplet.index}
+      <div className="flex items-center justify-between gap-3 px-3 py-2 bg-[color-mix(in_srgb,var(--paper)_62%,transparent)] border-b border-[color:color-mix(in_srgb,var(--border)_70%,transparent)]">
+        <span className={cn(ADMIN_TEXT, 'flex items-center gap-2 font-semibold text-primary tabular-nums')}>
+          {t('statements.triplet', { index: triplet.index })}
         </span>
         {duplicates.length > 0 ? (
           <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-semibold')}>
             <AlertTriangle size={13} />
-            Категория повторяется:{' '}
-            {duplicates.map((c) => MOTIVATION_CATEGORY_LABELS[c as keyof typeof MOTIVATION_CATEGORY_LABELS] ?? c).join(', ')}
+            {t('statements.duplicateCategory')}{' '}
+            {duplicates.map((c) => t(MOTIVATION_CATEGORY_LABELS[c as keyof typeof MOTIVATION_CATEGORY_LABELS]) ?? c).join(', ')}
           </span>
         ) : incomplete ? (
           <span className={ADMIN_META}>
-            на этой странице {triplet.items.length} из 3 — остальные на соседней
+            {t('statements.partialGroup', { count: triplet.items.length })}
           </span>
         ) : null}
       </div>
@@ -193,7 +200,7 @@ function TripletCard({ triplet }: { triplet: Triplet }) {
                     duplicates.includes(item.category) && 'text-danger',
                   )}
                 >
-                  {MOTIVATION_CATEGORY_LABELS[item.category]}
+                  {t(MOTIVATION_CATEGORY_LABELS[item.category])}
                 </p>
               </div>
               {item.has_overrides && <OverrideBadge />}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -42,13 +43,6 @@ interface TripletRankingProps {
 // badge communicates rank now, no most/least framing or color coding.
 const CARD_STYLE = { badgeBg: 'var(--bg-surface)', badgeColor: 'var(--text-subtle)', border: 'border-default', bg: 'bg-surface' } as const;
 
-const screenReaderInstructions: ScreenReaderInstructions = {
-  draggable:
-    'Чтобы изменить порядок, нажми пробел или Enter на карточке. ' +
-    'Используй стрелки вверх и вниз, чтобы переместить её. ' +
-    'Нажми пробел или Enter ещё раз, чтобы отпустить, или Escape, чтобы отменить.',
-};
-
 function labelFor(statements: MotivationStatement[], id: string | number) {
   return statements.find(s => s.id === id)?.text ?? '';
 }
@@ -64,6 +58,7 @@ interface SortableCardProps {
 }
 
 function SortableCard({ statement, index, disabled }: SortableCardProps) {
+  const { t } = useTranslation('assessment');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: statement.id,
     disabled,
@@ -89,8 +84,8 @@ function SortableCard({ statement, index, disabled }: SortableCardProps) {
       )}
       role="button"
       tabIndex={disabled ? -1 : 0}
-      aria-roledescription="перетаскиваемая карточка"
-      aria-label={`${statement.text}, приоритет ${index + 1} из 3`}
+      aria-roledescription={t('triplet.cardRoleDesc')}
+      aria-label={t('triplet.cardAria', { text: statement.text, index: index + 1 })}
     >
       <span
         className="w-[34px] h-[34px] flex-none flex items-center justify-center font-black"
@@ -121,7 +116,9 @@ export const TripletRanking = React.memo(function TripletRanking({
   onReorder,
   disabled,
 }: TripletRankingProps) {
+  const { t } = useTranslation('assessment');
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  const screenReaderInstructions: ScreenReaderInstructions = { draggable: t('triplet.keyboardInstructions') };
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -130,16 +127,16 @@ export const TripletRanking = React.memo(function TripletRanking({
   );
 
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Поднята карточка «${labelFor(statements, active.id)}»`,
+    onDragStart: ({ active }) => t('triplet.dndPicked', { card: labelFor(statements, active.id) }),
     onDragOver: ({ active, over }) =>
       over
-        ? `Карточка «${labelFor(statements, active.id)}» перемещена на позицию ${positionOf(statements, over.id) + 1} из 3`
-        : `Карточка «${labelFor(statements, active.id)}» вне зоны сортировки`,
+        ? t('triplet.dndMovedTo', { card: labelFor(statements, active.id), position: positionOf(statements, over.id) + 1 })
+        : t('triplet.dndOutside', { card: labelFor(statements, active.id) }),
     onDragEnd: ({ active, over }) =>
       over
-        ? `Карточка «${labelFor(statements, active.id)}» размещена на позиции ${positionOf(statements, over.id) + 1} из 3`
-        : 'Перемещение отменено',
-    onDragCancel: ({ active }) => `Перемещение карточки «${labelFor(statements, active.id)}» отменено`,
+        ? t('triplet.dndPlacedAt', { card: labelFor(statements, active.id), position: positionOf(statements, over.id) + 1 })
+        : t('triplet.dndCancelledMove'),
+    onDragCancel: ({ active }) => t('triplet.dndCancelledCard', { card: labelFor(statements, active.id) }),
   };
 
   function handleDragStart(event: DragStartEvent) {

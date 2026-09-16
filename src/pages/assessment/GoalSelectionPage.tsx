@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { Button, Spinner } from '@/shared/ui';
@@ -33,9 +34,9 @@ const AGE_RANK: Record<AgeGroup, number> = { junior: 0, middle: 1, senior: 2 };
 const GOAL_CARDS: GoalCard[] = [
   {
     goal: 'explore',
-    tag: 'Исследовать',
-    title: 'Понять себя',
-    subtitle: 'Узнать свои сильные стороны и интересы — или ещё не знать, с чего начать. Это нормально, разберёмся вместе.',
+    tag: 'goalSelection.cardExploreTag',
+    title: 'goalSelection.cardExploreTitle',
+    subtitle: 'goalSelection.cardExploreSubtitle',
     hidden: true,
   },
   {
@@ -43,9 +44,9 @@ const GOAL_CARDS: GoalCard[] = [
     // GoalBadge.tsx's comment for why the two values are treated as fully
     // equivalent everywhere they're read.
     goal: 'university',
-    tag: 'Профессия',
-    title: 'Выбрать профессию',
-    subtitle: 'Найди направление, которое тебе подойдёт — и путь к поступлению в вуз',
+    tag: 'goalSelection.cardProfessionTag',
+    title: 'goalSelection.cardProfessionTitle',
+    subtitle: 'goalSelection.cardProfessionSubtitle',
     minAgeGroup: 'middle',
   },
 ];
@@ -59,11 +60,12 @@ function ResumeDialog({
   onResume: () => void;
   onStartNew: () => void;
 }) {
+  const { t } = useTranslation('assessment');
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="resume-dialog-title"
@@ -74,10 +76,10 @@ function ResumeDialog({
       )}>
         <div className="flex flex-col gap-2">
           <h2 id="resume-dialog-title" className="text-title font-black text-primary">
-            У тебя есть незавершённый тест
+            {t('goalSelection.incompleteTitle')}
           </h2>
           <p className="text-body text-secondary">
-            Хочешь продолжить с того места, где остановился, или начать заново?
+            {t('goalSelection.incompleteBody')}
           </p>
         </div>
 
@@ -87,7 +89,7 @@ function ResumeDialog({
             className="w-full h-12 rounded-pill font-extrabold shadow-button"
             onClick={onResume}
           >
-            Продолжить
+            {t('goalSelection.continueTest')}
           </Button>
           <Button
             variant="ghost"
@@ -95,7 +97,7 @@ function ResumeDialog({
             className="w-full h-12 rounded-pill"
             onClick={onStartNew}
           >
-            Начать заново
+            {t('goalSelection.startOver')}
           </Button>
         </div>
       </div>
@@ -112,11 +114,12 @@ function RestartDialog({
   onViewResults: () => void;
   onStartNew: () => void;
 }) {
+  const { t } = useTranslation('assessment');
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="restart-dialog-title"
@@ -127,10 +130,10 @@ function RestartDialog({
       )}>
         <div className="flex flex-col gap-2">
           <h2 id="restart-dialog-title" className="text-title font-black text-primary">
-            У тебя уже есть результаты
+            {t('goalSelection.haveResultsTitle')}
           </h2>
           <p className="text-body text-secondary">
-            Ты уже прошёл диагностику. Посмотреть результаты или пройти заново?
+            {t('goalSelection.haveResultsBody')}
           </p>
         </div>
 
@@ -140,7 +143,7 @@ function RestartDialog({
             className="w-full h-12 rounded-pill font-extrabold shadow-button"
             onClick={onViewResults}
           >
-            Посмотреть результаты
+            {t('goalSelection.viewResults')}
           </Button>
           <Button
             variant="ghost"
@@ -148,7 +151,7 @@ function RestartDialog({
             className="w-full h-12 rounded-pill"
             onClick={onStartNew}
           >
-            Пройти заново
+            {t('goalSelection.retakeAgain')}
           </Button>
         </div>
       </div>
@@ -159,6 +162,7 @@ function RestartDialog({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GoalSelectionPage() {
+  const { t } = useTranslation('assessment');
   const [hoveredGoal, setHoveredGoal] = useState<AssessmentGoal | null>(null);
   const { shouldRedirect } = useGoalGuard();
   const {
@@ -206,11 +210,11 @@ export default function GoalSelectionPage() {
                 {/* <span className="font-mono text-mono-xs tracking-label uppercase text-muted">
                   Шаг 4 · Цель · Выбери, что сейчас важнее
                 </span> */}
-                <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--midnight)]">
-                  Чего ты хочешь от этого теста?
+                <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--text-heading)]">
+                  {t('goalSelection.question')}
                 </Heading>
                 <Text variant="body-md" className="text-muted">
-                  Выбери то, что тебе сейчас важнее всего — это можно изменить позже
+                  {t('goalSelection.hint')}
                 </Text>
               </div>
 
@@ -218,7 +222,7 @@ export default function GoalSelectionPage() {
                   (which is what actually starts an assessment) and come back
                   to it anytime from /results. */}
               <Button variant="text" size="sm" className="mt-2" onClick={handleSkip}>
-                Не сейчас
+                {t('goalSelection.notNow')}
               </Button>
             </div>
 
@@ -248,14 +252,14 @@ export default function GoalSelectionPage() {
                       }}
                     >
                       <div className="flex items-center">
-                        <span className={`${typeClass.monoLabel} text-muted`}>{card.tag}</span>
+                        <span className={`${typeClass.monoLabel} text-muted`}>{t(card.tag)}</span>
                       </div>
 
                       <div className="flex flex-col gap-1.5">
-                        <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--midnight)]`}>
-                          {card.title}
+                        <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--text-heading)]`}>
+                          {t(card.title)}
                         </p>
-                        <p className={`${typeClass.bodySm} text-muted`}>{card.subtitle}</p>
+                        <p className={`${typeClass.bodySm} text-muted`}>{t(card.subtitle)}</p>
                       </div>
 
                       <Button
@@ -265,7 +269,7 @@ export default function GoalSelectionPage() {
                         disabled={isLoading}
                         onClick={() => handleGoalSelect(card.goal)}
                       >
-                        Выбрать эту цель
+                        {t('goalSelection.pickThisGoal')}
                       </Button>
                     </div>
                   );

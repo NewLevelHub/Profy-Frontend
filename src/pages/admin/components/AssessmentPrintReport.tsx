@@ -1,7 +1,8 @@
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
-import { pluralize } from '@/shared/lib/plural';
+import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 import type {
   AdminAssessmentDetail,
   AdminUserDetail,
@@ -34,45 +35,45 @@ const RIASEC_ORDER: HollandType[] = ['R', 'I', 'A', 'S', 'E', 'C'];
 const BIG_FIVE_ORDER: BigFiveDomain[] = ['O', 'C', 'E', 'A', 'N'];
 
 const RIASEC_LABELS: Record<HollandType, string> = {
-  R: 'Реалистичный',
-  I: 'Исследовательский',
-  A: 'Артистичный',
-  S: 'Социальный',
-  E: 'Предприимчивый',
-  C: 'Конвенциональный',
+  R: 'admin:riasecShort.R',
+  I: 'admin:riasecShort.I',
+  A: 'admin:riasecShort.A',
+  S: 'admin:riasecShort.S',
+  E: 'admin:riasecShort.E',
+  C: 'admin:riasecShort.C',
 };
 
 const BIG_FIVE_LABELS: Record<BigFiveDomain, string> = {
-  O: 'Открытость опыту',
-  C: 'Добросовестность',
-  E: 'Экстраверсия',
-  A: 'Доброжелательность',
-  N: 'Нейротизм',
+  O: 'admin:bigfiveShort.O',
+  C: 'admin:bigfiveShort.C',
+  E: 'admin:bigfiveShort.E',
+  A: 'admin:bigfiveShort.A',
+  N: 'admin:bigfiveShort.N',
 };
 
 const THINKING_LABELS: Record<string, string> = {
-  creative_think: 'Креативное',
-  systematic: 'Системное',
-  strategic: 'Стратегическое',
-  practical: 'Практическое',
+  creative_think: 'admin:thinking.creative_think',
+  systematic: 'admin:thinking.systematic',
+  strategic: 'admin:thinking.strategic',
+  practical: 'admin:thinking.practical',
 };
 
 const MOTIVATION_LABELS: Record<string, string> = {
-  interest: 'Интерес к делу',
-  challenge: 'Вызов и рост',
-  helping: 'Польза другим',
-  freedom: 'Свобода решений',
-  money: 'Материальный результат',
-  recognition: 'Признание',
-  stability: 'Стабильность',
-  creation: 'Создавать своё',
-  teamwork: 'Команда',
+  interest: 'admin:motivation.interest',
+  challenge: 'admin:motivation.challenge',
+  helping: 'admin:motivation.helping',
+  freedom: 'admin:motivation.freedom',
+  money: 'admin:motivation.money',
+  recognition: 'admin:motivation.recognition',
+  stability: 'admin:motivation.stability',
+  creation: 'admin:motivation.creation',
+  teamwork: 'admin:motivation.teamwork',
 };
 
 const CONSISTENCY_LABELS: Record<string, string> = {
-  high: 'высокая',
-  medium: 'средняя',
-  low: 'низкая',
+  high: 'admin:summary.level.high',
+  medium: 'admin:summary.level.medium',
+  low: 'admin:summary.level.low',
 };
 
 /** Тот же потолок, что в карточке: топ-3 ученика × позиция буквы, 3·3+2·2+1·1. */
@@ -95,7 +96,7 @@ const LAKE = '#2C6A8C';
 
 function formatDate(value: string | null): string {
   if (!value) return '—';
-  return new Date(value).toLocaleString('ru-RU', {
+  return formatIntlDate(value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -197,6 +198,7 @@ interface AssessmentPrintReportProps {
 }
 
 export function AssessmentPrintReport({ user, assessment, index }: AssessmentPrintReportProps) {
+  const { t } = useTranslation('admin');
   const analysis = assessment.analysis_result;
   const profile = user.profile;
   const name = profile?.name || user.email;
@@ -233,27 +235,27 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
             color: MUTE,
           }}
         >
-          Profy · результаты диагностики
+          {t('print.assessmentBrand')}
         </p>
         <h1 style={{ fontSize: '17pt', fontWeight: 600, margin: '1.5mm 0 0' }}>{name}</h1>
         <p style={{ margin: '1mm 0 0', color: MUTE }}>
           {user.email}
           {profile?.age_group ? ` · ${AGE_TIER_LABELS[profile.age_group as AgeGroup]}` : ''}
           {' · '}
-          {ASSESSMENT_GOAL_LABELS[assessment.goal]} · прохождение #{index}
+          {t(ASSESSMENT_GOAL_LABELS[assessment.goal])} · {t('print.attemptNo', { index })}
         </p>
       </header>
 
-      <Section title="Профиль">
+      <Section title={t('print.section.profile')}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <tbody>
             {[
-              ['Возраст', profile?.age != null ? `${profile.age}` : '—'],
-              ['Класс', profile?.grade != null ? `${profile.grade}` : '—'],
-              ['Город', [profile?.city, profile?.country].filter(Boolean).join(', ') || '—'],
-              ['Завершено', formatDate(assessment.completed_at)],
-              ['Начато', formatDate(assessment.created_at)],
-              ['Отвечено', `${assessment.answered_count} из ${assessment.total_questions}`],
+              [t('common.col.age'), profile?.age != null ? `${profile.age}` : '—'],
+              [t('print.grade'), profile?.grade != null ? `${profile.grade}` : '—'],
+              [t('universities.col.city'), [profile?.city, profile?.country].filter(Boolean).join(', ') || '—'],
+              [t('print.completed'), formatDate(assessment.completed_at)],
+              [t('print.started'), formatDate(assessment.created_at)],
+              [t('print.answered'), t('print.answeredOf', { count: assessment.answered_count, total: assessment.total_questions })],
             ].map(([label, value]) => (
               <tr key={label}>
                 <td style={{ width: '32mm', padding: '0.6mm 0', color: MUTE }}>{label}</td>
@@ -264,37 +266,37 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
         </table>
       </Section>
 
-      <Section title="Состав диагностики">
+      <Section title={t('print.section.composition')}>
         <p style={{ margin: 0 }}>
           {[...blockCounts.entries()]
             .map(([instrument, count]) => `${instrument.toUpperCase()} — ${count}`)
             .join(' · ')}
           {assessment.motivation_responses.length > 0
-            ? ` · Мотивация — ${pluralize(assessment.motivation_responses.length, 'тройка', 'тройки', 'троек')}`
+            ? ` · ${t('print.motivationTriplets', { count: assessment.motivation_responses.length })}`
             : ''}
         </p>
       </Section>
 
       {analysis && isRiasecProfile && (
-        <Section title="Интересы (RIASEC)">
+        <Section title={t('print.section.riasec')}>
           <ScaleRows
             color={PINE}
             rows={RIASEC_ORDER.filter((key) => key in analysis.profile).map((key) => ({
               key,
-              label: RIASEC_LABELS[key],
+              label: t(RIASEC_LABELS[key]),
               value: analysis.profile[key],
             }))}
           />
           <p style={{ margin: '2mm 0 0', color: MUTE }}>
-            Код: {analysis.code.join(' · ') || '—'} · согласованность ответов{' '}
-            {CONSISTENCY_LABELS[analysis.meta.consistency] ?? analysis.meta.consistency} ·
-            дифференциация {Math.round(analysis.meta.differentiation)}
+            {t('print.code', { code: analysis.code.join(' · ') || '—' })} · {t('summary.consistency')}{' '}
+            {CONSISTENCY_LABELS[analysis.meta.consistency] ? t(CONSISTENCY_LABELS[analysis.meta.consistency]) : analysis.meta.consistency} ·
+            {t('print.differentiation', { value: Math.round(analysis.meta.differentiation) })}
           </p>
         </Section>
       )}
 
       {analysis && !isRiasecProfile && Object.keys(analysis.profile).length > 0 && (
-        <Section title="Интересы (MI)">
+        <Section title={t('print.section.mi')}>
           <ScaleRows
             color={PINE}
             rows={Object.entries(analysis.profile).map(([key, value]) => ({
@@ -307,12 +309,12 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
       )}
 
       {analysis && Object.keys(analysis.big_five).length > 0 && (
-        <Section title="Характер (Big Five)">
+        <Section title={t('print.section.bigfive')}>
           <ScaleRows
             color={LAKE}
             rows={BIG_FIVE_ORDER.filter((key) => key in analysis.big_five).map((key) => ({
               key,
-              label: BIG_FIVE_LABELS[key],
+              label: t(BIG_FIVE_LABELS[key]),
               value: analysis.big_five[key],
             }))}
           />
@@ -320,12 +322,12 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
       )}
 
       {analysis && Object.keys(analysis.thinking_style).length > 0 && (
-        <Section title="Стиль мышления">
+        <Section title={t('print.section.thinking')}>
           <ScaleRows
             color={LAKE}
             rows={Object.entries(analysis.thinking_style).map(([key, value]) => ({
               key: '',
-              label: THINKING_LABELS[key] ?? key,
+              label: THINKING_LABELS[key] ? t(THINKING_LABELS[key]) : key,
               value: value as number,
             }))}
           />
@@ -333,12 +335,12 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
       )}
 
       {analysis && analysis.motivation_top.length > 0 && (
-        <Section title="Мотивация">
+        <Section title={t('feedback.sectionShort.motivation')}>
           <p style={{ margin: '0 0 1.5mm' }}>
-            Ведущие мотивы:{' '}
+            {t('print.topMotives')}{' '}
             <strong>
               {analysis.motivation_top
-                .map((key) => MOTIVATION_LABELS[key as MotivationCategory] ?? key)
+                .map((key) => (MOTIVATION_LABELS[key as MotivationCategory] ? t(MOTIVATION_LABELS[key as MotivationCategory]) : key))
                 .join(', ')}
             </strong>
           </p>
@@ -350,7 +352,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
                 .sort((a, b) => b[1] - a[1])
                 .map(([key, value]) => (
                   <tr key={key}>
-                    <td style={{ padding: '0.6mm 0' }}>{MOTIVATION_LABELS[key] ?? key}</td>
+                    <td style={{ padding: '0.6mm 0' }}>{MOTIVATION_LABELS[key] ? t(MOTIVATION_LABELS[key]) : key}</td>
                     <td
                       style={{
                         width: '14mm',
@@ -370,7 +372,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
       )}
 
       {analysis && analysis.careers.length > 0 && (
-        <Section title="Подобранные направления">
+        <Section title={t('print.section.directions')}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
               {analysis.careers.map((career, position) => (
@@ -403,14 +405,13 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
             </tbody>
           </table>
           <p style={{ margin: '2mm 0 0', color: MUTE }}>
-            Совпадение — вес трёх ведущих интересов ученика против позиции буквы в коде
-            направления, максимум {MAX_MATCH_SCORE}.
+            {t('print.matchNote', { max: MAX_MATCH_SCORE })}
           </p>
         </Section>
       )}
 
       {analysis && Object.keys(analysis.personality_notes).length > 0 && (
-        <Section title="Что это значит">
+        <Section title={t('print.section.meaning')}>
           {Object.entries(analysis.personality_notes).map(([key, note]) => (
             <p key={key} style={{ margin: '0 0 1.5mm' }}>
               {note}
@@ -420,7 +421,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
       )}
 
       {analysis && analysis.summary && (
-        <Section title="Итог">
+        <Section title={t('print.section.summary')}>
           <p style={{ margin: 0 }}>{analysis.summary}</p>
         </Section>
       )}
@@ -434,8 +435,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
           fontSize: '8pt',
         }}
       >
-        Сырые баллы — служебные, в отчёте ученика их нет. Ответы по каждому вопросу и тройки
-        мотивации не входят в PDF: они выгружаются отдельно в ZIP с CSV.
+        {t('print.assessmentFootnote')}
       </footer>
     </div>
   );

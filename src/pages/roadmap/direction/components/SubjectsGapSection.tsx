@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Card } from '@/shared/ui/Card';
@@ -43,6 +44,7 @@ function isAlreadyFine(subject: string, subjectsEasy: string[]): boolean {
  * Source of truth is the onboarding self-assessment, not a calculation.
  */
 export function SubjectsGapSection({ subjects, subjectsEasy }: SubjectsGapSectionProps) {
+  const { t } = useTranslation('roadmap');
   if (subjects.length === 0) return null;
 
   const uniqueSubjects = Array.from(new Set(subjects));
@@ -52,10 +54,10 @@ export function SubjectsGapSection({ subjects, subjectsEasy }: SubjectsGapSectio
       <div>
         <h2 className="text-label font-bold text-primary flex items-center gap-2">
           <span aria-hidden="true">📚</span>
-          Где ты сейчас по предметам
+          {t('subjectsGap.title')}
         </h2>
         <p className="text-caption text-muted mt-1">
-          По твоей самооценке из анкеты — без баллов и расчётов.
+          {t('subjectsGap.subtitle')}
         </p>
       </div>
 
@@ -84,7 +86,7 @@ export function SubjectsGapSection({ subjects, subjectsEasy }: SubjectsGapSectio
                   alreadyFine ? 'text-success' : 'text-secondary',
                 )}
               >
-                {alreadyFine ? 'Уже нормально' : 'Нужно улучшать'}
+                {alreadyFine ? t('subjectsGap.ok') : t('subjectsGap.needsWork')}
               </span>
             </li>
           );

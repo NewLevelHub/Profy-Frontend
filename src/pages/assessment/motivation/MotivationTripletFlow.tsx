@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
@@ -13,6 +14,7 @@ import { AssessmentIntro } from '../components/AssessmentIntro';
 // drag-and-drop ranking. Junior and middle use MotivationHarterFlow.tsx
 // instead (see MotivationAssessmentPage.tsx).
 export default function MotivationTripletFlow() {
+  const { t } = useTranslation('assessment');
   const {
     phase,
     tripletIndex,
@@ -39,8 +41,8 @@ export default function MotivationTripletFlow() {
 
   const headerTitle =
     phase === 'question' && totalTriplets > 0
-      ? `Вопрос ${tripletIndex + 1} из ${totalTriplets}`
-      : 'Что тебя драйвит';
+      ? t('rail.questionOf', { current: tripletIndex + 1, total: totalTriplets })
+      : t('rail.sectionMotivation');
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -51,8 +53,8 @@ export default function MotivationTripletFlow() {
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
         title={headerTitle}
-        sectionLabel="Что тебя драйвит"
-        progressAriaLabel="Прогресс блока мотивации"
+        sectionLabel={t('rail.sectionMotivation')}
+        progressAriaLabel={t('rail.progressAriaMotivation')}
         progress={progress}
         showBack={phase === 'question' && tripletIndex > 0}
         onBack={handleBack}
@@ -71,12 +73,12 @@ export default function MotivationTripletFlow() {
 
         {phase === 'intro' && (
           <AssessmentIntro
-            kicker="Последний блок"
-            title="Что тебя драйвит"
-            subtitle="В каждом вопросе расставь варианты по приоритету — от самого важного до наименее важного"
-            itemCountLabel={`${totalTriplets} вопросов`}
-            durationLabel="~2 мин"
-            ctaLabel="Начать"
+            kicker={t('intro.motivationTriplet.kicker')}
+            title={t('intro.motivationTriplet.title')}
+            subtitle={t('intro.motivationTriplet.subtitle')}
+            itemCountLabel={t('intro.itemCount', { count: totalTriplets })}
+            durationLabel={t('intro.duration2min')}
+            ctaLabel={t('intro.motivationTriplet.cta')}
             onStart={handleStartIntro}
           />
         )}
@@ -89,7 +91,7 @@ export default function MotivationTripletFlow() {
                 <div className="mb-4 p-3 rounded-xl bg-danger-subtle text-danger text-caption text-center">
                   <p>{error}</p>
                   <button type="button" onClick={retry} className="mt-2 font-semibold underline">
-                    Попробовать снова
+                    {t('error.retry')}
                   </button>
                 </div>
               )}
@@ -102,10 +104,10 @@ export default function MotivationTripletFlow() {
                   )}
                 >
                   <Heading level="display-sm" as="h2" className="text-primary mb-2">
-                    Расставь эти варианты по приоритету
+                    {t('format.rankPriority')}
                   </Heading>
                   <Text variant="caption" className="text-secondary mb-6">
-                    Перетащи карточки, чтобы поставить самое важное для тебя наверх
+                    {t('format.dragToTop')}
                   </Text>
                   <TripletRanking
                     statements={orderedStatements}
@@ -118,7 +120,7 @@ export default function MotivationTripletFlow() {
                     size="lg"
                     className="w-full rounded-pill mt-6"
                   >
-                    Далее
+                    {t('priority.continue')}
                   </Button>
                 </div>
               )}

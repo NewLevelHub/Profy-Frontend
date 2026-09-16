@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
@@ -11,6 +12,7 @@ import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AdminUniversityCountry, AdminUniversityListItem } from '@/shared/types';
+import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['search', 'country', 'has_programs'] as const;
@@ -18,10 +20,12 @@ const FILTER_KEYS = ['search', 'country', 'has_programs'] as const;
  *  в URL игнорируется, а не улетает на сервер за 422. */
 const SORTABLE_KEYS = ['name', 'city', 'country', 'ranking', 'uniranks_kz_rank', 'updated_at', 'programs_count'] as const;
 
+// Matched against `University.country`, which the backend stores as a ru
+// string — a data value, not UI copy, so it stays a literal (KZ-206).
 const HOME_COUNTRY = 'Казахстан';
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return formatIntlDate(value, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 /**
@@ -42,6 +46,7 @@ function formatDate(value: string): string {
  * with ties cannot repeat or drop a row.
  */
 export default function AdminUniversitiesPage() {
+  const { t } = useTranslation('admin');
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
     useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/universities');
@@ -75,7 +80,7 @@ export default function AdminUniversitiesPage() {
         setItems(data.items);
         setTotal(data.total);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить каталог вузов');
+        if (!cancelled) setError(t('universities.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -85,7 +90,7 @@ export default function AdminUniversitiesPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, search, country, hasPrograms, sort?.key, sort?.order, reloadToken]);
+  }, [page, search, country, hasPrograms, sort?.key, sort?.order, reloadToken, t]);
 
   // Loaded once: the filter needs every country in the catalog, not just the
   // ones that happen to be on this page.
@@ -116,7 +121,7 @@ export default function AdminUniversitiesPage() {
 
   const rankingColumn: AdminColumn<AdminUniversityListItem> = {
     key: 'ranking',
-    header: 'Рейтинг',
+    header: t('universities.col.rank'),
     sortKey: 'ranking',
     align: 'right',
     width: '108px',
@@ -125,8 +130,7 @@ export default function AdminUniversitiesPage() {
     // at once, so 32 and 248 are not comparable. `ranking_label` is the string
     // the source actually gave; now that the list carries it, the cell names
     // the scale instead of only warning that it might not be the one assumed.
-    headerTitle:
-      'Значения из разных источников (мировые, национальные, отраслевые) и между собой не сравнимы — источник в подсказке к числу.',
+    headerTitle: t('universities.col.rankHint'),
     cell: (item) =>
       item.ranking != null ? (
         <span className={cn(ADMIN_NUM, 'text-secondary')} title={item.ranking_label ?? undefined}>
@@ -144,12 +148,12 @@ export default function AdminUniversitiesPage() {
     align: 'right',
     width: '128px',
     mobile: 'field',
-    headerTitle: 'Позиция в казахстанском рейтинге uniranks.com. Пусто — ещё не проверяли.',
+    headerTitle: t('universities.col.kzRankHint'),
     cell: (item) =>
       item.uniranks_kz_rank != null ? (
         <span className={cn(ADMIN_NUM, 'text-secondary')}>{item.uniranks_kz_rank}</span>
       ) : item.uniranks_note ? (
-        <span className={ADMIN_META} title="Проверено: вуза нет в рейтинге">
+        <span className={ADMIN_META} title={t('universities.notInRanking')}>
           {item.uniranks_note}
         </span>
       ) : (
@@ -160,7 +164,7 @@ export default function AdminUniversitiesPage() {
   const columns: AdminColumn<AdminUniversityListItem>[] = [
     {
       key: 'name',
-      header: 'Вуз',
+      header: t('universities.col.name'),
       sortKey: 'name',
       mobile: 'title',
       cell: (item) => (
@@ -176,7 +180,7 @@ export default function AdminUniversitiesPage() {
     {
       key: 'location',
       // With a country picked, repeating it on every row is noise.
-      header: country ? 'Город' : 'Город / страна',
+      header: country ? t('universities.col.city') : t('universities.col.cityCountry'),
       width: country ? '160px' : '220px',
       mobile: 'subtitle',
       cell: (item) => {
@@ -192,7 +196,7 @@ export default function AdminUniversitiesPage() {
     ...(showKzRanking ? [uniranksColumn] : []),
     {
       key: 'programs',
-      header: 'Программ',
+      header: t('universities.col.programs'),
       sortKey: 'programs_count',
       align: 'right',
       width: '110px',
@@ -201,7 +205,7 @@ export default function AdminUniversitiesPage() {
       // invisible to students. Worth spotting while scanning the catalog.
       cell: (item) =>
         item.programs_count === 0 ? (
-          <span className={cn(ADMIN_NUM, 'text-danger')} title="Без программ вуз не попадёт в подбор ученику">
+          <span className={cn(ADMIN_NUM, 'text-danger')} title={t('universities.noProgramsHint')}>
             0
           </span>
         ) : (
@@ -210,11 +214,11 @@ export default function AdminUniversitiesPage() {
     },
     {
       key: 'updated',
-      header: 'Правка',
+      header: t('universities.col.edited'),
       align: 'right',
       width: '108px',
       mobile: 'badge',
-      headerTitle: 'Дата ручной правки из админки. Пусто — вуз только из сида, руками не трогали.',
+      headerTitle: t('universities.col.editedHint'),
       // Was "Обновлён" and rendered a dash on every row: `updated_at` is set
       // only by an admin PATCH and is null for the entire seeded catalog. A
       // column of 252 dashes is not a column; a mark on edited rows is.
@@ -228,20 +232,20 @@ export default function AdminUniversitiesPage() {
   return (
     <>
       <AdminListHeader
-        title="Университеты"
-        description="Каталог вузов и их программ. Это единственный раздел, где правки уходят в данные продукта напрямую."
+        title={t('nav.universities')}
+        description={t('universities.description')}
       />
 
       <AdminToolbar
         search={{
           value: search,
           onChange: handleSearch,
-          placeholder: 'Название, город или аббревиатура',
+          placeholder: t('universities.searchPlaceholder'),
         }}
         selects={[
           {
             key: 'country',
-            label: 'Страна',
+            label: t('universities.col.country'),
             value: country,
             options: countries.map((entry) => ({
               value: entry.country,
@@ -250,7 +254,7 @@ export default function AdminUniversitiesPage() {
           },
           {
             key: 'has_programs',
-            label: 'Программы',
+            label: t('universities.col.programs'),
             value: hasPrograms,
             options: [
               { value: 'no', label: 'Без программ' },
@@ -262,10 +266,10 @@ export default function AdminUniversitiesPage() {
         onClearAll={clearFilters}
       />
 
-      {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
+      {error && <AdminError message={error} onRetry={() => setReloadToken((token) => token + 1)} />}
 
       <AdminDataTable
-        label="Университеты"
+        label={t('nav.universities')}
         columns={columns}
         rows={items}
         rowKey={(item) => item.id}
@@ -273,11 +277,11 @@ export default function AdminUniversitiesPage() {
         loading={loading}
         sort={sort}
         onSortChange={setSort}
-        emptyTitle="Университеты не найдены"
-        emptyHint="Поиск матчит название, короткое имя, город и аббревиатуры. Попробуйте снять фильтр по стране."
+        emptyTitle={t('universities.empty')}
+        emptyHint={t('universities.emptyHint')}
       />
 
-      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['вуз', 'вуза', 'вузов']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="universities" />
     </>
   );
 }
