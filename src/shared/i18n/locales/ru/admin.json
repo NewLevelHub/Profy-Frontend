@@ -706,6 +706,9 @@
       "interestsHint": "Два ведущих типа RIASEC. Полная раскладка — в карточке пользователя",
       "registered": "Регистрация"
     },
+    "createStaff": "Создать сотрудника",
+    "createdStaff": "Создан сотрудник {{email}} · {{role}}.",
+    "createdStaffOpen": "Открыть карточку",
     "csvError": "Не удалось выгрузить CSV. Возможно, выборка слишком большая — сузьте фильтры.",
     "daysAgo_few": "{{count}} дн. назад",
     "daysAgo_many": "{{count}} дн. назад",
@@ -719,6 +722,8 @@
     "emailUnverifiedHint": "Пользователь не подтвердил email",
     "empty": "Пользователи не найдены",
     "emptyHint": "Попробуйте изменить фильтры или очистить поиск.",
+    "emptyStaff": "Сотрудники с этой ролью не найдены",
+    "emptyStaffHint": "Создайте сотрудника кнопкой выше или измените поиск.",
     "exportCsv": "Экспорт CSV",
     "exportFailed": "Не удалось выгрузить",
     "exportPdf": "Экспорт PDF",
@@ -768,6 +773,12 @@
     },
     "registeredOn": "зарегистрирован {{date}}",
     "reportVersion": "версия отчёта {{version}}",
+    "roleTabs": {
+      "admin": "Админы",
+      "aria": "Роль пользователей",
+      "psychologist": "Психологи",
+      "student": "Ученики"
+    },
     "status": {
       "done": "Завершена",
       "notStarted": "Не начата"
