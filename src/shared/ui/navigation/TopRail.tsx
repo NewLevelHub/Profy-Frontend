@@ -9,6 +9,7 @@ import { LOCALE_SWITCH_ENABLED } from '@/shared/store/locale';
 import { playClick } from '@/shared/lib/sounds';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { homePathForUser } from '@/shared/lib/homePath';
 import { useProfileStore } from '@/shared/store/profile';
 import { NAV_ITEMS, ADMIN_NAV_ITEM, PSYCHOLOGIST_NAV_ITEMS, isNavActive, type NavItem } from './navItems';
 
@@ -48,7 +49,7 @@ export function TopRail() {
         style={{ height: 'var(--header-h)' }}
       >
         <Link
-          to="/results"
+          to={homePathForUser(user)}
           className="brand-wordmark flex-shrink-0 hover:opacity-80 transition-opacity press-scale"
           aria-label={env.APP_NAME}
         >

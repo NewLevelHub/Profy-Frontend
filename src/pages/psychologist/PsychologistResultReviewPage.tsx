@@ -4,6 +4,7 @@ import axios from 'axios';
 import { ArrowLeft } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
+import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -140,12 +141,9 @@ export default function PsychologistResultReviewPage() {
   const isDirty = Object.keys(patch).length > 0;
   const isPublished = detail?.review_status === 'published';
 
-  useEffect(() => {
-    if (!isDirty) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [isDirty]);
+  // Covers breadcrumbs, top nav, browser back — not only the local "Назад"
+  // button (PRO-337 review finding).
+  useUnsavedGuard(isDirty);
 
   function update<K extends EditableKey>(key: K, value: Draft[K]) {
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -199,9 +197,7 @@ export default function PsychologistResultReviewPage() {
   }
 
   function goBack() {
-    if (isDirty && !window.confirm('Есть несохранённые изменения. Уйти со страницы без сохранения?')) {
-      return;
-    }
+    // Dirty confirm is handled by useUnsavedGuard (including this navigate).
     // react-router stores its position in history.state.idx — 0 means this
     // page was opened cold (direct link, refresh), where "back" would leave
     // the app entirely. Fall back to the queue, not to a hardcoded parent
@@ -285,7 +281,7 @@ export default function PsychologistResultReviewPage() {
 
       <AdminCard
         title="Интересы и направления"
-        description="Можно переписать описание направления или убрать неподходящее. Баллы и порядок считаются автоматически."
+        description="Перетащите направление или стрелками поменяйте порядок; неподходящее можно убрать. Баллы остаются как посчитала система."
         aside={
           <div className="flex flex-wrap gap-1.5 justify-end">
             {detail.strengths.map((code) => (

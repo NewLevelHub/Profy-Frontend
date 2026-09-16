@@ -19,6 +19,7 @@ export default function ResultLoadingPage() {
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const completeAssessment = useAssessmentStore(s => s.completeAssessment);
   const setReport = useResultStore(s => s.setReport);
+  const clearReport = useResultStore(s => s.clearReport);
 
   // Diagnostic just finished — always route through the "here's what fits
   // you" interstitial (step 5 of the onboarding→assessment journey) before
@@ -43,7 +44,9 @@ export default function ResultLoadingPage() {
         // real tag, useResults treats the report as matching *any* locale and
         // never re-fetches on a language switch. A report still waiting for
         // psychologist review isn't stored — /results shows the waiting state.
-        if (!isPendingReview(result)) setReport(result, useLocaleStore.getState().locale);
+        // Clear any leftover report from a previous attempt first (PRO-337).
+        if (isPendingReview(result)) clearReport();
+        else setReport(result, useLocaleStore.getState().locale);
         navigate('/results', { replace: true });
       }).catch(() => navigate('/results', { replace: true }));
       return;
@@ -63,6 +66,7 @@ export default function ResultLoadingPage() {
           if (isPendingReview(result)) {
             // Nothing to suggest on goal-check without a report — go straight
             // to /results, which shows the "psychologist is reviewing" state.
+            clearReport();
             navigate('/results', { replace: true });
           } else {
             setReport(result, useLocaleStore.getState().locale);
@@ -78,6 +82,7 @@ export default function ResultLoadingPage() {
               completeAssessment();
               playBlockFinishAudio(1, 1);
               if (isPendingReview(existing)) {
+                clearReport();
                 navigate('/results', { replace: true });
               } else {
                 setReport(existing, useLocaleStore.getState().locale);

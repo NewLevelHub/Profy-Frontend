@@ -37,16 +37,18 @@ export function useResults() {
   const hasAssessment = assessmentId !== null && goal !== null;
   const inProgress = hasAssessment && !hasCompletedAssessment;
 
-  // Whether the stored report is usable for the current locale. Every writer
-  // now tags the report with the locale it was fetched under (ResultLoadingPage
-  // and the effect below), so a language switch makes `storedReportLocale`
-  // differ from `reportLocale` and re-enables the query. A `null` tag only
-  // survives as a transient default — treat it as a match so it doesn't force
-  // a spurious re-fetch before the real tag lands. We never tear the current
-  // report down either (see effectiveReport below), so a failed re-fetch can't
-  // blank the page.
+  // Whether the stored report belongs to this assessment *and* locale. A
+  // retake creates a new assessment_id (PRO-337): without that check the
+  // previous published report stays on screen, the query stays disabled, and
+  // the pending-review waiting state never appears. Locale tagging still
+  // drives re-fetch on a language switch (KZ-406). A `null` locale tag is a
+  // transient default — treat it as matching so it doesn't force a spurious
+  // re-fetch before the real tag lands.
+  const reportMatchesAssessment =
+    report != null && assessmentId != null && report.assessment_id === assessmentId;
   const reportMatchesLocale =
-    report != null && (storedReportLocale === null || storedReportLocale === reportLocale);
+    reportMatchesAssessment &&
+    (storedReportLocale === null || storedReportLocale === reportLocale);
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['result', assessmentId, reportLocale] as const,
@@ -77,6 +79,14 @@ export function useResults() {
   const fetchedReport = data && !isPendingReview(data) ? data : null;
 
   useEffect(() => {
+    // Drop a leftover report from another assessment (retake) so it can't
+    // keep masking the pending-review state via the effectiveReport fallback.
+    if (report != null && assessmentId != null && report.assessment_id !== assessmentId) {
+      clearReport();
+    }
+  }, [report, assessmentId, clearReport]);
+
+  useEffect(() => {
     // Adopt a report freshly fetched for the current locale, tagging it so a
     // later language switch is detected. Only runs when the stored one doesn't
     // already cover this locale — never overwrites a matching report.
@@ -92,10 +102,15 @@ export function useResults() {
     }
   }, [is403, resetAssessment, clearReport]);
 
-  // Prefer a report that matches the current locale; otherwise show a
-  // freshly-fetched one, falling back to the stale-locale report so a switch
-  // (or a failed re-fetch after one) never leaves the page blank (KZ-406).
-  const effectiveReport = (reportMatchesLocale ? report : null) ?? fetchedReport ?? report ?? null;
+  // Prefer a report that matches this assessment + locale; otherwise show a
+  // freshly-fetched one, falling back to the same-assessment stale-locale
+  // report so a language switch (or a failed re-fetch) never blanks the page
+  // (KZ-406). Never fall back to another assessment's report (PRO-337).
+  const effectiveReport =
+    (reportMatchesLocale ? report : null) ??
+    fetchedReport ??
+    (reportMatchesAssessment ? report : null) ??
+    null;
 
   // A finished report is on screen but still in the previous language, and
   // the query for the newly-picked locale is in flight. The backend is
