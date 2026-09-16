@@ -110,7 +110,16 @@ export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
 // deliberately NOT here — PRO-282's protocol-validity items are masked as
 // `riasec` on the wire (PRO-298) and never reach the frontend as their own
 // instrument value.
-export type Instrument = 'riasec' | 'big_five' | 'mi' | 'professional_types' | 'professional_types_abilities' | 'eysenck' | 'elers';
+export type Instrument =
+  | 'riasec'
+  | 'big_five'
+  | 'mi'
+  | 'professional_types'
+  | 'professional_types_abilities'
+  | 'eysenck'
+  | 'elers'
+  | 'boyko_empathy'
+  | 'kondash_anxiety';
 export type BigFiveDomain = 'N' | 'E' | 'O' | 'A' | 'C';
 // Junior's (6-9) interest instrument, replacing RIASEC — TZ_Profi.md §4.1
 // excludes career orientation for that age group. See MI_LABELS/MI_ICONS.
@@ -1056,7 +1065,9 @@ export interface AspirationLevelSection {
 export interface EmpathyConfidenceSection {
   empathy_channels: Record<string, number> | null;
   empathy_total: number | null;
+  empathy_level: string | null;
   confidence_stens: number | null;
+  confidence_level: string | null;
 }
 
 export interface NewTestsSections {

@@ -128,6 +128,19 @@ export const ABILITIES_LIKERT_SCALE: { value: number; label: string }[] = [
   { value: 3, label: 'assessment:abilitiesLikert.3' },
 ];
 
+// PRO-338 Ф1.10 — Kondash/Prikhozhan «тревожность» (kondash_anxiety, 40п.)
+// is a genuine 0-4 scale (Нет/Немного/Достаточно/Значительно/Очень, source:
+// docs/psych/new-tests-content-sources.md "Пробел 3"), stored as the literal
+// 0-4 answer_value — same widened-floor convention as ABILITIES_LIKERT_SCALE
+// above, no +1/-1 conversion in kondash_anxiety scoring (Ф1.11).
+export const KONDASH_ANXIETY_SCALE: { value: number; label: string }[] = [
+  { value: 0, label: 'assessment:kondashAnxietyLikert.0' },
+  { value: 1, label: 'assessment:kondashAnxietyLikert.1' },
+  { value: 2, label: 'assessment:kondashAnxietyLikert.2' },
+  { value: 3, label: 'assessment:kondashAnxietyLikert.3' },
+  { value: 4, label: 'assessment:kondashAnxietyLikert.4' },
+];
+
 export const THINKING_STYLE_LABELS: Record<string, string> = {
   creative_think: 'results:thinkingStyle.creative_think',
   systematic: 'results:thinkingStyle.systematic',

@@ -14,19 +14,24 @@ import { buildPages, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
 import type { Instrument } from '@/shared/types';
 
-// PRO-338 Ф0.8 — professional_types_abilities/eysenck/elers land as one
-// contiguous, non-interleaved sub-section right after MI/RIASEC/BigFive
-// (app/services/question_service.py::get_all_questions, backed by the
-// order ranges in scripts/{professional_types,eysenck,elers}_bank.py) —
-// the rail's section label switches to "Дополнительные тесты" for exactly
+// PRO-338 Ф0.8 — professional_types_abilities/eysenck/elers/boyko_empathy/
+// kondash_anxiety land as one contiguous, non-interleaved sub-section right
+// after MI/RIASEC/BigFive (app/services/question_service.py::
+// get_all_questions, backed by the order ranges in scripts/
+// {professional_types,eysenck,elers,boyko_empathy,kondash_anxiety}_bank.py)
+// — the rail's section label switches to "Дополнительные тесты" for exactly
 // this run of pages, distinguishing it from the main "Диагностика" block.
-// Belbin/АСТУР are deliberately never part of this list — they don't flow
-// through this screen at all (own routes, launched only from the
-// psychologist cabinet, see 01-Фаза0-Фундамент.md Ф0.8).
+// boyko_empathy was missing here until Ф1.10 (its own Ф1.9 ticket shipped
+// only the content bank, not this wiring) — fixed alongside adding
+// kondash_anxiety. Belbin/АСТУР are deliberately never part of this list —
+// they don't flow through this screen at all (own routes, launched only
+// from the psychologist cabinet, see 01-Фаза0-Фундамент.md Ф0.8).
 const ADDITIONAL_TESTS_INSTRUMENTS: ReadonlySet<Instrument> = new Set([
   'professional_types_abilities',
   'eysenck',
   'elers',
+  'boyko_empathy',
+  'kondash_anxiety',
 ]);
 
 // Below this, a save reads as instant — showing a spinner for it would be
