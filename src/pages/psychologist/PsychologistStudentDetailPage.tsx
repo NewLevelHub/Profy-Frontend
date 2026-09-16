@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import axios from 'axios';
-import { FileText, Pencil, Trash2 } from 'lucide-react';
+import { FileText, ListChecks, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
@@ -225,6 +225,17 @@ export default function PsychologistStudentDetailPage() {
                     {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
                   </AdminBadge>
                   {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
+                  {/* PRO-338 Ф2.6 — Belbin — опциональный расширенный блок,
+                      вне обычного потока ученика; ссылка ведёт на отдельный
+                      маршрут, который проходит сам ученик (не психолог). */}
+                  <Link
+                    to={`/assessment/extended/belbin/${a.id}`}
+                    className={cn(ADMIN_BUTTON, 'gap-1.5')}
+                    title="Открывает отдельный экран для ученика — Belbin BTRSPI"
+                  >
+                    <ListChecks size={13} />
+                    Расширенный блок
+                  </Link>
                   {a.has_result && (
                     <Link
                       to={`/psychologist/students/${studentId}/assessments/${a.id}/report`}

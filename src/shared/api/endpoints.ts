@@ -28,6 +28,8 @@ export const API = {
     motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
+    belbinContent: '/assessment/belbin/content',
+    belbin: (assessmentId: string) => `/assessment/${assessmentId}/belbin`,
   },
   result: {
     generate: '/result/generate',

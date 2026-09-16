@@ -261,6 +261,35 @@ export interface SubmitPairAnswersResponse {
   completed: boolean;
 }
 
+// ─── Belbin BTRSPI (ипсативный блок, вне обычного /assessment потока) ───────────
+
+export interface BelbinContentItem {
+  id: string;
+  text: string;
+}
+
+export interface BelbinContentSection {
+  section: string;
+  title: string;
+  items: BelbinContentItem[];
+}
+
+export interface BelbinContent {
+  instruction: string;
+  block_total: number;
+  sections: BelbinContentSection[];
+}
+
+export interface SubmitBelbinPayload {
+  /** Ровно 7 блоков, в порядке разделов I..VII — каждый `{item_id: баллы}`. */
+  allocations: Record<string, number>[];
+}
+
+export interface SubmitBelbinResponse {
+  run_id: string;
+  role_totals: Record<string, number>;
+}
+
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {
@@ -1035,7 +1064,13 @@ export interface ProfessionalTypesSection {
 
 export interface TeamRoleSection {
   scores: Record<string, number> | null;
-  top_roles: string[] | null;
+  // All 8 role codes sorted by score descending (ties broken server-side by
+  // a fixed canonical order) — the Bar Chart (Ф2.7) renders bars in exactly
+  // this order, not `scores`' own (unordered) key order.
+  ranked_roles: string[] | null;
+  dominant_role: string | null;
+  supporting_roles: string[] | null;
+  avoidance_roles: string[] | null;
   methodological_note: string | null;
 }
 

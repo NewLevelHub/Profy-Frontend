@@ -33,6 +33,9 @@ import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
+// PRO-338 Ф2.6 — Belbin BTRSPI: own route outside this flow, launched only
+// from the psychologist cabinet (see 03-Фаза2-Белбин.md Ф2.6/Ф0.8).
+import BelbinPage from '@/pages/assessment/belbin/BelbinPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
 import ResultsPage from '@/pages/results/ResultsPage';
@@ -139,6 +142,9 @@ export const router = createBrowserRouter([
       { path: '/assessment/rest', element: <RestStopPage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
       { path: '/assessment/goal-check', element: <GoalCheckPage /> },
+
+      // PRO-338 Ф2.6 — Belbin, opt-in extended block, outside the wizard above.
+      { path: '/assessment/extended/belbin/:assessmentId', element: <BelbinPage /> },
 
       // Main app — guarded by profile; redirects to /welcome if profile not yet created
       {
