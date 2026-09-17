@@ -66,7 +66,13 @@ export function useMotivationHarter() {
           const startIndex = Math.min(current.motivation_answered_count, data.length - 1);
           setPairIndex(startIndex);
           if (startIndex >= data.length - 1 && current.motivation_answered_count >= data.length) {
-            navigate('/assessment/loading', { replace: true });
+            const state = useAssessmentStore.getState();
+            const nextRoute = !state.belbinCompleted
+              ? `/assessment/belbin/${assessmentId}`
+              : !state.asturCompleted
+              ? `/assessment/astur/${assessmentId}`
+              : '/assessment/loading';
+            navigate(nextRoute, { replace: true });
             return;
           }
         }
@@ -145,19 +151,13 @@ export function useMotivationHarter() {
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
-        // Don't call completeAssessment() here — that flag means "report
-        // generated", not "questions answered". Setting it early makes
-        // ResultLoadingPage take its "already have a report" shortcut
-        // (straight to /results, skipping the loading animation and
-        // goal-check) before a report exists. ResultLoadingPage sets it
-        // itself once resultApi.generate() actually succeeds.
-        navigate('/assessment/loading');
+        navigate(`/assessment/belbin/${assessmentId}`);
         return;
       }
 
       const isLast = pairIndex >= pairs.length - 1;
       if (isLast) {
-        navigate('/assessment/loading');
+        navigate(`/assessment/belbin/${assessmentId}`);
         return;
       }
 
@@ -207,7 +207,7 @@ export function useMotivationHarter() {
           intensity: Math.random() < 0.5 ? 'high' : 'medium',
         })),
       });
-      navigate('/assessment/loading');
+      navigate(`/assessment/belbin/${assessmentId}`);
     } catch {
       setError(t('assessment:error.autofill'));
     } finally {

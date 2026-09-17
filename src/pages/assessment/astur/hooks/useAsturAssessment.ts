@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { asturApi } from '@/shared/api/astur';
+import { useAssessmentStore } from '@/shared/store/assessment';
 import type { AsturSubtestKey, SubmitAsturSubtestPayload } from '@/shared/types';
 
 type StepPhase = 'instruction' | 'running';
@@ -29,17 +30,7 @@ function persistCompleted(assessmentId: string, completed: Set<AsturSubtestKey>)
 
 /**
  * PRO-338 Ф3.6 — all data fetching/derived state for the АСТУР
- * multi-subtest flow (Frontend-arch.md: page = assembly, hook = logic).
- *
- * Progress across a dropped connection/reload (Ф3.6's own requirement,
- * "обрыв на середине не теряет прогресс по сданным субтестам"): the
- * backend already guarantees this at the data level (Ф3.4's per-subtest
- * submit, one row built up incrementally) — this hook adds the missing
- * frontend half, since there is no GET-status endpoint to ask the server
- * "which subtests are already done" (astur.py only has start/submit).
- * Completed subtest keys are mirrored into sessionStorage; on mount, the
- * flow jumps straight to the first not-yet-completed subtest instead of
- * replaying finished ones.
+ * multi-subtest flow. Part of the continuous assessment sequence.
  */
 export function useAsturAssessment(assessmentId: string) {
   const { data: content, isLoading, isError } = useQuery({
@@ -55,8 +46,6 @@ export function useAsturAssessment(assessmentId: string) {
 
   // Once content is known, resume at the first subtest not already in
   // `completed` — runs once per content load, not on every `completed` tick
-  // (that would snap the index forward mid-flow after every submit, racing
-  // the deliberate setSubtestIndex(i => i + 1) in completeSubtest below).
   useEffect(() => {
     if (!content) return;
     const idx = content.subtests.findIndex(s => !completed.has(s.key));
@@ -68,12 +57,15 @@ export function useAsturAssessment(assessmentId: string) {
   const allDone = content !== undefined && subtestIndex >= subtestCount && subtestCount > 0;
   const subtest = content && !allDone ? content.subtests[subtestIndex] : null;
 
+  useEffect(() => {
+    if (allDone) {
+      useAssessmentStore.getState().setAsturCompleted(true);
+    }
+  }, [allDone]);
+
   function beginSubtest() {
     setStepPhase('running');
     if (subtest && subtest.key !== 'lability') {
-      // Fire-and-forget: a failed /start just means this subtest's
-      // actual_ms won't be server-verified (Ф3.4) — the answer is still
-      // accepted, so a network blip here must never block the student.
       void asturApi.startSubtest(assessmentId, subtest.number).catch(() => {});
     }
   }
@@ -90,10 +82,50 @@ export function useAsturAssessment(assessmentId: string) {
         persistCompleted(assessmentId, next);
         return next;
       });
-      setSubtestIndex(i => i + 1);
+      const nextIndex = subtestIndex + 1;
+      setSubtestIndex(nextIndex);
+      if (nextIndex >= subtestCount) {
+        useAssessmentStore.getState().setAsturCompleted(true);
+      }
       setStepPhase('instruction');
     } catch {
       setSubmitError('Не удалось отправить ответы, попробуйте ещё раз');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleAutofill() {
+    if (!content || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      for (const st of content.subtests) {
+        if (!completed.has(st.key)) {
+          const answers: Record<string, unknown> = {};
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          st.items.forEach((it: any) => {
+            if (st.key === 'logical_schemas') {
+              answers[it.id] = (it.options || []).slice(0, 3);
+            } else if (st.key === 'classification' || st.key === 'numeric_series') {
+              answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
+            } else {
+              answers[it.id] = it.options?.[0] ?? '1';
+            }
+          });
+          await asturApi.submitSubtest(assessmentId, st.number, { answers, elapsed_ms: {} });
+          setCompleted(prev => {
+            const next = new Set(prev);
+            next.add(st.key);
+            persistCompleted(assessmentId, next);
+            return next;
+          });
+        }
+      }
+      setSubtestIndex(content.subtests.length);
+      useAssessmentStore.getState().setAsturCompleted(true);
+    } catch {
+      setSubmitError('Не удалось автозаполнить субтесты');
     } finally {
       setSubmitting(false);
     }
@@ -110,6 +142,7 @@ export function useAsturAssessment(assessmentId: string) {
     labilityItemLimitMs: content?.lability_item_limit_ms ?? 5000,
     beginSubtest,
     completeSubtest,
+    handleAutofill,
     submitting,
     submitError,
   };

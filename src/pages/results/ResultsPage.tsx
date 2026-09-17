@@ -19,7 +19,6 @@ import { ExplorationActivitiesSection } from './components/ExplorationActivities
 import { FinalAnalysisSection } from './components/FinalAnalysisSection';
 import { GoalBranchSection } from './components/GoalBranchSection';
 import { FeedbackSection } from './components/FeedbackSection';
-import { ExtendedBlocksBanner } from './components/ExtendedBlocksBanner';
 
 function ResultsSkeleton() {
   return (
@@ -53,6 +52,7 @@ export default function ResultsPage() {
     inProgress,
     answeredCount,
     totalQuestions,
+    continueRoute,
   } = useResults();
 
   if (!hasCompletedAssessment) {
@@ -62,7 +62,7 @@ export default function ResultsPage() {
           <AssessmentInProgressCard
             answeredCount={answeredCount}
             totalQuestions={totalQuestions}
-            onContinue={() => navigate('/assessment')}
+            onContinue={() => navigate(continueRoute)}
           />
         ) : (
           <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />
@@ -128,8 +128,6 @@ export default function ResultsPage() {
       <ResultsReveal>
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
       </ResultsReveal>
-
-      <ExtendedBlocksBanner assessmentId={assessmentId} />
 
       <ResultsReveal delay={1}>
         <InterestDomainSection

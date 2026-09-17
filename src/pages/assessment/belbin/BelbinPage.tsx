@@ -1,21 +1,28 @@
-import { useParams } from 'react-router';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Spinner } from '@/shared/ui/Spinner';
+import { Button } from '@/shared/ui/Button';
 import { Text } from '@/shared/ui/typography/Text';
+import { useAssessmentStore } from '@/shared/store/assessment';
 import { useBelbinAssessment } from './hooks/useBelbinAssessment';
 import { BelbinIntro } from './components/BelbinIntro';
 import { BelbinBlock } from './components/BelbinBlock';
 import { BelbinDone } from './components/BelbinDone';
 
-/**
- * PRO-338 Ф2.6 — Belbin BTRSPI ("Кто вы в организации"), 7 ипсативных
- * блоков. Отдельный маршрут вне обычного `/assessment` потока
- * (01-Фаза0-Фундамент.md Ф0.8): запускается только по прямой ссылке из
- * кабинета психолога ("назначить расширенный блок"), не идёт следом за
- * MI/RIASEC/BigFive и не показывается в обычной навигации.
- */
 export default function BelbinPage() {
-  const { assessmentId = '' } = useParams<{ assessmentId: string }>();
+  const navigate = useNavigate();
+  const params = useParams<{ assessmentId: string }>();
+  const storeAssessmentId = useAssessmentStore((s) => s.assessmentId);
+  const belbinCompleted = useAssessmentStore((s) => s.belbinCompleted);
+  const effectiveAssessmentId = params.assessmentId || storeAssessmentId || '';
+
+  useEffect(() => {
+    if (belbinCompleted && effectiveAssessmentId) {
+      navigate(`/assessment/astur/${effectiveAssessmentId}`, { replace: true });
+    }
+  }, [belbinCompleted, effectiveAssessmentId, navigate]);
+
   const {
     isLoading,
     loadError,
@@ -32,13 +39,32 @@ export default function BelbinPage() {
     start,
     goBack,
     goNext,
+    handleAutofill,
     submitting,
     submitError,
-  } = useBelbinAssessment(assessmentId);
+  } = useBelbinAssessment(effectiveAssessmentId);
+
+  const handleDoneContinue = () => {
+    navigate(`/assessment/astur/${effectiveAssessmentId}`);
+  };
 
   return (
     <div className="min-h-screen bg-page">
       <PageContainer size="content" className="py-10">
+        {import.meta.env.DEV && phase !== 'done' && (
+          <div className="flex justify-end mb-4">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleAutofill}
+              disabled={submitting}
+              className="text-xs text-muted hover:text-primary"
+            >
+              ⚡ Автозаполнение (Belbin)
+            </Button>
+          </div>
+        )}
+
         {isLoading && (
           <div className="flex justify-center py-16">
             <Spinner size="lg" />
@@ -72,7 +98,7 @@ export default function BelbinPage() {
           />
         )}
 
-        {phase === 'done' && <BelbinDone />}
+        {phase === 'done' && <BelbinDone onContinue={handleDoneContinue} />}
       </PageContainer>
     </div>
   );

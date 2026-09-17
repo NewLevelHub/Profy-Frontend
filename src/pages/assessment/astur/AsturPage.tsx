@@ -1,23 +1,30 @@
-import { useParams } from 'react-router';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Spinner } from '@/shared/ui/Spinner';
+import { Button } from '@/shared/ui/Button';
 import { Text } from '@/shared/ui/typography/Text';
+import { useAssessmentStore } from '@/shared/store/assessment';
 import { useAsturAssessment } from './hooks/useAsturAssessment';
 import { SubtestIntro } from './components/SubtestIntro';
 import { SubtestRunner } from './components/SubtestRunner';
 import { LabilityRunner } from './components/LabilityRunner';
 import { AsturDone } from './components/AsturDone';
 
-/**
- * PRO-338 Ф3.6 — АСТУР ("Характеристики интеллекта"), 7 субтестов
- * (8-й — «Геометрические фигуры» — ждёт визуального материала, Ф3.1, не
- * включён в поток). Отдельный маршрут вне обычного `/assessment` (как
- * Belbin, Ф2.6): запускается только по прямой ссылке из кабинета
- * психолога.
- */
 export default function AsturPage() {
-  const { assessmentId = '' } = useParams<{ assessmentId: string }>();
+  const navigate = useNavigate();
+  const params = useParams<{ assessmentId: string }>();
+  const storeAssessmentId = useAssessmentStore((s) => s.assessmentId);
+  const asturCompleted = useAssessmentStore((s) => s.asturCompleted);
+  const effectiveAssessmentId = params.assessmentId || storeAssessmentId || '';
+
+  useEffect(() => {
+    if (asturCompleted && effectiveAssessmentId) {
+      navigate('/assessment/loading', { replace: true });
+    }
+  }, [asturCompleted, effectiveAssessmentId, navigate]);
+
   const {
     isLoading,
     loadError,
@@ -29,13 +36,32 @@ export default function AsturPage() {
     labilityItemLimitMs,
     beginSubtest,
     completeSubtest,
+    handleAutofill,
     submitting,
     submitError,
-  } = useAsturAssessment(assessmentId);
+  } = useAsturAssessment(effectiveAssessmentId);
+
+  const handleDoneContinue = () => {
+    navigate('/assessment/loading');
+  };
 
   return (
     <div className="min-h-screen bg-page">
       <PageContainer size="content" className="py-10 flex flex-col gap-6">
+        {import.meta.env.DEV && !allDone && (
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleAutofill}
+              disabled={submitting}
+              className="text-xs text-muted hover:text-primary"
+            >
+              ⚡ Автозаполнение (АСТУР)
+            </Button>
+          </div>
+        )}
+
         {!allDone && subtestCount > 0 && (
           <ProgressBar
             value={(subtestIndex / subtestCount) * 100}
@@ -78,7 +104,7 @@ export default function AsturPage() {
           />
         )}
 
-        {!isLoading && !loadError && allDone && <AsturDone />}
+        {!isLoading && !loadError && allDone && <AsturDone onContinue={handleDoneContinue} />}
       </PageContainer>
     </div>
   );

@@ -2,6 +2,9 @@ import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
 import { motivationPairsApi } from '@/shared/api/motivationPairs';
 import { pairsApi } from '@/shared/api/pairs';
+import { belbinApi } from '@/shared/api/belbin';
+import { asturApi } from '@/shared/api/astur';
+import { useAssessmentStore } from '@/shared/store/assessment';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
 import type { AgeGroup, Instrument, Question } from '@/shared/types';
 
@@ -110,5 +113,45 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
         })),
       });
     }
+  }
+
+  try {
+    const belbinContent = await belbinApi.getContent();
+    if (belbinContent?.sections?.length > 0) {
+      const allocations = belbinContent.sections.map((sec) => {
+        const alloc: Record<string, number> = {};
+        sec.items.forEach((it, idx) => {
+          alloc[it.id] = idx === 0 ? belbinContent.block_total : 0;
+        });
+        return alloc;
+      });
+      await belbinApi.submit(assessmentId, { allocations });
+      useAssessmentStore.getState().setBelbinCompleted(true);
+    }
+  } catch {
+    // Ignore if already submitted or error
+  }
+
+  try {
+    const asturContent = await asturApi.getContent();
+    if (asturContent?.subtests?.length > 0) {
+      for (const st of asturContent.subtests) {
+        const answers: Record<string, unknown> = {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        st.items.forEach((it: any) => {
+          if (st.key === 'logical_schemas') {
+            answers[it.id] = (it.options || []).slice(0, 3);
+          } else if (st.key === 'classification' || st.key === 'numeric_series') {
+            answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
+          } else {
+            answers[it.id] = it.options?.[0] ?? '1';
+          }
+        });
+        await asturApi.submitSubtest(assessmentId, st.number, { answers, elapsed_ms: {} });
+      }
+      useAssessmentStore.getState().setAsturCompleted(true);
+    }
+  } catch {
+    // Ignore if already submitted or error
   }
 }

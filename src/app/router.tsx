@@ -158,7 +158,12 @@ export const router = createBrowserRouter([
           { path: '/assessment/loading', element: <ResultLoadingPage /> },
           { path: '/assessment/goal-check', element: <GoalCheckPage /> },
 
-          // PRO-338 Ф2.6 — Belbin, opt-in extended block, outside the wizard above.
+          // Assessment flow — Belbin & ASTUR follow Motivation directly
+          { path: '/assessment/belbin/:assessmentId', element: <BelbinPage /> },
+          { path: '/assessment/belbin', element: <BelbinPage /> },
+          { path: '/assessment/astur/:assessmentId', element: <AsturPage /> },
+          { path: '/assessment/astur', element: <AsturPage /> },
+          // Backward-compatibility aliases
           { path: '/assessment/extended/belbin/:assessmentId', element: <BelbinPage /> },
           { path: '/assessment/extended/astur/:assessmentId', element: <AsturPage /> },
 

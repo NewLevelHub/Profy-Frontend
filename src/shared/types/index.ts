@@ -137,6 +137,8 @@ export interface AssessmentResponse {
   total_questions: number;
   motivation_answered_count: number;
   motivation_total: number;
+  belbin_completed?: boolean;
+  astur_completed?: boolean;
   created_at: string;
 }
 

@@ -132,6 +132,24 @@ export function useResults() {
   // recomputing it; this needs a backend-side regeneration/backfill.
   const isLegacyShape = error instanceof Error && error.message === 'legacy_result_shape';
 
+  const motivationAnsweredCount = useAssessmentStore(s => s.motivationAnsweredCount);
+  const motivationTotal = useAssessmentStore(s => s.motivationTotal);
+  const belbinCompleted = useAssessmentStore(s => s.belbinCompleted);
+  const asturCompleted = useAssessmentStore(s => s.asturCompleted);
+
+  let continueRoute = '/assessment';
+  if (answeredCount >= totalQuestions && totalQuestions > 0) {
+    if (motivationAnsweredCount < motivationTotal || motivationTotal === 0) {
+      continueRoute = '/assessment/motivation';
+    } else if (!belbinCompleted) {
+      continueRoute = assessmentId ? `/assessment/belbin/${assessmentId}` : '/assessment/belbin';
+    } else if (!asturCompleted) {
+      continueRoute = assessmentId ? `/assessment/astur/${assessmentId}` : '/assessment/astur';
+    } else {
+      continueRoute = '/assessment/loading';
+    }
+  }
+
   return {
     report: effectiveReport,
     isLoading: isLoading && !effectiveReport,
@@ -152,5 +170,6 @@ export function useResults() {
     inProgress,
     answeredCount,
     totalQuestions,
+    continueRoute,
   };
 }

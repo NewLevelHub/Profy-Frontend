@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { belbinApi } from '@/shared/api/belbin';
+import { useAssessmentStore } from '@/shared/store/assessment';
 
 type Phase = 'intro' | 'block' | 'done';
 
@@ -9,12 +10,8 @@ function zeroAllocation(items: { id: string }[]): Record<string, number> {
 }
 
 /**
- * PRO-338 Ф2.6 — all data fetching/derived state for the Belbin
- * point-allocation flow lives here (Frontend-arch.md: page = assembly,
- * hook = logic). Separate from `useAssessment`/`usePairAssessment`: this is
- * a standalone, opt-in block (launched from the psychologist cabinet, own
- * route outside `/assessment`), not another step of the main battery — no
- * shared progress store, no exit-modal/autofill machinery from that flow.
+ * PRO-338 Ф2.6 — Belbin BTRSPI point-allocation flow.
+ * Part of the continuous assessment sequence (RIASEC -> BigFive -> Motivation -> Belbin -> ASTUR).
  */
 export function useBelbinAssessment(assessmentId: string) {
   const { data: content, isLoading, isError } = useQuery({
@@ -37,7 +34,10 @@ export function useBelbinAssessment(assessmentId: string) {
 
   const submitMutation = useMutation({
     mutationFn: () => belbinApi.submit(assessmentId, { allocations }),
-    onSuccess: () => setPhase('done'),
+    onSuccess: () => {
+      useAssessmentStore.getState().setBelbinCompleted(true);
+      setPhase('done');
+    },
   });
 
   const section = content?.sections[blockIndex] ?? null;
@@ -72,6 +72,25 @@ export function useBelbinAssessment(assessmentId: string) {
     }
   }
 
+  async function handleAutofill() {
+    if (!content || submitMutation.isPending) return;
+    const autofillAllocations = content.sections.map((sec) => {
+      const alloc: Record<string, number> = {};
+      sec.items.forEach((it, idx) => {
+        alloc[it.id] = idx === 0 ? content.block_total : 0;
+      });
+      return alloc;
+    });
+    setAllocations(autofillAllocations);
+    try {
+      await belbinApi.submit(assessmentId, { allocations: autofillAllocations });
+      useAssessmentStore.getState().setBelbinCompleted(true);
+      setPhase('done');
+    } catch {
+      // ignore
+    }
+  }
+
   return {
     isLoading,
     loadError: isError ? 'Не удалось загрузить содержимое теста' : null,
@@ -89,6 +108,7 @@ export function useBelbinAssessment(assessmentId: string) {
     start,
     goBack,
     goNext,
+    handleAutofill,
     submitting: submitMutation.isPending,
     submitError: submitMutation.isError ? 'Не удалось отправить ответы, попробуйте ещё раз' : null,
   };
