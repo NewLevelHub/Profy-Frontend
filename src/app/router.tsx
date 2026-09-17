@@ -3,9 +3,9 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireAdmin } from '@/shared/guards/RequireAdmin';
 import { RequirePsychologist } from '@/shared/guards/RequirePsychologist';
-import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
+import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
@@ -105,12 +105,7 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
-      // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
-      { path: '/welcome', element: <WelcomePage /> },
-      { path: '/onboarding/profile', element: <ProfileSetupPage /> },
-      { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
-
-      // Psychologist cabinet — outside RequireProfile: staff have no student Profile
+      // Staff cabinets — outside RequireProfile: staff have no student Profile
       // and student APIs would 403 them. Gated by role alone.
       {
         element: <RequirePsychologist />,
@@ -133,12 +128,56 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      {
+        element: <RequireAdmin />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+              {
+                // Persistent admin chrome (section rail) for every admin page
+                element: <AdminLayout />,
+                children: [
+                  { path: '/admin/users', element: <AdminUsersPage /> },
+                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                  { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+                  { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+                  { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+                  { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
+                  {
+                    path: '/admin/content',
+                    element: <AdminContentLayout />,
+                    children: [
+                      { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                      { path: 'questions', element: <AdminQuestionsPage /> },
+                      { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
+                      { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
+                      { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
+                      { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
+                      { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
+                      { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
+                      { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
+                      { path: 'directions', element: <AdminDirectionsPage /> },
+                      { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
 
-      // Student-only: assessment + /results/profile/…. Psychologists stay in
-      // their cabinet — /results used to render "start the test" for them.
+      // Student-only surfaces — staff bounce to their cabinet home.
       {
         element: <RequireStudent />,
         children: [
+          // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
+          { path: '/welcome', element: <WelcomePage /> },
+          { path: '/onboarding/profile', element: <ProfileSetupPage /> },
+          { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
+
           // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
           { path: '/assessment/goal', element: <GoalSelectionPage /> },
           { path: '/assessment', element: <AssessmentPage /> },
@@ -183,43 +222,6 @@ export const router = createBrowserRouter([
                   {
                     path: '/results/directions/:slug/universities/:programId',
                     element: <ProgramDetailPage />,
-                  },
-
-                  // Admin (inside main layout — sidebar stays visible)
-                  {
-                    element: <RequireAdmin />,
-                    children: [
-                      { path: '/admin', element: <Navigate to="/admin/users" replace /> },
-                      {
-                        // Persistent admin chrome (section rail) for every admin page
-                        element: <AdminLayout />,
-                        children: [
-                          { path: '/admin/users', element: <AdminUsersPage /> },
-                          { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-                          { path: '/admin/feedback', element: <AdminFeedbackPage /> },
-                          { path: '/admin/universities', element: <AdminUniversitiesPage /> },
-                          { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
-                          { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
-                          {
-                            path: '/admin/content',
-                            element: <AdminContentLayout />,
-                            children: [
-                              { index: true, element: <Navigate to="/admin/content/questions" replace /> },
-                              { path: 'questions', element: <AdminQuestionsPage /> },
-                              { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
-                              { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
-                              { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
-                              { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
-                              { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
-                              { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
-                              { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
-                              { path: 'directions', element: <AdminDirectionsPage /> },
-                              { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
                   },
                 ],
               },

@@ -55,12 +55,12 @@ export function TrySection() {
             <Mascot state="pause" size="100%" blink={false} className="mascot-deco" />
           </div>
 
-          <span className="inline-block font-mono text-[0.68rem] font-medium uppercase tracking-[0.06em] text-subtle border border-default rounded-pill px-[0.8rem] py-[0.35rem]">
+          <span className="inline-block font-mono text-mono-xs font-medium uppercase tracking-[0.06em] text-subtle border border-default rounded-pill px-[0.8rem] py-[0.35rem]">
             {t('try.exampleBadge')}
           </span>
 
           <p
-            className="font-display font-semibold tracking-[-0.025em] text-[clamp(1.05rem,2.1vw,1.45rem)] leading-[1.35] mt-[1.2rem] mb-8 mx-auto max-w-[26ch] text-balance"
+            className="font-display font-semibold tracking-[-0.025em] text-display-sm leading-[1.35] mt-[1.2rem] mb-8 mx-auto max-w-[26ch] text-balance"
             style={{ color: 'var(--text-heading)' }}
           >
             {t('try.statement')}
@@ -68,7 +68,7 @@ export function TrySection() {
 
           <div className="flex items-center justify-center gap-[clamp(.35rem,1.6vw,1.1rem)] max-[680px]:gap-[0.2rem]" role="radiogroup" aria-label={t('try.scaleAria')}>
             <span
-              className="shrink-0 text-right font-semibold leading-[1.25] text-[clamp(.68rem,1.2vw,.8rem)] max-w-[clamp(4rem,10vw,6.5rem)] max-[680px]:max-w-[4.2rem]"
+              className="shrink-0 text-right font-semibold leading-[1.25] text-caption max-w-[clamp(4rem,10vw,6.5rem)] max-[680px]:max-w-[4.2rem]"
               style={{ color: 'var(--lake)' }}
             >
               {t('try.dot1')}
@@ -100,7 +100,7 @@ export function TrySection() {
             ))}
 
             <span
-              className="shrink-0 text-left font-semibold leading-[1.25] text-[clamp(.68rem,1.2vw,.8rem)] max-w-[clamp(4rem,10vw,6.5rem)] max-[680px]:max-w-[4.2rem]"
+              className="shrink-0 text-left font-semibold leading-[1.25] text-caption max-w-[clamp(4rem,10vw,6.5rem)] max-[680px]:max-w-[4.2rem]"
               style={{ color: 'var(--pine)' }}
             >
               {t('try.dot5')}
@@ -111,16 +111,16 @@ export function TrySection() {
               первого клика читался как незагрузившаяся половина карточки. */}
           {selected !== null && (
             <div className="try-result mt-8 pt-[1.7rem]" style={{ borderTop: '1px solid var(--border-faint)' }}>
-              <span className="block font-mono text-[0.68rem] uppercase tracking-[0.06em] text-subtle">
+              <span className="block font-mono text-mono-xs uppercase tracking-[0.06em] text-subtle">
                 {t('try.resultKicker')}
               </span>
               <strong
-                className="inline-block mt-2 font-display font-bold tracking-[-0.03em] text-[clamp(1.3rem,2.6vw,1.8rem)]"
+                className="inline-block mt-2 font-display font-bold tracking-[-0.03em] text-display-md"
                 style={{ color: 'var(--dawn-deep)' }}
               >
                 {t('try.resultDirection')}
               </strong>
-              <p className="mx-auto mt-[0.7rem] mb-[1.4rem] max-w-[52ch] text-[0.92rem] leading-[1.6] text-secondary">
+              <p className="mx-auto mt-[0.7rem] mb-[1.4rem] max-w-[52ch] text-body-sm leading-[1.6] text-secondary">
                 {t('try.resultDesc')}
               </p>
               <CtaLink to="/register" size="sm">

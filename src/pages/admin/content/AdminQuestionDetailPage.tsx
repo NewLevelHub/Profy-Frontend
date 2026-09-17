@@ -17,6 +17,8 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
@@ -146,6 +148,23 @@ export default function AdminQuestionDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminQuestionDetail>({
+    resource: 'questions',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label={t('questions.loadingOne')} />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || t('questions.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -188,11 +207,24 @@ export default function AdminQuestionDetailPage() {
           a rewritten question would read on the Likert screen. */}
       <QuestionPreview text={form.text} shortText={form.short_text} icon={form.icon} />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
+
       <AdminCard
         title={t('common.contentCard')}
         description={t('questions.contentDescription')}
       >
-        <AdminField label={t('questions.field.textLabel')} locked={locked.has('text')} lockReason={LOCK_REASON}>
+        <AdminField label={t('questions.field.textLabel')} locked={locked.has('text')} revert={fieldRevert('text')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -207,7 +239,7 @@ export default function AdminQuestionDetailPage() {
         <div className="grid gap-3.5 sm:grid-cols-[1fr_140px]">
           <AdminField
             label={t('questions.field.shortTextLabel')}
-            locked={locked.has('short_text')}
+            locked={locked.has('short_text')} revert={fieldRevert('short_text')}
             lockReason={LOCK_REASON}
             hint={t('questions.shortTextHint')}
           >
@@ -225,7 +257,7 @@ export default function AdminQuestionDetailPage() {
           {/* Отдельного превью эмодзи рядом с полем нет: карточка «Как увидит
               ученик» вверху уже показывает его в нужном размере, а тут он
               дублировался в 22px рядом с тем же символом в самом поле. */}
-          <AdminField label={t('questionPairs.icon')} locked={locked.has('icon')} lockReason={LOCK_REASON} hint={t('questions.iconHint')}>
+          <AdminField label={t('questionPairs.icon')} locked={locked.has('icon')} revert={fieldRevert('icon')} lockReason={LOCK_REASON} hint={t('questions.iconHint')}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -240,7 +272,7 @@ export default function AdminQuestionDetailPage() {
 
         <AdminField
           label={t('questions.field.ageTierLabel')}
-          locked={locked.has('age_tier')}
+          locked={locked.has('age_tier')} revert={fieldRevert('age_tier')}
           lockReason={LOCK_REASON}
           hint={t('questions.ageTierHint')}
         >
@@ -266,7 +298,7 @@ export default function AdminQuestionDetailPage() {
           invite cross-instrument data that no scoring path reads. */}
       {detail.instrument === 'riasec' && (
         <AdminCard title="RIASEC" description={t('questions.riasecDescription')}>
-          <AdminField label={t('questions.field.typeLabel')} locked={locked.has('riasec_type')} lockReason={LOCK_REASON}>
+          <AdminField label={t('questions.field.typeLabel')} locked={locked.has('riasec_type')} revert={fieldRevert('riasec_type')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <AdminSelect
                 id={id}
@@ -290,7 +322,7 @@ export default function AdminQuestionDetailPage() {
       {detail.instrument === 'big_five' && (
         <AdminCard title="Big Five" description={t('questions.bigfiveDescription')}>
           <div className="grid gap-3.5 sm:grid-cols-2">
-            <AdminField label={t('questions.field.domainLabel')} locked={locked.has('bigfive_domain')} lockReason={LOCK_REASON}>
+            <AdminField label={t('questions.field.domainLabel')} locked={locked.has('bigfive_domain')} revert={fieldRevert('bigfive_domain')} lockReason={LOCK_REASON}>
               {({ id, describedBy }) => (
                 <AdminSelect
                   id={id}
@@ -310,7 +342,7 @@ export default function AdminQuestionDetailPage() {
 
             <AdminField
               label={t('questions.field.keyedLabel')}
-              locked={locked.has('keyed')}
+              locked={locked.has('keyed')} revert={fieldRevert('keyed')}
               lockReason={LOCK_REASON}
               hint={t('questions.keyedHint')}
             >
@@ -333,7 +365,7 @@ export default function AdminQuestionDetailPage() {
 
             <AdminField
               label={t('questions.field.facetLabel')}
-              locked={locked.has('facet')}
+              locked={locked.has('facet')} revert={fieldRevert('facet')}
               lockReason={LOCK_REASON}
               className="sm:col-span-2"
             >
@@ -356,7 +388,7 @@ export default function AdminQuestionDetailPage() {
           title="Multiple Intelligences"
           description={t('questions.miDescription')}
         >
-          <AdminField label={t('motivationPairs.col.category')} locked={locked.has('mi_category')} lockReason={LOCK_REASON}>
+          <AdminField label={t('motivationPairs.col.category')} locked={locked.has('mi_category')} revert={fieldRevert('mi_category')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <AdminSelect
                 id={id}
@@ -400,7 +432,7 @@ export default function AdminQuestionDetailPage() {
 function QuestionPreview({ text, shortText, icon }: { text: string; shortText: string; icon: string }) {
   const { t } = useTranslation('admin');
   return (
-    <div className="bg-raised border border-default rounded-[14px] p-4">
+    <div className="bg-raised border border-default rounded-[3px] p-4">
       {/* Заголовок панели, а не подпись поля: моношириный капс по density.ts
           оставлен за заголовками колонок и подписями полей. */}
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>

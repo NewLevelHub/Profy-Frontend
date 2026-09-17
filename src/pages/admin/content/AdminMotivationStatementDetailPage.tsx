@@ -11,6 +11,8 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
@@ -119,6 +121,23 @@ export default function AdminMotivationStatementDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminMotivationStatementDetail>({
+    resource: 'motivation-statements',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label={t('statements.loadingOne')} />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || t('statements.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -150,6 +169,19 @@ export default function AdminMotivationStatementDetailPage() {
         }
       />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
+
       <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
       <AdminCard
@@ -159,6 +191,7 @@ export default function AdminMotivationStatementDetailPage() {
         <AdminField
           label={t('motivationPairs.col.category')}
           locked={locked.has('category')}
+          revert={fieldRevert('category')}
           lockReason={LOCK_REASON}
           error={
             conflicting.length > 0
@@ -184,7 +217,12 @@ export default function AdminMotivationStatementDetailPage() {
           )}
         </AdminField>
 
-        <AdminField label={t('statements.field.textLabel')} locked={locked.has('text')} lockReason={LOCK_REASON}>
+        <AdminField
+          label={t('statements.field.textLabel')}
+          locked={locked.has('text')}
+          revert={fieldRevert('text')}
+          lockReason={LOCK_REASON}
+        >
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -199,6 +237,7 @@ export default function AdminMotivationStatementDetailPage() {
         <AdminField
           label={t('statements.field.textJuniorLabel')}
           locked={locked.has('text_junior')}
+          revert={fieldRevert('text_junior')}
           lockReason={LOCK_REASON}
           hint={t('statements.juniorHint')}
         >
@@ -236,7 +275,7 @@ export default function AdminMotivationStatementDetailPage() {
                 <li
                   key={sibling.id}
                   className={cn(
-                    'flex items-start gap-3 p-2.5 rounded-[14px] border',
+                    'flex items-start gap-3 p-2.5 rounded-[3px] border',
                     clash ? 'border-danger bg-danger-subtle' : 'border-default bg-page',
                   )}
                 >

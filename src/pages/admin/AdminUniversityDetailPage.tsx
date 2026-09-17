@@ -9,7 +9,8 @@ import { useAdminForm } from '@/shared/lib/useAdminForm';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
-import { AdminField } from '@/shared/ui/admin/AdminField';
+import { AdminField, type AdminFieldRevert } from '@/shared/ui/admin/AdminField';
+import { useLockRelease } from './useLockRelease';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
@@ -139,6 +140,20 @@ export default function AdminUniversityDetailPage() {
     },
   });
 
+  // До ранних return'ов: хук обязан вызываться на каждом рендере, иначе после
+  // загрузки данных число хуков меняется и React роняет экран.
+  const {
+    fieldRelease,
+    error: releaseError,
+    notice: releaseNotice,
+  } = useLockRelease<AdminUniversityDetail>({
+    kind: 'university',
+    id: detail?.id,
+    lockedFields: detail?.admin_locked_fields ?? [],
+    dirty,
+    onReleased: setDetail,
+  });
+
   if (loading) return <AdminLoading label={t('uni.loading')} />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || t('uni.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -167,16 +182,23 @@ export default function AdminUniversityDetailPage() {
         }
       />
 
+      {releaseError && <AdminError message={releaseError} />}
+      {/* Снятие замка меняет на экране только исчезнувший бейдж — значение
+          остаётся прежним, поэтому результат надо назвать словами. */}
+      {!releaseError && releaseNotice && (
+        <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>{releaseNotice}</p>
+      )}
+
       <AdminCard title={t('directions.mainCard')}>
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} lockReason={LOCK_REASON}>
+          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} revert={fieldRelease('name')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input id={id} className={ADMIN_INPUT} value={form.name} onChange={(e) => setField('name', e.target.value)} />
             )}
           </AdminField>
           <AdminField
             label={t('uni.field.shortNameLabel')}
-            locked={locked.has('short_name')}
+            locked={locked.has('short_name')} revert={fieldRelease('short_name')}
             lockReason={LOCK_REASON}
             hint={t('uni.shortNameHint')}
           >
@@ -190,12 +212,12 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label={t('universities.col.city')} locked={locked.has('city')} lockReason={LOCK_REASON}>
+          <AdminField label={t('universities.col.city')} locked={locked.has('city')} revert={fieldRelease('city')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input id={id} className={ADMIN_INPUT} value={form.city} onChange={(e) => setField('city', e.target.value)} />
             )}
           </AdminField>
-          <AdminField label={t('universities.col.country')} locked={locked.has('country')} lockReason={LOCK_REASON}>
+          <AdminField label={t('universities.col.country')} locked={locked.has('country')} revert={fieldRelease('country')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -206,7 +228,7 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label={t('uni.field.locationLabel')} locked={locked.has('location')} lockReason={LOCK_REASON} className="sm:col-span-2">
+          <AdminField label={t('uni.field.locationLabel')} locked={locked.has('location')} revert={fieldRelease('location')} lockReason={LOCK_REASON} className="sm:col-span-2">
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -217,7 +239,7 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label={t('uni.field.websiteLabel')} locked={locked.has('website')} lockReason={LOCK_REASON}>
+          <AdminField label={t('uni.field.websiteLabel')} locked={locked.has('website')} revert={fieldRelease('website')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -231,7 +253,7 @@ export default function AdminUniversityDetailPage() {
           </AdminField>
           <AdminField
             label={t('uni.field.sourceLabel')}
-            locked={locked.has('source_url')}
+            locked={locked.has('source_url')} revert={fieldRelease('source_url')}
             lockReason={LOCK_REASON}
             hint={t('uni.sourceHint')}
           >
@@ -250,7 +272,7 @@ export default function AdminUniversityDetailPage() {
 
         <AdminField
           label={t('uni.field.aliasesLabel')}
-          locked={locked.has('aliases')}
+          locked={locked.has('aliases')} revert={fieldRelease('aliases')}
           lockReason={LOCK_REASON}
           hint={t('uni.aliasesHint')}
         >
@@ -261,7 +283,7 @@ export default function AdminUniversityDetailPage() {
           />
         </AdminField>
 
-        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} revert={fieldRelease('description')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -281,11 +303,11 @@ export default function AdminUniversityDetailPage() {
         <div className="grid gap-3.5 sm:grid-cols-2">
           <NumberField
             label={t('uni.field.rankingLabelNational')}
-            locked={locked.has('ranking')}
+            locked={locked.has('ranking')} revert={fieldRelease('ranking')}
             value={form.ranking}
             onChange={(v) => setField('ranking', v)}
           />
-          <AdminField label={t('uni.field.rankingLabelLabel')} locked={locked.has('ranking_label')} lockReason={LOCK_REASON}>
+          <AdminField label={t('uni.field.rankingLabelLabel')} locked={locked.has('ranking_label')} revert={fieldRelease('ranking_label')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -298,19 +320,19 @@ export default function AdminUniversityDetailPage() {
           </AdminField>
           <NumberField
             label="Uniranks KZ"
-            locked={locked.has('uniranks_kz_rank')}
+            locked={locked.has('uniranks_kz_rank')} revert={fieldRelease('uniranks_kz_rank')}
             value={form.uniranks_kz_rank}
             onChange={(v) => setField('uniranks_kz_rank', v)}
           />
           <NumberField
             label="Uniranks World"
-            locked={locked.has('uniranks_world_rank')}
+            locked={locked.has('uniranks_world_rank')} revert={fieldRelease('uniranks_world_rank')}
             value={form.uniranks_world_rank}
             onChange={(v) => setField('uniranks_world_rank', v)}
           />
           <AdminField
             label={t('uni.field.uniranksNoteLabel')}
-            locked={locked.has('uniranks_note')}
+            locked={locked.has('uniranks_note')} revert={fieldRelease('uniranks_note')}
             lockReason={LOCK_REASON}
             className="sm:col-span-2"
             hint={t('uni.uniranksNoteHint')}
@@ -401,11 +423,13 @@ export default function AdminUniversityDetailPage() {
 function NumberField({
   label,
   locked,
+  revert,
   value,
   onChange,
 }: {
   label: string;
   locked: boolean;
+  revert?: AdminFieldRevert;
   value: number | null;
   onChange: (value: number | null) => void;
 }) {
@@ -423,6 +447,7 @@ function NumberField({
     <AdminField
       label={label}
       locked={locked}
+      revert={revert}
       lockReason={LOCK_REASON}
       error={invalid ? t('uni.integerOnly') : undefined}
     >

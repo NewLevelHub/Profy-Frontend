@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
+import { homePathForUser } from '@/shared/lib/homePath';
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { LOCALE_SWITCH_ENABLED } from '@/shared/store/locale';
 import { playClick } from '@/shared/lib/sounds';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useAuth } from '@/shared/hooks/useAuth';
-import { homePathForUser } from '@/shared/lib/homePath';
 import { useProfileStore } from '@/shared/store/profile';
 import { NAV_ITEMS, ADMIN_NAV_ITEM, PSYCHOLOGIST_NAV_ITEMS, isNavActive, type NavItem } from './navItems';
 
@@ -26,12 +26,15 @@ export function TopRail() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Staff never see student tabs (Results → start test, etc.) — same as psychologist.
   const navItems: NavItem[] =
     user?.role === 'psychologist'
       ? [...PSYCHOLOGIST_NAV_ITEMS]
       : user?.is_admin || user?.role === 'admin'
-        ? [...NAV_ITEMS, ADMIN_NAV_ITEM]
+        ? [ADMIN_NAV_ITEM]
         : [...NAV_ITEMS];
+
+  const homePath = homePathForUser(user);
 
   function handleLogout() {
     logout();
@@ -49,7 +52,7 @@ export function TopRail() {
         style={{ height: 'var(--header-h)' }}
       >
         <Link
-          to={homePathForUser(user)}
+          to={homePath}
           className="brand-wordmark flex-shrink-0 hover:opacity-80 transition-opacity press-scale"
           aria-label={env.APP_NAME}
         >
