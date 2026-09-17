@@ -7,7 +7,7 @@ import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
-import { autofillAssessment, autofillMainBattery } from '@/shared/dev/autofillAssessment';
+import { autofillAssessment, autofillMainBattery, autofillToAstur } from '@/shared/dev/autofillAssessment';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
@@ -415,6 +415,23 @@ export function useAssessment() {
     }
   }
 
+  // Stops right before АСТУР (main battery + motivation + Belbin, unlike
+  // handleAutofill above, which races through it too) — for testing the
+  // АСТУР flow itself by hand.
+  async function handleAutofillToAstur() {
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      await autofillToAstur(assessmentId, ageGroup);
+      navigate(`/assessment/astur/${assessmentId}`);
+    } catch {
+      setError(t('assessment:error.autofill'));
+    } finally {
+      setAutofilling(false);
+    }
+  }
+
   function handleExit() {
     setExitConfirmOpen(true);
   }
@@ -516,6 +533,7 @@ export function useAssessment() {
     handlePairAnswer,
     handleAutofill,
     handleAutofillToMotivation,
+    handleAutofillToAstur,
     handleExit,
     confirmExit,
     cancelExit,

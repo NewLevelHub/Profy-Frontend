@@ -81,11 +81,13 @@ export async function autofillMainBattery(assessmentId: string): Promise<void> {
   }
 }
 
-/** Dev-only helper: `autofillMainBattery` plus the motivation phase — Harter
- * pairs for junior/middle, MOST/LEAST triplets for senior
- * (app/routers/motivation_pairs.py vs motivation.py) — so the whole test
- * completes in three requests instead of up to ~278 clicks. */
-export async function autofillAssessment(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
+/** Dev-only helper: `autofillMainBattery` plus motivation plus Belbin —
+ * everything ahead of АСТУР — so a caller can land the tester ON the
+ * АСТУР flow itself (e.g. to test IT by hand, or after adding a new
+ * subtest) instead of racing through it too. Split out of
+ * `autofillAssessment` the same way `autofillMainBattery` was split out of
+ * this originally (see its own comment). */
+export async function autofillToAstur(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
   await autofillMainBattery(assessmentId);
 
   if (ageGroup === 'senior') {
@@ -131,6 +133,12 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
   } catch {
     // Ignore if already submitted or error
   }
+}
+
+/** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
+ * completes in a handful of requests instead of up to ~278 clicks. */
+export async function autofillAssessment(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
+  await autofillToAstur(assessmentId, ageGroup);
 
   try {
     const asturContent = await asturApi.getContent();
@@ -143,6 +151,11 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
             answers[it.id] = (it.options || []).slice(0, 3);
           } else if (st.key === 'classification' || st.key === 'numeric_series') {
             answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
+          } else if (st.key === 'geometric_figures') {
+            // No `options` on the wire for this subtest (static image
+            // assets, addressed by position — see FigureAssemblyQuestion);
+            // any letter is a structurally valid dev-autofill answer.
+            answers[it.id] = 'А';
           } else {
             answers[it.id] = it.options?.[0] ?? '1';
           }

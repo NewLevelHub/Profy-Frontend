@@ -18,6 +18,7 @@ import { PickTwoQuestion } from './PickTwoQuestion';
 import { OpenTextQuestion } from './OpenTextQuestion';
 import { NumericPairQuestion } from './NumericPairQuestion';
 import { HierarchyDragQuestion } from './HierarchyDragQuestion';
+import { FigureAssemblyQuestion } from './FigureAssemblyQuestion';
 
 interface SubtestRunnerProps {
   subtest: AsturContentSubtest;
@@ -124,6 +125,12 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
             return (
               <NumericPairQuestion key={index} index={i + 1} sequence={it.sequence}
                 value={answers[index] as [string, string]} onChange={(v) => setAnswer(index, v)} />
+            );
+          }
+          if (subtest.key === 'geometric_figures') {
+            return (
+              <FigureAssemblyQuestion key={index} index={i + 1}
+                value={answers[index] as string | undefined} onChange={(v) => setAnswer(index, v)} />
             );
           }
           // logical_schemas

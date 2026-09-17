@@ -303,7 +303,8 @@ export type AsturSubtestKey =
   | 'classification'
   | 'generalization'
   | 'logical_schemas'
-  | 'numeric_series';
+  | 'numeric_series'
+  | 'geometric_figures';
 
 export interface AsturAwarenessItem {
   text: string;
@@ -340,6 +341,12 @@ export interface AsturNumericSeriesItem {
   sequence: number[];
 }
 
+/** No content fields — the stimulus is a static image asset
+ *  (`/astur-figures/{itemNumber}-{target|a|b|v|g}.png`), addressed by the
+ *  item's 1-based position within the subtest, not by any server-sent
+ *  field. The server only ever holds this item's `answer` letter. */
+export type AsturFigureAssemblyItem = Record<string, never>;
+
 export type AsturContentItem =
   | AsturAwarenessItem
   | AsturAnalogyItem
@@ -347,7 +354,8 @@ export type AsturContentItem =
   | AsturClassificationItem
   | AsturGeneralizationItem
   | AsturLogicalSchemaItem
-  | AsturNumericSeriesItem;
+  | AsturNumericSeriesItem
+  | AsturFigureAssemblyItem;
 
 export interface AsturContentSubtest {
   number: number;

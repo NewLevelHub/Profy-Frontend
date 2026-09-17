@@ -40,6 +40,7 @@ export default function AssessmentPage() {
     handlePairAnswer,
     handleAutofill,
     handleAutofillToMotivation,
+    handleAutofillToAstur,
     handleExit,
     confirmExit,
     cancelExit,
@@ -80,6 +81,7 @@ export default function AssessmentPage() {
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
         devAutofillToMotivation={{ onClick: handleAutofillToMotivation, loading: autofilling }}
+        devAutofillToAstur={{ onClick: handleAutofillToAstur, loading: autofilling }}
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}

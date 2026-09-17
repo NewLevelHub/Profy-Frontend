@@ -109,6 +109,8 @@ export function useAsturAssessment(assessmentId: string) {
               answers[it.id] = (it.options || []).slice(0, 3);
             } else if (st.key === 'classification' || st.key === 'numeric_series') {
               answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
+            } else if (st.key === 'geometric_figures') {
+              answers[it.id] = 'А';
             } else {
               answers[it.id] = it.options?.[0] ?? '1';
             }
