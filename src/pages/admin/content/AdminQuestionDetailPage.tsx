@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import {
   AGE_TIER_LABELS,
   BIGFIVE_DOMAIN_LABELS,
@@ -15,10 +17,14 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type {
   AdminQuestionDetail,
   AdminQuestionUpdateRequest,
@@ -41,16 +47,23 @@ const EDITABLE_KEYS = [
   'mi_category',
 ] as const satisfies readonly (keyof AdminQuestionUpdateRequest)[];
 
+/** Which of the keys above are per-locale (`{ru,kk}` map on the row) rather
+ *  than structural — drives both the PATCH body's `locale` field and the
+ *  lock check. Kept in sync with `app/models/question.py::LOCALIZED_FIELDS`
+ *  on the backend by hand — there is no shared source, so a new localized
+ *  field needs updating here too. */
+const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>(['text', 'short_text']);
+
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
-  text: 'текст вопроса',
-  short_text: 'короткий текст',
-  icon: 'иконка',
-  age_tier: 'возрастная видимость',
-  riasec_type: 'тип RIASEC',
-  bigfive_domain: 'домен Big Five',
-  keyed: 'ключевание',
-  facet: 'фасет',
-  mi_category: 'категория MI',
+  text: 'admin:questions.field.text',
+  short_text: 'admin:questions.field.shortText',
+  icon: 'admin:questions.field.icon',
+  age_tier: 'admin:questions.field.ageTier',
+  riasec_type: 'admin:questions.field.riasecType',
+  bigfive_domain: 'admin:questions.field.bigfiveDomain',
+  keyed: 'admin:questions.field.keyed',
+  facet: 'admin:questions.field.facet',
+  mi_category: 'admin:questions.field.miCategory',
 };
 
 interface FormState {
@@ -65,10 +78,14 @@ interface FormState {
   mi_category: MIType | null;
 }
 
-function toFormState(detail: AdminQuestionDetail): FormState {
+/** `text`/`short_text` are read for `locale` specifically — no cross-locale
+ *  fallback here (unlike the student-facing read path): a blank field means
+ *  "not translated to this language yet", which is exactly what an admin
+ *  editing it needs to see, not a borrowed ru value that looks already saved. */
+function toFormState(detail: AdminQuestionDetail, locale: Locale): FormState {
   return {
-    text: detail.text,
-    short_text: detail.short_text ?? '',
+    text: detail.text[locale] ?? '',
+    short_text: detail.short_text?.[locale] ?? '',
     icon: detail.icon ?? '',
     age_tier: detail.age_tier,
     riasec_type: detail.riasec_type,
@@ -80,11 +97,13 @@ function toFormState(detail: AdminQuestionDetail): FormState {
 }
 
 const LOCK_REASON =
-  'Значение задано вручную. Автообновление контент-банка не перезапишет его и не удалит строку.';
+  'admin:common.lockReason';
 
 export default function AdminQuestionDetailPage() {
+  const { t } = useTranslation('admin');
   const { questionId } = useParams<{ questionId: string }>();
   const [detail, setDetail] = useState<AdminQuestionDetail | null>(null);
+  const [locale, setLocale] = useState<Locale>('ru');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -100,7 +119,7 @@ export default function AdminQuestionDetailPage() {
         const data = await adminApi.getQuestion(questionId!);
         if (!cancelled) setDetail(data);
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить вопрос');
+        if (!cancelled) setLoadError(t('questions.loadOneError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -112,7 +131,7 @@ export default function AdminQuestionDetailPage() {
     };
   }, [questionId, reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -121,20 +140,45 @@ export default function AdminQuestionDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (patch) => {
-      const updated = await adminApi.updateQuestion(questionId!, patch as AdminQuestionUpdateRequest);
+      const updated = await adminApi.updateQuestion(questionId!, { ...patch, locale } as AdminQuestionUpdateRequest);
       setDetail(updated);
       return updated;
     },
   });
 
-  if (loading) return <AdminLoading label="Загрузка вопроса" />;
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminQuestionDetail>({
+    resource: 'questions',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
+  if (loading) return <AdminLoading label={t('questions.loadingOne')} />;
   if (loadError || !detail || !form) {
-    return <AdminError message={loadError || 'Вопрос не найден'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('questions.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  const locked = new Set(
+    EDITABLE_KEYS.filter((key) =>
+      LOCALIZED_KEYS.has(key)
+        ? isLocalizedFieldLocked(detail.overrides, key, locale)
+        : key in detail.overrides,
+    ),
+  );
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.text[l]));
+  const headerText = detail.short_text?.[locale] || detail.text[locale] || detail.text.ru || '';
 
   return (
     <>
@@ -145,28 +189,42 @@ export default function AdminQuestionDetailPage() {
           видно, что было и что станет. */}
       <AdminPageHeader
         crumbs={[
-          { label: 'Вопросы', to: listReturnPath('/admin/content/questions') },
-          { label: detail.short_text || detail.text },
+          { label: t('questions.title'), to: listReturnPath('/admin/content/questions') },
+          { label: headerText },
         ]}
-        title={detail.short_text || detail.text}
+        title={headerText}
         meta={
-          <p className={cn(ADMIN_META, 'm-0')}>
-            {INSTRUMENT_LABELS[detail.instrument]} · {AGE_TIER_LABELS[detail.age_tier]} · порядок{' '}
-            {detail.order}
+          <p className={cn(ADMIN_META, 'm-0 flex items-center gap-2')}>
+            {INSTRUMENT_LABELS[detail.instrument]} · {AGE_TIER_LABELS[detail.age_tier]} · {t('questions.orderInline', { order: detail.order })}
           </p>
         }
       />
+
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
       {/* What the student actually sees, built from the values in the form —
           the previous screen was a bare list of inputs with no way to tell how
           a rewritten question would read on the Likert screen. */}
       <QuestionPreview text={form.text} shortText={form.short_text} icon={form.icon} />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
+
       <AdminCard
-        title="Содержание"
-        description="Текст, который увидит ученик. Короткий вариант используется на экранах выбора «или / или» у junior."
+        title={t('common.contentCard')}
+        description={t('questions.contentDescription')}
       >
-        <AdminField label="Текст вопроса" locked={locked.has('text')} lockReason={LOCK_REASON}>
+        <AdminField label={t('questions.field.textLabel')} locked={locked.has('text')} revert={fieldRevert('text')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -180,10 +238,10 @@ export default function AdminQuestionDetailPage() {
 
         <div className="grid gap-3.5 sm:grid-cols-[1fr_140px]">
           <AdminField
-            label="Короткий текст"
-            locked={locked.has('short_text')}
+            label={t('questions.field.shortTextLabel')}
+            locked={locked.has('short_text')} revert={fieldRevert('short_text')}
             lockReason={LOCK_REASON}
-            hint="Пусто — на экране пары покажется полный текст выше."
+            hint={t('questions.shortTextHint')}
           >
             {({ id, describedBy }) => (
               <input
@@ -199,7 +257,7 @@ export default function AdminQuestionDetailPage() {
           {/* Отдельного превью эмодзи рядом с полем нет: карточка «Как увидит
               ученик» вверху уже показывает его в нужном размере, а тут он
               дублировался в 22px рядом с тем же символом в самом поле. */}
-          <AdminField label="Иконка" locked={locked.has('icon')} lockReason={LOCK_REASON} hint="Один эмодзи.">
+          <AdminField label={t('questionPairs.icon')} locked={locked.has('icon')} revert={fieldRevert('icon')} lockReason={LOCK_REASON} hint={t('questions.iconHint')}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -213,10 +271,10 @@ export default function AdminQuestionDetailPage() {
         </div>
 
         <AdminField
-          label="Возрастная видимость"
-          locked={locked.has('age_tier')}
+          label={t('questions.field.ageTierLabel')}
+          locked={locked.has('age_tier')} revert={fieldRevert('age_tier')}
           lockReason={LOCK_REASON}
-          hint="Вопрос виден выбранной группе и всем старшим: junior ⊆ middle ⊆ senior."
+          hint={t('questions.ageTierHint')}
         >
           {({ id, describedBy }) => (
             <AdminSelect
@@ -239,8 +297,8 @@ export default function AdminQuestionDetailPage() {
       {/* Only this row's instrument gets a field set — showing all three would
           invite cross-instrument data that no scoring path reads. */}
       {detail.instrument === 'riasec' && (
-        <AdminCard title="RIASEC" description="К какому типу Холланда относится ответ на этот вопрос.">
-          <AdminField label="Тип" locked={locked.has('riasec_type')} lockReason={LOCK_REASON}>
+        <AdminCard title="RIASEC" description={t('questions.riasecDescription')}>
+          <AdminField label={t('questions.field.typeLabel')} locked={locked.has('riasec_type')} revert={fieldRevert('riasec_type')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <AdminSelect
                 id={id}
@@ -249,10 +307,10 @@ export default function AdminQuestionDetailPage() {
                 value={form.riasec_type ?? ''}
                 onChange={(e) => setField('riasec_type', (e.target.value || null) as HollandType | null)}
               >
-                <option value="">Не задан</option>
+                <option value="">{t('questions.notSetM')}</option>
                 {(Object.keys(HOLLAND_TYPE_LABELS) as HollandType[]).map((key) => (
                   <option key={key} value={key}>
-                    {HOLLAND_TYPE_LABELS[key]}
+                    {t(HOLLAND_TYPE_LABELS[key])}
                   </option>
                 ))}
               </AdminSelect>
@@ -262,9 +320,9 @@ export default function AdminQuestionDetailPage() {
       )}
 
       {detail.instrument === 'big_five' && (
-        <AdminCard title="Big Five" description="Домен, фасет и направление шкалы.">
+        <AdminCard title="Big Five" description={t('questions.bigfiveDescription')}>
           <div className="grid gap-3.5 sm:grid-cols-2">
-            <AdminField label="Домен" locked={locked.has('bigfive_domain')} lockReason={LOCK_REASON}>
+            <AdminField label={t('questions.field.domainLabel')} locked={locked.has('bigfive_domain')} revert={fieldRevert('bigfive_domain')} lockReason={LOCK_REASON}>
               {({ id, describedBy }) => (
                 <AdminSelect
                   id={id}
@@ -272,10 +330,10 @@ export default function AdminQuestionDetailPage() {
                   value={form.bigfive_domain ?? ''}
                   onChange={(e) => setField('bigfive_domain', (e.target.value || null) as BigFiveDomain | null)}
                 >
-                  <option value="">Не задан</option>
+                  <option value="">{t('questions.notSetM')}</option>
                   {(Object.keys(BIGFIVE_DOMAIN_LABELS) as BigFiveDomain[]).map((key) => (
                     <option key={key} value={key}>
-                      {BIGFIVE_DOMAIN_LABELS[key]}
+                      {t(BIGFIVE_DOMAIN_LABELS[key])}
                     </option>
                   ))}
                 </AdminSelect>
@@ -283,10 +341,10 @@ export default function AdminQuestionDetailPage() {
             </AdminField>
 
             <AdminField
-              label="Ключевание"
-              locked={locked.has('keyed')}
+              label={t('questions.field.keyedLabel')}
+              locked={locked.has('keyed')} revert={fieldRevert('keyed')}
               lockReason={LOCK_REASON}
-              hint="Обратный вопрос инвертирует балл при подсчёте."
+              hint={t('questions.keyedHint')}
             >
               {({ id, describedBy }) => (
                 <AdminSelect
@@ -295,10 +353,10 @@ export default function AdminQuestionDetailPage() {
                   value={form.keyed ?? ''}
                   onChange={(e) => setField('keyed', (e.target.value || null) as QuestionKeyed | null)}
                 >
-                  <option value="">Не задано</option>
+                  <option value="">{t('questions.notSetN')}</option>
                   {(Object.keys(QUESTION_KEYED_LABELS) as QuestionKeyed[]).map((key) => (
                     <option key={key} value={key}>
-                      {QUESTION_KEYED_LABELS[key]}
+                      {t(QUESTION_KEYED_LABELS[key])}
                     </option>
                   ))}
                 </AdminSelect>
@@ -306,8 +364,8 @@ export default function AdminQuestionDetailPage() {
             </AdminField>
 
             <AdminField
-              label="Фасет"
-              locked={locked.has('facet')}
+              label={t('questions.field.facetLabel')}
+              locked={locked.has('facet')} revert={fieldRevert('facet')}
               lockReason={LOCK_REASON}
               className="sm:col-span-2"
             >
@@ -328,9 +386,9 @@ export default function AdminQuestionDetailPage() {
       {detail.instrument === 'mi' && (
         <AdminCard
           title="Multiple Intelligences"
-          description="Junior-трек использует категории MI вместо кодов RIASEC."
+          description={t('questions.miDescription')}
         >
-          <AdminField label="Категория" locked={locked.has('mi_category')} lockReason={LOCK_REASON}>
+          <AdminField label={t('motivationPairs.col.category')} locked={locked.has('mi_category')} revert={fieldRevert('mi_category')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <AdminSelect
                 id={id}
@@ -339,10 +397,10 @@ export default function AdminQuestionDetailPage() {
                 value={form.mi_category ?? ''}
                 onChange={(e) => setField('mi_category', (e.target.value || null) as MIType | null)}
               >
-                <option value="">Не задана</option>
+                <option value="">{t('questions.notSetF')}</option>
                 {(Object.keys(MI_TYPE_LABELS) as MIType[]).map((key) => (
                   <option key={key} value={key}>
-                    {MI_TYPE_LABELS[key]}
+                    {t(MI_TYPE_LABELS[key])}
                   </option>
                 ))}
               </AdminSelect>
@@ -355,7 +413,7 @@ export default function AdminQuestionDetailPage() {
           а не машинная метка. MONO_LABEL остался за заголовками колонок и
           подписями полей — см. density.ts. */}
       <p className={cn(ADMIN_META, 'm-0')}>
-        Порядок ({detail.order}) и инструмент задаются контент-банком и здесь не редактируются.
+        {t('questions.orderNote', { order: detail.order })}
       </p>
 
       <AdminSaveBar
@@ -372,11 +430,12 @@ export default function AdminQuestionDetailPage() {
 }
 
 function QuestionPreview({ text, shortText, icon }: { text: string; shortText: string; icon: string }) {
+  const { t } = useTranslation('admin');
   return (
-    <div className="bg-raised border border-default rounded-[14px] p-4">
+    <div className="bg-raised border border-default rounded-[3px] p-4">
       {/* Заголовок панели, а не подпись поля: моношириный капс по density.ts
           оставлен за заголовками колонок и подписями полей. */}
-      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>Как увидит ученик</p>
+      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>
       <div className="flex items-start gap-3">
         {icon && (
           <span className="text-2xl leading-none" aria-hidden="true">
@@ -387,7 +446,7 @@ function QuestionPreview({ text, shortText, icon }: { text: string; shortText: s
           <p className="font-sans text-body-md text-primary m-0">{text || '—'}</p>
           {shortText && (
             <p className={cn(ADMIN_TEXT, 'text-muted mt-1.5')}>
-              На экране выбора: <span className="text-secondary">{shortText}</span>
+              {t('questions.onPairScreen')} <span className="text-secondary">{shortText}</span>
             </p>
           )}
         </div>

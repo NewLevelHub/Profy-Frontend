@@ -1,18 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type {
   AdminMotivationStatementDetail,
   AdminMotivationStatementListItem,
@@ -22,10 +28,14 @@ import type {
 
 const EDITABLE_KEYS = ['category', 'text', 'text_junior'] as const satisfies readonly (keyof AdminMotivationStatementUpdateRequest)[];
 
+/** See `AdminQuestionDetailPage.LOCALIZED_KEYS` — kept in sync with
+ *  `app/models/motivation.py::LOCALIZED_FIELDS` by hand. */
+const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>(['text', 'text_junior']);
+
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
-  category: 'категория',
-  text: 'текст',
-  text_junior: 'текст для junior',
+  category: 'admin:statements.field.category',
+  text: 'admin:statements.field.text',
+  text_junior: 'admin:statements.field.textJunior',
 };
 
 interface FormState {
@@ -34,23 +44,25 @@ interface FormState {
   text_junior: string;
 }
 
-function toFormState(detail: AdminMotivationStatementDetail): FormState {
+function toFormState(detail: AdminMotivationStatementDetail, locale: Locale): FormState {
   return {
     category: detail.category,
-    text: detail.text,
-    text_junior: detail.text_junior ?? '',
+    text: detail.text[locale] ?? '',
+    text_junior: detail.text_junior?.[locale] ?? '',
   };
 }
 
 const LOCK_REASON =
-  'Значение задано вручную. Автообновление контент-банка не перезапишет его и не удалит строку.';
+  'admin:common.lockReason';
 
 /** Enough to cover the whole statement bank in one request; see the list page. */
 const SIBLING_FETCH_LIMIT = 99;
 
 export default function AdminMotivationStatementDetailPage() {
+  const { t } = useTranslation('admin');
   const { statementId } = useParams<{ statementId: string }>();
   const [detail, setDetail] = useState<AdminMotivationStatementDetail | null>(null);
+  const [locale, setLocale] = useState<Locale>('ru');
   const [siblings, setSiblings] = useState<AdminMotivationStatementListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -78,7 +90,7 @@ export default function AdminMotivationStatementDetailPage() {
           list.items.filter((item) => item.triplet_index === data.triplet_index && item.id !== data.id),
         );
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить утверждение');
+        if (!cancelled) setLoadError(t('statements.loadOneError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -90,7 +102,7 @@ export default function AdminMotivationStatementDetailPage() {
     };
   }, [statementId, reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, patch, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -99,9 +111,9 @@ export default function AdminMotivationStatementDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (nextPatch) => {
-      const wire = { ...nextPatch } as AdminMotivationStatementUpdateRequest;
+      const wire = { ...nextPatch, locale } as AdminMotivationStatementUpdateRequest;
       if ('text_junior' in wire) wire.text_junior = form!.text_junior.trim() || null;
       const updated = await adminApi.updateMotivationStatement(statementId!, wire);
       setDetail(updated);
@@ -109,41 +121,81 @@ export default function AdminMotivationStatementDetailPage() {
     },
   });
 
-  if (loading) return <AdminLoading label="Загрузка утверждения" />;
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminMotivationStatementDetail>({
+    resource: 'motivation-statements',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
+  if (loading) return <AdminLoading label={t('statements.loadingOne')} />;
   if (loadError || !detail || !form) {
-    return <AdminError message={loadError || 'Утверждение не найдено'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('statements.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  const locked = new Set(
+    EDITABLE_KEYS.filter((key) =>
+      LOCALIZED_KEYS.has(key)
+        ? isLocalizedFieldLocked(detail.overrides, key, locale)
+        : key in detail.overrides,
+    ),
+  );
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.text[l]));
   const conflicting = siblings.filter((sibling) => sibling.category === form.category);
+  const headerText = detail.text[locale] || detail.text.ru || '';
 
   return (
     <>
       <AdminPageHeader
         crumbs={[
-          { label: 'Утверждения мотивации', to: listReturnPath('/admin/content/motivation-statements') },
-          { label: `Тройка ${detail.triplet_index}` },
+          { label: t('statements.title'), to: listReturnPath('/admin/content/motivation-statements') },
+          { label: t('statements.triplet', { index: detail.triplet_index }) },
         ]}
-        title={detail.text}
+        title={headerText}
         meta={
           <p className={cn(ADMIN_META, 'm-0')}>
-            Тройка {detail.triplet_index} · {MOTIVATION_CATEGORY_LABELS[detail.category]}. Ученик
-            ранжирует три утверждения тройки: важнее всего / нейтрально / менее всего.
+            {t('statements.detailMeta', { index: detail.triplet_index, category: t(MOTIVATION_CATEGORY_LABELS[detail.category]) })}
           </p>
         }
       />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
+
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
+
       <AdminCard
-        title="Содержание"
-        description="Взрослая формулировка используется для middle и senior; junior-вариант заменяет её на младшем треке."
+        title={t('common.contentCard')}
+        description={t('statements.contentDescription')}
       >
         <AdminField
-          label="Категория"
+          label={t('motivationPairs.col.category')}
           locked={locked.has('category')}
+          revert={fieldRevert('category')}
           lockReason={LOCK_REASON}
           error={
             conflicting.length > 0
-              ? `Эта категория уже занята в тройке ${detail.triplet_index}. Три утверждения тройки должны быть из разных категорий — иначе ранжирование их не различает.`
+              ? t('statements.categoryTaken', { index: detail.triplet_index })
               : undefined
           }
         >
@@ -158,14 +210,19 @@ export default function AdminMotivationStatementDetailPage() {
             >
               {(Object.keys(MOTIVATION_CATEGORY_LABELS) as MotivationCategory[]).map((key) => (
                 <option key={key} value={key}>
-                  {MOTIVATION_CATEGORY_LABELS[key]}
+                  {t(MOTIVATION_CATEGORY_LABELS[key])}
                 </option>
               ))}
             </AdminSelect>
           )}
         </AdminField>
 
-        <AdminField label="Текст" locked={locked.has('text')} lockReason={LOCK_REASON}>
+        <AdminField
+          label={t('statements.field.textLabel')}
+          locked={locked.has('text')}
+          revert={fieldRevert('text')}
+          lockReason={LOCK_REASON}
+        >
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -178,10 +235,11 @@ export default function AdminMotivationStatementDetailPage() {
         </AdminField>
 
         <AdminField
-          label="Текст для junior"
+          label={t('statements.field.textJuniorLabel')}
           locked={locked.has('text_junior')}
+          revert={fieldRevert('text_junior')}
           lockReason={LOCK_REASON}
-          hint="Пусто — на всех возрастах покажется текст выше."
+          hint={t('statements.juniorHint')}
         >
           {({ id, describedBy }) => (
             <textarea
@@ -196,19 +254,19 @@ export default function AdminMotivationStatementDetailPage() {
       </AdminCard>
 
       <AdminCard
-        title={`Остальные утверждения тройки ${detail.triplet_index}`}
-        description="Категории всех трёх должны отличаться. Бэкенд это не проверяет — сверка здесь."
+        title={t('statements.siblingsTitle', { index: detail.triplet_index })}
+        description={t('statements.siblingsDescription')}
         aside={
           conflicting.length > 0 ? (
             <span className={cn(ADMIN_TEXT, 'inline-flex items-center gap-1.5 text-danger font-semibold')}>
               <AlertTriangle size={13} />
-              Категория повторяется
+              {t('statements.duplicateShort')}
             </span>
           ) : null
         }
       >
         {siblings.length === 0 ? (
-          <p className={cn(ADMIN_META, 'm-0')}>Другие утверждения тройки не найдены.</p>
+          <p className={cn(ADMIN_META, 'm-0')}>{t('statements.noSiblings')}</p>
         ) : (
           <ul className="flex flex-col gap-2 m-0 p-0 list-none">
             {siblings.map((sibling) => {
@@ -217,7 +275,7 @@ export default function AdminMotivationStatementDetailPage() {
                 <li
                   key={sibling.id}
                   className={cn(
-                    'flex items-start gap-3 p-2.5 rounded-[14px] border',
+                    'flex items-start gap-3 p-2.5 rounded-[3px] border',
                     clash ? 'border-danger bg-danger-subtle' : 'border-default bg-page',
                   )}
                 >
@@ -229,7 +287,7 @@ export default function AdminMotivationStatementDetailPage() {
                       {sibling.text}
                     </Link>
                     <p className={cn(ADMIN_META, 'mt-1', clash && 'text-danger')}>
-                      {MOTIVATION_CATEGORY_LABELS[sibling.category]}
+                      {t(MOTIVATION_CATEGORY_LABELS[sibling.category])}
                     </p>
                   </div>
                 </li>
@@ -249,7 +307,7 @@ export default function AdminMotivationStatementDetailPage() {
         locksOnSave
         blockedReason={
           conflicting.length > 0 && 'category' in patch
-            ? 'Нельзя сохранить: категория повторяется внутри тройки.'
+            ? t('statements.cannotSave')
             : null
         }
       />

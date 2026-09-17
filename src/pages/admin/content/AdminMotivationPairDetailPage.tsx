@@ -1,27 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
+import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
-import { plural } from '@/shared/lib/plural';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
+import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type { AdminMotivationPairDetail, AdminMotivationPairUpdateRequest, MotivationCategory } from '@/shared/types';
 
 const EDITABLE_KEYS = ['category', 'text_a', 'text_b'] as const;
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
-  category: 'категория',
-  text_a: 'текст A',
-  text_b: 'текст B',
+  category: 'admin:motivationPairs.field.category',
+  text_a: 'admin:motivationPairs.field.textA',
+  text_b: 'admin:motivationPairs.field.textB',
 };
 
 interface FormState {
@@ -30,19 +35,21 @@ interface FormState {
   text_b: string;
 }
 
-function toFormState(detail: AdminMotivationPairDetail): FormState {
+function toFormState(detail: AdminMotivationPairDetail, locale: Locale): FormState {
   // `category_a` and `category_b` are meant to always be equal — a pair is two
   // poles of ONE category, not a comparison of two. The form exposes a single
   // selector and writes both on save.
-  return { category: detail.category_a, text_a: detail.text_a, text_b: detail.text_b };
+  return { category: detail.category_a, text_a: detail.text_a[locale] ?? '', text_b: detail.text_b[locale] ?? '' };
 }
 
 const LOCK_REASON =
-  'Значение задано вручную. Автообновление контент-банка не перезапишет его и не удалит строку.';
+  'admin:common.lockReason';
 
 export default function AdminMotivationPairDetailPage() {
+  const { t } = useTranslation('admin');
   const { pairId } = useParams<{ pairId: string }>();
   const [detail, setDetail] = useState<AdminMotivationPairDetail | null>(null);
+  const [locale, setLocale] = useState<Locale>('ru');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -58,7 +65,7 @@ export default function AdminMotivationPairDetailPage() {
         const data = await adminApi.getMotivationPair(pairId!);
         if (!cancelled) setDetail(data);
       } catch {
-        if (!cancelled) setLoadError('Не удалось загрузить пару мотивации');
+        if (!cancelled) setLoadError(t('motivationPairs.loadOneError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -101,7 +108,7 @@ export default function AdminMotivationPairDetailPage() {
     };
   }, [reloadToken]);
 
-  const initial = useMemo(() => (detail ? toFormState(detail) : null), [detail]);
+  const initial = useMemo(() => (detail ? toFormState(detail, locale) : null), [detail, locale]);
 
   const { form, setField, patch, dirty, changedLabels, saving, state, reset, save } = useAdminForm<
     FormState,
@@ -110,9 +117,9 @@ export default function AdminMotivationPairDetailPage() {
     initial,
     keys: EDITABLE_KEYS,
     labels: FIELD_LABELS,
-    toForm: toFormState,
+    toForm: (d) => toFormState(d, locale),
     onSave: async (nextPatch) => {
-      const wire: AdminMotivationPairUpdateRequest = {};
+      const wire: AdminMotivationPairUpdateRequest = { locale };
       if ('category' in nextPatch) {
         wire.category_a = form!.category;
         wire.category_b = form!.category;
@@ -125,12 +132,37 @@ export default function AdminMotivationPairDetailPage() {
     },
   });
 
-  if (loading) return <AdminLoading label="Загрузка пары" />;
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminMotivationPairDetail>({
+    resource: 'motivation-pairs',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
+  if (loading) return <AdminLoading label={t('questionPairs.loadingOne')} />;
   if (loadError || !detail || !form) {
-    return <AdminError message={loadError || 'Пара не найдена'} onRetry={() => setReloadToken((t) => t + 1)} />;
+    return <AdminError message={loadError || t('questionPairs.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
   }
 
-  const locked = new Set(Object.keys(detail.overrides));
+  // Not a plain `EDITABLE_KEYS.filter` like the other detail pages — the form
+  // exposes one `category` selector but writes wire/override keys
+  // `category_a`/`category_b` separately (see `onSave` below), so the two
+  // key sets don't line up 1:1.
+  const locked = new Set<string>();
+  if ('category_a' in detail.overrides || 'category_b' in detail.overrides) locked.add('category');
+  if (isLocalizedFieldLocked(detail.overrides, 'text_a', locale)) locked.add('text_a');
+  if (isLocalizedFieldLocked(detail.overrides, 'text_b', locale)) locked.add('text_b');
+  const translated = new Set(KNOWN_LOCALES.filter((l) => detail.text_a[l]));
   const categoriesDiverged = detail.category_a !== detail.category_b;
 
   // Что станет с балансом, если сохранить выбранную сейчас категорию.
@@ -142,15 +174,34 @@ export default function AdminMotivationPairDetailPage() {
     <>
       <AdminPageHeader
         crumbs={[
-          { label: 'Пары мотивации', to: listReturnPath('/admin/content/motivation-pairs') },
-          { label: `Пара ${detail.pair_index}` },
+          { label: t('motivationPairs.title'), to: listReturnPath('/admin/content/motivation-pairs') },
+          { label: t('motivationPairs.pairLabel', { index: detail.pair_index }) },
         ]}
-        title={`Пара мотивации #${detail.pair_index}`}
-        meta={MOTIVATION_CATEGORY_LABELS[detail.category_a]}
+        title={t('motivationPairs.detailTitle', { index: detail.pair_index })}
+        meta={
+          <span className="flex items-center gap-2">
+            {t(MOTIVATION_CATEGORY_LABELS[detail.category_a])}
+          </span>
+        }
       />
 
-      <div className="bg-raised border border-default rounded-[14px] p-4">
-        <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>Как увидит ученик</p>
+      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
+
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
+
+      <div className="bg-raised border border-default rounded-[3px] p-4">
+        <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>
         <div className="grid grid-cols-2 gap-3">
           {[form.text_a, form.text_b].map((text, index) => (
             <div
@@ -158,42 +209,40 @@ export default function AdminMotivationPairDetailPage() {
               // Одинаковая высота и вертикальный центр: одна сторона почти
               // всегда переносится на две строки, другая нет, и без этого
               // короткая висела в верхнем углу своей карточки.
-              className="bg-surface border border-default rounded-[14px] p-4 min-h-[72px] flex items-center justify-center text-center"
+              className="bg-surface border border-default rounded-[3px] p-4 min-h-[72px] flex items-center justify-center text-center"
             >
               <span className={cn(ADMIN_TEXT, 'text-primary text-balance')}>{text || '—'}</span>
             </div>
           ))}
         </div>
         <p className={cn(ADMIN_TEXT, 'text-muted text-center mt-4')}>
-          Ученик выбирает, что ближе. Обе стороны — полюса одной категории.
+          {t('motivationPairs.previewHint')}
         </p>
       </div>
 
       {categoriesDiverged && (
         <div
           role="alert"
-          className="flex items-start gap-3 p-3 rounded-[14px] border border-danger bg-danger-subtle"
+          className="flex items-start gap-3 p-3 rounded-[3px] border border-danger bg-danger-subtle"
         >
           <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
           <div>
             <p className={cn(ADMIN_TEXT, 'text-danger font-semibold m-0')}>
-              У сторон пары разные категории: «{MOTIVATION_CATEGORY_LABELS[detail.category_a]}» и «
-              {MOTIVATION_CATEGORY_LABELS[detail.category_b]}»
+              {t('motivationPairs.mismatchLead', { a: t(MOTIVATION_CATEGORY_LABELS[detail.category_a]), b: t(MOTIVATION_CATEGORY_LABELS[detail.category_b]) })}
             </p>
             <p className={cn(ADMIN_TEXT, 'text-danger mt-1')}>
-              Так пара не измеряет ничего: выбор между разными категориями нельзя интерпретировать как
-              полюс одной. Выберите ниже одну категорию — сохранение применит её к обеим сторонам.
+              {t('motivationPairs.mismatchExplain')}
             </p>
           </div>
         </div>
       )}
 
       <AdminCard
-        title="Содержание"
-        description="A — сторона, где мотив выражен; B — противоположный полюс той же категории."
+        title={t('common.contentCard')}
+        description={t('motivationPairs.contentDescription')}
       >
         <AdminField
-          label="Категория обеих сторон"
+          label={t('motivationPairs.field.categoryLabel')}
           locked={locked.has('category_a') || locked.has('category_b')}
           lockReason={LOCK_REASON}
           // Предупреждение, а не запрет: банк держит по 2 пары на категорию,
@@ -202,10 +251,7 @@ export default function AdminMotivationPairDetailPage() {
           hint={
             nextCount != null && leftCount != null && (nextCount !== 2 || leftCount !== 2) ? (
               <span className="text-accent">
-                После сохранения у категории «{MOTIVATION_CATEGORY_LABELS[form.category]}» станет{' '}
-                {nextCount} {plural(nextCount, 'пара', 'пары', 'пар')}, у «
-                {MOTIVATION_CATEGORY_LABELS[detail.category_a]}» — {leftCount}. В банке на каждую
-                категорию приходится по две: иначе мотивы получат разный вес в подсчёте.
+                {t('motivationPairs.rebalanceWarning', { to: t(MOTIVATION_CATEGORY_LABELS[form.category]), nextCount, from: t(MOTIVATION_CATEGORY_LABELS[detail.category_a]), leftCount })}
               </span>
             ) : undefined
           }
@@ -220,7 +266,7 @@ export default function AdminMotivationPairDetailPage() {
             >
               {(Object.keys(MOTIVATION_CATEGORY_LABELS) as MotivationCategory[]).map((key) => (
                 <option key={key} value={key}>
-                  {MOTIVATION_CATEGORY_LABELS[key]}
+                  {t(MOTIVATION_CATEGORY_LABELS[key])}
                 </option>
               ))}
             </AdminSelect>
@@ -228,7 +274,7 @@ export default function AdminMotivationPairDetailPage() {
         </AdminField>
 
         <div className="grid gap-3.5 lg:grid-cols-2">
-          <AdminField label="Текст A — мотив выражен" locked={locked.has('text_a')} lockReason={LOCK_REASON}>
+          <AdminField label={t('motivationPairs.field.textALabel')} locked={locked.has('text_a')} revert={fieldRevert('text_a')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <textarea
                 id={id}
@@ -240,7 +286,7 @@ export default function AdminMotivationPairDetailPage() {
             )}
           </AdminField>
 
-          <AdminField label="Текст B — противоположный полюс" locked={locked.has('text_b')} lockReason={LOCK_REASON}>
+          <AdminField label={t('motivationPairs.field.textBLabel')} locked={locked.has('text_b')} revert={fieldRevert('text_b')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <textarea
                 id={id}
@@ -261,7 +307,7 @@ export default function AdminMotivationPairDetailPage() {
           // Saving the category writes both sides, so the bar says so rather
           // than naming one field and quietly changing two.
           'category' in patch
-            ? [...changedLabels.filter((l) => l !== FIELD_LABELS.category), 'категория обеих сторон']
+            ? [...changedLabels.filter((l) => l !== FIELD_LABELS.category), t('motivationPairs.field.categoryLabel')]
             : changedLabels
         }
         onSave={() => save()}

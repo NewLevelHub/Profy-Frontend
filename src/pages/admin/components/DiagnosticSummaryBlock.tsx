@@ -1,31 +1,33 @@
 import { cn } from '@/shared/lib/cn';
+import { formatDate } from '@/shared/i18n/format';
+import { useTranslation } from 'react-i18next';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT, MONO_LABEL } from '@/shared/ui/admin/density';
 import type { AdminAssessmentDetail, BigFiveDomain, HollandType } from '@/shared/types';
 
 const CONSISTENCY_LABELS: Record<'high' | 'medium' | 'low', string> = {
-  high: 'высокая',
-  medium: 'средняя',
-  low: 'низкая',
+  high: 'admin:summary.level.high',
+  medium: 'admin:summary.level.medium',
+  low: 'admin:summary.level.low',
 };
 
 const RIASEC_DISPLAY_ORDER: HollandType[] = ['R', 'I', 'A', 'S', 'E', 'C'];
 const BIG_FIVE_DISPLAY_ORDER: BigFiveDomain[] = ['O', 'C', 'E', 'A', 'N'];
 
 const RIASEC_LABELS: Record<HollandType, string> = {
-  R: 'Реалистичный',
-  I: 'Исследовательский',
-  A: 'Артистичный',
-  S: 'Социальный',
-  E: 'Предприимчивый',
-  C: 'Конвенциональный',
+  R: 'admin:riasecShort.R',
+  I: 'admin:riasecShort.I',
+  A: 'admin:riasecShort.A',
+  S: 'admin:riasecShort.S',
+  E: 'admin:riasecShort.E',
+  C: 'admin:riasecShort.C',
 };
 
 const BIG_FIVE_LABELS: Record<BigFiveDomain, string> = {
-  O: 'Открытость опыту',
-  C: 'Добросовестность',
-  E: 'Экстраверсия',
-  A: 'Доброжелательность',
-  N: 'Нейротизм',
+  O: 'admin:bigfiveShort.O',
+  C: 'admin:bigfiveShort.C',
+  E: 'admin:bigfiveShort.E',
+  A: 'admin:bigfiveShort.A',
+  N: 'admin:bigfiveShort.N',
 };
 
 const INSTRUMENT_LABELS: Record<string, string> = {
@@ -34,14 +36,14 @@ const INSTRUMENT_LABELS: Record<string, string> = {
   mi: 'MI',
 };
 
-function formatElapsed(ms: number): string {
+function formatElapsed(ms: number, t: (key: string, opts?: Record<string, unknown>) => string): string {
   if (!Number.isFinite(ms) || ms <= 0) return '—';
   const totalMin = Math.round(ms / 60000);
-  if (totalMin < 60) return `${totalMin} мин`;
+  if (totalMin < 60) return t('summary.minutes', { count: totalMin });
   const h = Math.floor(totalMin / 60);
-  if (h < 24) return `${h} ч ${totalMin % 60} мин`;
+  if (h < 24) return t('summary.hoursMinutes', { hours: h, minutes: totalMin % 60 });
   const d = Math.floor(h / 24);
-  return `${d} дн ${h % 24} ч`;
+  return t('summary.daysHours', { days: d, hours: h % 24 });
 }
 
 /**
@@ -53,7 +55,7 @@ function formatElapsed(ms: number): string {
  * assessment carry the same two timestamps and every block reported "<1 мин"
  * or "—". Counting questions is something the data actually supports.
  */
-function blockCounts(assessment: AdminAssessmentDetail) {
+function blockCounts(assessment: AdminAssessmentDetail, t: (key: string) => string) {
   const counts = new Map<string, number>();
   for (const response of assessment.responses) {
     counts.set(response.instrument, (counts.get(response.instrument) ?? 0) + 1);
@@ -68,7 +70,7 @@ function blockCounts(assessment: AdminAssessmentDetail) {
   if (assessment.motivation_responses.length > 0) {
     blocks.push({
       id: 'motivation',
-      label: 'Мотивация',
+      label: t('feedback.sectionShort.motivation'),
       count: assessment.motivation_responses.length,
     });
   }
@@ -110,7 +112,8 @@ function ScoreBar({
 }
 
 export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssessmentDetail }) {
-  const blocks = blockCounts(assessment);
+  const { t } = useTranslation('admin');
+  const blocks = blockCounts(assessment, t);
   if (blocks.length === 0) return null;
 
   const analysis = assessment.analysis_result;
@@ -137,18 +140,18 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
   return (
     <div className="flex flex-col gap-4 py-3.5 border-y border-default">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <h4 className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>Сводка диагностики</h4>
+        <h4 className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{t('summary.title')}</h4>
         {assessment.completed_at && (
           <span className={ADMIN_META}>
-            завершена {new Date(assessment.completed_at).toLocaleDateString('ru-RU')}
+            {t('summary.completedOn', { date: formatDate(assessment.completed_at) })}
             {elapsedMs !== null && (
               <>
                 {' · '}
                 {/* Labelled as elapsed, not as time spent: it is the gap between
                     starting and finishing, which for a test left open overnight
                     reads as "20 ч 30 мин" of work that never happened. */}
-                <span title="Время от начала теста до завершения, включая перерывы">
-                  прошло {formatElapsed(elapsedMs)}
+                <span title={t('summary.elapsedHint')}>
+                  {t('summary.elapsed', { elapsed: formatElapsed(elapsedMs, t) })}
                 </span>
               </>
             )}
@@ -167,7 +170,7 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
 
       {isRiasecProfile && (
         <div className="flex flex-col gap-2">
-          <p className={cn(MONO_LABEL, 'text-muted m-0')}>Интересы RIASEC</p>
+          <p className={cn(MONO_LABEL, 'text-muted m-0')}>{t('summary.riasecInterests')}</p>
           <div className="flex flex-col gap-1.5">
             {riasecEntries.map(({ letter, value }) => (
               <ScoreBar key={letter} code={letter} label={RIASEC_LABELS[letter]} value={value} tone="pine" />
@@ -190,20 +193,20 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
       {(isRiasecProfile || bigFiveEntries.length > 0) && (
         // One short line instead of the two developer footnotes that used to
         // sit under each chart citing a contract file by name.
-        <p className={ADMIN_META}>Сырые баллы видны только в админке — в отчёте ученика их нет.</p>
+        <p className={ADMIN_META}>{t('summary.rawScoresNote')}</p>
       )}
 
       {analysis && (
         <div className="flex flex-wrap gap-x-5 gap-y-1.5">
           <span className={ADMIN_TEXT}>
-            <span className="text-muted">Согласованность ответов</span>{' '}
+            <span className="text-muted">{t('summary.consistency')}</span>{' '}
             <span className="text-primary font-medium">
               {CONSISTENCY_LABELS[analysis.meta.consistency] ?? analysis.meta.consistency}
             </span>
           </span>
           <span className={ADMIN_TEXT}>
-            <span className="text-muted" title="Разброс между ведущими и слабыми типами: чем выше, тем чётче профиль">
-              Дифференциация
+            <span className="text-muted" title={t('summary.differentiationHint')}>
+              {t('summary.differentiation')}
             </span>{' '}
             <span className={cn(ADMIN_NUM, 'text-primary')}>{Math.round(analysis.meta.differentiation)}</span>
           </span>

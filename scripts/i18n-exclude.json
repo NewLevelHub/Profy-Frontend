@@ -38,4 +38,8 @@
     "src/pages/psychologist/**": "Psychologist cabinet (PRO-321/PRO-327) — internal staff tool like /admin/*, never shown to students. Same ru-only-by-decision treatment as KZ-210's admin carve-out.",
     "src/pages/results/components/psych/**": "The psych-block \"Дополнительно для специалиста\" section (validity/MC-SDS + psychoemotional/МЦВ) rendered inside ResultsReportBody. Server-gated to psychologist/admin viewers only (report_service.psych_sections_for) — a student's own /result never receives this data, so these components never render for a student regardless of locale. Dense clinical/psychometric terminology (MC-SDS, LongString, IRV, СО/ВК); ru-only by the same staff-tool reasoning as /admin and /psychologist."
   }
+  "_comment": "Single source of truth for paths deliberately NOT localized. Consumed by the i18n CI guards (KZ-602) and any rg/pseudo-locale wrapper — do not hardcode these globs anywhere else. Everything here stays ru-only: no t()/<Trans>, Cyrillic string literals are expected. /admin/* used to live here under KZ-210; that decision was reversed on review and the panel is now localized like any other area, so the guard checks it.",
+  "globs": [],
+  "files": [],
+  "comments": {}
 }

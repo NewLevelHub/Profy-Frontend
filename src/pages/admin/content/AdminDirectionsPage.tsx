@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { adminApi } from '@/shared/api/admin';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
@@ -9,13 +10,28 @@ import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTab
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
+import { ADMIN_META, ADMIN_NUM } from '@/shared/ui/admin/density';
 import type { AdminDirectionListItem } from '@/shared/types';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['search'] as const;
+const FILTER_KEYS = ['search', 'catalog_filled'] as const;
+/** Поля сортировки, которые принимает эндпоинт — незнакомое значение
+ *  в URL игнорируется, а не улетает на сервер за 422. */
+const SORTABLE_KEYS = ['name', 'holland_code', 'slug'] as const;
+
+/** Русские имена полей каталога — список приходит машинными. */
+const CATALOG_FIELD_LABELS: Record<string, string> = {
+  description: 'описание',
+  professions: 'профессии',
+  skills_needed: 'навыки',
+  subjects_to_develop: 'предметы',
+  first_steps: 'первые шаги',
+};
 
 export default function AdminDirectionsPage() {
-  const { page, values, setFilter, setPage, clearFilters } = useAdminListParams(FILTER_KEYS);
+  const { t } = useTranslation('admin');
+  const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
+    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
   useRememberListQuery('/admin/content/directions');
   const [items, setItems] = useState<AdminDirectionListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -23,7 +39,7 @@ export default function AdminDirectionsPage() {
   const [error, setError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
 
-  const { search } = values;
+  const { search, catalog_filled: catalogFilled } = values;
 
   useEffect(() => {
     let cancelled = false;
@@ -32,12 +48,19 @@ export default function AdminDirectionsPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await adminApi.listDirections({ page, limit: PAGE_SIZE, search: search || undefined });
+        const data = await adminApi.listDirections({
+          page,
+          limit: PAGE_SIZE,
+          search: search || undefined,
+          catalog_filled: catalogFilled ? catalogFilled === 'yes' : undefined,
+          sort: sort?.key,
+          order: sort?.order,
+        });
         if (cancelled) return;
         setItems(data.items);
         setTotal(data.total);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить направления');
+        if (!cancelled) setError(t('directions.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -47,14 +70,15 @@ export default function AdminDirectionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, search, reloadToken]);
+  }, [page, search, catalogFilled, sort?.key, sort?.order, reloadToken]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
 
   const columns: AdminColumn<AdminDirectionListItem>[] = [
     {
       key: 'name',
-      header: 'Направление',
+      header: t('directions.col.name'),
+      sortKey: 'name',
       mobile: 'title',
       cell: (item) => (
         <Link
@@ -69,10 +93,11 @@ export default function AdminDirectionsPage() {
       key: 'holland',
       // По-русски, как и все остальные заголовки: инструмент во всей админке
       // называется RIASEC, «Holland code» тут единственная латиница.
-      header: 'Код RIASEC',
+      header: t('directions.col.code'),
+      sortKey: 'holland_code',
       width: '124px',
       mobile: 'field',
-      headerTitle: 'Три ведущие буквы RIASEC, по которым направление подбирается ученику',
+      headerTitle: t('directions.col.codeHint'),
       cell: (item) => (
         <span className="font-mono text-mono-sm text-secondary tracking-wide">{item.holland_code}</span>
       ),
@@ -80,9 +105,10 @@ export default function AdminDirectionsPage() {
     {
       key: 'slug',
       header: 'Slug',
+      sortKey: 'slug',
       width: '248px',
       mobile: 'subtitle',
-      headerTitle: 'Адрес направления в продукте. Не перегенерируется при правке названия',
+      headerTitle: t('directions.col.slugHint'),
       cell: (item) => (
         <span className="font-mono text-mono-xs text-muted" title={item.slug}>
           {item.slug}
@@ -90,10 +116,47 @@ export default function AdminDirectionsPage() {
       ),
     },
     {
+      key: 'programs',
+      header: 'Программ',
+      align: 'right',
+      width: '104px',
+      mobile: 'field',
+      headerTitle:
+        'Сколько программ вузов привязано к направлению. Ноль — направление никогда не попадёт в подбор',
+      cell: (item) => (
+        <span
+          className={
+            item.programs_count === 0 ? 'font-mono text-mono-sm text-danger tabular-nums' : ADMIN_NUM
+          }
+        >
+          {item.programs_count}
+        </span>
+      ),
+    },
+    {
+      // Каталог заполняется отдельным контент-проходом, и до сих пор пустое
+      // поле было видно только внутри карточки. Строка называет, чего не
+      // хватает, а не просто «не заполнено».
+      key: 'gaps',
+      header: 'Не заполнено',
+      width: '220px',
+      mobile: 'subtitle',
+      cell: (item) =>
+        item.empty_catalog_fields.length === 0 ? (
+          <span className="text-muted">—</span>
+        ) : (
+          <span className={ADMIN_META}>
+            {item.empty_catalog_fields
+              .map((field) => CATALOG_FIELD_LABELS[field] ?? field)
+              .join(', ')}
+          </span>
+        ),
+    },
+    {
       key: 'overrides',
       header: '',
       align: 'right',
-      width: '72px',
+      width: '104px',
       mobile: 'badge',
       cell: (item) => (item.has_overrides ? <OverrideBadge /> : null),
     },
@@ -102,12 +165,23 @@ export default function AdminDirectionsPage() {
   return (
     <>
       <AdminListHeader
-        title="Направления"
-        description="Карьерные направления, которые продукт подбирает по коду RIASEC."
+        title={t('directions.title')}
+        description={t('directions.description')}
       />
 
       <AdminToolbar
-        search={{ value: search, onChange: handleSearch, placeholder: 'Название направления' }}
+        search={{ value: search, onChange: handleSearch, placeholder: t('directions.searchPlaceholder') }}
+        selects={[
+          {
+            key: 'catalog_filled',
+            label: 'Каталог',
+            value: catalogFilled,
+            options: [
+              { value: 'no', label: 'Есть пустые поля' },
+              { value: 'yes', label: 'Заполнен полностью' },
+            ],
+          },
+        ]}
         onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
         onClearAll={clearFilters}
       />
@@ -115,17 +189,19 @@ export default function AdminDirectionsPage() {
       {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
 
       <AdminDataTable
-        label="Направления"
+        label={t('directions.title')}
         columns={columns}
         rows={items}
         rowKey={(item) => item.id}
         rowHref={(item) => `/admin/content/directions/${item.id}`}
+        sort={sort}
+        onSortChange={setSort}
         loading={loading}
-        emptyTitle="Направления не найдены"
-        emptyHint="Поиск матчит название направления."
+        emptyTitle={t('directions.empty')}
+        emptyHint={t('directions.emptyHint')}
       />
 
-      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} noun={['направление', 'направления', 'направлений']} />
+      <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="directions" />
     </>
   );
 }
