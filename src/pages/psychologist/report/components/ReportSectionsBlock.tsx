@@ -158,7 +158,7 @@ export function ReportSectionsBlock({
         {newTests.intelligence ? (
           <IntelligenceSection section={newTests.intelligence} />
         ) : (
-          <AdminEmpty title="Данных пока нет" hint="Появится после прохождения АСТУР — назначается из кабинета психолога." />
+          <AdminEmpty title="Данных пока нет" hint="Появится после завершения учеником теста характеристик интеллекта (АСТУР)." />
         )}
       </div>
 
@@ -167,7 +167,7 @@ export function ReportSectionsBlock({
         {newTests.team_role ? (
           <TeamRoleSection section={newTests.team_role} />
         ) : (
-          <AdminEmpty title="Данных пока нет" hint="Появится после прохождения Belbin — назначается из кабинета психолога." />
+          <AdminEmpty title="Данных пока нет" hint="Появится после завершения учеником теста «Роли в команде» (Belbin)." />
         )}
       </div>
 
