@@ -79,6 +79,8 @@ export const API = {
   },
   psychologist: {
     students: '/psychologist/students',
+    availableStudents: '/psychologist/students/available',
+    claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,

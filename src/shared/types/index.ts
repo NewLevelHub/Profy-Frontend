@@ -972,6 +972,15 @@ export interface PsychologistStudentListItem {
   assigned_at: string;
 }
 
+/** Students the psychologist can claim (PRO-337 — no admin in this flow). */
+export interface PsychologistAvailableStudentItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age_group: AgeGroup | null;
+  has_pending_review: boolean;
+}
+
 export interface PsychologistAssessmentSummary {
   id: string;
   goal: AssessmentGoal;
