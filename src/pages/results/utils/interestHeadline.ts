@@ -1,25 +1,33 @@
 import type { InterestMapItem } from '@/shared/types';
 
 /**
+ * Level cut-offs on the 0-100 `details.score` scale — mirror of the
+ * backend's scoring_levels.py (LEVEL_MEDIUM_MIN / LEVEL_HIGH_MIN). Used only
+ * to draw the marks on the level meter and the hexagon, so the picture shows
+ * exactly the bar a type had to clear; the level itself always comes from
+ * the server.
+ */
+export const LEVEL_MEDIUM_MIN = 50;
+export const LEVEL_HIGH_MIN = 70;
+
+/**
  * "Leading type in words" derivation for the interest map — shared by the
  * on-screen section (InterestDomainSection) and the printable/PDF version
  * (print/), so both name the same leading types from the same data instead
  * of drifting apart.
  *
  * Never a RIASEC letter or MI code — always the human-readable label/sphere
- * name. `level` is the only ranking signal the result-v2 contract gives us
- * (§5, opaque low/medium/high, no underlying score), so "leading" means
- * every item at `level: 'high'` — which is how the spec's leading-tie case
- * (two types marked ВЕДУЩЕЕ at once) falls out naturally, no tie-break
- * logic needed. Falls back to `medium` items, then the first item, if
- * nothing is `high` (a flat/low profile is legitimate per contract §8).
+ * name. "Leading" means every item at `level: 'high'` (up to three — a
+ * Holland code is three letters, and cutting at two silently dropped a real
+ * third leading type), falling back to `medium` items, then the first item,
+ * if nothing is `high` (a flat/low profile is legitimate per contract §8).
  */
 export function pickHeadlineItems(items: InterestMapItem[]): InterestMapItem[] {
   if (items.length === 0) return [];
   const leading = items.filter((i) => i.level === 'high');
   const pool = leading.length > 0 ? leading : items.filter((i) => i.level === 'medium');
   const picked = pool.length > 0 ? pool : items.slice(0, 1);
-  return picked.slice(0, 2);
+  return picked.slice(0, 3);
 }
 
 /**
@@ -35,8 +43,8 @@ export function buildHeadline(items: InterestMapItem[], labels: Record<string, s
 
 /** "также заметно: {secondary types}" — medium-level types not already in the headline. */
 export function buildSecondaryNote(items: InterestMapItem[], labels: Record<string, string>): string {
-  const leadingCodes = new Set(items.filter((i) => i.level === 'high').map((i) => i.code));
-  const secondary = items.filter((i) => i.level === 'medium' && !leadingCodes.has(i.code));
+  const headlineCodes = new Set(pickHeadlineItems(items).map((i) => i.code));
+  const secondary = items.filter((i) => i.level === 'medium' && !headlineCodes.has(i.code));
   if (secondary.length === 0) return '';
   return secondary.map((i) => labels[i.code] ?? i.sphere).join(', ');
 }

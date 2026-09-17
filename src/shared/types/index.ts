@@ -494,10 +494,39 @@ export interface StudentPersonalityNote {
   level: InterestLevel;
 }
 
+export interface InterestQuote {
+  text: string;
+  answer: 'like' | 'dislike';
+}
+
+// "Why this level" breakdown for one RIASEC type (PRO-336). `distribution`
+// is answer counts strongest-liking first: [очень нравится, нравится,
+// не уверен, не нравится, совсем не нравится]. `score` (0-100) only
+// positions the level meter — never print it as a percentage.
+export interface InterestMapItemDetails {
+  answered: number;
+  distribution: number[];
+  likes: number;
+  dislikes: number;
+  score: number;
+  means: string;
+  follows: string;
+  quotes: InterestQuote[];
+}
+
 export interface InterestMapItem {
   code: string;
   sphere: string;
   level: InterestLevel;
+  // RIASEC only; null for MI and for reports cached before PRO-336.
+  details?: InterestMapItemDetails | null;
+}
+
+/** How the two most pronounced RIASEC types sit on Holland's hexagon. */
+export interface InterestCombination {
+  codes: string[];
+  relation: 'adjacent' | 'alternate' | 'opposite';
+  text: string;
 }
 
 export type CareerTier = 'strong' | 'good' | 'worth_trying';
@@ -638,6 +667,7 @@ export interface MiResultResponse extends ResultResponseBase {
 
 export interface RiasecResultResponse extends ResultResponseBase {
   interest_instrument: 'riasec';
+  interest_combination?: InterestCombination | null;
   careers: StudentCareer[];
   exploration_activities: [];
 }
