@@ -1049,6 +1049,15 @@ export interface PsychologistStudentListItem {
   assigned_at: string;
 }
 
+/** Students the psychologist can claim (PRO-337 — no admin in this flow). */
+export interface PsychologistAvailableStudentItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age_group: AgeGroup | null;
+  has_pending_review: boolean;
+}
+
 export interface PsychologistAssessmentSummary {
   id: string;
   goal: AssessmentGoal;
@@ -1058,6 +1067,8 @@ export interface PsychologistAssessmentSummary {
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
+  /** `null` while there is no result yet. */
+  review_status?: ReviewStatus | null;
   has_roadmap: boolean;
 }
 
@@ -1084,6 +1095,86 @@ export interface PsychologistNote {
 export interface PsychologistNoteWrite {
   content: string;
 }
+
+// ─── Psychologist report review (PRO-337) ───────────────────────────────────────
+//
+// docs/psychologist-review-frontend-plan.md. A fresh report is hidden from the
+// student until the assigned psychologist publishes it. `ResultPendingReview`
+// must match the backend's `ResultPendingReviewResponse` field for field.
+
+export type ReviewStatus = 'pending_review' | 'published';
+
+/** What `GET`/`POST /result` return while the report still waits for review. */
+export interface ResultPendingReview {
+  status: 'pending_review';
+  assessment_id: string;
+}
+
+export interface PsychologistReviewQueueItem {
+  assessment_id: string;
+  student_id: string;
+  student_name: string | null;
+  student_email: string;
+  age_group: AgeGroup | null;
+  goal: AssessmentGoal;
+  generated_at: string;
+  reviewed_at: string | null;
+}
+
+export interface PsychologistReviewCard {
+  title: string;
+  description: string;
+}
+
+/** Stored career match — the backend validates this exact shape on PATCH. */
+export interface PsychologistReviewCareer {
+  slug: string;
+  name: string;
+  holland_code: string;
+  match_score: number;
+  description: string;
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+}
+
+export interface PsychologistResultDetail {
+  assessment_id: string;
+  review_status: ReviewStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  published_by: string | null;
+  published_at: string | null;
+  summary: string;
+  careers: PsychologistReviewCareer[];
+  strengths: string[];
+  weaknesses: string[];
+  development_plan: { reinforce: string[]; compensate: string[] };
+  big_five: Record<string, number>;
+  thinking_style: Record<string, number>;
+  strength_cards: PsychologistReviewCard[];
+  thinking_style_notes: PsychologistReviewCard[];
+  final_analysis: string;
+  personality_notes: Record<string, string>;
+  motivation_highlights: string[];
+  created_at: string;
+}
+
+export type PsychologistResultPatch = Partial<
+  Pick<
+    PsychologistResultDetail,
+    | 'summary'
+    | 'careers'
+    | 'strengths'
+    | 'weaknesses'
+    | 'strength_cards'
+    | 'thinking_style_notes'
+    | 'final_analysis'
+    | 'personality_notes'
+    | 'motivation_highlights'
+  >
+>;
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //

@@ -41,6 +41,7 @@ export default function ResultsPage() {
     report,
     isLoading,
     isTranslating,
+    isPendingReview,
     error,
     hasCompletedAssessment,
     assessmentId,
@@ -77,6 +78,20 @@ export default function ResultsPage() {
     return (
       <PageContainer>
         <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
+
+  // Test finished, report generated, but a psychologist hasn't published it
+  // yet (PRO-337). useResults keeps polling and swaps the report in once it is.
+  if (isPendingReview) {
+    return (
+      <PageContainer>
+        <JourneyEmptyState
+          mascotState="pause"
+          title={t('pendingReview.title')}
+          body={t('pendingReview.body')}
+        />
       </PageContainer>
     );
   }

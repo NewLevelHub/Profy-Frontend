@@ -104,8 +104,15 @@ export const API = {
   },
   psychologist: {
     students: '/psychologist/students',
+    availableStudents: '/psychologist/students/available',
+    claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
+    reviews: '/psychologist/reviews',
+    resultReview: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/results/${assessmentId}`,
+    publishResult: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/results/${assessmentId}/publish`,
   },
 } as const;
