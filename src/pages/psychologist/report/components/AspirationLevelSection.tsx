@@ -79,9 +79,9 @@ export function AspirationLevelSection({ section }: { section: AspirationLevelSe
             <AdminBadge tone={LEVEL_TONES[level] ?? 'neutral'}>
               {LEVEL_LABELS[level] ?? level}
             </AdminBadge>
-            <span className={cn(ADMIN_META, 'group-hover:text-primary transition-colors flex items-center gap-0.5 text-tiny')}>
+            <span className={cn(ADMIN_META, 'group-hover:text-primary transition-colors flex items-center gap-1 font-sans text-body-sm')}>
               {selectedLevelKey === level ? 'Свернуть' : 'Подробный разбор'}
-              <ChevronDown size={13} className={cn('transition-transform', selectedLevelKey === level && 'rotate-180')} />
+              <ChevronDown size={14} className={cn('transition-transform', selectedLevelKey === level && 'rotate-180')} />
             </span>
           </button>
         </div>

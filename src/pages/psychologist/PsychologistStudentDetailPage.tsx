@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { Check, FileText, ListChecks, Pencil, Trash2 } from 'lucide-react';
+import { Check, ClipboardCheck, FileText, ListChecks, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
@@ -238,7 +238,7 @@ export default function PsychologistStudentDetailPage() {
       {student && student.assessments.length > 0 && (
         <AdminCard
           title="Диагностики"
-          description="Полный отчёт со специальными тестами доступен по кнопке «Отчёт»; обычный отчёт становится виден ученику только после того, как вы его проверите и опубликуете."
+          description="Полная психодиагностика со специальными тестами и подготовка отчёта для ученика объединены в едином отчёте."
         >
           <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
             {student.assessments.map((a) => (
@@ -290,25 +290,32 @@ export default function PsychologistStudentDetailPage() {
                       </button>
                     );
                   })}
-                  {a.review_status && (
+                  {/* Single unified report button */}
+                  {(a.has_result || a.review_status) && (
                     <Link
-                      to={`/psychologist/students/${studentId}/results/${a.id}/review`}
+                      to={
+                        a.review_status === 'pending_review'
+                          ? `/psychologist/students/${studentId}/assessments/${a.id}/report?tab=review`
+                          : `/psychologist/students/${studentId}/assessments/${a.id}/report`
+                      }
                       className={cn(
                         ADMIN_BUTTON,
-                        a.review_status === 'pending_review' &&
-                          'bg-brand text-on-brand border-brand hover:bg-brand-hover hover:border-brand-hover hover:text-on-brand',
+                        a.review_status === 'pending_review'
+                          ? 'bg-brand text-on-brand border-brand hover:bg-brand-hover hover:border-brand-hover hover:text-on-brand shadow-sm font-semibold'
+                          : 'hover:border-strong hover:text-primary',
                       )}
                     >
-                      {a.review_status === 'pending_review' ? 'Проверить отчёт' : 'Открыть отчёт'}
-                    </Link>
-                  )}
-                  {a.has_result && (
-                    <Link
-                      to={`/psychologist/students/${studentId}/assessments/${a.id}/report`}
-                      className={cn(ADMIN_BUTTON, 'gap-1.5')}
-                    >
-                      <FileText size={13} />
-                      Отчёт
+                      {a.review_status === 'pending_review' ? (
+                        <>
+                          <ClipboardCheck size={14} />
+                          Проверить отчёт
+                        </>
+                      ) : (
+                        <>
+                          <FileText size={14} />
+                          Открыть отчёт
+                        </>
+                      )}
                     </Link>
                   )}
                 </div>

@@ -41,21 +41,21 @@ export function PsychBandMeter({ value, max, bands, label, unit = 'баллов'
       </div>
 
       {bands && bands.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 pt-1 text-tiny">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 font-sans text-body-sm">
           {bands.map((b, i) => {
             const active = value >= b.min && value <= b.max;
             return (
               <div
                 key={i}
                 className={cn(
-                  'px-1.5 py-0.5 rounded-[6px] text-center border transition-colors',
+                  'px-2 py-1 rounded-[6px] text-center border transition-colors',
                   active
                     ? 'bg-brand-subtle border-brand text-brand font-semibold'
                     : 'bg-transparent border-transparent text-muted',
                 )}
               >
                 <span>{b.label}</span>
-                <span className="font-mono text-tiny ml-1 opacity-75">
+                <span className="font-mono text-mono-sm ml-1 opacity-75">
                   ({b.min}–{b.max})
                 </span>
               </div>

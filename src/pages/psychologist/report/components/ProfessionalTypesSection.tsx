@@ -175,7 +175,7 @@ export function ProfessionalTypesSection({ section }: { section: ProfessionalTyp
           onClose={() => setSelectedKey(null)}
         >
           <div className="p-3 rounded-[10px] bg-[color-mix(in_srgb,var(--paper)_80%,transparent)] border border-default/60">
-            <p className="text-tiny font-bold uppercase tracking-label text-primary m-0 mb-1">
+            <p className="font-sans text-caption font-bold uppercase tracking-label text-primary m-0 mb-1">
               Баланс «Хочу vs Могу»
             </p>
             <p className={cn(ADMIN_TEXT, 'text-muted m-0 leading-snug')}>

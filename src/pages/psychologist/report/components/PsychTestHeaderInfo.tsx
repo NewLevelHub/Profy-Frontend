@@ -52,8 +52,8 @@ export function PsychTestHeaderInfo({ methodology, defaultExpanded = false }: Ps
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-default/40">
-            <span className={cn(ADMIN_META, 'font-mono text-tiny')}>
-              Источник: <span className="text-primary">{methodology.source}</span>
+            <span className={cn(ADMIN_META, 'font-sans text-body-sm')}>
+              Источник: <span className="text-primary font-medium">{methodology.source}</span>
             </span>
           </div>
 

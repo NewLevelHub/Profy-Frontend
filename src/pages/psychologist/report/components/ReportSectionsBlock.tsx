@@ -15,7 +15,7 @@ import { AspirationLevelSection } from './AspirationLevelSection';
 import { EmpathyConfidenceSection } from './EmpathyConfidenceSection';
 
 function GroupHeading({ children }: { children: string }) {
-  return <h2 className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{children}</h2>;
+  return <h2 className="font-sans text-display-sm font-bold text-primary mb-3.5 tracking-tight">{children}</h2>;
 }
 
 /**
@@ -76,9 +76,9 @@ export function ReportSectionsBlock({
   return (
     <div className="flex flex-col gap-8">
       <AdminCard title="Итоговое саммари">
-        <p className={cn(ADMIN_TEXT, 'text-primary m-0 whitespace-pre-wrap')}>{report.summary}</p>
+        <p className="font-sans text-body-md text-primary m-0 whitespace-pre-wrap leading-relaxed">{report.summary}</p>
         {report.final_analysis && (
-          <p className={cn(ADMIN_TEXT, 'text-muted m-0 mt-3 whitespace-pre-wrap')}>{report.final_analysis}</p>
+          <p className="font-sans text-body-sm text-secondary m-0 mt-3 whitespace-pre-wrap leading-relaxed border-t border-default/50 pt-3">{report.final_analysis}</p>
         )}
       </AdminCard>
 

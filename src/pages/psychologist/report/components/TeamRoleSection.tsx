@@ -117,8 +117,8 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
 
       {/* Interactive role selector list below chart */}
       {hasChart && (
-        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-default/60">
-          <span className={cn(ADMIN_META, 'self-center mr-1 text-tiny')}>Нажмите на роль для разбора:</span>
+        <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-default/60">
+          <span className={cn(ADMIN_META, 'self-center mr-1')}>Нажмите на роль для разбора:</span>
           {section.ranked_roles?.map((role) => {
             const score = section.scores?.[role] ?? 0;
             const isSelected = selectedRoleKey === role;
@@ -128,15 +128,15 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
                 type="button"
                 onClick={() => setSelectedRoleKey(isSelected ? null : role)}
                 className={cn(
-                  'px-2 py-1 rounded-[8px] text-tiny transition-colors flex items-center gap-1 border focus:outline-none',
+                  'px-2.5 py-1.5 rounded-[10px] font-sans text-body-sm transition-colors flex items-center gap-1.5 border focus:outline-none focus:ring-1 focus:ring-brand',
                   isSelected
-                    ? 'bg-brand text-white border-brand font-semibold shadow-sm'
-                    : 'bg-raised text-secondary border-default/50 hover:bg-raised/80',
+                    ? 'bg-brand text-on-brand border-brand font-semibold shadow-sm'
+                    : 'bg-raised text-secondary border-default/70 hover:border-strong hover:text-primary',
                 )}
               >
                 <span>{ROLE_LABELS[role] ?? role}</span>
-                <span className="font-mono tabular-nums opacity-80">({score})</span>
-                <ChevronDown size={11} className={cn('transition-transform', isSelected && 'rotate-180')} />
+                <span className="font-mono text-mono-sm tabular-nums opacity-80">({score})</span>
+                <ChevronDown size={13} className={cn('transition-transform', isSelected && 'rotate-180')} />
               </button>
             );
           })}

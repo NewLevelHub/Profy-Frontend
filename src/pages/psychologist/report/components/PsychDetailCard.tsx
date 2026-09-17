@@ -50,21 +50,21 @@ export function PsychDetailCard({
       <div className="flex items-start justify-between gap-3 px-4 py-3 bg-[color-mix(in_srgb,var(--paper)_80%,transparent)] border-b border-brand/20">
         <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={cn(ADMIN_TEXT, 'text-body-sm font-bold text-primary m-0')}>{title}</h3>
+            <h3 className="font-sans text-body-lg font-bold text-primary m-0">{title}</h3>
             {badge}
           </div>
-          {meaning && <p className={cn(ADMIN_META, 'm-0 text-caption leading-snug')}>{meaning}</p>}
+          {meaning && <p className="font-sans text-body-sm text-secondary leading-snug m-0">{meaning}</p>}
         </div>
 
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-[6px] text-muted hover:text-primary hover:bg-raised transition-colors focus:outline-none focus:ring-1 focus:ring-brand flex-shrink-0"
+            className="p-1.5 rounded-[8px] text-muted hover:text-primary hover:bg-raised transition-colors focus:outline-none focus:ring-1 focus:ring-brand flex-shrink-0"
             title="Свернуть расшифровку"
             aria-label="Свернуть"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         )}
       </div>
@@ -72,31 +72,31 @@ export function PsychDetailCard({
       {/* Structured Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-brand/15">
         {/* Left Column: Means & Follows */}
-        <div className="p-4 flex flex-col gap-3.5 min-w-0">
+        <div className="p-4 flex flex-col gap-4 min-w-0">
           <div>
-            <div className="flex items-center gap-1.5 mb-1 text-primary">
+            <div className="flex items-center gap-1.5 mb-1.5 text-primary">
               <span className="w-2 h-2 rounded-full bg-brand" />
-              <h4 className="text-tiny uppercase tracking-label font-bold text-brand">В чём проявляется у подростка</h4>
+              <h4 className="font-sans text-caption uppercase tracking-label font-bold text-brand m-0">В чём проявляется у подростка</h4>
             </div>
             <p className={cn(ADMIN_TEXT, 'text-primary leading-relaxed m-0')}>{means}</p>
           </div>
 
           <div>
-            <div className="flex items-center gap-1.5 mb-1 text-primary">
-              <CheckCircle2 size={13} className="text-accent flex-shrink-0" />
-              <h4 className="text-tiny uppercase tracking-label font-bold text-accent">Что следует для консультации</h4>
+            <div className="flex items-center gap-1.5 mb-1.5 text-primary">
+              <CheckCircle2 size={14} className="text-accent flex-shrink-0" />
+              <h4 className="font-sans text-caption uppercase tracking-label font-bold text-accent m-0">Что следует для консультации</h4>
             </div>
             <p className={cn(ADMIN_TEXT, 'text-secondary leading-relaxed m-0')}>{follows}</p>
           </div>
         </div>
 
         {/* Right Column: Why & Risks */}
-        <div className="p-4 flex flex-col gap-3.5 min-w-0 bg-[color-mix(in_srgb,var(--paper)_65%,transparent)]">
+        <div className="p-4 flex flex-col gap-4 min-w-0 bg-[color-mix(in_srgb,var(--paper)_65%,transparent)]">
           {why && (
             <div>
-              <div className="flex items-center gap-1.5 mb-1 text-primary">
-                <HelpCircle size={13} className="text-secondary flex-shrink-0" />
-                <h4 className="text-tiny uppercase tracking-label font-bold text-secondary">Почему такой результат</h4>
+              <div className="flex items-center gap-1.5 mb-1.5 text-primary">
+                <HelpCircle size={14} className="text-secondary flex-shrink-0" />
+                <h4 className="font-sans text-caption uppercase tracking-label font-bold text-secondary m-0">Почему такой результат</h4>
               </div>
               <p className={cn(ADMIN_TEXT, 'text-muted leading-relaxed m-0')}>{why}</p>
             </div>
@@ -106,10 +106,10 @@ export function PsychDetailCard({
 
           {riskWarning && (
             <div className="p-3 rounded-[10px] bg-danger-subtle/80 border border-danger/25 flex items-start gap-2.5 mt-auto">
-              <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
+              <AlertTriangle size={16} className="text-danger flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-tiny font-bold text-danger uppercase tracking-label m-0">Зона внимания и риски</p>
-                <p className={cn(ADMIN_TEXT, 'text-danger m-0 mt-0.5 leading-snug')}>{riskWarning}</p>
+                <p className="font-sans text-caption font-bold text-danger uppercase tracking-label m-0">Зона внимания и риски</p>
+                <p className="font-sans text-body-sm text-danger m-0 mt-0.5 leading-snug">{riskWarning}</p>
               </div>
             </div>
           )}
