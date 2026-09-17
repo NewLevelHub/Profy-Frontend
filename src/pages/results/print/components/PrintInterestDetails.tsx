@@ -45,8 +45,7 @@ interface PrintInterestDetailsProps {
  * order a counsellor walks a family through it: first how the levels are
  * computed and the overall picture on Holland's hexagon, then every type as
  * its own keep-together block — level, what it means, what the level is
- * made of (answer counts against the two level marks, the student's own
- * statements).
+ * made of (answer counts against the two level marks).
  */
 export function PrintInterestDetails({ items, labels, descriptions, combination }: PrintInterestDetailsProps) {
   const { t } = useTranslation('results');
@@ -157,21 +156,6 @@ function PrintInterestType({ item, label, summary }: { item: DetailedItem; label
             />
           </p>
           <PrintAnswerBar distribution={details.distribution} />
-          {details.quotes.length > 0 && (
-            <ul className="space-y-0.5 pt-0.5">
-              {details.quotes.map((quote) => (
-                <li key={quote.text} className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
-                  <span
-                    className="font-mono text-tiny font-bold mr-1.5"
-                    style={{ color: quote.answer === 'like' ? 'var(--pine)' : 'var(--clay)' }}
-                  >
-                    {quote.answer === 'like' ? '+' : '−'}
-                  </span>
-                  «{quote.text}»
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       </div>
     </div>

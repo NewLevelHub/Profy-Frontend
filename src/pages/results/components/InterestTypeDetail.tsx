@@ -42,9 +42,8 @@ interface InterestTypeDetailProps {
 
 /**
  * The expanded "why" panel under the interest grid (PRO-336) — one RIASEC
- * type at a time, in the order a counsellor explains it: what the interest
- * looks like in life, what the level is made of (the student's own answer
- * counts against the two level marks), and the actual statements behind it.
+ * type at a time: what the interest looks like in life, and what the level
+ * is made of (answer counts against the two level marks).
  */
 export function InterestTypeDetail({ item, label, summary }: InterestTypeDetailProps) {
   const { t } = useTranslation();
@@ -82,7 +81,7 @@ export function InterestTypeDetail({ item, label, summary }: InterestTypeDetailP
         <p className="text-body-sm flex-1 min-w-[240px]" style={{ color: 'var(--text-muted)' }}>{summary}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr_1fr] divide-y lg:divide-y-0 lg:divide-x divide-[var(--border)]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] divide-y lg:divide-y-0 lg:divide-x divide-[var(--border)]">
         <div className="p-4 sm:p-5 flex flex-col gap-3 min-w-0">
           <DetailTitle>{t('results:interestDetail.meansTitle')}</DetailTitle>
           <div className="flex flex-col gap-1">
@@ -107,28 +106,6 @@ export function InterestTypeDetail({ item, label, summary }: InterestTypeDetailP
           <AnswerDistribution distribution={details.distribution} />
           <LevelMeter score={details.score} level={level} />
           <p className="text-caption" style={{ color: 'var(--text-muted)' }}>{t(VERDICT_KEY[level])}</p>
-        </div>
-
-        <div className="p-4 sm:p-5 flex flex-col gap-3 min-w-0">
-          <DetailTitle>{t('results:interestDetail.quotesTitle')}</DetailTitle>
-          {details.quotes.length > 0 ? (
-            <ul className="flex flex-col gap-2.5">
-              {details.quotes.map((quote) => (
-                <li
-                  key={quote.text}
-                  className="flex flex-col gap-0.5 pl-3 border-l-2"
-                  style={{ borderColor: quote.answer === 'like' ? 'var(--pine)' : 'var(--clay)' }}
-                >
-                  <span className="text-body-sm text-[color:var(--text-heading)]">«{quote.text}»</span>
-                  <span className="font-mono text-tiny uppercase tracking-label" style={{ color: 'var(--text-muted)' }}>
-                    {t(quote.answer === 'like' ? 'results:interestDetail.quoteLike' : 'results:interestDetail.quoteDislike')}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-caption" style={{ color: 'var(--text-muted)' }}>{t('results:interestDetail.quotesEmpty')}</p>
-          )}
         </div>
       </div>
     </div>
