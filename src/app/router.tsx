@@ -5,6 +5,7 @@ import { RequireAdmin } from '@/shared/guards/RequireAdmin';
 import { RequirePsychologist } from '@/shared/guards/RequirePsychologist';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
+import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
@@ -102,12 +103,7 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
-      // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
-      { path: '/welcome', element: <WelcomePage /> },
-      { path: '/onboarding/profile', element: <ProfileSetupPage /> },
-      { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
-
-      // Psychologist cabinet — outside RequireProfile: staff have no student Profile
+      // Staff cabinets — outside RequireProfile: staff have no student Profile
       // and student APIs would 403 them. Gated by role alone.
       {
         element: <RequirePsychologist />,
@@ -125,90 +121,103 @@ export const router = createBrowserRouter([
           },
         ],
       },
-
-      // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
-      { path: '/assessment/goal', element: <GoalSelectionPage /> },
-      { path: '/assessment', element: <AssessmentPage /> },
-      { path: '/assessment/pairs', element: <PairAssessmentPage /> },
-      { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
-      { path: '/assessment/rest', element: <RestStopPage /> },
-      { path: '/assessment/loading', element: <ResultLoadingPage /> },
-      { path: '/assessment/goal-check', element: <GoalCheckPage /> },
-
-      // Main app — guarded by profile; redirects to /welcome if profile not yet created
       {
-        element: <RequireProfile />,
+        element: <RequireAdmin />,
         children: [
-          // Chrome-free, own full-screen shell — same reasoning as
-          // /onboarding/artifacts's edit-mode branch: a focused edit screen,
-          // not a tab inside AppLayout. Sits under RequireProfile (unlike
-          // /onboarding/artifacts) because editing certificates only makes
-          // sense once a profile already exists.
-          { path: '/profile/certificates', element: <CertificatesEditPage /> },
-          // Printable/PDF result — chrome-free for the same reason: a
-          // document view, not a tab. Sits outside AppLayout so the nav
-          // rail never lands in the exported PDF.
-          { path: '/results/print', element: <ResultPrintPage /> },
           {
             element: <AppLayout />,
             children: [
-              { path: '/results', element: <ResultsPage /> },
-              { path: '/profile', element: <ProfilePage /> },
-              { path: '/roadmap', element: <RoadmapPage /> },
-
-              // Standalone university catalogue (PRO-265) — a top-level tab,
-              // deliberately outside /results: unlike the direction-scoped
-              // picker below it needs no assessment and no senior gate.
-              { path: '/universities', element: <UniversitiesPage /> },
-              { path: '/universities/:universityId', element: <UniversityDetailPage /> },
-
-              // Detail screens (mobile: App stack over tabs)
-              { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
-              { path: '/results/directions/:slug/inquiry', element: <DirectionInquiryPage /> },
-              { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
-              { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
+              { path: '/admin', element: <Navigate to="/admin/users" replace /> },
               {
-                path: '/results/directions/:slug/universities/:programId',
-                element: <ProgramDetailPage />,
-              },
-
-              // Admin (inside main layout — sidebar stays visible)
-              {
-                element: <RequireAdmin />,
+                // Persistent admin chrome (section rail) for every admin page
+                element: <AdminLayout />,
                 children: [
-                  { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+                  { path: '/admin/users', element: <AdminUsersPage /> },
+                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                  { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+                  { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+                  { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+                  { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
                   {
-                    // Persistent admin chrome (section rail) for every admin page
-                    element: <AdminLayout />,
+                    path: '/admin/content',
+                    element: <AdminContentLayout />,
                     children: [
-                      { path: '/admin/users', element: <AdminUsersPage /> },
-                      { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-                      { path: '/admin/feedback', element: <AdminFeedbackPage /> },
-                      { path: '/admin/universities', element: <AdminUniversitiesPage /> },
-                      { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
-                      { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
-                      {
-                        path: '/admin/content',
-                        element: <AdminContentLayout />,
-                        children: [
-                          { index: true, element: <Navigate to="/admin/content/questions" replace /> },
-                          { path: 'questions', element: <AdminQuestionsPage /> },
-                          { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
-                          { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
-                          { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
-                          { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
-                          { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
-                          { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
-                          { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
-                          { path: 'directions', element: <AdminDirectionsPage /> },
-                          { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
-                        ],
-                      },
+                      { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                      { path: 'questions', element: <AdminQuestionsPage /> },
+                      { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
+                      { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
+                      { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
+                      { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
+                      { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
+                      { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
+                      { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
+                      { path: 'directions', element: <AdminDirectionsPage /> },
+                      { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
                     ],
                   },
                 ],
               },
+            ],
+          },
+        ],
+      },
 
+      // Student-only surfaces — staff bounce to their cabinet home.
+      {
+        element: <RequireStudent />,
+        children: [
+          // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
+          { path: '/welcome', element: <WelcomePage /> },
+          { path: '/onboarding/profile', element: <ProfileSetupPage /> },
+          { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
+
+          // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
+          { path: '/assessment/goal', element: <GoalSelectionPage /> },
+          { path: '/assessment', element: <AssessmentPage /> },
+          { path: '/assessment/pairs', element: <PairAssessmentPage /> },
+          { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
+          { path: '/assessment/rest', element: <RestStopPage /> },
+          { path: '/assessment/loading', element: <ResultLoadingPage /> },
+          { path: '/assessment/goal-check', element: <GoalCheckPage /> },
+
+          // Main app — guarded by profile; redirects to /welcome if profile not yet created
+          {
+            element: <RequireProfile />,
+            children: [
+              // Chrome-free, own full-screen shell — same reasoning as
+              // /onboarding/artifacts's edit-mode branch: a focused edit screen,
+              // not a tab inside AppLayout. Sits under RequireProfile (unlike
+              // /onboarding/artifacts) because editing certificates only makes
+              // sense once a profile already exists.
+              { path: '/profile/certificates', element: <CertificatesEditPage /> },
+              // Printable/PDF result — chrome-free for the same reason: a
+              // document view, not a tab. Sits outside AppLayout so the nav
+              // rail never lands in the exported PDF.
+              { path: '/results/print', element: <ResultPrintPage /> },
+              {
+                element: <AppLayout />,
+                children: [
+                  { path: '/results', element: <ResultsPage /> },
+                  { path: '/profile', element: <ProfilePage /> },
+                  { path: '/roadmap', element: <RoadmapPage /> },
+
+                  // Standalone university catalogue (PRO-265) — a top-level tab,
+                  // deliberately outside /results: unlike the direction-scoped
+                  // picker below it needs no assessment and no senior gate.
+                  { path: '/universities', element: <UniversitiesPage /> },
+                  { path: '/universities/:universityId', element: <UniversityDetailPage /> },
+
+                  // Detail screens (mobile: App stack over tabs)
+                  { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
+                  { path: '/results/directions/:slug/inquiry', element: <DirectionInquiryPage /> },
+                  { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
+                  { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
+                  {
+                    path: '/results/directions/:slug/universities/:programId',
+                    element: <ProgramDetailPage />,
+                  },
+                ],
+              },
             ],
           },
         ],

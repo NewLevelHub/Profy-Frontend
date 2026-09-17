@@ -34,7 +34,11 @@ export function StatsSection() {
   ];
 
   return (
-    <section id="stats" className="relative py-[clamp(3.5rem,6vw,5rem)]" style={{ background: 'var(--brand-solid)' }}>
+    <section
+      id="stats"
+      className="relative -mt-px py-[clamp(3.5rem,6vw,5rem)]"
+      style={{ background: 'var(--brand-solid)' }}
+    >
       <div className="w-[min(1220px,92%)] mx-auto grid grid-cols-4 gap-8 max-[1024px]:grid-cols-2 max-[1024px]:gap-y-10">
         {STATS.map((stat, i) => (
           <Reveal key={stat.label} delay={i} className="text-center">
@@ -50,12 +54,12 @@ export function StatsSection() {
               </svg>
             </div>
             <div
-              className="font-display font-bold text-[clamp(1.6rem,2.5vw,2rem)] tracking-[-0.03em]"
+              className="font-display font-bold text-display-md tracking-[-0.03em]"
               style={{ color: 'var(--on-brand-solid)' }}
             >
               {stat.value}
             </div>
-            <div className="text-[0.86rem] mt-[0.35rem]" style={{ color: 'color-mix(in srgb, var(--on-brand-solid) 62%, transparent)' }}>
+            <div className="text-caption mt-[0.35rem]" style={{ color: 'color-mix(in srgb, var(--on-brand-solid) 62%, transparent)' }}>
               {stat.label}
             </div>
           </Reveal>
