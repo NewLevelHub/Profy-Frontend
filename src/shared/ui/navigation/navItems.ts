@@ -22,7 +22,12 @@ export const PSYCHOLOGIST_NAV_ITEMS = [
   {
     label: 'Ученики',
     path: '/psychologist/students',
-    matchPrefix: '/psychologist',
+    matchPrefix: '/psychologist/students',
+  },
+  {
+    label: 'Проверка отчётов',
+    path: '/psychologist/reviews',
+    matchPrefix: '/psychologist/reviews',
   },
 ] as const;
 

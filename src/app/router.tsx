@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireAdmin } from '@/shared/guards/RequireAdmin';
 import { RequirePsychologist } from '@/shared/guards/RequirePsychologist';
+import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
@@ -77,6 +78,8 @@ import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetail
 import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
 import PsychologistStudentDetailPage from '@/pages/psychologist/PsychologistStudentDetailPage';
 import PsychologistReportPage from '@/pages/psychologist/PsychologistReportPage';
+import PsychologistReviewQueuePage from '@/pages/psychologist/PsychologistReviewQueuePage';
+import PsychologistResultReviewPage from '@/pages/psychologist/PsychologistResultReviewPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -131,98 +134,109 @@ export const router = createBrowserRouter([
                 path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
                 element: <PsychologistReportPage />,
               },
+              { path: '/psychologist/reviews', element: <PsychologistReviewQueuePage /> },
+              {
+                path: '/psychologist/students/:studentId/results/:assessmentId/review',
+                element: <PsychologistResultReviewPage />,
+              },
             ],
           },
         ],
       },
 
-      // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
-      { path: '/assessment/goal', element: <GoalSelectionPage /> },
-      { path: '/assessment', element: <AssessmentPage /> },
-      { path: '/assessment/pairs', element: <PairAssessmentPage /> },
-      { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
-      { path: '/assessment/rest', element: <RestStopPage /> },
-      { path: '/assessment/loading', element: <ResultLoadingPage /> },
-      { path: '/assessment/goal-check', element: <GoalCheckPage /> },
-
-      // PRO-338 Ф2.6 — Belbin, opt-in extended block, outside the wizard above.
-      { path: '/assessment/extended/belbin/:assessmentId', element: <BelbinPage /> },
-      { path: '/assessment/extended/astur/:assessmentId', element: <AsturPage /> },
-
-      // Main app — guarded by profile; redirects to /welcome if profile not yet created
+      // Student-only: assessment + /results/profile/…. Psychologists stay in
+      // their cabinet — /results used to render "start the test" for them.
       {
-        element: <RequireProfile />,
+        element: <RequireStudent />,
         children: [
-          // Chrome-free, own full-screen shell — same reasoning as
-          // /onboarding/artifacts's edit-mode branch: a focused edit screen,
-          // not a tab inside AppLayout. Sits under RequireProfile (unlike
-          // /onboarding/artifacts) because editing certificates only makes
-          // sense once a profile already exists.
-          { path: '/profile/certificates', element: <CertificatesEditPage /> },
-          // Printable/PDF result — chrome-free for the same reason: a
-          // document view, not a tab. Sits outside AppLayout so the nav
-          // rail never lands in the exported PDF.
-          { path: '/results/print', element: <ResultPrintPage /> },
+          // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
+          { path: '/assessment/goal', element: <GoalSelectionPage /> },
+          { path: '/assessment', element: <AssessmentPage /> },
+          { path: '/assessment/pairs', element: <PairAssessmentPage /> },
+          { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
+          { path: '/assessment/rest', element: <RestStopPage /> },
+          { path: '/assessment/loading', element: <ResultLoadingPage /> },
+          { path: '/assessment/goal-check', element: <GoalCheckPage /> },
+
+          // PRO-338 Ф2.6 — Belbin, opt-in extended block, outside the wizard above.
+          { path: '/assessment/extended/belbin/:assessmentId', element: <BelbinPage /> },
+          { path: '/assessment/extended/astur/:assessmentId', element: <AsturPage /> },
+
+          // Main app — guarded by profile; redirects to /welcome if profile not yet created
           {
-            element: <AppLayout />,
+            element: <RequireProfile />,
             children: [
-              { path: '/results', element: <ResultsPage /> },
-              { path: '/profile', element: <ProfilePage /> },
-              { path: '/roadmap', element: <RoadmapPage /> },
-
-              // Standalone university catalogue (PRO-265) — a top-level tab,
-              // deliberately outside /results: unlike the direction-scoped
-              // picker below it needs no assessment and no senior gate.
-              { path: '/universities', element: <UniversitiesPage /> },
-              { path: '/universities/:universityId', element: <UniversityDetailPage /> },
-
-              // Detail screens (mobile: App stack over tabs)
-              { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
-              { path: '/results/directions/:slug/inquiry', element: <DirectionInquiryPage /> },
-              { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
-              { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
+              // Chrome-free, own full-screen shell — same reasoning as
+              // /onboarding/artifacts's edit-mode branch: a focused edit screen,
+              // not a tab inside AppLayout. Sits under RequireProfile (unlike
+              // /onboarding/artifacts) because editing certificates only makes
+              // sense once a profile already exists.
+              { path: '/profile/certificates', element: <CertificatesEditPage /> },
+              // Printable/PDF result — chrome-free for the same reason: a
+              // document view, not a tab. Sits outside AppLayout so the nav
+              // rail never lands in the exported PDF.
+              { path: '/results/print', element: <ResultPrintPage /> },
               {
-                path: '/results/directions/:slug/universities/:programId',
-                element: <ProgramDetailPage />,
-              },
-
-              // Admin (inside main layout — sidebar stays visible)
-              {
-                element: <RequireAdmin />,
+                element: <AppLayout />,
                 children: [
-                  { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+                  { path: '/results', element: <ResultsPage /> },
+                  { path: '/profile', element: <ProfilePage /> },
+                  { path: '/roadmap', element: <RoadmapPage /> },
+
+                  // Standalone university catalogue (PRO-265) — a top-level tab,
+                  // deliberately outside /results: unlike the direction-scoped
+                  // picker below it needs no assessment and no senior gate.
+                  { path: '/universities', element: <UniversitiesPage /> },
+                  { path: '/universities/:universityId', element: <UniversityDetailPage /> },
+
+                  // Detail screens (mobile: App stack over tabs)
+                  { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
+                  { path: '/results/directions/:slug/inquiry', element: <DirectionInquiryPage /> },
+                  { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
+                  { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
                   {
-                    // Persistent admin chrome (section rail) for every admin page
-                    element: <AdminLayout />,
+                    path: '/results/directions/:slug/universities/:programId',
+                    element: <ProgramDetailPage />,
+                  },
+
+                  // Admin (inside main layout — sidebar stays visible)
+                  {
+                    element: <RequireAdmin />,
                     children: [
-                      { path: '/admin/users', element: <AdminUsersPage /> },
-                      { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-                      { path: '/admin/feedback', element: <AdminFeedbackPage /> },
-                      { path: '/admin/universities', element: <AdminUniversitiesPage /> },
-                      { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
-                      { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
+                      { path: '/admin', element: <Navigate to="/admin/users" replace /> },
                       {
-                        path: '/admin/content',
-                        element: <AdminContentLayout />,
+                        // Persistent admin chrome (section rail) for every admin page
+                        element: <AdminLayout />,
                         children: [
-                          { index: true, element: <Navigate to="/admin/content/questions" replace /> },
-                          { path: 'questions', element: <AdminQuestionsPage /> },
-                          { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
-                          { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
-                          { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
-                          { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
-                          { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
-                          { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
-                          { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
-                          { path: 'directions', element: <AdminDirectionsPage /> },
-                          { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                          { path: '/admin/users', element: <AdminUsersPage /> },
+                          { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                          { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+                          { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+                          { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+                          { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
+                          {
+                            path: '/admin/content',
+                            element: <AdminContentLayout />,
+                            children: [
+                              { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                              { path: 'questions', element: <AdminQuestionsPage /> },
+                              { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
+                              { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
+                              { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
+                              { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
+                              { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
+                              { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
+                              { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
+                              { path: 'directions', element: <AdminDirectionsPage /> },
+                              { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                            ],
+                          },
                         ],
                       },
                     ],
                   },
                 ],
               },
-
             ],
           },
         ],

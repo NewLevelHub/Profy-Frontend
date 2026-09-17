@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/shared/api/admin';
 import type { AdminFeedbackListItem } from '@/shared/types';
 
@@ -50,6 +51,7 @@ interface FeedbackFeed {
  * Delete this the moment `/admin/feedback` grows filters and `?sort=`.
  */
 export function useFeedbackFeed(): FeedbackFeed {
+  const { t } = useTranslation('admin');
   const [items, setItems] = useState<AdminFeedbackListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,7 @@ export function useFeedbackFeed(): FeedbackFeed {
         setTotal(first.total);
         setTruncated(first.total > MAX_ITEMS);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить фидбэк');
+        if (!cancelled) setError(t('feedback.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }

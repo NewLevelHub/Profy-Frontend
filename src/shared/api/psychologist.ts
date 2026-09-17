@@ -4,9 +4,13 @@ import type {
   AssignExtendedBlockPayload,
   ExtendedBlockAssignment,
   PsychAiAnalysis,
+  PsychologistAvailableStudentItem,
   PsychologistNote,
   PsychologistNoteWrite,
   PsychologistReportResponse,
+  PsychologistResultDetail,
+  PsychologistResultPatch,
+  PsychologistReviewQueueItem,
   PsychologistStudentDetail,
   PsychologistStudentListItem,
 } from '@/shared/types';
@@ -15,6 +19,16 @@ export const psychologistApi = {
   listStudents: () =>
     apiClient
       .get<PsychologistStudentListItem[]>(API.psychologist.students)
+      .then((r) => r.data),
+
+  listAvailableStudents: () =>
+    apiClient
+      .get<PsychologistAvailableStudentItem[]>(API.psychologist.availableStudents)
+      .then((r) => r.data),
+
+  claimStudent: (studentId: string) =>
+    apiClient
+      .post<PsychologistStudentListItem>(API.psychologist.claimStudent(studentId))
       .then((r) => r.data),
 
   getStudent: (studentId: string) =>
@@ -53,5 +67,25 @@ export const psychologistApi = {
   assignExtendedBlock: (studentId: string, assessmentId: string, body: AssignExtendedBlockPayload) =>
     apiClient
       .post<ExtendedBlockAssignment>(API.psychologist.assignExtendedBlock(studentId, assessmentId), body)
+      .then((r) => r.data),
+
+  listReviews: () =>
+    apiClient
+      .get<PsychologistReviewQueueItem[]>(API.psychologist.reviews)
+      .then((r) => r.data),
+
+  getResultForReview: (studentId: string, assessmentId: string) =>
+    apiClient
+      .get<PsychologistResultDetail>(API.psychologist.resultReview(studentId, assessmentId))
+      .then((r) => r.data),
+
+  updateResultContent: (studentId: string, assessmentId: string, patch: PsychologistResultPatch) =>
+    apiClient
+      .patch<PsychologistResultDetail>(API.psychologist.resultReview(studentId, assessmentId), patch)
+      .then((r) => r.data),
+
+  publishResult: (studentId: string, assessmentId: string) =>
+    apiClient
+      .post<PsychologistResultDetail>(API.psychologist.publishResult(studentId, assessmentId), {})
       .then((r) => r.data),
 };

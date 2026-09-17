@@ -1,3 +1,5 @@
+import type { Locale } from '@/shared/store/locale';
+
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
 /** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
@@ -1206,6 +1208,15 @@ export interface PsychologistStudentListItem {
   assigned_at: string;
 }
 
+/** Students the psychologist can claim (PRO-337 — no admin in this flow). */
+export interface PsychologistAvailableStudentItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age_group: AgeGroup | null;
+  has_pending_review: boolean;
+}
+
 export interface PsychologistAssessmentSummary {
   id: string;
   goal: AssessmentGoal;
@@ -1215,6 +1226,8 @@ export interface PsychologistAssessmentSummary {
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
+  /** `null` while there is no result yet. */
+  review_status?: ReviewStatus | null;
   has_roadmap: boolean;
 }
 
@@ -1366,6 +1379,86 @@ export interface AssignExtendedBlockPayload {
   block: ExtendedBlock;
 }
 
+// ─── Psychologist report review (PRO-337) ───────────────────────────────────────
+//
+// docs/psychologist-review-frontend-plan.md. A fresh report is hidden from the
+// student until the assigned psychologist publishes it. `ResultPendingReview`
+// must match the backend's `ResultPendingReviewResponse` field for field.
+
+export type ReviewStatus = 'pending_review' | 'published';
+
+/** What `GET`/`POST /result` return while the report still waits for review. */
+export interface ResultPendingReview {
+  status: 'pending_review';
+  assessment_id: string;
+}
+
+export interface PsychologistReviewQueueItem {
+  assessment_id: string;
+  student_id: string;
+  student_name: string | null;
+  student_email: string;
+  age_group: AgeGroup | null;
+  goal: AssessmentGoal;
+  generated_at: string;
+  reviewed_at: string | null;
+}
+
+export interface PsychologistReviewCard {
+  title: string;
+  description: string;
+}
+
+/** Stored career match — the backend validates this exact shape on PATCH. */
+export interface PsychologistReviewCareer {
+  slug: string;
+  name: string;
+  holland_code: string;
+  match_score: number;
+  description: string;
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+}
+
+export interface PsychologistResultDetail {
+  assessment_id: string;
+  review_status: ReviewStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  published_by: string | null;
+  published_at: string | null;
+  summary: string;
+  careers: PsychologistReviewCareer[];
+  strengths: string[];
+  weaknesses: string[];
+  development_plan: { reinforce: string[]; compensate: string[] };
+  big_five: Record<string, number>;
+  thinking_style: Record<string, number>;
+  strength_cards: PsychologistReviewCard[];
+  thinking_style_notes: PsychologistReviewCard[];
+  final_analysis: string;
+  personality_notes: Record<string, string>;
+  motivation_highlights: string[];
+  created_at: string;
+}
+
+export type PsychologistResultPatch = Partial<
+  Pick<
+    PsychologistResultDetail,
+    | 'summary'
+    | 'careers'
+    | 'strengths'
+    | 'weaknesses'
+    | 'strength_cards'
+    | 'thinking_style_notes'
+    | 'final_analysis'
+    | 'personality_notes'
+    | 'motivation_highlights'
+  >
+>;
+
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
 // NOTE (backend gap, found 2026-08-15 auditing `/profile`): there is no `/parent`
@@ -1414,6 +1507,8 @@ export type QuestionKeyed = 'plus' | 'minus';
 export interface AdminQuestionListItem {
   id: string;
   instrument: Instrument;
+  /** Resolved to `ru` by the backend — the admin panel itself stays ru-only
+   *  (i18n-contract §2); edit both languages from the detail screen. */
   text: string;
   order: number;
   age_tier: AgeGroup;
@@ -1438,25 +1533,33 @@ export interface AdminQuestionDetail {
   mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
-  text: string;
-  short_text: string | null;
+  /** One row per question now — both languages live on this one row as a
+   *  `{"ru": ..., "kk": ...}` map. A missing key means untranslated, not "". */
+  text: Partial<Record<Locale, string>>;
+  short_text: Partial<Record<Locale, string>> | null;
   icon: string | null;
   /** Read-only — structural, not part of `AdminQuestionUpdateRequest`. */
   order: number;
   age_tier: AgeGroup;
-  /** Field name → overridden value. Presence of a key both locks the field
-   *  and protects the whole row from bank-reorg deletion (see the content
-   *  contract's §3 — unlike university's `admin_locked_fields: string[]`,
-   *  this dict is self-contained and IS the edited value). */
+  /** Field name → overridden value; for a localized field (`text`/
+   *  `short_text`) the value is itself a `{locale: value}` map — only the
+   *  edited locale's key is present, so overriding kk never locks ru (see
+   *  the content contract's §3 — unlike university's
+   *  `admin_locked_fields: string[]`, this dict is self-contained and IS the
+   *  edited value). */
   overrides: Record<string, unknown>;
 }
 
 export type AdminQuestionUpdateRequest = Partial<{
+  /** Required whenever `text`/`short_text` is present — which language is
+   *  being edited. Ignored for a patch that only touches structural fields. */
+  locale: Locale;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
   mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
+  /** The value for `locale` only — the other language's text is untouched. */
   text: string;
   age_tier: AgeGroup;
   short_text: string | null;
@@ -1487,17 +1590,21 @@ export interface AdminQuestionPairDetail {
    *  out of scope for this API. */
   question_a_id: string;
   question_b_id: string;
-  frame: string | null;
-  /** null = fall back to the linked Question's short_text/text on read —
-   *  this endpoint does not resolve that fallback itself. */
-  option_a_text: string | null;
-  option_b_text: string | null;
+  /** One row per pair now — see `AdminQuestionDetail.text`. A missing key
+   *  (or a `null` map) means "no override for this language" — falls back to
+   *  the linked Question's short_text/text on read, which this endpoint does
+   *  not resolve itself. */
+  frame: Partial<Record<Locale, string>> | null;
+  option_a_text: Partial<Record<Locale, string>> | null;
+  option_b_text: Partial<Record<Locale, string>> | null;
   option_a_icon: string | null;
   option_b_icon: string | null;
   overrides: Record<string, unknown>;
 }
 
 export type AdminQuestionPairUpdateRequest = Partial<{
+  /** Required whenever `frame`/`option_a_text`/`option_b_text` is present. */
+  locale: Locale;
   frame: string | null;
   option_a_text: string | null;
   option_b_text: string | null;
@@ -1510,6 +1617,7 @@ export interface AdminMotivationStatementListItem {
   triplet_index: number;
   order: number;
   category: MotivationCategory;
+  /** Resolved to `ru` by the backend — see `AdminQuestionListItem.text`. */
   text: string;
   has_overrides: boolean;
 }
@@ -1526,13 +1634,15 @@ export interface AdminMotivationStatementDetail {
   triplet_index: number;
   order: number;
   category: MotivationCategory;
-  text: string;
-  /** null = the senior `text` is reused for junior too. */
-  text_junior: string | null;
+  text: Partial<Record<Locale, string>>;
+  /** null = the senior `text` is reused for junior too, in every language. */
+  text_junior: Partial<Record<Locale, string>> | null;
   overrides: Record<string, unknown>;
 }
 
 export type AdminMotivationStatementUpdateRequest = Partial<{
+  /** Required whenever `text`/`text_junior` is present. */
+  locale: Locale;
   category: MotivationCategory;
   text: string;
   text_junior: string | null;
@@ -1560,12 +1670,14 @@ export interface AdminMotivationPairDetail {
    *  pole and `text_b` its negative pole (not two different categories). */
   category_a: MotivationCategory;
   category_b: MotivationCategory;
-  text_a: string;
-  text_b: string;
+  text_a: Partial<Record<Locale, string>>;
+  text_b: Partial<Record<Locale, string>>;
   overrides: Record<string, unknown>;
 }
 
 export type AdminMotivationPairUpdateRequest = Partial<{
+  /** Required whenever `text_a`/`text_b` is present. */
+  locale: Locale;
   category_a: MotivationCategory;
   category_b: MotivationCategory;
   text_a: string;
@@ -1574,6 +1686,7 @@ export type AdminMotivationPairUpdateRequest = Partial<{
 
 export interface AdminDirectionListItem {
   id: string;
+  /** Resolved to `ru` by the backend — see `AdminQuestionListItem.text`. */
   name: string;
   slug: string;
   holland_code: string;
@@ -1589,25 +1702,29 @@ export interface AdminDirectionListResponse {
 
 export interface AdminDirectionDetail {
   id: string;
-  name: string;
-  /** Read-only — generated once from `name` by the seed script, does not
+  name: Partial<Record<Locale, string>>;
+  /** Read-only — generated once from `name.ru` by the seed script, does not
    *  re-derive if `name` is edited afterward (expected drift, not a bug). */
   slug: string;
   holland_code: string;
-  description: string;
+  description: Partial<Record<Locale, string>>;
   /** Empty on **all 92** directions as of 2026-09 — measured, not estimated.
    *  Every other catalog field (description, skills, subjects, first steps) is
    *  filled everywhere. `Direction.professions` feeds the student's report and
    *  the LLM context for the direction inquiry and roadmap, so all three get an
    *  empty list today — see docs/admin-backend-requests-pro-242.md §13. */
-  professions: string[];
-  skills_needed: string[];
-  subjects_to_develop: string[];
-  first_steps: string[];
+  professions: Partial<Record<Locale, string[]>>;
+  skills_needed: Partial<Record<Locale, string[]>>;
+  subjects_to_develop: Partial<Record<Locale, string[]>>;
+  first_steps: Partial<Record<Locale, string[]>>;
   overrides: Record<string, unknown>;
 }
 
 export type AdminDirectionUpdateRequest = Partial<{
+  /** Required whenever `name`/`description`/`professions`/`skills_needed`/
+   *  `subjects_to_develop`/`first_steps` is present. `holland_code` is the
+   *  only structural (non-localized) field here — needs no `locale`. */
+  locale: Locale;
   name: string;
   holland_code: string;
   description: string;
