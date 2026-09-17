@@ -36,6 +36,9 @@ export const API = {
     motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
+    psychoemotionalStart: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/start`,
+    psychoemotionalFinish: (assessmentId: string, runId: string) =>
+      `/assessment/${assessmentId}/psychoemotional/${runId}/finish`,
   },
   result: {
     generate: '/result/generate',
@@ -105,6 +108,8 @@ export const API = {
   psychologist: {
     students: '/psychologist/students',
     studentDetail: (id: string) => `/psychologist/students/${id}`,
+    studentResult: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/result/${assessmentId}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
   },

@@ -61,7 +61,7 @@ export default function WelcomePage() {
 
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:justify-between pt-1 border-t border-default">
               <p className="text-body-sm text-muted sm:max-w-[36ch] pt-3 sm:pt-0">
-                Можно выйти и вернуться позже — прогресс не потеряется.
+                {t('welcome.exitNote')}
               </p>
               <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:pt-3">
                 {/* Assessment record already exists at this point (goal picked,
@@ -74,7 +74,7 @@ export default function WelcomePage() {
                   variant="primary"
                   className={cn('w-full sm:w-auto')}
                   style={{ minHeight: 48 }}
-                  onClick={() => navigate('/assessment')}
+                  onClick={() => navigate('/assessment/psychoemotional-start')}
                 >
                   {t('welcome.start')}
                 </Button>

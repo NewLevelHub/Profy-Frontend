@@ -68,7 +68,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
           <LikertScale
             selected={answers[question.id] ?? null}
             onSelect={value => onSelect(question.id, value)}
-            scale={question.instrument === 'big_five' ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE}
+            scale={question.bigfive_scale ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE}
           />
         </div>
       ))}

@@ -31,6 +31,8 @@ import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
 import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
+import PsychoColorStartPage from '@/pages/assessment/psychoemotional/PsychoColorStartPage';
+import PsychoEmotionalPage from '@/pages/assessment/psychoemotional/PsychoEmotionalPage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 
@@ -71,6 +73,7 @@ import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetail
 // ── Psychologist cabinet ──────────────────────────────────────────────────────
 import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
 import PsychologistStudentDetailPage from '@/pages/psychologist/PsychologistStudentDetailPage';
+import PsychologistStudentReportPage from '@/pages/psychologist/PsychologistStudentReportPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -121,6 +124,10 @@ export const router = createBrowserRouter([
                 path: '/psychologist/students/:studentId',
                 element: <PsychologistStudentDetailPage />,
               },
+              {
+                path: '/psychologist/students/:studentId/result/:assessmentId',
+                element: <PsychologistStudentReportPage />,
+              },
             ],
           },
         ],
@@ -131,6 +138,8 @@ export const router = createBrowserRouter([
       { path: '/assessment', element: <AssessmentPage /> },
       { path: '/assessment/pairs', element: <PairAssessmentPage /> },
       { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
+      { path: '/assessment/psychoemotional-start', element: <PsychoColorStartPage /> },
+      { path: '/assessment/psychoemotional', element: <PsychoEmotionalPage /> },
       { path: '/assessment/rest', element: <RestStopPage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },
       { path: '/assessment/goal-check', element: <GoalCheckPage /> },

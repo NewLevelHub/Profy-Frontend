@@ -54,7 +54,7 @@ export function AssessmentInProgressCard({ answeredCount, totalQuestions, onCont
       <div className="journey-tip">
         <span className="journey-tip-dot" aria-hidden="true" />
         <Text variant="body-sm" className="text-primary">
-          Никуда не спеши: ответы сохраняются сами. Когда вернёшься — продолжим с того же места.
+          {t('inProgress.tip')}
         </Text>
       </div>
 

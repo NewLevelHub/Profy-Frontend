@@ -22,10 +22,12 @@ export default function PairAssessmentPage() {
     progress,
     exitConfirmOpen,
     autofilling,
+    autofillingToMotivation,
     handleBack,
     handleStartIntro,
     handleAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,
@@ -53,6 +55,7 @@ export default function PairAssessmentPage() {
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
+        devAutofillToMotivation={{ onClick: handleAutofillToMotivation, loading: autofillingToMotivation }}
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}

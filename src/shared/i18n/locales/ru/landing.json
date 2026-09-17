@@ -12,7 +12,9 @@
     "login": "Войти",
     "howItWorks": "Как это работает",
     "openMenu": "Открыть меню",
-    "closeMenu": "Закрыть меню"
+    "closeMenu": "Закрыть меню",
+    "language": "Язык",
+    "theme": "Тема"
   },
   "trust": {
     "saveProgress": "Прогресс сохраняется",

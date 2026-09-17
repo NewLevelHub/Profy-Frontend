@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
-import axios from 'axios';
+import { Link, useParams } from 'react-router';
 import { Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
@@ -38,7 +37,6 @@ export default function PsychologistStudentDetailPage() {
   const { studentId = '' } = useParams<{ studentId: string }>();
   const [student, setStudent] = useState<PsychologistStudentDetail | null>(null);
   const [notes, setNotes] = useState<PsychologistNote[]>([]);
-  const [canAddNotes, setCanAddNotes] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
@@ -58,23 +56,8 @@ export default function PsychologistStudentDetailPage() {
       ]);
       setStudent(detail);
       setNotes(noteRows);
-      setCanAddNotes(true);
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
-        setStudent(null);
-        setCanAddNotes(false);
-        try {
-          const noteRows = await psychologistApi.listNotes(studentId);
-          setNotes(noteRows);
-          if (noteRows.length === 0) {
-            setError('Ученик не найден или больше не назначен вам');
-          }
-        } catch {
-          setError('Ученик не найден или больше не назначен вам');
-        }
-      } else {
-        setError('Не удалось загрузить карточку ученика');
-      }
+    } catch {
+      setError('Не удалось загрузить карточку ученика');
     } finally {
       setLoading(false);
     }
@@ -94,13 +77,8 @@ export default function PsychologistStudentDetailPage() {
       const note = await psychologistApi.createNote(studentId, { content });
       setNotes((prev) => [note, ...prev]);
       setDraft('');
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
-        setCanAddNotes(false);
-        setNoteError('Ученик больше не назначен — новые заметки создать нельзя');
-      } else {
-        setNoteError('Не удалось сохранить заметку');
-      }
+    } catch {
+      setNoteError('Не удалось сохранить заметку');
     } finally {
       setSaving(false);
     }
@@ -180,9 +158,6 @@ export default function PsychologistStudentDetailPage() {
             {ageGroup && (
               <AdminBadge tone="quiet">{AGE_TIER_LABELS[ageGroup] ?? ageGroup}</AdminBadge>
             )}
-            {!canAddNotes && (
-              <AdminBadge tone="accent">Назначение снято</AdminBadge>
-            )}
           </div>
         }
       />
@@ -209,62 +184,74 @@ export default function PsychologistStudentDetailPage() {
       {student && student.assessments.length > 0 && (
         <AdminCard
           title="Диагностики"
-          description="Краткое саммари — полный отчёт психологу в этом релизе не отдаётся."
+          description="Открой отчёт — RIASEC / Big Five плюс психоэмоциональный тест и достоверность протокола."
         >
           <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
-            {student.assessments.map((a) => (
-              <li key={a.id} className="py-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-                    {ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal}
-                  </p>
-                  <p className={cn(ADMIN_NUM, 'text-muted m-0 mt-0.5')}>{formatDate(a.created_at)}</p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <AdminBadge tone={a.status === 'completed' ? 'quiet' : 'accent'}>
-                    {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
-                  </AdminBadge>
-                  {a.has_result && <AdminBadge tone="quiet">Результат</AdminBadge>}
-                  {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
-                </div>
-              </li>
-            ))}
+            {student.assessments.map((a) => {
+              const row = (
+                <>
+                  <div className="min-w-0">
+                    <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
+                      {ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal}
+                    </p>
+                    <p className={cn(ADMIN_NUM, 'text-muted m-0 mt-0.5')}>{formatDate(a.created_at)}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <AdminBadge tone={a.status === 'completed' ? 'quiet' : 'accent'}>
+                      {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
+                    </AdminBadge>
+                    {a.has_result && <AdminBadge tone="quiet">Отчёт →</AdminBadge>}
+                    {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
+                  </div>
+                </>
+              );
+              return (
+                <li key={a.id}>
+                  {a.has_result ? (
+                    <Link
+                      to={`/psychologist/students/${studentId}/result/${a.id}`}
+                      className="py-3 flex flex-wrap items-center justify-between gap-2 hover:bg-surface-hover -mx-2 px-2 rounded"
+                    >
+                      {row}
+                    </Link>
+                  ) : (
+                    <div className="py-3 flex flex-wrap items-center justify-between gap-2 opacity-70">
+                      {row}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </AdminCard>
       )}
 
       <AdminCard
         title="Заметки"
-        description={
-          canAddNotes
-            ? 'Видны только вам. После снятия назначения новые заметки создать нельзя, старые останутся.'
-            : 'Назначение снято — можно править и удалять старые заметки, но не создавать новые.'
-        }
+        description="Видны только вам."
         aside={<span className={cn(ADMIN_NUM, 'text-muted')}>{notes.length}</span>}
       >
-        {canAddNotes && (
-          <form onSubmit={handleCreateNote} className="flex flex-col gap-2">
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              rows={3}
-              placeholder="Новая заметка…"
-              className={ADMIN_TEXTAREA}
-            />
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={saving || !draft.trim()}
-                className={cn(
-                  ADMIN_BUTTON,
-                  'bg-brand text-on-brand border-brand hover:bg-brand-hover hover:border-brand-hover hover:text-on-brand',
-                )}
-              >
-                Добавить
-              </button>
-            </div>
-          </form>
-        )}
+        <form onSubmit={handleCreateNote} className="flex flex-col gap-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={3}
+            placeholder="Новая заметка…"
+            className={ADMIN_TEXTAREA}
+          />
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={saving || !draft.trim()}
+              className={cn(
+                ADMIN_BUTTON,
+                'bg-brand text-on-brand border-brand hover:bg-brand-hover hover:border-brand-hover hover:text-on-brand',
+              )}
+            >
+              Добавить
+            </button>
+          </div>
+        </form>
 
         {noteError && (
           <p className={cn(ADMIN_TEXT, 'text-danger m-0')} role="alert">

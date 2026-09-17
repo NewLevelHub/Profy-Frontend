@@ -16,7 +16,7 @@ import {
 import { PageContainer } from '@/shared/ui/PageContainer';
 import type { AgeGroup, PsychologistStudentListItem } from '@/shared/types';
 
-function formatAssignedAt(value: string) {
+function formatDate(value: string) {
   return new Date(value).toLocaleDateString('ru-RU', {
     day: '2-digit',
     month: 'short',
@@ -66,11 +66,11 @@ const COLUMNS: AdminColumn<PsychologistStudentListItem>[] = [
       ),
   },
   {
-    key: 'assigned',
-    header: 'Назначен',
+    key: 'registered',
+    header: 'Регистрация',
     mobile: 'field',
-    mobileLabel: 'Назначен',
-    cell: (row) => <span className={cn(ADMIN_NUM, 'text-muted')}>{formatAssignedAt(row.assigned_at)}</span>,
+    mobileLabel: 'Регистрация',
+    cell: (row) => <span className={cn(ADMIN_NUM, 'text-muted')}>{formatDate(row.registered_at)}</span>,
   },
 ];
 
@@ -102,8 +102,8 @@ export default function PsychologistStudentsPage() {
   return (
     <PageContainer className="flex flex-col gap-5 pb-10">
       <AdminListHeader
-        title="Мои ученики"
-        description="Только ученики, которых вам назначил администратор. Карточка и заметки — по клику на имя."
+        title="Ученики"
+        description="Все ученики платформы. Карточка, отчёт и заметки — по клику на имя."
       />
 
       {error && <AdminError message={error} onRetry={() => window.location.reload()} />}
@@ -113,15 +113,15 @@ export default function PsychologistStudentsPage() {
       ) : items.length === 0 ? (
         <div className={cn('border border-default bg-surface px-5 py-10 text-center', ADMIN_RADIUS)}>
           <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-            Пока нет назначенных учеников
+            Пока нет учеников
           </p>
           <p className={cn(ADMIN_META, 'mt-2 m-0')}>
-            Когда администратор привяжет ученика к вашему аккаунту, он появится здесь.
+            Здесь появятся все зарегистрированные ученики платформы.
           </p>
         </div>
       ) : (
         <AdminDataTable
-          label="Назначенные ученики"
+          label="Ученики"
           columns={COLUMNS}
           rows={items}
           rowKey={(row) => row.id}

@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { usePsychoColorRunStore } from '@/shared/store/psychoemotional';
 import { useAuthStore } from '@/shared/store/auth';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import type { AssessmentGoal } from '@/shared/types';
@@ -24,6 +25,7 @@ export function useGoalSelection() {
   const fromRestart = !!(location.state as { fromRestart?: boolean } | null)?.fromRestart;
   const setAssessment = useAssessmentStore(s => s.setAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
+  const resetPsychoColorRun = usePsychoColorRunStore(s => s.reset);
   // Экран вне RequireProfile: без запроса профиля восьмилетний после F5
   // читал бы формулировки для средней школы.
   const { profile } = useEnsureProfile();
@@ -61,6 +63,9 @@ export function useGoalSelection() {
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),
     onSuccess: (assessment) => {
       resetAssessment();
+      // A brand-new assessment (new goal pick) starts its own circle 1 —
+      // drop any leftover pending run from an abandoned previous attempt.
+      resetPsychoColorRun();
       setAssessment(
         assessment.id,
         assessment.goal,
@@ -74,8 +79,11 @@ export function useGoalSelection() {
       // construct less reliable) woven with Big Five pair cards, same mixed
       // flow middle already uses — see buildDisplaySequence.ts.
       // First-ever attempt gets the "how this works" intro screen once;
-      // every retake/resume goes straight into the quiz.
-      navigate(wasFirstEverRef.current ? '/welcome' : '/assessment');
+      // every retake/resume goes straight into the quiz. Either way, the
+      // psychoemotional block's circle 1 (PRO-3xx redesign) now comes first,
+      // before any test — psychoemotional-start itself skips straight to
+      // /assessment if this attempt already did circle 1 (resume).
+      navigate(wasFirstEverRef.current ? '/welcome' : '/assessment/psychoemotional-start');
     },
   });
 
@@ -97,7 +105,9 @@ export function useGoalSelection() {
         current.motivation_answered_count,
         current.motivation_total,
       );
-      navigate('/assessment');
+      // Routes through the same circle-1 gate as a fresh start — it skips
+      // straight to /assessment on its own if this attempt already did it.
+      navigate('/assessment/psychoemotional-start');
     }
   }
 

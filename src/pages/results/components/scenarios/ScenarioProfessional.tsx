@@ -11,6 +11,10 @@ interface ScenarioProfessionalProps {
   careers: StudentCareer[];
   /** 'middle' | 'senior' only — junior never reaches this scenario. */
   ageGroup: AgeGroup;
+  /** Psychologist's read-only view (PsychologistStudentReportPage) — see
+   *  DirectionMatchList's own doc. Disables navigation here too, for the
+   *  "adjacent directions" mini-list in the МОСТ К ЦЕЛИ card. */
+  readOnly?: boolean;
 }
 
 /**
@@ -33,7 +37,7 @@ interface ScenarioProfessionalProps {
  * best match) stands in for "the goal direction". Load-bearing for every
  * headline/copy string below.
  */
-export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessionalProps) {
+export function ScenarioProfessional({ careers, ageGroup, readOnly = false }: ScenarioProfessionalProps) {
   const { t } = useTranslation('results');
   const isMiddle = ageGroup === 'middle';
   const sorted = useMemo(() => [...careers].sort((a, b) => a.rank - b.rank), [careers]);
@@ -110,17 +114,24 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
               </p>
               {adjacent.length > 0 ? (
                 <ul className="flex flex-col gap-2">
-                  {adjacent.map((c) => (
-                    <li key={c.slug} className="flex items-center justify-between gap-2">
-                      <Link
-                        to={`/results/directions/${encodeURIComponent(c.slug)}`}
-                        className="text-caption font-semibold text-primary hover:text-brand text-left"
-                      >
-                        {c.name}
-                      </Link>
-                      <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
-                    </li>
-                  ))}
+                  {adjacent.map((c) =>
+                    readOnly ? (
+                      <li key={c.slug} className="flex items-center justify-between gap-2">
+                        <span className="text-caption font-semibold text-primary text-left">{c.name}</span>
+                        <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
+                      </li>
+                    ) : (
+                      <li key={c.slug} className="flex items-center justify-between gap-2">
+                        <Link
+                          to={`/results/directions/${encodeURIComponent(c.slug)}`}
+                          className="text-caption font-semibold text-primary hover:text-brand text-left"
+                        >
+                          {c.name}
+                        </Link>
+                        <CareerMatchLadder tier={c.tier} showLabel={false} size="sm" />
+                      </li>
+                    ),
+                  )}
                 </ul>
               ) : (
                 <p className="text-caption text-muted">{t('scenarioProfessional.noAdjacent')}</p>
@@ -137,12 +148,14 @@ export function ScenarioProfessional({ careers, ageGroup }: ScenarioProfessional
             {isMiddle ? t('scenarioProfessional.directionsTitleMiddle') : t('scenarioProfessional.directionsTitleSenior')}
           </span>
           <p className="text-body-sm text-secondary leading-relaxed m-0 max-w-[54ch]">
-            {isMiddle
-              ? t('scenarioProfessional.directionsSubtitleMiddle')
-              : t('scenarioProfessional.directionsSubtitleSenior')}
+            {readOnly
+              ? t('scenarioProfessional.directionsSubtitleReadOnly')
+              : isMiddle
+                ? t('scenarioProfessional.directionsSubtitleMiddle')
+                : t('scenarioProfessional.directionsSubtitleSenior')}
           </p>
         </div>
-        <DirectionMatchList careers={sorted} showUniversitiesHint={!isMiddle} />
+        <DirectionMatchList careers={sorted} showUniversitiesHint={!isMiddle && !readOnly} readOnly={readOnly} />
       </section>
 
       {isMiddle && (

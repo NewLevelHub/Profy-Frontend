@@ -5,6 +5,7 @@ import type {
   PsychologistNoteWrite,
   PsychologistStudentDetail,
   PsychologistStudentListItem,
+  ResultResponse,
 } from '@/shared/types';
 
 export const psychologistApi = {
@@ -16,6 +17,13 @@ export const psychologistApi = {
   getStudent: (studentId: string) =>
     apiClient
       .get<PsychologistStudentDetail>(API.psychologist.studentDetail(studentId))
+      .then((r) => r.data),
+
+  /** The student's full /result v2 report — psych-block sections included
+   *  (the viewer is a psychologist, so report_service.psych_sections_for → true). */
+  getStudentReport: (studentId: string, assessmentId: string) =>
+    apiClient
+      .get<ResultResponse>(API.psychologist.studentResult(studentId, assessmentId))
       .then((r) => r.data),
 
   listNotes: (studentId: string) =>

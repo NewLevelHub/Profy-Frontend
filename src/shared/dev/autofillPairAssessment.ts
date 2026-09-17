@@ -15,7 +15,7 @@ function shuffled<T>(items: T[]): T[] {
  * motivation Harter pair with a random side + intensity (junior always uses
  * the Harter format now, never the triplets — see MotivationAssessmentPage.tsx)
  * — so the whole test completes in two requests instead of ~52 taps. */
-export async function autofillPairAssessment(assessmentId: string): Promise<void> {
+async function fillPairs(assessmentId: string): Promise<void> {
   const pairs = await pairsApi.getPairs(assessmentId);
   if (pairs.length > 0) {
     await pairsApi.submitAnswers(assessmentId, {
@@ -25,6 +25,18 @@ export async function autofillPairAssessment(assessmentId: string): Promise<void
       })),
     });
   }
+}
+
+/** Dev-only helper, junior's equivalent of autofillUntilMotivation in
+ * autofillAssessment.ts: fills every remaining pair, then stops right
+ * before /assessment/motivation ("Что тебя драйвит") so that block can be
+ * tested by hand instead of raced through. */
+export async function autofillPairsUntilMotivation(assessmentId: string): Promise<void> {
+  await fillPairs(assessmentId);
+}
+
+export async function autofillPairAssessment(assessmentId: string): Promise<void> {
+  await fillPairs(assessmentId);
 
   const motivationPairs = await motivationPairsApi.getPairs(assessmentId);
   if (motivationPairs.length > 0) {

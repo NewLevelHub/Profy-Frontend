@@ -151,13 +151,13 @@ export function useMotivationHarter() {
         // (straight to /results, skipping the loading animation and
         // goal-check) before a report exists. ResultLoadingPage sets it
         // itself once resultApi.generate() actually succeeds.
-        navigate('/assessment/loading');
+        navigate('/assessment/psychoemotional');
         return;
       }
 
       const isLast = pairIndex >= pairs.length - 1;
       if (isLast) {
-        navigate('/assessment/loading');
+        navigate('/assessment/psychoemotional');
         return;
       }
 
@@ -207,7 +207,7 @@ export function useMotivationHarter() {
           intensity: Math.random() < 0.5 ? 'high' : 'medium',
         })),
       });
-      navigate('/assessment/loading');
+      navigate('/assessment/psychoemotional');
     } catch {
       setError(t('assessment:error.autofill'));
     } finally {
