@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import axios from 'axios';
+import { isStaffUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { assessmentApi } from '@/shared/api/assessment';
 
 export function useAssessmentSync() {
   const userId = useAuthStore(s => s.user?.id);
+  const user = useAuthStore(s => s.user);
   const hasHydrated = useAuthStore(s => s._hasHydrated);
 
   useEffect(() => {
@@ -14,6 +16,12 @@ export function useAssessmentSync() {
 
     // Auth store hydrated but no user (e.g. corrupted state) — unblock UI
     if (!userId) {
+      useAssessmentStore.setState({ syncDone: true });
+      return;
+    }
+
+    // Staff never take the assessment — skip the student sync round-trip.
+    if (isStaffUser(user)) {
       useAssessmentStore.setState({ syncDone: true });
       return;
     }
@@ -46,5 +54,5 @@ export function useAssessmentSync() {
       // rather than briefly flashing stale content while the re-sync is in flight.
       useAssessmentStore.setState({ syncDone: false });
     };
-  }, [userId, hasHydrated]);
+  }, [userId, user, hasHydrated]);
 }
