@@ -10,6 +10,8 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
@@ -150,6 +152,23 @@ export default function AdminQuestionPairDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminQuestionPairDetail>({
+    resource: 'question-pairs',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label={t('questionPairs.loadingOne')} />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || t('questionPairs.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -203,6 +222,19 @@ export default function AdminQuestionPairDetailPage() {
 
       <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
+
       <PairPreview
         frame={form.frame}
         a={{ text: effectiveA, icon: effectiveIconA }}
@@ -213,7 +245,7 @@ export default function AdminQuestionPairDetailPage() {
         title={t('questionPairs.frameTitle')}
         description={t('questionPairs.frameDescription')}
       >
-        <AdminField label={t('questionPairs.field.frameLabel')} locked={locked.has('frame')} lockReason={LOCK_REASON}>
+        <AdminField label={t('questionPairs.field.frameLabel')} locked={locked.has('frame')} revert={fieldRevert('frame')} lockReason={LOCK_REASON}>
           {({ id, describedBy }) => (
             <input
               id={id}
@@ -282,14 +314,14 @@ function PairPreview({
 }) {
   const { t } = useTranslation('admin');
   return (
-    <div className="bg-raised border border-default rounded-[14px] p-4">
+    <div className="bg-raised border border-default rounded-[3px] p-4">
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>
       {frame && <p className="font-sans text-body-md text-primary text-center mb-3">{frame}</p>}
       <div className="grid grid-cols-2 gap-3">
         {[a, b].map((side, index) => (
           <div
             key={index}
-            className="bg-surface border border-default rounded-[14px] p-3 flex flex-col items-center gap-2 text-center"
+            className="bg-surface border border-default rounded-[3px] p-3 flex flex-col items-center gap-2 text-center"
           >
             {side.icon && (
               <span className="text-2xl leading-none" aria-hidden="true">

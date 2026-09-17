@@ -11,6 +11,8 @@ import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { OverrideNotice } from '@/shared/ui/admin/OverrideNotice';
+import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
@@ -130,6 +132,23 @@ export default function AdminMotivationPairDetailPage() {
     },
   });
 
+  // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
+  // return'ов и принимает ещё не загруженный detail — иначе после прихода
+  // данных React видит другое число хуков и роняет экран.
+  const {
+    fieldRevert,
+    revertAll,
+    revertingAll,
+    error: revertError,
+    notice: revertNotice,
+  } = useOverrideRevert<AdminMotivationPairDetail>({
+    resource: 'motivation-pairs',
+    id: detail?.id,
+    overrides: detail?.overrides ?? {},
+    dirty,
+    onReverted: setDetail,
+  });
+
   if (loading) return <AdminLoading label={t('questionPairs.loadingOne')} />;
   if (loadError || !detail || !form) {
     return <AdminError message={loadError || t('questionPairs.notFound')} onRetry={() => setReloadToken((t) => t + 1)} />;
@@ -168,7 +187,20 @@ export default function AdminMotivationPairDetailPage() {
 
       <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
 
-      <div className="bg-raised border border-default rounded-[14px] p-4">
+      <OverrideNotice
+        count={locked.size}
+        pending={revertingAll}
+        disabledReason={
+          dirty
+            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            : undefined
+        }
+        onRevertAll={revertAll}
+        error={revertError}
+        notice={revertNotice}
+      />
+
+      <div className="bg-raised border border-default rounded-[3px] p-4">
         <p className={cn(ADMIN_TEXT, 'font-semibold text-primary mb-3')}>{t('common.studentPreview')}</p>
         <div className="grid grid-cols-2 gap-3">
           {[form.text_a, form.text_b].map((text, index) => (
@@ -177,7 +209,7 @@ export default function AdminMotivationPairDetailPage() {
               // Одинаковая высота и вертикальный центр: одна сторона почти
               // всегда переносится на две строки, другая нет, и без этого
               // короткая висела в верхнем углу своей карточки.
-              className="bg-surface border border-default rounded-[14px] p-4 min-h-[72px] flex items-center justify-center text-center"
+              className="bg-surface border border-default rounded-[3px] p-4 min-h-[72px] flex items-center justify-center text-center"
             >
               <span className={cn(ADMIN_TEXT, 'text-primary text-balance')}>{text || '—'}</span>
             </div>
@@ -191,7 +223,7 @@ export default function AdminMotivationPairDetailPage() {
       {categoriesDiverged && (
         <div
           role="alert"
-          className="flex items-start gap-3 p-3 rounded-[14px] border border-danger bg-danger-subtle"
+          className="flex items-start gap-3 p-3 rounded-[3px] border border-danger bg-danger-subtle"
         >
           <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
           <div>
@@ -242,7 +274,7 @@ export default function AdminMotivationPairDetailPage() {
         </AdminField>
 
         <div className="grid gap-3.5 lg:grid-cols-2">
-          <AdminField label={t('motivationPairs.field.textALabel')} locked={locked.has('text_a')} lockReason={LOCK_REASON}>
+          <AdminField label={t('motivationPairs.field.textALabel')} locked={locked.has('text_a')} revert={fieldRevert('text_a')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <textarea
                 id={id}
@@ -254,7 +286,7 @@ export default function AdminMotivationPairDetailPage() {
             )}
           </AdminField>
 
-          <AdminField label={t('motivationPairs.field.textBLabel')} locked={locked.has('text_b')} lockReason={LOCK_REASON}>
+          <AdminField label={t('motivationPairs.field.textBLabel')} locked={locked.has('text_b')} revert={fieldRevert('text_b')} lockReason={LOCK_REASON}>
             {({ id, describedBy }) => (
               <textarea
                 id={id}
