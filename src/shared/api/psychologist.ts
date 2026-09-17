@@ -1,6 +1,9 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import type {
+  AssignExtendedBlockPayload,
+  ExtendedBlockAssignment,
+  PsychAiAnalysis,
   PsychologistNote,
   PsychologistNoteWrite,
   PsychologistReportResponse,
@@ -40,5 +43,15 @@ export const psychologistApi = {
   getReport: (studentId: string, assessmentId: string) =>
     apiClient
       .get<PsychologistReportResponse>(API.psychologist.studentAssessmentReport(studentId, assessmentId))
+      .then((r) => r.data),
+
+  regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>
+    apiClient
+      .post<PsychAiAnalysis | null>(API.psychologist.regenerateReportAiAnalysis(studentId, assessmentId))
+      .then((r) => r.data),
+
+  assignExtendedBlock: (studentId: string, assessmentId: string, body: AssignExtendedBlockPayload) =>
+    apiClient
+      .post<ExtendedBlockAssignment>(API.psychologist.assignExtendedBlock(studentId, assessmentId), body)
       .then((r) => r.data),
 };

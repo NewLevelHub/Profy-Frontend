@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { psychologistApi } from '@/shared/api/psychologist';
 
@@ -13,8 +13,11 @@ import { psychologistApi } from '@/shared/api/psychologist';
  * 404 handling.
  */
 export function usePsychologistReport(studentId: string, assessmentId: string) {
+  const queryClient = useQueryClient();
+  const queryKey = ['psychologistReport', studentId, assessmentId] as const;
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['psychologistReport', studentId, assessmentId] as const,
+    queryKey,
     queryFn: () => psychologistApi.getReport(studentId, assessmentId),
     enabled: !!studentId && !!assessmentId,
     retry: (failureCount, err) => {
@@ -24,15 +27,32 @@ export function usePsychologistReport(studentId: string, assessmentId: string) {
     },
   });
 
+  // "Обновить анализ" — bypasses the server-side cache (e.g. after the
+  // psychologist finishes assigning/scoring an extended block like
+  // Belbin/АСТУР). Patches the already-loaded report in the query cache
+  // directly instead of refetching the whole report over the network.
+  const regenerate = useMutation({
+    mutationFn: () => psychologistApi.regenerateReportAiAnalysis(studentId, assessmentId),
+    onSuccess: (aiAnalysis) => {
+      queryClient.setQueryData(queryKey, (prev: typeof data) =>
+        prev ? { ...prev, ai_analysis: aiAnalysis } : prev,
+      );
+    },
+  });
+
   const status = (error as AxiosError | null)?.response?.status;
 
   return {
     report: data?.report ?? null,
     newTests: data?.new_tests ?? null,
+    aiAnalysis: data?.ai_analysis ?? null,
     isLoading,
     notFound: status === 404,
     forbidden: status === 403,
     error: !data && error && status !== 404 && status !== 403 ? 'Не удалось загрузить отчёт' : null,
     refetch,
+    regenerateAiAnalysis: regenerate.mutate,
+    regeneratingAiAnalysis: regenerate.isPending,
+    regenerateAiAnalysisError: regenerate.isError,
   };
 }

@@ -33,6 +33,7 @@ export const API = {
     asturContent: '/assessment/astur/content',
     asturStart: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/start`,
     asturSubtest: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}`,
+    extendedBlocks: (assessmentId: string) => `/assessment/${assessmentId}/extended-blocks`,
   },
   result: {
     generate: '/result/generate',
@@ -89,5 +90,9 @@ export const API = {
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
     studentAssessmentReport: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/assessments/${assessmentId}/report`,
+    regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/report/ai-analysis/regenerate`,
+    assignExtendedBlock: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/extended-blocks`,
   },
 } as const;

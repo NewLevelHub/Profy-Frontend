@@ -3,7 +3,8 @@ import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { AdminEmpty } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_TEXT } from '@/shared/ui/admin/density';
-import type { NewTestsSections, ResultResponse } from '@/shared/types';
+import type { NewTestsSections, PsychAiAnalysis, ResultResponse } from '@/shared/types';
+import { AiAnalysisSection } from './AiAnalysisSection';
 import { ValiditySection } from './ValiditySection';
 import { PsychoEmotionalSection } from './PsychoEmotionalSection';
 import { ProfessionalTypesSection } from './ProfessionalTypesSection';
@@ -51,13 +52,26 @@ function GroupHeading({ children }: { children: string }) {
  * проверку, кроме двух полностью опциональных групп (4 и 6 в списке
  * пунктов, "Интеллект"/"Командная роль"), где при отсутствии данных
  * показывается объясняющий empty-state, а не пустая группа без заголовка.
+ *
+ * 7. **ИИ-анализ** — добавлен последним, сознательно после всех разделов с
+ *    сырыми данными: психолог сначала видит факты, потом — синтез и
+ *    рекомендацию модели поверх них, а не наоборот (избегаем эффекта
+ *    якорения на мнении ИИ раньше собственного просмотра данных).
  */
 export function ReportSectionsBlock({
   report,
   newTests,
+  aiAnalysis,
+  onRegenerateAiAnalysis,
+  regeneratingAiAnalysis,
+  regenerateAiAnalysisError,
 }: {
   report: ResultResponse;
   newTests: NewTestsSections;
+  aiAnalysis: PsychAiAnalysis | null;
+  onRegenerateAiAnalysis: () => void;
+  regeneratingAiAnalysis: boolean;
+  regenerateAiAnalysisError: boolean;
 }) {
   return (
     <div className="flex flex-col gap-8">
@@ -156,6 +170,13 @@ export function ReportSectionsBlock({
           <AdminEmpty title="Данных пока нет" hint="Появится после прохождения Belbin — назначается из кабинета психолога." />
         )}
       </div>
+
+      <AiAnalysisSection
+        analysis={aiAnalysis}
+        onRegenerate={onRegenerateAiAnalysis}
+        regenerating={regeneratingAiAnalysis}
+        regenerateError={regenerateAiAnalysisError}
+      />
     </div>
   );
 }

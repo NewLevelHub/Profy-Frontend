@@ -19,6 +19,13 @@ export interface AssessmentRailProps {
   /** Dev-only "autofill" affordance already present on these flows; kept as
    *  a 4th, dev-gated slot rather than folded into the 3 production slots. */
   devAutofill?: { onClick: () => void; loading: boolean };
+  /** Dev-only "autofill main battery, then stop right before motivation" —
+   *  a separate action from `devAutofill` (which races through motivation
+   *  too): for testing the motivation screen itself by hand without
+   *  clicking through the whole Likert/pairs battery first. Only offered on
+   *  the main-battery screens (AssessmentPage/PairAssessmentPage), not on
+   *  the motivation screens themselves (nothing left to skip to). */
+  devAutofillToMotivation?: { onClick: () => void; loading: boolean };
 }
 
 // The single collapsed rail used by every assessment-flow screen
@@ -41,6 +48,7 @@ export function AssessmentRail({
   onBack,
   onExit,
   devAutofill,
+  devAutofillToMotivation,
 }: AssessmentRailProps) {
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
@@ -84,6 +92,20 @@ export function AssessmentRail({
               style={{ boxShadow: 'var(--shadow-pop)' }}
             >
               {devAutofill.loading ? '…' : '⚡ Автозаполнить'}
+            </button>
+          )}
+
+          {import.meta.env.DEV && devAutofillToMotivation && (
+            <button
+              type="button"
+              onClick={devAutofillToMotivation.onClick}
+              disabled={devAutofillToMotivation.loading}
+              aria-label="Автозаполнить до мотивации (dev)"
+              title="Автозаполнить основную батарею и остановиться перед блоком мотивации (только в dev)"
+              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-caption font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+              style={{ boxShadow: 'var(--shadow-pop)' }}
+            >
+              {devAutofillToMotivation.loading ? '…' : '⚡ До мотивации'}
             </button>
           )}
 

@@ -5,7 +5,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { pairsApi } from '@/shared/api/pairs';
-import { autofillPairAssessment } from '@/shared/dev/autofillPairAssessment';
+import { autofillPairAssessment, autofillPairMainBattery } from '@/shared/dev/autofillPairAssessment';
 import type { QuestionPair } from '@/shared/types';
 import type { RestStopState } from '../utils/restStop';
 
@@ -198,6 +198,22 @@ export function usePairAssessment() {
     }
   }
 
+  // Stops right before motivation (unlike handleAutofill above, which races
+  // through it too) — for testing the motivation screen itself by hand.
+  async function handleAutofillToMotivation() {
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      await autofillPairMainBattery(assessmentId);
+      navigate('/assessment/motivation');
+    } catch {
+      setError(t('assessment:error.autofill'));
+    } finally {
+      setAutofilling(false);
+    }
+  }
+
   function handleExit() {
     setExitConfirmOpen(true);
   }
@@ -231,6 +247,7 @@ export function usePairAssessment() {
     handleStartIntro,
     handleAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,

@@ -1310,12 +1310,60 @@ export interface NewTestsSections {
   empathy_confidence: EmpathyConfidenceSection | null;
 }
 
+// ─── Psychologist-view AI analysis ──────────────────────────────────────────
+
+export interface PsychBlockAnalysisItem {
+  block: string;
+  text: string;
+}
+
+export interface PsychProfessionRecommendation {
+  slug: string;
+  name: string;
+  reasoning: string;
+}
+
+/** Per-block AI commentary + a final synthesis + one profession picked from
+ * `report.careers` (never invented — enforced server-side, see
+ * app/services/psych_ai_analysis_validator.py). Lazily generated on first
+ * report view and cached; `null` when the LLM is disabled, generation
+ * failed, or there's no data yet to analyze. */
+export interface PsychAiAnalysis {
+  block_analyses: PsychBlockAnalysisItem[];
+  final_summary: string;
+  recommended_profession: PsychProfessionRecommendation | null;
+}
+
 /** GET /psychologist/students/{studentId}/assessments/{assessmentId}/report —
  * `report` is the exact same shape the student's own /result returns
  * (reused, not duplicated), `new_tests` is specialist-only. */
 export interface PsychologistReportResponse {
   report: ResultResponse;
   new_tests: NewTestsSections;
+  ai_analysis: PsychAiAnalysis | null;
+}
+
+// ─── Extended block assignments (Belbin/АСТУР — post-Ф4.1 follow-up) ────────────
+// A psychologist's decision to make Belbin/АСТУР available to a student for
+// one assessment; the student's own UI (not the psychologist's) uses this to
+// discover and launch the block, instead of a hand-delivered link.
+
+export type ExtendedBlock = 'belbin' | 'astur';
+
+export interface ExtendedBlockAssignment {
+  block: ExtendedBlock;
+  assigned_at: string;
+  /** Derived from whether a belbin_runs/astur_runs row exists (and, for
+   *  АСТУР, is fully answered) — never a separate stored flag. */
+  completed: boolean;
+}
+
+export interface ExtendedBlocksResponse {
+  assignments: ExtendedBlockAssignment[];
+}
+
+export interface AssignExtendedBlockPayload {
+  block: ExtendedBlock;
 }
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────

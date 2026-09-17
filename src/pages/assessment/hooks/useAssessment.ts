@@ -7,10 +7,10 @@ import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
-import { autofillAssessment } from '@/shared/dev/autofillAssessment';
+import { autofillAssessment, autofillMainBattery } from '@/shared/dev/autofillAssessment';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
-import { buildPages, type Page } from '../utils/buildPages';
+import { buildPages, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
 import type { Instrument } from '@/shared/types';
 
@@ -56,6 +56,17 @@ function pairAnswersStorageKey(assessmentId: string) {
   return `profy-assessment-pair-answers:${assessmentId}`;
 }
 
+// One "seen" flag per (assessment, instrument) — same sessionStorage pattern
+// as the top-level intro's own flag below. The battery is a single flat
+// page sequence (buildDisplaySequence/buildPages), not separate routes per
+// instrument, so there is no natural "have I been here before" signal other
+// than this: a fresh forward crossing into an instrument that has never
+// shown its own intro gets one; revisiting it (Назад/Вперёд within the same
+// session) never shows it twice.
+function instrumentIntroSeenKey(assessmentId: string, instrument: Instrument) {
+  return `profy-assessment-test-intro-seen:${assessmentId}:${instrument}`;
+}
+
 function loadStoredAnswers<T>(key: string | null): T | null {
   if (!key || typeof sessionStorage === 'undefined') return null;
   try {
@@ -96,6 +107,10 @@ export function useAssessment() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
+  // Mirrors instrumentIntroSeenKey's sessionStorage flags for reactivity —
+  // sessionStorage writes alone don't trigger a re-render, so dismissing a
+  // test-intro (markInstrumentIntroSeen below) also bumps this set.
+  const [seenInstruments, setSeenInstruments] = useState<Set<Instrument>>(new Set());
 
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
@@ -146,6 +161,19 @@ export function useAssessment() {
             startIndex = i;
           }
           setPageIndex(startIndex);
+          // The instrument the student is about to land on (fresh start:
+          // the very first one, covered by the generic intro below; resume:
+          // whichever one they were already mid-way through) never gets its
+          // own test-intro card — only a genuine forward crossing into a
+          // new, not-yet-visited instrument does (see testIntroInstrument).
+          const startPage = built[startIndex];
+          if (startPage) {
+            const startInstrument = pageInstrument(startPage);
+            if (typeof sessionStorage !== 'undefined') {
+              sessionStorage.setItem(instrumentIntroSeenKey(assessmentId!, startInstrument), '1');
+            }
+            setSeenInstruments(prev => new Set(prev).add(startInstrument));
+          }
           if (answeredCountFromStore >= questions.length) {
             // Likert+pairs phase already fully answered — motivation may
             // still be pending, so continue there rather than assuming the
@@ -220,6 +248,16 @@ export function useAssessment() {
       sessionStorage.setItem(`profy-assessment-intro-seen:${assessmentId}`, '1');
     }
     setPhase('question');
+  }
+
+  // Dismisses the between-tests intro card (testIntroInstrument below) —
+  // marks that instrument seen so re-entering it later this session (e.g.
+  // Назад then forward again) goes straight to its questions.
+  function handleStartTestIntro(instrument: Instrument) {
+    if (assessmentId && typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(instrumentIntroSeenKey(assessmentId, instrument), '1');
+    }
+    setSeenInstruments(prev => new Set(prev).add(instrument));
   }
 
   function handleBack() {
@@ -361,6 +399,22 @@ export function useAssessment() {
     }
   }
 
+  // Stops right before motivation (unlike handleAutofill above, which races
+  // through it too) — for testing the motivation screen itself by hand.
+  async function handleAutofillToMotivation() {
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      await autofillMainBattery(assessmentId);
+      navigate('/assessment/motivation');
+    } catch {
+      setError(t('assessment:error.autofill'));
+    } finally {
+      setAutofilling(false);
+    }
+  }
+
   function handleExit() {
     setExitConfirmOpen(true);
   }
@@ -408,13 +462,22 @@ export function useAssessment() {
   const currentPage = pages[pageIndex];
   const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
   const currentPair = currentPage?.kind === 'pair' ? currentPage.pair : undefined;
-  // Pages group 5 Likert questions regardless of instrument boundaries
-  // (buildPages), so the single page straddling MI's last few items and
-  // the new block's first ones is a real mix, not an edge case to ignore —
-  // `some()` flips the label as soon as any additional-tests question is
-  // visible, rather than one page late.
   const isAdditionalTestsSection =
     currentLikertQuestions?.some(q => ADDITIONAL_TESTS_INSTRUMENTS.has(q.instrument)) ?? false;
+  // Between-tests card (post-Ф4.1 follow-up): a genuine forward crossing
+  // into an instrument this session hasn't dismissed the card for yet —
+  // derived straight from render state (not an effect) so there's no
+  // one-frame flash of the new instrument's questions first. The very
+  // first instrument a student ever lands on is pre-marked seen above
+  // (loadSequence) since the generic top-level AssessmentIntro already
+  // covers it.
+  const testIntroInstrument: Instrument | null =
+    phase === 'question' && currentPage && !seenInstruments.has(pageInstrument(currentPage))
+      ? pageInstrument(currentPage)
+      : null;
+  const testIntroItemCount = testIntroInstrument
+    ? pages.reduce((sum, p) => (pageInstrument(p) === testIntroInstrument ? sum + pageItemCount(p) : sum), 0)
+    : 0;
   const totalPages = pages.length;
   // "N вопросов" / time-estimate copy on the intro screen counts each
   // question and each pair as one unit, same as before pagination.
@@ -439,16 +502,20 @@ export function useAssessment() {
     currentLikertQuestions,
     currentPair,
     isAdditionalTestsSection,
+    testIntroInstrument,
+    testIntroItemCount,
     progress,
     exitConfirmOpen,
     exiting,
     autofilling,
     handleBack,
     handleStartIntro,
+    handleStartTestIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,

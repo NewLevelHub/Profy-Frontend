@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import axios from 'axios';
-import { FileText, ListChecks, Pencil, Trash2 } from 'lucide-react';
+import { Check, FileText, ListChecks, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
@@ -20,6 +20,7 @@ import {
 import { PageContainer } from '@/shared/ui/PageContainer';
 import type {
   AgeGroup,
+  ExtendedBlock,
   PsychologistNote,
   PsychologistStudentDetail,
 } from '@/shared/types';
@@ -46,6 +47,14 @@ export default function PsychologistStudentDetailPage() {
   const [noteError, setNoteError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+  // PRO-338 post-Ф4.1 follow-up — session-local "just assigned" state: this
+  // page has no read endpoint for existing assignments (that's the
+  // student's own /extended-blocks, ownership-gated to the student, a
+  // psychologist can't call it) — assigning is idempotent server-side, so
+  // re-clicking after a reload is harmless, this just avoids re-fetching
+  // to answer "did I already click this" within one visit.
+  const [assignedBlocks, setAssignedBlocks] = useState<Record<string, ExtendedBlock[]>>({});
+  const [assigningKey, setAssigningKey] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!studentId) return;
@@ -83,6 +92,23 @@ export default function PsychologistStudentDetailPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function handleAssignBlock(assessmentId: string, block: ExtendedBlock) {
+    const key = `${assessmentId}:${block}`;
+    setAssigningKey(key);
+    try {
+      await psychologistApi.assignExtendedBlock(studentId, assessmentId, { block });
+      setAssignedBlocks((prev) => ({
+        ...prev,
+        [assessmentId]: [...(prev[assessmentId] ?? []), block],
+      }));
+    } catch {
+      // Best-effort nudge — a failed assign just means the button stays
+      // clickable, the psychologist can retry.
+    } finally {
+      setAssigningKey(null);
+    }
+  }
 
   async function handleCreateNote(e: React.FormEvent) {
     e.preventDefault();
@@ -225,26 +251,35 @@ export default function PsychologistStudentDetailPage() {
                     {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
                   </AdminBadge>
                   {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
-                  {/* PRO-338 Ф2.6/Ф3.6 — Belbin/АСТУР — опциональные
-                      расширенные блоки, вне обычного потока ученика; ссылки
-                      ведут на отдельные маршруты, которые проходит сам
-                      ученик (не психолог). */}
-                  <Link
-                    to={`/assessment/extended/belbin/${a.id}`}
-                    className={cn(ADMIN_BUTTON, 'gap-1.5')}
-                    title="Открывает отдельный экран для ученика — Belbin BTRSPI"
-                  >
-                    <ListChecks size={13} />
-                    Belbin
-                  </Link>
-                  <Link
-                    to={`/assessment/extended/astur/${a.id}`}
-                    className={cn(ADMIN_BUTTON, 'gap-1.5')}
-                    title="Открывает отдельный экран для ученика — АСТУР"
-                  >
-                    <ListChecks size={13} />
-                    АСТУР
-                  </Link>
+                  {/* PRO-338 Ф2.6/Ф3.6 + post-Ф4.1 follow-up — Belbin/АСТУР —
+                      опциональные расширенные блоки, ученик их проходит сам,
+                      психолог только назначает (не даёт ссылку — ученик
+                      видит назначенное сам на /results). */}
+                  {(['belbin', 'astur'] as const).map((block) => {
+                    const key = `${a.id}:${block}`;
+                    const alreadyAssigned = (assignedBlocks[a.id] ?? []).includes(block);
+                    const label = block === 'belbin' ? 'Belbin' : 'АСТУР';
+                    if (alreadyAssigned) {
+                      return (
+                        <AdminBadge key={block} tone="brand">
+                          <Check size={12} /> {label} назначен
+                        </AdminBadge>
+                      );
+                    }
+                    return (
+                      <button
+                        key={block}
+                        type="button"
+                        onClick={() => handleAssignBlock(a.id, block)}
+                        disabled={assigningKey === key}
+                        className={cn(ADMIN_BUTTON, 'gap-1.5')}
+                        title={`Назначить ${label} — ученик увидит и пройдёт сам на /results`}
+                      >
+                        <ListChecks size={13} />
+                        Назначить {label}
+                      </button>
+                    );
+                  })}
                   {a.has_result && (
                     <Link
                       to={`/psychologist/students/${studentId}/assessments/${a.id}/report`}

@@ -7,7 +7,18 @@ import { ReportSectionsBlock } from './report/components/ReportSectionsBlock';
 
 export default function PsychologistReportPage() {
   const { studentId = '', assessmentId = '' } = useParams<{ studentId: string; assessmentId: string }>();
-  const { report, newTests, isLoading, notFound, error, refetch } = usePsychologistReport(studentId, assessmentId);
+  const {
+    report,
+    newTests,
+    aiAnalysis,
+    isLoading,
+    notFound,
+    error,
+    refetch,
+    regenerateAiAnalysis,
+    regeneratingAiAnalysis,
+    regenerateAiAnalysisError,
+  } = usePsychologistReport(studentId, assessmentId);
 
   return (
     <PageContainer className="flex flex-col gap-5 pb-10">
@@ -29,7 +40,14 @@ export default function PsychologistReportPage() {
       {error && !isLoading && <AdminError message={error} onRetry={() => void refetch()} />}
 
       {report && newTests && !isLoading && (
-        <ReportSectionsBlock report={report} newTests={newTests} />
+        <ReportSectionsBlock
+          report={report}
+          newTests={newTests}
+          aiAnalysis={aiAnalysis}
+          onRegenerateAiAnalysis={regenerateAiAnalysis}
+          regeneratingAiAnalysis={regeneratingAiAnalysis}
+          regenerateAiAnalysisError={regenerateAiAnalysisError}
+        />
       )}
     </PageContainer>
   );

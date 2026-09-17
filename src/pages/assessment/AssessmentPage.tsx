@@ -26,16 +26,20 @@ export default function AssessmentPage() {
     currentLikertQuestions,
     currentPair,
     isAdditionalTestsSection,
+    testIntroInstrument,
+    testIntroItemCount,
     progress,
     exitConfirmOpen,
     exiting,
     autofilling,
     handleBack,
     handleStartIntro,
+    handleStartTestIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,
@@ -50,7 +54,7 @@ export default function AssessmentPage() {
     ? t('rail.sectionAdditionalTests')
     : t('rail.sectionDiagnostic');
   const headerTitle =
-    phase === 'question' && totalPages > 0
+    phase === 'question' && !testIntroInstrument && totalPages > 0
       ? t('rail.pageOf', { current: pageIndex + 1, total: totalPages })
       : sectionLabel;
 
@@ -71,10 +75,11 @@ export default function AssessmentPage() {
         sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
-        showBack={phase === 'question' && pageIndex > 0}
+        showBack={phase === 'question' && !testIntroInstrument && pageIndex > 0}
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
+        devAutofillToMotivation={{ onClick: handleAutofillToMotivation, loading: autofilling }}
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}
@@ -97,7 +102,19 @@ export default function AssessmentPage() {
           />
         )}
 
-        {phase === 'question' && (
+        {phase === 'question' && testIntroInstrument && (
+          <AssessmentIntro
+            kicker={t(`intro.tests.${testIntroInstrument}.kicker`)}
+            title={t(`intro.tests.${testIntroInstrument}.title`)}
+            subtitle={t(`intro.tests.${testIntroInstrument}.subtitle`)}
+            itemCountLabel={t('intro.itemCount', { count: testIntroItemCount })}
+            durationLabel={t('intro.durationMin', { count: Math.max(1, Math.ceil(testIntroItemCount / 20)) })}
+            ctaLabel={t('intro.diagnostic.cta')}
+            onStart={() => handleStartTestIntro(testIntroInstrument)}
+          />
+        )}
+
+        {phase === 'question' && !testIntroInstrument && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6">
 
