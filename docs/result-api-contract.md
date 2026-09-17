@@ -186,7 +186,7 @@ assessment, но не запрещено схемой).
   часть контракта** и могут измениться без объявления breaking change;
   фронт обязан относиться к `level` как к непрозрачному enum, а не
   пытаться воспроизвести пороги локально или показывать сам балл.
-  (`InterestMapSection.tsx` рисует его 3-точечным индикатором, не баром.)
+  (`InterestDomainSection.tsx` рисует его 3-точечным индикатором, не баром.)
 
 **Важное отличие от `strength_cards`**: `interest_map` — это *score-derived*
 (из сырых нормализованных баллов, по всем категориям без исключения, в том
@@ -355,9 +355,8 @@ LLM-персонализированные `summary`/`strength_cards`/`thinking_
 | Запросы (§1) | `src/shared/api/result.ts` |
 | `interest_instrument`-ветвление (§3) | `src/pages/results/hooks/useResults.ts` |
 | `summary`/`disclaimer` (§4.2) | `src/pages/results/components/SummaryCard.tsx` |
-| `strength_cards` (§4.3) | `src/pages/results/components/StrengthCardsSection.tsx` |
-| `interest_map` (§5) | `src/pages/results/components/InterestMapSection.tsx` |
-| `careers` (§6) | `src/pages/results/components/CareerCard.tsx`, `DirectionDetailPage.tsx` |
+| `strength_cards` (§4.3) | `src/pages/results/components/StrengthsDomainSection.tsx` |
+| `interest_map` (§5) | `src/pages/results/components/InterestDomainSection.tsx` |
+| `careers` (§6) | `src/pages/results/DirectionDetailPage.tsx`, `components/scenarios/` |
 | `exploration_activities` (§7) | `src/pages/results/components/ExplorationActivitiesSection.tsx` |
-| `thinking_style_notes` | `src/pages/results/components/ThinkingStyleSection.tsx` |
-| `motivation_highlights` | `src/pages/results/components/MotivationSection.tsx` |
+| `thinking_style_notes` / `motivation_highlights` | `src/pages/results/components/ThinkingStyleMotivationSection.tsx` |

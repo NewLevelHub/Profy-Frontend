@@ -14,7 +14,7 @@ import type { AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
  */
 
 export const MAX_SCORE = 5;
-export const SCORES = [5, 4, 3, 2, 1] as const;
+const SCORES = [5, 4, 3, 2, 1] as const;
 
 /** "Low" is the actionable half of the scale: these are the reviews to read. */
 export const LOW_SCORE_MAX = 2;

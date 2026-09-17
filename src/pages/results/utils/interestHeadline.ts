@@ -14,7 +14,7 @@ import type { InterestMapItem } from '@/shared/types';
  * logic needed. Falls back to `medium` items, then the first item, if
  * nothing is `high` (a flat/low profile is legitimate per contract §8).
  */
-export function pickHeadlineItems(items: InterestMapItem[]): InterestMapItem[] {
+function pickHeadlineItems(items: InterestMapItem[]): InterestMapItem[] {
   if (items.length === 0) return [];
   const leading = items.filter((i) => i.level === 'high');
   const pool = leading.length > 0 ? leading : items.filter((i) => i.level === 'medium');
