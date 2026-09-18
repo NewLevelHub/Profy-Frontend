@@ -119,7 +119,7 @@ export default function PsychologistReportPage() {
           Отчёт для ученика
           {reviewStatus === 'pending_review' && (
             <span
-              className="px-1.5 py-0.2 rounded-full text-[11px] font-bold bg-accent text-on-brand leading-tight"
+              className="px-1.5 py-0.2 rounded-full text-caption font-bold bg-accent text-on-brand leading-tight"
               title="Отчёт ожидает проверки"
             >
               1

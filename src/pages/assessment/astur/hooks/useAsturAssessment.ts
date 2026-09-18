@@ -106,7 +106,6 @@ export function useAsturAssessment(assessmentId: string) {
       for (const st of content.subtests) {
         if (!completed.has(st.key)) {
           const answers: Record<string, unknown> = {};
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           st.items.forEach((it: any) => {
             if (st.key === 'logical_schemas') {
               answers[it.id] = (it.options || []).slice(0, 3);

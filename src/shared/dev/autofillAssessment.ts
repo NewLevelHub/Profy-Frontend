@@ -145,7 +145,6 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
     if (asturContent?.subtests?.length > 0) {
       for (const st of asturContent.subtests) {
         const answers: Record<string, unknown> = {};
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         st.items.forEach((it: any) => {
           if (st.key === 'logical_schemas') {
             answers[it.id] = (it.options || []).slice(0, 3);
