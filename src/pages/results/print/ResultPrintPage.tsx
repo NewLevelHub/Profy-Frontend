@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { useResultPrint } from './hooks/useResultPrint';
 import { PrintToolbar } from './components/PrintToolbar';
@@ -53,6 +54,9 @@ export default function ResultPrintPage() {
   return (
     <div className="print-shell px-4 py-6 sm:py-10">
       <div className="print-page-frame max-w-[210mm] mx-auto">
+        <div data-print-hide className="flex justify-end mb-4">
+          <FullScreenPreferences />
+        </div>
         <PrintToolbar onBack={back} onPrint={print} />
 
         {!hasCompletedAssessment ? (

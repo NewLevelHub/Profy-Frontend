@@ -1,7 +1,7 @@
 import type { Instrument, Question, QuestionPair } from '@/shared/types';
 import type { DisplayItem } from './buildDisplaySequence';
 
-export const LIKERT_PAGE_SIZE = 5;
+const LIKERT_PAGE_SIZE = 5;
 
 export type Page =
   | { kind: 'likert'; questions: Question[]; instrument: Instrument }

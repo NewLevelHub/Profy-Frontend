@@ -7,6 +7,7 @@ import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
 import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { formatDate } from '@/shared/i18n/format';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -25,19 +26,8 @@ import type {
   PsychologistStudentDetail,
 } from '@/shared/types';
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 export default function PsychologistStudentDetailPage() {
-  // Goal/status labels are i18n keys (admin namespace) — resolve with t().
-  const { t } = useTranslation();
+  const { t } = useTranslation(['psychologist', 'admin', 'common', 'profile']);
   const { studentId = '' } = useParams<{ studentId: string }>();
   const [student, setStudent] = useState<PsychologistStudentDetail | null>(null);
   const [notes, setNotes] = useState<PsychologistNote[]>([]);
@@ -70,18 +60,18 @@ export default function PsychologistStudentDetailPage() {
           const noteRows = await psychologistApi.listNotes(studentId);
           setNotes(noteRows);
           if (noteRows.length === 0) {
-            setError('Ученик не найден или больше не назначен вам');
+            setError(t('detail.notFound'));
           }
         } catch {
-          setError('Ученик не найден или больше не назначен вам');
+          setError(t('detail.notFound'));
         }
       } else {
-        setError('Не удалось загрузить карточку ученика');
+        setError(t('detail.loadError'));
       }
     } finally {
       setLoading(false);
     }
-  }, [studentId]);
+  }, [studentId, t]);
 
   useEffect(() => {
     void load();
@@ -100,9 +90,9 @@ export default function PsychologistStudentDetailPage() {
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 404) {
         setCanAddNotes(false);
-        setNoteError('Ученик больше не назначен — новые заметки создать нельзя');
+        setNoteError(t('detail.noteCreateBlocked'));
       } else {
-        setNoteError('Не удалось сохранить заметку');
+        setNoteError(t('detail.noteSaveError'));
       }
     } finally {
       setSaving(false);
@@ -120,21 +110,21 @@ export default function PsychologistStudentDetailPage() {
       setEditingId(null);
       setEditDraft('');
     } catch {
-      setNoteError('Не удалось обновить заметку');
+      setNoteError(t('detail.noteUpdateError'));
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(noteId: string) {
-    if (!window.confirm('Удалить эту заметку?')) return;
+    if (!window.confirm(t('detail.deleteConfirm'))) return;
     setSaving(true);
     setNoteError(null);
     try {
       await psychologistApi.deleteNote(noteId);
       setNotes((prev) => prev.filter((n) => n.id !== noteId));
     } catch {
-      setNoteError('Не удалось удалить заметку');
+      setNoteError(t('detail.noteDeleteError'));
     } finally {
       setSaving(false);
     }
@@ -153,10 +143,10 @@ export default function PsychologistStudentDetailPage() {
       <PageContainer className="pb-10 flex flex-col gap-4">
         <AdminPageHeader
           crumbs={[
-            { label: 'Ученики', to: '/psychologist' },
-            { label: 'Карточка' },
+            { label: t('detail.crumbStudents'), to: '/psychologist' },
+            { label: t('detail.crumbCard') },
           ]}
-          title="Ученик недоступен"
+          title={t('detail.unavailableTitle')}
         />
         <AdminError message={error} />
       </PageContainer>
@@ -164,14 +154,14 @@ export default function PsychologistStudentDetailPage() {
   }
 
   const named = Boolean(student?.profile?.name);
-  const title = student?.profile?.name ?? student?.email ?? 'Ученик';
+  const title = student?.profile?.name ?? student?.email ?? t('detail.studentFallback');
   const ageGroup = student?.profile?.age_group as AgeGroup | undefined;
 
   return (
     <PageContainer className="flex flex-col gap-5 pb-10">
       <AdminPageHeader
         crumbs={[
-          { label: 'Ученики', to: '/psychologist' },
+          { label: t('detail.crumbStudents'), to: '/psychologist' },
           { label: title },
         ]}
         title={
@@ -184,23 +174,26 @@ export default function PsychologistStudentDetailPage() {
               <AdminBadge tone="quiet">{AGE_TIER_LABELS[ageGroup] ?? ageGroup}</AdminBadge>
             )}
             {!canAddNotes && (
-              <AdminBadge tone="accent">Назначение снято</AdminBadge>
+              <AdminBadge tone="accent">{t('detail.assignmentRemoved')}</AdminBadge>
             )}
           </div>
         }
       />
 
       {student?.profile && (
-        <AdminCard title="Профиль">
+        <AdminCard title={t('detail.profileTitle')}>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 m-0">
             <div>
-              <dt className={ADMIN_META}>Возраст / класс</dt>
+              <dt className={ADMIN_META}>{t('detail.ageGrade')}</dt>
               <dd className={cn(ADMIN_TEXT, 'm-0 text-primary')}>
-                {student.profile.age} лет · {student.profile.grade} класс
+                {t('detail.ageGradeValue', {
+                  age: t('common:ageYears', { count: student.profile.age }),
+                  grade: t('profile:personal.gradeValue', { count: student.profile.grade }),
+                })}
               </dd>
             </div>
             <div>
-              <dt className={ADMIN_META}>Город</dt>
+              <dt className={ADMIN_META}>{t('detail.city')}</dt>
               <dd className={cn(ADMIN_TEXT, 'm-0 text-primary')}>
                 {student.profile.city}, {student.profile.country}
               </dd>
@@ -210,31 +203,38 @@ export default function PsychologistStudentDetailPage() {
       )}
 
       {student && student.assessments.length > 0 && (
-        <AdminCard
-          title="Диагностики"
-          description="Полная психодиагностика со специальными тестами и подготовка отчёта для ученика объединены в едином отчёте."
-        >
+        <AdminCard title={t('detail.diagnosticsTitle')} description={t('detail.diagnosticsHint')}>
           <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
             {student.assessments.map((a) => (
               <li key={a.id} className="py-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-                    {t(ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal)}
+                    {ASSESSMENT_GOAL_LABELS[a.goal] ? t(ASSESSMENT_GOAL_LABELS[a.goal]) : a.goal}
                   </p>
-                  <p className={cn(ADMIN_NUM, 'text-muted m-0 mt-0.5')}>{formatDate(a.created_at)}</p>
+                  <p className={cn(ADMIN_NUM, 'text-muted m-0 mt-0.5')}>
+                    {formatDate(a.created_at, {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <AdminBadge tone={a.status === 'completed' ? 'quiet' : 'accent'}>
-                    {t(ASSESSMENT_STATUS_LABELS[a.status] ?? a.status)}
+                    {ASSESSMENT_STATUS_LABELS[a.status]
+                      ? t(ASSESSMENT_STATUS_LABELS[a.status])
+                      : a.status}
                   </AdminBadge>
                   {a.review_status === 'pending_review' && (
-                    <AdminBadge tone="accent">На проверке</AdminBadge>
+                    <AdminBadge tone="accent">{t('psychologist:detail.pendingReview', 'На проверке')}</AdminBadge>
                   )}
                   {a.review_status === 'published' && (
-                    <AdminBadge tone="brand">Опубликовано</AdminBadge>
+                    <AdminBadge tone="brand">{t('psychologist:detail.published', 'Опубликовано')}</AdminBadge>
                   )}
-                  {a.has_result && !a.review_status && <AdminBadge tone="quiet">Результат</AdminBadge>}
-                  {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
+                  {a.has_result && !a.review_status && <AdminBadge tone="quiet">{t('detail.hasResult')}</AdminBadge>}
+                  {a.has_roadmap && <AdminBadge tone="quiet">{t('detail.hasRoadmap')}</AdminBadge>}
                   {/* Single unified report button */}
                   {(a.has_result || a.review_status) && (
                     <Link
@@ -253,12 +253,12 @@ export default function PsychologistStudentDetailPage() {
                       {a.review_status === 'pending_review' ? (
                         <>
                           <ClipboardCheck size={14} />
-                          Проверить отчёт
+                          {t('psychologist:detail.checkReport', 'Проверить отчёт')}
                         </>
                       ) : (
                         <>
                           <FileText size={14} />
-                          Открыть отчёт
+                          {t('psychologist:detail.openReport', 'Открыть отчёт')}
                         </>
                       )}
                     </Link>
@@ -271,12 +271,8 @@ export default function PsychologistStudentDetailPage() {
       )}
 
       <AdminCard
-        title="Заметки"
-        description={
-          canAddNotes
-            ? 'Видны только вам. После снятия назначения новые заметки создать нельзя, старые останутся.'
-            : 'Назначение снято — можно править и удалять старые заметки, но не создавать новые.'
-        }
+        title={t('detail.notesTitle')}
+        description={canAddNotes ? t('detail.notesHintActive') : t('detail.notesHintReadonly')}
         aside={<span className={cn(ADMIN_NUM, 'text-muted')}>{notes.length}</span>}
       >
         {canAddNotes && (
@@ -285,7 +281,7 @@ export default function PsychologistStudentDetailPage() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={3}
-              placeholder="Новая заметка…"
+              placeholder={t('detail.notePlaceholder')}
               className={ADMIN_TEXTAREA}
             />
             <div className="flex justify-end">
@@ -297,7 +293,7 @@ export default function PsychologistStudentDetailPage() {
                   'bg-brand text-on-brand border-brand hover:bg-brand-hover hover:border-brand-hover hover:text-on-brand',
                 )}
               >
-                Добавить
+                {t('detail.addNote')}
               </button>
             </div>
           </form>
@@ -310,7 +306,7 @@ export default function PsychologistStudentDetailPage() {
         )}
 
         {notes.length === 0 ? (
-          <p className={cn(ADMIN_META, 'm-0')}>Заметок пока нет</p>
+          <p className={cn(ADMIN_META, 'm-0')}>{t('detail.notesEmpty')}</p>
         ) : (
           <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
             {notes.map((note) => (
@@ -332,7 +328,7 @@ export default function PsychologistStudentDetailPage() {
                           setEditDraft('');
                         }}
                       >
-                        Отмена
+                        {t('detail.cancel')}
                       </button>
                       <button
                         type="button"
@@ -343,7 +339,7 @@ export default function PsychologistStudentDetailPage() {
                         )}
                         onClick={() => void handleSaveEdit(note.id)}
                       >
-                        Сохранить
+                        {t('detail.save')}
                       </button>
                     </div>
                   </div>
@@ -353,12 +349,20 @@ export default function PsychologistStudentDetailPage() {
                       {note.content}
                     </p>
                     <div className="mt-2 flex items-center justify-between gap-2">
-                      <span className={cn(ADMIN_NUM, 'text-muted')}>{formatDate(note.created_at)}</span>
+                      <span className={cn(ADMIN_NUM, 'text-muted')}>
+                        {formatDate(note.created_at, {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
                       <div className="flex gap-1">
                         <button
                           type="button"
                           className={cn(ADMIN_BUTTON, 'px-2')}
-                          aria-label="Редактировать"
+                          aria-label={t('detail.editAria')}
                           onClick={() => {
                             setEditingId(note.id);
                             setEditDraft(note.content);
@@ -369,7 +373,7 @@ export default function PsychologistStudentDetailPage() {
                         <button
                           type="button"
                           className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
-                          aria-label="Удалить"
+                          aria-label={t('detail.deleteAria')}
                           disabled={saving}
                           onClick={() => void handleDelete(note.id)}
                         >

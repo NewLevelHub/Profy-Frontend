@@ -14,7 +14,6 @@ export type { ProgressBarProps, ProgressBarVariant } from './ProgressBar';
 
 export { PointAllocator } from './PointAllocator';
 export type { PointAllocatorProps, PointAllocatorItem } from './PointAllocator';
-
 export { Spine } from './Spine';
 export type { SpineProps, SpineNode, SpineNodeStatus, SpineSegmentStyle } from './Spine';
 
@@ -28,6 +27,7 @@ export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant } from './Badge';
 
 export { ThemeToggle } from './ThemeToggle';
+export { FullScreenPreferences } from './FullScreenPreferences';
 export type { ThemeToggleProps } from './ThemeToggle';
 
 export { Spinner } from './Spinner';
@@ -43,7 +43,6 @@ export { FavoriteStar } from './FavoriteStar';
 export { UniversityRankBadges } from './UniversityRankBadges';
 export { LanguageSwitcher } from './LanguageSwitcher';
 export type { LanguageSwitcherProps } from './LanguageSwitcher';
-export { PageStub } from './PageStub';
 export { PageContainer } from './PageContainer';
 export { PageHeader } from './PageHeader';
 export { BackLink } from './BackLink';

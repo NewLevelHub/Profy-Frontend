@@ -13,10 +13,6 @@ export function useAuth() {
   return { ...store, logout };
 }
 
-export function useToken() {
-  return useAuthStore((s) => s.token);
-}
-
 export function useUser() {
   return useAuthStore((s) => s.user);
 }

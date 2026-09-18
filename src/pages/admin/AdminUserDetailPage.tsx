@@ -79,16 +79,6 @@ const MI_TYPE_LABELS: Record<string, string> = {
   naturalistic: 'admin:mi.naturalistic',
 };
 
-/**
- * Maximum `career_match_score` a direction can reach.
- *
- * The score weights the user's top three types by 3/2/1 and the direction's
- * own three letters by 3/2/1 positionally, so a perfect alignment scores
- * 3·3 + 2·2 + 1·1 = 14 (riasec_service.career_match_score). The UI printed
- * "совпадение 14/6", which made a perfect match look like an overflow bug.
- */
-const MAX_MATCH_SCORE = 14;
-
 /** RIASEC letter → its name, for the fields the API returns as bare letters. */
 function riasecName(letter: string, t: (key: string) => string): string {
   const key = RIASEC_TYPE_LABELS[letter];
@@ -269,10 +259,29 @@ function ResponsesSection({ responses }: { responses: AdminResponseItem[] }) {
   );
 }
 
+/** Заглушка бэкенда для утверждения, которого больше нет в банке
+ *  (admin_service.get_assessment_detail). */
+const MISSING_STATEMENT = '?';
+
 function motivationCategoryLabel(category: string, t: (key: string) => string): string {
   return t(MOTIVATION_CATEGORY_LABELS[category as MotivationCategory]) ?? category;
 }
 
+/**
+ * Как ученик расставил утверждения внутри тройки.
+ *
+ * Формат блока: показывают три утверждения, ученик отмечает одно как самое
+ * важное и одно как наименее важное — третье он не трогает, оно выводится как
+ * оставшееся. То есть это ранжирование, и читаться должно как ранжирование:
+ * нумерованный список сверху вниз, а не три подписи подряд.
+ *
+ * Раньше тут рендерились только подписи «ВАЖНЕЕ ВСЕГО / НЕЙТРАЛЬНО / МЕНЕЕ
+ * ВСЕГО», а самих утверждений не было: компонент читал поля `most_text`,
+ * `neutral_text`, `least_text`, которых сервер не присылает (он отдаёт
+ * `picked_most_text`, `not_picked_text`, `picked_least_text`). Тип во фронте
+ * описывал API неверно, поэтому TypeScript молчал, и экран показывал разметку
+ * без данных.
+ */
 function MotivationResponsesSection({ responses }: { responses: AdminMotivationResponseItem[] }) {
   const { t } = useTranslation('admin');
   if (!responses.length) {
@@ -284,11 +293,30 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
       {responses.map((item) => (
         <li key={item.triplet_index} className="p-2.5 rounded-[2px] bg-page border border-default">
           <p className={cn(ADMIN_META, 'mb-1.5')}>{t('statements.triplet', { index: item.triplet_index })}</p>
-          <div className="flex flex-col gap-1">
-            <RankedLine rank={t('users.rank.most')} text={item.most_text} category={item.most_category} tone="brand" />
-            <RankedLine rank={t('users.rank.neutral')} text={item.neutral_text} category={item.neutral_category} tone="muted" />
-            <RankedLine rank={t('users.rank.least')} text={item.least_text} category={item.least_category} tone="danger" />
-          </div>
+          <ol className="flex flex-col gap-1 m-0 p-0 list-none">
+            <RankedLine
+              position={1}
+              rank={t('users.rank.most')}
+              text={item.picked_most_text}
+              category={item.picked_most_category}
+              tone="brand"
+            />
+            <RankedLine
+              position={2}
+              rank={t('users.rank.neutral')}
+              hint="Ученик это утверждение не отмечал — оно третье по остаточному принципу, а не выбрано как среднее"
+              text={item.not_picked_text}
+              category={item.not_picked_category}
+              tone="muted"
+            />
+            <RankedLine
+              position={3}
+              rank={t('users.rank.least')}
+              text={item.picked_least_text}
+              category={item.picked_least_category}
+              tone="danger"
+            />
+          </ol>
         </li>
       ))}
     </ul>
@@ -296,19 +324,25 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
 }
 
 function RankedLine({
+  position,
   rank,
+  hint,
   text,
   category,
   tone,
 }: {
+  position: number;
   rank: string;
+  hint?: string;
   text: string;
   category: string;
   tone: 'brand' | 'muted' | 'danger';
 }) {
   const { t } = useTranslation('admin');
   return (
-    <p className={cn(ADMIN_TEXT, 'flex items-baseline gap-2 m-0')}>
+    <li className={cn(ADMIN_TEXT, 'flex items-baseline gap-2 m-0')} title={hint}>
+      {/* Номер позиции: именно он делает из трёх строк ранжирование. */}
+      <span className={cn(ADMIN_NUM, 'w-3 flex-shrink-0 text-muted')}>{position}</span>
       <span
         className={cn(
           MONO_LABEL,
@@ -320,9 +354,18 @@ function RankedLine({
       >
         {rank}
       </span>
-      <span className="text-primary">{text}</span>
-      <span className={ADMIN_META}>{motivationCategoryLabel(category, t)}</span>
-    </p>
+      {/* Бэкенд ставит "?", если утверждение не нашлось в банке — например
+          после его перестройки. Голый вопросительный знак в админке читается
+          как сбой интерфейса, поэтому здесь он назван словами. */}
+      {text === MISSING_STATEMENT ? (
+        <span className={cn(ADMIN_META, 'italic')}>утверждение больше не найдено в банке</span>
+      ) : (
+        <>
+          <span className="text-primary min-w-0">{text}</span>
+          <span className={cn(ADMIN_META, 'flex-shrink-0')}>{motivationCategoryLabel(category, t)}</span>
+        </>
+      )}
+    </li>
   );
 }
 
@@ -543,10 +586,6 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
                 <span className="text-primary font-medium min-w-0 truncate">{career.name}</span>
                 <span className={cn(ADMIN_META, 'flex-shrink-0')}>
                   <span className={ADMIN_NUM}>{career.holland_code}</span>
-                  {' · '}
-                  <span className={ADMIN_NUM}>
-                    {career.match_score}/{MAX_MATCH_SCORE}
-                  </span>
                 </span>
               </div>
             ))}
@@ -874,7 +913,7 @@ export default function AdminUserDetailPage() {
                 <li
                   key={item.id}
                   className={cn(
-                    'rounded-[14px] border transition-colors',
+                    'rounded-[3px] border transition-colors',
                     isOpen ? 'border-brand' : 'border-default',
                   )}
                 >
@@ -882,15 +921,18 @@ export default function AdminUserDetailPage() {
                     type="button"
                     onClick={() => toggleAssessment(item.id)}
                     aria-expanded={isOpen}
-                    className="w-full text-left p-3 flex items-center justify-between gap-3 hover:bg-hover transition-colors rounded-[14px]"
+                    className="w-full text-left p-3 flex items-center justify-between gap-3 hover:bg-hover transition-colors rounded-[3px]"
                   >
                     <div className="min-w-0">
                       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-                        {ASSESSMENT_GOAL_LABELS[item.goal] ?? item.goal}
+                        {ASSESSMENT_GOAL_LABELS[item.goal] ? t(ASSESSMENT_GOAL_LABELS[item.goal]) : item.goal}
                         <span className={cn(ADMIN_META, 'ml-2')}>#{user.assessments.length - index}</span>
                       </p>
                       <p className={cn(ADMIN_META, 'mt-0.5 normal-case tracking-normal')}>
-                        {ASSESSMENT_STATUS_LABELS[item.status] ?? item.status} · {formatDate(item.created_at)}
+                        {ASSESSMENT_STATUS_LABELS[item.status]
+                          ? t(ASSESSMENT_STATUS_LABELS[item.status])
+                          : item.status}{' '}
+                        · {formatDate(item.created_at)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">

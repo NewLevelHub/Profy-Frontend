@@ -1,12 +1,8 @@
 import { Navigate, Outlet } from 'react-router';
-import { homePathForUser } from '@/shared/lib/homePath';
+import { homePathForUser, isStaffUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 
-/**
- * Student-facing routes (/results, assessment, profile, …). Psychologists
- * have their own cabinet and must not land on "start the test" — the logo
- * and bookmarks still pointed at /results before this guard.
- */
+/** Student-only surfaces (assessment, results, onboarding). Staff bounce home. */
 export function RequireStudent() {
   const user = useAuthStore((s) => s.user);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
@@ -19,7 +15,7 @@ export function RequireStudent() {
     );
   }
 
-  if (user?.role === 'psychologist') {
+  if (isStaffUser(user)) {
     return <Navigate to={homePathForUser(user)} replace />;
   }
 
