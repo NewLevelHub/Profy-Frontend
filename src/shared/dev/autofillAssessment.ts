@@ -154,7 +154,7 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
             // No `options` on the wire for this subtest (static image
             // assets, addressed by position — see FigureAssemblyQuestion);
             // any letter is a structurally valid dev-autofill answer.
-            answers[it.id] = 'А';
+            answers[it.id] = 'A';
           } else {
             answers[it.id] = it.options?.[0] ?? '1';
           }

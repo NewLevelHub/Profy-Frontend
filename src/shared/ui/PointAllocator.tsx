@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Minus, Plus } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 
@@ -30,6 +31,7 @@ export interface PointAllocatorProps {
  * грубой прикидки, но не единственным способом ввода.
  */
 function PointAllocatorComponent({ items, total, value, onChange, className }: PointAllocatorProps) {
+  const { t } = useTranslation('assessment');
   const sum = items.reduce((acc, item) => acc + (value[item.id] ?? 0), 0);
   const remaining = total - sum;
   const isBalanced = remaining === 0;
@@ -53,7 +55,7 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
         role="status"
         aria-live="polite"
       >
-        <span>Осталось распределить</span>
+        <span>{t('allocator.remaining')}</span>
         <span className="text-mono-md tabular-nums">
           {remaining} / {total}
         </span>
@@ -78,7 +80,7 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
                   onClick={() => setItemValue(item.id, itemValue - 1)}
                   disabled={!canDecrement}
                   className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-default text-secondary hover:text-primary hover:bg-raised disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label={`Уменьшить «${item.label}»`}
+                  aria-label={t('allocator.decrease', { label: item.label })}
                 >
                   <Minus size={15} />
                 </button>
@@ -95,7 +97,7 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
                     setItemValue(item.id, Math.trunc(parsed));
                   }}
                   className="w-14 text-center text-body-md font-semibold tabular-nums bg-transparent border border-default rounded-[10px] py-1.5 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]"
-                  aria-label={`Баллы для «${item.label}»`}
+                  aria-label={t('allocator.points', { label: item.label })}
                 />
 
                 <button
@@ -103,7 +105,7 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
                   onClick={() => setItemValue(item.id, itemValue + 1)}
                   disabled={!canIncrement}
                   className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-default text-secondary hover:text-primary hover:bg-raised disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label={`Увеличить «${item.label}»`}
+                  aria-label={t('allocator.increase', { label: item.label })}
                 >
                   <Plus size={15} />
                 </button>

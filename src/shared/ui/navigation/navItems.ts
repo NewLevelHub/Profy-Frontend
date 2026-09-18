@@ -26,7 +26,7 @@ export const PSYCHOLOGIST_NAV_ITEMS = [
     matchPrefix: '/psychologist/students',
   },
   {
-    label: 'Проверка отчётов',
+    label: 'psychologist:nav.reviews',
     path: '/psychologist/reviews',
     matchPrefix: '/psychologist/reviews',
   },
