@@ -334,7 +334,6 @@
     "exportedAt": "выгружено",
     "filters": "Фильтры: {{filters}}",
     "grade": "Класс",
-    "matchNote": "Совпадение — вес трёх ведущих интересов ученика против позиции буквы в коде направления, максимум {{max}}.",
     "motivationTriplets_few": "Мотивация — {{count}} тройки",
     "motivationTriplets_many": "Мотивация — {{count}} троек",
     "motivationTriplets_one": "Мотивация — {{count}} тройка",

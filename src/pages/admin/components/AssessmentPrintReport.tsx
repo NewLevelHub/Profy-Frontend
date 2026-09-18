@@ -76,9 +76,6 @@ const CONSISTENCY_LABELS: Record<string, string> = {
   low: 'admin:summary.level.low',
 };
 
-/** Тот же потолок, что в карточке: топ-3 ученика × позиция буквы, 3·3+2·2+1·1. */
-const MAX_MATCH_SCORE = 14;
-
 /**
  * Единственное место в проекте, где палитра «Тропы» зашита литералами, а не
  * взята из токенов — и намеренно.
@@ -390,23 +387,19 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
                   <td style={{ padding: '0.7mm 0' }}>{career.name}</td>
                   <td
                     style={{
-                      width: '22mm',
+                      width: '14mm',
                       padding: '0.7mm 0',
                       textAlign: 'right',
                       fontFamily: 'var(--font-mono)',
-                      fontVariantNumeric: 'tabular-nums',
                       color: MUTE,
                     }}
                   >
-                    {career.match_score} / {MAX_MATCH_SCORE}
+                    {career.holland_code}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p style={{ margin: '2mm 0 0', color: MUTE }}>
-            {t('print.matchNote', { max: MAX_MATCH_SCORE })}
-          </p>
         </Section>
       )}
 

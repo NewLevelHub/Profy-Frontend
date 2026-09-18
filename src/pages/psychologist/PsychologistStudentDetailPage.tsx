@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import axios from 'axios';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
@@ -35,6 +36,7 @@ function formatDate(value: string) {
 }
 
 export default function PsychologistStudentDetailPage() {
+  const { t } = useTranslation('admin');
   const { studentId = '' } = useParams<{ studentId: string }>();
   const [student, setStudent] = useState<PsychologistStudentDetail | null>(null);
   const [notes, setNotes] = useState<PsychologistNote[]>([]);
@@ -216,13 +218,15 @@ export default function PsychologistStudentDetailPage() {
               <li key={a.id} className="py-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-                    {ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal}
+                    {ASSESSMENT_GOAL_LABELS[a.goal] ? t(ASSESSMENT_GOAL_LABELS[a.goal]) : a.goal}
                   </p>
                   <p className={cn(ADMIN_NUM, 'text-muted m-0 mt-0.5')}>{formatDate(a.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <AdminBadge tone={a.status === 'completed' ? 'quiet' : 'accent'}>
-                    {ASSESSMENT_STATUS_LABELS[a.status] ?? a.status}
+                    {ASSESSMENT_STATUS_LABELS[a.status]
+                      ? t(ASSESSMENT_STATUS_LABELS[a.status])
+                      : a.status}
                   </AdminBadge>
                   {a.has_result && <AdminBadge tone="quiet">Результат</AdminBadge>}
                   {a.has_roadmap && <AdminBadge tone="quiet">План</AdminBadge>}
