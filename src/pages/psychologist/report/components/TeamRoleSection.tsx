@@ -8,6 +8,7 @@ import type { TeamRoleSection as TeamRoleSectionData } from '@/shared/types';
 import { BarChart, type BarChartItem } from './BarChart';
 import { PsychTestHeaderInfo } from './PsychTestHeaderInfo';
 import { PsychDetailCard } from './PsychDetailCard';
+import { RoleEvidenceView } from './AnswerEvidence';
 import {
   BELBIN_METHODOLOGY,
   BELBIN_ROLES,
@@ -71,6 +72,7 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
 
       {section.dominant_role && (
         <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          <span className={cn(ADMIN_META, 'w-full mb-0.5')}>Нажмите на роль для разбора:</span>
           <button
             type="button"
             onClick={() => setSelectedRoleKey(selectedRoleKey === section.dominant_role ? null : section.dominant_role)}
@@ -168,7 +170,11 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
               : `Допустимые слабости роли («allowable weaknesses» по Р. Белбину): ${activeRoleInfo.riskWarning ?? ''}`
           }
           onClose={() => setSelectedRoleKey(null)}
-        />
+        >
+          {section.role_evidence?.[selectedRoleKey!] && (
+            <RoleEvidenceView evidence={section.role_evidence[selectedRoleKey!]} />
+          )}
+        </PsychDetailCard>
       )}
 
       {section.methodological_note && (

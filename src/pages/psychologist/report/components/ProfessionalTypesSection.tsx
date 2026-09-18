@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -8,6 +8,8 @@ import type { ProfessionalTypesSection as ProfessionalTypesSectionData } from '@
 import { RadarChart, type RadarChartAxis } from './RadarChart';
 import { PsychTestHeaderInfo } from './PsychTestHeaderInfo';
 import { PsychDetailCard } from './PsychDetailCard';
+import { PairEvidenceView } from './AnswerEvidence';
+import { ScoreRow } from './ScoreRow';
 import {
   DDO_METHODOLOGY,
   DDO_TYPES,
@@ -45,7 +47,7 @@ function interestBand(score: number): { label: string; tone: 'quiet' | 'brand' }
  */
 export function ProfessionalTypesSection({ section }: { section: ProfessionalTypesSectionData | null }) {
   if (!section) return null;
-  const { interest_scores, abilities_scores, hybrid_profile } = section;
+  const { interest_scores, abilities_scores, hybrid_profile, interest_evidence, abilities_evidence } = section;
   const hasChart = Boolean(interest_scores || abilities_scores);
 
   // Find the top interest type to open as default, or practical
@@ -54,24 +56,6 @@ export function ProfessionalTypesSection({ section }: { section: ProfessionalTyp
     : 'social';
 
   const [selectedKey, setSelectedKey] = useState<string | null>(topTypeKey);
-
-  const selectedTypeInfo = selectedKey && selectedKey in DDO_TYPES ? DDO_TYPES[selectedKey] : null;
-
-  const currentInterest = selectedKey && interest_scores ? interest_scores[selectedKey] ?? 0 : 0;
-  const currentAbility = selectedKey && abilities_scores ? abilities_scores[selectedKey] ?? 0 : 0;
-
-  // Evaluate want vs can balance for the active type
-  // Interest is 0-8 (scale of 8), ability is 0-3 (scale of 3)
-  const interestRatio = currentInterest / INTEREST_MAX;
-  const abilityRatio = currentAbility / ABILITIES_MAX;
-  const balanceDifference = interestRatio - abilityRatio;
-
-  let balanceComment = DDO_DISSONANCE_NOTE.balanced;
-  if (balanceDifference > 0.25) {
-    balanceComment = DDO_DISSONANCE_NOTE.interestHigher;
-  } else if (balanceDifference < -0.25) {
-    balanceComment = DDO_DISSONANCE_NOTE.abilitiesHigher;
-  }
 
   return (
     <AdminCard title="Профессиональные типы" description="ДДО Климова + Йовайши/Резапкина">
@@ -125,64 +109,66 @@ export function ProfessionalTypesSection({ section }: { section: ProfessionalTyp
       )}
 
       {interest_scores && (
-        <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5">
           {AXES.map((axis) => {
             const score = interest_scores[axis.key] ?? 0;
             const band = interestBand(score);
             const ability = abilities_scores?.[axis.key];
             const isSelected = selectedKey === axis.key;
+            const info = axis.key in DDO_TYPES ? DDO_TYPES[axis.key] : null;
+            const interestRatio = score / INTEREST_MAX;
+            const abilityRatio = (ability ?? 0) / ABILITIES_MAX;
+            const diff = interestRatio - abilityRatio;
+            const comment = diff > 0.25 ? DDO_DISSONANCE_NOTE.interestHigher : diff < -0.25 ? DDO_DISSONANCE_NOTE.abilitiesHigher : DDO_DISSONANCE_NOTE.balanced;
 
             return (
-              <li key={axis.key}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedKey(isSelected ? null : axis.key)}
-                  className={cn(
-                    'w-full flex items-center justify-between gap-2 p-2 rounded-[10px] text-left transition-colors focus:outline-none',
-                    isSelected ? 'bg-brand-subtle/70 ring-1 ring-brand/30' : 'hover:bg-raised/70',
-                  )}
-                >
-                  <span className="flex items-center gap-2">
-                    <span className={cn(ADMIN_TEXT, isSelected && 'font-semibold text-primary')}>
-                      {SCALE_LABELS[axis.key]}
-                    </span>
-                    <ChevronDown size={13} className={cn('text-muted transition-transform', isSelected && 'rotate-180')} />
+              <ScoreRow
+                key={axis.key}
+                label={<span className={cn(ADMIN_TEXT, isSelected && 'font-semibold text-primary')}>{SCALE_LABELS[axis.key]}</span>}
+                value={
+                  <span className={ADMIN_NUM}>
+                    {score}/{INTEREST_MAX}
+                    {ability !== undefined && <span className={ADMIN_META}> · сп. {ability}/{ABILITIES_MAX}</span>}
                   </span>
-                  <span className="flex items-center gap-2">
-                    <span className={ADMIN_NUM}>
-                      {score}/{INTEREST_MAX}
-                      {ability !== undefined && <span className={ADMIN_META}> · сп. {ability}/{ABILITIES_MAX}</span>}
-                    </span>
-                    <AdminBadge tone={isSelected ? 'brand' : band.tone}>{band.label}</AdminBadge>
-                  </span>
-                </button>
-              </li>
+                }
+                badge={<AdminBadge tone={isSelected ? 'brand' : band.tone}>{band.label}</AdminBadge>}
+                isOpen={isSelected}
+                onToggle={() => setSelectedKey(isSelected ? null : axis.key)}
+              >
+                {info && (
+                  <PsychDetailCard
+                    bare
+                    title={info.name}
+                    badge={<AdminBadge tone="brand">{info.shortName}</AdminBadge>}
+                    meaning={info.meaning}
+                    means={info.behavioralManifestation}
+                    follows={info.psychologistFocus}
+                    why={`Выбор в ${score} из 8 пар интересов. Самооценка способностей: ${ability ?? 0} из 3.`}
+                    riskWarning={info.riskWarning}
+                  >
+                    <div className="p-3 rounded-[10px] bg-[color-mix(in_srgb,var(--paper)_80%,transparent)] border border-default/60">
+                      <p className="font-sans text-caption font-bold uppercase tracking-label text-primary m-0 mb-1">
+                        Баланс «Хочу vs Могу»
+                      </p>
+                      <p className={cn(ADMIN_TEXT, 'text-muted m-0 leading-snug')}>{comment}</p>
+                    </div>
+                    {interest_evidence?.[axis.key] && (
+                      <div className="mt-3">
+                        <PairEvidenceView evidence={interest_evidence[axis.key]} scaleLabel={SCALE_LABELS[axis.key]} />
+                      </div>
+                    )}
+                    {abilities_evidence?.[axis.key] && (
+                      <p className={cn(ADMIN_TEXT, 'text-muted m-0 mt-3 leading-snug')}>
+                        Ответ на пункт способностей: «{abilities_evidence[axis.key].text}» — оценил на{' '}
+                        {abilities_evidence[axis.key].value} из {ABILITIES_MAX}.
+                      </p>
+                    )}
+                  </PsychDetailCard>
+                )}
+              </ScoreRow>
             );
           })}
-        </ul>
-      )}
-
-      {/* Expanded RIASEC-style Detail Card */}
-      {selectedTypeInfo && (
-        <PsychDetailCard
-          title={selectedTypeInfo.name}
-          badge={<AdminBadge tone="brand">{selectedTypeInfo.shortName}</AdminBadge>}
-          meaning={selectedTypeInfo.meaning}
-          means={selectedTypeInfo.behavioralManifestation}
-          follows={selectedTypeInfo.psychologistFocus}
-          why={`Выбор в ${currentInterest} из 8 пар интересов. Самооценка способностей: ${currentAbility} из 3.`}
-          riskWarning={selectedTypeInfo.riskWarning}
-          onClose={() => setSelectedKey(null)}
-        >
-          <div className="p-3 rounded-[10px] bg-[color-mix(in_srgb,var(--paper)_80%,transparent)] border border-default/60">
-            <p className="font-sans text-caption font-bold uppercase tracking-label text-primary m-0 mb-1">
-              Баланс «Хочу vs Могу»
-            </p>
-            <p className={cn(ADMIN_TEXT, 'text-muted m-0 leading-snug')}>
-              {balanceComment}
-            </p>
-          </div>
-        </PsychDetailCard>
+        </div>
       )}
     </AdminCard>
   );

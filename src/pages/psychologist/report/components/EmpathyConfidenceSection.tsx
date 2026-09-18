@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge, type AdminBadgeTone } from '@/shared/ui/admin/AdminBadge';
@@ -9,6 +9,8 @@ import { PolarAreaChart, type PolarAreaSector } from './PolarAreaChart';
 import { StenProgressBar } from './StenProgressBar';
 import { PsychTestHeaderInfo } from './PsychTestHeaderInfo';
 import { PsychDetailCard } from './PsychDetailCard';
+import { BinaryEvidenceView, RatedEvidenceView } from './AnswerEvidence';
+import { ScoreRow } from './ScoreRow';
 import {
   BOYKO_KONDASH_METHODOLOGY,
   BOYKO_CHANNELS,
@@ -70,7 +72,15 @@ const CHANNEL_MAX = 6;
  */
 export function EmpathyConfidenceSection({ section }: { section: EmpathyConfidenceSectionData | null }) {
   if (!section) return null;
-  const { empathy_channels, empathy_total, empathy_level, confidence_stens, confidence_level } = section;
+  const {
+    empathy_channels,
+    empathy_total,
+    empathy_level,
+    confidence_stens,
+    confidence_level,
+    empathy_evidence,
+    confidence_evidence,
+  } = section;
 
   // Selected item to inspect: can be a channel key, 'total_empathy', or 'confidence'
   const [selectedKey, setSelectedKey] = useState<string | null>(empathy_level ? 'total_empathy' : null);
@@ -87,7 +97,6 @@ export function EmpathyConfidenceSection({ section }: { section: EmpathyConfiden
   const isLowConfidence = confidence_level === 'low';
   const showVulnerabilityWarning = isHighEmpathy && isLowConfidence;
 
-  const selectedChannelInfo = selectedKey && selectedKey in BOYKO_CHANNELS ? BOYKO_CHANNELS[selectedKey] : null;
   const isTotalEmpathy = selectedKey === 'total_empathy';
   const isConfidence = selectedKey === 'confidence';
 
@@ -112,126 +121,108 @@ export function EmpathyConfidenceSection({ section }: { section: EmpathyConfiden
       {sectors && sectors.length > 0 && (
         <div className="flex flex-col items-center gap-3 mb-4">
           <PolarAreaChart sectors={sectors} max={CHANNEL_MAX} />
-          <div className="flex items-center gap-2">
-            {empathy_total !== null && (
-              <span className={cn(ADMIN_NUM, 'text-primary')}>
-                Итого: {empathy_total}/36
-              </span>
-            )}
-            {empathy_level && (
-              <button
-                type="button"
-                onClick={() => setSelectedKey(isTotalEmpathy ? null : 'total_empathy')}
-                className="inline-flex items-center gap-1 group focus:outline-none"
-              >
-                <AdminBadge tone={EMPATHY_LEVEL_TONES[empathy_level] ?? 'neutral'}>
-                  {EMPATHY_LEVEL_LABELS[empathy_level] ?? empathy_level}
-                </AdminBadge>
-                <ChevronDown size={13} className={cn('text-muted transition-transform', isTotalEmpathy && 'rotate-180')} />
-              </button>
-            )}
-          </div>
 
-          <ul className="m-0 p-0 list-none flex flex-col gap-1 w-full max-w-[320px]">
+          {empathy_level && (
+            <div className="w-full">
+              <ScoreRow
+                label={<span className={ADMIN_TEXT}>Итого по всем каналам</span>}
+                value={empathy_total !== null && <span className={cn(ADMIN_NUM, 'text-primary')}>{empathy_total}/36</span>}
+                badge={<AdminBadge tone={EMPATHY_LEVEL_TONES[empathy_level] ?? 'neutral'}>{EMPATHY_LEVEL_LABELS[empathy_level] ?? empathy_level}</AdminBadge>}
+                isOpen={isTotalEmpathy}
+                onToggle={() => setSelectedKey(isTotalEmpathy ? null : 'total_empathy')}
+              >
+                <PsychDetailCard
+                  bare
+                  title={`Общий уровень эмпатии: ${EMPATHY_LEVEL_LABELS[empathy_level]}`}
+                  badge={<AdminBadge tone={EMPATHY_LEVEL_TONES[empathy_level]}>{EMPATHY_LEVEL_LABELS[empathy_level]}</AdminBadge>}
+                  meaning={BOYKO_TOTAL_LEVELS[empathy_level]?.meaning ?? ''}
+                  means={BOYKO_TOTAL_LEVELS[empathy_level]?.meaning ?? ''}
+                  follows={BOYKO_TOTAL_LEVELS[empathy_level]?.advice ?? ''}
+                  why={`Разбивка по каналам: ${sectors.map((s) => `${CHANNEL_LABELS[s.key] ?? s.key} — ${s.value}/${CHANNEL_MAX}`).join(', ')}. Сумма: ${empathy_total}/36 (уровень «${EMPATHY_LEVEL_LABELS[empathy_level]}»).`}
+                />
+              </ScoreRow>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1 w-full">
             {sectors.map((sector) => {
               const isSelected = selectedKey === sector.key;
+              const info = sector.key in BOYKO_CHANNELS ? BOYKO_CHANNELS[sector.key] : null;
               return (
-                <li key={sector.key}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedKey(isSelected ? null : sector.key)}
-                    className={cn(
-                      'w-full flex items-center justify-between gap-2 p-1.5 rounded-[8px] text-left transition-colors focus:outline-none',
-                      isSelected ? 'bg-brand-subtle ring-1 ring-brand/30' : 'hover:bg-raised/70',
-                    )}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <span className={cn(ADMIN_META, isSelected && 'text-primary font-medium')}>
-                        {CHANNEL_LABELS[sector.key] ?? sector.key}
-                      </span>
-                      <ChevronDown size={12} className={cn('text-muted transition-transform', isSelected && 'rotate-180')} />
-                    </span>
-                    <span className={cn(ADMIN_NUM, isSelected && 'font-bold text-brand')}>
-                      {sector.value}/{CHANNEL_MAX}
-                    </span>
-                  </button>
-                </li>
+                <ScoreRow
+                  key={sector.key}
+                  label={<span className={cn(ADMIN_META, isSelected && 'text-primary font-medium')}>{CHANNEL_LABELS[sector.key] ?? sector.key}</span>}
+                  value={<span className={cn(ADMIN_NUM, isSelected && 'font-bold text-brand')}>{sector.value}/{CHANNEL_MAX}</span>}
+                  isOpen={isSelected}
+                  onToggle={() => setSelectedKey(isSelected ? null : sector.key)}
+                >
+                  {info && (
+                    <PsychDetailCard
+                      bare
+                      title={info.name}
+                      badge={<AdminBadge tone="brand">Канал эмпатии</AdminBadge>}
+                      meaning={info.meaning}
+                      means={info.behavioralManifestation}
+                      follows={info.psychologistFocus}
+                      why={`Балл ученика: ${sector.value} из ${CHANNEL_MAX}. ${info.normsExplanation ?? ''}`}
+                      riskWarning={info.riskWarning}
+                    >
+                      {empathy_evidence?.[sector.key] && (
+                        <BinaryEvidenceView evidence={empathy_evidence[sector.key]} />
+                      )}
+                    </PsychDetailCard>
+                  )}
+                </ScoreRow>
               );
             })}
-          </ul>
+          </div>
         </div>
       )}
 
       {confidence_stens !== null && (
         <div className="pt-3 border-t border-default">
-          <button
-            type="button"
-            onClick={() => setSelectedKey(isConfidence ? null : 'confidence')}
-            className={cn(
-              'w-full flex items-center justify-between gap-2 p-1.5 rounded-[8px] mb-2 text-left transition-colors focus:outline-none',
-              isConfidence ? 'bg-brand-subtle ring-1 ring-brand/30' : 'hover:bg-raised/50',
-            )}
-          >
-            <span className="flex items-center gap-1.5">
-              <span className={cn(ADMIN_TEXT, 'font-medium', isConfidence && 'text-brand font-semibold')}>
-                Социальная уверенность (Кондаш)
-              </span>
-              <ChevronDown size={13} className={cn('text-muted transition-transform', isConfidence && 'rotate-180')} />
-            </span>
-            <div className="flex items-center gap-2">
-              <span className={ADMIN_NUM}>{confidence_stens} стен</span>
-              {confidence_level && (
-                <AdminBadge tone={CONFIDENCE_LEVEL_TONES[confidence_level] ?? 'neutral'}>
-                  {CONFIDENCE_LEVEL_LABELS[confidence_level] ?? confidence_level}
-                </AdminBadge>
-              )}
-            </div>
-          </button>
+          <p className={cn(ADMIN_TEXT, 'font-medium text-primary mb-2')}>Социальная уверенность (Кондаш)</p>
           <StenProgressBar value={confidence_stens} min={1} max={10} normativeFrom={4} normativeTo={6} />
+          <div className="mt-2.5">
+            <ScoreRow
+              label={<span className={ADMIN_TEXT}>Разбор результата</span>}
+              value={<span className={ADMIN_NUM}>{confidence_stens} стен</span>}
+              badge={
+                confidence_level && (
+                  <AdminBadge tone={CONFIDENCE_LEVEL_TONES[confidence_level] ?? 'neutral'}>
+                    {CONFIDENCE_LEVEL_LABELS[confidence_level] ?? confidence_level}
+                  </AdminBadge>
+                )
+              }
+              isOpen={isConfidence}
+              onToggle={() => setSelectedKey(isConfidence ? null : 'confidence')}
+            >
+              {confidence_level && (
+                <PsychDetailCard
+                  bare
+                  title={`Социальная уверенность: ${CONFIDENCE_LEVEL_LABELS[confidence_level]}`}
+                  badge={<AdminBadge tone={CONFIDENCE_LEVEL_TONES[confidence_level]}>{confidence_stens} стен</AdminBadge>}
+                  meaning={KONDASH_LEVELS[confidence_level]?.meaning ?? ''}
+                  means={KONDASH_LEVELS[confidence_level]?.meaning ?? ''}
+                  follows={KONDASH_LEVELS[confidence_level]?.advice ?? ''}
+                  why={`Результат респондента: ${confidence_stens} из 10 стенов (нормативный диапазон — 4–6 стенов).`}
+                  riskWarning={
+                    confidence_level === 'low'
+                      ? 'Страх публичных ответов у доски, скованность перед незнакомыми, чувствительность к оценке окружающих. Требуется постепенная адаптация без стресса.'
+                      : undefined
+                  }
+                >
+                  {confidence_evidence && (
+                    <RatedEvidenceView
+                      evidence={confidence_evidence}
+                      valueLabels={['0 — совсем не тревожит', '1', '2', '3', '4 — очень тревожит']}
+                    />
+                  )}
+                </PsychDetailCard>
+              )}
+            </ScoreRow>
+          </div>
         </div>
-      )}
-
-      {/* Expanded RIASEC-style Detail Card */}
-      {selectedChannelInfo && (
-        <PsychDetailCard
-          title={selectedChannelInfo.name}
-          badge={<AdminBadge tone="brand">Канал эмпатии</AdminBadge>}
-          meaning={selectedChannelInfo.meaning}
-          means={selectedChannelInfo.behavioralManifestation}
-          follows={selectedChannelInfo.psychologistFocus}
-          why={`Балл ученика: ${empathy_channels?.[selectedKey!] ?? 0} из ${CHANNEL_MAX}. ${selectedChannelInfo.normsExplanation ?? ''}`}
-          riskWarning={selectedChannelInfo.riskWarning}
-          onClose={() => setSelectedKey(null)}
-        />
-      )}
-
-      {isTotalEmpathy && empathy_level && (
-        <PsychDetailCard
-          title={`Общий уровень эмпатии: ${EMPATHY_LEVEL_LABELS[empathy_level]}`}
-          badge={<AdminBadge tone={EMPATHY_LEVEL_TONES[empathy_level]}>{EMPATHY_LEVEL_LABELS[empathy_level]}</AdminBadge>}
-          meaning={BOYKO_TOTAL_LEVELS[empathy_level]?.meaning ?? ''}
-          means={BOYKO_TOTAL_LEVELS[empathy_level]?.meaning ?? ''}
-          follows={BOYKO_TOTAL_LEVELS[empathy_level]?.advice ?? ''}
-          why={`Суммарный балл по всем 6 каналам: ${empathy_total}/36. В авторской шкале Бойко уровни: 0–14 (очень низкий), 15–21 (заниженный), 22–29 (средний), 30–36 (очень высокий).`}
-          onClose={() => setSelectedKey(null)}
-        />
-      )}
-
-      {isConfidence && confidence_level && (
-        <PsychDetailCard
-          title={`Социальная уверенность: ${CONFIDENCE_LEVEL_LABELS[confidence_level]}`}
-          badge={<AdminBadge tone={CONFIDENCE_LEVEL_TONES[confidence_level]}>{confidence_stens} стен</AdminBadge>}
-          meaning={KONDASH_LEVELS[confidence_level]?.meaning ?? ''}
-          means={KONDASH_LEVELS[confidence_level]?.meaning ?? ''}
-          follows={KONDASH_LEVELS[confidence_level]?.advice ?? ''}
-          why={`Шкала межличностной тревожности А.М. Прихожан (по Кондашу) инвертирована в показатель уверенности в диапазоне 1–10 стенов. Стены 4–6 — нормативный возрастной диапазон, стены 1–3 — раскованность/высокая уверенность, стены 7–10 — повышенная тревожность в контактах.`}
-          riskWarning={
-            confidence_level === 'low'
-              ? 'Страх публичных ответов у доски, скованность перед незнакомыми, чувствительность к оценке окружающих. Требуется постепенная адаптация без стресса.'
-              : undefined
-          }
-          onClose={() => setSelectedKey(null)}
-        />
       )}
     </AdminCard>
   );

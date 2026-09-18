@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, ChevronDown } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -9,6 +9,7 @@ import type { IntelligenceSection as IntelligenceSectionData } from '@/shared/ty
 import { LineChart, type LineChartPoint } from './LineChart';
 import { PsychTestHeaderInfo } from './PsychTestHeaderInfo';
 import { PsychDetailCard } from './PsychDetailCard';
+import { ScoreRow } from './ScoreRow';
 import {
   ASTUR_METHODOLOGY,
   ASTUR_SUBTESTS,
@@ -53,7 +54,10 @@ const SUBJECT_LABELS: Record<string, string> = {
 
 /**
  * АСТУР «Характеристики интеллекта» — линейный график по 6 субтестам +
- * СПН-группа + профиль обучения + подробный доказательный разбор структуры интеллекта.
+ * СПН-группа + профиль обучения + подробный доказательный разбор структуры
+ * интеллекта. Every scored row is a <ScoreRow> — bordered at rest, detail
+ * expands in place right under the row that was clicked, not at the bottom
+ * of the card (see ScoreRow's own doc comment for why that changed).
  */
 export function IntelligenceSection({ section }: { section: IntelligenceSectionData | null }) {
   if (!section) return null;
@@ -68,6 +72,10 @@ export function IntelligenceSection({ section }: { section: IntelligenceSectionD
   const activeSubtestInfo = selectedKey && selectedKey in ASTUR_SUBTESTS ? ASTUR_SUBTESTS[selectedKey] : null;
   const isSpnSelected = selectedKey === 'spn';
   const isLabilitySelected = selectedKey === 'lability';
+
+  function toggle(key: string) {
+    setSelectedKey((current) => (current === key ? null : key));
+  }
 
   const points: LineChartPoint[] | null = subtest_scores
     ? SUBTEST_ORDER.filter((key) => key in subtest_scores).map((key) => ({
@@ -85,49 +93,61 @@ export function IntelligenceSection({ section }: { section: IntelligenceSectionD
       {points && points.length > 0 && (
         <div className="flex flex-col items-center gap-3 mb-4">
           <LineChart points={points} />
-          <div className="flex items-center gap-3">
-            {raw_score !== null && (
-              <span className={cn(ADMIN_NUM, 'text-primary')}>Общий балл: {raw_score}/127</span>
-            )}
-            {spn_group !== null && (
-              <button
-                type="button"
-                onClick={() => setSelectedKey(isSpnSelected ? null : 'spn')}
-                className="inline-flex items-center gap-1 focus:outline-none"
-              >
-                <AdminBadge tone="brand">СПН-группа {spn_group}/5</AdminBadge>
-                <ChevronDown size={13} className={cn('text-muted transition-transform', isSpnSelected && 'rotate-180')} />
-              </button>
-            )}
-          </div>
+          {raw_score !== null && (
+            <span className={cn(ADMIN_NUM, 'text-primary')}>Общий балл: {raw_score}/127</span>
+          )}
 
-          <ul className="m-0 p-0 list-none flex flex-col gap-1 w-full max-w-[320px]">
+          <div className="flex flex-col gap-1.5 w-full">
+            {spn_group !== null && (
+              <ScoreRow
+                label={<span className={cn(ADMIN_TEXT, isSpnSelected && 'text-primary font-medium')}>СПН-группа</span>}
+                badge={<AdminBadge tone="brand">{spn_group}/5</AdminBadge>}
+                isOpen={isSpnSelected}
+                onToggle={() => toggle('spn')}
+              >
+                <PsychDetailCard
+                  bare
+                  title={`Социально-психологический норматив: СПН-группа ${spn_group}/5`}
+                  badge={<AdminBadge tone="brand">Норматив развития</AdminBadge>}
+                  meaning={ASTUR_SPN_GROUPS[spn_group]?.meaning ?? ''}
+                  means={ASTUR_SPN_GROUPS[spn_group]?.meaning ?? ''}
+                  follows={ASTUR_SPN_GROUPS[spn_group]?.advice ?? ''}
+                  why={`Общий сырой балл по всем 6 субтестам: ${raw_score}/127. Границы групп (предварительные, не откалиброваны на выборке платформы — см. astur_thresholds.json): Группа 1 (96–127), Группа 2 (65–95), Группа 3 (33–64), Группа 4 (12–32), Группа 5 (0–11).`}
+                  riskWarning={
+                    spn_group >= 4
+                      ? 'Группа ниже среднего по предварительной шкале. Это не диагноз — границы групп ещё не откалиброваны на выборке платформы, поэтому результат стоит рассматривать как повод присмотреться внимательнее, а не как готовый вывод об академических трудностях.'
+                      : undefined
+                  }
+                />
+              </ScoreRow>
+            )}
+
             {points.map((p) => {
               const isSelected = selectedKey === p.key;
+              const info = ASTUR_SUBTESTS[p.key];
               return (
-                <li key={p.key}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedKey(isSelected ? null : p.key)}
-                    className={cn(
-                      'w-full flex items-center justify-between gap-2 p-1.5 rounded-[8px] text-left transition-colors focus:outline-none',
-                      isSelected ? 'bg-brand-subtle ring-1 ring-brand/30' : 'hover:bg-raised/70',
-                    )}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <span className={cn(ADMIN_META, isSelected && 'text-primary font-medium')}>
-                        {SUBTEST_FULL_LABELS[p.key]}
-                      </span>
-                      <ChevronDown size={12} className={cn('text-muted transition-transform', isSelected && 'rotate-180')} />
-                    </span>
-                    <span className={cn(ADMIN_NUM, isSelected && 'font-bold text-brand')}>
-                      {p.value}/{p.max}
-                    </span>
-                  </button>
-                </li>
+                <ScoreRow
+                  key={p.key}
+                  label={<span className={cn(ADMIN_TEXT, isSelected && 'text-primary font-medium')}>{SUBTEST_FULL_LABELS[p.key]}</span>}
+                  value={<span className={ADMIN_NUM}>{p.value}/{p.max}</span>}
+                  isOpen={isSelected}
+                  onToggle={() => toggle(p.key)}
+                >
+                  {info && (
+                    <PsychDetailCard
+                      bare
+                      title={info.name}
+                      badge={<AdminBadge tone="brand">Субтест интеллекта</AdminBadge>}
+                      meaning={info.meaning}
+                      means={info.behavioralManifestation}
+                      follows={info.psychologistFocus}
+                      why={`Ученик набрал ${p.value} из ${p.max} баллов. ${info.normsExplanation ?? ''}`}
+                    />
+                  )}
+                </ScoreRow>
               );
             })}
-          </ul>
+          </div>
         </div>
       )}
 
@@ -153,20 +173,6 @@ export function IntelligenceSection({ section }: { section: IntelligenceSectionD
 
       {(lability_first_half_accuracy !== null || lability_second_half_accuracy !== null) && (
         <div className="pt-3 border-t border-default">
-          <button
-            type="button"
-            onClick={() => setSelectedKey(isLabilitySelected ? null : 'lability')}
-            className={cn(
-              'w-full flex items-center justify-between gap-2 p-1.5 rounded-[8px] mb-2 text-left transition-colors focus:outline-none',
-              isLabilitySelected ? 'bg-brand-subtle ring-1 ring-brand/30' : 'hover:bg-raised/50',
-            )}
-          >
-            <span className={cn(ADMIN_TEXT, 'font-medium', isLabilitySelected && 'text-brand font-semibold')}>
-              Умственная работоспособность (лабильность)
-            </span>
-            <ChevronDown size={13} className={cn('text-muted transition-transform', isLabilitySelected && 'rotate-180')} />
-          </button>
-
           {lability_fatigue_signal && (
             <div role="alert" className="flex items-start gap-3 p-3 mb-3 rounded-[14px] border border-danger bg-danger-subtle">
               <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
@@ -176,17 +182,18 @@ export function IntelligenceSection({ section }: { section: IntelligenceSectionD
             </div>
           )}
 
-          <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
+          <p className={cn(ADMIN_TEXT, 'font-medium text-primary mb-2')}>Умственная работоспособность (лабильность)</p>
+          <ul className="m-0 p-0 list-none flex flex-col gap-1.5 mb-2.5">
             {lability_first_half_accuracy !== null && (
               <li className="flex items-center gap-2">
-                <span className={cn(ADMIN_META, 'w-32 flex-shrink-0')}>1-я половина</span>
+                <span className={cn(ADMIN_META, 'w-28 flex-shrink-0')}>1-я половина</span>
                 <ProgressBar value={lability_first_half_accuracy * 100} className="flex-1" />
                 <span className={cn(ADMIN_NUM, 'w-10 text-right')}>{Math.round(lability_first_half_accuracy * 100)}%</span>
               </li>
             )}
             {lability_second_half_accuracy !== null && (
               <li className="flex items-center gap-2">
-                <span className={cn(ADMIN_META, 'w-32 flex-shrink-0')}>2-я половина</span>
+                <span className={cn(ADMIN_META, 'w-28 flex-shrink-0')}>2-я половина</span>
                 <ProgressBar
                   value={lability_second_half_accuracy * 100}
                   variant={lability_fatigue_signal ? 'accent' : 'brand'}
@@ -196,66 +203,41 @@ export function IntelligenceSection({ section }: { section: IntelligenceSectionD
               </li>
             )}
           </ul>
+
+          <ScoreRow
+            label={<span className={ADMIN_TEXT}>Разбор результата</span>}
+            badge={
+              <AdminBadge tone={lability_fatigue_signal ? 'danger' : 'neutral'}>
+                {lability_fatigue_signal ? 'Сигнал утомляемости' : 'Стабильна'}
+              </AdminBadge>
+            }
+            isOpen={isLabilitySelected}
+            onToggle={() => toggle('lability')}
+          >
+            <PsychDetailCard
+              bare
+              title={ASTUR_LABILITY_NOTE.title}
+              badge={
+                <AdminBadge tone={lability_fatigue_signal ? 'danger' : 'neutral'}>
+                  {lability_fatigue_signal ? 'Сигнал утомляемости' : 'Работоспособность стабильна'}
+                </AdminBadge>
+              }
+              meaning="Оценивает переключаемость внимания, темп умственной деятельности и сопротивляемость истощению в условиях ограниченного времени."
+              means={lability_fatigue_signal ? ASTUR_LABILITY_NOTE.fatigueDetected : ASTUR_LABILITY_NOTE.stable}
+              follows={
+                lability_fatigue_signal
+                  ? 'Рекомендовать соблюдение гигиены интеллектуального труда: метод Pomodoro (25 мин работы / 5 мин отдыха), исключение ночных зубрежек перед экзаменами, дыхательные практики.'
+                  : 'Высокая умственная выносливость. Подросток готов к длительным интеллектуальным испытаниям и высокой плотности учебного графика.'
+              }
+              why={`Точность первой половины: ${Math.round((lability_first_half_accuracy ?? 0) * 100)}%, второй половины: ${Math.round((lability_second_half_accuracy ?? 0) * 100)}%.`}
+              riskWarning={
+                lability_fatigue_signal
+                  ? 'При перегрузках и непрерывных многочасовых тестах резко возрастает количество «глупых» ошибок из-за истощения внимания.'
+                  : undefined
+              }
+            />
+          </ScoreRow>
         </div>
-      )}
-
-      {/* Expanded RIASEC-style Detail Card */}
-      {activeSubtestInfo && (
-        <PsychDetailCard
-          title={activeSubtestInfo.name}
-          badge={<AdminBadge tone="brand">Субтест интеллекта</AdminBadge>}
-          meaning={activeSubtestInfo.meaning}
-          means={activeSubtestInfo.behavioralManifestation}
-          follows={activeSubtestInfo.psychologistFocus}
-          why={`Ученик набрал ${subtest_scores?.[selectedKey!] ?? 0} из ${SUBTEST_MAX[selectedKey!] ?? 0} баллов. ${activeSubtestInfo.normsExplanation ?? ''}`}
-          onClose={() => setSelectedKey(null)}
-        />
-      )}
-
-      {isSpnSelected && spn_group !== null && (
-        <PsychDetailCard
-          title={`Социально-психологический норматив: СПН-группа ${spn_group}/5`}
-          badge={<AdminBadge tone="brand">Норматив развития</AdminBadge>}
-          meaning={ASTUR_SPN_GROUPS[spn_group]?.meaning ?? ''}
-          means={ASTUR_SPN_GROUPS[spn_group]?.meaning ?? ''}
-          follows={ASTUR_SPN_GROUPS[spn_group]?.advice ?? ''}
-          why={`Общий сырой балл по всем 6 субтестам: ${raw_score}/127. Границы групп (предварительные, не откалиброваны на выборке платформы — см. astur_thresholds.json): Группа 1 (96–127), Группа 2 (65–95), Группа 3 (33–64), Группа 4 (12–32), Группа 5 (0–11).`}
-          riskWarning={
-            spn_group >= 4
-              ? 'Группа ниже среднего по предварительной шкале. Это не диагноз — границы групп ещё не откалиброваны на выборке платформы, поэтому результат стоит рассматривать как повод присмотреться внимательнее, а не как готовый вывод об академических трудностях.'
-              : undefined
-          }
-          onClose={() => setSelectedKey(null)}
-        />
-      )}
-
-      {isLabilitySelected && (
-        <PsychDetailCard
-          title={ASTUR_LABILITY_NOTE.title}
-          badge={
-            <AdminBadge tone={lability_fatigue_signal ? 'danger' : 'neutral'}>
-              {lability_fatigue_signal ? 'Сигнал утомляемости' : 'Работоспособность стабильна'}
-            </AdminBadge>
-          }
-          meaning="Оценивает переключаемость внимания, темп умственной деятельности и сопротивляемость истощению в условиях ограниченного времени."
-          means={
-            lability_fatigue_signal
-              ? ASTUR_LABILITY_NOTE.fatigueDetected
-              : ASTUR_LABILITY_NOTE.stable
-          }
-          follows={
-            lability_fatigue_signal
-              ? 'Рекомендовать соблюдение гигиены интеллектуального труда: метод Pomodoro (25 мин работы / 5 мин отдыха), исключение ночных зубрежек перед экзаменами, дыхательные практики.'
-              : 'Высокая умственная выносливость. Подросток готов к длительным интеллектуальным испытаниям и высокой плотности учебного графика.'
-          }
-          why={`Точность первой половины: ${Math.round((lability_first_half_accuracy ?? 0) * 100)}%, второй половины: ${Math.round((lability_second_half_accuracy ?? 0) * 100)}%.`}
-          riskWarning={
-            lability_fatigue_signal
-              ? 'При перегрузках и непрерывных многочасовых тестах резко возрастает количество «глупых» ошибок из-за истощения внимания.'
-              : undefined
-          }
-          onClose={() => setSelectedKey(null)}
-        />
       )}
     </AdminCard>
   );

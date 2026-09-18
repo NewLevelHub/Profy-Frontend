@@ -317,11 +317,16 @@ export interface AsturAnalogyItem {
   options: string[];
 }
 
-export type AsturLabilityAnswerFormat = 'digit' | 'shape' | 'symbol' | 'word' | 'letter';
+export type AsturLabilityAnswerFormat = 'digit' | 'shape' | 'symbol' | 'word';
 
 export interface AsturLabilityItem {
   instruction: string;
   answer_format: AsturLabilityAnswerFormat;
+  // Always exactly 2 values — every lability command is a 2-way choice,
+  // rendered as buttons (2026-09-18: was free-text input for every format
+  // except 'shape', which live in-office testing found too hard to use
+  // under the per-item timer — reading, deciding, AND typing correctly).
+  options: [string, string];
 }
 
 export interface AsturClassificationItem {
@@ -1300,10 +1305,67 @@ export interface PsychologistNoteWrite {
 // optional because Ф0.2/Ф0.3 only laid the container/endpoint groundwork; the
 // scoring services that populate these land per-test in Фазы 1-3.
 
+// "Почему такой результат" evidence — mirrors app/schemas/new_tests.py's own
+// evidence classes, added so the psychologist card can show the student's
+// real answers (same idea as InterestMapItemDetails on /result) instead of
+// just restating the raw score in a sentence. One shape per answer format.
+
+export interface BinaryAnswerItem {
+  text: string;
+  answer: 'yes' | 'no';
+}
+
+export interface BinaryScaleEvidence {
+  answered: number;
+  yes: number;
+  no: number;
+  items: BinaryAnswerItem[];
+}
+
+export interface RatedAnswerItem {
+  text: string;
+  value: number;
+}
+
+export interface RatedScaleEvidence {
+  answered: number;
+  distribution: number[];
+  items: RatedAnswerItem[];
+}
+
+export interface PairAnswerItem {
+  text: string;
+  picked: boolean;
+}
+
+export interface PairScaleEvidence {
+  picked: number;
+  total: number;
+  items: PairAnswerItem[];
+}
+
+export interface SingleItemEvidence {
+  text: string;
+  value: number;
+}
+
+export interface RoleEvidenceItem {
+  block: string;
+  text: string;
+  points: number;
+}
+
+export interface RoleEvidence {
+  points_by_block: number[];
+  items: RoleEvidenceItem[];
+}
+
 export interface ProfessionalTypesSection {
   interest_scores: Record<string, number> | null;
   hybrid_profile: string[] | null;
   abilities_scores: Record<string, number> | null;
+  interest_evidence: Record<string, PairScaleEvidence> | null;
+  abilities_evidence: Record<string, SingleItemEvidence> | null;
 }
 
 export interface TeamRoleSection {
@@ -1316,6 +1378,7 @@ export interface TeamRoleSection {
   supporting_roles: string[] | null;
   avoidance_roles: string[] | null;
   methodological_note: string | null;
+  role_evidence: Record<string, RoleEvidence> | null;
 }
 
 export interface TemperamentSection {
@@ -1328,6 +1391,9 @@ export interface TemperamentSection {
   // One of choleric/sanguine/phlegmatic/melancholic (Ф1.6) — rendered as
   // the Scatter Plot's 4 quadrants.
   quadrant: string | null;
+  extraversion_evidence: BinaryScaleEvidence | null;
+  neuroticism_evidence: BinaryScaleEvidence | null;
+  lie_scale_evidence: BinaryScaleEvidence | null;
 }
 
 export interface IntelligenceSection {
@@ -1344,6 +1410,7 @@ export interface IntelligenceSection {
 export interface AspirationLevelSection {
   score: number | null;
   level: string | null;
+  evidence: BinaryScaleEvidence | null;
 }
 
 export interface EmpathyConfidenceSection {
@@ -1352,6 +1419,8 @@ export interface EmpathyConfidenceSection {
   empathy_level: string | null;
   confidence_stens: number | null;
   confidence_level: string | null;
+  empathy_evidence: Record<string, BinaryScaleEvidence> | null;
+  confidence_evidence: RatedScaleEvidence | null;
 }
 
 export interface NewTestsSections {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, ChevronDown } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -9,6 +9,8 @@ import { ScatterPlot, type ScatterPlotQuadrant } from './ScatterPlot';
 import { PsychTestHeaderInfo } from './PsychTestHeaderInfo';
 import { PsychDetailCard } from './PsychDetailCard';
 import { PsychBandMeter, type BandMark } from './PsychBandMeter';
+import { BinaryEvidenceView } from './AnswerEvidence';
+import { ScoreRow } from './ScoreRow';
 import {
   EYSENCK_METHODOLOGY,
   TEMPERAMENT_QUADRANTS,
@@ -96,214 +98,184 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
             xLabel="Экстраверсия"
             yLabel="Нейротизм"
           />
+
           {section.quadrant && (
-            <button
-              type="button"
-              onClick={() => setSelectedKey(section.quadrant!)}
-              className="group inline-flex items-center gap-2 p-1 focus:outline-none"
-              title="Нажмите, чтобы посмотреть подробный разбор типа"
-            >
-              <AdminBadge tone="brand" dot>
-                {QUADRANT_LABELS[section.quadrant] ?? section.quadrant}
-              </AdminBadge>
-              <span className={cn(ADMIN_META, 'group-hover:text-primary transition-colors flex items-center gap-0.5')}>
-                Развернуть суть
-                <ChevronDown size={13} />
-              </span>
-            </button>
+            <div className="w-full">
+              <ScoreRow
+                label={<span className={ADMIN_TEXT}>Тип темперамента</span>}
+                badge={<AdminBadge tone="brand" dot>{QUADRANT_LABELS[section.quadrant] ?? section.quadrant}</AdminBadge>}
+                isOpen={selectedKey === section.quadrant}
+                onToggle={() => setSelectedKey(selectedKey === section.quadrant ? null : section.quadrant!)}
+              >
+                {activeQuadrant && (
+                  <PsychDetailCard
+                    bare
+                    title={activeQuadrant.name}
+                    badge={<AdminBadge tone="brand">Тип темперамента</AdminBadge>}
+                    meaning={activeQuadrant.meaning}
+                    means={activeQuadrant.behavioralManifestation}
+                    follows={activeQuadrant.psychologistFocus}
+                    why={activeQuadrant.normsExplanation}
+                    riskWarning={activeQuadrant.riskWarning}
+                  />
+                )}
+              </ScoreRow>
+            </div>
           )}
         </div>
       )}
 
-      <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5">
         {section.extraversion_raw !== null && (
-          <li>
-            <button
-              type="button"
-              onClick={() => setSelectedKey(isExtraversion ? null : 'extraversion')}
-              className={cn(
-                'w-full flex items-center justify-between gap-2 p-2 rounded-[10px] text-left transition-colors focus:outline-none',
-                isExtraversion ? 'bg-brand-subtle/70 ring-1 ring-brand/30' : 'hover:bg-raised/70',
-              )}
+          <ScoreRow
+            label={<span className={cn(ADMIN_META, isExtraversion && 'text-primary font-semibold')}>Экстраверсия</span>}
+            value={<span className={ADMIN_NUM}>{section.extraversion_raw}/{SCALE_MAX}</span>}
+            badge={
+              section.extraversion_level && (
+                <AdminBadge tone={isExtraversion ? 'brand' : 'quiet'}>
+                  {EXTRAVERSION_LABELS[section.extraversion_level] ?? section.extraversion_level}
+                </AdminBadge>
+              )
+            }
+            isOpen={isExtraversion}
+            onToggle={() => setSelectedKey(isExtraversion ? null : 'extraversion')}
+          >
+            <PsychDetailCard
+              bare
+              title={EYSENCK_SCALES.extraversion.name}
+              badge={
+                section.extraversion_level ? (
+                  <AdminBadge tone="brand">{EXTRAVERSION_LABELS[section.extraversion_level]}</AdminBadge>
+                ) : undefined
+              }
+              meaning={EYSENCK_SCALES.extraversion.description}
+              means={
+                section.extraversion_level
+                  ? EYSENCK_SCALES.extraversion.bands[section.extraversion_level]?.meaning ?? ''
+                  : ''
+              }
+              follows={
+                section.extraversion_level
+                  ? EYSENCK_SCALES.extraversion.bands[section.extraversion_level]?.advice ?? ''
+                  : ''
+              }
+              why={`Ученик набрал ${section.extraversion_raw} из ${SCALE_MAX} баллов по шкале экстраверсии, что классифицирует его как «${section.extraversion_level ? EXTRAVERSION_LABELS[section.extraversion_level] : ''}».`}
             >
-              <span className="flex items-center gap-2">
-                <span className={cn(ADMIN_META, isExtraversion && 'text-primary font-semibold')}>Экстраверсия</span>
-                <ChevronDown size={13} className={cn('text-muted transition-transform', isExtraversion && 'rotate-180')} />
-              </span>
-              <span className="flex items-center gap-2">
-                <span className={ADMIN_NUM}>{section.extraversion_raw}/{SCALE_MAX}</span>
-                {section.extraversion_level && (
-                  <AdminBadge tone={isExtraversion ? 'brand' : 'quiet'}>
-                    {EXTRAVERSION_LABELS[section.extraversion_level] ?? section.extraversion_level}
-                  </AdminBadge>
-                )}
-              </span>
-            </button>
-          </li>
+              <PsychBandMeter
+                value={section.extraversion_raw ?? 0}
+                max={SCALE_MAX}
+                bands={EXTRAVERSION_BANDS}
+                label="Положение на шкале экстраверсии"
+              />
+              {section.extraversion_evidence && (
+                <div className="mt-3">
+                  <BinaryEvidenceView evidence={section.extraversion_evidence} />
+                </div>
+              )}
+            </PsychDetailCard>
+          </ScoreRow>
         )}
 
         {section.neuroticism_raw !== null && (
-          <li>
-            <button
-              type="button"
-              onClick={() => setSelectedKey(isNeuroticism ? null : 'neuroticism')}
-              className={cn(
-                'w-full flex items-center justify-between gap-2 p-2 rounded-[10px] text-left transition-colors focus:outline-none',
-                isNeuroticism ? 'bg-brand-subtle/70 ring-1 ring-brand/30' : 'hover:bg-raised/70',
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <span className={cn(ADMIN_META, isNeuroticism && 'text-primary font-semibold')}>Нейротизм</span>
-                <ChevronDown size={13} className={cn('text-muted transition-transform', isNeuroticism && 'rotate-180')} />
-              </span>
-              <span className="flex items-center gap-2">
-                <span className={ADMIN_NUM}>{section.neuroticism_raw}/{SCALE_MAX}</span>
-                {section.neuroticism_level && (
-                  <AdminBadge tone={isNeuroticism ? 'brand' : 'quiet'}>
-                    {NEUROTICISM_LABELS[section.neuroticism_level] ?? section.neuroticism_level}
+          <ScoreRow
+            label={<span className={cn(ADMIN_META, isNeuroticism && 'text-primary font-semibold')}>Нейротизм</span>}
+            value={<span className={ADMIN_NUM}>{section.neuroticism_raw}/{SCALE_MAX}</span>}
+            badge={
+              section.neuroticism_level && (
+                <AdminBadge tone={isNeuroticism ? 'brand' : 'quiet'}>
+                  {NEUROTICISM_LABELS[section.neuroticism_level] ?? section.neuroticism_level}
+                </AdminBadge>
+              )
+            }
+            isOpen={isNeuroticism}
+            onToggle={() => setSelectedKey(isNeuroticism ? null : 'neuroticism')}
+          >
+            <PsychDetailCard
+              bare
+              title={EYSENCK_SCALES.neuroticism.name}
+              badge={
+                section.neuroticism_level ? (
+                  <AdminBadge tone={section.neuroticism_level === 'very_high' ? 'danger' : 'brand'}>
+                    {NEUROTICISM_LABELS[section.neuroticism_level]}
                   </AdminBadge>
-                )}
-              </span>
-            </button>
-          </li>
+                ) : undefined
+              }
+              meaning={EYSENCK_SCALES.neuroticism.description}
+              means={
+                section.neuroticism_level
+                  ? EYSENCK_SCALES.neuroticism.bands[section.neuroticism_level]?.meaning ?? ''
+                  : ''
+              }
+              follows={
+                section.neuroticism_level
+                  ? EYSENCK_SCALES.neuroticism.bands[section.neuroticism_level]?.advice ?? ''
+                  : ''
+              }
+              why={`Ученик набрал ${section.neuroticism_raw} из ${SCALE_MAX} баллов по шкале эмоциональной лабильности (нейротизма).`}
+              riskWarning={
+                section.neuroticism_level === 'high' || section.neuroticism_level === 'very_high'
+                  ? 'Повышенная уязвимость к эмоциональному истощению, стрессу экзаменов и дедлайнов. Требуется обучение техникам саморегуляции.'
+                  : undefined
+              }
+            >
+              <PsychBandMeter
+                value={section.neuroticism_raw ?? 0}
+                max={SCALE_MAX}
+                bands={NEUROTICISM_BANDS}
+                label="Положение на шкале нейротизма"
+              />
+              {section.neuroticism_evidence && (
+                <div className="mt-3">
+                  <BinaryEvidenceView evidence={section.neuroticism_evidence} />
+                </div>
+              )}
+            </PsychDetailCard>
+          </ScoreRow>
         )}
 
         {section.lie_scale_raw !== null && (
-          <li>
-            <button
-              type="button"
-              onClick={() => setSelectedKey(isLieScale ? null : 'lie_scale')}
-              className={cn(
-                'w-full flex items-center justify-between gap-2 p-2 rounded-[10px] text-left transition-colors focus:outline-none',
-                isLieScale ? 'bg-brand-subtle/70 ring-1 ring-brand/30' : 'hover:bg-raised/70',
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <span className={cn(ADMIN_META, isLieScale && 'text-primary font-semibold')}>Шкала лжи (искренность)</span>
-                <ChevronDown size={13} className={cn('text-muted transition-transform', isLieScale && 'rotate-180')} />
-              </span>
-              <span className="flex items-center gap-2">
-                <span className={ADMIN_NUM}>{section.lie_scale_raw}/9</span>
-                <AdminBadge tone={section.protocol_flagged ? 'danger' : 'neutral'}>
-                  {section.protocol_flagged ? 'Выше нормы (>4)' : 'Достоверно (≤4)'}
-                </AdminBadge>
-              </span>
-            </button>
-          </li>
-        )}
-      </ul>
-
-      {/* Expanded RIASEC-style Detail Card */}
-      {activeQuadrant && (
-        <PsychDetailCard
-          title={activeQuadrant.name}
-          badge={<AdminBadge tone="brand">Тип темперамента</AdminBadge>}
-          meaning={activeQuadrant.meaning}
-          means={activeQuadrant.behavioralManifestation}
-          follows={activeQuadrant.psychologistFocus}
-          why={activeQuadrant.normsExplanation}
-          riskWarning={activeQuadrant.riskWarning}
-          onClose={() => setSelectedKey(null)}
-        />
-      )}
-
-      {isExtraversion && (
-        <PsychDetailCard
-          title={EYSENCK_SCALES.extraversion.name}
-          badge={
-            section.extraversion_level ? (
-              <AdminBadge tone="brand">{EXTRAVERSION_LABELS[section.extraversion_level]}</AdminBadge>
-            ) : undefined
-          }
-          meaning={EYSENCK_SCALES.extraversion.description}
-          means={
-            section.extraversion_level
-              ? EYSENCK_SCALES.extraversion.bands[section.extraversion_level]?.meaning ?? ''
-              : ''
-          }
-          follows={
-            section.extraversion_level
-              ? EYSENCK_SCALES.extraversion.bands[section.extraversion_level]?.advice ?? ''
-              : ''
-          }
-          why={`Ученик набрал ${section.extraversion_raw} из ${SCALE_MAX} баллов по шкале экстраверсии, что классифицирует его как «${section.extraversion_level ? EXTRAVERSION_LABELS[section.extraversion_level] : ''}».`}
-          onClose={() => setSelectedKey(null)}
-        >
-          <PsychBandMeter
-            value={section.extraversion_raw ?? 0}
-            max={SCALE_MAX}
-            bands={EXTRAVERSION_BANDS}
-            label="Положение на шкале экстраверсии"
-          />
-        </PsychDetailCard>
-      )}
-
-      {isNeuroticism && (
-        <PsychDetailCard
-          title={EYSENCK_SCALES.neuroticism.name}
-          badge={
-            section.neuroticism_level ? (
-              <AdminBadge tone={section.neuroticism_level === 'very_high' ? 'danger' : 'brand'}>
-                {NEUROTICISM_LABELS[section.neuroticism_level]}
+          <ScoreRow
+            label={<span className={cn(ADMIN_META, isLieScale && 'text-primary font-semibold')}>Шкала лжи (искренность)</span>}
+            value={<span className={ADMIN_NUM}>{section.lie_scale_raw}/9</span>}
+            badge={
+              <AdminBadge tone={section.protocol_flagged ? 'danger' : 'neutral'}>
+                {section.protocol_flagged ? 'Выше нормы (>4)' : 'Достоверно (≤4)'}
               </AdminBadge>
-            ) : undefined
-          }
-          meaning={EYSENCK_SCALES.neuroticism.description}
-          means={
-            section.neuroticism_level
-              ? EYSENCK_SCALES.neuroticism.bands[section.neuroticism_level]?.meaning ?? ''
-              : ''
-          }
-          follows={
-            section.neuroticism_level
-              ? EYSENCK_SCALES.neuroticism.bands[section.neuroticism_level]?.advice ?? ''
-              : ''
-          }
-          why={`Ученик набрал ${section.neuroticism_raw} из ${SCALE_MAX} баллов по шкале эмоциональной лабильности (нейротизма).`}
-          riskWarning={
-            section.neuroticism_level === 'high' || section.neuroticism_level === 'very_high'
-              ? 'Повышенная уязвимость к эмоциональному истощению, стрессу экзаменов и дедлайнов. Требуется обучение техникам саморегуляции.'
-              : undefined
-          }
-          onClose={() => setSelectedKey(null)}
-        >
-          <PsychBandMeter
-            value={section.neuroticism_raw ?? 0}
-            max={SCALE_MAX}
-            bands={NEUROTICISM_BANDS}
-            label="Положение на шкале нейротизма"
-          />
-        </PsychDetailCard>
-      )}
-
-      {isLieScale && (
-        <PsychDetailCard
-          title={EYSENCK_SCALES.lie_scale.name}
-          badge={
-            <AdminBadge tone={section.protocol_flagged ? 'danger' : 'neutral'}>
-              {section.protocol_flagged ? 'Флаг неискренности' : 'Протокол валиден'}
-            </AdminBadge>
-          }
-          meaning={EYSENCK_SCALES.lie_scale.description}
-          means={
-            section.protocol_flagged
-              ? EYSENCK_SCALES.lie_scale.bands.flagged.meaning
-              : EYSENCK_SCALES.lie_scale.bands.valid.meaning
-          }
-          follows={
-            section.protocol_flagged
-              ? EYSENCK_SCALES.lie_scale.bands.flagged.advice
-              : EYSENCK_SCALES.lie_scale.bands.valid.advice
-          }
-          why={`Шкала лжи состоит из 9 контрольных вопросов. Результат респондента: ${section.lie_scale_raw}/9. Нормативный порог — 4 балла.`}
-          riskWarning={
-            section.protocol_flagged
-              ? 'Балл превысил 4. Подросток мог стремиться казаться лучше, чем он есть. В личной беседе важно создать максимально доверительную обстановку без оценки.'
-              : undefined
-          }
-          onClose={() => setSelectedKey(null)}
-        />
-      )}
+            }
+            isOpen={isLieScale}
+            onToggle={() => setSelectedKey(isLieScale ? null : 'lie_scale')}
+          >
+            <PsychDetailCard
+              bare
+              title={EYSENCK_SCALES.lie_scale.name}
+              badge={
+                <AdminBadge tone={section.protocol_flagged ? 'danger' : 'neutral'}>
+                  {section.protocol_flagged ? 'Флаг неискренности' : 'Протокол валиден'}
+                </AdminBadge>
+              }
+              meaning={EYSENCK_SCALES.lie_scale.description}
+              means={
+                section.protocol_flagged
+                  ? EYSENCK_SCALES.lie_scale.bands.flagged.meaning
+                  : EYSENCK_SCALES.lie_scale.bands.valid.meaning
+              }
+              follows={
+                section.protocol_flagged
+                  ? EYSENCK_SCALES.lie_scale.bands.flagged.advice
+                  : EYSENCK_SCALES.lie_scale.bands.valid.advice
+              }
+              why={`Шкала лжи состоит из 9 контрольных вопросов. Результат респондента: ${section.lie_scale_raw}/9. Нормативный порог — 4 балла.`}
+              riskWarning={
+                section.protocol_flagged
+                  ? 'Балл превысил 4. Подросток мог стремиться казаться лучше, чем он есть. В личной беседе важно создать максимально доверительную обстановку без оценки.'
+                  : undefined
+              }
+            >
+              {section.lie_scale_evidence && <BinaryEvidenceView evidence={section.lie_scale_evidence} />}
+            </PsychDetailCard>
+          </ScoreRow>
+        )}
+      </div>
     </AdminCard>
   );
 }

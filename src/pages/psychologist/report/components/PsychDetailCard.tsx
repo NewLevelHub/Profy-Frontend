@@ -14,6 +14,9 @@ interface PsychDetailCardProps {
   children?: ReactNode;
   onClose?: () => void;
   className?: string;
+  /** Drop the outer border/margin/shadow — for when a <ScoreRow> already
+   *  supplies that framing and this card renders inline inside it. */
+  bare?: boolean;
 }
 
 /**
@@ -36,13 +39,15 @@ export function PsychDetailCard({
   children,
   onClose,
   className,
+  bare = false,
 }: PsychDetailCardProps) {
   return (
     <div
       role="region"
       aria-label={`Детальная расшифровка: ${title}`}
       className={cn(
-        'mt-3.5 border border-brand/35 rounded-[14px] bg-[color-mix(in_srgb,var(--paper)_92%,var(--brand)_8%)] overflow-hidden shadow-sm transition-all',
+        'bg-[color-mix(in_srgb,var(--paper)_92%,var(--brand)_8%)] overflow-hidden transition-all',
+        bare ? '-m-3 rounded-none' : 'mt-3.5 rounded-[14px] border border-brand/35 shadow-sm',
         className,
       )}
     >

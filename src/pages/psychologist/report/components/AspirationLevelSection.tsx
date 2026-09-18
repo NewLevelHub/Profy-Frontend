@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge, type AdminBadgeTone } from '@/shared/ui/admin/AdminBadge';
@@ -9,6 +8,8 @@ import { GaugeChart, type GaugeChartSegment } from './GaugeChart';
 import { PsychTestHeaderInfo } from './PsychTestHeaderInfo';
 import { PsychDetailCard } from './PsychDetailCard';
 import { PsychBandMeter, type BandMark } from './PsychBandMeter';
+import { BinaryEvidenceView } from './AnswerEvidence';
+import { ScoreRow } from './ScoreRow';
 import {
   ELERS_METHODOLOGY,
   ELERS_LEVELS,
@@ -68,27 +69,8 @@ export function AspirationLevelSection({ section }: { section: AspirationLevelSe
         </div>
       )}
 
-      {level && (
-        <div className="flex flex-col items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedLevelKey(selectedLevelKey === level ? null : level)}
-            className="inline-flex items-center gap-2 p-1 focus:outline-none group"
-            title="Нажмите для просмотра разбора уровня"
-          >
-            <AdminBadge tone={LEVEL_TONES[level] ?? 'neutral'}>
-              {LEVEL_LABELS[level] ?? level}
-            </AdminBadge>
-            <span className={cn(ADMIN_META, 'group-hover:text-primary transition-colors flex items-center gap-1 font-sans text-body-sm')}>
-              {selectedLevelKey === level ? 'Свернуть' : 'Подробный разбор'}
-              <ChevronDown size={14} className={cn('transition-transform', selectedLevelKey === level && 'rotate-180')} />
-            </span>
-          </button>
-        </div>
-      )}
-
       {score !== null && (
-        <div className="mt-3">
+        <div className="mb-3">
           <PsychBandMeter
             value={score}
             max={SCALE_MAX}
@@ -98,18 +80,28 @@ export function AspirationLevelSection({ section }: { section: AspirationLevelSe
         </div>
       )}
 
-      {/* Expanded RIASEC-style Detail Card */}
-      {activeLevelInfo && (
-        <PsychDetailCard
-          title={activeLevelInfo.name}
-          badge={<AdminBadge tone={LEVEL_TONES[selectedLevelKey!] ?? 'neutral'}>{activeLevelInfo.name}</AdminBadge>}
-          meaning={activeLevelInfo.meaning}
-          means={activeLevelInfo.behavioralManifestation}
-          follows={activeLevelInfo.psychologistFocus}
-          why={`Сырой балл: ${score ?? 0} из 32. ${activeLevelInfo.normsExplanation ?? ''}`}
-          riskWarning={activeLevelInfo.riskWarning}
-          onClose={() => setSelectedLevelKey(null)}
-        />
+      {level && (
+        <ScoreRow
+          label={<span className={cn(ADMIN_META, 'font-sans text-body-sm')}>Уровень мотивации</span>}
+          badge={<AdminBadge tone={LEVEL_TONES[level] ?? 'neutral'}>{LEVEL_LABELS[level] ?? level}</AdminBadge>}
+          isOpen={selectedLevelKey === level}
+          onToggle={() => setSelectedLevelKey(selectedLevelKey === level ? null : level)}
+        >
+          {activeLevelInfo && (
+            <PsychDetailCard
+              bare
+              title={activeLevelInfo.name}
+              badge={<AdminBadge tone={LEVEL_TONES[level] ?? 'neutral'}>{activeLevelInfo.name}</AdminBadge>}
+              meaning={activeLevelInfo.meaning}
+              means={activeLevelInfo.behavioralManifestation}
+              follows={activeLevelInfo.psychologistFocus}
+              why={`Сырой балл: ${score ?? 0} из 32. ${activeLevelInfo.normsExplanation ?? ''}`}
+              riskWarning={activeLevelInfo.riskWarning}
+            >
+              {section.evidence && <BinaryEvidenceView evidence={section.evidence} />}
+            </PsychDetailCard>
+          )}
+        </ScoreRow>
       )}
 
       {score === null && !level && <p className={cn(ADMIN_META, 'm-0')}>Тест ещё не пройден.</p>}

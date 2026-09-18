@@ -1,7 +1,5 @@
-import { useRef, useState } from 'react';
-import { cn } from '@/shared/lib/cn';
+import { useState } from 'react';
 import { Button } from '@/shared/ui/Button';
-import { Input } from '@/shared/ui/Input';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Text } from '@/shared/ui/typography/Text';
 import type { AsturContentSubtest, AsturLabilityItem } from '@/shared/types';
@@ -15,11 +13,17 @@ interface LabilityRunnerProps {
   onSubmit: (answers: Record<string, unknown>, elapsedMs: Record<string, number>) => void;
 }
 
-const FORMAT_PLACEHOLDER: Record<string, string> = {
-  digit: 'Цифра',
-  symbol: 'Плюс / минус / галочка / крестик',
-  word: 'Слово',
-  letter: 'Буква',
+const OPTION_LABEL: Record<string, string> = {
+  кружок: 'Кружок',
+  квадрат: 'Квадрат',
+  плюс: 'Плюс',
+  минус: 'Минус',
+  галочка: 'Галочка (✓)',
+  крестик: 'Крестик (✗)',
+  да: 'Да',
+  нет: 'Нет',
+  выше: 'Выше',
+  ниже: 'Ниже',
 };
 
 /**
@@ -27,12 +31,17 @@ const FORMAT_PLACEHOLDER: Record<string, string> = {
  * другой, каждая со своим коротким таймером и своим форматом ответа. Не
  * переиспользует SubtestRunner — механика (per-item лимит, авто-переход
  * без общей кнопки "Далее" на весь блок) принципиально другая (Ф3.4).
+ *
+ * Every item is a 2-way choice rendered as two buttons (2026-09-18: was a
+ * free-text input for every format except 'shape' — under a per-item timer
+ * that meant reading the instruction, working out the answer, AND typing it
+ * correctly, which live in-office testing found genuinely hard even for an
+ * adult). Nothing left needs a text field.
  */
 export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, onSubmit }: LabilityRunnerProps) {
   const [itemIndex, setItemIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [elapsedMs, setElapsedMs] = useState<Record<string, number>>({});
-  const draftRef = useRef('');
 
   const items = subtest.items as AsturLabilityItem[];
   const item = items[itemIndex];
@@ -44,7 +53,6 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
     const nextElapsed = { ...elapsedMs, [index]: elapsed };
     setAnswers(nextAnswers);
     setElapsedMs(nextElapsed);
-    draftRef.current = '';
     if (isLast) {
       onSubmit(nextAnswers, nextElapsed);
     } else {
@@ -52,7 +60,7 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
     }
   }
 
-  const { remainingMs } = useCountdown(itemLimitMs, `${subtest.key}-${itemIndex}`, () => commit(draftRef.current, itemLimitMs));
+  const { remainingMs } = useCountdown(itemLimitMs, `${subtest.key}-${itemIndex}`, () => commit('', itemLimitMs));
 
   return (
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
@@ -68,36 +76,13 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
         {item.instruction}
       </Text>
 
-      {item.answer_format === 'shape' ? (
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={() => commit('кружок', itemLimitMs - remainingMs)}>
-            Кружок
+      <div key={index} className="flex items-center gap-3">
+        {item.options.map((option) => (
+          <Button key={option} variant="ghost" onClick={() => commit(option, itemLimitMs - remainingMs)}>
+            {OPTION_LABEL[option] ?? option}
           </Button>
-          <Button variant="ghost" onClick={() => commit('квадрат', itemLimitMs - remainingMs)}>
-            Квадрат
-          </Button>
-        </div>
-      ) : (
-        <form
-          key={index}
-          className="flex items-center gap-3 max-w-xs"
-          onSubmit={(e) => {
-            e.preventDefault();
-            commit(draftRef.current, itemLimitMs - remainingMs);
-          }}
-        >
-          <Input
-            autoFocus
-            placeholder={FORMAT_PLACEHOLDER[item.answer_format]}
-            onChange={(e) => {
-              draftRef.current = e.target.value;
-            }}
-          />
-          <Button type="submit" className={cn('flex-shrink-0')}>
-            Дальше
-          </Button>
-        </form>
-      )}
+        ))}
+      </div>
 
       {submitError && (
         <Text variant="body-sm" className="text-danger">
