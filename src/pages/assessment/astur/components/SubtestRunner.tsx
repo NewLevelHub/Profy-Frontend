@@ -77,7 +77,8 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="assessment-stage mx-auto w-full max-w-[720px]">
+      <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
       {durationMs !== null && (
         <div className="flex flex-col gap-1.5">
           <ProgressBar value={(remainingMs / durationMs) * 100} variant={remainingMs < 15000 ? 'accent' : 'brand'} />
@@ -150,6 +151,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
       <Button size="lg" onClick={() => onSubmit(normalizedAnswers())} isLoading={submitting} className="self-end">
         Далее
       </Button>
+      </div>
     </div>
   );
 }

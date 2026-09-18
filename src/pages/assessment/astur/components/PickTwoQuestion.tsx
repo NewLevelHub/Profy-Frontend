@@ -34,7 +34,7 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
               disabled={disabled}
               onClick={() => toggle(word)}
               className={cn(
-                'rounded-[14px] border px-3 py-2.5 text-body-sm transition-colors text-center',
+                'rounded-[14px] border px-3 py-3 text-body-md transition-colors text-center',
                 selected ? 'border-brand bg-brand-subtle text-primary' : 'border-default text-secondary hover:border-strong',
                 disabled && 'opacity-40 cursor-not-allowed',
               )}
@@ -44,7 +44,7 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
           );
         })}
       </div>
-      <span className="text-mono-xs text-muted">Выбрано: {value.length}/2</span>
+      <span className="text-body-sm text-muted">Выбрано: {value.length}/2</span>
     </fieldset>
   );
 }

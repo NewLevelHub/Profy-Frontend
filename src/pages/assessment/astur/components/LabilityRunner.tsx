@@ -55,7 +55,8 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
   const { remainingMs } = useCountdown(itemLimitMs, `${subtest.key}-${itemIndex}`, () => commit(draftRef.current, itemLimitMs));
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="assessment-stage mx-auto w-full max-w-[720px]">
+      <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
       <div className="flex flex-col gap-1.5">
         <ProgressBar value={(remainingMs / itemLimitMs) * 100} variant={remainingMs < 1500 ? 'accent' : 'brand'} />
         <Text variant="caption" className="text-muted self-end">
@@ -108,6 +109,7 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
           Отправка…
         </Text>
       )}
+      </div>
     </div>
   );
 }

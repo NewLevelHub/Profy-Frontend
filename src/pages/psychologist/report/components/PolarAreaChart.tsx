@@ -42,10 +42,10 @@ function wedgePath(cx: number, cy: number, r: number, fromAngle: number, toAngle
  * nothing color alone doesn't already say) — hand-rolled SVG, no chart
  * library in this project (checked package.json before RadarChart.tsx).
  */
-function PolarAreaChartComponent({ sectors, max, size = 260 }: PolarAreaChartProps) {
+function PolarAreaChartComponent({ sectors, max, size = 300 }: PolarAreaChartProps) {
   const cx = size / 2;
   const cy = size / 2;
-  const outerR = size / 2 - 44; // room for labels outside the wedges
+  const outerR = size / 2 - 50; // room for labels outside the wedges
   const count = sectors.length;
   const angleStep = (2 * Math.PI) / count;
 
@@ -81,7 +81,7 @@ function PolarAreaChartComponent({ sectors, max, size = 260 }: PolarAreaChartPro
             y={labelPoint.y}
             textAnchor="middle"
             dominantBaseline="middle"
-            style={{ fontSize: 11, fill: 'var(--text-secondary)' }}
+            style={{ fontSize: 13, fontFamily: 'var(--font-sans)', fontWeight: 500, fill: 'var(--text-secondary)' }}
           >
             {sector.label}
           </text>

@@ -34,7 +34,6 @@ export function useMotivationHarter() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
   // Reset whenever the current pair changes (see the effect below) —
   // elapsed time from here to handleSelectIntensity feeds the speed-flag
@@ -83,9 +82,6 @@ export function useMotivationHarter() {
         // > 0 by then, so it goes straight to the question.
         if (current.motivation_answered_count === 0) {
           setPhase('intro');
-          introTimerRef.current = setTimeout(() => {
-            if (!cancelled) setPhase('question');
-          }, 2000);
         } else {
           setPhase('question');
         }
@@ -101,10 +97,6 @@ export function useMotivationHarter() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
@@ -118,10 +110,6 @@ export function useMotivationHarter() {
   }, [pairIndex, pairs]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     setPhase('question');
   }
 

@@ -34,7 +34,6 @@ export function usePairAssessment() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
   // Reset whenever the current pair changes (see the effect below) —
   // elapsed time from here to handleAnswer feeds the speed-flag rest stop.
@@ -80,9 +79,6 @@ export function usePairAssessment() {
         }
 
         setPhase('intro');
-        introTimerRef.current = setTimeout(() => {
-          if (!cancelled) setPhase('question');
-        }, 2000);
       } catch {
         if (!cancelled) {
           setError(t('assessment:error.loadQuestions'));
@@ -95,10 +91,6 @@ export function usePairAssessment() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount, ageGroup, profileLoading]);
@@ -111,10 +103,6 @@ export function usePairAssessment() {
   }, [pairIndex, pairs]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     setPhase('question');
   }
 

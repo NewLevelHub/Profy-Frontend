@@ -45,7 +45,7 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
     <div className={cn('flex flex-col gap-3', className)}>
       <div
         className={cn(
-          'flex items-center justify-between rounded-[14px] border px-4 py-2.5 text-body-sm font-semibold transition-colors',
+          'flex items-center justify-between rounded-[14px] border px-4 py-3 text-body-md font-semibold transition-colors',
           isBalanced
             ? 'border-default bg-success-subtle text-success'
             : 'border-default bg-raised text-secondary',
@@ -68,19 +68,19 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
           return (
             <li
               key={item.id}
-              className="flex items-center gap-3 rounded-[14px] border border-default bg-page px-3 py-2"
+              className="flex items-center gap-3 rounded-[14px] border border-default bg-page px-4 py-3"
             >
-              <span className="flex-1 min-w-0 text-body-sm text-primary break-words">{item.label}</span>
+              <span className="flex-1 min-w-0 text-body-md text-primary break-words">{item.label}</span>
 
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2.5 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setItemValue(item.id, itemValue - 1)}
                   disabled={!canDecrement}
-                  className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-default text-secondary hover:text-primary hover:bg-raised disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-default text-secondary hover:text-primary hover:bg-raised disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   aria-label={`Уменьшить «${item.label}»`}
                 >
-                  <Minus size={14} />
+                  <Minus size={15} />
                 </button>
 
                 <input
@@ -94,7 +94,7 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
                     if (Number.isNaN(parsed)) return;
                     setItemValue(item.id, Math.trunc(parsed));
                   }}
-                  className="w-12 text-center text-mono-sm tabular-nums bg-transparent border border-default rounded-[10px] py-1 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]"
+                  className="w-14 text-center text-body-md font-semibold tabular-nums bg-transparent border border-default rounded-[10px] py-1.5 focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]"
                   aria-label={`Баллы для «${item.label}»`}
                 />
 
@@ -102,10 +102,10 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
                   type="button"
                   onClick={() => setItemValue(item.id, itemValue + 1)}
                   disabled={!canIncrement}
-                  className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-default text-secondary hover:text-primary hover:bg-raised disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-default text-secondary hover:text-primary hover:bg-raised disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   aria-label={`Увеличить «${item.label}»`}
                 >
-                  <Plus size={14} />
+                  <Plus size={15} />
                 </button>
               </div>
             </li>

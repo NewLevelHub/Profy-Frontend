@@ -40,9 +40,9 @@ function pointOnAxis(index: number, count: number, fraction: number, radius: num
  * a hand-rolled SVG keeps the bundle light for a component this small and
  * used on one specialist-only screen.
  */
-function RadarChartComponent({ axes, series, size = 240 }: RadarChartProps) {
+function RadarChartComponent({ axes, series, size = 280 }: RadarChartProps) {
   const center = size / 2;
-  const radius = size / 2 - 36; // leave room for axis labels outside the plot
+  const radius = size / 2 - 46; // leave room for axis labels outside the plot
   const count = axes.length;
 
   return (
@@ -71,7 +71,7 @@ function RadarChartComponent({ axes, series, size = 240 }: RadarChartProps) {
               y={labelPoint.y}
               textAnchor="middle"
               dominantBaseline="middle"
-              style={{ fontSize: 11, fill: 'var(--text-secondary)' }}
+              style={{ fontSize: 13, fontFamily: 'var(--font-sans)', fontWeight: 500, fill: 'var(--text-secondary)' }}
             >
               {axis.label}
             </text>

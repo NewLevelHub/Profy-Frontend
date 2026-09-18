@@ -34,40 +34,45 @@ export function BelbinBlock({
   onNext,
 }: BelbinBlockProps) {
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <ProgressBar
-          value={((sectionIndex + 1) / sectionCount) * 100}
-          label={`Раздел ${sectionIndex + 1} из ${sectionCount}`}
+    <div className="assessment-stage mx-auto w-full max-w-[720px]">
+      <div className="assessment-stage__shell journey-shell flex flex-col gap-6 !p-6 sm:!p-8">
+        <div className="flex flex-col gap-2">
+          <ProgressBar
+            value={((sectionIndex + 1) / sectionCount) * 100}
+            label={`Раздел ${sectionIndex + 1} из ${sectionCount}`}
+          />
+          <Text variant="caption" className="text-muted">
+            Раздел {section.section} · {sectionIndex + 1}/{sectionCount}
+          </Text>
+          <p
+            className="font-sans font-semibold text-[color:var(--text-heading)]"
+            style={{ fontSize: '1.375rem', lineHeight: 1.4 }}
+          >
+            {section.title}
+          </p>
+        </div>
+
+        <PointAllocator
+          items={section.items.map((item) => ({ id: item.id, label: item.text }))}
+          total={blockTotal}
+          value={allocation}
+          onChange={onChange}
         />
-        <Text variant="caption" className="text-muted">
-          Раздел {section.section} · {sectionIndex + 1}/{sectionCount}
-        </Text>
-        <Text variant="body-lg" className="font-semibold text-primary">
-          {section.title}
-        </Text>
-      </div>
 
-      <PointAllocator
-        items={section.items.map((item) => ({ id: item.id, label: item.text }))}
-        total={blockTotal}
-        value={allocation}
-        onChange={onChange}
-      />
+        {submitError && (
+          <Text variant="body-sm" className="text-danger">
+            {submitError}
+          </Text>
+        )}
 
-      {submitError && (
-        <Text variant="body-sm" className="text-danger">
-          {submitError}
-        </Text>
-      )}
-
-      <div className="flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Назад
-        </Button>
-        <Button onClick={onNext} disabled={!isValid} isLoading={isLastBlock && submitting}>
-          {isLastBlock ? 'Завершить' : 'Далее'}
-        </Button>
+        <div className="flex items-center justify-between gap-3">
+          <Button variant="ghost" onClick={onBack} disabled={submitting}>
+            Назад
+          </Button>
+          <Button onClick={onNext} disabled={!isValid} isLoading={isLastBlock && submitting}>
+            {isLastBlock ? 'Завершить' : 'Далее'}
+          </Button>
+        </div>
       </div>
     </div>
   );

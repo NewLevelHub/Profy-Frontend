@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -33,6 +34,7 @@ function persistCompleted(assessmentId: string, completed: Set<AsturSubtestKey>)
  * multi-subtest flow. Part of the continuous assessment sequence.
  */
 export function useAsturAssessment(assessmentId: string) {
+  const navigate = useNavigate();
   const { data: content, isLoading, isError } = useQuery({
     queryKey: ['asturContent'] as const,
     queryFn: asturApi.getContent,
@@ -43,6 +45,7 @@ export function useAsturAssessment(assessmentId: string) {
   const [stepPhase, setStepPhase] = useState<StepPhase>('instruction');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
 
   // Once content is known, resume at the first subtest not already in
   // `completed` — runs once per content load, not on every `completed` tick
@@ -133,6 +136,25 @@ export function useAsturAssessment(assessmentId: string) {
     }
   }
 
+  // Each subtest is already submitted to the server the moment it's
+  // completed (completeSubtest above), and `completed` is mirrored into
+  // sessionStorage — so exiting mid-test needs no extra flush, just leave.
+  // Only the in-progress (not-yet-submitted) subtest's answers are lost,
+  // matching how a Likert page's unsent answers are only flushed on exit —
+  // here the flush already happened at each subtest boundary instead.
+  function handleExit() {
+    setExitConfirmOpen(true);
+  }
+
+  function confirmExit() {
+    setExitConfirmOpen(false);
+    navigate('/results');
+  }
+
+  function cancelExit() {
+    setExitConfirmOpen(false);
+  }
+
   return {
     isLoading,
     loadError: isError ? 'Не удалось загрузить содержимое теста' : null,
@@ -142,9 +164,13 @@ export function useAsturAssessment(assessmentId: string) {
     stepPhase,
     allDone,
     labilityItemLimitMs: content?.lability_item_limit_ms ?? 5000,
+    exitConfirmOpen,
     beginSubtest,
     completeSubtest,
     handleAutofill,
+    handleExit,
+    confirmExit,
+    cancelExit,
     submitting,
     submitError,
   };

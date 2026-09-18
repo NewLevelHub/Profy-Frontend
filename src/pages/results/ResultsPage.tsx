@@ -50,8 +50,9 @@ export default function ResultsPage() {
     isJunior,
     refetch,
     inProgress,
-    answeredCount,
-    totalQuestions,
+    completedPhaseCount,
+    totalPhaseCount,
+    currentPhase,
     continueRoute,
   } = useResults();
 
@@ -60,8 +61,9 @@ export default function ResultsPage() {
       <PageContainer>
         {inProgress ? (
           <AssessmentInProgressCard
-            answeredCount={answeredCount}
-            totalQuestions={totalQuestions}
+            completedPhaseCount={completedPhaseCount}
+            totalPhaseCount={totalPhaseCount}
+            currentPhase={currentPhase}
             onContinue={() => navigate(continueRoute)}
           />
         ) : (

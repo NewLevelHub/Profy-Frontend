@@ -28,8 +28,8 @@ interface ScatterPlotProps {
  * same call as RadarChart.tsx (checked package.json first; nothing this
  * small is worth a dependency).
  */
-function ScatterPlotComponent({ x, y, max, quadrants, xLabel, yLabel, size = 240 }: ScatterPlotProps) {
-  const pad = 34;
+function ScatterPlotComponent({ x, y, max, quadrants, xLabel, yLabel, size = 280 }: ScatterPlotProps) {
+  const pad = 40;
   const plot = size - pad * 2;
   const half = plot / 2;
   const mid = pad + half;
@@ -50,19 +50,19 @@ function ScatterPlotComponent({ x, y, max, quadrants, xLabel, yLabel, size = 240
       <line x1={mid} y1={pad} x2={mid} y2={pad + plot} stroke="var(--border)" strokeWidth={1} />
       <line x1={pad} y1={mid} x2={pad + plot} y2={mid} stroke="var(--border)" strokeWidth={1} />
 
-      <text x={pad + plot} y={size - 6} textAnchor="end" style={{ fontSize: 10, fill: 'var(--text-secondary)' }}>
+      <text x={pad + plot} y={size - 10} textAnchor="end" style={{ fontSize: 12, fontFamily: 'var(--font-sans)', fontWeight: 500, fill: 'var(--text-secondary)' }}>
         {xLabel}
       </text>
       <text
-        x={10}
-        y={pad - 8}
+        x={12}
+        y={pad - 12}
         textAnchor="start"
-        style={{ fontSize: 10, fill: 'var(--text-secondary)' }}
+        style={{ fontSize: 12, fontFamily: 'var(--font-sans)', fontWeight: 500, fill: 'var(--text-secondary)' }}
       >
         {yLabel}
       </text>
 
-      <circle cx={px} cy={py} r={7} fill="var(--brand)" stroke="var(--paper)" strokeWidth={2} />
+      <circle cx={px} cy={py} r={8} fill="var(--brand)" stroke="var(--paper)" strokeWidth={2.5} />
 
       {/* Labels render LAST (on top of the point) and carry a `--paper`
           halo (paintOrder="stroke") — the respondent's point can legally
@@ -80,11 +80,12 @@ function ScatterPlotComponent({ x, y, max, quadrants, xLabel, yLabel, size = 240
           y={qy}
           textAnchor={anchor}
           style={{
-            fontSize: 11,
+            fontSize: 13,
+            fontFamily: 'var(--font-sans)',
             fontWeight: 600,
             fill: 'var(--text-secondary)',
             stroke: 'var(--paper)',
-            strokeWidth: 3,
+            strokeWidth: 4,
             paintOrder: 'stroke',
           }}
         >

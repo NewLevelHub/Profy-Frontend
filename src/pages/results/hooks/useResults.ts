@@ -15,12 +15,31 @@ export function useResults() {
   const setReport = useResultStore(s => s.setReport);
   const clearReport = useResultStore(s => s.clearReport);
   const assessmentId = useAssessmentStore(s => s.assessmentId);
-  const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
+  const hasCompletedAssessmentFlag = useAssessmentStore(s => s.hasCompletedAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const goal = useAssessmentStore(s => s.goal);
   const answeredCount = useAssessmentStore(s => s.answeredCount);
   const totalQuestions = useAssessmentStore(s => s.totalQuestions);
+  const motivationAnsweredCount = useAssessmentStore(s => s.motivationAnsweredCount);
+  const motivationTotal = useAssessmentStore(s => s.motivationTotal);
   const ageGroup = useProfileStore(s => s.profile?.age_group);
+
+  // Defensive re-check against the store's own live progress counters,
+  // mirroring the backend's own completion definition (report_service's
+  // `_assert_assessment_complete`: Likert done AND motivation done). The
+  // persisted `hasCompletedAssessment` flag has fewer write sites than these
+  // counters (which update on every single answer via setProgress/
+  // setMotivationProgress) and can go stale — e.g. a leftover `true` from an
+  // earlier fully-completed attempt surviving into a new, still in-progress
+  // one. Trusting the flag alone then sends a student who "saved and exited"
+  // mid-test straight to the "report is pending review" screen instead of
+  // the correct "continue where you left off" card. Requiring the counters
+  // to actually agree makes that self-healing regardless of what caused the
+  // flag to drift.
+  const hasCompletedAssessment =
+    hasCompletedAssessmentFlag &&
+    totalQuestions > 0 && answeredCount >= totalQuestions &&
+    motivationTotal > 0 && motivationAnsweredCount >= motivationTotal;
   // The report is generated in the *owner's* language (backend derives it from
   // users.locale — KZ-403/405), which the locale store mirrors after login
   // (LocaleGate). The raw stored value can be 'kk' while the UI is still
@@ -132,20 +151,35 @@ export function useResults() {
   // recomputing it; this needs a backend-side regeneration/backfill.
   const isLegacyShape = error instanceof Error && error.message === 'legacy_result_shape';
 
-  const motivationAnsweredCount = useAssessmentStore(s => s.motivationAnsweredCount);
-  const motivationTotal = useAssessmentStore(s => s.motivationTotal);
   const belbinCompleted = useAssessmentStore(s => s.belbinCompleted);
   const asturCompleted = useAssessmentStore(s => s.asturCompleted);
 
+  // The whole test is 4 phases (Likert+pairs -> motivation -> Belbin ->
+  // АСТУР — see assessment_shared.try_complete_assessment on the backend for
+  // the matching definition), not just the Likert block. The in-progress
+  // card used to show only Likert's own answered/total (e.g. "558 из 558 —
+  // 100%"), which read as "test finished" even with 3 phases still ahead —
+  // this drives that card off real phase completion instead.
+  const likertDone = totalQuestions > 0 && answeredCount >= totalQuestions;
+  const motivationDone = motivationTotal > 0 && motivationAnsweredCount >= motivationTotal;
+  const completedPhaseCount = [likertDone, motivationDone, belbinCompleted, asturCompleted].filter(Boolean).length;
+  const totalPhaseCount = 4;
+
+  type AssessmentPhase = 'diagnostic' | 'motivation' | 'belbin' | 'astur' | 'done';
+  let currentPhase: AssessmentPhase = 'diagnostic';
   let continueRoute = '/assessment';
-  if (answeredCount >= totalQuestions && totalQuestions > 0) {
-    if (motivationAnsweredCount < motivationTotal || motivationTotal === 0) {
+  if (likertDone) {
+    if (!motivationDone) {
+      currentPhase = 'motivation';
       continueRoute = '/assessment/motivation';
     } else if (!belbinCompleted) {
+      currentPhase = 'belbin';
       continueRoute = assessmentId ? `/assessment/belbin/${assessmentId}` : '/assessment/belbin';
     } else if (!asturCompleted) {
+      currentPhase = 'astur';
       continueRoute = assessmentId ? `/assessment/astur/${assessmentId}` : '/assessment/astur';
     } else {
+      currentPhase = 'done';
       continueRoute = '/assessment/loading';
     }
   }
@@ -170,6 +204,9 @@ export function useResults() {
     inProgress,
     answeredCount,
     totalQuestions,
+    completedPhaseCount,
+    totalPhaseCount,
+    currentPhase,
     continueRoute,
   };
 }

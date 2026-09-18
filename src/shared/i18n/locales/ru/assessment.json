@@ -41,10 +41,16 @@
     "sectionAdditionalTests": "Дополнительные тесты",
     "sectionPairs": "Выбери, что тебе ближе",
     "sectionMotivation": "Что тебя драйвит",
+    "sectionAstur": "Проверка способностей",
+    "sectionBelbin": "Кто ты в команде",
     "progressAriaTest": "Прогресс теста",
     "progressAriaMotivation": "Прогресс блока мотивации",
+    "progressAriaAstur": "Прогресс теста способностей",
+    "progressAriaBelbin": "Прогресс командного теста",
     "pageOf": "Страница {{current}} из {{total}}",
-    "questionOf": "Вопрос {{current}} из {{total}}"
+    "questionOf": "Вопрос {{current}} из {{total}}",
+    "subtestOf": "Субтест {{current}} из {{total}}",
+    "sectionOf": "Раздел {{current}} из {{total}}"
   },
   "error": {
     "loadQuestions": "Не удалось загрузить вопросы. Попробуй ещё раз.",
@@ -84,6 +90,22 @@
       "kicker": "Последний блок",
       "title": "Что тебя драйвит",
       "subtitle": "Выбери, какие ребята тебе ближе — а потом уточни, насколько точно",
+      "cta": "Начать"
+    },
+    "astur": {
+      "kicker": "Новый этап",
+      "title": "Проверим твои способности",
+      "subtitle": "Несколько разделов на логику, память и внимание — перед каждым будет своя короткая инструкция",
+      "cta": "Начать",
+      "itemCount_one": "{{count}} раздел",
+      "itemCount_few": "{{count}} раздела",
+      "itemCount_many": "{{count}} разделов",
+      "itemCount_other": "{{count}} разделов"
+    },
+    "belbin": {
+      "kicker": "Новый этап",
+      "title": "Кто ты в команде",
+      "subtitle": "Опросник состоит из 7 разделов. В каждом разделе распредели ровно 10 баллов между 8 утверждениями пропорционально тому, насколько они отражают твоё типичное поведение.",
       "cta": "Начать"
     },
     "tests": {

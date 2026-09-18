@@ -1,27 +1,24 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Spinner } from '@/shared/ui/Spinner';
-import { Button } from '@/shared/ui/Button';
 import { Text } from '@/shared/ui/typography/Text';
+import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useBelbinAssessment } from './hooks/useBelbinAssessment';
-import { BelbinIntro } from './components/BelbinIntro';
 import { BelbinBlock } from './components/BelbinBlock';
 import { BelbinDone } from './components/BelbinDone';
+import { AssessmentIntro } from '../components/AssessmentIntro';
+import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 
 export default function BelbinPage() {
+  const { t } = useTranslation('assessment');
   const navigate = useNavigate();
   const params = useParams<{ assessmentId: string }>();
   const storeAssessmentId = useAssessmentStore((s) => s.assessmentId);
   const belbinCompleted = useAssessmentStore((s) => s.belbinCompleted);
   const effectiveAssessmentId = params.assessmentId || storeAssessmentId || '';
-
-  useEffect(() => {
-    if (belbinCompleted && effectiveAssessmentId) {
-      navigate(`/assessment/astur/${effectiveAssessmentId}`, { replace: true });
-    }
-  }, [belbinCompleted, effectiveAssessmentId, navigate]);
 
   const {
     isLoading,
@@ -35,36 +32,54 @@ export default function BelbinPage() {
     blockTotal,
     isBlockValid,
     isLastBlock,
+    progress,
+    exitConfirmOpen,
     setAllocationValue,
     start,
     goBack,
     goNext,
     handleAutofill,
+    handleExit,
+    confirmExit,
+    cancelExit,
     submitting,
     submitError,
   } = useBelbinAssessment(effectiveAssessmentId);
 
-  const handleDoneContinue = () => {
+  const headerTitle =
+    phase === 'block'
+      ? t('rail.sectionOf', { current: sectionIndex + 1, total: sectionCount })
+      : t('rail.sectionBelbin');
+
+  // Guards direct navigation back to an already-completed Belbin test (e.g.
+  // browser back button); the in-flow completion instead lands on phase
+  // 'done' and lets BelbinDone own the transition, so this must not fire then.
+  useEffect(() => {
+    if (belbinCompleted && phase !== 'done' && effectiveAssessmentId) {
+      navigate(`/assessment/astur/${effectiveAssessmentId}`, { replace: true });
+    }
+  }, [belbinCompleted, phase, effectiveAssessmentId, navigate]);
+
+  const handleDoneContinue = useCallback(() => {
     navigate(`/assessment/astur/${effectiveAssessmentId}`);
-  };
+  }, [navigate, effectiveAssessmentId]);
 
   return (
     <div className="min-h-screen bg-page">
-      <PageContainer size="content" className="py-10">
-        {import.meta.env.DEV && phase !== 'done' && (
-          <div className="flex justify-end mb-4">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleAutofill}
-              disabled={submitting}
-              className="text-xs text-muted hover:text-primary"
-            >
-              ⚡ Автозаполнение (Belbin)
-            </Button>
-          </div>
-        )}
+      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
 
+      {phase !== 'done' && (
+        <AssessmentRail
+          title={headerTitle}
+          sectionLabel={t('rail.sectionBelbin')}
+          progressAriaLabel={t('rail.progressAriaBelbin')}
+          progress={progress}
+          onExit={handleExit}
+          devAutofill={{ onClick: handleAutofill, loading: submitting }}
+        />
+      )}
+
+      <PageContainer size="content" className="py-10">
         {isLoading && (
           <div className="flex justify-center py-16">
             <Spinner size="lg" />
@@ -78,7 +93,15 @@ export default function BelbinPage() {
         )}
 
         {!isLoading && !loadError && phase === 'intro' && (
-          <BelbinIntro instruction={instruction} onStart={start} />
+          <AssessmentIntro
+            kicker={t('intro.belbin.kicker')}
+            title={t('intro.belbin.title')}
+            subtitle={instruction || t('intro.belbin.subtitle')}
+            itemCountLabel={t('intro.itemCount', { count: sectionCount })}
+            durationLabel={t('intro.durationMin', { count: Math.max(5, sectionCount) })}
+            ctaLabel={t('intro.belbin.cta')}
+            onStart={start}
+          />
         )}
 
         {!isLoading && !loadError && phase === 'block' && section && (

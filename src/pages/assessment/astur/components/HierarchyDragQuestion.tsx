@@ -35,15 +35,15 @@ function SortableConcept({ concept, position }: { concept: string; position: num
       {...attributes}
       {...listeners}
       style={{ transform: CSS.Transform.toString(transform), transition, touchAction: 'none', opacity: isDragging ? 0.4 : 1 }}
-      className="flex items-center gap-3 rounded-[14px] border border-default bg-page px-4 py-2.5 cursor-grab active:cursor-grabbing"
+      className="flex items-center gap-3 rounded-[14px] border border-default bg-page px-4 py-3 cursor-grab active:cursor-grabbing"
       role="button"
       tabIndex={0}
       aria-label={`${concept}, позиция ${position + 1}`}
     >
-      <span className="w-6 h-6 flex-shrink-0 rounded-full bg-raised text-mono-xs flex items-center justify-center text-secondary">
+      <span className="w-7 h-7 flex-shrink-0 rounded-full bg-raised text-body-sm font-semibold flex items-center justify-center text-secondary">
         {position + 1}
       </span>
-      <span className="flex-1 text-body-sm text-primary">{concept}</span>
+      <span className="flex-1 text-body-md text-primary">{concept}</span>
       <GripVertical size={16} className="text-muted flex-shrink-0" aria-hidden />
     </div>
   );

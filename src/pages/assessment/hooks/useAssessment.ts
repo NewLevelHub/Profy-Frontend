@@ -112,7 +112,6 @@ export function useAssessment() {
   // test-intro (markInstrumentIntroSeen below) also bumps this set.
   const [seenInstruments, setSeenInstruments] = useState<Set<Instrument>>(new Set());
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
   // Reset whenever the current page changes (see the effect below) —
   // elapsed time from here to submit feeds the speed-flag rest stop.
@@ -195,12 +194,6 @@ export function useAssessment() {
           setPhase('question');
         } else {
           setPhase('intro');
-          introTimerRef.current = setTimeout(() => {
-            if (!cancelled) {
-              sessionStorage.setItem(introKey, '1');
-              setPhase('question');
-            }
-          }, 2000);
         }
       } catch {
         if (!cancelled) {
@@ -214,10 +207,6 @@ export function useAssessment() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
@@ -240,10 +229,6 @@ export function useAssessment() {
   }, [assessmentId, pairAnswers]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     if (assessmentId) {
       sessionStorage.setItem(`profy-assessment-intro-seen:${assessmentId}`, '1');
     }

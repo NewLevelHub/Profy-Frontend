@@ -21,7 +21,7 @@ export function McQuestion({ index, prompt, options, value, onChange }: McQuesti
             <label
               key={option}
               className={cn(
-                'flex items-center gap-3 rounded-[14px] border px-4 py-2.5 cursor-pointer transition-colors',
+                'flex items-center gap-3 rounded-[14px] border px-4 py-3 cursor-pointer transition-colors',
                 selected ? 'border-brand bg-brand-subtle' : 'border-default hover:border-strong',
               )}
             >
@@ -30,9 +30,9 @@ export function McQuestion({ index, prompt, options, value, onChange }: McQuesti
                 name={`mc-${index}`}
                 checked={selected}
                 onChange={() => onChange(option)}
-                className="accent-[var(--brand)]"
+                className="accent-[var(--brand)] w-4 h-4 flex-shrink-0"
               />
-              <span className="text-body-sm text-primary">{option}</span>
+              <span className="text-body-md text-primary">{option}</span>
             </label>
           );
         })}

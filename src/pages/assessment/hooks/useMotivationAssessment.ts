@@ -35,7 +35,6 @@ export function useMotivationAssessment() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
   // Reset whenever the current triplet changes (see the effect below) —
   // elapsed time from here to handleNext feeds the speed-flag rest stop.
@@ -83,9 +82,6 @@ export function useMotivationAssessment() {
         // > 0 by then, so it goes straight to the question.
         if (current.motivation_answered_count === 0) {
           setPhase('intro');
-          introTimerRef.current = setTimeout(() => {
-            if (!cancelled) setPhase('question');
-          }, 2000);
         } else {
           setPhase('question');
         }
@@ -101,10 +97,6 @@ export function useMotivationAssessment() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
@@ -127,10 +119,6 @@ export function useMotivationAssessment() {
   }, [tripletIndex, triplets]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     setPhase('question');
   }
 
