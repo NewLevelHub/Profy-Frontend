@@ -23,8 +23,8 @@ export function AdminSectionHeading({ title, description, aside, className }: Ad
   return (
     <div className={cn('flex items-start justify-between gap-3 flex-wrap', className)}>
       <div className="min-w-0">
-        <h2 className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{title}</h2>
-        {description && <p className={cn(ADMIN_TEXT, 'text-muted mt-1 max-w-[64ch]')}>{description}</p>}
+        <h2 className="font-sans text-body-lg sm:text-display-sm font-bold text-primary m-0 tracking-tight">{title}</h2>
+        {description && <p className="font-sans text-body-md text-muted mt-1.5 max-w-[68ch] leading-relaxed">{description}</p>}
       </div>
       {aside && <div className="flex-shrink-0">{aside}</div>}
     </div>

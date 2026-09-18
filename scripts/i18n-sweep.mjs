@@ -47,7 +47,7 @@ const ALLOW = [
   // Language picker shows each option in its own script (KZ-105).
   ['src/shared/ui/LanguageSwitcher.tsx', /'ҚАЗ'/, 'language-picker self-label'],
   // Dev-only affordance behind import.meta.env.DEV — stripped from prod build.
-  ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить/, 'dev-only autofill (import.meta.env.DEV)'],
+  ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить|До мотивации|До Астур теста/, 'dev-only autofill (import.meta.env.DEV)'],
   // KZ-502 — ru→kk dictionary for catalog city/country strings (backend data).
   // Both sides are Cyrillic by nature; keys match backend values, values are
   // the localized output. Native review: KZ-502-вычитка-kk.md.

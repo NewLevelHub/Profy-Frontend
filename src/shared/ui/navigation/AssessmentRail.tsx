@@ -20,6 +20,18 @@ export interface AssessmentRailProps {
   /** Dev-only "autofill" affordance already present on these flows; kept as
    *  a 4th, dev-gated slot rather than folded into the 3 production slots. */
   devAutofill?: { onClick: () => void; loading: boolean };
+  /** Dev-only "autofill main battery, then stop right before motivation" —
+   *  a separate action from `devAutofill` (which races through motivation
+   *  too): for testing the motivation screen itself by hand without
+   *  clicking through the whole Likert/pairs battery first. Only offered on
+   *  the main-battery screens (AssessmentPage/PairAssessmentPage), not on
+   *  the motivation screens themselves (nothing left to skip to). */
+  devAutofillToMotivation?: { onClick: () => void; loading: boolean };
+  /** Dev-only "autofill main battery + motivation + Belbin, then stop right
+   *  before АСТУР" — same idea as `devAutofillToMotivation` but one phase
+   *  further, for testing the АСТУР flow itself without clicking through
+   *  everything ahead of it. Only offered on the main-battery screens. */
+  devAutofillToAstur?: { onClick: () => void; loading: boolean };
 }
 
 // The single collapsed rail used by every assessment-flow screen
@@ -42,6 +54,8 @@ export function AssessmentRail({
   onBack,
   onExit,
   devAutofill,
+  devAutofillToMotivation,
+  devAutofillToAstur,
 }: AssessmentRailProps) {
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
@@ -85,6 +99,34 @@ export function AssessmentRail({
               style={{ boxShadow: 'var(--shadow-pop)' }}
             >
               {devAutofill.loading ? '…' : '⚡ Автозаполнить'}
+            </button>
+          )}
+
+          {import.meta.env.DEV && devAutofillToMotivation && (
+            <button
+              type="button"
+              onClick={devAutofillToMotivation.onClick}
+              disabled={devAutofillToMotivation.loading}
+              aria-label="Автозаполнить до мотивации (dev)"
+              title="Автозаполнить основную батарею и остановиться перед блоком мотивации (только в dev)"
+              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-caption font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+              style={{ boxShadow: 'var(--shadow-pop)' }}
+            >
+              {devAutofillToMotivation.loading ? '…' : '⚡ До мотивации'}
+            </button>
+          )}
+
+          {import.meta.env.DEV && devAutofillToAstur && (
+            <button
+              type="button"
+              onClick={devAutofillToAstur.onClick}
+              disabled={devAutofillToAstur.loading}
+              aria-label="Автозаполнить до Астур теста (dev)"
+              title="Автозаполнить основную батарею, мотивацию и Белбина, остановиться перед АСТУР (только в dev)"
+              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-caption font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+              style={{ boxShadow: 'var(--shadow-pop)' }}
+            >
+              {devAutofillToAstur.loading ? '…' : '⚡ До Астур теста'}
             </button>
           )}
 
