@@ -321,7 +321,6 @@
     "exportedAt": "жүктелді",
     "filters": "Сүзгілер: {{filters}}",
     "grade": "Сынып",
-    "matchNote": "Сәйкестік — оқушының үш жетекші қызығушылығының салмағы бағыт кодындағы әріп орнына қарсы, ең жоғарысы {{max}}.",
     "motivationTriplets_one": "Мотивация — {{count}} үштік",
     "motivationTriplets_other": "Мотивация — {{count}} үштік",
     "noFilters": "Сүзгілер қолданылмады",

@@ -79,16 +79,6 @@ const MI_TYPE_LABELS: Record<string, string> = {
   naturalistic: 'admin:mi.naturalistic',
 };
 
-/**
- * Maximum `career_match_score` a direction can reach.
- *
- * The score weights the user's top three types by 3/2/1 and the direction's
- * own three letters by 3/2/1 positionally, so a perfect alignment scores
- * 3·3 + 2·2 + 1·1 = 14 (riasec_service.career_match_score). The UI printed
- * "совпадение 14/6", which made a perfect match look like an overflow bug.
- */
-const MAX_MATCH_SCORE = 14;
-
 /** RIASEC letter → its name, for the fields the API returns as bare letters. */
 function riasecName(letter: string, t: (key: string) => string): string {
   const key = RIASEC_TYPE_LABELS[letter];
@@ -596,10 +586,6 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
                 <span className="text-primary font-medium min-w-0 truncate">{career.name}</span>
                 <span className={cn(ADMIN_META, 'flex-shrink-0')}>
                   <span className={ADMIN_NUM}>{career.holland_code}</span>
-                  {' · '}
-                  <span className={ADMIN_NUM}>
-                    {career.match_score}/{MAX_MATCH_SCORE}
-                  </span>
                 </span>
               </div>
             ))}
