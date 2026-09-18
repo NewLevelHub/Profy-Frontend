@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface GaugeChartSegment {
   /** This segment covers the range up to (and including) this raw value —
@@ -13,6 +14,7 @@ interface GaugeChartProps {
   max: number;
   segments: GaugeChartSegment[];
   size?: number;
+  ariaLabel?: string;
 }
 
 const START_ANGLE = -Math.PI; // pointing left
@@ -38,7 +40,8 @@ function wedgePath(cx: number, cy: number, r: number, fromAngle: number, toAngle
  * library in this project, checked `package.json` before building any of
  * the three).
  */
-function GaugeChartComponent({ value, max, segments, size = 240 }: GaugeChartProps) {
+function GaugeChartComponent({ value, max, segments, size = 240, ariaLabel }: GaugeChartProps) {
+  const { t } = useTranslation('psychReport');
   const cx = size / 2;
   const cy = size / 2 + 4;
   const r = size / 2 - 20;
@@ -56,7 +59,13 @@ function GaugeChartComponent({ value, max, segments, size = 240 }: GaugeChartPro
   const needleTip = pointOnArc(cx, cy, needleLength, needleAngle);
 
   return (
-    <svg width={size} height={size / 2 + 24} viewBox={`0 0 ${size} ${size / 2 + 24}`} role="img" aria-label="Шкала уровня притязаний">
+    <svg
+      width={size}
+      height={size / 2 + 24}
+      viewBox={`0 0 ${size} ${size / 2 + 24}`}
+      role="img"
+      aria-label={ariaLabel ?? t('psychReport:charts.gaugeAria')}
+    >
       {wedges.map((w) => (
         <path key={w.upTo} d={wedgePath(cx, cy, r, w.from, w.to)} fill={w.color} />
       ))}

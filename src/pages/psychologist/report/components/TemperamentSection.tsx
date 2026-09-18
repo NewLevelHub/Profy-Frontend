@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -12,69 +13,82 @@ import { PsychBandMeter, type BandMark } from './PsychBandMeter';
 import { BinaryEvidenceView } from './AnswerEvidence';
 import { ScoreRow } from './ScoreRow';
 import {
-  EYSENCK_METHODOLOGY,
-  TEMPERAMENT_QUADRANTS,
-  EYSENCK_SCALES,
+  getEysenckMethodology,
+  getTemperamentQuadrants,
+  getEysenckScales,
 } from '../model/psychTestExplanations';
-
-const EXTRAVERSION_LABELS: Record<string, string> = {
-  deep_introvert: 'Глубокий интроверт',
-  introvert: 'Интроверт',
-  ambivert: 'Амбиверт',
-  extravert: 'Экстраверт',
-  bright_extravert: 'Яркий экстраверт',
-};
-
-const NEUROTICISM_LABELS: Record<string, string> = {
-  low: 'Низкий (эмоц. устойчивость)',
-  medium: 'Средний',
-  high: 'Высокий',
-  very_high: 'Очень высокий',
-};
-
-const QUADRANT_LABELS: Record<string, string> = {
-  choleric: 'Холерик',
-  sanguine: 'Сангвиник',
-  phlegmatic: 'Флегматик',
-  melancholic: 'Меланхолик',
-};
 
 const SCALE_MAX = 24;
 
-const TOP_LEFT: ScatterPlotQuadrant = { key: 'melancholic', label: 'Меланхолик', color: 'var(--danger-bg)' };
-const TOP_RIGHT: ScatterPlotQuadrant = { key: 'choleric', label: 'Холерик', color: 'var(--accent-soft)' };
-const BOTTOM_LEFT: ScatterPlotQuadrant = { key: 'phlegmatic', label: 'Флегматик', color: 'var(--brand-subtle)' };
-const BOTTOM_RIGHT: ScatterPlotQuadrant = { key: 'sanguine', label: 'Сангвиник', color: 'var(--bg-raised)' };
-
-const EXTRAVERSION_BANDS: BandMark[] = [
-  { label: 'Гл. интроверт', min: 0, max: 4 },
-  { label: 'Интроверт', min: 5, max: 8 },
-  { label: 'Амбиверт', min: 9, max: 14 },
-  { label: 'Экстраверт', min: 15, max: 19 },
-];
-
-const NEUROTICISM_BANDS: BandMark[] = [
-  { label: 'Низкий', min: 0, max: 8 },
-  { label: 'Средний', min: 9, max: 13 },
-  { label: 'Высокий', min: 14, max: 19 },
-  { label: 'Очень высокий', min: 20, max: 24 },
-];
-
 export function TemperamentSection({ section }: { section: TemperamentSectionData | null }) {
+  const { t } = useTranslation('psychReport');
   if (!section) return null;
+
+  const methodology = getEysenckMethodology(t);
+  const quadrants = getTemperamentQuadrants(t);
+  const scales = getEysenckScales(t);
+
+  const extraversionLabels = (t('psychReport:eysenck.extraversionLevelLabels', {
+    returnObjects: true,
+  }) || {}) as Record<string, string>;
+  const neuroticismLabels = (t('psychReport:eysenck.neuroticismLevelLabels', {
+    returnObjects: true,
+  }) || {}) as Record<string, string>;
+  const quadrantLabels = (t('psychReport:eysenck.quadrantLabels', {
+    returnObjects: true,
+  }) || {}) as Record<string, string>;
+
   const hasChart = section.extraversion_raw !== null && section.neuroticism_raw !== null;
 
   // Initial active view: the student's quadrant, or extraversion if none
   const [selectedKey, setSelectedKey] = useState<string | null>(section.quadrant ?? 'extraversion');
 
-  const activeQuadrant = selectedKey && selectedKey in TEMPERAMENT_QUADRANTS ? TEMPERAMENT_QUADRANTS[selectedKey] : null;
+  const activeQuadrant = selectedKey && selectedKey in quadrants ? quadrants[selectedKey] : null;
   const isExtraversion = selectedKey === 'extraversion';
   const isNeuroticism = selectedKey === 'neuroticism';
   const isLieScale = selectedKey === 'lie_scale';
 
+  const topLeft: ScatterPlotQuadrant = {
+    key: 'melancholic',
+    label: quadrantLabels.melancholic ?? 'Melancholic',
+    color: 'var(--danger-bg)',
+  };
+  const topRight: ScatterPlotQuadrant = {
+    key: 'choleric',
+    label: quadrantLabels.choleric ?? 'Choleric',
+    color: 'var(--accent-soft)',
+  };
+  const bottomLeft: ScatterPlotQuadrant = {
+    key: 'phlegmatic',
+    label: quadrantLabels.phlegmatic ?? 'Phlegmatic',
+    color: 'var(--brand-subtle)',
+  };
+  const bottomRight: ScatterPlotQuadrant = {
+    key: 'sanguine',
+    label: quadrantLabels.sanguine ?? 'Sanguine',
+    color: 'var(--bg-raised)',
+  };
+
+  const extraversionBands: BandMark[] = [
+    { label: extraversionLabels.deep_introvert ?? '', min: 0, max: 4 },
+    { label: extraversionLabels.introvert ?? '', min: 5, max: 8 },
+    { label: extraversionLabels.ambivert ?? '', min: 9, max: 14 },
+    { label: extraversionLabels.extravert ?? '', min: 15, max: 19 },
+  ];
+
+  const neuroticismBands: BandMark[] = [
+    { label: neuroticismLabels.low ?? '', min: 0, max: 8 },
+    { label: neuroticismLabels.medium ?? '', min: 9, max: 13 },
+    { label: neuroticismLabels.high ?? '', min: 14, max: 19 },
+    { label: neuroticismLabels.very_high ?? '', min: 20, max: 24 },
+  ];
+
   return (
-    <AdminCard title="Темперамент" description="Eysenck EPI (адапт. Шмелева)">
-      <PsychTestHeaderInfo methodology={EYSENCK_METHODOLOGY} />
+    <AdminCard
+      title={t('psychReport:eysenck.cardTitle')}
+      description={t('psychReport:eysenck.cardDescription')}
+    >
+      <PsychTestHeaderInfo methodology={methodology} />
 
       {section.protocol_flagged && (
         <div
@@ -83,7 +97,7 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
         >
           <AlertTriangle size={15} className="text-danger flex-shrink-0 mt-0.5" />
           <p className={cn(ADMIN_TEXT, 'text-danger font-semibold m-0')}>
-            Протокол под вопросом — шкала лжи выше нормы ({section.lie_scale_raw}/9), интерпретировать результаты с осторожностью.
+            {t('psychReport:eysenck.protocolFlagged', { score: section.lie_scale_raw })}
           </p>
         </div>
       )}
@@ -94,24 +108,30 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
             x={section.extraversion_raw!}
             y={section.neuroticism_raw!}
             max={SCALE_MAX}
-            quadrants={[TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT]}
-            xLabel="Экстраверсия"
-            yLabel="Нейротизм"
+            quadrants={[topLeft, topRight, bottomLeft, bottomRight]}
+            xLabel={t('psychReport:eysenck.extraversionAxis')}
+            yLabel={t('psychReport:eysenck.neuroticismAxis')}
           />
 
           {section.quadrant && (
             <div className="w-full">
               <ScoreRow
-                label={<span className={ADMIN_TEXT}>Тип темперамента</span>}
-                badge={<AdminBadge tone="brand" dot>{QUADRANT_LABELS[section.quadrant] ?? section.quadrant}</AdminBadge>}
+                label={<span className={ADMIN_TEXT}>{t('psychReport:eysenck.quadrantRowLabel')}</span>}
+                badge={
+                  <AdminBadge tone="brand" dot>
+                    {quadrantLabels[section.quadrant] ?? section.quadrant}
+                  </AdminBadge>
+                }
                 isOpen={selectedKey === section.quadrant}
-                onToggle={() => setSelectedKey(selectedKey === section.quadrant ? null : section.quadrant!)}
+                onToggle={() =>
+                  setSelectedKey(selectedKey === section.quadrant ? null : section.quadrant!)
+                }
               >
                 {activeQuadrant && (
                   <PsychDetailCard
                     bare
                     title={activeQuadrant.name}
-                    badge={<AdminBadge tone="brand">Тип темперамента</AdminBadge>}
+                    badge={<AdminBadge tone="brand">{t('psychReport:eysenck.quadrantRowLabel')}</AdminBadge>}
                     meaning={activeQuadrant.meaning}
                     means={activeQuadrant.behavioralManifestation}
                     follows={activeQuadrant.psychologistFocus}
@@ -128,12 +148,16 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
       <div className="flex flex-col gap-1.5">
         {section.extraversion_raw !== null && (
           <ScoreRow
-            label={<span className={cn(ADMIN_META, isExtraversion && 'text-primary font-semibold')}>Экстраверсия</span>}
+            label={
+              <span className={cn(ADMIN_META, isExtraversion && 'text-primary font-semibold')}>
+                {t('psychReport:eysenck.extraversionAxis')}
+              </span>
+            }
             value={<span className={ADMIN_NUM}>{section.extraversion_raw}/{SCALE_MAX}</span>}
             badge={
               section.extraversion_level && (
                 <AdminBadge tone={isExtraversion ? 'brand' : 'quiet'}>
-                  {EXTRAVERSION_LABELS[section.extraversion_level] ?? section.extraversion_level}
+                  {extraversionLabels[section.extraversion_level] ?? section.extraversion_level}
                 </AdminBadge>
               )
             }
@@ -142,30 +166,36 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
           >
             <PsychDetailCard
               bare
-              title={EYSENCK_SCALES.extraversion.name}
+              title={scales.extraversion?.name ?? ''}
               badge={
                 section.extraversion_level ? (
-                  <AdminBadge tone="brand">{EXTRAVERSION_LABELS[section.extraversion_level]}</AdminBadge>
+                  <AdminBadge tone="brand">
+                    {extraversionLabels[section.extraversion_level]}
+                  </AdminBadge>
                 ) : undefined
               }
-              meaning={EYSENCK_SCALES.extraversion.description}
+              meaning={scales.extraversion?.description ?? ''}
               means={
                 section.extraversion_level
-                  ? EYSENCK_SCALES.extraversion.bands[section.extraversion_level]?.meaning ?? ''
+                  ? scales.extraversion?.bands?.[section.extraversion_level]?.meaning ?? ''
                   : ''
               }
               follows={
                 section.extraversion_level
-                  ? EYSENCK_SCALES.extraversion.bands[section.extraversion_level]?.advice ?? ''
+                  ? scales.extraversion?.bands?.[section.extraversion_level]?.advice ?? ''
                   : ''
               }
-              why={`Ученик набрал ${section.extraversion_raw} из ${SCALE_MAX} баллов по шкале экстраверсии, что классифицирует его как «${section.extraversion_level ? EXTRAVERSION_LABELS[section.extraversion_level] : ''}».`}
+              why={
+                section.extraversion_level
+                  ? scales.extraversion?.bands?.[section.extraversion_level]?.label ?? ''
+                  : ''
+              }
             >
               <PsychBandMeter
                 value={section.extraversion_raw ?? 0}
                 max={SCALE_MAX}
-                bands={EXTRAVERSION_BANDS}
-                label="Положение на шкале экстраверсии"
+                bands={extraversionBands}
+                label={scales.extraversion?.name}
               />
               {section.extraversion_evidence && (
                 <div className="mt-3">
@@ -178,12 +208,16 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
 
         {section.neuroticism_raw !== null && (
           <ScoreRow
-            label={<span className={cn(ADMIN_META, isNeuroticism && 'text-primary font-semibold')}>Нейротизм</span>}
+            label={
+              <span className={cn(ADMIN_META, isNeuroticism && 'text-primary font-semibold')}>
+                {t('psychReport:eysenck.neuroticismAxis')}
+              </span>
+            }
             value={<span className={ADMIN_NUM}>{section.neuroticism_raw}/{SCALE_MAX}</span>}
             badge={
               section.neuroticism_level && (
                 <AdminBadge tone={isNeuroticism ? 'brand' : 'quiet'}>
-                  {NEUROTICISM_LABELS[section.neuroticism_level] ?? section.neuroticism_level}
+                  {neuroticismLabels[section.neuroticism_level] ?? section.neuroticism_level}
                 </AdminBadge>
               )
             }
@@ -192,37 +226,41 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
           >
             <PsychDetailCard
               bare
-              title={EYSENCK_SCALES.neuroticism.name}
+              title={scales.neuroticism?.name ?? ''}
               badge={
                 section.neuroticism_level ? (
                   <AdminBadge tone={section.neuroticism_level === 'very_high' ? 'danger' : 'brand'}>
-                    {NEUROTICISM_LABELS[section.neuroticism_level]}
+                    {neuroticismLabels[section.neuroticism_level]}
                   </AdminBadge>
                 ) : undefined
               }
-              meaning={EYSENCK_SCALES.neuroticism.description}
+              meaning={scales.neuroticism?.description ?? ''}
               means={
                 section.neuroticism_level
-                  ? EYSENCK_SCALES.neuroticism.bands[section.neuroticism_level]?.meaning ?? ''
+                  ? scales.neuroticism?.bands?.[section.neuroticism_level]?.meaning ?? ''
                   : ''
               }
               follows={
                 section.neuroticism_level
-                  ? EYSENCK_SCALES.neuroticism.bands[section.neuroticism_level]?.advice ?? ''
+                  ? scales.neuroticism?.bands?.[section.neuroticism_level]?.advice ?? ''
                   : ''
               }
-              why={`Ученик набрал ${section.neuroticism_raw} из ${SCALE_MAX} баллов по шкале эмоциональной лабильности (нейротизма).`}
+              why={
+                section.neuroticism_level
+                  ? scales.neuroticism?.bands?.[section.neuroticism_level]?.label ?? ''
+                  : ''
+              }
               riskWarning={
                 section.neuroticism_level === 'high' || section.neuroticism_level === 'very_high'
-                  ? 'Повышенная уязвимость к эмоциональному истощению, стрессу экзаменов и дедлайнов. Требуется обучение техникам саморегуляции.'
+                  ? scales.neuroticism?.bands?.[section.neuroticism_level]?.advice
                   : undefined
               }
             >
               <PsychBandMeter
                 value={section.neuroticism_raw ?? 0}
                 max={SCALE_MAX}
-                bands={NEUROTICISM_BANDS}
-                label="Положение на шкале нейротизма"
+                bands={neuroticismBands}
+                label={scales.neuroticism?.name}
               />
               {section.neuroticism_evidence && (
                 <div className="mt-3">
@@ -235,11 +273,17 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
 
         {section.lie_scale_raw !== null && (
           <ScoreRow
-            label={<span className={cn(ADMIN_META, isLieScale && 'text-primary font-semibold')}>Шкала лжи (искренность)</span>}
+            label={
+              <span className={cn(ADMIN_META, isLieScale && 'text-primary font-semibold')}>
+                {t('psychReport:eysenck.lieScaleRowLabel')}
+              </span>
+            }
             value={<span className={ADMIN_NUM}>{section.lie_scale_raw}/9</span>}
             badge={
               <AdminBadge tone={section.protocol_flagged ? 'danger' : 'neutral'}>
-                {section.protocol_flagged ? 'Выше нормы (>4)' : 'Достоверно (≤4)'}
+                {section.protocol_flagged
+                  ? scales.lie_scale?.bands?.flagged?.label
+                  : scales.lie_scale?.bands?.valid?.label}
               </AdminBadge>
             }
             isOpen={isLieScale}
@@ -247,27 +291,33 @@ export function TemperamentSection({ section }: { section: TemperamentSectionDat
           >
             <PsychDetailCard
               bare
-              title={EYSENCK_SCALES.lie_scale.name}
+              title={scales.lie_scale?.name ?? ''}
               badge={
                 <AdminBadge tone={section.protocol_flagged ? 'danger' : 'neutral'}>
-                  {section.protocol_flagged ? 'Флаг неискренности' : 'Протокол валиден'}
+                  {section.protocol_flagged
+                    ? scales.lie_scale?.bands?.flagged?.label
+                    : scales.lie_scale?.bands?.valid?.label}
                 </AdminBadge>
               }
-              meaning={EYSENCK_SCALES.lie_scale.description}
+              meaning={scales.lie_scale?.description ?? ''}
               means={
                 section.protocol_flagged
-                  ? EYSENCK_SCALES.lie_scale.bands.flagged.meaning
-                  : EYSENCK_SCALES.lie_scale.bands.valid.meaning
+                  ? scales.lie_scale?.bands?.flagged?.meaning ?? ''
+                  : scales.lie_scale?.bands?.valid?.meaning ?? ''
               }
               follows={
                 section.protocol_flagged
-                  ? EYSENCK_SCALES.lie_scale.bands.flagged.advice
-                  : EYSENCK_SCALES.lie_scale.bands.valid.advice
+                  ? scales.lie_scale?.bands?.flagged?.advice ?? ''
+                  : scales.lie_scale?.bands?.valid?.advice ?? ''
               }
-              why={`Шкала лжи состоит из 9 контрольных вопросов. Результат респондента: ${section.lie_scale_raw}/9. Нормативный порог — 4 балла.`}
+              why={
+                section.protocol_flagged
+                  ? scales.lie_scale?.bands?.flagged?.label ?? ''
+                  : scales.lie_scale?.bands?.valid?.label ?? ''
+              }
               riskWarning={
                 section.protocol_flagged
-                  ? 'Балл превысил 4. Подросток мог стремиться казаться лучше, чем он есть. В личной беседе важно создать максимально доверительную обстановку без оценки.'
+                  ? scales.lie_scale?.bands?.flagged?.advice
                   : undefined
               }
             >

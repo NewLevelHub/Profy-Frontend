@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface LineChartPoint {
   key: string;
@@ -11,6 +12,7 @@ interface LineChartProps {
   points: LineChartPoint[];
   width?: number;
   height?: number;
+  ariaLabel?: string;
 }
 
 const GRID_FRACTIONS = [0, 0.25, 0.5, 0.75, 1];
@@ -22,7 +24,8 @@ const GRID_FRACTIONS = [0, 0.25, 0.5, 0.75, 1];
  * glance. Hand-rolled SVG, no chart library in this project (checked
  * before RadarChart.tsx, same call here).
  */
-function LineChartComponent({ points, width = 560, height = 250 }: LineChartProps) {
+function LineChartComponent({ points, width = 560, height = 250, ariaLabel }: LineChartProps) {
+  const { t } = useTranslation('psychReport');
   const padLeft = 40;
   const padRight = 20;
   const padTop = 26;
@@ -41,7 +44,13 @@ function LineChartComponent({ points, width = 560, height = 250 }: LineChartProp
   const path = coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x} ${c.y}`).join(' ');
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Профиль по субтестам">
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={ariaLabel ?? t('psychReport:charts.lineAria')}
+    >
       {GRID_FRACTIONS.map((fraction) => (
         <line
           key={fraction}

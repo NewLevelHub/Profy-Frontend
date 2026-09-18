@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_NUM } from '@/shared/ui/admin/density';
 
@@ -21,7 +22,9 @@ interface PsychBandMeterProps {
  * Visual meter with normative marks (equivalent to RIASEC's LevelMeter)
  * for the psychologist to quickly verify where the student's score lands.
  */
-export function PsychBandMeter({ value, max, bands, label, unit = 'баллов' }: PsychBandMeterProps) {
+export function PsychBandMeter({ value, max, bands, label, unit }: PsychBandMeterProps) {
+  const { t } = useTranslation('psychReport');
+  const displayUnit = unit ?? t('psychReport:bandMeter.unit');
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
@@ -29,7 +32,7 @@ export function PsychBandMeter({ value, max, bands, label, unit = 'баллов'
       <div className="flex items-center justify-between gap-2">
         {label && <span className="text-caption font-medium text-secondary">{label}</span>}
         <span className={cn(ADMIN_NUM, 'text-primary font-semibold text-caption ml-auto')}>
-          {value}/{max} {unit}
+          {value}/{max} {displayUnit}
         </span>
       </div>
 

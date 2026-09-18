@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface BarChartItem {
   key: string;
@@ -14,6 +15,7 @@ interface BarChartProps {
    *  sort, the caller already ranked the items (Ф2.5's role ranking). */
   items: BarChartItem[];
   max: number;
+  ariaLabel?: string;
 }
 
 /**
@@ -23,9 +25,14 @@ interface BarChartProps {
  * CSS handles long Russian labels + text wrapping/truncation better than
  * SVG `<text>` would.
  */
-function BarChartComponent({ items, max }: BarChartProps) {
+function BarChartComponent({ items, max, ariaLabel }: BarChartProps) {
+  const { t } = useTranslation('psychReport');
   return (
-    <div className="flex flex-col gap-2" role="img" aria-label="Столбчатая диаграмма баллов по ролям">
+    <div
+      className="flex flex-col gap-2"
+      role="img"
+      aria-label={ariaLabel ?? t('psychReport:charts.barAria')}
+    >
       {items.map((item) => {
         const pct = max > 0 ? Math.max(0, Math.min(100, (item.value / max) * 100)) : 0;
         return (

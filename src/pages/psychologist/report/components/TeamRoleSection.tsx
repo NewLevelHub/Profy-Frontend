@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -10,20 +11,9 @@ import { PsychTestHeaderInfo } from './PsychTestHeaderInfo';
 import { PsychDetailCard } from './PsychDetailCard';
 import { RoleEvidenceView } from './AnswerEvidence';
 import {
-  BELBIN_METHODOLOGY,
-  BELBIN_ROLES,
+  getBelbinMethodology,
+  getBelbinRoles,
 } from '../model/psychTestExplanations';
-
-const ROLE_LABELS: Record<string, string> = {
-  implementer: 'Исполнитель',
-  coordinator: 'Председатель',
-  shaper: 'Формирователь',
-  plant: 'Мыслитель',
-  resource_investigator: 'Разведчик',
-  evaluator: 'Оценщик',
-  team_worker: 'Коллективист',
-  finisher: 'Доводчик',
-};
 
 const DOMINANT_COLOR = 'var(--brand)';
 const SUPPORTING_COLOR = 'var(--accent)';
@@ -31,18 +21,27 @@ const AVOIDANCE_COLOR = 'var(--mute)';
 const NEUTRAL_COLOR = 'var(--brand-subtle)';
 
 /**
- * Belbin BTRSPI «Кто вы в организации» — Bar Chart + интерактивный
- * разбор ролей, сильных сторон, допустимых слабостей и зоны избегания.
+ * Belbin BTRSPI "Who are you in an organization" — Bar Chart + interactive
+ * role breakdown, strengths, allowable weaknesses, and avoidance zone.
  */
 export function TeamRoleSection({ section }: { section: TeamRoleSectionData | null }) {
+  const { t } = useTranslation('psychReport');
   if (!section) return null;
+
+  const methodology = getBelbinMethodology(t);
+  const belbinRoles = getBelbinRoles(t);
+
+  const roleLabels = (t('psychReport:belbin.roleLabels', {
+    returnObjects: true,
+  }) || {}) as Record<string, string>;
+
   const hasChart = !!section.scores && !!section.ranked_roles && section.ranked_roles.length > 0;
   const maxScore = hasChart ? Math.max(...Object.values(section.scores!)) : 0;
 
   // Selected role to inspect in the detail card
   const [selectedRoleKey, setSelectedRoleKey] = useState<string | null>(section.dominant_role ?? null);
 
-  const activeRoleInfo = selectedRoleKey && selectedRoleKey in BELBIN_ROLES ? BELBIN_ROLES[selectedRoleKey] : null;
+  const activeRoleInfo = selectedRoleKey && selectedRoleKey in belbinRoles ? belbinRoles[selectedRoleKey] : null;
 
   const isDominant = selectedRoleKey === section.dominant_role;
   const isSupporting = section.supporting_roles?.includes(selectedRoleKey ?? '');
@@ -59,7 +58,7 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
               : NEUTRAL_COLOR;
         return {
           key: role,
-          label: ROLE_LABELS[role] ?? role,
+          label: roleLabels[role] ?? role,
           value: section.scores![role] ?? 0,
           color,
         };
@@ -67,19 +66,22 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
     : [];
 
   return (
-    <AdminCard title="Командная роль" description="Belbin BTRSPI">
-      <PsychTestHeaderInfo methodology={BELBIN_METHODOLOGY} />
+    <AdminCard
+      title={t('psychReport:belbin.cardTitle')}
+      description={t('psychReport:belbin.cardDescription')}
+    >
+      <PsychTestHeaderInfo methodology={methodology} />
 
       {section.dominant_role && (
         <div className="flex flex-wrap items-center gap-1.5 mb-3">
-          <span className={cn(ADMIN_META, 'w-full mb-0.5')}>Нажмите на роль для разбора:</span>
+          <span className={cn(ADMIN_META, 'w-full mb-0.5')}>{t('psychReport:belbin.chooseRolePrompt')}</span>
           <button
             type="button"
             onClick={() => setSelectedRoleKey(selectedRoleKey === section.dominant_role ? null : section.dominant_role)}
             className="focus:outline-none"
           >
             <AdminBadge tone="brand" dot className={selectedRoleKey === section.dominant_role ? 'ring-2 ring-brand' : ''}>
-              Доминирующая: {ROLE_LABELS[section.dominant_role] ?? section.dominant_role}
+              {t('psychReport:belbin.dominantBadge', { role: roleLabels[section.dominant_role] ?? section.dominant_role })}
             </AdminBadge>
           </button>
 
@@ -91,7 +93,7 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
               className="focus:outline-none"
             >
               <AdminBadge tone="accent" className={selectedRoleKey === role ? 'ring-2 ring-accent' : ''}>
-                {ROLE_LABELS[role] ?? role}
+                {roleLabels[role] ?? role}
               </AdminBadge>
             </button>
           ))}
@@ -104,7 +106,7 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
               className="focus:outline-none"
             >
               <AdminBadge tone="quiet" className={selectedRoleKey === role ? 'ring-2 ring-default' : ''}>
-                Избегание: {ROLE_LABELS[role] ?? role}
+                {t('psychReport:belbin.avoidanceBadge', { role: roleLabels[role] ?? role })}
               </AdminBadge>
             </button>
           ))}
@@ -120,7 +122,7 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
       {/* Interactive role selector list below chart */}
       {hasChart && (
         <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-default/60">
-          <span className={cn(ADMIN_META, 'self-center mr-1')}>Нажмите на роль для разбора:</span>
+          <span className={cn(ADMIN_META, 'self-center mr-1')}>{t('psychReport:belbin.chooseRolePrompt')}</span>
           {section.ranked_roles?.map((role) => {
             const score = section.scores?.[role] ?? 0;
             const isSelected = selectedRoleKey === role;
@@ -136,7 +138,7 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
                     : 'bg-raised text-secondary border-default/70 hover:border-strong hover:text-primary',
                 )}
               >
-                <span>{ROLE_LABELS[role] ?? role}</span>
+                <span>{roleLabels[role] ?? role}</span>
                 <span className="font-mono text-mono-sm tabular-nums opacity-80">({score})</span>
                 <ChevronDown size={13} className={cn('transition-transform', isSelected && 'rotate-180')} />
               </button>
@@ -152,22 +154,28 @@ export function TeamRoleSection({ section }: { section: TeamRoleSectionData | nu
           badge={
             <AdminBadge tone={isDominant ? 'brand' : isSupporting ? 'accent' : isAvoidance ? 'quiet' : 'neutral'}>
               {isDominant
-                ? 'Ведущая роль'
+                ? t('psychReport:belbin.dominant')
                 : isSupporting
-                  ? 'Поддерживающая роль'
+                  ? t('psychReport:belbin.supporting')
                   : isAvoidance
-                    ? 'Зона избегания (≤3 баллов)'
-                    : 'Нейтральная роль'}
+                    ? t('psychReport:belbin.avoidance')
+                    : t('psychReport:belbin.neutral')}
             </AdminBadge>
           }
           meaning={activeRoleInfo.meaning}
           means={activeRoleInfo.behavioralManifestation}
           follows={activeRoleInfo.psychologistFocus}
-          why={`Ученик выделил ${section.scores?.[selectedRoleKey!] ?? 0} из 70 баллов суммарно по всем 7 блокам распределения.`}
+          why={t('psychReport:belbin.roleWhy', {
+            score: section.scores?.[selectedRoleKey!] ?? 0,
+          })}
           riskWarning={
             isAvoidance
-              ? `Роль находится в зоне избегания (≤3 баллов). При возложении этих обязанностей в группе подросток будет испытывать стресс и саботировать выполнение. Допустимые слабости роли: ${activeRoleInfo.riskWarning ?? ''}`
-              : `Допустимые слабости роли («allowable weaknesses» по Р. Белбину): ${activeRoleInfo.riskWarning ?? ''}`
+              ? t('psychReport:belbin.avoidanceRisk', {
+                  weaknesses: activeRoleInfo.riskWarning ?? '',
+                })
+              : t('psychReport:belbin.allowableWeaknesses', {
+                  weaknesses: activeRoleInfo.riskWarning ?? '',
+                })
           }
           onClose={() => setSelectedRoleKey(null)}
         >

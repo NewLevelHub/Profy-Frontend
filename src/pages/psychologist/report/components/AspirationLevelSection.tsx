@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge, type AdminBadgeTone } from '@/shared/ui/admin/AdminBadge';
@@ -11,16 +12,9 @@ import { PsychBandMeter, type BandMark } from './PsychBandMeter';
 import { BinaryEvidenceView } from './AnswerEvidence';
 import { ScoreRow } from './ScoreRow';
 import {
-  ELERS_METHODOLOGY,
-  ELERS_LEVELS,
+  getElersMethodology,
+  getElersLevels,
 } from '../model/psychTestExplanations';
-
-const LEVEL_LABELS: Record<string, string> = {
-  low: 'Низкая мотивация',
-  medium: 'Средняя мотивация',
-  moderately_high: 'Умеренно высокая — позитивный маркер',
-  too_high: 'Слишком высокая — риск выгорания',
-};
 
 const LEVEL_TONES: Record<string, AdminBadgeTone> = {
   low: 'quiet',
@@ -36,29 +30,41 @@ const SEGMENTS: GaugeChartSegment[] = [
   { upTo: SCALE_MAX, color: 'var(--danger)' },
 ];
 
-const ELERS_BANDS: BandMark[] = [
-  { label: 'Низкая', min: 1, max: 10 },
-  { label: 'Средняя', min: 11, max: 16 },
-  { label: 'Умеренно выс.', min: 17, max: 20 },
-  { label: 'Слишком выс.', min: 21, max: 32 },
-];
-
 /**
- * Elers achievement motivation «Уровень притязаний» — Gauge Chart +
- * подробное доказательное раскрытие для психолога.
+ * Elers achievement motivation "Level of aspiration" — Gauge Chart +
+ * detailed evidence disclosure for psychologist.
  */
 export function AspirationLevelSection({ section }: { section: AspirationLevelSectionData | null }) {
+  const { t } = useTranslation('psychReport');
   if (!section) return null;
+
+  const methodology = getElersMethodology(t);
+  const levels = getElersLevels(t);
+
+  const levelLabels = (t('psychReport:elers.levelLabels', {
+    returnObjects: true,
+  }) || {}) as Record<string, string>;
+  const bandsMap = (t('psychReport:elers.bands', {
+    returnObjects: true,
+  }) || {}) as Record<string, string>;
+
+  const elersBands: BandMark[] = [
+    { label: bandsMap.low ?? '', min: 1, max: 10 },
+    { label: bandsMap.medium ?? '', min: 11, max: 16 },
+    { label: bandsMap.moderately_high ?? '', min: 17, max: 20 },
+    { label: bandsMap.too_high ?? '', min: 21, max: 32 },
+  ];
+
   const { score, level } = section;
 
   // Selected level to inspect (defaults to student's achieved level)
   const [selectedLevelKey, setSelectedLevelKey] = useState<string | null>(level ?? 'moderately_high');
 
-  const activeLevelInfo = selectedLevelKey && selectedLevelKey in ELERS_LEVELS ? ELERS_LEVELS[selectedLevelKey] : null;
+  const activeLevelInfo = selectedLevelKey && selectedLevelKey in levels ? levels[selectedLevelKey] : null;
 
   return (
-    <AdminCard title="Уровень притязаний" description="Elers achievement motivation">
-      <PsychTestHeaderInfo methodology={ELERS_METHODOLOGY} />
+    <AdminCard title={t('psychReport:elers.cardTitle')} description={t('psychReport:elers.cardDescription')}>
+      <PsychTestHeaderInfo methodology={methodology} />
 
       {score !== null && (
         <div className="flex flex-col items-center gap-2 mb-2">
@@ -74,16 +80,16 @@ export function AspirationLevelSection({ section }: { section: AspirationLevelSe
           <PsychBandMeter
             value={score}
             max={SCALE_MAX}
-            bands={ELERS_BANDS}
-            label="Нормативные зоны мотивации Элерса"
+            bands={elersBands}
+            label={t('psychReport:elers.normativeBandsLabel')}
           />
         </div>
       )}
 
       {level && (
         <ScoreRow
-          label={<span className={cn(ADMIN_META, 'font-sans text-body-sm')}>Уровень мотивации</span>}
-          badge={<AdminBadge tone={LEVEL_TONES[level] ?? 'neutral'}>{LEVEL_LABELS[level] ?? level}</AdminBadge>}
+          label={<span className={cn(ADMIN_META, 'font-sans text-body-sm')}>{t('psychReport:elers.motivationLevelLabel')}</span>}
+          badge={<AdminBadge tone={LEVEL_TONES[level] ?? 'neutral'}>{levelLabels[level] ?? level}</AdminBadge>}
           isOpen={selectedLevelKey === level}
           onToggle={() => setSelectedLevelKey(selectedLevelKey === level ? null : level)}
         >
@@ -95,7 +101,10 @@ export function AspirationLevelSection({ section }: { section: AspirationLevelSe
               meaning={activeLevelInfo.meaning}
               means={activeLevelInfo.behavioralManifestation}
               follows={activeLevelInfo.psychologistFocus}
-              why={`Сырой балл: ${score ?? 0} из 32. ${activeLevelInfo.normsExplanation ?? ''}`}
+              why={t('psychReport:elers.whyScore', {
+                score: score ?? 0,
+                norms: activeLevelInfo.normsExplanation ?? '',
+              })}
               riskWarning={activeLevelInfo.riskWarning}
             >
               {section.evidence && <BinaryEvidenceView evidence={section.evidence} />}
@@ -104,7 +113,9 @@ export function AspirationLevelSection({ section }: { section: AspirationLevelSe
         </ScoreRow>
       )}
 
-      {score === null && !level && <p className={cn(ADMIN_META, 'm-0')}>Тест ещё не пройден.</p>}
+      {score === null && !level && (
+        <p className={cn(ADMIN_META, 'm-0')}>{t('psychReport:elers.notCompleted')}</p>
+      )}
     </AdminCard>
   );
 }

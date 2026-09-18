@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type {
   BinaryScaleEvidence,
   PairScaleEvidence,
@@ -71,6 +72,7 @@ interface TaggedItem {
 const COLLAPSE_THRESHOLD = 8;
 
 function EvidenceItemList({ items }: { items: TaggedItem[] }) {
+  const { t } = useTranslation('psychReport');
   const [expanded, setExpanded] = useState(items.length <= COLLAPSE_THRESHOLD);
   const visible = expanded ? items : items.slice(0, COLLAPSE_THRESHOLD);
 
@@ -95,7 +97,9 @@ function EvidenceItemList({ items }: { items: TaggedItem[] }) {
           onClick={() => setExpanded((current) => !current)}
           className="self-start text-caption font-semibold text-brand hover:opacity-70 bg-transparent border-none cursor-pointer p-0"
         >
-          {expanded ? 'Свернуть' : `Показать все ответы (${items.length})`}
+          {expanded
+            ? t('psychReport:evidence.collapse')
+            : t('psychReport:evidence.showAll', { count: items.length })}
         </button>
       )}
     </div>
@@ -104,25 +108,29 @@ function EvidenceItemList({ items }: { items: TaggedItem[] }) {
 
 export function BinaryEvidenceView({
   evidence,
-  yesLabel = 'Да',
-  noLabel = 'Нет',
+  yesLabel,
+  noLabel,
 }: {
   evidence: BinaryScaleEvidence;
   yesLabel?: string;
   noLabel?: string;
 }) {
+  const { t } = useTranslation(['psychReport', 'common']);
+  const resolvedYes = yesLabel ?? t('common:yes');
+  const resolvedNo = noLabel ?? t('common:no');
+
   return (
     <div className="flex flex-col gap-2.5">
       <EvidenceBar
         segments={[
-          { count: evidence.yes, color: YES_COLOR, label: yesLabel },
-          { count: evidence.no, color: NO_COLOR, label: noLabel },
+          { count: evidence.yes, color: YES_COLOR, label: resolvedYes },
+          { count: evidence.no, color: NO_COLOR, label: resolvedNo },
         ]}
       />
       <EvidenceItemList
         items={evidence.items.map((it) => ({
           text: it.text,
-          tag: it.answer === 'yes' ? yesLabel : noLabel,
+          tag: it.answer === 'yes' ? resolvedYes : resolvedNo,
           tagColor: it.answer === 'yes' ? YES_COLOR : NO_COLOR,
         }))}
       />
@@ -163,19 +171,20 @@ export function PairEvidenceView({
   evidence: PairScaleEvidence;
   scaleLabel: string;
 }) {
+  const { t } = useTranslation('psychReport');
   const notPicked = evidence.total - evidence.picked;
   return (
     <div className="flex flex-col gap-2.5">
       <EvidenceBar
         segments={[
-          { count: evidence.picked, color: YES_COLOR, label: `Выбрал «${scaleLabel}»` },
-          { count: notPicked, color: NEUTRAL_COLOR, label: 'Выбрал другой вариант' },
+          { count: evidence.picked, color: YES_COLOR, label: t('psychReport:evidence.pickedLabel', { scale: scaleLabel }) },
+          { count: notPicked, color: NEUTRAL_COLOR, label: t('psychReport:evidence.notPickedLabel') },
         ]}
       />
       <EvidenceItemList
         items={evidence.items.map((it) => ({
           text: it.text,
-          tag: it.picked ? 'Выбрано' : '—',
+          tag: it.picked ? t('psychReport:evidence.picked') : t('psychReport:evidence.notPicked'),
           tagColor: it.picked ? YES_COLOR : NEUTRAL_COLOR,
         }))}
       />
@@ -184,11 +193,12 @@ export function PairEvidenceView({
 }
 
 export function RoleEvidenceView({ evidence }: { evidence: RoleEvidence }) {
+  const { t } = useTranslation('psychReport');
   return (
     <EvidenceItemList
       items={evidence.items.map((it) => ({
         text: it.text,
-        tag: `Блок ${it.block}: ${it.points}`,
+        tag: t('psychReport:evidence.blockLabel', { block: it.block, points: it.points }),
         tagColor: it.points > 0 ? YES_COLOR : NEUTRAL_COLOR,
       }))}
     />

@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle2, HelpCircle, X } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { ADMIN_TEXT } from '@/shared/ui/admin/density';
 
 interface PsychDetailCardProps {
   title: string;
@@ -41,10 +42,12 @@ export function PsychDetailCard({
   className,
   bare = false,
 }: PsychDetailCardProps) {
+  const { t } = useTranslation('psychReport');
+
   return (
     <div
       role="region"
-      aria-label={`Детальная расшифровка: ${title}`}
+      aria-label={t('psychReport:detailCard.ariaLabel', { title })}
       className={cn(
         'bg-[color-mix(in_srgb,var(--paper)_92%,var(--brand)_8%)] overflow-hidden transition-all',
         bare ? '-m-3 rounded-none' : 'mt-3.5 rounded-[14px] border border-brand/35 shadow-sm',
@@ -66,8 +69,8 @@ export function PsychDetailCard({
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-[8px] text-muted hover:text-primary hover:bg-raised transition-colors focus:outline-none focus:ring-1 focus:ring-brand flex-shrink-0"
-            title="Свернуть расшифровку"
-            aria-label="Свернуть"
+            title={t('psychReport:detailCard.collapseTitle')}
+            aria-label={t('psychReport:detailCard.collapse')}
           >
             <X size={16} />
           </button>
@@ -81,7 +84,9 @@ export function PsychDetailCard({
           <div>
             <div className="flex items-center gap-1.5 mb-1.5 text-primary">
               <span className="w-2 h-2 rounded-full bg-brand" />
-              <h4 className="font-sans text-caption uppercase tracking-label font-bold text-brand m-0">В чём проявляется у подростка</h4>
+              <h4 className="font-sans text-caption uppercase tracking-label font-bold text-brand m-0">
+                {t('psychReport:detailCard.meansTitle')}
+              </h4>
             </div>
             <p className={cn(ADMIN_TEXT, 'text-primary leading-relaxed m-0')}>{means}</p>
           </div>
@@ -89,7 +94,9 @@ export function PsychDetailCard({
           <div>
             <div className="flex items-center gap-1.5 mb-1.5 text-primary">
               <CheckCircle2 size={14} className="text-accent flex-shrink-0" />
-              <h4 className="font-sans text-caption uppercase tracking-label font-bold text-accent m-0">Что следует для консультации</h4>
+              <h4 className="font-sans text-caption uppercase tracking-label font-bold text-accent m-0">
+                {t('psychReport:detailCard.followsTitle')}
+              </h4>
             </div>
             <p className={cn(ADMIN_TEXT, 'text-secondary leading-relaxed m-0')}>{follows}</p>
           </div>
@@ -101,7 +108,9 @@ export function PsychDetailCard({
             <div>
               <div className="flex items-center gap-1.5 mb-1.5 text-primary">
                 <HelpCircle size={14} className="text-secondary flex-shrink-0" />
-                <h4 className="font-sans text-caption uppercase tracking-label font-bold text-secondary m-0">Почему такой результат</h4>
+                <h4 className="font-sans text-caption uppercase tracking-label font-bold text-secondary m-0">
+                  {t('psychReport:detailCard.whyTitle')}
+                </h4>
               </div>
               <p className={cn(ADMIN_TEXT, 'text-muted leading-relaxed m-0')}>{why}</p>
             </div>
@@ -113,7 +122,9 @@ export function PsychDetailCard({
             <div className="p-3 rounded-[10px] bg-danger-subtle/80 border border-danger/25 flex items-start gap-2.5 mt-auto">
               <AlertTriangle size={16} className="text-danger flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-sans text-caption font-bold text-danger uppercase tracking-label m-0">Зона внимания и риски</p>
+                <p className="font-sans text-caption font-bold text-danger uppercase tracking-label m-0">
+                  {t('psychReport:detailCard.riskTitle')}
+                </p>
                 <p className="font-sans text-body-sm text-danger m-0 mt-0.5 leading-snug">{riskWarning}</p>
               </div>
             </div>

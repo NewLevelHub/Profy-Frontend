@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface RadarChartAxis {
   key: string;
@@ -22,6 +23,7 @@ interface RadarChartProps {
   axes: RadarChartAxis[];
   series: RadarChartSeries[];
   size?: number;
+  ariaLabel?: string;
 }
 
 const RING_FRACTIONS = [0.25, 0.5, 0.75, 1];
@@ -40,13 +42,20 @@ function pointOnAxis(index: number, count: number, fraction: number, radius: num
  * a hand-rolled SVG keeps the bundle light for a component this small and
  * used on one specialist-only screen.
  */
-function RadarChartComponent({ axes, series, size = 280 }: RadarChartProps) {
+function RadarChartComponent({ axes, series, size = 280, ariaLabel }: RadarChartProps) {
+  const { t } = useTranslation('psychReport');
   const center = size / 2;
   const radius = size / 2 - 46; // leave room for axis labels outside the plot
   const count = axes.length;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Радар-диаграмма">
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label={ariaLabel ?? t('psychReport:charts.radarAria')}
+    >
       {RING_FRACTIONS.map((fraction) => {
         const points = axes.map((_, i) => pointOnAxis(i, count, fraction, radius, center));
         return (

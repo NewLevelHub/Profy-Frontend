@@ -13,6 +13,7 @@ import ruProfile from './locales/ru/profile.json';
 import ruErrors from './locales/ru/errors.json';
 import ruLanding from './locales/ru/landing.json';
 import ruAdmin from './locales/ru/admin.json';
+import ruPsychReport from './locales/ru/psychReport.json';
 
 import kkCommon from './locales/kk/common.json';
 import kkAuth from './locales/kk/auth.json';
@@ -24,6 +25,7 @@ import kkProfile from './locales/kk/profile.json';
 import kkErrors from './locales/kk/errors.json';
 import kkLanding from './locales/kk/landing.json';
 import kkAdmin from './locales/kk/admin.json';
+import kkPsychReport from './locales/kk/psychReport.json';
 
 // One namespace per product area. Mirror this list when adding a namespace, in
 // both locales, and in the parity check (KZ-211 / KZ-602). `admin` covers
@@ -40,6 +42,7 @@ export const NAMESPACES = [
   'errors',
   'landing',
   'admin',
+  'psychReport',
 ] as const;
 
 const resources = {
@@ -54,6 +57,7 @@ const resources = {
     errors: ruErrors,
     landing: ruLanding,
     admin: ruAdmin,
+    psychReport: ruPsychReport,
   },
   kk: {
     common: kkCommon,
@@ -66,6 +70,7 @@ const resources = {
     errors: kkErrors,
     landing: kkLanding,
     admin: kkAdmin,
+    psychReport: kkPsychReport,
   },
 } as const;
 

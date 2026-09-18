@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, Info } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
@@ -14,6 +15,7 @@ interface PsychTestHeaderInfoProps {
  * Explains what the test measures, its scientific basis, and caveats.
  */
 export function PsychTestHeaderInfo({ methodology, defaultExpanded = false }: PsychTestHeaderInfoProps) {
+  const { t } = useTranslation('psychReport');
   const [isOpen, setIsOpen] = useState(defaultExpanded);
 
   return (
@@ -26,11 +28,13 @@ export function PsychTestHeaderInfo({ methodology, defaultExpanded = false }: Ps
       >
         <span className="flex items-center gap-2 min-w-0">
           <Info size={14} className="text-brand flex-shrink-0" />
-          <span className={cn(ADMIN_TEXT, 'font-medium text-primary')}>О тесте и методике</span>
+          <span className={cn(ADMIN_TEXT, 'font-medium text-primary')}>{t('psychReport:headerInfo.title')}</span>
           <span className={cn(ADMIN_META, 'truncate hidden sm:inline')}>— {methodology.subtitle}</span>
         </span>
         <span className="flex items-center gap-1.5 flex-shrink-0 text-muted">
-          <span className={ADMIN_META}>{isOpen ? 'Свернуть' : 'Подробнее'}</span>
+          <span className={ADMIN_META}>
+            {isOpen ? t('psychReport:headerInfo.collapse') : t('psychReport:headerInfo.expand')}
+          </span>
           <ChevronDown size={14} className={cn('transition-transform duration-200', isOpen && 'rotate-180')} />
         </span>
       </button>
@@ -38,14 +42,14 @@ export function PsychTestHeaderInfo({ methodology, defaultExpanded = false }: Ps
       {isOpen && (
         <div className="px-3.5 pt-1 pb-3.5 flex flex-col gap-2.5 border-t border-default/70 text-body-sm">
           <div>
-            <p className={cn(ADMIN_TEXT, 'text-primary font-semibold m-0')}>Что измеряет:</p>
+            <p className={cn(ADMIN_TEXT, 'text-primary font-semibold m-0')}>{t('psychReport:headerInfo.whatItMeasures')}</p>
             <p className={cn(ADMIN_TEXT, 'text-secondary m-0 mt-0.5 leading-relaxed')}>
               {methodology.whatItMeasures}
             </p>
           </div>
 
           <div>
-            <p className={cn(ADMIN_TEXT, 'text-primary font-semibold m-0')}>Суть методики:</p>
+            <p className={cn(ADMIN_TEXT, 'text-primary font-semibold m-0')}>{t('psychReport:headerInfo.description')}</p>
             <p className={cn(ADMIN_TEXT, 'text-muted m-0 mt-0.5 leading-relaxed')}>
               {methodology.description}
             </p>
@@ -53,14 +57,15 @@ export function PsychTestHeaderInfo({ methodology, defaultExpanded = false }: Ps
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-default/40">
             <span className={cn(ADMIN_META, 'font-sans text-body-sm')}>
-              Источник: <span className="text-primary font-medium">{methodology.source}</span>
+              {t('psychReport:headerInfo.source')}{' '}
+              <span className="text-primary font-medium">{methodology.source}</span>
             </span>
           </div>
 
           {methodology.notes && (
             <div className="p-2.5 rounded-[8px] bg-brand-subtle/50 border border-brand/20">
               <p className={cn(ADMIN_TEXT, 'text-brand font-medium m-0')}>
-                💡 Для специалиста: {methodology.notes}
+                {t('psychReport:headerInfo.specialistNotes')} {methodology.notes}
               </p>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface PolarAreaSector {
   key: string;
@@ -13,6 +14,7 @@ interface PolarAreaChartProps {
    *  channels at a glance. */
   max: number;
   size?: number;
+  ariaLabel?: string;
 }
 
 const RING_FRACTIONS = [1 / 3, 2 / 3, 1];
@@ -42,7 +44,8 @@ function wedgePath(cx: number, cy: number, r: number, fromAngle: number, toAngle
  * nothing color alone doesn't already say) — hand-rolled SVG, no chart
  * library in this project (checked package.json before RadarChart.tsx).
  */
-function PolarAreaChartComponent({ sectors, max, size = 300 }: PolarAreaChartProps) {
+function PolarAreaChartComponent({ sectors, max, size = 300, ariaLabel }: PolarAreaChartProps) {
+  const { t } = useTranslation('psychReport');
   const cx = size / 2;
   const cy = size / 2;
   const outerR = size / 2 - 50; // room for labels outside the wedges
@@ -50,7 +53,13 @@ function PolarAreaChartComponent({ sectors, max, size = 300 }: PolarAreaChartPro
   const angleStep = (2 * Math.PI) / count;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Диаграмма каналов эмпатии">
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label={ariaLabel ?? t('psychReport:charts.polarAria')}
+    >
       {RING_FRACTIONS.map((fraction) => (
         <circle key={fraction} cx={cx} cy={cy} r={outerR * fraction} fill="none" stroke="var(--border)" strokeWidth={1} />
       ))}

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface ScatterPlotQuadrant {
   key: string;
@@ -20,6 +21,7 @@ interface ScatterPlotProps {
   xLabel: string;
   yLabel: string;
   size?: number;
+  ariaLabel?: string;
 }
 
 /**
@@ -28,7 +30,8 @@ interface ScatterPlotProps {
  * same call as RadarChart.tsx (checked package.json first; nothing this
  * small is worth a dependency).
  */
-function ScatterPlotComponent({ x, y, max, quadrants, xLabel, yLabel, size = 280 }: ScatterPlotProps) {
+function ScatterPlotComponent({ x, y, max, quadrants, xLabel, yLabel, size = 280, ariaLabel }: ScatterPlotProps) {
+  const { t } = useTranslation('psychReport');
   const pad = 40;
   const plot = size - pad * 2;
   const half = plot / 2;
@@ -40,7 +43,13 @@ function ScatterPlotComponent({ x, y, max, quadrants, xLabel, yLabel, size = 280
   const [topLeft, topRight, bottomLeft, bottomRight] = quadrants;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Координатная сетка темперамента">
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label={ariaLabel ?? t('psychReport:charts.scatterAria')}
+    >
       <rect x={pad} y={pad} width={half} height={half} fill={topLeft.color} />
       <rect x={mid} y={pad} width={half} height={half} fill={topRight.color} />
       <rect x={pad} y={mid} width={half} height={half} fill={bottomLeft.color} />

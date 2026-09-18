@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_META } from '@/shared/ui/admin/density';
@@ -46,6 +47,8 @@ interface ScoreRowProps {
  * against the "Тип темперамента" and "Уровень притязаний" rows).
  */
 export function ScoreRow({ label, value, badge, isOpen = false, onToggle, children, className }: ScoreRowProps) {
+  const { t } = useTranslation('psychReport');
+
   if (!onToggle) {
     return (
       <div
@@ -85,7 +88,7 @@ export function ScoreRow({ label, value, badge, isOpen = false, onToggle, childr
           {value}
           {badge}
           <span className={cn(ADMIN_META, 'hidden sm:inline', isOpen && 'text-brand font-medium')}>
-            {isOpen ? 'Свернуть' : 'Разбор'}
+            {isOpen ? t('psychReport:headerInfo.collapse') : t('psychReport:scoreRow.expand')}
           </span>
           <ChevronDown
             size={14}
