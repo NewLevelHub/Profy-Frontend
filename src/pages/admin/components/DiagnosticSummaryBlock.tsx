@@ -173,7 +173,7 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
           <p className={cn(MONO_LABEL, 'text-muted m-0')}>{t('summary.riasecInterests')}</p>
           <div className="flex flex-col gap-1.5">
             {riasecEntries.map(({ letter, value }) => (
-              <ScoreBar key={letter} code={letter} label={RIASEC_LABELS[letter]} value={value} tone="pine" />
+              <ScoreBar key={letter} code={letter} label={t(RIASEC_LABELS[letter])} value={value} tone="pine" />
             ))}
           </div>
         </div>
@@ -184,7 +184,7 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
           <p className={cn(MONO_LABEL, 'text-muted m-0')}>Big Five</p>
           <div className="flex flex-col gap-1.5">
             {bigFiveEntries.map(({ letter, value }) => (
-              <ScoreBar key={letter} code={letter} label={BIG_FIVE_LABELS[letter]} value={value} tone="lake" />
+              <ScoreBar key={letter} code={letter} label={t(BIG_FIVE_LABELS[letter])} value={value} tone="lake" />
             ))}
           </div>
         </div>
@@ -201,7 +201,9 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
           <span className={ADMIN_TEXT}>
             <span className="text-muted">{t('summary.consistency')}</span>{' '}
             <span className="text-primary font-medium">
-              {CONSISTENCY_LABELS[analysis.meta.consistency] ?? analysis.meta.consistency}
+              {CONSISTENCY_LABELS[analysis.meta.consistency]
+                ? t(CONSISTENCY_LABELS[analysis.meta.consistency])
+                : analysis.meta.consistency}
             </span>
           </span>
           <span className={ADMIN_TEXT}>

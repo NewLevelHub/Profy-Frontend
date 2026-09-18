@@ -136,12 +136,12 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
               </td>
               <td style={CELL}>
                 {item.latest_assessment_status
-                  ? ASSESSMENT_STATUS_LABELS[item.latest_assessment_status]
+                  ? t(ASSESSMENT_STATUS_LABELS[item.latest_assessment_status])
                   : t('users.status.notStarted')}
               </td>
               <td style={CELL}>
                 {item.latest_assessment_goal
-                  ? ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal]
+                  ? t(ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal])
                   : '—'}
               </td>
               <td

@@ -925,11 +925,14 @@ export default function AdminUserDetailPage() {
                   >
                     <div className="min-w-0">
                       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-                        {ASSESSMENT_GOAL_LABELS[item.goal] ?? item.goal}
+                        {ASSESSMENT_GOAL_LABELS[item.goal] ? t(ASSESSMENT_GOAL_LABELS[item.goal]) : item.goal}
                         <span className={cn(ADMIN_META, 'ml-2')}>#{user.assessments.length - index}</span>
                       </p>
                       <p className={cn(ADMIN_META, 'mt-0.5 normal-case tracking-normal')}>
-                        {ASSESSMENT_STATUS_LABELS[item.status] ?? item.status} · {formatDate(item.created_at)}
+                        {ASSESSMENT_STATUS_LABELS[item.status]
+                          ? t(ASSESSMENT_STATUS_LABELS[item.status])
+                          : item.status}{' '}
+                        · {formatDate(item.created_at)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
