@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import axios from 'axios';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
@@ -35,6 +36,7 @@ function formatDate(value: string) {
 }
 
 export default function PsychologistStudentDetailPage() {
+  const { t } = useTranslation('admin');
   const { studentId = '' } = useParams<{ studentId: string }>();
   const [student, setStudent] = useState<PsychologistStudentDetail | null>(null);
   const [notes, setNotes] = useState<PsychologistNote[]>([]);
