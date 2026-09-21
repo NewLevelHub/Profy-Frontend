@@ -5,6 +5,7 @@ import { Button, FullScreenPreferences, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
+import { gradesForAge } from '@/shared/lib/ageGrade';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { SelectableChip } from './components/SelectableChip';
 import { ExamScoresBlock } from './components/ExamScoresBlock';
@@ -148,6 +149,15 @@ export default function ProfileSetupPage() {
     ? { state: 'welcome' as const, size: MASCOT_WELCOME_SIZE }
     : { state: 'waiting' as const, size: MASCOT_WAITING_SIZE };
 
+  const ageNum = Number(age);
+  const allowedGrades = !age || Number.isNaN(ageNum) ? [] : gradesForAge(ageNum);
+  const gradeMin = allowedGrades[0];
+  const gradeMax = allowedGrades[allowedGrades.length - 1];
+  const gradeHint =
+    !errors.grade && allowedGrades.length > 0
+      ? t('validation.gradeForAge', { age: ageNum, min: gradeMin, max: gradeMax })
+      : undefined;
+
   return (
     <div className="journey-page journey-page--lit min-h-screen flex flex-col">
       {/* Ни заливки, ни блюра: полоса шагов — flex-сосед НАД областью прокрутки,
@@ -220,7 +230,7 @@ export default function ProfileSetupPage() {
                         <button
                           key={a}
                           type="button"
-                          onClick={() => { setAge(String(a)); clearError('age'); }}
+                          onClick={() => setAge(String(a))}
                           className={cn(
                             'w-11 h-11 rounded-[12px] text-body-sm font-bold border transition-colors press-scale',
                             selected
@@ -256,10 +266,15 @@ export default function ProfileSetupPage() {
                       inputMode="numeric"
                       value={grade}
                       onChange={e => { setGrade(e.target.value); clearError('grade'); }}
-                      placeholder={t('profile.gradePlaceholder')}
+                      placeholder={
+                        allowedGrades.length
+                          ? t('profile.gradePlaceholderRange', { min: gradeMin, max: gradeMax })
+                          : t('profile.gradePlaceholder')
+                      }
                       error={errors.grade}
-                      min={1}
-                      max={12}
+                      hint={gradeHint}
+                      min={gradeMin ?? 1}
+                      max={gradeMax ?? 12}
                     />
 
                     <Input
