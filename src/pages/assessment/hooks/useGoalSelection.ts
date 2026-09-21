@@ -64,12 +64,11 @@ export function useGoalSelection() {
     }
   }, [isCheckingCurrent, current, fromRestart]);
 
-  // `current` (queried above) reflects whatever assessment record exists
-  // *before* this start call — null only when the user has never started
-  // one before, ever. Captured in a ref at click time (not read inside
-  // onSuccess) so it can't go stale between the click and the mutation
-  // resolving.
+  // Captured in a ref at click time (not read inside onSuccess) so it can't
+  // go stale between the click and the mutation resolving. Same for the
+  // NotStarted skip flag — location.state is cleared on navigate away.
   const wasFirstEverRef = useRef(false);
+  const fromNotStartedRef = useRef(false);
 
   const startMutation = useMutation({
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),
@@ -90,21 +89,20 @@ export function useGoalSelection() {
         assessment.motivation_answered_count,
         assessment.motivation_total,
       );
-      // Junior answers MI as plain Likert now (product override — ipsative
-      // pair choices between unrelated MI categories made an already-weak
-      // construct less reliable) woven with Big Five pair cards, same mixed
-      // flow middle already uses — see buildDisplaySequence.ts.
-      // First-ever attempt gets the "how this works" intro screen once;
-      // every retake/resume goes straight into the quiz. Either way, the
-      // psychoemotional block's circle 1 (PRO-3xx redesign) now comes first,
-      // before any test — psychoemotional-start itself skips straight to
-      // /assessment if this attempt already did circle 1 (resume).
-      navigate(wasFirstEverRef.current ? '/welcome' : '/assessment/psychoemotional-start');
+      // First-ever attempt gets the "how this works" intro (/welcome) once —
+      // unless the student just came from AssessmentNotStartedCard, which is the
+      // same journey-shell intro (PRO-416). Retakes/resumes go straight in.
+      // Either way, psychoemotional circle 1 comes before the main battery.
+      const showWelcome = wasFirstEverRef.current && !fromNotStartedRef.current;
+      navigate(showWelcome ? '/welcome' : '/assessment/psychoemotional-start');
     },
   });
 
   function handleGoalSelect(goal: AssessmentGoal) {
     wasFirstEverRef.current = current === null;
+    fromNotStartedRef.current = !!(
+      location.state as { fromNotStarted?: boolean } | null
+    )?.fromNotStarted;
     startMutation.mutate(goal);
   }
 
