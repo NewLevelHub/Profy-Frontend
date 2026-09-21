@@ -597,23 +597,7 @@ export interface StudentCareer {
 // — mirrors app/schemas/result_v2.py field-for-field. Wired into
 // ReportSectionsBlock at Ф4.1 (PRO-338).
 
-export type ValidityTrafficLight = 'green' | 'yellow' | 'red';
-export type SdLevel = 'ok' | 'social_desirability' | 'high';
 
-export interface ValiditySection {
-  consent_ok: boolean;
-  traffic_light: ValidityTrafficLight;
-  sd_raw: number;
-  sd_level: SdLevel;
-  sd_bounds: [number, number];
-  longstring_max: number;
-  irv: number;
-  infrequency_failed: number;
-  careless_flag: boolean;
-  thresholds_version: number;
-}
-
-export type PsychValiditySection = ValiditySection;
 
 export type PsychoEmotionalValidityFlag = 'ok' | 'caution' | 'low';
 export type PsychoAnxietyLevel = 'low' | 'moderate' | 'high' | 'very_high';
@@ -715,8 +699,7 @@ interface ResultResponseBase {
   exploration_note: string;
   final_analysis: string;
   created_at: string;
-  /** `null` unless the viewer is a psychologist/admin AND the calc has run. */
-  validity?: ValiditySection | null;
+
   /** `null` unless the viewer is a psychologist/admin AND a run exists. */
   psychoemotional?: PsychoEmotionalSection | null;
 }
