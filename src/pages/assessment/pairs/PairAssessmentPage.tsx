@@ -26,6 +26,7 @@ export default function PairAssessmentPage() {
     handleStartIntro,
     handleAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
     handleExit,
     confirmExit,
     cancelExit,
@@ -53,6 +54,7 @@ export default function PairAssessmentPage() {
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
+        devAutofillToMotivation={{ onClick: handleAutofillToMotivation, loading: autofilling }}
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}

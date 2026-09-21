@@ -14,6 +14,7 @@ import { PrintCover } from './PrintCover';
 import { PrintSection } from './PrintSection';
 import { PrintNoteList } from './PrintNoteList';
 import { PrintLevelRows } from './PrintLevelRows';
+import { PrintInterestDetails } from './PrintInterestDetails';
 import { PrintCareers, PrintSpheres } from './PrintNextSteps';
 
 interface PrintDocumentProps {
@@ -39,10 +40,15 @@ interface PrintDocumentProps {
  */
 export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: PrintDocumentProps) {
   const { t } = useTranslation('results');
-  const labels = isJunior ? MI_LABELS : RIASEC_LABELS;
-  const descriptions = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
+  // The constants hold i18n keys ("results:riasecLabel.R"), not text — resolve
+  // them once, or the PDF prints the raw keys.
+  const resolve = (keys: Record<string, string>) =>
+    Object.fromEntries(Object.entries(keys).map(([code, key]) => [code, t(key)])) as Record<string, string>;
+  const labels = resolve(isJunior ? MI_LABELS : RIASEC_LABELS);
+  const descriptions = resolve(isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS);
   const headline = buildHeadline(report.interest_map, labels);
   const secondaryNote = buildSecondaryNote(report.interest_map, labels);
+  const hasInterestDetails = !isJunior && report.interest_map.some((item) => item.details);
 
   // Same branch as GoalBranchSection — and note it keys on AGE GROUP, not on
   // `isJunior` above: the interest section branches on the instrument
@@ -77,15 +83,24 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
             {t('print.alsoNotable', { note: secondaryNote })}
           </p>
         )}
-        <PrintLevelRows
-          rows={report.interest_map.map((item) => ({
-            id: item.code,
-            title: item.sphere,
-            status: t(LEVEL_STATUS_LABEL[item.level]),
-            description: descriptions[item.code],
-            level: item.level,
-          }))}
-        />
+        {hasInterestDetails ? (
+          <PrintInterestDetails
+            items={report.interest_map}
+            labels={labels}
+            descriptions={descriptions}
+            combination={report.interest_instrument === 'riasec' ? report.interest_combination ?? null : null}
+          />
+        ) : (
+          <PrintLevelRows
+            rows={report.interest_map.map((item) => ({
+              id: item.code,
+              title: labels[item.code] ?? item.sphere,
+              status: t(LEVEL_STATUS_LABEL[item.level]),
+              description: descriptions[item.code],
+              level: item.level,
+            }))}
+          />
+        )}
         {report.interest_map_note && (
           <p className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
             {report.interest_map_note}

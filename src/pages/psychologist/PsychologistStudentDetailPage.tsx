@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
-import axios from 'axios';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Link, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import { ClipboardCheck, FileText, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
@@ -227,8 +227,42 @@ export default function PsychologistStudentDetailPage() {
                       ? t(ASSESSMENT_STATUS_LABELS[a.status])
                       : a.status}
                   </AdminBadge>
-                  {a.has_result && <AdminBadge tone="quiet">{t('detail.hasResult')}</AdminBadge>}
+                  {a.review_status === 'pending_review' && (
+                    <AdminBadge tone="accent">{t('psychologist:detail.pendingReview', 'На проверке')}</AdminBadge>
+                  )}
+                  {a.review_status === 'published' && (
+                    <AdminBadge tone="brand">{t('psychologist:detail.published', 'Опубликовано')}</AdminBadge>
+                  )}
+                  {a.has_result && !a.review_status && <AdminBadge tone="quiet">{t('detail.hasResult')}</AdminBadge>}
                   {a.has_roadmap && <AdminBadge tone="quiet">{t('detail.hasRoadmap')}</AdminBadge>}
+                  {/* Single unified report button */}
+                  {(a.has_result || a.review_status) && (
+                    <Link
+                      to={
+                        a.review_status === 'pending_review'
+                          ? `/psychologist/students/${studentId}/assessments/${a.id}/report?tab=review`
+                          : `/psychologist/students/${studentId}/assessments/${a.id}/report`
+                      }
+                      className={cn(
+                        ADMIN_BUTTON,
+                        a.review_status === 'pending_review'
+                          ? 'bg-brand text-on-brand border-brand hover:bg-brand-hover hover:border-brand-hover hover:text-on-brand shadow-sm font-semibold'
+                          : 'hover:border-strong hover:text-primary',
+                      )}
+                    >
+                      {a.review_status === 'pending_review' ? (
+                        <>
+                          <ClipboardCheck size={14} />
+                          {t('psychologist:detail.checkReport', 'Проверить отчёт')}
+                        </>
+                      ) : (
+                        <>
+                          <FileText size={14} />
+                          {t('psychologist:detail.openReport', 'Открыть отчёт')}
+                        </>
+                      )}
+                    </Link>
+                  )}
                 </div>
               </li>
             ))}

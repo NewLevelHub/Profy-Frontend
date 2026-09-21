@@ -74,6 +74,11 @@
   },
   "languageSwitcherAria": "Тіл / Язык",
   "themeLabel": "Тақырып",
+  "theme": {
+    "light": "Ашық тақырып",
+    "dark": "Күңгірт тақырып",
+    "groupLabel": "Безендіру тақырыбы"
+  },
   "favoriteAdd": "Таңдаулыға қосу",
   "favoriteRemove": "Таңдаулыдан алу",
   "mascot": {

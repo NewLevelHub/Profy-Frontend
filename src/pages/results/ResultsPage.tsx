@@ -41,6 +41,7 @@ export default function ResultsPage() {
     report,
     isLoading,
     isTranslating,
+    isPendingReview,
     error,
     hasCompletedAssessment,
     assessmentId,
@@ -49,8 +50,10 @@ export default function ResultsPage() {
     isJunior,
     refetch,
     inProgress,
-    answeredCount,
-    totalQuestions,
+    completedPhaseCount,
+    totalPhaseCount,
+    currentPhase,
+    continueRoute,
   } = useResults();
 
   if (!hasCompletedAssessment) {
@@ -58,9 +61,10 @@ export default function ResultsPage() {
       <PageContainer>
         {inProgress ? (
           <AssessmentInProgressCard
-            answeredCount={answeredCount}
-            totalQuestions={totalQuestions}
-            onContinue={() => navigate('/assessment')}
+            completedPhaseCount={completedPhaseCount}
+            totalPhaseCount={totalPhaseCount}
+            currentPhase={currentPhase}
+            onContinue={() => navigate(continueRoute)}
           />
         ) : (
           <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />
@@ -77,6 +81,20 @@ export default function ResultsPage() {
     return (
       <PageContainer>
         <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
+
+  // Test finished, report generated, but a psychologist hasn't published it
+  // yet (PRO-337). useResults keeps polling and swaps the report in once it is.
+  if (isPendingReview) {
+    return (
+      <PageContainer>
+        <JourneyEmptyState
+          mascotState="pause"
+          title={t('pendingReview.title')}
+          body={t('pendingReview.body')}
+        />
       </PageContainer>
     );
   }
@@ -118,6 +136,7 @@ export default function ResultsPage() {
           isJunior={isJunior}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
+          interestCombination={report.interest_instrument === 'riasec' ? report.interest_combination : null}
         />
       </ResultsReveal>
 

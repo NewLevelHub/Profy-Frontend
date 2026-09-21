@@ -3,9 +3,9 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireAdmin } from '@/shared/guards/RequireAdmin';
 import { RequirePsychologist } from '@/shared/guards/RequirePsychologist';
+import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
-import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
@@ -34,6 +34,11 @@ import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
+// PRO-338 Ф2.6 — Belbin BTRSPI: own route outside this flow, launched only
+// from the psychologist cabinet (see 03-Фаза2-Белбин.md Ф2.6/Ф0.8).
+import BelbinPage from '@/pages/assessment/belbin/BelbinPage';
+// PRO-338 Ф3.6 — АСТУР: same pattern as Belbin above (04-Фаза3-АСТУР.md Ф3.6).
+import AsturPage from '@/pages/assessment/astur/AsturPage';
 
 // ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
 import ResultsPage from '@/pages/results/ResultsPage';
@@ -72,6 +77,9 @@ import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetail
 // ── Psychologist cabinet ──────────────────────────────────────────────────────
 import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
 import PsychologistStudentDetailPage from '@/pages/psychologist/PsychologistStudentDetailPage';
+import PsychologistReportPage from '@/pages/psychologist/PsychologistReportPage';
+import PsychologistReviewQueuePage from '@/pages/psychologist/PsychologistReviewQueuePage';
+import PsychologistResultReviewPage from '@/pages/psychologist/PsychologistResultReviewPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -117,6 +125,15 @@ export const router = createBrowserRouter([
                 path: '/psychologist/students/:studentId',
                 element: <PsychologistStudentDetailPage />,
               },
+              {
+                path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
+                element: <PsychologistReportPage />,
+              },
+              { path: '/psychologist/reviews', element: <PsychologistReviewQueuePage /> },
+              {
+                path: '/psychologist/students/:studentId/results/:assessmentId/review',
+                element: <PsychologistResultReviewPage />,
+              },
             ],
           },
         ],
@@ -124,37 +141,32 @@ export const router = createBrowserRouter([
       {
         element: <RequireAdmin />,
         children: [
+          { path: '/admin', element: <Navigate to="/admin/users" replace /> },
           {
-            element: <AppLayout />,
+            // Persistent admin chrome (section rail) for every admin page
+            element: <AdminLayout />,
             children: [
-              { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+              { path: '/admin/users', element: <AdminUsersPage /> },
+              { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+              { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+              { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+              { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+              { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
               {
-                // Persistent admin chrome (section rail) for every admin page
-                element: <AdminLayout />,
+                path: '/admin/content',
+                element: <AdminContentLayout />,
                 children: [
-                  { path: '/admin/users', element: <AdminUsersPage /> },
-                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-                  { path: '/admin/feedback', element: <AdminFeedbackPage /> },
-                  { path: '/admin/universities', element: <AdminUniversitiesPage /> },
-                  { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
-                  { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
-                  {
-                    path: '/admin/content',
-                    element: <AdminContentLayout />,
-                    children: [
-                      { index: true, element: <Navigate to="/admin/content/questions" replace /> },
-                      { path: 'questions', element: <AdminQuestionsPage /> },
-                      { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
-                      { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
-                      { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
-                      { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
-                      { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
-                      { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
-                      { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
-                      { path: 'directions', element: <AdminDirectionsPage /> },
-                      { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
-                    ],
-                  },
+                  { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                  { path: 'questions', element: <AdminQuestionsPage /> },
+                  { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
+                  { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
+                  { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
+                  { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
+                  { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
+                  { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
+                  { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
+                  { path: 'directions', element: <AdminDirectionsPage /> },
+                  { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
                 ],
               },
             ],
@@ -179,6 +191,15 @@ export const router = createBrowserRouter([
           { path: '/assessment/rest', element: <RestStopPage /> },
           { path: '/assessment/loading', element: <ResultLoadingPage /> },
           { path: '/assessment/goal-check', element: <GoalCheckPage /> },
+
+          // Assessment flow — Belbin & ASTUR follow Motivation directly
+          { path: '/assessment/belbin/:assessmentId', element: <BelbinPage /> },
+          { path: '/assessment/belbin', element: <BelbinPage /> },
+          { path: '/assessment/astur/:assessmentId', element: <AsturPage /> },
+          { path: '/assessment/astur', element: <AsturPage /> },
+          // Backward-compatibility aliases
+          { path: '/assessment/extended/belbin/:assessmentId', element: <BelbinPage /> },
+          { path: '/assessment/extended/astur/:assessmentId', element: <AsturPage /> },
 
           // Main app — guarded by profile; redirects to /welcome if profile not yet created
           {
