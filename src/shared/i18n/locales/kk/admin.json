@@ -711,7 +711,7 @@
       "inactiveDays": "Кірмеген",
       "status": "Мәртебесі бойынша тест бар"
     },
-    "filterAge": "Жасы: {{age}}",
+    "filterAge": "Саты: {{age}}",
     "filterEmail": "Email «{{search}}» қамтиды",
     "filterGoal": "Мақсаты бойынша тест бар: {{goal}}",
     "filterInactiveDays": "{{days}} күннен астам кірмеген",
