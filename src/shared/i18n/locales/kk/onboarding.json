@@ -37,7 +37,8 @@
     "nameTooLong": "Ат тым ұзын (ең көбі {{max}} таңба)",
     "nameLettersOnly": "Ат тек әріптерден тұруы керек",
     "ageRange": "Жас: 14-тен 18-ге дейін",
-    "gradeRange": "Сынып: 1-ден 12-ге дейін"
+    "gradeRange": "Сынып: 1-ден 12-ге дейін",
+    "gradeForAge": "{{age}} жасқа {{min}}–{{max}} сынып сай келеді"
   },
   "profile": {
     "kickerIntro": "Профиль · Танысу қадамы",
@@ -52,6 +53,7 @@
     "schoolNote": "Сынып пен қала — сұрақтар мен ұсыныстарды дәлірек таңдауға көмектеседі",
     "gradeLabel": "Сынып",
     "gradePlaceholder": "1-ден 12-ге дейін",
+    "gradePlaceholderRange": "{{min}}–{{max}}",
     "cityLabel": "Қала",
     "cityPlaceholder": "Мысалы, Алматы",
     "cityHint": "Әзірге нұсқаусыз — жай ғана қалаңды жаз",

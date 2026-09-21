@@ -61,7 +61,9 @@ export default function ResultsPage() {
             onContinue={() => navigate(continueRoute)}
           />
         ) : (
-          <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />
+          <AssessmentNotStartedCard
+            onStart={() => navigate('/assessment/goal', { state: { fromNotStarted: true } })}
+          />
         )}
       </PageContainer>
     );
