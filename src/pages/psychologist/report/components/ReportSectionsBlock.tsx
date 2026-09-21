@@ -5,7 +5,7 @@ import { AdminEmpty } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { NewTestsSections, PsychAiAnalysis, ResultResponse } from '@/shared/types';
 import { AiAnalysisSection } from './AiAnalysisSection';
-import { ValiditySection } from './ValiditySection';
+
 import { PsychoEmotionalSection } from './PsychoEmotionalSection';
 import { ProfessionalTypesSection } from './ProfessionalTypesSection';
 import { TeamRoleSection } from './TeamRoleSection';
@@ -82,12 +82,7 @@ export function ReportSectionsBlock({
         )}
       </AdminCard>
 
-      {report.validity && (
-        <div>
-          <GroupHeading>Надёжность протокола</GroupHeading>
-          <ValiditySection section={report.validity} />
-        </div>
-      )}
+
 
       <div>
         <GroupHeading>Личность</GroupHeading>
