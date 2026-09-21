@@ -141,34 +141,31 @@ pending-конвертом, ни с v2-схемой.
 
 ### 3.2 `src/pages/results/ResultsPage.tsx`
 
-Новая ветка между текущей `isTranslating` и полным рендером отчёта:
+Новая ветка между текущей `isTranslating` и полным рендером отчёта.
+Экрана ожидания «почти готов» больше нет (PRO-401) — карточка завершения
+с CTA в профиль / вузы; после `/assessment/loading` при `pending_review`
+ученик уходит на `/profile`.
 
 ```tsx
 if (isPendingReview) {
   return (
     <PageContainer>
-      <JourneyEmptyState
-        mascotState="pause"
-        title={t('pendingReview.title')}
-        body={t('pendingReview.body')}
+      <AssessmentCompletedCard
+        onOpenProfile={() => navigate('/profile')}
+        onOpenUniversities={() => navigate('/universities')}
       />
     </PageContainer>
   );
 }
 ```
 
-Если копирайту понадобится больше структуры, чем даёт `JourneyEmptyState`
-(иллюстрация + развёрнутый абзац) — новый компонент
-`src/pages/results/components/PendingReviewCard.tsx`, но по умолчанию
-переиспользовать существующий `JourneyEmptyState`, ничего нового не
-создавая без необходимости.
-
 ### 3.3 i18n
 
 Строки — в `src/shared/i18n/locales/ru/results.json` **и**
 `src/shared/i18n/locales/kk/results.json` (обе локали, по существующей в
 репозитории конвенции параллельности ru/kk для студенческих текстов):
-новый ключ `pendingReview: { title, body }`.
+ключ `completedPending: { kicker, title, body, ctaProfile, ctaUniversities }`
+(раньше был `pendingReview`).
 
 ### 3.4 "Сохранение в профиле"
 
