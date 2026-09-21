@@ -304,5 +304,26 @@
     "decrease": "Уменьшить «{{label}}»",
     "points": "Баллы для «{{label}}»",
     "increase": "Увеличить «{{label}}»"
+  },
+  "astur": {
+    "subtestOf": "Субтест {{index}} из {{count}}",
+    "tasksCount": "{{count}} заданий",
+    "minutesShort": "{{min}} мин.",
+    "timeUpWarning": "Время вышло — закончи и нажми «Далее»",
+    "submitError": "Не удалось отправить ответы, попробуйте ещё раз",
+    "loadError": "Не удалось загрузить содержимое теста",
+    "pickTwoPrompt": "Найдите два связанных слова из шести",
+    "selectedCount": "Выбрано: {{current}}/{{total}}",
+    "hierarchyPrompt": "Расставьте от самого общего к самому частному",
+    "generalizationPlaceholder": "Обобщающее слово или словосочетание",
+    "numericPairFirst": "1-е число",
+    "numericPairSecond": "2-е число",
+    "figureAssemblyPrompt": "Из каких частей можно без пропусков и остатка собрать фигуру-эталон?",
+    "labilityHeader": "Команда {{x}} из {{y}} · {{t}} с",
+    "labilitySending": "Отправка…",
+    "analogyPrompt": "«{{first}}» относится к «{{second}}» так же, как «{{third}}» относится к …",
+    "doneTitle": "Все тесты успешно пройдены!",
+    "doneMessage": "Поздравляем! Основные и специальные тесты полностью завершены...",
+    "generateReport": "Сформировать отчёт"
   }
 }

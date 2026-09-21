@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
@@ -54,6 +55,7 @@ function initialAnswers(subtest: AsturContentSubtest): Record<string, unknown> {
  *  просто переходит в тревожный режим и ждёт, пока студент сам нажмёт
  *  «Далее». Формат ввода переключается по `subtest.key`. */
 export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: SubtestRunnerProps) {
+  const { t } = useTranslation('assessment');
   const [answers, setAnswers] = useState<Record<string, unknown>>(() => initialAnswers(subtest));
   const [timeUp, setTimeUp] = useState(false);
 
@@ -83,7 +85,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
         <div className="flex flex-col gap-1.5">
           <ProgressBar value={(remainingMs / durationMs) * 100} variant={remainingMs < 15000 ? 'accent' : 'brand'} />
           <Text variant="caption" className={cn('self-end', timeUp ? 'text-danger font-semibold' : 'text-muted')}>
-            {timeUp ? 'Время вышло — закончи и нажми «Далее»' : formatMmSs(remainingMs)}
+            {timeUp ? t('astur.timeUpWarning') : formatMmSs(remainingMs)}
           </Text>
         </div>
       )}
@@ -102,7 +104,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
             const it = item as AsturAnalogyItem;
             return (
               <McQuestion key={index} index={i + 1}
-                prompt={`«${it.pair[0]}» относится к «${it.pair[1]}» так же, как «${it.third}» относится к …`}
+                prompt={t('astur.analogyPrompt', { first: it.pair[0], second: it.pair[1], third: it.third })}
                 options={it.options}
                 value={answers[index] as string | undefined} onChange={(v) => setAnswer(index, v)} />
             );
@@ -149,7 +151,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
       )}
 
       <Button size="lg" onClick={() => onSubmit(normalizedAnswers())} isLoading={submitting} className="self-end">
-        Далее
+        {t('priority.continue')}
       </Button>
       </div>
     </div>
