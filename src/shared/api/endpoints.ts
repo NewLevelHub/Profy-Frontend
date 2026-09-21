@@ -36,6 +36,9 @@ export const API = {
     motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
+    psychoemotionalStart: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/start`,
+    psychoemotionalFinish: (assessmentId: string, runId: string) =>
+      `/assessment/${assessmentId}/psychoemotional/${runId}/finish`,
     belbinContent: '/assessment/belbin/content',
     belbin: (assessmentId: string) => `/assessment/${assessmentId}/belbin`,
     asturContent: '/assessment/astur/content',
@@ -113,6 +116,8 @@ export const API = {
     availableStudents: '/psychologist/students/available',
     claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
+    studentResult: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/result/${assessmentId}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
     studentAssessmentReport: (studentId: string, assessmentId: string) =>

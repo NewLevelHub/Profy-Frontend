@@ -32,6 +32,8 @@ import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
 import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
+import PsychoColorStartPage from '@/pages/assessment/psychoemotional/PsychoColorStartPage';
+import PsychoEmotionalPage from '@/pages/assessment/psychoemotional/PsychoEmotionalPage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
 // PRO-338 Ф2.6 — Belbin BTRSPI: own route outside this flow, launched only
@@ -188,6 +190,8 @@ export const router = createBrowserRouter([
           { path: '/assessment', element: <AssessmentPage /> },
           { path: '/assessment/pairs', element: <PairAssessmentPage /> },
           { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
+          { path: '/assessment/psychoemotional-start', element: <PsychoColorStartPage /> },
+          { path: '/assessment/psychoemotional', element: <PsychoEmotionalPage /> },
           { path: '/assessment/rest', element: <RestStopPage /> },
           { path: '/assessment/loading', element: <ResultLoadingPage /> },
           { path: '/assessment/goal-check', element: <GoalCheckPage /> },

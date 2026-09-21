@@ -131,7 +131,6 @@ export function AssessmentRail({
           )}
 
           <ThemeToggle />
-
           {/* Slot 2: sound toggle */}
           <button
             type="button"

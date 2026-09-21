@@ -118,7 +118,9 @@ export default function PsychologistStudentsPage() {
         mobileLabel: t('list.colAssigned'),
         cell: (row) => (
           <span className={cn(ADMIN_NUM, 'text-muted')}>
-            {formatDate(row.assigned_at, { day: '2-digit', month: 'short', year: 'numeric' })}
+            {row.assigned_at
+              ? formatDate(row.assigned_at, { day: '2-digit', month: 'short', year: 'numeric' })
+              : '—'}
           </span>
         ),
       },

@@ -79,7 +79,7 @@ export default function WelcomePage() {
                   variant="primary"
                   className={cn('w-full sm:w-auto')}
                   style={{ minHeight: 48 }}
-                  onClick={() => navigate('/assessment')}
+                  onClick={() => navigate('/assessment/psychoemotional-start')}
                 >
                   {t('welcome.start')}
                 </Button>

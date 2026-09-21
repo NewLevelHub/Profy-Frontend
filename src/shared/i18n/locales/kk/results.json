@@ -436,6 +436,7 @@
     "directionsTitleSenior": "МАҚСАТҚА САЙ БАҒЫТТАР",
     "directionsSubtitleMiddle": "Профиліңе сай мамандықтар — көбірек білу үшін кез келгенін аш.",
     "directionsSubtitleSenior": "Профиліңе сай мамандықтар — ол бойынша ЖОО мен бағдарламаларды көру үшін кез келгенін аш.",
+    "directionsSubtitleReadOnly": "Оқушының профиліне сай мамандықтар.",
     "roadmapTitle": "ТАҢДАУ ROADMAP-Ы",
     "roadmapAria": "Мамандық таңдау roadmap-ы: шешімге дейін 1 ай, 3 ай, 6 ай"
   },

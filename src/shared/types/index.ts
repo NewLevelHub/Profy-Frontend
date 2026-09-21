@@ -149,6 +149,11 @@ export interface Question {
   bigfive_domain: BigFiveDomain | null;
   text: string;
   order: number;
+  // Which Likert scale to render, decided by the server independently of
+  // `instrument` (protocol-validity items are wire-tagged `riasec` but keep
+  // the agree/disagree Big Five scale — see profi-backend
+  // app/services/question_service.py::_bigfive_scale).
+  bigfive_scale: boolean;
 }
 
 export interface AnswerPayload {
@@ -263,6 +268,31 @@ export interface SubmitPairAnswersResponse {
   answered_count: number;
   total: number;
   completed: boolean;
+}
+
+// ─── Psychoemotional (МЦВ Собчик) — PRO-306 ────────────────────────────────────
+// Сырое прохождение, двухфазно: check-in + круг 1 — перед основной батареей
+// тестов (start, §B4 п.1-2 — check-in идёт первым), круг 2 — в конце всего
+// прохождения (finish), на той же строке. Метрики/интерпретацию бэкенд не
+// возвращает (§5.6).
+export interface StartPsychoEmotionalPayload {
+  list1: number[];
+  list1_dt_ms: number[];
+  checkin: Record<string, string>;
+}
+
+export interface StartPsychoEmotionalResponse {
+  run_id: string;
+}
+
+export interface FinishPsychoEmotionalPayload {
+  list2: number[];
+  list2_dt_ms: number[];
+}
+
+export interface FinishPsychoEmotionalResponse {
+  run_id: string;
+  tech_invalid: boolean;
 }
 
 // ─── Belbin BTRSPI (ипсативный блок, вне обычного /assessment потока) ───────────
@@ -565,9 +595,7 @@ export interface StudentCareer {
 // (report_service.psych_sections_for — the ONLY place that decides
 // visibility, never re-implemented here). МАК is out of scope (PRO-282 §4)
 // — mirrors app/schemas/result_v2.py field-for-field. Wired into
-// ReportSectionsBlock at Ф4.1 (PRO-338) — this type existed on the backend
-// since PRO-282/PRO-300 but had no frontend counterpart in this branch
-// until now (PRO-282's own frontend was never merged here).
+// ReportSectionsBlock at Ф4.1 (PRO-338).
 
 export type ValidityTrafficLight = 'green' | 'yellow' | 'red';
 export type SdLevel = 'ok' | 'social_desirability' | 'high';
@@ -585,12 +613,15 @@ export interface ValiditySection {
   thresholds_version: number;
 }
 
+export type PsychValiditySection = ValiditySection;
+
 export type PsychoEmotionalValidityFlag = 'ok' | 'caution' | 'low';
 export type PsychoAnxietyLevel = 'low' | 'moderate' | 'high' | 'very_high';
 export type PsychoCompensationLevel = 'low' | 'moderate' | 'high';
 export type PsychoSoLevel = 'norm' | 'elevated' | 'high';
 export type PsychoVkLevel = 'low_tone' | 'reduced' | 'balance' | 'overexcited';
 export type PsychoFunctionalSign = 'plus' | 'cross' | 'equal' | 'minus';
+export type PsychoPairSign = PsychoFunctionalSign;
 
 export interface PsychoEmotionalPositionalPair {
   sign: PsychoFunctionalSign;
@@ -600,6 +631,12 @@ export interface PsychoEmotionalPositionalPair {
 export interface PsychoEmotionalSplitPair {
   colors: [number, number];
   stable: boolean;
+}
+
+export interface PsychoEmotionalIndex {
+  score: number;
+  level: PsychoAnxietyLevel | PsychoCompensationLevel;
+  breakdown: Record<string, number>;
 }
 
 export interface PsychoEmotionalAnxiety {
@@ -616,6 +653,13 @@ export interface PsychoEmotionalCompensation {
   purple_position: number;
 }
 
+export interface PsychoEmotionalStructural {
+  performance: number;
+  concentricity: number;
+  heteronomy: number;
+  kkp: number;
+}
+
 export interface PsychoEmotionalHistoryItem {
   run_number: number;
   completed_at: string;
@@ -630,7 +674,7 @@ export interface PsychoEmotionalSection {
   run_number: number;
   completed_at: string;
   history: PsychoEmotionalHistoryItem[];
-  checkin: Record<string, unknown>;
+  checkin: Record<string, string>;
   validity_flag: PsychoEmotionalValidityFlag | null;
   validity_reasons: string[];
   choice_1: number[];
@@ -649,8 +693,11 @@ export interface PsychoEmotionalSection {
   so_level: PsychoSoLevel;
   vk_value: number;
   vk_level: PsychoVkLevel;
+  structural?: PsychoEmotionalStructural;
   black_first: boolean;
 }
+
+export type PsychEmotionalSection = PsychoEmotionalSection;
 
 interface ResultResponseBase {
   report_version: 2;
@@ -669,9 +716,9 @@ interface ResultResponseBase {
   final_analysis: string;
   created_at: string;
   /** `null` unless the viewer is a psychologist/admin AND the calc has run. */
-  validity: ValiditySection | null;
+  validity?: ValiditySection | null;
   /** `null` unless the viewer is a psychologist/admin AND a run exists. */
-  psychoemotional: PsychoEmotionalSection | null;
+  psychoemotional?: PsychoEmotionalSection | null;
 }
 
 export interface MiResultResponse extends ResultResponseBase {
@@ -1327,7 +1374,10 @@ export interface PsychologistStudentListItem {
   email: string;
   profile_name: string | null;
   age_group: AgeGroup | null;
-  assigned_at: string;
+  assigned_at?: string;
+  /** Student's registration date — a psychologist sees every student, there
+   *  is no assignment step. */
+  registered_at?: string;
 }
 
 /** Students the psychologist can claim (PRO-337 — no admin in this flow). */

@@ -27,6 +27,12 @@ export async function autofillPairMainBattery(assessmentId: string): Promise<voi
   }
 }
 
+/** Dev-only helper, junior's equivalent of autofillUntilMotivation in
+ * autofillAssessment.ts: fills every remaining pair, then stops right
+ * before /assessment/motivation ("Что тебя драйвит") so that block can be
+ * tested by hand instead of raced through. */
+export const autofillPairsUntilMotivation = autofillPairMainBattery;
+
 /** Dev-only helper: `autofillPairMainBattery` plus every motivation Harter
  * pair with a random side + intensity (junior always uses the Harter format
  * now, never the triplets — see MotivationAssessmentPage.tsx) — so the

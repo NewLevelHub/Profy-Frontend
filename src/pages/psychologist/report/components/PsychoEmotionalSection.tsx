@@ -37,7 +37,7 @@ function formatDate(value: string) {
  *  не используется). Ф4.1 — впервые на этом фронтенде. Только сырые числа/
  *  раскладки: трактовка — целиком за специалистом (та же оговорка, что в
  *  схеме бэкенда), эта секция намеренно не подсказывает выводов. */
-export function PsychoEmotionalSection({ section }: { section: PsychoEmotionalSectionData | null }) {
+export function PsychoEmotionalSection({ section }: { section?: PsychoEmotionalSectionData | null }) {
   if (!section) return null;
   const { anxiety, compensation } = section;
 

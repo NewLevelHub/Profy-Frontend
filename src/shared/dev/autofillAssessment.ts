@@ -81,6 +81,11 @@ export async function autofillMainBattery(assessmentId: string): Promise<void> {
   }
 }
 
+/** Dev-only helper: fills every remaining Likert/pair question, then stops —
+ * landing the caller right at /assessment/motivation ("Что тебя драйвит")
+ * instead of racing through it, so that block can be tested by hand. */
+export const autofillUntilMotivation = autofillMainBattery;
+
 /** Dev-only helper: `autofillMainBattery` plus motivation plus Belbin —
  * everything ahead of АСТУР — so a caller can land the tester ON the
  * АСТУР flow itself (e.g. to test IT by hand, or after adding a new
