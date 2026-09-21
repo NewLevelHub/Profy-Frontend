@@ -34,6 +34,14 @@ function moveItem(list: PsychologistReviewCareer[], from: number, to: number): P
   return arrayMove(list, from, to);
 }
 
+/** Backend stores Pearson / normalized match as 0–1 (PRO-385). Older rows
+ *  may still be 0–100 ints — don't double-scale those. PRO-417. */
+function formatMatchPercent(score: number): string {
+  const pct = score <= 1 ? score * 100 : score;
+  const rounded = Math.round(pct * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
+}
+
 interface SortableCareerRowProps {
   career: PsychologistReviewCareer;
   index: number;
@@ -80,7 +88,7 @@ function SortableCareerRow({
         <span className={cn(ADMIN_NUM, 'text-muted')}>{index + 1}.</span>
         <span className={cn(ADMIN_TEXT, 'font-semibold text-primary')}>{career.name}</span>
         <AdminBadge tone="quiet">{career.holland_code}</AdminBadge>
-        <span className={cn(ADMIN_NUM, 'text-muted')}>{career.match_score}%</span>
+        <span className={cn(ADMIN_NUM, 'text-muted')}>{formatMatchPercent(career.match_score)}</span>
       </div>
       {!disabled && (
         <div className="flex items-center gap-1.5 flex-shrink-0">
