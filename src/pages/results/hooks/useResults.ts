@@ -8,6 +8,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { useLocaleStore } from '@/shared/store/locale';
 import { hasPendingColorRun } from '@/shared/store/psychoemotional';
+import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
 
 export function useResults() {
   const { t } = useTranslation('results');
@@ -169,14 +170,22 @@ export function useResults() {
 
   // The whole test is 4 phases (Likert+pairs -> motivation -> Belbin ->
   // АСТУР — see assessment_shared.try_complete_assessment on the backend for
-  // the matching definition), not just the Likert block. The in-progress
-  // card used to show only Likert's own answered/total (e.g. "558 из 558 —
-  // 100%"), which read as "test finished" even with 3 phases still ahead —
-  // this drives that card off real phase completion instead.
+  // the matching definition), not just the Likert block. Progress on the
+  // in-progress card is the monotonic journey percentage (each phase 25%)
+  // so mid-diagnostic no longer reads as a stuck 0%, and finishing Likert
+  // alone no longer reads as 100%/done.
   const likertDone = totalQuestions > 0 && answeredCount >= totalQuestions;
   const motivationDone = motivationTotal > 0 && motivationAnsweredCount >= motivationTotal;
   const completedPhaseCount = [likertDone, motivationDone, belbinCompleted, asturCompleted].filter(Boolean).length;
   const totalPhaseCount = 4;
+  const journeyProgress = journeyProgressPercent({
+    answeredCount,
+    totalQuestions,
+    motivationAnsweredCount,
+    motivationTotal,
+    belbinCompleted,
+    asturCompleted,
+  });
 
   type AssessmentPhase = 'diagnostic' | 'motivation' | 'belbin' | 'astur' | 'done';
   let currentPhase: AssessmentPhase = 'diagnostic';
@@ -228,6 +237,7 @@ export function useResults() {
     totalQuestions,
     completedPhaseCount,
     totalPhaseCount,
+    journeyProgress,
     currentPhase,
     continueRoute,
   };

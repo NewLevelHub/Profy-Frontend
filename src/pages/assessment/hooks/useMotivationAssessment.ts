@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
+import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
@@ -173,7 +175,7 @@ export function useMotivationAssessment() {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/motivation',
-            progress,
+            progress: journeyProgressPercent(useAssessmentStore.getState()),
             totalAnswered: restCheck.totalAnswered,
             isSpeedFlag,
           } satisfies RestStopState,
@@ -237,7 +239,7 @@ export function useMotivationAssessment() {
 
   const currentTriplet = triplets[tripletIndex];
   const totalTriplets = triplets.length;
-  const progress = totalTriplets > 0 ? ((tripletIndex + 1) / totalTriplets) * 100 : 0;
+  const progress = useAssessmentJourneyProgress();
   const canProceed = ranking.length === 3;
   const orderedStatements = currentTriplet
     ? ranking

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { belbinApi } from '@/shared/api/belbin';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useAssessmentJourneyProgress } from '../../hooks/useAssessmentJourneyProgress';
 
 type Phase = 'intro' | 'block' | 'done';
 
@@ -58,6 +59,7 @@ function clearProgress(assessmentId: string) {
  */
 export function useBelbinAssessment(assessmentId: string) {
   const navigate = useNavigate();
+  const belbinCompleted = useAssessmentStore(s => s.belbinCompleted);
   const { data: content, isLoading, isError } = useQuery({
     queryKey: ['belbinContent'] as const,
     queryFn: belbinApi.getContent,
@@ -102,7 +104,13 @@ export function useBelbinAssessment(assessmentId: string) {
   const isBlockValid = sum === blockTotal;
   const sectionCount = content?.sections.length ?? 0;
   const isLastBlock = sectionCount > 0 && blockIndex === sectionCount - 1;
-  const progress = sectionCount > 0 ? (blockIndex / sectionCount) * 100 : 0;
+  const belbinFraction =
+    phase === 'done' || belbinCompleted
+      ? 1
+      : phase === 'intro' || sectionCount === 0
+        ? 0
+        : blockIndex / sectionCount;
+  const progress = useAssessmentJourneyProgress({ belbinFraction });
 
   function setAllocationValue(next: Record<string, number>) {
     setAllocations((prev) => prev.map((block, i) => (i === blockIndex ? next : block)));

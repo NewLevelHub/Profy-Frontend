@@ -46,6 +46,7 @@ export default function ResultsPage() {
     inProgress,
     completedPhaseCount,
     totalPhaseCount,
+    journeyProgress,
     currentPhase,
     continueRoute,
   } = useResults();
@@ -57,6 +58,7 @@ export default function ResultsPage() {
           <AssessmentInProgressCard
             completedPhaseCount={completedPhaseCount}
             totalPhaseCount={totalPhaseCount}
+            progress={journeyProgress}
             currentPhase={currentPhase}
             onContinue={() => navigate(continueRoute)}
           />
