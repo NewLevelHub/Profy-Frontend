@@ -18,11 +18,17 @@ export const ADMIN_NAV_ITEM = {
   matchPrefix: '/admin',
 } as const;
 
+/** Staff cabinet nav — no student tabs (results / start test). */
 export const PSYCHOLOGIST_NAV_ITEMS = [
   {
-    label: 'common:nav.psychologist',
+    label: 'psychologist:nav.students',
     path: '/psychologist/students',
-    matchPrefix: '/psychologist',
+    matchPrefix: '/psychologist/students',
+  },
+  {
+    label: 'psychologist:nav.reviews',
+    path: '/psychologist/reviews',
+    matchPrefix: '/psychologist/reviews',
   },
 ] as const;
 

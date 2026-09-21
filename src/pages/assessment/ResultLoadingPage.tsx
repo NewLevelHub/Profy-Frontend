@@ -4,9 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
 import { useLocaleStore } from '@/shared/store/locale';
-import { resultApi } from '@/shared/api/result';
+import { isPendingReview, resultApi } from '@/shared/api/result';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { Button } from '@/shared/ui/Button';
+import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
 import { ResultLoadingView } from './components/ResultLoadingView';
 
 export default function ResultLoadingPage() {
@@ -19,6 +20,7 @@ export default function ResultLoadingPage() {
   const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
   const completeAssessment = useAssessmentStore(s => s.completeAssessment);
   const setReport = useResultStore(s => s.setReport);
+  const clearReport = useResultStore(s => s.clearReport);
 
   // Diagnostic just finished — always route through the "here's what fits
   // you" interstitial (step 5 of the onboarding→assessment journey) before
@@ -41,8 +43,11 @@ export default function ResultLoadingPage() {
         // Tag with the locale the backend just served it in (the api
         // interceptor sends this same value as Accept-Language). Without a
         // real tag, useResults treats the report as matching *any* locale and
-        // never re-fetches on a language switch.
-        setReport(result, useLocaleStore.getState().locale);
+        // never re-fetches on a language switch. A report still waiting for
+        // psychologist review isn't stored — /results shows the waiting state.
+        // Clear any leftover report from a previous attempt first (PRO-337).
+        if (isPendingReview(result)) clearReport();
+        else setReport(result, useLocaleStore.getState().locale);
         navigate('/results', { replace: true });
       }).catch(() => navigate('/results', { replace: true }));
       return;
@@ -55,12 +60,19 @@ export default function ResultLoadingPage() {
       try {
         const result = await resultApi.generate(assessmentId!);
         if (!cancelled) {
-          setReport(result, useLocaleStore.getState().locale);
           completeAssessment();
           // Full assessment completion should use the shipped finale audio
           // file, same as other final-completion moments.
           playBlockFinishAudio(1, 1);
-          navigate(postResultPath, { replace: true });
+          if (isPendingReview(result)) {
+            // Nothing to suggest on goal-check without a report — go straight
+            // to /results, which shows the "psychologist is reviewing" state.
+            clearReport();
+            navigate('/results', { replace: true });
+          } else {
+            setReport(result, useLocaleStore.getState().locale);
+            navigate(postResultPath, { replace: true });
+          }
         }
       } catch {
         if (!cancelled) {
@@ -68,10 +80,15 @@ export default function ResultLoadingPage() {
           try {
             const existing = await resultApi.get(assessmentId!);
             if (!cancelled) {
-              setReport(existing, useLocaleStore.getState().locale);
               completeAssessment();
               playBlockFinishAudio(1, 1);
-              navigate(postResultPath, { replace: true });
+              if (isPendingReview(existing)) {
+                clearReport();
+                navigate('/results', { replace: true });
+              } else {
+                setReport(existing, useLocaleStore.getState().locale);
+                navigate(postResultPath, { replace: true });
+              }
             }
           } catch {
             if (!cancelled) {
@@ -89,7 +106,8 @@ export default function ResultLoadingPage() {
 
   if (error !== null) {
     return (
-      <div className="flex flex-col min-h-screen items-center justify-center bg-page px-6">
+      <div className="relative flex flex-col min-h-screen items-center justify-center bg-page px-6">
+        <FullScreenPreferences className="absolute top-4 right-4 sm:right-6 z-10" />
         <div className="flex flex-col items-center gap-4 text-center">
           <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
           <p className="text-body text-danger">{error}</p>

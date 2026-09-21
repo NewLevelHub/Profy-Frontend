@@ -1,9 +1,30 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
-import type { Question } from '@/shared/types';
+import {
+  LIKERT_SCALE,
+  BIGFIVE_LIKERT_SCALE,
+  YES_NO_SCALE,
+  ABILITIES_LIKERT_SCALE,
+  KONDASH_ANXIETY_SCALE,
+} from '@/shared/config/constants';
+import type { Instrument, Question } from '@/shared/types';
 import { LikertScale } from './LikertScale';
+
+/** PRO-338 Ф0.5: eysenck/elers/boyko_empathy are Да/Нет (binary) instruments
+ * reusing this same Likert engine — 2 options instead of 5, everything else
+ * (big_five's own 5-point wording, and the plain 5-point default) unchanged.
+ * `boyko_empathy` was missing from this branch until Ф1.10 — its content
+ * bank (Ф1.9) shipped without wiring the answer scale, so it silently fell
+ * through to the 5-point default; fixed here alongside adding
+ * kondash_anxiety's own 0-4 scale. */
+function scaleForInstrument(instrument: Instrument) {
+  if (instrument === 'big_five') return BIGFIVE_LIKERT_SCALE;
+  if (instrument === 'eysenck' || instrument === 'elers' || instrument === 'boyko_empathy') return YES_NO_SCALE;
+  if (instrument === 'professional_types_abilities') return ABILITIES_LIKERT_SCALE;
+  if (instrument === 'kondash_anxiety') return KONDASH_ANXIETY_SCALE;
+  return LIKERT_SCALE;
+}
 
 interface LikertPageProps {
   questions: Question[];
@@ -23,6 +44,7 @@ interface LikertPageProps {
 
 export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
   const { t } = useTranslation('common');
+  const { t: tAssessment } = useTranslation('assessment');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
 
   // The next unanswered question on this page — answering one "cuts" to
@@ -68,7 +90,9 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
           <LikertScale
             selected={answers[question.id] ?? null}
             onSelect={value => onSelect(question.id, value)}
-            scale={question.bigfive_scale ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE}
+            scale={scaleForInstrument(question.instrument)}
+            poleLeft={question.instrument === 'professional_types_abilities' ? tAssessment('scale.poleLeftAbilities') : undefined}
+            poleRight={question.instrument === 'professional_types_abilities' ? tAssessment('scale.poleRightAbilities') : undefined}
           />
         </div>
       ))}

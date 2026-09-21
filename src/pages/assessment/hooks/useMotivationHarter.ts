@@ -34,7 +34,6 @@ export function useMotivationHarter() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
   // Reset whenever the current pair changes (see the effect below) —
   // elapsed time from here to handleSelectIntensity feeds the speed-flag
@@ -66,7 +65,13 @@ export function useMotivationHarter() {
           const startIndex = Math.min(current.motivation_answered_count, data.length - 1);
           setPairIndex(startIndex);
           if (startIndex >= data.length - 1 && current.motivation_answered_count >= data.length) {
-            navigate('/assessment/loading', { replace: true });
+            const state = useAssessmentStore.getState();
+            const nextRoute = !state.belbinCompleted
+              ? `/assessment/belbin/${assessmentId}`
+              : !state.asturCompleted
+              ? `/assessment/astur/${assessmentId}`
+              : '/assessment/loading';
+            navigate(nextRoute, { replace: true });
             return;
           }
         }
@@ -77,9 +82,6 @@ export function useMotivationHarter() {
         // > 0 by then, so it goes straight to the question.
         if (current.motivation_answered_count === 0) {
           setPhase('intro');
-          introTimerRef.current = setTimeout(() => {
-            if (!cancelled) setPhase('question');
-          }, 2000);
         } else {
           setPhase('question');
         }
@@ -95,10 +97,6 @@ export function useMotivationHarter() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
@@ -112,10 +110,6 @@ export function useMotivationHarter() {
   }, [pairIndex, pairs]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     setPhase('question');
   }
 
@@ -145,19 +139,13 @@ export function useMotivationHarter() {
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
-        // Don't call completeAssessment() here — that flag means "report
-        // generated", not "questions answered". Setting it early makes
-        // ResultLoadingPage take its "already have a report" shortcut
-        // (straight to /results, skipping the loading animation and
-        // goal-check) before a report exists. ResultLoadingPage sets it
-        // itself once resultApi.generate() actually succeeds.
-        navigate('/assessment/psychoemotional');
+        navigate(`/assessment/belbin/${assessmentId}`);
         return;
       }
 
       const isLast = pairIndex >= pairs.length - 1;
       if (isLast) {
-        navigate('/assessment/psychoemotional');
+        navigate(`/assessment/belbin/${assessmentId}`);
         return;
       }
 
@@ -207,7 +195,7 @@ export function useMotivationHarter() {
           intensity: Math.random() < 0.5 ? 'high' : 'medium',
         })),
       });
-      navigate('/assessment/psychoemotional');
+      navigate(`/assessment/belbin/${assessmentId}`);
     } catch {
       setError(t('assessment:error.autofill'));
     } finally {

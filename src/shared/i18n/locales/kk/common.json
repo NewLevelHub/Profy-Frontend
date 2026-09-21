@@ -76,9 +76,9 @@
   "languageSwitcherAria": "Тіл / Язык",
   "themeLabel": "Тақырып",
   "theme": {
-    "ariaLabel": "Безендіру темасы",
-    "light": "Ашық тема",
-    "dark": "Қараңғы тема"
+    "light": "Ашық тақырып",
+    "dark": "Күңгірт тақырып",
+    "groupLabel": "Безендіру тақырыбы"
   },
   "favoriteAdd": "Таңдаулыға қосу",
   "favoriteRemove": "Таңдаулыдан алу",

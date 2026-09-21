@@ -53,6 +53,7 @@ export function ResultsReportBody({ report, ageGroup, goal, isJunior, readOnly =
           isJunior={isJunior}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
+          interestCombination={report.interest_instrument === 'riasec' ? report.interest_combination : null}
         />
       </ResultsReveal>
 

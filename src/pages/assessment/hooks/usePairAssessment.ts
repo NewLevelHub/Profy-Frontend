@@ -5,7 +5,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { pairsApi } from '@/shared/api/pairs';
-import { autofillPairAssessment, autofillPairsUntilMotivation } from '@/shared/dev/autofillPairAssessment';
+import { autofillPairAssessment, autofillPairMainBattery } from '@/shared/dev/autofillPairAssessment';
 import type { QuestionPair } from '@/shared/types';
 import type { RestStopState } from '../utils/restStop';
 
@@ -33,9 +33,7 @@ export function usePairAssessment() {
   const [retryCount, setRetryCount] = useState(0);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
-  const [autofillingToMotivation, setAutofillingToMotivation] = useState(false);
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
   // Reset whenever the current pair changes (see the effect below) —
   // elapsed time from here to handleAnswer feeds the speed-flag rest stop.
@@ -81,9 +79,6 @@ export function usePairAssessment() {
         }
 
         setPhase('intro');
-        introTimerRef.current = setTimeout(() => {
-          if (!cancelled) setPhase('question');
-        }, 2000);
       } catch {
         if (!cancelled) {
           setError(t('assessment:error.loadQuestions'));
@@ -96,10 +91,6 @@ export function usePairAssessment() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount, ageGroup, profileLoading]);
@@ -112,10 +103,6 @@ export function usePairAssessment() {
   }, [pairIndex, pairs]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     setPhase('question');
   }
 
@@ -199,17 +186,19 @@ export function usePairAssessment() {
     }
   }
 
+  // Stops right before motivation (unlike handleAutofill above, which races
+  // through it too) — for testing the motivation screen itself by hand.
   async function handleAutofillToMotivation() {
-    if (!assessmentId || autofillingToMotivation) return;
-    setAutofillingToMotivation(true);
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
     setError(null);
     try {
-      await autofillPairsUntilMotivation(assessmentId);
+      await autofillPairMainBattery(assessmentId);
       navigate('/assessment/motivation');
     } catch {
-      setError('Не удалось автозаполнить тест.');
+      setError(t('assessment:error.autofill'));
     } finally {
-      setAutofillingToMotivation(false);
+      setAutofilling(false);
     }
   }
 
@@ -242,7 +231,6 @@ export function usePairAssessment() {
     progress,
     exitConfirmOpen,
     autofilling,
-    autofillingToMotivation,
     handleBack,
     handleStartIntro,
     handleAnswer,

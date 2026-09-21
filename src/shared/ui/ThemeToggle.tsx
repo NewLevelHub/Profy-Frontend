@@ -4,9 +4,9 @@ import { cn } from '@/shared/lib/cn';
 import { useTheme } from '@/shared/hooks/useTheme';
 import type { ResolvedTheme } from '@/shared/lib/theme';
 
-const OPTIONS: { value: ResolvedTheme; labelKey: string; Icon: typeof Sun }[] = [
-  { value: 'light', labelKey: 'theme.light', Icon: Sun },
-  { value: 'dark', labelKey: 'theme.dark', Icon: Moon },
+const THEME_ICONS: { value: ResolvedTheme; key: 'light' | 'dark'; Icon: typeof Sun }[] = [
+  { value: 'light', key: 'light', Icon: Sun },
+  { value: 'dark', key: 'dark', Icon: Moon },
 ];
 
 export interface ThemeToggleProps {
@@ -29,21 +29,21 @@ export interface ThemeToggleProps {
  * скринридер должен объявлять выбор, а не два независимых действия.
  */
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const { theme, setChoice } = useTheme();
   const { t } = useTranslation('common');
+  const { theme, setChoice } = useTheme();
 
   return (
     <div
       role="radiogroup"
-      aria-label={t('theme.ariaLabel')}
+      aria-label={t('theme.groupLabel')}
       className={cn(
         'inline-flex items-center gap-0.5 p-0.5 rounded-pill border border-default bg-surface',
         className,
       )}
     >
-      {OPTIONS.map(({ value, labelKey, Icon }) => {
+      {THEME_ICONS.map(({ value, key, Icon }) => {
         const active = theme === value;
-        const label = t(labelKey);
+        const label = t(`theme.${key}`);
         return (
           <button
             key={value}

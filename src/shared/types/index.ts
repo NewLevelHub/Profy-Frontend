@@ -105,7 +105,23 @@ export type AssessmentGoal = 'explore' | 'profession' | 'university' | 'unsure';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
-export type Instrument = 'riasec' | 'big_five' | 'mi';
+// PRO-338 Ф0.2: professional_types (ДДО pairs, QuestionPair-based) /
+// professional_types_abilities (ДДО abilities, Likert-based) / eysenck /
+// elers (both Likert-based, binary Да/Нет scale — Ф0.5) mirror
+// app/models/question.py::QuestionInstrument 1:1. `validity` is
+// deliberately NOT here — PRO-282's protocol-validity items are masked as
+// `riasec` on the wire (PRO-298) and never reach the frontend as their own
+// instrument value.
+export type Instrument =
+  | 'riasec'
+  | 'big_five'
+  | 'mi'
+  | 'professional_types'
+  | 'professional_types_abilities'
+  | 'eysenck'
+  | 'elers'
+  | 'boyko_empathy'
+  | 'kondash_anxiety';
 export type BigFiveDomain = 'N' | 'E' | 'O' | 'A' | 'C';
 // Junior's (6-9) interest instrument, replacing RIASEC — TZ_Profi.md §4.1
 // excludes career orientation for that age group. See MI_LABELS/MI_ICONS.
@@ -121,6 +137,8 @@ export interface AssessmentResponse {
   total_questions: number;
   motivation_answered_count: number;
   motivation_total: number;
+  belbin_completed?: boolean;
+  astur_completed?: boolean;
   created_at: string;
 }
 
@@ -277,6 +295,142 @@ export interface FinishPsychoEmotionalResponse {
   tech_invalid: boolean;
 }
 
+// ─── Belbin BTRSPI (ипсативный блок, вне обычного /assessment потока) ───────────
+
+export interface BelbinContentItem {
+  id: string;
+  text: string;
+}
+
+export interface BelbinContentSection {
+  section: string;
+  title: string;
+  items: BelbinContentItem[];
+}
+
+export interface BelbinContent {
+  instruction: string;
+  block_total: number;
+  sections: BelbinContentSection[];
+}
+
+export interface SubmitBelbinPayload {
+  /** Ровно 7 блоков, в порядке разделов I..VII — каждый `{item_id: баллы}`. */
+  allocations: Record<string, number>[];
+}
+
+export interface SubmitBelbinResponse {
+  run_id: string;
+  role_totals: Record<string, number>;
+}
+
+// ─── АСТУР (ипсативный/таймированный блок, вне обычного /assessment потока) ─────
+
+export type AsturSubtestKey =
+  | 'awareness'
+  | 'analogies'
+  | 'lability'
+  | 'classification'
+  | 'generalization'
+  | 'logical_schemas'
+  | 'numeric_series'
+  | 'geometric_figures';
+
+export interface AsturAwarenessItem {
+  text: string;
+  options: string[];
+}
+
+export interface AsturAnalogyItem {
+  pair: [string, string];
+  third: string;
+  options: string[];
+}
+
+export type AsturLabilityAnswerFormat = 'digit' | 'shape' | 'symbol' | 'word';
+
+export interface AsturLabilityItem {
+  instruction: string;
+  answer_format: AsturLabilityAnswerFormat;
+  // Always exactly 2 values — every lability command is a 2-way choice,
+  // rendered as buttons (2026-09-18: was free-text input for every format
+  // except 'shape', which live in-office testing found too hard to use
+  // under the per-item timer — reading, deciding, AND typing correctly).
+  options: [string, string];
+}
+
+export interface AsturClassificationItem {
+  words: string[];
+}
+
+export interface AsturGeneralizationItem {
+  pair: [string, string];
+}
+
+export interface AsturLogicalSchemaItem {
+  /** Уже перемешано бэкендом — не порядок ответа. */
+  concepts: string[];
+}
+
+export interface AsturNumericSeriesItem {
+  sequence: number[];
+}
+
+/** No content fields — the stimulus is a static image asset
+ *  (`/astur-figures/{itemNumber}-{target|a|b|v|g}.png`), addressed by the
+ *  item's 1-based position within the subtest, not by any server-sent
+ *  field. The server only ever holds this item's `answer` letter. */
+export type AsturFigureAssemblyItem = Record<string, never>;
+
+export type AsturContentItem =
+  | AsturAwarenessItem
+  | AsturAnalogyItem
+  | AsturLabilityItem
+  | AsturClassificationItem
+  | AsturGeneralizationItem
+  | AsturLogicalSchemaItem
+  | AsturNumericSeriesItem
+  | AsturFigureAssemblyItem;
+
+export interface AsturContentSubtest {
+  number: number;
+  key: AsturSubtestKey;
+  name: string;
+  instruction: string;
+  item_count: number;
+  scored: boolean;
+  /** `null` только у `lability` — у неё свой лимит на команду, не на весь субтест. */
+  time_limit_sec: number | null;
+  items: AsturContentItem[];
+}
+
+export interface AsturContent {
+  subtests: AsturContentSubtest[];
+  lability_item_limit_ms: number;
+}
+
+export interface StartAsturSubtestResponse {
+  run_id: string;
+  subtest: string;
+  started_at: string;
+}
+
+export interface SubmitAsturSubtestPayload {
+  /** Форма значения зависит от субтеста: строка (MC/обобщение), 2 строки
+   *  (классификации), список понятий (логические схемы), 2 числа (ряды),
+   *  строка per-формату лабильности. */
+  answers: Record<string, unknown>;
+  /** Только для лабильности — время на каждую команду. */
+  elapsed_ms?: Record<string, number>;
+}
+
+export interface SubmitAsturSubtestResponse {
+  run_id: string;
+  subtest: string;
+  actual_ms: number | null;
+  over_limit_items: string[];
+}
+
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {
@@ -385,10 +539,39 @@ export interface StudentPersonalityNote {
   level: InterestLevel;
 }
 
+export interface InterestQuote {
+  text: string;
+  answer: 'like' | 'dislike';
+}
+
+// "Why this level" breakdown for one RIASEC type (PRO-336). `distribution`
+// is answer counts strongest-liking first: [очень нравится, нравится,
+// не уверен, не нравится, совсем не нравится]. `score` (0-100) only
+// positions the level meter — never print it as a percentage.
+export interface InterestMapItemDetails {
+  answered: number;
+  distribution: number[];
+  likes: number;
+  dislikes: number;
+  score: number;
+  means: string;
+  follows: string;
+  quotes: InterestQuote[];
+}
+
 export interface InterestMapItem {
   code: string;
   sphere: string;
   level: InterestLevel;
+  // RIASEC only; null for MI and for reports cached before PRO-336.
+  details?: InterestMapItemDetails | null;
+}
+
+/** How the two most pronounced RIASEC types sit on Holland's hexagon. */
+export interface InterestCombination {
+  codes: string[];
+  relation: 'adjacent' | 'alternate' | 'opposite';
+  text: string;
 }
 
 export type CareerTier = 'strong' | 'good' | 'worth_trying';
@@ -406,80 +589,74 @@ export interface StudentCareer {
   subjects_to_develop: string[];
 }
 
-// ─── Psychology block (PRO-282 epic) ──────────────────────────────────────────
-// Two auxiliary sections a psychologist reviews at the in-person meeting:
-// достоверность протокола («шкала лжи»), психоэмоциональный тест (МЦВ Собчик —
-// the name «Люшер» is never shown). Gated server-side (`psych_sections_for` →
-// psychologist/admin only, PRO-321) — a student's own /result never carries
-// them. Each model is a Phase-0 skeleton — every phase extends its own with
-// concrete fields (validity → Фаза 1, psychoemotional → Фаза 2). `consent_ok`
-// mirrors the recorded parental consent; it is a flag, not a gate. See
-// profi-backend/docs/psych-block-contract.md.
+// ─── PRO-282 psych-block sections — «Достоверность протокола» + «Психоэмоц.
+// тест» (МЦВ Собчик). `null` on a student's own /result (never shown to
+// them); attached only for a psychologist/admin viewer
+// (report_service.psych_sections_for — the ONLY place that decides
+// visibility, never re-implemented here). МАК is out of scope (PRO-282 §4)
+// — mirrors app/schemas/result_v2.py field-for-field. Wired into
+// ReportSectionsBlock at Ф4.1 (PRO-338).
 
-export interface PsychValiditySection {
+export type ValidityTrafficLight = 'green' | 'yellow' | 'red';
+export type SdLevel = 'ok' | 'social_desirability' | 'high';
+
+export interface ValiditySection {
   consent_ok: boolean;
-  /** Specialist signal. red = careless fill; yellow = likely faking-good
-   *  (sd_raw >= sd_bounds[1] + 1); green = fine (incl. the 9–15 "normative
-   *  conformity" band). */
-  traffic_light: 'green' | 'yellow' | 'red';
-  /** MC-SDS raw score, 0–20. */
+  traffic_light: ValidityTrafficLight;
   sd_raw: number;
-  /** Finer band than the traffic light: `social_desirability` (9–15) is still
-   *  green — see psych-block-spec.md §A5. */
-  sd_level: 'ok' | 'social_desirability' | 'high';
-  /** [ok_max, sd_max] applied — the "yellow starts at sd_max + 1" threshold. */
+  sd_level: SdLevel;
   sd_bounds: [number, number];
-  /** Longest run of identical raw answers across the whole battery. */
   longstring_max: number;
-  /** Inter-item response SD within the protocol. */
   irv: number;
-  /** Attention-check traps failed (answer != the only plausible one). */
   infrequency_failed: number;
   careless_flag: boolean;
-  /** Which validity_thresholds.json version produced the verdict. */
   thresholds_version: number;
 }
 
+export type PsychValiditySection = ValiditySection;
+
+export type PsychoEmotionalValidityFlag = 'ok' | 'caution' | 'low';
 export type PsychoAnxietyLevel = 'low' | 'moderate' | 'high' | 'very_high';
 export type PsychoCompensationLevel = 'low' | 'moderate' | 'high';
 export type PsychoSoLevel = 'norm' | 'elevated' | 'high';
 export type PsychoVkLevel = 'low_tone' | 'reduced' | 'balance' | 'overexcited';
-export type PsychoPairSign = 'plus' | 'cross' | 'equal' | 'minus';
+export type PsychoFunctionalSign = 'plus' | 'cross' | 'equal' | 'minus';
+export type PsychoPairSign = PsychoFunctionalSign;
 
 export interface PsychoEmotionalPositionalPair {
-  sign: PsychoPairSign;
-  /** Colour ids (0–7) on those two positions of choice 2. */
+  sign: PsychoFunctionalSign;
   colors: [number, number];
 }
 
 export interface PsychoEmotionalSplitPair {
   colors: [number, number];
-  /** true → the pair stayed together `( )`; false → it split `[ ]`. */
   stable: boolean;
 }
 
 export interface PsychoEmotionalIndex {
   score: number;
   level: PsychoAnxietyLevel | PsychoCompensationLevel;
-  /** colour id → its contribution to the sum. */
   breakdown: Record<string, number>;
 }
 
-export interface PsychoEmotionalCompensation extends PsychoEmotionalIndex {
+export interface PsychoEmotionalAnxiety {
+  score: number;
+  level: PsychoAnxietyLevel;
+  breakdown: Record<string, number>;
+}
+
+export interface PsychoEmotionalCompensation {
+  score: number;
   level: PsychoCompensationLevel;
-  /** Purple (id 5) sits in positions 1–3 — a note, it scores nothing. */
+  breakdown: Record<string, number>;
   purple_forward: boolean;
   purple_position: number;
 }
 
 export interface PsychoEmotionalStructural {
-  /** Р: lower sum → higher working capacity (6–21). */
   performance: number;
-  /** higher → inward; lower → outward. */
   concentricity: number;
-  /** higher → passive/dependent; lower → initiative. */
   heteronomy: number;
-  /** constructiveness: lower → the situation feels unbearable. */
   kkp: number;
 }
 
@@ -488,59 +665,39 @@ export interface PsychoEmotionalHistoryItem {
   completed_at: string;
   so: number | null;
   anxiety_score: number | null;
-  validity_flag: 'ok' | 'caution' | 'low' | null;
+  validity_flag: PsychoEmotionalValidityFlag | null;
 }
 
-/**
- * «Психоэмоциональный тест» (МЦВ Собчик) — the full specialist-facing
- * composition (§B8 / PRO-309). `null` in the report until the latest run is
- * scored by the engine (PRO-307), same as validity.
- */
-export interface PsychEmotionalSection {
+export interface PsychoEmotionalSection {
   consent_ok: boolean;
-  /** Which psychoemotional_thresholds.json version produced the run. */
   thresholds_version: number | null;
-
-  /** This run's ordinal (1 = first) + past runs for the dynamics list. */
   run_number: number;
   completed_at: string;
   history: PsychoEmotionalHistoryItem[];
-
-  /** 3 one-tap check-in answers; not scored. Shape owned by content (PRO-303). */
   checkin: Record<string, string>;
-
-  /** Run-validity flag (§B7 / PRO-308), computed separately from the metrics:
-   *  ok (0 signs) / caution (1) / low (2+). Null until the run is scored. */
-  validity_flag: 'ok' | 'caution' | 'low' | null;
-  /** Behavioural signs that fired (§B7): `mechanical_pick`, `too_fast_overall`,
-   *  `identical_lists`, `unstable_choices`, `pause_not_held`. */
+  validity_flag: PsychoEmotionalValidityFlag | null;
   validity_reasons: string[];
-
-  /** Colour choices by position (colour ids 0–7) + divergence D (§B5.7). */
   choice_1: number[];
   choice_2: number[];
   d_value: number;
   d_memory: boolean;
   d_situationally_unstable: boolean;
-
-  /** Functional pairs (§B5.1–B5.2). */
   positional_pairs: PsychoEmotionalPositionalPair[];
   root_conflict: [number, number];
   split_pairs: PsychoEmotionalSplitPair[];
   split_count: number;
   instability: boolean;
-
-  anxiety: PsychoEmotionalIndex;
+  anxiety: PsychoEmotionalAnxiety;
   compensation: PsychoEmotionalCompensation;
   so_value: number;
   so_level: PsychoSoLevel;
   vk_value: number;
   vk_level: PsychoVkLevel;
-  structural: PsychoEmotionalStructural;
-
-  /** §B6 red flag: black (id 7) in position 1 — a highlight for the talk. */
+  structural?: PsychoEmotionalStructural;
   black_first: boolean;
 }
+
+export type PsychEmotionalSection = PsychoEmotionalSection;
 
 interface ResultResponseBase {
   report_version: 2;
@@ -558,12 +715,10 @@ interface ResultResponseBase {
   exploration_note: string;
   final_analysis: string;
   created_at: string;
-  // Psychology block — see Psych*Section above. Optional + nullable: `null`
-  // on every report until the matching phase's calculation lands on the
-  // backend. Rendered by SpecialistSectionsBlock (results/components/psych)
-  // below the main report; a `null` section is simply not shown.
-  validity?: PsychValiditySection | null;
-  psychoemotional?: PsychEmotionalSection | null;
+  /** `null` unless the viewer is a psychologist/admin AND the calc has run. */
+  validity?: ValiditySection | null;
+  /** `null` unless the viewer is a psychologist/admin AND a run exists. */
+  psychoemotional?: PsychoEmotionalSection | null;
 }
 
 export interface MiResultResponse extends ResultResponseBase {
@@ -574,6 +729,7 @@ export interface MiResultResponse extends ResultResponseBase {
 
 export interface RiasecResultResponse extends ResultResponseBase {
   interest_instrument: 'riasec';
+  interest_combination?: InterestCombination | null;
   careers: StudentCareer[];
   exploration_activities: [];
 }
@@ -1218,9 +1374,19 @@ export interface PsychologistStudentListItem {
   email: string;
   profile_name: string | null;
   age_group: AgeGroup | null;
+  assigned_at?: string;
   /** Student's registration date — a psychologist sees every student, there
    *  is no assignment step. */
-  registered_at: string;
+  registered_at?: string;
+}
+
+/** Students the psychologist can claim (PRO-337 — no admin in this flow). */
+export interface PsychologistAvailableStudentItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age_group: AgeGroup | null;
+  has_pending_review: boolean;
 }
 
 export interface PsychologistAssessmentSummary {
@@ -1232,6 +1398,8 @@ export interface PsychologistAssessmentSummary {
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
+  /** `null` while there is no result yet. */
+  review_status?: ReviewStatus | null;
   has_roadmap: boolean;
 }
 
@@ -1258,6 +1426,274 @@ export interface PsychologistNote {
 export interface PsychologistNoteWrite {
   content: string;
 }
+
+// ─── PRO-338 — specialist report: 6 new tests, never shown on student /result ────
+// Mirrors app/schemas/new_tests.py exactly (field-for-field) — every field is
+// optional because Ф0.2/Ф0.3 only laid the container/endpoint groundwork; the
+// scoring services that populate these land per-test in Фазы 1-3.
+
+// "Почему такой результат" evidence — mirrors app/schemas/new_tests.py's own
+// evidence classes, added so the psychologist card can show the student's
+// real answers (same idea as InterestMapItemDetails on /result) instead of
+// just restating the raw score in a sentence. One shape per answer format.
+
+export interface BinaryAnswerItem {
+  text: string;
+  answer: 'yes' | 'no';
+}
+
+export interface BinaryScaleEvidence {
+  answered: number;
+  yes: number;
+  no: number;
+  items: BinaryAnswerItem[];
+}
+
+export interface RatedAnswerItem {
+  text: string;
+  value: number;
+}
+
+export interface RatedScaleEvidence {
+  answered: number;
+  distribution: number[];
+  items: RatedAnswerItem[];
+}
+
+export interface PairAnswerItem {
+  text: string;
+  picked: boolean;
+}
+
+export interface PairScaleEvidence {
+  picked: number;
+  total: number;
+  items: PairAnswerItem[];
+}
+
+export interface SingleItemEvidence {
+  text: string;
+  value: number;
+}
+
+export interface RoleEvidenceItem {
+  block: string;
+  text: string;
+  points: number;
+}
+
+export interface RoleEvidence {
+  points_by_block: number[];
+  items: RoleEvidenceItem[];
+}
+
+export interface ProfessionalTypesSection {
+  interest_scores: Record<string, number> | null;
+  hybrid_profile: string[] | null;
+  abilities_scores: Record<string, number> | null;
+  interest_evidence: Record<string, PairScaleEvidence> | null;
+  abilities_evidence: Record<string, SingleItemEvidence> | null;
+}
+
+export interface TeamRoleSection {
+  scores: Record<string, number> | null;
+  // All 8 role codes sorted by score descending (ties broken server-side by
+  // a fixed canonical order) — the Bar Chart (Ф2.7) renders bars in exactly
+  // this order, not `scores`' own (unordered) key order.
+  ranked_roles: string[] | null;
+  dominant_role: string | null;
+  supporting_roles: string[] | null;
+  avoidance_roles: string[] | null;
+  methodological_note: string | null;
+  role_evidence: Record<string, RoleEvidence> | null;
+}
+
+export interface TemperamentSection {
+  extraversion_raw: number | null;
+  neuroticism_raw: number | null;
+  lie_scale_raw: number | null;
+  extraversion_level: string | null;
+  neuroticism_level: string | null;
+  protocol_flagged: boolean | null;
+  // One of choleric/sanguine/phlegmatic/melancholic (Ф1.6) — rendered as
+  // the Scatter Plot's 4 quadrants.
+  quadrant: string | null;
+  extraversion_evidence: BinaryScaleEvidence | null;
+  neuroticism_evidence: BinaryScaleEvidence | null;
+  lie_scale_evidence: BinaryScaleEvidence | null;
+}
+
+export interface IntelligenceSection {
+  raw_score: number | null;
+  subtest_scores: Record<string, number> | null;
+  spn_group: number | null;
+  learning_profile: string | null;
+  learning_profile_shares: Record<string, number> | null;
+  lability_first_half_accuracy: number | null;
+  lability_second_half_accuracy: number | null;
+  lability_fatigue_signal: boolean | null;
+}
+
+export interface AspirationLevelSection {
+  score: number | null;
+  level: string | null;
+  evidence: BinaryScaleEvidence | null;
+}
+
+export interface EmpathyConfidenceSection {
+  empathy_channels: Record<string, number> | null;
+  empathy_total: number | null;
+  empathy_level: string | null;
+  confidence_stens: number | null;
+  confidence_level: string | null;
+  empathy_evidence: Record<string, BinaryScaleEvidence> | null;
+  confidence_evidence: RatedScaleEvidence | null;
+}
+
+export interface NewTestsSections {
+  professional_types: ProfessionalTypesSection | null;
+  team_role: TeamRoleSection | null;
+  temperament: TemperamentSection | null;
+  intelligence: IntelligenceSection | null;
+  aspiration_level: AspirationLevelSection | null;
+  empathy_confidence: EmpathyConfidenceSection | null;
+}
+
+// ─── Psychologist-view AI analysis ──────────────────────────────────────────
+
+export interface PsychBlockAnalysisItem {
+  block: string;
+  text: string;
+}
+
+export interface PsychProfessionRecommendation {
+  slug: string;
+  name: string;
+  reasoning: string;
+}
+
+/** Per-block AI commentary + a final synthesis + one profession picked from
+ * `report.careers` (never invented — enforced server-side, see
+ * app/services/psych_ai_analysis_validator.py). Lazily generated on first
+ * report view and cached; `null` when the LLM is disabled, generation
+ * failed, or there's no data yet to analyze. */
+export interface PsychAiAnalysis {
+  block_analyses: PsychBlockAnalysisItem[];
+  final_summary: string;
+  recommended_profession: PsychProfessionRecommendation | null;
+}
+
+/** GET /psychologist/students/{studentId}/assessments/{assessmentId}/report —
+ * `report` is the exact same shape the student's own /result returns
+ * (reused, not duplicated), `new_tests` is specialist-only. */
+export interface PsychologistReportResponse {
+  report: ResultResponse;
+  new_tests: NewTestsSections;
+  ai_analysis: PsychAiAnalysis | null;
+}
+
+// ─── Extended block assignments (Belbin/АСТУР — post-Ф4.1 follow-up) ────────────
+// A psychologist's decision to make Belbin/АСТУР available to a student for
+// one assessment; the student's own UI (not the psychologist's) uses this to
+// discover and launch the block, instead of a hand-delivered link.
+
+export type ExtendedBlock = 'belbin' | 'astur';
+
+export interface ExtendedBlockAssignment {
+  block: ExtendedBlock;
+  assigned_at: string;
+  /** Derived from whether a belbin_runs/astur_runs row exists (and, for
+   *  АСТУР, is fully answered) — never a separate stored flag. */
+  completed: boolean;
+}
+
+export interface ExtendedBlocksResponse {
+  assignments: ExtendedBlockAssignment[];
+}
+
+export interface AssignExtendedBlockPayload {
+  block: ExtendedBlock;
+}
+
+// ─── Psychologist report review (PRO-337) ───────────────────────────────────────
+//
+// docs/psychologist-review-frontend-plan.md. A fresh report is hidden from the
+// student until the assigned psychologist publishes it. `ResultPendingReview`
+// must match the backend's `ResultPendingReviewResponse` field for field.
+
+export type ReviewStatus = 'pending_review' | 'published';
+
+/** What `GET`/`POST /result` return while the report still waits for review. */
+export interface ResultPendingReview {
+  status: 'pending_review';
+  assessment_id: string;
+}
+
+export interface PsychologistReviewQueueItem {
+  assessment_id: string;
+  student_id: string;
+  student_name: string | null;
+  student_email: string;
+  age_group: AgeGroup | null;
+  goal: AssessmentGoal;
+  generated_at: string;
+  reviewed_at: string | null;
+}
+
+export interface PsychologistReviewCard {
+  title: string;
+  description: string;
+}
+
+/** Stored career match — the backend validates this exact shape on PATCH. */
+export interface PsychologistReviewCareer {
+  slug: string;
+  name: string;
+  holland_code: string;
+  match_score: number;
+  description: string;
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+}
+
+export interface PsychologistResultDetail {
+  assessment_id: string;
+  review_status: ReviewStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  published_by: string | null;
+  published_at: string | null;
+  summary: string;
+  careers: PsychologistReviewCareer[];
+  strengths: string[];
+  weaknesses: string[];
+  development_plan: { reinforce: string[]; compensate: string[] };
+  big_five: Record<string, number>;
+  thinking_style: Record<string, number>;
+  strength_cards: PsychologistReviewCard[];
+  thinking_style_notes: PsychologistReviewCard[];
+  final_analysis: string;
+  personality_notes: Record<string, string>;
+  motivation_highlights: string[];
+  created_at: string;
+}
+
+export type PsychologistResultPatch = Partial<
+  Pick<
+    PsychologistResultDetail,
+    | 'summary'
+    | 'careers'
+    | 'strengths'
+    | 'weaknesses'
+    | 'strength_cards'
+    | 'thinking_style_notes'
+    | 'final_analysis'
+    | 'personality_notes'
+    | 'motivation_highlights'
+  >
+>;
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //

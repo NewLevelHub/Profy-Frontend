@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Download, FileText, UserPlus } from 'lucide-react';
@@ -27,22 +27,31 @@ import type {
   AgeGroup,
   AssessmentGoal,
   AssessmentStatus,
+  UserRole,
 } from '@/shared/types';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['search', 'age_group', 'status', 'goal', 'inactive_days'] as const;
+/** `role`/`inactive_days` live in the URL with the other filters, but Clear
+ *  keeps the active role tab — see `clearListFilters`. */
+const FILTER_KEYS = ['search', 'age_group', 'status', 'goal', 'role', 'inactive_days'] as const;
 /** Поля сортировки, которые принимает эндпоинт — незнакомое значение
  *  в URL игнорируется, а не улетает на сервер за 422. */
 const SORTABLE_KEYS = ['created_at', 'last_active_at', 'email', 'age_group', 'latest_assessment_status'] as const;
 
+const ROLE_TABS: readonly UserRole[] = ['student', 'psychologist', 'admin'];
+
+function parseRole(value: string): UserRole {
+  return value === 'admin' || value === 'psychologist' || value === 'student' ? value : 'student';
+}
+
 /** Порог «давно не заходил». Регистрация считается активностью, поэтому
  *  свежий аккаунт под фильтр не попадает. */
 const INACTIVE_OPTIONS = [
-  { value: '7', label: 'больше недели' },
-  { value: '30', label: 'больше месяца' },
-  { value: '90', label: 'больше трёх месяцев' },
-];
+  { value: '7', labelKey: 'users.inactiveOptions.week' },
+  { value: '30', labelKey: 'users.inactiveOptions.month' },
+  { value: '90', labelKey: 'users.inactiveOptions.quarter' },
+] as const;
 
 /** Эндпоинта list потолок — `limit: le=100`. */
 const PRINT_PAGE_LIMIT = 100;
@@ -137,8 +146,10 @@ function formatRelative(value: string, t: (key: string, opts?: Record<string, un
 
 export default function AdminUsersPage() {
   const { t } = useTranslation('admin');
-  const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
-    useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
+  const { page, values, sort, setSort, setFilter, setFilters, setPage } = useAdminListParams(
+    FILTER_KEYS,
+    SORTABLE_KEYS,
+  );
   // So the breadcrumb on a user's card returns to this exact filtered page.
   useRememberListQuery('/admin/users');
   const [items, setItems] = useState<AdminUserListItem[]>([]);
@@ -156,26 +167,38 @@ export default function AdminUsersPage() {
   const [reloadToken, setReloadToken] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [createdUser, setCreatedUser] = useState<AdminUserDetail | null>(null);
-
-  const { search, age_group: ageGroup, status, goal, inactive_days: inactiveDays } = values;
   const [stats, setStats] = useState<AdminUserStats | null>(null);
 
+  const {
+    search,
+    age_group: ageGroup,
+    status,
+    goal,
+    role: roleRaw,
+    inactive_days: inactiveDays,
+  } = values;
+  const role = parseRole(roleRaw);
+  const isStudentRole = role === 'student';
+
   /**
-   * Один источник фильтров на таблицу, CSV и PDF.
-   *
-   * Раньше каждый из трёх собирал их у себя, и добавление фильтра означало
-   * правку в трёх местах: пропустили один — и выгрузка молча содержит всех
-   * пользователей, хотя на экране отфильтрованная выборка.
+   * Shared slice for list / CSV / PDF — assessment filters only apply to
+   * students, but `inactive_days` is about login activity, not diagnostics,
+   * so it stays available on every role tab.
    */
-  const filters = useMemo(
+  const listFilters = useMemo(
     () => ({
       search: search || undefined,
-      age_group: (ageGroup as AgeGroup) || undefined,
-      status: (status as AssessmentStatus) || undefined,
-      goal: (goal as AssessmentGoal) || undefined,
+      role,
       inactive_days: inactiveDays ? Number(inactiveDays) : undefined,
+      ...(isStudentRole
+        ? {
+            age_group: (ageGroup as AgeGroup) || undefined,
+            status: (status as AssessmentStatus) || undefined,
+            goal: (goal as AssessmentGoal) || undefined,
+          }
+        : {}),
     }),
-    [search, ageGroup, status, goal, inactiveDays],
+    [search, role, isStudentRole, ageGroup, status, goal, inactiveDays],
   );
 
   useEffect(() => {
@@ -186,7 +209,7 @@ export default function AdminUsersPage() {
       setError('');
       try {
         const data = await adminApi.listUsers({
-          ...filters,
+          ...listFilters,
           page,
           limit: PAGE_SIZE,
           sort: sort?.key,
@@ -206,7 +229,7 @@ export default function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, filters, sort?.key, sort?.order, reloadToken]);
+  }, [page, listFilters, sort?.key, sort?.order, reloadToken, t]);
 
   // Whole-table counts, independent of the filters: they answer "what is
   // happening overall", which is the question a filtered page cannot.
@@ -228,6 +251,25 @@ export default function AdminUsersPage() {
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
 
+  const handleRoleChange = useCallback(
+    (next: UserRole) => {
+      // Switching role clears assessment filters (they're meaningless for staff)
+      // and drops `role` from the URL when back on the default student tab.
+      setFilters({
+        role: next === 'student' ? '' : next,
+        age_group: '',
+        status: '',
+        goal: '',
+      });
+    },
+    [setFilters],
+  );
+
+  const clearListFilters = useCallback(() => {
+    // Keep the active role tab — Clear is for search/assessment/activity filters only.
+    setFilters({ search: '', age_group: '', status: '', goal: '', inactive_days: '' });
+  }, [setFilters]);
+
   /**
    * PDF собирается по всему срезу, а не по видимой странице.
    *
@@ -245,12 +287,12 @@ export default function AdminUsersPage() {
     setPrinting(true);
     setExportError('');
     try {
-      const first = await adminApi.listUsers({ ...filters, page: 1, limit: PRINT_PAGE_LIMIT });
+      const first = await adminApi.listUsers({ ...listFilters, page: 1, limit: PRINT_PAGE_LIMIT });
       const reachable = Math.min(first.total, PRINT_MAX_ROWS);
       const pageCount = Math.ceil(reachable / PRINT_PAGE_LIMIT);
       const rest = await Promise.all(
         Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) =>
-          adminApi.listUsers({ ...filters, page: i + 2, limit: PRINT_PAGE_LIMIT }),
+          adminApi.listUsers({ ...listFilters, page: i + 2, limit: PRINT_PAGE_LIMIT }),
         ),
       );
       const rows = [...first.items, ...rest.flatMap((r) => r.items)].slice(0, PRINT_MAX_ROWS);
@@ -265,8 +307,8 @@ export default function AdminUsersPage() {
     setExporting(true);
     setExportError('');
     try {
-      const blob = await adminApi.exportUsers(filters);
-      downloadCsv(blob, 'users_export.csv');
+      const blob = await adminApi.exportUsers(listFilters);
+      downloadCsv(blob, `users_${role}_export.csv`);
     } catch {
       setExportError(t('users.csvError'));
     } finally {
@@ -291,135 +333,136 @@ export default function AdminUsersPage() {
 
   /** Активные фильтры человеческим языком — печатаются в шапке листа. */
   const activeFilterLabels = [
+    t(`users.roleTabs.${role}`),
     search ? t('users.filterEmail', { search }) : null,
-    ageGroup ? t('users.filterAge', { age: AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup }) : null,
-    status ? t('users.filterStatus', { status: t(ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]) }) : null,
-    goal ? t('users.filterGoal', { goal: t(ASSESSMENT_GOAL_LABELS[goal as AssessmentGoal]) }) : null,
-    inactiveDays ? `Не заходил дольше ${inactiveDays} дн.` : null,
+    isStudentRole && ageGroup
+      ? t('users.filterAge', { age: AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup })
+      : null,
+    isStudentRole && status
+      ? t('users.filterStatus', { status: t(ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]) })
+      : null,
+    isStudentRole && goal
+      ? t('users.filterGoal', { goal: t(ASSESSMENT_GOAL_LABELS[goal as AssessmentGoal]) })
+      : null,
+    inactiveDays ? t('users.filterInactiveDays', { days: inactiveDays }) : null,
   ].filter((value): value is string => value !== null);
 
-  const columns: AdminColumn<AdminUserListItem>[] = [
-    {
-      key: 'user',
-      header: t('feedback.col.user'),
-      mobile: 'title',
-      // Name and email in one cell. They were two columns, and since the name
-      // falls back to the email when there's no profile, half the rows printed
-      // the same address twice, side by side.
-      cell: (item) => {
-        const named = item.has_profile && item.profile_name;
-        return (
-          <span className="flex flex-col gap-0.5 min-w-0">
-            <span className="flex items-center gap-2 min-w-0">
-              <Link
-                to={`/admin/users/${item.id}`}
-                className={cn(
-                  ADMIN_TEXT,
-                  'font-semibold text-primary hover:text-brand hover:underline truncate',
-                  !named && 'font-mono text-mono-sm',
-                )}
-              >
-                {named ? item.profile_name : item.email}
-              </Link>
-              {/* `role` is the source of truth (pro-281) — `is_admin` is just
-                  its derived boolean, no longer the thing rendered here. */}
-              {item.role === 'admin' && (
-                <AdminBadge tone="brand" title={t('users.adminHint')}>
-                  {t('users.adminBadge')}
-                </AdminBadge>
-              )}
-              {item.role === 'psychologist' && (
-                <AdminBadge tone="accent" title={t('users.psychologistHint')}>
-                  {t('users.psychologistBadge')}
-                </AdminBadge>
-              )}
-            </span>
-            {named && (
-              <span className={cn(ADMIN_NUM, 'text-muted text-mono-xs truncate')}>{item.email}</span>
+  const userColumn: AdminColumn<AdminUserListItem> = {
+    key: 'user',
+    header: t('feedback.col.user'),
+    mobile: 'title',
+    // Name and email in one cell. They were two columns, and since the name
+    // falls back to the email when there's no profile, half the rows printed
+    // the same address twice, side by side.
+    cell: (item) => {
+      const named = item.has_profile && item.profile_name;
+      return (
+        <span className="flex flex-col gap-0.5 min-w-0">
+          <Link
+            to={`/admin/users/${item.id}`}
+            className={cn(
+              ADMIN_TEXT,
+              'font-semibold text-primary hover:text-brand hover:underline truncate',
+              !named && 'font-mono text-mono-sm',
             )}
-          </span>
-        );
-      },
+          >
+            {named ? item.profile_name : item.email}
+          </Link>
+          {named && (
+            <span className={cn(ADMIN_NUM, 'text-muted text-mono-xs truncate')}>{item.email}</span>
+          )}
+        </span>
+      );
     },
-    {
-      key: 'age',
-      header: t('common.col.age'),
-      width: '104px',
-      mobile: 'field',
-      cell: (item) =>
-        item.age_group ? (
-          <span className={ADMIN_TEXT}>{AGE_TIER_LABELS[item.age_group]}</span>
-        ) : (
-          <span className={ADMIN_META}>—</span>
-        ),
-    },
-    {
-      key: 'diagnostics',
-      header: t('users.col.assessment'),
-      width: '146px',
-      mobile: 'badge',
-      cell: (item) => <DiagnosticsCell status={item.latest_assessment_status} />,
-    },
-    {
-      key: 'goal',
-      header: t('users.col.goal'),
-      width: '176px',
-      headerTitle: t('users.col.goalHint'),
-      mobile: 'field',
-      mobileLabel: t('users.col.goalShort'),
-      cell: (item) =>
-        item.latest_assessment_goal ? (
-          <span className={ADMIN_TEXT}>{t(ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal])}</span>
-        ) : (
-          <span className={ADMIN_META}>—</span>
-        ),
-    },
-    {
-      key: 'interests',
-      header: t('users.col.interests'),
-      width: '210px',
-      headerTitle: t('users.col.interestsHint'),
-      mobile: 'field',
-      cell: (item) => <InterestsCell values={item.riasec} />,
-    },
-    {
-      key: 'created',
-      // Раньше эта колонка называлась «Активность» и показывала created_at,
-      // то есть зарегистрировавшийся два дня назад и ни разу не вернувшийся
-      // читался как «заходил 2 дня назад». Настоящая активность теперь есть
-      // и стоит отдельной колонкой справа.
-      header: t('users.col.registered'),
-      sortKey: 'created_at',
-      width: '126px',
-      align: 'right',
-      mobile: 'field',
-      cell: (item) => (
-        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at, t)}</span>
+  };
+
+  const registeredColumn: AdminColumn<AdminUserListItem> = {
+    key: 'created',
+    // Was "Активность" showing `created_at`, so someone who registered two
+    // days ago and never came back read as "active 2 days ago". Real activity
+    // now has its own column to the right.
+    header: t('users.col.registered'),
+    sortKey: 'created_at',
+    width: '126px',
+    align: 'right',
+    mobile: 'field',
+    cell: (item) => (
+      <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at, t)}</span>
+    ),
+  };
+
+  const activeColumn: AdminColumn<AdminUserListItem> = {
+    key: 'active',
+    header: t('users.col.active'),
+    sortKey: 'last_active_at',
+    width: '126px',
+    align: 'right',
+    mobile: 'field',
+    headerTitle: t('users.col.activeHint'),
+    cell: (item) =>
+      item.last_active_at ? (
+        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>
+          {formatRelative(item.last_active_at, t)}
+        </span>
+      ) : (
+        // Not an em dash: "never seen" is a fact about the user, and a dash
+        // reads as missing data instead.
+        <span className={ADMIN_META} title={t('users.neverActiveHint')}>
+          {t('users.neverActive')}
+        </span>
       ),
-    },
-    {
-      key: 'active',
-      header: 'Активность',
-      sortKey: 'last_active_at',
-      width: '126px',
-      align: 'right',
-      mobile: 'field',
-      headerTitle:
-        'Когда пользователя видели в последний раз. Обновляется при любом запросе, но не чаще раза в 5 минут.',
-      cell: (item) =>
-        item.last_active_at ? (
-          <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>
-            {formatRelative(item.last_active_at, t)}
-          </span>
-        ) : (
-          // Не прочерк: «не видели ни разу» — это факт о пользователе, а
-          // прочерк читается как отсутствие данных о нём.
-          <span className={ADMIN_META} title="С момента появления отслеживания активности не заходил">
-            не заходил
-          </span>
-        ),
-    },
-  ];
+  };
+
+  // Assessment columns only make sense for students — staff rows would be a
+  // wall of em dashes under age / diagnostics / goal / interests.
+  const columns: AdminColumn<AdminUserListItem>[] = isStudentRole
+    ? [
+        userColumn,
+        {
+          key: 'age',
+          header: t('common.col.age'),
+          width: '104px',
+          mobile: 'field',
+          cell: (item) =>
+            item.age_group ? (
+              <span className={ADMIN_TEXT}>{AGE_TIER_LABELS[item.age_group]}</span>
+            ) : (
+              <span className={ADMIN_META}>—</span>
+            ),
+        },
+        {
+          key: 'diagnostics',
+          header: t('users.col.assessment'),
+          width: '146px',
+          mobile: 'badge',
+          cell: (item) => <DiagnosticsCell status={item.latest_assessment_status} />,
+        },
+        {
+          key: 'goal',
+          header: t('users.col.goal'),
+          width: '176px',
+          headerTitle: t('users.col.goalHint'),
+          mobile: 'field',
+          mobileLabel: t('users.col.goalShort'),
+          cell: (item) =>
+            item.latest_assessment_goal ? (
+              <span className={ADMIN_TEXT}>{t(ASSESSMENT_GOAL_LABELS[item.latest_assessment_goal])}</span>
+            ) : (
+              <span className={ADMIN_META}>—</span>
+            ),
+        },
+        {
+          key: 'interests',
+          header: t('users.col.interests'),
+          width: '210px',
+          headerTitle: t('users.col.interestsHint'),
+          mobile: 'field',
+          cell: (item) => <InterestsCell values={item.riasec} />,
+        },
+        registeredColumn,
+        activeColumn,
+      ]
+    : [userColumn, registeredColumn, activeColumn];
 
   return (
     <>
@@ -453,7 +496,7 @@ export default function AdminUsersPage() {
               }}
             >
               <UserPlus size={14} />
-              Создать сотрудника
+              {t('users.createStaff')}
             </Button>
           </>
         }
@@ -464,67 +507,96 @@ export default function AdminUsersPage() {
       {createdUser && (
         <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-[3px] border border-brand bg-brand-subtle">
           <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>
-            Создан сотрудник <span className={ADMIN_NUM}>{createdUser.email}</span> ·{' '}
-            {USER_ROLE_LABELS[createdUser.role]}. По умолчанию список показывает только учеников — сотрудник
-            в нём не появится.
+            {t('users.createdStaff', {
+              email: createdUser.email,
+              role: USER_ROLE_LABELS[createdUser.role],
+            })}
           </p>
           <Link to={`/admin/users/${createdUser.id}`} className={cn(ADMIN_TEXT, 'text-brand font-semibold underline whitespace-nowrap')}>
-            Открыть карточку
+            {t('users.createdStaffOpen')}
           </Link>
         </div>
       )}
 
+      <div
+        role="group"
+        aria-label={t('users.roleTabs.aria')}
+        className="inline-flex rounded-[14px] border border-default overflow-hidden self-start"
+      >
+        {ROLE_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => handleRoleChange(tab)}
+            aria-pressed={role === tab}
+            className={cn(
+              ADMIN_TEXT,
+              'px-3 py-1.5 transition-colors border-r border-default last:border-r-0',
+              role === tab
+                ? 'bg-active-tint text-brand font-medium'
+                : 'text-muted hover:text-primary hover:bg-hover',
+            )}
+          >
+            {t(`users.roleTabs.${tab}`)}
+          </button>
+        ))}
+      </div>
+
       <AdminToolbar
         search={{ value: search, onChange: handleSearch, placeholder: 'Email' }}
         selects={[
-          {
-            key: 'age_group',
-            label: t('common.col.age'),
-            value: ageGroup,
-            options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
-              value: key,
-              label: AGE_TIER_LABELS[key],
-            })),
-          },
-          {
-            key: 'status',
-            label: t('users.filter.status'),
-            value: status,
-            options: (Object.keys(ASSESSMENT_STATUS_LABELS) as AssessmentStatus[]).map((key) => ({
-              value: key,
-              label: t(ASSESSMENT_STATUS_LABELS[key]),
-            })),
-          },
-          {
-            key: 'goal',
-            label: t('users.filter.goal'),
-            value: goal,
-            options: (Object.keys(ASSESSMENT_GOAL_LABELS) as AssessmentGoal[]).map((key) => ({
-              value: key,
-              label: t(ASSESSMENT_GOAL_LABELS[key]),
-            })),
-          },
+          ...(isStudentRole
+            ? [
+                {
+                  key: 'age_group',
+                  label: t('common.col.age'),
+                  value: ageGroup,
+                  options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
+                    value: key,
+                    label: AGE_TIER_LABELS[key],
+                  })),
+                },
+                {
+                  key: 'status',
+                  label: t('users.filter.status'),
+                  value: status,
+                  options: (Object.keys(ASSESSMENT_STATUS_LABELS) as AssessmentStatus[]).map((key) => ({
+                    value: key,
+                    label: t(ASSESSMENT_STATUS_LABELS[key]),
+                  })),
+                },
+                {
+                  key: 'goal',
+                  label: t('users.filter.goal'),
+                  value: goal,
+                  options: (Object.keys(ASSESSMENT_GOAL_LABELS) as AssessmentGoal[]).map((key) => ({
+                    value: key,
+                    label: t(ASSESSMENT_GOAL_LABELS[key]),
+                  })),
+                },
+              ]
+            : []),
           {
             key: 'inactive_days',
-            label: 'Не заходил',
+            label: t('users.filter.inactiveDays'),
             value: inactiveDays,
-            options: INACTIVE_OPTIONS,
+            options: INACTIVE_OPTIONS.map((opt) => ({ value: opt.value, label: t(opt.labelKey) })),
           },
         ]}
         onFilterChange={(key, value) => setFilter(key as (typeof FILTER_KEYS)[number], value)}
-        onClearAll={clearFilters}
+        onClearAll={clearListFilters}
       />
 
       {/* The status/goal filters mean "has at least one matching assessment",
           while the goal column always shows the latest one. Said once, in
           place, instead of hidden in a header tooltip. */}
-      {(status || goal) && (
+      {isStudentRole && (status || goal) && (
         <p className={cn(ADMIN_META, '-mt-1')}>
           {t('users.filterNote')}
         </p>
       )}
 
-      {error && <AdminError message={error} onRetry={() => setReloadToken((t) => t + 1)} />}
+      {error && <AdminError message={error} onRetry={() => setReloadToken((token) => token + 1)} />}
       {exportError && <AdminError message={exportError} />}
 
       <AdminDataTable
@@ -536,8 +608,8 @@ export default function AdminUsersPage() {
         sort={sort}
         onSortChange={setSort}
         loading={loading}
-        emptyTitle={t('users.empty')}
-        emptyHint={t('users.emptyHint')}
+        emptyTitle={isStudentRole ? t('users.empty') : t('users.emptyStaff')}
+        emptyHint={isStudentRole ? t('users.emptyHint') : t('users.emptyStaffHint')}
       />
 
       <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="users" />
@@ -554,7 +626,16 @@ export default function AdminUsersPage() {
       <CreateStaffModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={(user) => setCreatedUser(user)}
+        onCreated={(user) => {
+          setCreatedUser(user);
+          // Jump to the new staff member's role tab so they show up immediately.
+          setFilters({
+            role: user.role === 'student' ? '' : user.role,
+            age_group: '',
+            status: '',
+            goal: '',
+          });
+        }}
       />
     </>
   );
@@ -573,14 +654,15 @@ export default function AdminUsersPage() {
  * при фильтре «завершённые» читалось бы как хорошая новость.
  */
 function UserStatsTiles({ stats }: { stats: AdminUserStats }) {
+  const { t } = useTranslation('admin');
   const tiles = [
-    { label: 'Всего пользователей', value: stats.total, hint: undefined },
-    { label: 'Регистраций за неделю', value: stats.signups_last_7d, hint: undefined },
-    { label: 'Диагностик завершено', value: stats.completed_diagnostics, hint: undefined },
+    { label: t('users.stats.total'), value: stats.total, hint: undefined },
+    { label: t('users.stats.signups7d'), value: stats.signups_last_7d, hint: undefined },
+    { label: t('users.stats.completedDiagnostics'), value: stats.completed_diagnostics, hint: undefined },
     {
-      label: 'Брошено на диагностике',
+      label: t('users.stats.abandonedDiagnostics'),
       value: stats.abandoned_diagnostics,
-      hint: `Тест не завершён, и пользователя не видели больше ${stats.inactive_days_threshold} дн.`,
+      hint: t('users.stats.abandonedHint', { days: stats.inactive_days_threshold }),
     },
   ];
 

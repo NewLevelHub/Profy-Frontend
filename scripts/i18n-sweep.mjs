@@ -46,11 +46,7 @@ const ALLOW = [
   ['src/pages/onboarding/ArtifactsSetupPage.tsx', /^("?[^']*"?\s*)?('[^']*'\s*,?\s*)+$/, 'canonical preset value (display via presetLabel/t)'],
   // Language picker shows each option in its own script (KZ-105).
   ['src/shared/ui/LanguageSwitcher.tsx', /'ҚАЗ'/, 'language-picker self-label'],
-  // Dev-only affordance behind import.meta.env.DEV — stripped from prod build.
-  ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить/, 'dev-only autofill (import.meta.env.DEV)'],
-  ['src/shared/ui/navigation/AssessmentRail.tsx', /психотеста|только в dev/, 'dev-only autofill-to-motivation (import.meta.env.DEV)'],
-  // Error path for the dev-only autofill-to-motivation handler above —
-  // unreachable outside that same DEV-gated button.
+  ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить|До мотивации|До Астур теста|психотеста|только в dev/, 'dev-only autofill (import.meta.env.DEV)'],
   ['src/pages/assessment/hooks/useAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
   ['src/pages/assessment/hooks/usePairAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
   // KZ-502 — ru→kk dictionary for catalog city/country strings (backend data).

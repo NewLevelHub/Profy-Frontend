@@ -101,12 +101,20 @@ export function DomainCell({
   status,
   description,
   level,
+  selected = false,
+  onSelect,
+  children,
 }: {
   icon?: React.ReactNode;
   title: string;
   status?: string;
   description?: string;
   level?: InterestLevel;
+  /** Makes the cell a toggle button that opens a detail panel elsewhere. */
+  onSelect?: () => void;
+  selected?: boolean;
+  /** Extra content under the description (e.g. a level meter). */
+  children?: React.ReactNode;
 }) {
   const fill = level ? LEVEL_FILL[level] : undefined;
   const isFilled = fill !== undefined;
@@ -114,29 +122,44 @@ export function DomainCell({
   const fg = isFilled ? 'var(--text-on-brand)' : 'var(--text-heading)';
   const descFg = isFilled ? 'var(--text-on-brand)' : 'var(--ink)';
   const statusFg = isFilled ? 'var(--text-on-brand)' : 'var(--text-muted)';
+  const Tag = onSelect ? 'button' : 'div';
+  // <p> isn't valid inside <button> — same look, phrasing element instead.
+  const TextTag = onSelect ? 'span' : 'p';
   return (
-    <div
-      className={cn('p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-colors', isLow && 'opacity-45')}
-      style={{ background: fill ?? (isLow ? 'transparent' : 'var(--bg-surface)') }}
+    <Tag
+      type={onSelect ? 'button' : undefined}
+      aria-pressed={onSelect ? selected : undefined}
+      onClick={onSelect}
+      className={cn(
+        'p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-[opacity,box-shadow]',
+        isLow && !selected && 'opacity-45',
+        onSelect && 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[color:var(--dawn-deep)]',
+        onSelect && isLow && !selected && 'hover:opacity-75',
+      )}
+      style={{
+        background: fill ?? (isLow ? 'transparent' : 'var(--bg-surface)'),
+        boxShadow: selected ? `inset 0 0 0 3px ${isFilled ? 'var(--text-on-brand)' : 'var(--text-heading)'}` : undefined,
+      }}
     >
       {icon}
-      <p className="text-body-sm font-semibold leading-snug line-clamp-2" style={{ color: fg }}>
+      <TextTag className="block text-body-sm font-semibold leading-snug line-clamp-2" style={{ color: fg }}>
         {title}
-      </p>
+      </TextTag>
       {status && (
-        <p
-          className={cn('font-mono uppercase tracking-label', isLow ? 'text-tiny' : 'text-mono-xs')}
+        <TextTag
+          className={cn('block font-mono uppercase tracking-label', isLow ? 'text-tiny' : 'text-mono-xs')}
           style={{ color: statusFg }}
         >
           {status}
-        </p>
+        </TextTag>
       )}
       {description && (
-        <p className="text-caption leading-snug" style={{ color: descFg }}>
+        <TextTag className="block text-caption leading-snug" style={{ color: descFg }}>
           {description}
-        </p>
+        </TextTag>
       )}
-    </div>
+      {children}
+    </Tag>
   );
 }
 

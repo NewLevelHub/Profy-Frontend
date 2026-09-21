@@ -10,12 +10,12 @@ function shuffled<T>(items: T[]): T[] {
   return copy;
 }
 
-/** Dev-only helper, junior's pairs equivalent of autofillAssessment.ts:
- * answers every remaining pair by picking one option at random, then every
- * motivation Harter pair with a random side + intensity (junior always uses
- * the Harter format now, never the triplets — see MotivationAssessmentPage.tsx)
- * — so the whole test completes in two requests instead of ~52 taps. */
-async function fillPairs(assessmentId: string): Promise<void> {
+/** Dev-only helper, junior's pairs equivalent of `autofillMainBattery`:
+ * answers every remaining pair by picking one option at random — the main
+ * battery only, stopping right before motivation. Split out of
+ * `autofillPairAssessment` so a caller can land the tester ON the
+ * motivation screen instead of racing straight through it. */
+export async function autofillPairMainBattery(assessmentId: string): Promise<void> {
   const pairs = await pairsApi.getPairs(assessmentId);
   if (pairs.length > 0) {
     await pairsApi.submitAnswers(assessmentId, {
@@ -31,12 +31,14 @@ async function fillPairs(assessmentId: string): Promise<void> {
  * autofillAssessment.ts: fills every remaining pair, then stops right
  * before /assessment/motivation ("Что тебя драйвит") so that block can be
  * tested by hand instead of raced through. */
-export async function autofillPairsUntilMotivation(assessmentId: string): Promise<void> {
-  await fillPairs(assessmentId);
-}
+export const autofillPairsUntilMotivation = autofillPairMainBattery;
 
+/** Dev-only helper: `autofillPairMainBattery` plus every motivation Harter
+ * pair with a random side + intensity (junior always uses the Harter format
+ * now, never the triplets — see MotivationAssessmentPage.tsx) — so the
+ * whole test completes in two requests instead of ~52 taps. */
 export async function autofillPairAssessment(assessmentId: string): Promise<void> {
-  await fillPairs(assessmentId);
+  await autofillPairMainBattery(assessmentId);
 
   const motivationPairs = await motivationPairsApi.getPairs(assessmentId);
   if (motivationPairs.length > 0) {
