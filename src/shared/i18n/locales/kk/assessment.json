@@ -64,7 +64,10 @@
   "intro": {
     "itemCount_one": "{{count}} сұрақ",
     "itemCount_other": "{{count}} сұрақ",
+    "taskCount_one": "{{count}} тапсырма",
+    "taskCount_other": "{{count}} тапсырма",
     "durationMin": "~{{count}} мин",
+    "durationExactMin": "{{count}} мин.",
     "duration2min": "~2 мин",
     "diagnostic": {
       "kicker": "Диагностика",
