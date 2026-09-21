@@ -195,7 +195,7 @@ export default function PsychologistStudentDetailPage() {
             <div>
               <dt className={ADMIN_META}>{t('detail.city')}</dt>
               <dd className={cn(ADMIN_TEXT, 'm-0 text-primary')}>
-                {student.profile.city}, {student.profile.country}
+                {[student.profile.city, student.profile.country].filter(Boolean).join(', ') || '—'}
               </dd>
             </div>
           </dl>
