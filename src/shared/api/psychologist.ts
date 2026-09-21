@@ -1,9 +1,11 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import type {
+  PsychAiAnalysis,
   PsychologistAvailableStudentItem,
   PsychologistNote,
   PsychologistNoteWrite,
+  PsychologistReportResponse,
   PsychologistResultDetail,
   PsychologistResultPatch,
   PsychologistReviewQueueItem,
@@ -49,6 +51,16 @@ export const psychologistApi = {
 
   deleteNote: (noteId: string) =>
     apiClient.delete(API.psychologist.noteDetail(noteId)).then((r) => r.data),
+
+  getReport: (studentId: string, assessmentId: string) =>
+    apiClient
+      .get<PsychologistReportResponse>(API.psychologist.studentAssessmentReport(studentId, assessmentId))
+      .then((r) => r.data),
+
+  regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>
+    apiClient
+      .post<PsychAiAnalysis | null>(API.psychologist.regenerateReportAiAnalysis(studentId, assessmentId))
+      .then((r) => r.data),
 
   listReviews: () =>
     apiClient

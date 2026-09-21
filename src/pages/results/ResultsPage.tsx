@@ -50,8 +50,10 @@ export default function ResultsPage() {
     isJunior,
     refetch,
     inProgress,
-    answeredCount,
-    totalQuestions,
+    completedPhaseCount,
+    totalPhaseCount,
+    currentPhase,
+    continueRoute,
   } = useResults();
 
   if (!hasCompletedAssessment) {
@@ -59,9 +61,10 @@ export default function ResultsPage() {
       <PageContainer>
         {inProgress ? (
           <AssessmentInProgressCard
-            answeredCount={answeredCount}
-            totalQuestions={totalQuestions}
-            onContinue={() => navigate('/assessment')}
+            completedPhaseCount={completedPhaseCount}
+            totalPhaseCount={totalPhaseCount}
+            currentPhase={currentPhase}
+            onContinue={() => navigate(continueRoute)}
           />
         ) : (
           <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />
@@ -133,6 +136,7 @@ export default function ResultsPage() {
           isJunior={isJunior}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
+          interestCombination={report.interest_instrument === 'riasec' ? report.interest_combination : null}
         />
       </ResultsReveal>
 

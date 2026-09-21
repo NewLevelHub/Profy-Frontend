@@ -7,6 +7,7 @@ import { useLocaleStore } from '@/shared/store/locale';
 import { isPendingReview, resultApi } from '@/shared/api/result';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { Button } from '@/shared/ui/Button';
+import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
 import { ResultLoadingView } from './components/ResultLoadingView';
 
 export default function ResultLoadingPage() {
@@ -105,7 +106,8 @@ export default function ResultLoadingPage() {
 
   if (error !== null) {
     return (
-      <div className="flex flex-col min-h-screen items-center justify-center bg-page px-6">
+      <div className="relative flex flex-col min-h-screen items-center justify-center bg-page px-6">
+        <FullScreenPreferences className="absolute top-4 right-4 sm:right-6 z-10" />
         <div className="flex flex-col items-center gap-4 text-center">
           <span className="text-5xl select-none" aria-hidden="true">⚠️</span>
           <p className="text-body text-danger">{error}</p>

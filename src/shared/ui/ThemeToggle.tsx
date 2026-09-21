@@ -1,11 +1,12 @@
 import { Moon, Sun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { useTheme } from '@/shared/hooks/useTheme';
 import type { ResolvedTheme } from '@/shared/lib/theme';
 
-const OPTIONS: { value: ResolvedTheme; label: string; Icon: typeof Sun }[] = [
-  { value: 'light', label: 'Светлая тема', Icon: Sun },
-  { value: 'dark', label: 'Тёмная тема', Icon: Moon },
+const THEME_ICONS: { value: ResolvedTheme; key: 'light' | 'dark'; Icon: typeof Sun }[] = [
+  { value: 'light', key: 'light', Icon: Sun },
+  { value: 'dark', key: 'dark', Icon: Moon },
 ];
 
 export interface ThemeToggleProps {
@@ -28,19 +29,21 @@ export interface ThemeToggleProps {
  * скринридер должен объявлять выбор, а не два независимых действия.
  */
 export function ThemeToggle({ className }: ThemeToggleProps) {
+  const { t } = useTranslation('common');
   const { theme, setChoice } = useTheme();
 
   return (
     <div
       role="radiogroup"
-      aria-label="Тема оформления"
+      aria-label={t('theme.groupLabel')}
       className={cn(
         'inline-flex items-center gap-0.5 p-0.5 rounded-pill border border-default bg-surface',
         className,
       )}
     >
-      {OPTIONS.map(({ value, label, Icon }) => {
+      {THEME_ICONS.map(({ value, key, Icon }) => {
         const active = theme === value;
+        const label = t(`theme.${key}`);
         return (
           <button
             key={value}

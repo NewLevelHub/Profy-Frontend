@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
+import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
 import { Mascot } from '@/shared/ui/Mascot';
 
 const MESSAGE_KEYS = [
@@ -41,7 +42,8 @@ export function ResultLoadingView({ className }: ResultLoadingViewProps) {
   }, []);
 
   return (
-    <div className={cn('flex flex-col items-center justify-center bg-page px-6', className)}>
+    <div className={cn('relative flex flex-col items-center justify-center bg-page px-6', className)}>
+      <FullScreenPreferences className="absolute top-4 right-4 sm:right-6 z-10" />
       <div className="w-full max-w-lg mx-auto text-center flex flex-col gap-6">
         <Mascot state="waiting" size={140} className="mx-auto" />
         <div

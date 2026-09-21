@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { Clock, PauseCircle, Smile } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { Button, Mascot } from '@/shared/ui';
+import { Button, FullScreenPreferences, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 
@@ -26,6 +26,11 @@ export default function WelcomePage() {
 
   return (
     <div className="journey-page journey-page--lit min-h-screen flex flex-col">
+      <div className="relative z-10 px-4 pt-4 sm:px-5 sm:pt-5">
+        <div className="max-w-5xl mx-auto">
+          <FullScreenPreferences />
+        </div>
+      </div>
       <div className="relative z-[1] flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
         <div className="w-full max-w-5xl mx-auto">
           <div className="onboarding-welcome-in journey-shell flex flex-col gap-8 px-6 py-8 sm:px-10 sm:py-11">
@@ -61,7 +66,7 @@ export default function WelcomePage() {
 
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:justify-between pt-1 border-t border-default">
               <p className="text-body-sm text-muted sm:max-w-[36ch] pt-3 sm:pt-0">
-                Можно выйти и вернуться позже — прогресс не потеряется.
+                {t('welcome.exitHint')}
               </p>
               <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:pt-3">
                 {/* Assessment record already exists at this point (goal picked,

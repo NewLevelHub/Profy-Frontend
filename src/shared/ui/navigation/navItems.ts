@@ -21,12 +21,12 @@ export const ADMIN_NAV_ITEM = {
 /** Staff cabinet nav — no student tabs (results / start test). */
 export const PSYCHOLOGIST_NAV_ITEMS = [
   {
-    label: 'Ученики',
+    label: 'psychologist:nav.students',
     path: '/psychologist/students',
     matchPrefix: '/psychologist/students',
   },
   {
-    label: 'Проверка отчётов',
+    label: 'psychologist:nav.reviews',
     path: '/psychologist/reviews',
     matchPrefix: '/psychologist/reviews',
   },

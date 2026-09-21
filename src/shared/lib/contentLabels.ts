@@ -5,6 +5,12 @@ export const INSTRUMENT_LABELS: Record<Instrument, string> = {
   riasec: 'RIASEC',
   big_five: 'Big Five',
   mi: 'MI',
+  professional_types: 'ДДО (интересы)',
+  professional_types_abilities: 'ДДО (способности)',
+  eysenck: 'Айзенк',
+  elers: 'Элерс',
+  boyko_empathy: 'Бойко (эмпатия)',
+  kondash_anxiety: 'Кондаш/Прихожан (тревожность)',
 };
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {

@@ -9,6 +9,11 @@ export type { CardProps } from './Card';
 
 export { LazyMedia } from './LazyMedia';
 
+export { ProgressBar } from './ProgressBar';
+export type { ProgressBarProps, ProgressBarVariant } from './ProgressBar';
+
+export { PointAllocator } from './PointAllocator';
+export type { PointAllocatorProps, PointAllocatorItem } from './PointAllocator';
 export { Spine } from './Spine';
 export type { SpineProps, SpineNode, SpineNodeStatus, SpineSegmentStyle } from './Spine';
 
@@ -22,6 +27,7 @@ export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant } from './Badge';
 
 export { ThemeToggle } from './ThemeToggle';
+export { FullScreenPreferences } from './FullScreenPreferences';
 export type { ThemeToggleProps } from './ThemeToggle';
 
 export { Spinner } from './Spinner';

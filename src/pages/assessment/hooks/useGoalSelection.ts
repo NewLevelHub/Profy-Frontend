@@ -12,7 +12,17 @@ import type { AxiosError } from 'axios';
 
 export function useGoalGuard() {
   const syncDone = useAssessmentStore(s => s.syncDone);
-  const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
+  const hasCompletedAssessmentFlag = useAssessmentStore(s => s.hasCompletedAssessment);
+  const answeredCount = useAssessmentStore(s => s.answeredCount);
+  const totalQuestions = useAssessmentStore(s => s.totalQuestions);
+  const motivationAnsweredCount = useAssessmentStore(s => s.motivationAnsweredCount);
+  const motivationTotal = useAssessmentStore(s => s.motivationTotal);
+  // Cross-checked against live progress counters — see useFinishedAssessmentGuard
+  // for why the raw flag alone can't be trusted.
+  const hasCompletedAssessment =
+    hasCompletedAssessmentFlag &&
+    totalQuestions > 0 && answeredCount >= totalQuestions &&
+    motivationTotal > 0 && motivationAnsweredCount >= motivationTotal;
   // Redirect to results if user already has completed assessment (guard fires from store)
   const shouldRedirect = syncDone && hasCompletedAssessment;
   return { syncDone, shouldRedirect };

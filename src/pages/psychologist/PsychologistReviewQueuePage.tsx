@@ -21,7 +21,7 @@ function GoalLabel({ goal }: { goal: PsychologistReviewQueueItem['goal'] }) {
 }
 
 function reviewPath(row: PsychologistReviewQueueItem) {
-  return `/psychologist/students/${row.student_id}/results/${row.assessment_id}/review`;
+  return `/psychologist/students/${row.student_id}/assessments/${row.assessment_id}/report?tab=review`;
 }
 
 function formatDate(value: string) {

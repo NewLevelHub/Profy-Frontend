@@ -36,6 +36,12 @@ export const API = {
     motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
+    belbinContent: '/assessment/belbin/content',
+    belbin: (assessmentId: string) => `/assessment/${assessmentId}/belbin`,
+    asturContent: '/assessment/astur/content',
+    asturStart: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/start`,
+    asturSubtest: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}`,
+    extendedBlocks: (assessmentId: string) => `/assessment/${assessmentId}/extended-blocks`,
   },
   result: {
     generate: '/result/generate',
@@ -109,6 +115,12 @@ export const API = {
     studentDetail: (id: string) => `/psychologist/students/${id}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
+    studentAssessmentReport: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/report`,
+    regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/report/ai-analysis/regenerate`,
+    assignExtendedBlock: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/extended-blocks`,
     reviews: '/psychologist/reviews',
     resultReview: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/results/${assessmentId}`,
