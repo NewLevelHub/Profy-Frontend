@@ -7,6 +7,7 @@ import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { useLocaleStore } from '@/shared/store/locale';
+import { hasPendingColorRun } from '@/shared/store/psychoemotional';
 
 export function useResults() {
   const { t } = useTranslation('results');
@@ -179,7 +180,14 @@ export function useResults() {
 
   type AssessmentPhase = 'diagnostic' | 'motivation' | 'belbin' | 'astur' | 'done';
   let currentPhase: AssessmentPhase = 'diagnostic';
-  let continueRoute = '/assessment';
+  
+  // Circle 1 (psychoemotional-start) sits before the main diagnostic phase. If
+  // it hasn't been started yet (no runId), route there first. hasPendingColorRun
+  // is true if circle 1 is already submitted.
+  let continueRoute = !likertDone && assessmentId && !hasPendingColorRun(assessmentId)
+    ? '/assessment/psychoemotional-start'
+    : '/assessment';
+
   if (likertDone) {
     if (!motivationDone) {
       currentPhase = 'motivation';
