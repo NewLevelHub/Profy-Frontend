@@ -1,5 +1,5 @@
 import { REPORT_SECTIONS } from '@/shared/api/feedback';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AGE_GROUP_RANGE_KEYS, AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
 import type { AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
 
 /**
@@ -71,11 +71,7 @@ export function sectionShortLabel(key: string, t: (key: string) => string): stri
 export const AGE_ORDER: AgeGroup[] = ['junior', 'middle', 'senior'];
 
 /** Mirrors `compute_age_group` in app/models/profile.py. */
-export const AGE_RANGE_HINT: Record<AgeGroup, string> = {
-  junior: 'admin:feedback.age.junior',
-  middle: 'admin:feedback.age.middle',
-  senior: 'admin:feedback.age.senior',
-};
+export const AGE_RANGE_HINT = AGE_GROUP_RANGE_KEYS;
 
 export function ageLabel(key: string): string {
   return AGE_TIER_LABELS[key as AgeGroup] ?? key;

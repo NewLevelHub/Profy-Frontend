@@ -6,7 +6,7 @@ import { ClipboardCheck, FileText, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AGE_GROUP_RANGE_KEYS } from '@/shared/lib/contentLabels';
 import { formatDate } from '@/shared/i18n/format';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -171,7 +171,7 @@ export default function PsychologistStudentDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn(ADMIN_NUM, 'text-muted')}>{student?.email ?? studentId}</span>
             {ageGroup && (
-              <AdminBadge tone="quiet">{AGE_TIER_LABELS[ageGroup] ?? ageGroup}</AdminBadge>
+              <AdminBadge tone="quiet">{t(AGE_GROUP_RANGE_KEYS[ageGroup])}</AdminBadge>
             )}
             {!canAddNotes && (
               <AdminBadge tone="accent">{t('detail.assignmentRemoved')}</AdminBadge>

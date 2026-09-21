@@ -25,6 +25,14 @@ export const AGE_TIER_LABELS: Record<AgeGroup, string> = {
   senior: 'Senior',
 };
 
+/** Year ranges matching `compute_age_group` in the backend — use with `t()`.
+ *  Prefer these over `AGE_TIER_LABELS` in user-facing lists (PRO-418). */
+export const AGE_GROUP_RANGE_KEYS: Record<AgeGroup, string> = {
+  junior: 'admin:feedback.age.junior',
+  middle: 'admin:feedback.age.middle',
+  senior: 'admin:feedback.age.senior',
+};
+
 /**
  * Code → i18n key, not code → text (KZ-202): the constant stays a plain index
  * and the wording lives in the catalog. Resolve at the use site with

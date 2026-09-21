@@ -4,20 +4,25 @@ import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AGE_GROUP_RANGE_KEYS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_META, ADMIN_NUM, ADMIN_RADIUS, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import type { PsychologistReviewQueueItem } from '@/shared/types';
+import type { AgeGroup, PsychologistReviewQueueItem } from '@/shared/types';
 
 // ASSESSMENT_GOAL_LABELS holds i18n keys (admin namespace) since the admin
 // panel was localized — render them through t(), never as-is.
 function GoalLabel({ goal }: { goal: PsychologistReviewQueueItem['goal'] }) {
   const { t } = useTranslation();
   return <span className={cn(ADMIN_TEXT, 'text-secondary')}>{t(ASSESSMENT_GOAL_LABELS[goal] ?? goal)}</span>;
+}
+
+function AgeGroupBadge({ ageGroup }: { ageGroup: AgeGroup }) {
+  const { t } = useTranslation();
+  return <AdminBadge tone="quiet">{t(AGE_GROUP_RANGE_KEYS[ageGroup])}</AdminBadge>;
 }
 
 function reviewPath(row: PsychologistReviewQueueItem) {
@@ -74,11 +79,11 @@ const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
   },
   {
     key: 'age',
-    header: 'Возраст',
+    header: 'Ступень',
     mobile: 'badge',
     cell: (row) =>
       row.age_group ? (
-        <AdminBadge tone="quiet">{AGE_TIER_LABELS[row.age_group] ?? row.age_group}</AdminBadge>
+        <AgeGroupBadge ageGroup={row.age_group} />
       ) : (
         <span className={ADMIN_META}>—</span>
       ),
