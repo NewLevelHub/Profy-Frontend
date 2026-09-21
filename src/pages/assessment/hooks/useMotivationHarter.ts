@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
+import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationPairsApi } from '@/shared/api/motivationPairs';
@@ -157,7 +159,7 @@ export function useMotivationHarter() {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/motivation',
-            progress,
+            progress: journeyProgressPercent(useAssessmentStore.getState()),
             totalAnswered: restCheck.totalAnswered,
             isSpeedFlag,
           } satisfies RestStopState,
@@ -218,7 +220,7 @@ export function useMotivationHarter() {
 
   const currentPair = pairs[pairIndex];
   const totalPairs = pairs.length;
-  const progress = totalPairs > 0 ? ((pairIndex + 1) / totalPairs) * 100 : 0;
+  const progress = useAssessmentJourneyProgress();
 
   return {
     phase,

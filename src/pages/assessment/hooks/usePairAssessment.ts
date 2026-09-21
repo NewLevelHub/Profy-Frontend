@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
+import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { pairsApi } from '@/shared/api/pairs';
@@ -146,7 +148,7 @@ export function usePairAssessment() {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/pairs',
-            progress,
+            progress: journeyProgressPercent(useAssessmentStore.getState()),
             totalAnswered: restCheck.totalAnswered,
             isSpeedFlag,
           } satisfies RestStopState,
@@ -217,7 +219,7 @@ export function usePairAssessment() {
 
   const currentPair = pairs[pairIndex];
   const totalPairs = pairs.length;
-  const progress = totalPairs > 0 ? ((pairIndex + 1) / totalPairs) * 100 : 0;
+  const progress = useAssessmentJourneyProgress();
 
   return {
     phase,
