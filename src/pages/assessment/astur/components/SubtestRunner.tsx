@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
@@ -13,6 +14,7 @@ import type {
   AsturNumericSeriesItem,
 } from '@/shared/types';
 import { useCountdown } from '../hooks/useCountdown';
+import { areAllAsturItemsAnswered } from '../utils/asturAnswersComplete';
 import { McQuestion } from './McQuestion';
 import { PickTwoQuestion } from './PickTwoQuestion';
 import { OpenTextQuestion } from './OpenTextQuestion';
@@ -46,19 +48,20 @@ function initialAnswers(subtest: AsturContentSubtest): Record<string, unknown> {
 }
 
 /** Прогон одного (не-лабильного) субтеста: все пункты на одном экране,
- *  таймер на весь субтест. По истечении он НЕ отправляет ответы сам —
- *  astur_timer_config.json прямо документирует его как мягкую подсказку,
- *  а не жёсткий обрыв (реальное время на вдумчивый ответ, особенно в
- *  «Обобщении», у разных студентов сильно расходится с оценкой в конфиге;
- *  досрочная отправка обрывала бы работу на середине). По истечении таймер
- *  просто переходит в тревожный режим и ждёт, пока студент сам нажмёт
- *  «Далее». Формат ввода переключается по `subtest.key`. */
+ *  таймер на весь субтест. Автоотправки по истечении нет (сервер всё равно
+ *  принимает поздний submit) — но «Далее» заблокирована, пока страница не
+ *  заполнена ИЛИ не вышло время (PRO-400). После таймера кнопка открывается,
+ *  даже с пропусками. */
 export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: SubtestRunnerProps) {
+  const { t } = useTranslation('assessment');
   const [answers, setAnswers] = useState<Record<string, unknown>>(() => initialAnswers(subtest));
   const [timeUp, setTimeUp] = useState(false);
 
   const durationMs = subtest.time_limit_sec !== null ? subtest.time_limit_sec * 1000 : null;
   const { remainingMs } = useCountdown(durationMs, subtest.key, () => setTimeUp(true));
+
+  const allAnswered = areAllAsturItemsAnswered(subtest, answers);
+  const canProceed = allAnswered || timeUp;
 
   function setAnswer(index: string, value: unknown) {
     setAnswers((prev) => ({ ...prev, [index]: value }));
@@ -83,7 +86,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
         <div className="flex flex-col gap-1.5">
           <ProgressBar value={(remainingMs / durationMs) * 100} variant={remainingMs < 15000 ? 'accent' : 'brand'} />
           <Text variant="caption" className={cn('self-end', timeUp ? 'text-danger font-semibold' : 'text-muted')}>
-            {timeUp ? 'Время вышло — закончи и нажми «Далее»' : formatMmSs(remainingMs)}
+            {timeUp ? t('astur.subtest.timeUp') : formatMmSs(remainingMs)}
           </Text>
         </div>
       )}
@@ -148,9 +151,24 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
         </Text>
       )}
 
-      <Button size="lg" onClick={() => onSubmit(normalizedAnswers())} isLoading={submitting} className="self-end">
-        Далее
-      </Button>
+      <div className="flex flex-col gap-2 self-end w-full sm:w-auto">
+        {!canProceed && (
+          <Text variant="caption" className="text-muted text-right">
+            {durationMs !== null
+              ? t('astur.subtest.nextBlockedTimed')
+              : t('astur.subtest.nextBlocked')}
+          </Text>
+        )}
+        <Button
+          size="lg"
+          onClick={() => onSubmit(normalizedAnswers())}
+          disabled={!canProceed || submitting}
+          isLoading={submitting}
+          className="self-end"
+        >
+          {t('astur.subtest.next')}
+        </Button>
+      </div>
       </div>
     </div>
   );
