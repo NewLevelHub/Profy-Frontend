@@ -181,6 +181,8 @@ export default function PsychologistStudentsPage() {
         cell: (row) =>
           row.has_pending_review ? (
             <AdminBadge tone="accent">{t('psychologist:list.pendingReview', 'ждёт проверки')}</AdminBadge>
+          ) : !row.has_completed_assessment ? (
+            <AdminBadge tone="quiet">{t('psychologist:list.testNotDone', 'тест не пройден')}</AdminBadge>
           ) : (
             <span className={ADMIN_META}>—</span>
           ),
@@ -189,21 +191,29 @@ export default function PsychologistStudentsPage() {
         key: 'action',
         header: '',
         mobile: 'field',
-        cell: (row) => (
-          <Button
-            type="button"
-            size="sm"
-            variant="primary"
-            disabled={claimingId === row.id}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              void handleClaim(row.id);
-            }}
-          >
-            {claimingId === row.id ? '…' : t('psychologist:list.claim', 'Взять')}
-          </Button>
-        ),
+        cell: (row) =>
+          row.has_completed_assessment ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              disabled={claimingId === row.id}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void handleClaim(row.id);
+              }}
+            >
+              {claimingId === row.id ? '…' : t('psychologist:list.claim', 'Взять')}
+            </Button>
+          ) : (
+            <span
+              className={cn(ADMIN_META, 'whitespace-nowrap')}
+              title={t('psychologist:list.claimDisabledHint', 'Ученик ещё не прошёл тест')}
+            >
+              {t('psychologist:list.claimDisabled', 'Тест не пройден')}
+            </span>
+          ),
       },
     ],
     [claimingId, t],
