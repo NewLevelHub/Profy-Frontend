@@ -9,6 +9,7 @@ import { useResults } from './hooks/useResults';
 import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
+import { AssessmentCompletedCard } from './components/AssessmentCompletedCard';
 import { ResultsReveal } from './components/ResultsReveal';
 import { FeedbackSection } from './components/FeedbackSection';
 import { ResultsReportBody } from './components/ResultsReportBody';
@@ -78,15 +79,15 @@ export default function ResultsPage() {
     );
   }
 
-  // Test finished, report generated, but a psychologist hasn't published it
-  // yet (PRO-337). useResults keeps polling and swaps the report in once it is.
+  // Test finished, report not published yet (PRO-337). No waiting-room screen
+  // (PRO-401) — show a done state; useResults still polls so the report swaps
+  // in once a psychologist publishes.
   if (isPendingReview) {
     return (
       <PageContainer>
-        <JourneyEmptyState
-          mascotState="pause"
-          title={t('pendingReview.title')}
-          body={t('pendingReview.body')}
+        <AssessmentCompletedCard
+          onOpenProfile={() => navigate('/profile')}
+          onOpenUniversities={() => navigate('/universities')}
         />
       </PageContainer>
     );
