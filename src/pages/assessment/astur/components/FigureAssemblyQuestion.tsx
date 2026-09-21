@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useTranslation } from 'react-i18next';
 
 interface FigureAssemblyQuestionProps {
   /** 1-based position within the subtest — the stimulus images for this
@@ -18,10 +19,11 @@ const OPTIONS: { letter: string; file: string }[] = [
 ];
 
 export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssemblyQuestionProps) {
+  const { t } = useTranslation('assessment');
   return (
     <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
       <legend className="text-body-md text-primary font-semibold">
-        {index}. Из каких частей можно без пропусков и остатка собрать фигуру-эталон?
+        {index}. {t('astur.figureAssemblyPrompt')}
       </legend>
       {/* theme-day: this is a scan-derived stimulus image, not app chrome —
           it must stay legible on its own light ground even in dark mode,

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Text } from '@/shared/ui/typography/Text';
@@ -39,6 +40,7 @@ const OPTION_LABEL: Record<string, string> = {
  * adult). Nothing left needs a text field.
  */
 export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, onSubmit }: LabilityRunnerProps) {
+  const { t } = useTranslation('assessment');
   const [itemIndex, setItemIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [elapsedMs, setElapsedMs] = useState<Record<string, number>>({});
@@ -68,7 +70,7 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
       <div className="flex flex-col gap-1.5">
         <ProgressBar value={(remainingMs / itemLimitMs) * 100} variant={remainingMs < 1500 ? 'accent' : 'brand'} />
         <Text variant="caption" className="text-muted self-end">
-          Команда {itemIndex + 1} из {items.length} · {(remainingMs / 1000).toFixed(1)} с
+          {t('astur.labilityHeader', { x: itemIndex + 1, y: items.length, t: (remainingMs / 1000).toFixed(1) })}
         </Text>
       </div>
 
@@ -91,7 +93,7 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
       )}
       {submitting && (
         <Text variant="caption" className="text-muted">
-          Отправка…
+          {t('astur.labilitySending')}
         </Text>
       )}
       </div>

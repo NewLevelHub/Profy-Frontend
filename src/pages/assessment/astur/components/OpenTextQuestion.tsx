@@ -1,4 +1,5 @@
 import { Input } from '@/shared/ui/Input';
+import { useTranslation } from 'react-i18next';
 
 interface OpenTextQuestionProps {
   index: number;
@@ -7,8 +8,8 @@ interface OpenTextQuestionProps {
   onChange: (value: string) => void;
 }
 
-/** Субтест «Обобщение» — вписать одно слово/словосочетание, обобщающее пару понятий. */
 export function OpenTextQuestion({ index, pair, value, onChange }: OpenTextQuestionProps) {
+  const { t } = useTranslation('assessment');
   return (
     <div className="flex flex-col gap-2">
       <p className="text-body-md text-primary font-semibold">
@@ -17,7 +18,7 @@ export function OpenTextQuestion({ index, pair, value, onChange }: OpenTextQuest
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Обобщающее слово или словосочетание"
+        placeholder={t('astur.generalizationPlaceholder')}
       />
     </div>
   );

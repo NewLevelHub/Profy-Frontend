@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import type { AsturSubtestKey, SubmitAsturSubtestPayload } from '@/shared/types';
+import { useLocaleStore } from '@/shared/store/locale';
 
 type StepPhase = 'instruction' | 'running';
 
@@ -35,8 +37,10 @@ function persistCompleted(assessmentId: string, completed: Set<AsturSubtestKey>)
  */
 export function useAsturAssessment(assessmentId: string) {
   const navigate = useNavigate();
+  const { t } = useTranslation('assessment');
+  const locale = useLocaleStore((s) => s.locale);
   const { data: content, isLoading, isError } = useQuery({
-    queryKey: ['asturContent'] as const,
+    queryKey: ['asturContent', locale] as const,
     queryFn: asturApi.getContent,
   });
 
@@ -92,7 +96,7 @@ export function useAsturAssessment(assessmentId: string) {
       }
       setStepPhase('instruction');
     } catch {
-      setSubmitError('Не удалось отправить ответы, попробуйте ещё раз');
+      setSubmitError(t('astur.submitError'));
     } finally {
       setSubmitting(false);
     }
@@ -129,7 +133,7 @@ export function useAsturAssessment(assessmentId: string) {
       setSubtestIndex(content.subtests.length);
       useAssessmentStore.getState().setAsturCompleted(true);
     } catch {
-      setSubmitError('Не удалось автозаполнить субтесты');
+      setSubmitError(t('astur.submitError'));
     } finally {
       setSubmitting(false);
     }
@@ -156,7 +160,7 @@ export function useAsturAssessment(assessmentId: string) {
 
   return {
     isLoading,
-    loadError: isError ? 'Не удалось загрузить содержимое теста' : null,
+    loadError: isError ? t('astur.loadError') : null,
     subtest,
     subtestIndex,
     subtestCount,
