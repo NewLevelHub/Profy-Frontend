@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
+import { AssessmentStageShell } from '../../components/AssessmentStageShell';
 import { LAYOUT, PSYCHO_COLOR_BY_ID, CHOICE_COUNT } from '../data/colors';
 import { ColorSwatch } from './ColorSwatch';
 
@@ -16,6 +17,7 @@ interface ColorCircleStepProps {
  * (одинаковом на обоих кругах). Выбор от самого приятного к самому
  * неприятному; выбранная плашка убирается из ряда. Фиксируется порядок ID
  * и Δt между кликами.
+ * PRO-397: same journey-shell card as AssessmentIntro / CheckInStep.
  */
 export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProps) {
   const { t } = useTranslation('assessment');
@@ -37,8 +39,11 @@ export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProp
   const remaining = LAYOUT.filter((id) => !picked.includes(id));
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <Heading level="display-sm" as="h2" className="text-primary text-center">
+    <AssessmentStageShell
+      centered
+      contentClassName="flex flex-col items-center gap-6 !p-6 sm:!p-8"
+    >
+      <Heading level="display-sm" as="h2" className="text-primary text-center text-balance">
         {instruction}
       </Heading>
       <div
@@ -56,6 +61,6 @@ export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProp
       <Text variant="body-sm" className="text-muted">
         {t('psychoemotional.pickedOfTotal', { picked: picked.length, total: CHOICE_COUNT })}
       </Text>
-    </div>
+    </AssessmentStageShell>
   );
 }

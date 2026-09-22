@@ -80,7 +80,7 @@ export default function PsychoColorStartPage() {
             <Spinner size="lg" />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:px-6">
+          <>
             {step === 'checkin' && <CheckInStep onSubmit={handleCheckin} />}
             {step === 'circle1' && (
               <ColorCircleStep
@@ -88,7 +88,7 @@ export default function PsychoColorStartPage() {
                 onComplete={handleCircle1}
               />
             )}
-          </div>
+          </>
         )}
       </div>
     </div>

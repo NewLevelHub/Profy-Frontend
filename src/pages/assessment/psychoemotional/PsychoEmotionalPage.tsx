@@ -74,12 +74,10 @@ export default function PsychoEmotionalPage() {
             <Spinner size="lg" />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:px-6">
-            <ColorCircleStep
-              instruction={t('psychoemotional.circle2.instruction')}
-              onComplete={handleCircle2}
-            />
-          </div>
+          <ColorCircleStep
+            instruction={t('psychoemotional.circle2.instruction')}
+            onComplete={handleCircle2}
+          />
         )}
       </div>
     </div>
