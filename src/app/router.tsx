@@ -75,6 +75,8 @@ import AdminMotivationPairsPage from '@/pages/admin/content/AdminMotivationPairs
 import AdminMotivationPairDetailPage from '@/pages/admin/content/AdminMotivationPairDetailPage';
 import AdminDirectionsPage from '@/pages/admin/content/AdminDirectionsPage';
 import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetailPage';
+import AdminTestsConfigPage from '@/pages/admin/content/AdminTestsConfigPage';
+import AdminBelbinEditorPage from '@/pages/admin/content/AdminBelbinEditorPage';
 
 // ── Psychologist cabinet ──────────────────────────────────────────────────────
 import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
@@ -169,6 +171,8 @@ export const router = createBrowserRouter([
                   { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
                   { path: 'directions', element: <AdminDirectionsPage /> },
                   { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                  { path: 'belbin', element: <AdminBelbinEditorPage /> },
+                  { path: 'tests', element: <AdminTestsConfigPage /> },
                 ],
               },
             ],

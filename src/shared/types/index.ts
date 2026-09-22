@@ -1144,6 +1144,30 @@ export interface AdminMotivationResponseItem {
   created_at: string;
 }
 
+export interface AdminAsturRunResponse {
+  id: string;
+  raw_score: number | null;
+  spn_group: number | null;
+  answers: Record<string, any>;
+  lability_answers: Record<string, any>;
+  subtest_scores: Record<string, number>;
+  created_at: string;
+}
+
+export interface AdminBelbinRunResponse {
+  id: string;
+  allocations: Record<string, number>[];
+  role_totals: Record<string, number>;
+  created_at: string;
+}
+
+export interface AdminPsychoemotionalRunResponse {
+  id: string;
+  checkin: Record<string, any>;
+  metrics: Record<string, any>;
+  created_at: string;
+}
+
 export interface AdminAssessmentDetail {
   id: string;
   user_id: string;
@@ -1157,6 +1181,9 @@ export interface AdminAssessmentDetail {
   completed_at: string | null;
   responses: AdminResponseItem[];
   motivation_responses: AdminMotivationResponseItem[];
+  astur_runs: AdminAsturRunResponse[];
+  belbin_runs: AdminBelbinRunResponse[];
+  psychoemotional_runs: AdminPsychoemotionalRunResponse[];
   analysis_result: AnalysisResultResponse | null;
   roadmap: RoadmapResponse | null;
 }
@@ -1738,6 +1765,86 @@ export interface AdminFieldOverride {
 }
 
 export type AdminOverrides = Record<string, AdminFieldOverride>;
+
+export interface AdminContentOverrideRequest {
+  content_ru: unknown | null;
+  content_kk: unknown | null;
+}
+
+export interface AdminContentOverrideResponse {
+  id: string;
+  instrument: string;
+  content_ru: unknown | null;
+  content_kk: unknown | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+/** Bank shape behind `GET /admin/belbin-schema` and the `sections` half of a
+ *  `belbin` content override — the visual editor round-trips this same
+ *  bilingual shape back through `AdminContentOverrideRequest.content_{ru,kk}`.
+ *  Distinct from `BelbinContentItem`/`BelbinContentSection` above, which are
+ *  the already locale-resolved public `/belbin/content` response. */
+export interface BelbinBankItem {
+  id: string;
+  role: string;
+  text: { ru: string; kk: string };
+}
+
+export interface BelbinBankSection {
+  section: number;
+  title: { ru: string; kk: string };
+  items: BelbinBankItem[];
+}
+
+export interface BelbinSchemaResponse {
+  sections: BelbinBankSection[];
+}
+
+/** Bank shape behind `GET /admin/astur-schema` and the `subtests` half of an
+ *  `astur` content override — bilingual, unresolved, and restricted to
+ *  exactly the fields real test-takers see (never `answer`/scoring keys,
+ *  which the backend never sends here in the first place). Which of these
+ *  keys is present on a given item depends on its subtest's `key` — see
+ *  `ASTUR_ITEM_FIELDS_BY_SUBTEST` in `shared/lib/asturContent.ts`. */
+export interface AsturBankLocalizedText {
+  ru: string;
+  kk: string;
+}
+
+export interface AsturBankLocalizedList {
+  ru: string[];
+  kk: string[];
+}
+
+export interface AsturBankItem {
+  text?: AsturBankLocalizedText;
+  instruction?: AsturBankLocalizedText;
+  third?: AsturBankLocalizedText;
+  options?: AsturBankLocalizedList;
+  pair?: AsturBankLocalizedList;
+  words?: AsturBankLocalizedList;
+  concepts?: AsturBankLocalizedList;
+  /** Locale-independent — numeric_series only. */
+  sequence?: number[];
+  /** Locale-independent tag driving the respondent's input widget
+   *  (digit/shape/symbol/word) — lability only, shown read-only. */
+  answer_format?: string;
+}
+
+export interface AsturBankSubtest {
+  number: number;
+  key: string;
+  name: AsturBankLocalizedText;
+  instruction: AsturBankLocalizedText;
+  item_count: number;
+  scored: boolean;
+  items: AsturBankItem[];
+}
+
+export interface AsturSchemaResponse {
+  subtests: AsturBankSubtest[];
+}
 
 /** `?sort=&order=` accepted by every admin list. The set of valid `sort`
  *  values is per endpoint — an unknown one is a 422 naming the allowed set,

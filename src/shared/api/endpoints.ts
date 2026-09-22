@@ -110,6 +110,9 @@ export const API = {
     programLocks: (id: string) => `/admin/programs/${id}/locks`,
     programLockField: (id: string, field: string) =>
       `/admin/programs/${id}/locks/${encodeURIComponent(field)}`,
+    contentOverride: (instrument: string) => `/admin/content-overrides/${instrument}`,
+    belbinSchema: '/admin/belbin-schema',
+    asturSchema: '/admin/astur-schema',
   },
   psychologist: {
     students: '/psychologist/students',

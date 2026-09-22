@@ -27,6 +27,9 @@ import type {
   AdminUserDetail,
   MotivationCategory,
   PersonalityTrait,
+  AdminAsturRunResponse,
+  AdminBelbinRunResponse,
+  AdminPsychoemotionalRunResponse,
 } from '@/shared/types';
 
 const PERSONALITY_TRAIT_LABELS: Record<PersonalityTrait, string> = {
@@ -640,6 +643,87 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
   );
 }
 
+function AsturRunSection({ run, index }: { run: AdminAsturRunResponse; index: number }) {
+  const { t } = useTranslation('admin');
+  return (
+    <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
+      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
+        Попытка #{index + 1} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
+      </p>
+      
+      <div className="grid gap-x-6 gap-y-4 grid-cols-2">
+        <Field label="Сырой балл" value={run.raw_score} />
+        <Field label="СПН-группа" value={run.spn_group} />
+      </div>
+      
+      <ValueList
+        label="Баллы по субтестам"
+        values={run.subtest_scores}
+        labels={{}}
+      />
+      
+      <div>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Сырые ответы</p>
+        <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
+          {JSON.stringify(run.answers, null, 2)}
+        </pre>
+      </div>
+      <div>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Ответы на лабильность</p>
+        <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
+          {JSON.stringify(run.lability_answers, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function BelbinRunSection({ run, index }: { run: AdminBelbinRunResponse; index: number }) {
+  return (
+    <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
+      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
+        Попытка #{index + 1} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
+      </p>
+
+      <ValueList
+        label="Итоговые баллы по ролям"
+        sorted
+        values={run.role_totals}
+        labels={{}}
+      />
+      <div>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Аллокации (сырые данные)</p>
+        <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
+          {JSON.stringify(run.allocations, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function PsychoemotionalRunSection({ run, index }: { run: AdminPsychoemotionalRunResponse; index: number }) {
+  return (
+    <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
+      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
+        Попытка #{index + 1} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
+      </p>
+
+      <div>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Check-in (состояние)</p>
+        <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
+          {JSON.stringify(run.checkin, null, 2)}
+        </pre>
+      </div>
+      <div>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Вычисленные метрики</p>
+        <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
+          {JSON.stringify(run.metrics, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 function AssessmentPanel({
   user,
   assessment,
@@ -699,6 +783,36 @@ function AssessmentPanel({
       <Section title={t('users.motivationTriplets')} count={assessment.motivation_responses.length}>
         <MotivationResponsesSection responses={assessment.motivation_responses} />
       </Section>
+
+      {assessment.astur_runs?.length > 0 && (
+        <Section title="АСТУР (Характеристики интеллекта)" count={assessment.astur_runs.length}>
+          <div className="flex flex-col gap-4">
+            {assessment.astur_runs.map((run, i) => (
+              <AsturRunSection key={run.id} run={run} index={i} />
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {assessment.belbin_runs?.length > 0 && (
+        <Section title="Командные роли (Белбин)" count={assessment.belbin_runs.length}>
+          <div className="flex flex-col gap-4">
+            {assessment.belbin_runs.map((run, i) => (
+              <BelbinRunSection key={run.id} run={run} index={i} />
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {assessment.psychoemotional_runs?.length > 0 && (
+        <Section title="Психоэмоциональное состояние" count={assessment.psychoemotional_runs.length}>
+          <div className="flex flex-col gap-4">
+            {assessment.psychoemotional_runs.map((run, i) => (
+              <PsychoemotionalRunSection key={run.id} run={run} index={i} />
+            ))}
+          </div>
+        </Section>
+      )}
 
       {assessment.roadmap && (
         <Section title="Roadmap" count={assessment.roadmap.milestones.length}>
