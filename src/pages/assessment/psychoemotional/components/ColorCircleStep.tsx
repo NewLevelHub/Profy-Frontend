@@ -41,7 +41,7 @@ export function ColorCircleStep({ instruction, onComplete }: ColorCircleStepProp
   return (
     <AssessmentStageShell
       centered
-      contentClassName="flex flex-col items-center gap-6 !p-6 sm:!p-8"
+      contentClassName="flex flex-col items-center gap-6 !p-8 sm:!p-10"
     >
       <Heading level="display-sm" as="h2" className="text-primary text-center text-balance">
         {instruction}

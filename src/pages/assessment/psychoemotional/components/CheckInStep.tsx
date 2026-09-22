@@ -30,7 +30,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
   return (
     <AssessmentStageShell
       centered
-      contentClassName="flex flex-col gap-7 !p-6 sm:!p-8"
+      contentClassName="flex flex-col gap-7 !p-8 sm:!p-10"
     >
       {CHECKIN_QUESTIONS.map((q) => (
         <fieldset key={q.key} className="flex flex-col gap-3">

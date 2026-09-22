@@ -10,6 +10,8 @@ export interface AssessmentStageShellProps {
   maxWidth?: 'intro' | 'content';
   /** Vertically center the card in the viewport (intro / psycho steps). */
   centered?: boolean;
+  /** Entrance motion. Default off — transform animations read as card resize. */
+  animate?: boolean;
 }
 
 /**
@@ -23,6 +25,7 @@ export function AssessmentStageShell({
   contentClassName,
   maxWidth = 'intro',
   centered = false,
+  animate = false,
 }: AssessmentStageShellProps) {
   return (
     <div
@@ -39,10 +42,10 @@ export function AssessmentStageShell({
       >
         <div
           className={cn(
-            'assessment-stage__shell journey-shell',
+            'assessment-stage__shell journey-shell w-full',
             contentClassName,
           )}
-          style={centered ? { animation: 'fade-in-up 0.45s ease both' } : undefined}
+          style={animate ? { animation: 'fade-in-up 0.45s ease both' } : undefined}
         >
           {children}
         </div>

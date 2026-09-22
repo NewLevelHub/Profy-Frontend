@@ -41,6 +41,7 @@ export function AssessmentIntro({
   return (
     <AssessmentStageShell
       centered
+      animate
       className={className}
       contentClassName="flex flex-col items-center gap-5 text-center !p-8 sm:!p-10"
     >
