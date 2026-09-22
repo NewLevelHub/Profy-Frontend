@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import type { AsturSubtestKey, SubmitAsturSubtestPayload } from '@/shared/types';
+import { buildAsturSubtestPayload } from '@/shared/dev/autofillAssessment';
 
 type StepPhase = 'instruction' | 'running';
 
@@ -106,40 +107,7 @@ export function useAsturAssessment(assessmentId: string) {
       for (const st of content.subtests) {
         if (completed.has(st.key)) continue;
 
-        const answers: Record<string, unknown> = {};
-        const elapsed_ms: Record<string, number> = {};
-
-        st.items.forEach((it, i) => {
-          // Server keys are 1-based item positions ("1".."N"), never a
-          // content-bank id — see astur_service._validate_item_keys / scoring.
-          const key = String(i + 1);
-          if (st.key === 'lability') {
-            const opts = (it as { options?: [string, string] }).options;
-            answers[key] = opts?.[0] ?? '1';
-            elapsed_ms[key] = 500;
-          } else if (st.key === 'logical_schemas') {
-            answers[key] = [...((it as { concepts?: string[] }).concepts ?? [])];
-          } else if (st.key === 'classification') {
-            const words = (it as { words?: string[] }).words ?? [];
-            answers[key] = [words[0] ?? '1', words[1] ?? '2'];
-          } else if (st.key === 'numeric_series') {
-            answers[key] = [1, 2];
-          } else if (st.key === 'generalization') {
-            answers[key] = 'тест';
-          } else if (st.key === 'geometric_figures') {
-            answers[key] = 'А';
-          } else {
-            // awareness | analogies
-            const opts = (it as { options?: string[] }).options;
-            answers[key] = opts?.[0] ?? '1';
-          }
-        });
-
-        await asturApi.submitSubtest(
-          assessmentId,
-          st.number,
-          st.key === 'lability' ? { answers, elapsed_ms } : { answers },
-        );
+        await asturApi.submitSubtest(assessmentId, st.number, buildAsturSubtestPayload(st));
         setCompleted((prev) => {
           const next = new Set(prev);
           next.add(st.key);

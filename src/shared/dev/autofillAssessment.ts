@@ -6,7 +6,13 @@ import { belbinApi } from '@/shared/api/belbin';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
-import type { AgeGroup, Instrument, Question } from '@/shared/types';
+import type {
+  AgeGroup,
+  AsturContentSubtest,
+  Instrument,
+  Question,
+  SubmitAsturSubtestPayload,
+} from '@/shared/types';
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -140,35 +146,70 @@ export async function autofillToAstur(assessmentId: string, ageGroup: AgeGroup |
   }
 }
 
+/**
+ * The payload one АСТУР subtest expects, filled with structurally valid
+ * answers. THE single place that builds it — both dev autofills (the whole
+ * test here, one block in `useAsturAssessment`) go through this, because
+ * they drifted apart once already: this file kept keying answers by the
+ * content-bank item id while the backend has always wanted 1-based item
+ * positions, so «⚡ Автозаполнить» 422'd on АСТУР, swallowed the error and
+ * dropped the tester on the result screen of an unfinished test (PRO-397).
+ *
+ * Keys are "1".."N" by position and `elapsed_ms` goes only to lability —
+ * `astur_service._validate_item_keys` / `submit_subtest` reject anything else.
+ */
+export function buildAsturSubtestPayload(subtest: AsturContentSubtest): SubmitAsturSubtestPayload {
+  const answers: Record<string, unknown> = {};
+  const elapsed_ms: Record<string, number> = {};
+
+  subtest.items.forEach((item, i) => {
+    const key = String(i + 1);
+    const it = item as {
+      options?: string[];
+      concepts?: string[];
+      words?: string[];
+    };
+
+    if (subtest.key === 'lability') {
+      answers[key] = it.options?.[0] ?? '1';
+      elapsed_ms[key] = 500;
+    } else if (subtest.key === 'logical_schemas') {
+      answers[key] = [...(it.concepts ?? [])];
+    } else if (subtest.key === 'classification') {
+      answers[key] = [it.words?.[0] ?? '1', it.words?.[1] ?? '2'];
+    } else if (subtest.key === 'numeric_series') {
+      answers[key] = [1, 2];
+    } else if (subtest.key === 'generalization') {
+      answers[key] = 'тест';
+    } else if (subtest.key === 'geometric_figures') {
+      // No `options` on the wire for this subtest (static image assets,
+      // addressed by position — see FigureAssemblyQuestion); any letter is a
+      // structurally valid dev-autofill answer.
+      answers[key] = 'А';
+    } else {
+      // awareness | analogies
+      answers[key] = it.options?.[0] ?? '1';
+    }
+  });
+
+  return subtest.key === 'lability' ? { answers, elapsed_ms } : { answers };
+}
+
 /** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
- * completes in a handful of requests instead of up to ~278 clicks. */
+ * completes in a handful of requests instead of up to ~278 clicks.
+ *
+ * АСТУР failures are NOT swallowed here (Belbin's still are — resubmitting a
+ * finished Belbin is a normal no-op): the report can't be generated without
+ * АСТУР, so a silent failure here means the caller navigates to the result
+ * screen of an unfinished test. Let it surface as "не удалось автозаполнить". */
 export async function autofillAssessment(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
   await autofillToAstur(assessmentId, ageGroup);
 
-  try {
-    const asturContent = await asturApi.getContent();
-    if (asturContent?.subtests?.length > 0) {
-      for (const st of asturContent.subtests) {
-        const answers: Record<string, unknown> = {};
-        st.items.forEach((it: any) => {
-          if (st.key === 'logical_schemas') {
-            answers[it.id] = (it.options || []).slice(0, 3);
-          } else if (st.key === 'classification' || st.key === 'numeric_series') {
-            answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
-          } else if (st.key === 'geometric_figures') {
-            // No `options` on the wire for this subtest (static image
-            // assets, addressed by position — see FigureAssemblyQuestion);
-            // any letter is a structurally valid dev-autofill answer.
-            answers[it.id] = 'A';
-          } else {
-            answers[it.id] = it.options?.[0] ?? '1';
-          }
-        });
-        await asturApi.submitSubtest(assessmentId, st.number, { answers, elapsed_ms: {} });
-      }
-      useAssessmentStore.getState().setAsturCompleted(true);
+  const asturContent = await asturApi.getContent();
+  if (asturContent?.subtests?.length > 0) {
+    for (const st of asturContent.subtests) {
+      await asturApi.submitSubtest(assessmentId, st.number, buildAsturSubtestPayload(st));
     }
-  } catch {
-    // Ignore if already submitted or error
+    useAssessmentStore.getState().setAsturCompleted(true);
   }
 }
