@@ -329,6 +329,12 @@
     "notNow": "Не сейчас",
     "pickThisGoal": "Выбрать эту цель"
   },
+  "allocator": {
+    "remaining": "Осталось распределить",
+    "decrease": "Уменьшить «{{label}}»",
+    "points": "Баллы для «{{label}}»",
+    "increase": "Увеличить «{{label}}»"
+  },
   "astur": {
     "subtest": {
       "next": "Далее",
@@ -336,12 +342,25 @@
       "nextBlocked": "Ответь на все вопросы на этой странице, чтобы продолжить",
       "nextBlockedTimed": "Ответь на все вопросы на этой странице или дождись конца таймера",
       "pageOf": "Страница {{current}} из {{total}} · задания {{from}}–{{to}} из {{itemTotal}}"
-    }
-  },
-  "allocator": {
-    "remaining": "Осталось распределить",
-    "decrease": "Уменьшить «{{label}}»",
-    "points": "Баллы для «{{label}}»",
-    "increase": "Увеличить «{{label}}»"
+    },
+    "subtestOf": "Субтест {{index}} из {{count}}",
+    "tasksCount": "{{count}} заданий",
+    "minutesShort": "{{min}} мин.",
+    "timeUpWarning": "Время вышло — закончи и нажми «Далее»",
+    "submitError": "Не удалось отправить ответы, попробуйте ещё раз",
+    "loadError": "Не удалось загрузить содержимое теста",
+    "pickTwoPrompt": "Найдите два связанных слова из шести",
+    "selectedCount": "Выбрано: {{current}}/{{total}}",
+    "hierarchyPrompt": "Расставьте от самого общего к самому частному",
+    "generalizationPlaceholder": "Обобщающее слово или словосочетание",
+    "numericPairFirst": "1-е число",
+    "numericPairSecond": "2-е число",
+    "figureAssemblyPrompt": "Из каких частей можно без пропусков и остатка собрать фигуру-эталон?",
+    "labilityHeader": "Команда {{x}} из {{y}} · {{t}} с",
+    "labilitySending": "Отправка…",
+    "analogyPrompt": "«{{first}}» относится к «{{second}}» так же, как «{{third}}» относится к …",
+    "doneTitle": "Все тесты успешно пройдены!",
+    "doneMessage": "Поздравляем! Основные и специальные тесты полностью завершены...",
+    "generateReport": "Сформировать отчёт"
   }
 }

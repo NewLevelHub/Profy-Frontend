@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -56,6 +57,7 @@ function renderItem(
   absoluteIndex: number,
   answers: Record<string, unknown>,
   setAnswer: (index: string, value: unknown) => void,
+  t: TFunction,
 ) {
   const index = String(absoluteIndex + 1);
   const displayIndex = absoluteIndex + 1;
@@ -79,7 +81,7 @@ function renderItem(
       <McQuestion
         key={index}
         index={displayIndex}
-        prompt={`«${it.pair[0]}» относится к «${it.pair[1]}» так же, как «${it.third}» относится к …`}
+        prompt={t('astur.analogyPrompt', { first: it.pair[0], second: it.pair[1], third: it.third })}
         options={it.options}
         value={answers[index] as string | undefined}
         onChange={(v) => setAnswer(index, v)}
@@ -246,7 +248,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
 
         <div className="flex flex-col gap-6">
           {pageItems.map((item, offset) =>
-            renderItem(subtest, item, pageStart + offset, answers, setAnswer),
+            renderItem(subtest, item, pageStart + offset, answers, setAnswer, t),
           )}
         </div>
 

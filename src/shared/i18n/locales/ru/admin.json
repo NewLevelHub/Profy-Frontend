@@ -248,8 +248,10 @@
     "kicker": "Админка",
     "motivationPairs": "Пары мотивации",
     "motivationStatements": "Утверждения мотивации",
-    "questionPairs": "Пары вопросов",
+    "questionPairs": "Пары (Ценности)",
     "questions": "Вопросы",
+    "tests": "ASTUR (Конфигурация)",
+    "belbin": "Belbin (Редактор)",
     "title": "Управление",
     "universities": "Университеты",
     "users": "Пользователи"

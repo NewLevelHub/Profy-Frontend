@@ -1,4 +1,5 @@
 import { Input } from '@/shared/ui/Input';
+import { useTranslation } from 'react-i18next';
 
 interface OpenTextQuestionProps {
   index: number;
@@ -7,8 +8,8 @@ interface OpenTextQuestionProps {
   onChange: (value: string) => void;
 }
 
-/** Субтест «Обобщение» — вписать одно слово/словосочетание, обобщающее пару понятий. */
 export function OpenTextQuestion({ index, pair, value, onChange }: OpenTextQuestionProps) {
+  const { t } = useTranslation('assessment');
   return (
     <div className="flex flex-col gap-2">
       <p className="text-body-md text-primary font-semibold">
@@ -17,7 +18,19 @@ export function OpenTextQuestion({ index, pair, value, onChange }: OpenTextQuest
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Обобщающее слово или словосочетание"
+        placeholder={t('astur.generalizationPlaceholder')}
+        // Открытый ответ — короткая фраза, а не личные данные, так что
+        // включаем обычную мобильную клавиатуру с предиктивным набором
+        // (T9-стиль) и автокоррекцией/подсказками слов вместо более
+        // строгого набора без подсказок, который некоторые UI используют
+        // по умолчанию для полей ввода в тестах.
+        autoComplete="on"
+        name={`astur-generalization-${index}`}
+        inputMode="text"
+        autoCapitalize="sentences"
+        autoCorrect="on"
+        spellCheck
+        enterKeyHint="next"
       />
     </div>
   );

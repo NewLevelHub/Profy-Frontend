@@ -11,7 +11,7 @@ import type {
   PsychologistReviewQueueItem,
   PsychologistStudentDetail,
   PsychologistStudentListItem,
-  ResultResponse,
+  PsychologistTestResultsResponse,
 } from '@/shared/types';
 
 export const psychologistApi = {
@@ -35,13 +35,6 @@ export const psychologistApi = {
       .get<PsychologistStudentDetail>(API.psychologist.studentDetail(studentId))
       .then((r) => r.data),
 
-  /** The student's full /result v2 report — psych-block sections included
-   *  (the viewer is a psychologist, so report_service.psych_sections_for → true). */
-  getStudentReport: (studentId: string, assessmentId: string) =>
-    apiClient
-      .get<ResultResponse>(API.psychologist.studentResult(studentId, assessmentId))
-      .then((r) => r.data),
-
   listNotes: (studentId: string) =>
     apiClient
       .get<PsychologistNote[]>(API.psychologist.studentNotes(studentId))
@@ -63,6 +56,17 @@ export const psychologistApi = {
   getReport: (studentId: string, assessmentId: string) =>
     apiClient
       .get<PsychologistReportResponse>(API.psychologist.studentAssessmentReport(studentId, assessmentId))
+      .then((r) => r.data),
+
+  /** Pure test-results surface (GET .../test-results): the 7 instruments
+   *  alone, no narrative report content — for the "Психодиагностика и
+   *  тесты" tab, replacing its previous reliance on `getReport().new_tests`
+   *  + `.report.psychoemotional`. */
+  getTestResults: (studentId: string, assessmentId: string) =>
+    apiClient
+      .get<PsychologistTestResultsResponse>(
+        API.psychologist.studentAssessmentTestResults(studentId, assessmentId)
+      )
       .then((r) => r.data),
 
   regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>

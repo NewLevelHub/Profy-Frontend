@@ -22,8 +22,7 @@ export default function PsychologistReportPage() {
   const [reviewStatus, setReviewStatus] = useState<'pending_review' | 'published' | null>(null);
 
   const {
-    report,
-    newTests,
+    testResults,
     aiAnalysis,
     isLoading: isReportLoading,
     notFound,
@@ -167,10 +166,10 @@ export default function PsychologistReportPage() {
             <AdminError message={reportError} onRetry={() => void refetch()} />
           )}
 
-          {report && newTests && !isReportLoading && (
+          {testResults && !isReportLoading && (
             <ReportSectionsBlock
-              report={report}
-              newTests={newTests}
+              testResults={testResults}
+              artifacts={student?.artifacts ?? []}
               aiAnalysis={aiAnalysis}
               onRegenerateAiAnalysis={regenerateAiAnalysis}
               regeneratingAiAnalysis={regeneratingAiAnalysis}

@@ -110,18 +110,21 @@ export const API = {
     programLocks: (id: string) => `/admin/programs/${id}/locks`,
     programLockField: (id: string, field: string) =>
       `/admin/programs/${id}/locks/${encodeURIComponent(field)}`,
+    contentOverride: (instrument: string) => `/admin/content-overrides/${instrument}`,
+    belbinSchema: '/admin/belbin-schema',
+    asturSchema: '/admin/astur-schema',
   },
   psychologist: {
     students: '/psychologist/students',
     availableStudents: '/psychologist/students/available',
     claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
-    studentResult: (studentId: string, assessmentId: string) =>
-      `/psychologist/students/${studentId}/result/${assessmentId}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
     studentAssessmentReport: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/assessments/${assessmentId}/report`,
+    studentAssessmentTestResults: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/test-results`,
     regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/assessments/${assessmentId}/report/ai-analysis/regenerate`,
     assignExtendedBlock: (studentId: string, assessmentId: string) =>
