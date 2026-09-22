@@ -42,8 +42,10 @@
     padding-block: 2rem;
     transform: translateY(calc(var(--assessment-rail-h, 7rem) / -2));
   }
+  /* One box for every step of a stage — 30.5rem is the tallest of them (the
+     psycho check-in), so intro → check-in → colour circle don't resize. */
   .assessment-stage--centered .assessment-stage__shell {
-    min-height: 29rem;
+    min-height: 30.5rem;
   }
 }
 @media (max-width: 639px) {

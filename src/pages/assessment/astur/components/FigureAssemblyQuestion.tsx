@@ -19,10 +19,10 @@ const OPTIONS: { letter: string; file: string }[] = [
 
 export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssemblyQuestionProps) {
   return (
-    <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
-      <legend className="text-body-md text-primary font-semibold">
+    <div role="group" aria-labelledby={`figure-label-${index}`} className="flex flex-col gap-3">
+      <p id={`figure-label-${index}`} className="text-body-md text-primary font-semibold">
         {index}. Из каких частей можно без пропусков и остатка собрать фигуру-эталон?
-      </legend>
+      </p>
       {/* theme-day: this is a scan-derived stimulus image, not app chrome —
           it must stay legible on its own light ground even in dark mode,
           same reasoning as theme.css's own .theme-day surfaces. */}
@@ -59,6 +59,6 @@ export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssembl
           })}
         </div>
       </div>
-    </fieldset>
+    </div>
   );
 }

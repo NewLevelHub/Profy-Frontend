@@ -19,10 +19,10 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
   }
 
   return (
-    <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
-      <legend className="text-body-md text-primary font-semibold">
+    <div role="group" aria-labelledby={`pick2-label-${index}`} className="flex flex-col gap-3">
+      <p id={`pick2-label-${index}`} className="text-body-md text-primary font-semibold">
         {index}. Найдите два связанных слова из шести
-      </legend>
+      </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {words.map((word) => {
           const selected = value.includes(word);
@@ -45,6 +45,6 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
         })}
       </div>
       <span className="text-body-sm text-muted">Выбрано: {value.length}/2</span>
-    </fieldset>
+    </div>
   );
 }

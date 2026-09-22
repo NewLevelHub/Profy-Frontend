@@ -14,6 +14,12 @@ interface CheckInStepProps {
  * Не оценивается, никакой обратной связи. Отправляется как есть.
  * PRO-397: same journey-shell card as AssessmentIntro so the psycho start
  * matches every other test gate.
+ *
+ * Группа вопроса — `div role="group"` + `aria-labelledby`, а не
+ * `fieldset`/`legend`: для скринридера это то же самое, но `legend`
+ * раскладывается движком по особым правилам (в Chromium он вообще не
+ * flex-элемент, поэтому `gap-3` на него не действует), и высота карточки
+ * из-за этого разная в разных браузерах — PRO-397.
  */
 export function CheckInStep({ onSubmit }: CheckInStepProps) {
   const { t } = useTranslation('assessment');
@@ -33,10 +39,15 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
       contentClassName="flex flex-col gap-7 !p-8 sm:!p-10"
     >
       {CHECKIN_QUESTIONS.map((q) => (
-        <fieldset key={q.key} className="flex flex-col gap-3">
-          <legend className="mb-1 text-body-md font-semibold text-primary">
+        <div
+          key={q.key}
+          role="group"
+          aria-labelledby={`checkin-${q.key}`}
+          className="flex flex-col gap-3"
+        >
+          <p id={`checkin-${q.key}`} className="text-body-md font-semibold text-primary">
             {t(`psychoemotional.checkin.${q.key}.label`)}
-          </legend>
+          </p>
           <div className="flex flex-wrap gap-2">
             {q.options.map((opt, i) => {
               const isSelected = selected[q.key] === opt;
@@ -62,7 +73,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
               );
             })}
           </div>
-        </fieldset>
+        </div>
       ))}
       <Button
         onClick={submit}
