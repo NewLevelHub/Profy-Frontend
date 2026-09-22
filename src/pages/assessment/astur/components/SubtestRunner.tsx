@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -144,9 +144,12 @@ function renderItem(
 
 /**
  * One (non-lability) ASTUR subtest: items in pages of PAGE_SIZE (PRO-399),
- * one timer for the whole subtest. No auto-submit on expiry — but «Далее»
- * unlocks when the current page is complete OR time is up (PRO-400). On the
- * last page, «Далее» submits; earlier pages only advance.
+ * one timer for the whole subtest. On expiry the subtest is submitted
+ * automatically with whatever has been answered so far and the flow moves
+ * on — a timeout, not a nudge. Before expiry «Далее» unlocks once the
+ * current page is complete (PRO-400); on the last page it submits, earlier
+ * pages only advance. `timeUp` still unlocks the button as a manual retry
+ * path if the automatic submit fails.
  */
 export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: SubtestRunnerProps) {
   const { t } = useTranslation('assessment');
@@ -154,6 +157,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
   const [answers, setAnswers] = useState<Record<string, unknown>>(() => initialAnswers(subtest));
   const [timeUp, setTimeUp] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
+  const autoSubmittedRef = useRef(false);
 
   const pageCount = Math.max(1, Math.ceil(subtest.items.length / PAGE_SIZE));
 
@@ -161,11 +165,20 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
   useEffect(() => {
     setPageIndex(0);
     setTimeUp(false);
+    autoSubmittedRef.current = false;
     setAnswers(initialAnswers(subtest));
   }, [subtest.key]);
 
   const durationMs = subtest.time_limit_sec !== null ? subtest.time_limit_sec * 1000 : null;
-  const { remainingMs } = useCountdown(durationMs, subtest.key, () => setTimeUp(true));
+  const { remainingMs } = useCountdown(durationMs, subtest.key, () => {
+    setTimeUp(true);
+    // Timeout means skip: send whatever is filled in (blanks included) and let
+    // the parent advance to the next subtest. Guarded so only one submit can
+    // ever fire per subtest.
+    if (autoSubmittedRef.current) return;
+    autoSubmittedRef.current = true;
+    onSubmit(normalizedAnswers());
+  });
 
   const pageStart = pageIndex * PAGE_SIZE;
   const pageItems = subtest.items.slice(pageStart, pageStart + PAGE_SIZE);
@@ -196,7 +209,10 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
 
   function handlePrimary() {
     if (!canProceed || submitting) return;
-    if (isLastPage) {
+    // After a timeout the subtest is over wherever the student is, so the
+    // button retries the submit rather than paging on (it is only reachable
+    // at all if the automatic submit failed).
+    if (isLastPage || timeUp) {
       // Last page still respects PRO-400 for the whole subtest: all answered
       // or timer expired (same as pre-pagination).
       if (!allAnswered && !timeUp) return;
@@ -276,7 +292,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
               size="lg"
               onClick={handlePrimary}
               disabled={!primaryEnabled}
-              isLoading={isLastPage && submitting}
+              isLoading={(isLastPage || timeUp) && submitting}
             >
               {t('astur.subtest.next')}
             </Button>
