@@ -1602,6 +1602,20 @@ export interface PsychologistReportResponse {
   ai_analysis: PsychAiAnalysis | null;
 }
 
+/** GET /psychologist/students/{studentId}/assessments/{assessmentId}/test-results —
+ * the same 7 instruments as `PsychologistReportResponse.new_tests` +
+ * `.report.psychoemotional`, flattened into one narrative-free payload (no
+ * summary/careers/strength_cards/personality_notes). */
+export interface PsychologistTestResultsResponse {
+  professional_types: ProfessionalTypesSection | null;
+  team_role: TeamRoleSection | null;
+  temperament: TemperamentSection | null;
+  intelligence: IntelligenceSection | null;
+  aspiration_level: AspirationLevelSection | null;
+  empathy_confidence: EmpathyConfidenceSection | null;
+  psychoemotional: PsychoEmotionalSection | null;
+}
+
 // ─── Extended block assignments (Belbin/АСТУР — post-Ф4.1 follow-up) ────────────
 // A psychologist's decision to make Belbin/АСТУР available to a student for
 // one assessment; the student's own UI (not the psychologist's) uses this to
