@@ -10,7 +10,7 @@ export interface AssessmentStageShellProps {
   maxWidth?: 'intro' | 'content';
   /** Vertically center the card in the viewport (intro / psycho steps). */
   centered?: boolean;
-  /** Entrance motion. Default off — transform animations read as card resize. */
+  /** Entrance fade. Default off — a card that moves on entry reads as a resize. */
   animate?: boolean;
 }
 
@@ -18,6 +18,23 @@ export interface AssessmentStageShellProps {
  * Shared journey-shell card chrome for assessment "stage" moments —
  * intro gates (PRO-396) and early psycho steps (PRO-397) so every start
  * lands in the same card, not a bare page.
+ *
+ * Two things the `centered` variant guarantees (PRO-397 follow-up):
+ *
+ * 1. The card is centered against the **viewport**, not against the strip
+ *    below AssessmentRail. The rail is in flow, so plain `justify-center`
+ *    parked every start card half a rail (~56px) below the middle of the
+ *    screen. The rail publishes its measured height as
+ *    `--assessment-rail-h`; padding that much off the bottom puts the card's
+ *    centre exactly on 50dvh. The fallback keeps it sane if a stage card is
+ *    ever rendered without a rail.
+ * 2. The card holds one height across the steps of a stage (`sm:min-h-*`),
+ *    so moving intro → check-in → colour circle doesn't visibly resize and
+ *    re-centre the surface under the learner's cursor. Below `sm` the height
+ *    is free — a phone has no room to spare.
+ *
+ * `min-h` on the wrapper (rather than `flex-1` alone) means the centering
+ * also works on pages whose root isn't a flex column (Belbin, АСТУР).
  */
 export function AssessmentStageShell({
   children,
@@ -30,7 +47,11 @@ export function AssessmentStageShell({
   return (
     <div
       className={cn(
-        centered && 'flex-1 flex flex-col items-center justify-center w-full px-4 py-8 sm:px-6',
+        centered && [
+          'flex-1 flex flex-col items-center justify-center w-full px-4 sm:px-6',
+          'min-h-[calc(100dvh-var(--assessment-rail-h,7rem))]',
+          'pt-8 pb-[calc(2rem+var(--assessment-rail-h,7rem))]',
+        ],
         className,
       )}
     >
@@ -43,9 +64,10 @@ export function AssessmentStageShell({
         <div
           className={cn(
             'assessment-stage__shell journey-shell w-full',
+            centered && 'sm:min-h-[29rem] justify-center',
+            animate && 'assessment-stage__enter',
             contentClassName,
           )}
-          style={animate ? { animation: 'fade-in-up 0.45s ease both' } : undefined}
         >
           {children}
         </div>

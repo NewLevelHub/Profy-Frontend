@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
@@ -60,9 +61,37 @@ export function AssessmentRail({
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
   const soundLabel = t(soundEnabled ? 'common:sound.disable' : 'common:sound.enable');
+  const railRef = useRef<HTMLElement>(null);
+
+  // The rail sits in flow, so anything centered *below* it lands half a rail
+  // too low on screen. Publish the measured height so the stage card
+  // (AssessmentStageShell) can center itself against the viewport instead of
+  // against the strip under the rail. Measured, not hardcoded: the title wraps
+  // on narrow screens and the rail grows.
+  useLayoutEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        '--assessment-rail-h',
+        `${Math.round(el.getBoundingClientRect().height)}px`,
+      );
+    };
+
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty('--assessment-rail-h');
+    };
+  }, []);
 
   return (
     <header
+      ref={railRef}
       className="sticky top-0 z-10 px-3 pt-[18px] pb-4 sm:px-4 lg:px-6"
       style={{ background: 'color-mix(in srgb, var(--fog) 90%, transparent)', backdropFilter: 'blur(8px)' }}
     >

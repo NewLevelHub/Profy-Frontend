@@ -25,6 +25,12 @@ export interface AssessmentIntroProps {
  * kicker · title · instruction · meta · CTA. Used for phase intros
  * (diagnostic, motivation, Belbin, АСТУР block) and per-subtest АСТУР
  * screens alike, so every "about to start" moment shares one look.
+ *
+ * Composition (PRO-397): three blocks, not five stacked items — the naming
+ * block (kicker · title · instruction), a hairline, then the commitment block
+ * (what it costs · the button). The kicker is `.journey-kicker`, the same
+ * status marker the journey cards on /results use, so a start gate reads as
+ * part of the same journey rather than as a separate badge-topped card.
  */
 export function AssessmentIntro({
   kicker,
@@ -43,54 +49,53 @@ export function AssessmentIntro({
       centered
       animate
       className={className}
-      contentClassName="flex flex-col items-center gap-5 text-center !p-8 sm:!p-10"
+      contentClassName="flex flex-col items-center gap-8 text-center !p-8 sm:!p-10"
     >
-      <span
-        className={cn(
-          typeClass.caption,
-          'inline-block bg-brand-subtle text-brand font-extrabold px-[18px] py-[7px] rounded-pill',
-        )}
-      >
-        {kicker}
-      </span>
+      <div className="flex flex-col items-center gap-4">
+        <span className="journey-kicker">{kicker}</span>
 
-      <Heading level="display-sm" as="h2" className="text-primary text-balance">
-        {title}
-      </Heading>
+        <Heading level="display-sm" as="h2" className="text-primary text-balance">
+          {title}
+        </Heading>
 
-      <Text variant="body-lg" className="text-secondary max-w-md whitespace-pre-wrap">
-        {subtitle}
-      </Text>
-
-      <div
-        className={cn(
-          typeClass.bodySm,
-          'flex items-center justify-center gap-[18px] font-bold text-subtle',
-        )}
-      >
-        <span className="inline-flex items-center gap-[6px]">
-          <FileText size={15} strokeWidth={1.75} aria-hidden="true" />
-          {itemCountLabel}
-        </span>
-        {showDuration && (
-          <>
-            <span className="w-[4px] h-[4px] rounded-full bg-[var(--hairline)]" aria-hidden="true" />
-            <span className="inline-flex items-center gap-[6px]">
-              <Clock size={15} strokeWidth={1.75} aria-hidden="true" />
-              {durationLabel}
-            </span>
-          </>
-        )}
+        <Text variant="body-lg" className="text-secondary max-w-[34rem] text-pretty whitespace-pre-wrap">
+          {subtitle}
+        </Text>
       </div>
 
-      <Button
-        onClick={onStart}
-        size="lg"
-        className="w-full max-w-[320px] rounded-pill text-body-lg font-extrabold mt-2"
-        style={{ height: 56 }}
-      >
-        {ctaLabel}
-      </Button>
+      <div className="w-full flex flex-col items-center gap-6">
+        <div className="w-full h-px bg-[var(--border-faint)]" aria-hidden="true" />
+
+        <div
+          className={cn(
+            typeClass.bodySm,
+            'flex items-center justify-center gap-[18px] font-bold text-muted',
+          )}
+        >
+          <span className="inline-flex items-center gap-[6px]">
+            <FileText size={15} strokeWidth={1.75} aria-hidden="true" />
+            {itemCountLabel}
+          </span>
+          {showDuration && (
+            <>
+              <span className="w-[4px] h-[4px] rounded-full bg-[var(--border-strong)]" aria-hidden="true" />
+              <span className="inline-flex items-center gap-[6px]">
+                <Clock size={15} strokeWidth={1.75} aria-hidden="true" />
+                {durationLabel}
+              </span>
+            </>
+          )}
+        </div>
+
+        <Button
+          onClick={onStart}
+          size="lg"
+          className="w-full max-w-[320px] rounded-pill text-body-lg font-extrabold"
+          style={{ height: 56 }}
+        >
+          {ctaLabel}
+        </Button>
+      </div>
     </AssessmentStageShell>
   );
 }
