@@ -17,7 +17,6 @@ export interface AssessmentIntroProps {
   durationLabel?: string;
   ctaLabel: string;
   onStart: () => void;
-  className?: string;
 }
 
 /**
@@ -40,7 +39,6 @@ export function AssessmentIntro({
   durationLabel,
   ctaLabel,
   onStart,
-  className,
 }: AssessmentIntroProps) {
   const showDuration = Boolean(durationLabel && durationLabel.trim());
 
@@ -48,7 +46,6 @@ export function AssessmentIntro({
     <AssessmentStageShell
       centered
       animate
-      className={className}
       contentClassName="flex flex-col items-center gap-8 text-center !p-8 sm:!p-10"
     >
       <div className="flex flex-col items-center gap-4">

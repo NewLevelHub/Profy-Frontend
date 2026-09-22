@@ -3,11 +3,8 @@ import { cn } from '@/shared/lib/cn';
 
 export interface AssessmentStageShellProps {
   children: ReactNode;
-  className?: string;
   /** Classes on the journey-shell card (padding, gap, alignment). */
   contentClassName?: string;
-  /** Intro cards stay narrower; in-test content can go wider. */
-  maxWidth?: 'intro' | 'content';
   /** Vertically center the card in the viewport (intro / psycho steps). */
   centered?: boolean;
   /** Entrance fade. Default off — a card that moves on entry reads as a resize. */
@@ -29,25 +26,19 @@ export interface AssessmentStageShellProps {
  */
 export function AssessmentStageShell({
   children,
-  className,
   contentClassName,
-  maxWidth = 'intro',
   centered = false,
   animate = false,
 }: AssessmentStageShellProps) {
   return (
     <div
-      className={cn(
-        centered && 'assessment-stage--centered flex-1 flex flex-col items-center justify-center w-full px-4 sm:px-6',
-        className,
-      )}
+      className={
+        centered
+          ? 'assessment-stage--centered flex-1 flex flex-col items-center justify-center w-full px-4 sm:px-6'
+          : undefined
+      }
     >
-      <div
-        className={cn(
-          'assessment-stage mx-auto w-full',
-          maxWidth === 'content' ? 'max-w-[720px]' : 'max-w-[640px]',
-        )}
-      >
+      <div className="assessment-stage mx-auto w-full max-w-[640px]">
         <div
           className={cn(
             'assessment-stage__shell journey-shell w-full',
