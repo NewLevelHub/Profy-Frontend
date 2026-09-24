@@ -64,7 +64,10 @@
   "intro": {
     "itemCount_one": "{{count}} сұрақ",
     "itemCount_other": "{{count}} сұрақ",
+    "taskCount_one": "{{count}} тапсырма",
+    "taskCount_other": "{{count}} тапсырма",
     "durationMin": "~{{count}} мин",
+    "durationExactMin": "{{count}} мин.",
     "duration2min": "~2 мин",
     "diagnostic": {
       "kicker": "Диагностика",
@@ -294,6 +297,15 @@
     "hint": "Қазір өзің үшін ең маңыздысын таңда — мұны кейін өзгертуге болады",
     "notNow": "Қазір емес",
     "pickThisGoal": "Осы мақсатты таңдау"
+  },
+  "astur": {
+    "subtest": {
+      "next": "Әрі қарай",
+      "timeUp": "Уақыт бітті — әрі қарай өтудеміз",
+      "nextBlocked": "Жалғастыру үшін осы беттегі барлық сұраққа жауап бер",
+      "nextBlockedTimed": "Осы беттегі барлық сұраққа жауап бер немесе таймер біткенше күт",
+      "pageOf": "{{current}} / {{total}} бет · {{from}}–{{to}} / {{itemTotal}} тапсырма"
+    }
   },
   "allocator": {
     "remaining": "Бөлуге қалды",

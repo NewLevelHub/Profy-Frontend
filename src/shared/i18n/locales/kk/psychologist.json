@@ -9,7 +9,7 @@
     "tableLabel": "Тағайындалған оқушылар",
     "colStudent": "Оқушы",
     "colEmail": "Email",
-    "colAge": "Жасы",
+    "colAge": "Саты",
     "colAssigned": "Тағайындалған",
     "emptyTitle": "Әзірге тағайындалған оқушы жоқ",
     "emptyHint": "Әкімші оқушыны сіздің аккаунтыңызға байлағанда, ол осында пайда болады.",
@@ -24,7 +24,10 @@
     "emptyMineBody": "«Қолжетімді» қойындысын ашып, «Алу» түймесін басыңыз — оқушы осында пайда болады.",
     "emptyAvailableTitle": "Қолжетімді оқушы жоқ",
     "emptyAvailableBody": "Барлық оқушы сізге бекітілген немесе жүйеде әзірге ешкім жоқ.",
-    "availableStudentsLabel": "Қолжетімді оқушылар"
+    "availableStudentsLabel": "Қолжетімді оқушылар",
+    "testNotDone": "тест өтпеген",
+    "claimDisabled": "Тест өтпеген",
+    "claimDisabledHint": "Оқушы әлі тесттен өтпеген"
   },
   "detail": {
     "crumbStudents": "Оқушылар",

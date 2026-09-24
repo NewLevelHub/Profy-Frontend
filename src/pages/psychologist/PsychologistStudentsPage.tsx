@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AGE_GROUP_RANGE_KEYS } from '@/shared/lib/contentLabels';
 import { formatDate } from '@/shared/i18n/format';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
@@ -106,7 +106,9 @@ export default function PsychologistStudentsPage() {
         mobile: 'badge',
         cell: (row) =>
           row.age_group ? (
-            <AdminBadge tone="quiet">{AGE_TIER_LABELS[row.age_group as AgeGroup] ?? row.age_group}</AdminBadge>
+            <AdminBadge tone="quiet">
+              {t(AGE_GROUP_RANGE_KEYS[row.age_group as AgeGroup] ?? row.age_group)}
+            </AdminBadge>
           ) : (
             <span className={ADMIN_META}>—</span>
           ),
@@ -164,7 +166,9 @@ export default function PsychologistStudentsPage() {
         mobile: 'badge',
         cell: (row) =>
           row.age_group ? (
-            <AdminBadge tone="quiet">{AGE_TIER_LABELS[row.age_group as AgeGroup] ?? row.age_group}</AdminBadge>
+            <AdminBadge tone="quiet">
+              {t(AGE_GROUP_RANGE_KEYS[row.age_group as AgeGroup] ?? row.age_group)}
+            </AdminBadge>
           ) : (
             <span className={ADMIN_META}>—</span>
           ),
@@ -177,6 +181,8 @@ export default function PsychologistStudentsPage() {
         cell: (row) =>
           row.has_pending_review ? (
             <AdminBadge tone="accent">{t('psychologist:list.pendingReview')}</AdminBadge>
+          ) : !row.has_completed_assessment ? (
+            <AdminBadge tone="quiet">{t('psychologist:list.testNotDone')}</AdminBadge>
           ) : (
             <span className={ADMIN_META}>—</span>
           ),
@@ -185,21 +191,29 @@ export default function PsychologistStudentsPage() {
         key: 'action',
         header: '',
         mobile: 'field',
-        cell: (row) => (
-          <Button
-            type="button"
-            size="sm"
-            variant="primary"
-            disabled={claimingId === row.id}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              void handleClaim(row.id);
-            }}
-          >
-            {claimingId === row.id ? '…' : t('psychologist:list.claim')}
-          </Button>
-        ),
+        cell: (row) =>
+          row.has_completed_assessment ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              disabled={claimingId === row.id}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void handleClaim(row.id);
+              }}
+            >
+              {claimingId === row.id ? '…' : t('psychologist:list.claim')}
+            </Button>
+          ) : (
+            <span
+              className={cn(ADMIN_META, 'whitespace-nowrap')}
+              title={t('psychologist:list.claimDisabledHint')}
+            >
+              {t('psychologist:list.claimDisabled')}
+            </span>
+          ),
       },
     ],
     [claimingId, t],

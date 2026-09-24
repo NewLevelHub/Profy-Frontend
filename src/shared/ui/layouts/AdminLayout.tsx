@@ -8,6 +8,10 @@ import { Mono } from '@/shared/ui/typography/Mono';
 /**
  * Admin chrome: one navigation surface for every `/admin/*` screen.
  *
+ * Lives under AppLayout (PRO-421) so the shared TopRail supplies brand,
+ * language, theme, and logout — the same header psychologist/student get.
+ * This layout only owns the section side rail + paper content column.
+ *
  * Shell matches the journey ledger (Profile): `panel-glass` with a side rail
  * and a soft paper content column — same canvas language as Results /
  * Universities / Profile, not a separate flat dashboard.

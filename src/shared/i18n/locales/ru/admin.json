@@ -735,7 +735,7 @@
       "inactiveDays": "Не заходил",
       "status": "Есть тест со статусом"
     },
-    "filterAge": "Возраст: {{age}}",
+    "filterAge": "Ступень: {{age}}",
     "filterEmail": "Email содержит «{{search}}»",
     "filterGoal": "Есть тест с целью: {{goal}}",
     "filterInactiveDays": "Не заходил дольше {{days}} дн.",

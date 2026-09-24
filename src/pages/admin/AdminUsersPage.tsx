@@ -10,7 +10,7 @@ import { printWithTitle } from '@/shared/lib/printDocument';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS, USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
+import { AGE_GROUP_RANGE_KEYS, USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
@@ -336,7 +336,9 @@ export default function AdminUsersPage() {
     t(`users.roleTabs.${role}`),
     search ? t('users.filterEmail', { search }) : null,
     isStudentRole && ageGroup
-      ? t('users.filterAge', { age: AGE_TIER_LABELS[ageGroup as AgeGroup] ?? ageGroup })
+      ? t('users.filterAge', {
+          age: t(AGE_GROUP_RANGE_KEYS[ageGroup as AgeGroup] ?? ageGroup),
+        })
       : null,
     isStudentRole && status
       ? t('users.filterStatus', { status: t(ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]) })
@@ -420,12 +422,12 @@ export default function AdminUsersPage() {
         userColumn,
         {
           key: 'age',
-          header: t('common.col.age'),
-          width: '104px',
+          header: t('users.tier'),
+          width: '146px',
           mobile: 'field',
           cell: (item) =>
             item.age_group ? (
-              <span className={ADMIN_TEXT}>{AGE_TIER_LABELS[item.age_group]}</span>
+              <span className={ADMIN_TEXT}>{t(AGE_GROUP_RANGE_KEYS[item.age_group])}</span>
             ) : (
               <span className={ADMIN_META}>—</span>
             ),
@@ -549,11 +551,11 @@ export default function AdminUsersPage() {
             ? [
                 {
                   key: 'age_group',
-                  label: t('common.col.age'),
+                  label: t('users.tier'),
                   value: ageGroup,
-                  options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
+                  options: (Object.keys(AGE_GROUP_RANGE_KEYS) as AgeGroup[]).map((key) => ({
                     value: key,
-                    label: AGE_TIER_LABELS[key],
+                    label: t(AGE_GROUP_RANGE_KEYS[key]),
                   })),
                 },
                 {

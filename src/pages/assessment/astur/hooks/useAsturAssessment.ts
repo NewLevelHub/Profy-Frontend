@@ -108,27 +108,48 @@ export function useAsturAssessment(assessmentId: string) {
     setSubmitError(null);
     try {
       for (const st of content.subtests) {
-        if (!completed.has(st.key)) {
-          const answers: Record<string, unknown> = {};
-          st.items.forEach((it: any) => {
-            if (st.key === 'logical_schemas') {
-              answers[it.id] = (it.options || []).slice(0, 3);
-            } else if (st.key === 'classification' || st.key === 'numeric_series') {
-              answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
-            } else if (st.key === 'geometric_figures') {
-              answers[it.id] = 'А';
-            } else {
-              answers[it.id] = it.options?.[0] ?? '1';
-            }
-          });
-          await asturApi.submitSubtest(assessmentId, st.number, { answers, elapsed_ms: {} });
-          setCompleted(prev => {
-            const next = new Set(prev);
-            next.add(st.key);
-            persistCompleted(assessmentId, next);
-            return next;
-          });
-        }
+        if (completed.has(st.key)) continue;
+
+        const answers: Record<string, unknown> = {};
+        const elapsed_ms: Record<string, number> = {};
+
+        st.items.forEach((it, i) => {
+          // Server keys are 1-based item positions ("1".."N"), never a
+          // content-bank id — see astur_service._validate_item_keys / scoring.
+          const key = String(i + 1);
+          if (st.key === 'lability') {
+            const opts = (it as { options?: [string, string] }).options;
+            answers[key] = opts?.[0] ?? '1';
+            elapsed_ms[key] = 500;
+          } else if (st.key === 'logical_schemas') {
+            answers[key] = [...((it as { concepts?: string[] }).concepts ?? [])];
+          } else if (st.key === 'classification') {
+            const words = (it as { words?: string[] }).words ?? [];
+            answers[key] = [words[0] ?? '1', words[1] ?? '2'];
+          } else if (st.key === 'numeric_series') {
+            answers[key] = [1, 2];
+          } else if (st.key === 'generalization') {
+            answers[key] = 'тест';
+          } else if (st.key === 'geometric_figures') {
+            answers[key] = 'А';
+          } else {
+            // awareness | analogies
+            const opts = (it as { options?: string[] }).options;
+            answers[key] = opts?.[0] ?? '1';
+          }
+        });
+
+        await asturApi.submitSubtest(
+          assessmentId,
+          st.number,
+          st.key === 'lability' ? { answers, elapsed_ms } : { answers },
+        );
+        setCompleted((prev) => {
+          const next = new Set(prev);
+          next.add(st.key);
+          persistCompleted(assessmentId, next);
+          return next;
+        });
       }
       setSubtestIndex(content.subtests.length);
       useAssessmentStore.getState().setAsturCompleted(true);

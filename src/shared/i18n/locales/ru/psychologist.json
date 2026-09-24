@@ -9,7 +9,7 @@
     "tableLabel": "Назначенные ученики",
     "colStudent": "Ученик",
     "colEmail": "Email",
-    "colAge": "Возраст",
+    "colAge": "Ступень",
     "colAssigned": "Назначен",
     "emptyTitle": "Пока нет назначенных учеников",
     "emptyHint": "Когда администратор привяжет ученика к вашему аккаунту, он появится здесь.",
@@ -24,7 +24,10 @@
     "emptyMineBody": "Откройте вкладку «Доступные» и нажмите «Взять» — ученик появится здесь.",
     "emptyAvailableTitle": "Нет доступных учеников",
     "emptyAvailableBody": "Все ученики уже у вас, либо в системе пока никого нет.",
-    "availableStudentsLabel": "Доступные ученики"
+    "availableStudentsLabel": "Доступные ученики",
+    "testNotDone": "тест не пройден",
+    "claimDisabled": "Тест не пройден",
+    "claimDisabledHint": "Ученик ещё не прошёл тест"
   },
   "detail": {
     "crumbStudents": "Ученики",

@@ -6,6 +6,7 @@ import { Spinner } from '@/shared/ui/Spinner';
 import { Text } from '@/shared/ui/typography/Text';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useAssessmentJourneyProgress } from '../hooks/useAssessmentJourneyProgress';
 import { useAsturAssessment } from './hooks/useAsturAssessment';
 import { SubtestIntro } from './components/SubtestIntro';
 import { SubtestRunner } from './components/SubtestRunner';
@@ -77,6 +78,15 @@ export default function AsturPage() {
     ? t('rail.subtestOf', { current: Math.min(subtestIndex + 1, subtestCount), total: subtestCount })
     : t('rail.sectionAstur');
 
+  const progress = useAssessmentJourneyProgress({
+    asturFraction:
+      allDone || asturCompleted
+        ? 1
+        : !blockIntroSeen || subtestCount === 0
+          ? 0
+          : subtestIndex / subtestCount,
+  });
+
   return (
     <div className="min-h-screen bg-page">
       <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
@@ -86,7 +96,7 @@ export default function AsturPage() {
           title={headerTitle}
           sectionLabel={t('rail.sectionAstur')}
           progressAriaLabel={t('rail.progressAriaAstur')}
-          progress={subtestCount > 0 ? (subtestIndex / subtestCount) * 100 : 0}
+          progress={progress}
           onExit={handleExit}
           devAutofill={{ onClick: handleAutofill, loading: submitting }}
         />
