@@ -34,9 +34,9 @@ export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssembl
       <div className="theme-day flex gap-0 divide-x divide-default overflow-x-auto rounded-2xl border border-default bg-white">
         <div className="flex shrink-0 basis-1/5 flex-col items-center gap-2 p-3">
           <div className="flex aspect-square w-full min-w-[92px] items-center justify-center">
-            <img src={`/astur-figures/${index}-target.png`} alt="Фигура-эталон" className="max-h-full max-w-full object-contain" />
+            <img src={`/astur-figures/${index}-target.png`} alt={t('astur.figureAssemblyTarget')} className="max-h-full max-w-full object-contain" />
           </div>
-          <span className="text-body-sm font-semibold text-muted">Эталон</span>
+          <span className="text-body-sm font-semibold text-muted">{t('astur.figureAssemblyTarget')}</span>
         </div>
         {OPTIONS.map((option) => {
           const selected = value === option.letter;
@@ -60,7 +60,7 @@ export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssembl
                 />
                 <img
                   src={`/astur-figures/${index}-${option.file}.png`}
-                  alt={`Вариант ${option.letter}`}
+                  alt={t('astur.figureAssemblyOption', { letter: option.letter })}
                   className="max-h-full max-w-full object-contain"
                 />
               </div>

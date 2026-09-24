@@ -298,15 +298,6 @@
     "notNow": "Қазір емес",
     "pickThisGoal": "Осы мақсатты таңдау"
   },
-  "astur": {
-    "subtest": {
-      "next": "Әрі қарай",
-      "timeUp": "Уақыт бітті — әрі қарай өтудеміз",
-      "nextBlocked": "Жалғастыру үшін осы беттегі барлық сұраққа жауап бер",
-      "nextBlockedTimed": "Осы беттегі барлық сұраққа жауап бер немесе таймер біткенше күт",
-      "pageOf": "{{current}} / {{total}} бет · {{from}}–{{to}} / {{itemTotal}} тапсырма"
-    }
-  },
   "allocator": {
     "remaining": "Бөлуге қалды",
     "decrease": "«{{label}}» азайту",
@@ -314,6 +305,13 @@
     "increase": "«{{label}}» көбейту"
   },
   "astur": {
+    "subtest": {
+      "next": "Әрі қарай",
+      "timeUp": "Уақыт бітті — әрі қарай өтудеміз",
+      "nextBlocked": "Жалғастыру үшін осы беттегі барлық сұраққа жауап бер",
+      "nextBlockedTimed": "Осы беттегі барлық сұраққа жауап бер немесе таймер біткенше күт",
+      "pageOf": "{{current}} / {{total}} бет · {{from}}–{{to}} / {{itemTotal}} тапсырма"
+    },
     "subtestOf": "{{count}} субтесттің {{index}}-шісі",
     "tasksCount": "{{count}} тапсырма",
     "minutesShort": "{{min}} мин.",
@@ -327,6 +325,8 @@
     "numericPairFirst": "1-сан",
     "numericPairSecond": "2-сан",
     "figureAssemblyPrompt": "Эталон фигураны қандай бөліктерден қалдықсыз және бос орынсыз құрастыруға болады?",
+    "figureAssemblyTarget": "Эталон фигура",
+    "figureAssemblyOption": "{{letter}} нұсқасы",
     "labilityHeader": "{{y}} команданың {{x}}-шісі · {{t}} с",
     "labilitySending": "Жіберілуде…",
     "analogyPrompt": "«{{first}}» сөзі «{{second}}» сөзіне қалай қатысты болса, «{{third}}» сөзіне де дәл солай қатысты болатын сөзді таңдаңыз:",
