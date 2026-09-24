@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
@@ -104,6 +105,7 @@ export function PsychologistStudentReportEditor({
   assessmentId,
   onPublished,
 }: PsychologistStudentReportEditorProps) {
+  const { t } = useTranslation('psychologist');
   const [detail, setDetail] = useState<PsychologistResultDetail | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
@@ -362,10 +364,10 @@ export function PsychologistStudentReportEditor({
 
       <ConfirmDialog
         open={publishConfirmOpen}
-        title="Опубликовать отчёт?"
-        body="Ученик сразу его увидит, а исправить отчёт после публикации будет нельзя."
-        confirmLabel="Опубликовать"
-        cancelLabel="Отмена"
+        title={t('reportEditor.publishConfirm.title')}
+        body={t('reportEditor.publishConfirm.body')}
+        confirmLabel={t('reportEditor.publishConfirm.confirm')}
+        cancelLabel={t('reportEditor.publishConfirm.cancel')}
         confirming={busy === 'publish'}
         onConfirm={() => void handlePublishConfirm()}
         onCancel={() => {
