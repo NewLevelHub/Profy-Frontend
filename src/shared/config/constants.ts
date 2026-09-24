@@ -49,46 +49,6 @@ export const RIASEC_DESCRIPTIONS: Record<string, string> = {
   C: 'results:riasecDesc.C',
 };
 
-// Junior's (6-9) interest instrument, replacing RIASEC — see MIType.
-export const MI_TYPES = [
-  'verbal', 'logical', 'musical', 'visual', 'bodily',
-  'interpersonal', 'intrapersonal', 'naturalistic',
-] as const;
-
-export const MI_LABELS: Record<string, string> = {
-  verbal: 'results:miLabel.verbal',
-  logical: 'results:miLabel.logical',
-  musical: 'results:miLabel.musical',
-  visual: 'results:miLabel.visual',
-  bodily: 'results:miLabel.bodily',
-  interpersonal: 'results:miLabel.interpersonal',
-  intrapersonal: 'results:miLabel.intrapersonal',
-  naturalistic: 'results:miLabel.naturalistic',
-};
-
-export const MI_ICONS: Record<string, string> = {
-  verbal: '📚',
-  logical: '🧩',
-  musical: '🎵',
-  visual: '🎨',
-  bodily: '🤸',
-  interpersonal: '🤝',
-  intrapersonal: '💭',
-  naturalistic: '🌿',
-};
-
-// One-sentence gloss per MI type — connects the label to what it looks like.
-export const MI_DESCRIPTIONS: Record<string, string> = {
-  verbal: 'results:miDesc.verbal',
-  logical: 'results:miDesc.logical',
-  musical: 'results:miDesc.musical',
-  visual: 'results:miDesc.visual',
-  bodily: 'results:miDesc.bodily',
-  interpersonal: 'results:miDesc.interpersonal',
-  intrapersonal: 'results:miDesc.intrapersonal',
-  naturalistic: 'results:miDesc.naturalistic',
-};
-
 export const LIKERT_SCALE: { value: number; label: string }[] = [
   { value: 1, label: 'assessment:likert.1' },
   { value: 2, label: 'assessment:likert.2' },
@@ -190,20 +150,6 @@ export const CAREER_TIER_LABELS: Record<'strong' | 'good' | 'worth_trying', stri
   strong: 'results:careerTier.strong',
   good: 'results:careerTier.good',
   worth_trying: 'results:careerTier.worth_trying',
-};
-
-export const AGE_GROUPS = {
-  JUNIOR: 'junior',
-  MIDDLE: 'middle',
-  SENIOR: 'senior',
-} as const;
-
-export type AgeGroup = (typeof AGE_GROUPS)[keyof typeof AGE_GROUPS];
-
-export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
-  [AGE_GROUPS.JUNIOR]: 'common:ageGroup.junior',
-  [AGE_GROUPS.MIDDLE]: 'common:ageGroup.middle',
-  [AGE_GROUPS.SENIOR]: 'common:ageGroup.senior',
 };
 
 export const ARTIFACT_TYPE_LABELS: Record<string, string> = {

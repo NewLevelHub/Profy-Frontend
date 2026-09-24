@@ -1,10 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import {
-  RIASEC_LABELS,
-  RIASEC_DESCRIPTIONS,
-  MI_LABELS,
-  MI_DESCRIPTIONS,
-} from '@/shared/config/constants';
+import { RIASEC_LABELS, RIASEC_DESCRIPTIONS } from '@/shared/config/constants';
 import type { AgeGroup, AssessmentGoal, ProfileResponse, ResultResponse } from '@/shared/types';
 import { buildHeadline, buildSecondaryNote } from '../../utils/interestHeadline';
 import { LEVEL_STATUS_LABEL } from '../../components/DomainCardParts';
@@ -23,8 +18,6 @@ interface PrintDocumentProps {
   ageGroup: AgeGroup | undefined;
   /** The goal chosen before the assessment started — same input GoalBranchSection uses. */
   goal: AssessmentGoal | null;
-  /** Instrument branch (mi vs riasec), NOT age — contract §3. */
-  isJunior: boolean;
 }
 
 /**
@@ -38,22 +31,19 @@ interface PrintDocumentProps {
  * and the direction/university links — screen affordances with nothing to
  * do on paper.
  */
-export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: PrintDocumentProps) {
+export function PrintDocument({ report, profile, ageGroup, goal }: PrintDocumentProps) {
   const { t } = useTranslation('results');
   // The constants hold i18n keys ("results:riasecLabel.R"), not text — resolve
   // them once, or the PDF prints the raw keys.
   const resolve = (keys: Record<string, string>) =>
     Object.fromEntries(Object.entries(keys).map(([code, key]) => [code, t(key)])) as Record<string, string>;
-  const labels = resolve(isJunior ? MI_LABELS : RIASEC_LABELS);
-  const descriptions = resolve(isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS);
+  const labels = resolve(RIASEC_LABELS);
+  const descriptions = resolve(RIASEC_DESCRIPTIONS);
   const headline = buildHeadline(report.interest_map, labels);
   const secondaryNote = buildSecondaryNote(report.interest_map, labels);
-  const hasInterestDetails = !isJunior && report.interest_map.some((item) => item.details);
+  const hasInterestDetails = report.interest_map.some((item) => item.details);
 
-  // Same branch as GoalBranchSection — and note it keys on AGE GROUP, not on
-  // `isJunior` above: the interest section branches on the instrument
-  // (contract §3), the "что дальше" scenario branches on age + goal. The two
-  // agree in practice but are different questions, so they read different fields.
+  // Same branch as GoalBranchSection (age + goal).
   const isJuniorAge = ageGroup === 'junior';
   const showSpheres = isJuniorAge || (goal ?? 'explore') === 'explore';
 
@@ -61,7 +51,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
     <article className="theme-day print-sheet space-y-6">
       <PrintCover
         profile={profile}
-        subtitle={isJunior ? t('page.subtitleJunior') : t('page.subtitleAdult')}
+        subtitle={t('page.subtitleAdult')}
         createdAt={report.created_at}
       />
 
@@ -75,7 +65,7 @@ export function PrintDocument({ report, profile, ageGroup, goal, isJunior }: Pri
       </PrintSection>
 
       <PrintSection
-        kicker={isJunior ? t('print.kicker.abilitiesJunior') : t('print.kicker.careerInterests')}
+        kicker={t('print.kicker.careerInterests')}
         title={headline || undefined}
       >
         {secondaryNote && (

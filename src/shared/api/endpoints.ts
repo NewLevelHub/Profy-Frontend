@@ -3,7 +3,6 @@ export type AdminContentResource =
   | 'questions'
   | 'question-pairs'
   | 'motivation-statements'
-  | 'motivation-pairs'
   | 'directions';
 
 export const API = {
@@ -32,8 +31,6 @@ export const API = {
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
     motivationTriplets: (assessmentId: string) => `/assessment/${assessmentId}/motivation-triplets`,
     motivationAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-answers`,
-    motivationPairs: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pairs`,
-    motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
     psychoemotionalStart: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/start`,
@@ -78,8 +75,6 @@ export const API = {
     questionPairDetail: (id: string) => `/admin/question-pairs/${id}`,
     motivationStatements: '/admin/motivation-statements',
     motivationStatementDetail: (id: string) => `/admin/motivation-statements/${id}`,
-    motivationPairs: '/admin/motivation-pairs',
-    motivationPairDetail: (id: string) => `/admin/motivation-pairs/${id}`,
     directions: '/admin/directions',
     directionDetail: (id: string) => `/admin/directions/${id}`,
 

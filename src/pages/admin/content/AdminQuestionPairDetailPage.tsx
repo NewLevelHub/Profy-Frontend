@@ -5,7 +5,7 @@ import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
 import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
-import { AGE_TIER_LABELS, INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
+import { INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -215,7 +215,7 @@ export default function AdminQuestionPairDetailPage() {
         title={t('questionPairs.detailTitle', { index: detail.pair_index })}
         meta={
           <span className="flex items-center gap-2">
-            {`${INSTRUMENT_LABELS[detail.instrument]} · ${AGE_TIER_LABELS[detail.age_tier]}`}
+            {INSTRUMENT_LABELS[detail.instrument]}
           </span>
         }
       />

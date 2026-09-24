@@ -8,7 +8,7 @@ import { downloadBlob } from '@/shared/lib/downloadBlob';
 import { printWithTitle } from '@/shared/lib/printDocument';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS, MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
+import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { Button } from '@/shared/ui/Button';
 import { Spine } from '@/shared/ui/Spine';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -21,7 +21,6 @@ import { AssessmentPrintReport } from './components/AssessmentPrintReport';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 import type {
   AdminAssessmentDetail,
-  AgeGroup,
   AdminMotivationResponseItem,
   AdminResponseItem,
   AdminUserDetail,
@@ -71,17 +70,6 @@ const BIGFIVE_DOMAIN_LABELS: Record<string, string> = {
   C: 'admin:bigfive.C',
 };
 
-const MI_TYPE_LABELS: Record<string, string> = {
-  verbal: 'admin:mi.verbal',
-  logical: 'admin:mi.logical',
-  musical: 'admin:mi.musical',
-  visual: 'admin:mi.visual',
-  bodily: 'admin:mi.bodily',
-  interpersonal: 'admin:mi.interpersonal',
-  intrapersonal: 'admin:mi.intrapersonal',
-  naturalistic: 'admin:mi.naturalistic',
-};
-
 /** RIASEC letter → its name, for the fields the API returns as bare letters. */
 function riasecName(letter: string, t: (key: string) => string): string {
   const key = RIASEC_TYPE_LABELS[letter];
@@ -91,7 +79,6 @@ function riasecName(letter: string, t: (key: string) => string): string {
 function groupLabel(instrument: string, category: string, t: (key: string) => string): string {
   if (instrument === 'big_five') return `Big Five: ${t(BIGFIVE_DOMAIN_LABELS[category]) ?? category}`;
   if (instrument === 'riasec') return `RIASEC: ${riasecName(category, t)}`;
-  if (instrument === 'mi') return `MI: ${t(MI_TYPE_LABELS[category]) ?? category}`;
   return t('users.other');
 }
 
@@ -958,19 +945,9 @@ export default function AdminUserDetailPage() {
             {/* One card, not two side by side. The account card held four rows
                 next to a much taller profile card, so a third of the screen was
                 empty box stretched to match its neighbour. */}
-            <div className="grid gap-x-6 gap-y-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-x-6 gap-y-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
               <Field label={t('common.col.age')} value={user.profile.age} />
               <Field label={t('print.grade')} value={user.profile.grade} />
-              <Field
-                label={t('users.tier')}
-                // Was printed raw from the DB — a lowercase latin "senior" in a
-                // column of Russian values.
-                value={
-                  user.profile.age_group
-                    ? (AGE_TIER_LABELS[user.profile.age_group as AgeGroup] ?? user.profile.age_group)
-                    : null
-                }
-              />
               <Field label={t('universities.col.city')} value={user.profile.city} />
               <Field label={t('universities.col.country')} value={user.profile.country} />
               <Field label={t('uni.languageCol')} value={user.profile.language} />

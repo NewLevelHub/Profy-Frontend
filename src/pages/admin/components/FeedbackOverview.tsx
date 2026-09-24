@@ -4,12 +4,9 @@ import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import {
-  AGE_ORDER,
-  AGE_RANGE_HINT,
   HIGH_SCORE_MIN,
   LOW_SCORE_MAX,
   MAX_SCORE,
-  ageLabel,
   countInScoreBand,
   scenarioLabel,
   scoreDistribution,
@@ -42,10 +39,9 @@ import type { AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
  * matching dropdown is a step this page doesn't need.
  */
 
-type SliceKey = 'age' | 'scenario' | 'direction';
+type SliceKey = 'scenario' | 'direction';
 
 const SLICES: { key: SliceKey; labelKey: string }[] = [
-  { key: 'age', labelKey: 'common.col.age' },
   { key: 'scenario', labelKey: 'overview.slice.scenario' },
   { key: 'direction', labelKey: 'overview.slice.direction' },
 ];
@@ -79,7 +75,7 @@ export function FeedbackOverview({
   activeSection,
 }: FeedbackOverviewProps) {
   const { t } = useTranslation('admin');
-  const [slice, setSlice] = useState<SliceKey>('age');
+  const [slice, setSlice] = useState<SliceKey>('scenario');
 
   if (scoreBase.total === 0 && sectionBase.total === 0) return null;
 
@@ -305,12 +301,10 @@ function ScoreShortcut({
 }
 
 /**
- * Средняя оценка в разрезе возраста / сценария / направления.
+ * Средняя оценка в разрезе сценария / направления.
  *
- * Бэкенд считает все три (`by_age_group`, `by_scenario`, `by_top_direction`),
- * но экран показывал только первый — два готовых среза лежали в ответе
- * неиспользованными. Один переключатель вместо трёх блоков: сравнивают всегда
- * внутри одного среза, а не между ними.
+ * Один переключатель вместо двух блоков: сравнивают всегда внутри одного
+ * среза, а не между ними.
  */
 function SliceCard({
   stats,
@@ -443,18 +437,12 @@ function SliceCard({
 
 type SliceBucket = Bucket & { hint?: string };
 
-/** All three slices are already computed server-side; the screen used to show
- *  only the first, leaving two ready breakdowns unused in the response. */
+/** Both slices are computed server-side. */
 function buildSlice(
   stats: AdminFeedbackStatsResponse,
   slice: SliceKey,
   t: (key: string) => string,
 ): SliceBucket[] {
-  if (slice === 'age') {
-    return toBuckets(stats.by_age_group, ageLabel)
-      .map((bucket) => ({ ...bucket, hint: t(AGE_RANGE_HINT[bucket.key as AgeGroup]) }))
-      .sort((a, b) => AGE_ORDER.indexOf(a.key as AgeGroup) - AGE_ORDER.indexOf(b.key as AgeGroup));
-  }
   if (slice === 'scenario') {
     return toBuckets(stats.by_scenario, (key) => t(scenarioLabel(key))).sort((a, b) =>
       a.key.localeCompare(b.key),

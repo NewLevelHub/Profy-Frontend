@@ -6,7 +6,7 @@ import { ClipboardCheck, FileText, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { formatDate } from '@/shared/i18n/format';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -155,7 +155,6 @@ export default function PsychologistStudentDetailPage() {
 
   const named = Boolean(student?.profile?.name);
   const title = student?.profile?.name ?? student?.email ?? t('detail.studentFallback');
-  const ageGroup = student?.profile?.age_group as AgeGroup | undefined;
 
   return (
     <PageContainer className="flex flex-col gap-5 pb-10">
@@ -170,9 +169,7 @@ export default function PsychologistStudentDetailPage() {
         meta={
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn(ADMIN_NUM, 'text-muted')}>{student?.email ?? studentId}</span>
-            {ageGroup && (
-              <AdminBadge tone="quiet">{AGE_TIER_LABELS[ageGroup] ?? ageGroup}</AdminBadge>
-            )}
+            {student?.profile && <AgeBadge age={student.profile.age} />}
             {!canAddNotes && (
               <AdminBadge tone="accent">{t('detail.assignmentRemoved')}</AdminBadge>
             )}
