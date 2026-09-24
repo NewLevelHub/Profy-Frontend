@@ -20,6 +20,7 @@ import {
   ADMIN_TEXTAREA,
 } from '@/shared/ui/admin/density';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import type {
   AgeGroup,
   PsychologistNote,
@@ -39,6 +40,7 @@ export default function PsychologistStudentDetailPage() {
   const [noteError, setNoteError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+  const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!studentId) return;
@@ -116,15 +118,17 @@ export default function PsychologistStudentDetailPage() {
     }
   }
 
-  async function handleDelete(noteId: string) {
-    if (!window.confirm(t('detail.deleteConfirm'))) return;
+  async function handleDeleteConfirm() {
+    if (!deleteNoteId) return;
     setSaving(true);
     setNoteError(null);
     try {
-      await psychologistApi.deleteNote(noteId);
-      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+      await psychologistApi.deleteNote(deleteNoteId);
+      setNotes((prev) => prev.filter((n) => n.id !== deleteNoteId));
+      setDeleteNoteId(null);
     } catch {
       setNoteError(t('detail.noteDeleteError'));
+      setDeleteNoteId(null);
     } finally {
       setSaving(false);
     }
@@ -375,7 +379,7 @@ export default function PsychologistStudentDetailPage() {
                           className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
                           aria-label={t('detail.deleteAria')}
                           disabled={saving}
-                          onClick={() => void handleDelete(note.id)}
+                          onClick={() => setDeleteNoteId(note.id)}
                         >
                           <Trash2 size={13} />
                         </button>
@@ -388,6 +392,18 @@ export default function PsychologistStudentDetailPage() {
           </ul>
         )}
       </AdminCard>
+
+      <ConfirmDialog
+        open={deleteNoteId !== null}
+        title={t('detail.deleteConfirm')}
+        confirmLabel={t('detail.deleteAria')}
+        cancelLabel={t('detail.cancel')}
+        confirming={saving && deleteNoteId !== null}
+        onConfirm={() => void handleDeleteConfirm()}
+        onCancel={() => {
+          if (!saving) setDeleteNoteId(null);
+        }}
+      />
     </PageContainer>
   );
 }
