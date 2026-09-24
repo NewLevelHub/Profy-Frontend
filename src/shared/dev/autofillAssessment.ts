@@ -165,10 +165,13 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
           } else if (st.key === 'numeric_series') {
             answers[key] = [1, 2];
           } else if (st.key === 'generalization') {
-            answers[key] = 'тест';
+            // ASCII placeholder — i18n sweep flags Cyrillic outside the catalog;
+            // scoring accepts any free-text string here for a dev autofill.
+            answers[key] = 'test';
           } else if (st.key === 'geometric_figures') {
-            // No `options` on the wire (static image assets) — any letter is fine.
-            answers[key] = 'А';
+            // No `options` on the wire (static image assets). Latin "A" is a
+            // structurally valid letter and keeps the i18n sweep happy.
+            answers[key] = 'A';
           } else {
             answers[key] = it.options?.[0] ?? '1';
           }
