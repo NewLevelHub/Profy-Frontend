@@ -228,10 +228,10 @@ export default function PsychologistStudentDetailPage() {
                       : a.status}
                   </AdminBadge>
                   {a.review_status === 'pending_review' && (
-                    <AdminBadge tone="accent">{t('psychologist:detail.pendingReview', 'На проверке')}</AdminBadge>
+                    <AdminBadge tone="accent">{t('psychologist:detail.pendingReview')}</AdminBadge>
                   )}
                   {a.review_status === 'published' && (
-                    <AdminBadge tone="brand">{t('psychologist:detail.published', 'Опубликовано')}</AdminBadge>
+                    <AdminBadge tone="brand">{t('psychologist:detail.published')}</AdminBadge>
                   )}
                   {a.has_result && !a.review_status && <AdminBadge tone="quiet">{t('detail.hasResult')}</AdminBadge>}
                   {a.has_roadmap && <AdminBadge tone="quiet">{t('detail.hasRoadmap')}</AdminBadge>}
@@ -253,12 +253,12 @@ export default function PsychologistStudentDetailPage() {
                       {a.review_status === 'pending_review' ? (
                         <>
                           <ClipboardCheck size={14} />
-                          {t('psychologist:detail.checkReport', 'Проверить отчёт')}
+                          {t('psychologist:detail.checkReport')}
                         </>
                       ) : (
                         <>
                           <FileText size={14} />
-                          {t('psychologist:detail.openReport', 'Открыть отчёт')}
+                          {t('psychologist:detail.openReport')}
                         </>
                       )}
                     </Link>

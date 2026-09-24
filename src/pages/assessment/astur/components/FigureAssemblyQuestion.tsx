@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useTranslation } from 'react-i18next';
 
 interface FigureAssemblyQuestionProps {
   /** 1-based position within the subtest — the stimulus images for this
@@ -18,10 +19,11 @@ const OPTIONS: { letter: string; file: string }[] = [
 ];
 
 export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssemblyQuestionProps) {
+  const { t } = useTranslation('assessment');
   return (
     <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
       <legend className="text-body-md text-primary font-semibold">
-        {index}. Из каких частей можно без пропусков и остатка собрать фигуру-эталон?
+        {index}. {t('astur.figureAssemblyPrompt')}
       </legend>
       {/* theme-day: this is a scan-derived stimulus image, not app chrome —
           it must stay legible on its own light ground even in dark mode,
@@ -32,9 +34,9 @@ export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssembl
       <div className="theme-day flex gap-0 divide-x divide-default overflow-x-auto rounded-2xl border border-default bg-white">
         <div className="flex shrink-0 basis-1/5 flex-col items-center gap-2 p-3">
           <div className="flex aspect-square w-full min-w-[92px] items-center justify-center">
-            <img src={`/astur-figures/${index}-target.png`} alt="Фигура-эталон" className="max-h-full max-w-full object-contain" />
+            <img src={`/astur-figures/${index}-target.png`} alt={t('astur.figureAssemblyTarget')} className="max-h-full max-w-full object-contain" />
           </div>
-          <span className="text-body-sm font-semibold text-muted">Эталон</span>
+          <span className="text-body-sm font-semibold text-muted">{t('astur.figureAssemblyTarget')}</span>
         </div>
         {OPTIONS.map((option) => {
           const selected = value === option.letter;
@@ -58,7 +60,7 @@ export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssembl
                 />
                 <img
                   src={`/astur-figures/${index}-${option.file}.png`}
-                  alt={`Вариант ${option.letter}`}
+                  alt={t('astur.figureAssemblyOption', { letter: option.letter })}
                   className="max-h-full max-w-full object-contain"
                 />
               </div>

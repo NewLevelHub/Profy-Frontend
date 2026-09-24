@@ -3,7 +3,6 @@
   "globs": [
     "src/pages/admin/**",
     "src/pages/psychologist/**",
-    "src/pages/assessment/astur/**",
     "src/pages/assessment/belbin/**",
     "src/pages/results/components/psych/**",
     "src/shared/ui/admin/**",
@@ -35,7 +34,6 @@
   "comments": {
     "src/pages/admin/**": "Admin panel — internal team tool, ru-only by decision (KZ-210).",
     "src/pages/psychologist/**": "Psychologist cabinet (pro-281/PRO-327 and PRO-338's Ф0.4 report screen) — internal specialist tool, same ru-only convention as /admin/*; was already unlocalized pre-existing, just missing from this list.",
-    "src/pages/assessment/astur/**": "Astur assessment subtests — localization in progress in PRO-338.",
     "src/pages/assessment/belbin/**": "Belbin assessment — localization in progress in PRO-338.",
     "src/pages/results/components/psych/**": "The psych-block \"Дополнительно для специалиста\" section (validity/MC-SDS + psychoemotional/МЦВ) rendered inside ResultsReportBody. Server-gated to psychologist/admin viewers only (report_service.psych_sections_for) — a student's own /result never receives this data, so these components never render for a student regardless of locale. Dense clinical/psychometric terminology (MC-SDS, LongString, IRV, СО/ВК); ru-only by the same staff-tool reasoning as /admin and /psychologist.",
     "src/shared/ui/admin/**": "Admin-only UI primitives (RoleBadge, ChangeLogTable, AdminSectionHeading, RoleGatedAction, density).",

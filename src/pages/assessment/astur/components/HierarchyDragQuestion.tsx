@@ -1,4 +1,5 @@
 import { GripVertical } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   DndContext,
   KeyboardSensor,
@@ -49,9 +50,8 @@ function SortableConcept({ concept, position }: { concept: string; position: num
   );
 }
 
-/** Субтест «Логические схемы» — расставить понятия от общего к частному
- *  перетаскиванием (dnd-kit, уже используется в проекте — TripletRanking.tsx). */
 export function HierarchyDragQuestion({ index, value, onChange }: HierarchyDragQuestionProps) {
+  const { t } = useTranslation('assessment');
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
@@ -69,7 +69,7 @@ export function HierarchyDragQuestion({ index, value, onChange }: HierarchyDragQ
   return (
     <div className="flex flex-col gap-3">
       <p className="text-body-md text-primary font-semibold">
-        {index}. Расставьте от самого общего к самому частному
+        {index}. {t('astur.hierarchyPrompt')}
       </p>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={value} strategy={verticalListSortingStrategy}>

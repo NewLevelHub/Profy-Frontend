@@ -51,6 +51,8 @@ const ADMIN_NAV: readonly AdminNavGroup[] = [
       { to: '/admin/content/motivation-statements', labelKey: 'nav.motivationStatements' },
       { to: '/admin/content/motivation-pairs', labelKey: 'nav.motivationPairs' },
       { to: '/admin/content/directions', labelKey: 'nav.directions' },
+      { to: '/admin/content/belbin', labelKey: 'nav.belbin' },
+      { to: '/admin/content/tests', labelKey: 'nav.tests' },
     ],
   },
 ];

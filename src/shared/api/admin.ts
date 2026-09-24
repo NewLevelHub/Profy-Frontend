@@ -30,6 +30,10 @@ import type {
   AdminUserDetail,
   AdminUserListResponse,
   AdminUserStats,
+  AdminContentOverrideRequest,
+  AdminContentOverrideResponse,
+  BelbinSchemaResponse,
+  AsturSchemaResponse,
   AgeGroup,
   AssessmentGoal,
   AssessmentStatus,
@@ -262,5 +266,21 @@ export const adminApi = {
       .delete<AdminProgramDetail>(
         field ? API.admin.programLockField(programId, field) : API.admin.programLocks(programId),
       )
+      .then((r) => r.data),
+
+  getContentOverride: (instrument: string) =>
+    apiClient
+      .get<AdminContentOverrideResponse>(API.admin.contentOverride(instrument))
+      .then((r) => r.data),
+
+  getBelbinSchema: () =>
+    apiClient.get<BelbinSchemaResponse>(API.admin.belbinSchema).then((r) => r.data),
+
+  getAsturSchema: () =>
+    apiClient.get<AsturSchemaResponse>(API.admin.asturSchema).then((r) => r.data),
+
+  setContentOverride: (instrument: string, body: AdminContentOverrideRequest) =>
+    apiClient
+      .put<AdminContentOverrideResponse>(API.admin.contentOverride(instrument), body)
       .then((r) => r.data),
 };

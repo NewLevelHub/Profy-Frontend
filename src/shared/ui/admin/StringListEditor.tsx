@@ -21,6 +21,15 @@ interface StringListEditorProps {
    * содержательный факт.
    */
   emptyNote?: string;
+  /**
+   * False hides the "add new row" input — for lists whose length is
+   * meaningful beyond this field (ASTUR `options`/`words`: a hidden `answer`
+   * elsewhere picks one entry by exact text, so adding a row here doesn't
+   * corrupt anything, but the count/shape is otherwise fixed by the bank and
+   * PRO-424's editor keeps it that way — editing wording stays allowed).
+   * Defaults to true.
+   */
+  allowAdd?: boolean;
 }
 
 /**
@@ -35,7 +44,15 @@ interface StringListEditorProps {
  * "Поговорить с преподавателем биологии о профильных классах" across three
  * lines with the delete button orphaned at the end.
  */
-export function StringListEditor({ label, values, onChange, placeholder, ordered, emptyNote }: StringListEditorProps) {
+export function StringListEditor({
+  label,
+  values,
+  onChange,
+  placeholder,
+  ordered,
+  emptyNote,
+  allowAdd = true,
+}: StringListEditorProps) {
   const { t } = useTranslation('admin');
   const [draft, setDraft] = useState('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -157,6 +174,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
         </ul>
       )}
 
+      {allowAdd && (
       <div className="flex items-center gap-1.5">
         <input
           value={draft}
@@ -175,6 +193,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
           {t('list.add')}
         </button>
       </div>
+      )}
     </div>
   );
 }

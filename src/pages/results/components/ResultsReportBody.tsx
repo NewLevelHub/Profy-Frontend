@@ -31,16 +31,15 @@ interface ResultsReportBodyProps {
  * identical body. Page chrome (header, "Скачать PDF", feedback) stays on the
  * pages, not here.
  *
- * The psych-block (validity/psychoemotional) is gated server-side
+ * The psych-block (psychoemotional) is gated server-side
  * (report_service.psych_sections_for → psychologist/admin only), so on the
  * student's page `hasPsych` is always false and nothing renders.
  */
 export function ResultsReportBody({ report, ageGroup, goal, isJunior, readOnly = false }: ResultsReportBodyProps) {
   const psychSections = {
-    validity: report.validity ?? null,
     psychoemotional: report.psychoemotional ?? null,
   };
-  const hasPsych = !!psychSections.validity || !!psychSections.psychoemotional;
+  const hasPsych = !!psychSections.psychoemotional;
 
   return (
     <>

@@ -158,12 +158,11 @@ export function useResults() {
 
   // Psych-block slots (PRO-292) — pulled off the report here so the page
   // stays assembly-only. Every entry is `null` until its phase ships on the
-  // backend (validity → Фаза 1, psychoemotional → Фаза 2).
+  // backend (psychoemotional → Фаза 2).
   const psychSections = {
-    validity: effectiveReport?.validity ?? null,
     psychoemotional: effectiveReport?.psychoemotional ?? null,
   };
-  const hasPsychSections = !!psychSections.validity || !!psychSections.psychoemotional;
+  const hasPsychSections = !!psychSections.psychoemotional;
 
   const belbinCompleted = useAssessmentStore(s => s.belbinCompleted);
   const asturCompleted = useAssessmentStore(s => s.asturCompleted);

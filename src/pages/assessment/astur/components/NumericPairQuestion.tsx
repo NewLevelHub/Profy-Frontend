@@ -1,4 +1,5 @@
 import { Input } from '@/shared/ui/Input';
+import { useTranslation } from 'react-i18next';
 
 interface NumericPairQuestionProps {
   index: number;
@@ -7,8 +8,8 @@ interface NumericPairQuestionProps {
   onChange: (value: [string, string]) => void;
 }
 
-/** Субтест «Числовые ряды» — продолжить ряд двумя числами. */
 export function NumericPairQuestion({ index, sequence, value, onChange }: NumericPairQuestionProps) {
+  const { t } = useTranslation('assessment');
   return (
     <div className="flex flex-col gap-2">
       <p className="text-body-md text-primary font-semibold">
@@ -20,14 +21,14 @@ export function NumericPairQuestion({ index, sequence, value, onChange }: Numeri
           inputMode="numeric"
           value={value[0]}
           onChange={(e) => onChange([e.target.value, value[1]])}
-          placeholder="1-е число"
+          placeholder={t('astur.numericPairFirst')}
         />
         <Input
           type="number"
           inputMode="numeric"
           value={value[1]}
           onChange={(e) => onChange([value[0], e.target.value])}
-          placeholder="2-е число"
+          placeholder={t('astur.numericPairSecond')}
         />
       </div>
     </div>
