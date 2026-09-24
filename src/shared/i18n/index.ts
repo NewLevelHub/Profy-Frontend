@@ -8,34 +8,41 @@ import ruAuth from './locales/ru/auth.json';
 import ruOnboarding from './locales/ru/onboarding.json';
 import ruAssessment from './locales/ru/assessment.json';
 import ruResults from './locales/ru/results.json';
-import ruRoadmap from './locales/ru/roadmap.json';
 import ruProfile from './locales/ru/profile.json';
 import ruErrors from './locales/ru/errors.json';
 import ruLanding from './locales/ru/landing.json';
+import ruAdmin from './locales/ru/admin.json';
+import ruPsychologist from './locales/ru/psychologist.json';
+import ruPsychReport from './locales/ru/psychReport.json';
 
 import kkCommon from './locales/kk/common.json';
 import kkAuth from './locales/kk/auth.json';
 import kkOnboarding from './locales/kk/onboarding.json';
 import kkAssessment from './locales/kk/assessment.json';
 import kkResults from './locales/kk/results.json';
-import kkRoadmap from './locales/kk/roadmap.json';
 import kkProfile from './locales/kk/profile.json';
 import kkErrors from './locales/kk/errors.json';
 import kkLanding from './locales/kk/landing.json';
+import kkAdmin from './locales/kk/admin.json';
+import kkPsychologist from './locales/kk/psychologist.json';
+import kkPsychReport from './locales/kk/psychReport.json';
 
 // One namespace per product area. Mirror this list when adding a namespace, in
-// both locales, and in the parity check (KZ-211 / KZ-602). Admin has no
-// namespace — /admin/* is ru-only by decision (KZ-210).
+// both locales, and in the parity check (KZ-211 / KZ-602). `admin` covers
+// /admin/* — it was ru-only under KZ-210, and that decision was reversed on
+// review: the panel is localized like any other area.
 export const NAMESPACES = [
   'common',
   'auth',
   'onboarding',
   'assessment',
   'results',
-  'roadmap',
   'profile',
   'errors',
   'landing',
+  'admin',
+  'psychologist',
+  'psychReport',
 ] as const;
 
 const resources = {
@@ -45,10 +52,12 @@ const resources = {
     onboarding: ruOnboarding,
     assessment: ruAssessment,
     results: ruResults,
-    roadmap: ruRoadmap,
     profile: ruProfile,
     errors: ruErrors,
     landing: ruLanding,
+    admin: ruAdmin,
+    psychologist: ruPsychologist,
+    psychReport: ruPsychReport,
   },
   kk: {
     common: kkCommon,
@@ -56,10 +65,12 @@ const resources = {
     onboarding: kkOnboarding,
     assessment: kkAssessment,
     results: kkResults,
-    roadmap: kkRoadmap,
     profile: kkProfile,
     errors: kkErrors,
     landing: kkLanding,
+    admin: kkAdmin,
+    psychologist: kkPsychologist,
+    psychReport: kkPsychReport,
   },
 } as const;
 

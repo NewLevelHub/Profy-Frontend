@@ -10,5 +10,5 @@
 //   Step 3 = все артефакты кроме мечт: увлечения, достижения, профессии, цели (was steps 5-8)
 //   Step 4 = мечты и цели, alone (was step 9)
 export const PROFILE_STEP_COUNT = 2;
-export const ARTIFACT_STEP_COUNT = 2;
+const ARTIFACT_STEP_COUNT = 2;
 export const TOTAL_ONBOARDING_STEPS = PROFILE_STEP_COUNT + ARTIFACT_STEP_COUNT;

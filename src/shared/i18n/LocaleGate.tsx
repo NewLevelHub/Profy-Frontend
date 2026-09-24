@@ -16,32 +16,68 @@ import {
 
 /**
  * Keeps i18next's active language and <html lang> in sync with the locale
- * store, and adopts the server-side preference (`user.locale`) once the user
- * logs in. Renders nothing.
+ * store, and reconciles it with the server-side preference (`user.locale`)
+ * once the user logs in. Renders nothing.
  *
- * Note: the store may hold "kk" while `resolveLocale` still clamps to "ru"
- * (SUPPORTED_LOCALES gates it) — that's intentional, the choice is remembered
- * but dormant. Дремлет, впрочем, только интерфейс: см. ниже про отчёт.
+ * If SUPPORTED_LOCALES is ever collapsed back to one locale, `resolveLocale`
+ * clamps the interface to it while the store keeps the real preference — see
+ * the reset effect below for why that alone isn't enough for the account.
  */
 export function LocaleGate() {
   const locale = useLocaleStore((s) => s.locale);
   const setLocale = useLocaleStore((s) => s.setLocale);
   const user = useUser();
-  const serverLocale = user?.locale;
   const setUser = useAuthStore((s) => s.setUser);
+  const serverLocale = user?.locale;
   const queryClient = useQueryClient();
   // Одна попытка на сессию: если PATCH не прошёл, не долбим его на каждый рендер.
   const localeResetRef = useRef(false);
+  // Which user.id this reconciliation has already run for. Without this gate
+  // the effect below re-fires on every `locale` change — including the one
+  // caused by the user's own click — and races its stale `serverLocale`
+  // against the in-flight PATCH from that very click, snapping the switch
+  // straight back (see the incident: switching away from a saved non-default
+  // locale back to the default got stuck, because the effect kept treating
+  // the pre-click serverLocale as authoritative). Reconciling once per login
+  // is enough — after that, LanguageSwitcher's own PATCH is the only writer.
+  const reconciledUserIdRef = useRef<string | null>(null);
   // Tracks the locale we last applied, so the refetch below fires only on a
   // real switch — not on first mount.
   const appliedLocaleRef = useRef<string | null>(null);
 
-  // Server preference wins after login.
+  // Reconcile the locale picked *before* login (e.g. as a guest) with the
+  // account's saved preference. Registration/login never send the session's
+  // locale up, so a fresh or never-switched account always reports the
+  // backend default ("ru") — treat that as "no real preference yet" rather
+  // than blindly overwriting a locale the user just chose. A non-default
+  // server value, on the other hand, is only ever set by an explicit switch
+  // (here or on another device), so it wins — but only at this one login-time
+  // reconciliation, not on every later render.
   useEffect(() => {
-    if (isLocale(serverLocale) && serverLocale !== locale) {
-      setLocale(serverLocale);
+    if (!user) {
+      reconciledUserIdRef.current = null;
+      return;
     }
-  }, [serverLocale, locale, setLocale]);
+    if (reconciledUserIdRef.current === user.id || !isLocale(serverLocale)) return;
+    reconciledUserIdRef.current = user.id;
+
+    if (serverLocale === locale) return;
+
+    if (serverLocale !== DEFAULT_LOCALE) {
+      setLocale(serverLocale);
+      return;
+    }
+
+    if (locale !== DEFAULT_LOCALE) {
+      void apiClient
+        .patch(API.auth.me, { locale })
+        .then(() => setUser({ ...user, locale }))
+        .catch(() => {
+          // Best effort — the local choice still applies for this session,
+          // it just didn't stick to the account this time.
+        });
+    }
+  }, [serverLocale, locale, user, setLocale, setUser]);
 
   // Пока выбор языка выключен (SUPPORTED_LOCALES свёрнут к одному), аккаунт,
   // застрявший на другом языке, надо вернуть на язык по умолчанию — и именно

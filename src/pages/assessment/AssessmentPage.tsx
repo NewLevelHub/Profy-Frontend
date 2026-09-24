@@ -25,26 +25,39 @@ export default function AssessmentPage() {
     error,
     currentLikertQuestions,
     currentPair,
+    isAdditionalTestsSection,
+    testIntroInstrument,
+    testIntroItemCount,
     progress,
     exitConfirmOpen,
     exiting,
     autofilling,
     handleBack,
     handleStartIntro,
+    handleStartTestIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
+    handleAutofillToAstur,
     handleExit,
     confirmExit,
     cancelExit,
     retry,
   } = useAssessment();
 
+  // PRO-338 Ф0.8: professional_types_abilities/eysenck/elers render as one
+  // contiguous, non-interleaved sub-section right after MI — the rail's
+  // section label switches for exactly that run of pages (see
+  // useAssessment's isAdditionalTestsSection).
+  const sectionLabel = isAdditionalTestsSection
+    ? t('rail.sectionAdditionalTests')
+    : t('rail.sectionDiagnostic');
   const headerTitle =
-    phase === 'question' && totalPages > 0
+    phase === 'question' && !testIntroInstrument && totalPages > 0
       ? t('rail.pageOf', { current: pageIndex + 1, total: totalPages })
-      : t('rail.sectionDiagnostic');
+      : sectionLabel;
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -60,13 +73,15 @@ export default function AssessmentPage() {
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
         title={headerTitle}
-        sectionLabel={t('rail.sectionDiagnostic')}
+        sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
-        showBack={phase === 'question' && pageIndex > 0}
+        showBack={phase === 'question' && !testIntroInstrument && pageIndex > 0}
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
+        devAutofillToMotivation={{ onClick: handleAutofillToMotivation, loading: autofilling }}
+        devAutofillToAstur={{ onClick: handleAutofillToAstur, loading: autofilling }}
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}
@@ -89,7 +104,19 @@ export default function AssessmentPage() {
           />
         )}
 
-        {phase === 'question' && (
+        {phase === 'question' && testIntroInstrument && (
+          <AssessmentIntro
+            kicker={t(`intro.tests.${testIntroInstrument}.kicker`)}
+            title={t(`intro.tests.${testIntroInstrument}.title`)}
+            subtitle={t(`intro.tests.${testIntroInstrument}.subtitle`)}
+            itemCountLabel={t('intro.itemCount', { count: testIntroItemCount })}
+            durationLabel={t('intro.durationMin', { count: Math.max(1, Math.ceil(testIntroItemCount / 20)) })}
+            ctaLabel={t('intro.diagnostic.cta')}
+            onStart={() => handleStartTestIntro(testIntroInstrument)}
+          />
+        )}
+
+        {phase === 'question' && !testIntroInstrument && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6">
 

@@ -39,12 +39,22 @@ GET /api/v1/result/{assessment_id}
 result (проценты, баллы, `match_score`, коды) доступен только через admin
 API — см. §9.
 
-## 2. Возрастные ветки assessment
+**Исключение — отчёт на проверке у психолога (PRO-337).** Пока психолог не
+опубликовал отчёт, оба эндпоинта отвечают `200` с
+`{"status": "pending_review", "assessment_id": "uuid"}` (`ResultPendingReview`
+в `src/shared/types/index.ts`). `resultApi` пропускает этот конверт мимо
+`legacy_result_shape`-проверки (`isPendingReview` в
+`src/shared/api/result.ts`), `useResults` не кладёт его в стор, опрашивает
+эндпоинт раз в минуту и возвращает `isPendingReview`, а `ResultsPage`
+показывает экран ожидания (`results:pendingReview`). Дизайн —
+`docs/psychologist-review-frontend-plan.md`.
 
-- **junior (6–9)**: MI + Harter motivation pairs.
-  RIASEC и career matching не используются вообще.
-- **middle (10–13)**: RIASEC + RIASEC dilemma pairs + Harter motivation pairs.
-- **senior (14–18)**: RIASEC + MOST/LEAST motivation triplets.
+## 2. Активный assessment flow
+
+- Для новых прохождений используется единый flow для учеников 14–18 лет:
+  RIASEC + MOST/LEAST motivation triplets.
+- Формы junior/middle, MI и Harter могут встречаться в legacy API-типах и
+  исторических данных, но больше не являются точками входа нового frontend flow.
 
 Big Five исключён из активного пула для новых прохождений. Исторические
 результаты с полностью пройденным Big Five продолжают отображаться. Поэтому
@@ -192,7 +202,7 @@ assessment, но не запрещено схемой).
   часть контракта** и могут измениться без объявления breaking change;
   фронт обязан относиться к `level` как к непрозрачному enum, а не
   пытаться воспроизвести пороги локально или показывать сам балл.
-  (`InterestMapSection.tsx` рисует его 3-точечным индикатором, не баром.)
+  (`InterestDomainSection.tsx` рисует его 3-точечным индикатором, не баром.)
 
 **Важное отличие от `strength_cards`**: `interest_map` — это *score-derived*
 (из сырых нормализованных баллов, по всем категориям без исключения, в том
@@ -293,6 +303,7 @@ career-oriented (methodology), профессии ему не подбирают
 | `403` | `assessment_id` принадлежит другому пользователю |
 | `404` | `assessment_id` не существует (`POST`), либо отчёт ещё не сгенерирован (`GET`) |
 | `409` | обязательные ответы для этого возраста ещё не завершены |
+| `200` + `status: "pending_review"` | отчёт готов, но ещё не опубликован психологом — не ошибка (см. §1) |
 
 Ошибка LLM или недоступность Redis **никогда** не превращаются в `5xx`:
 backend всегда возвращает валидный `200` той же v2-формы — либо
@@ -361,9 +372,8 @@ LLM-персонализированные `summary`/`strength_cards`/`thinking_
 | Запросы (§1) | `src/shared/api/result.ts` |
 | `interest_instrument`-ветвление (§3) | `src/pages/results/hooks/useResults.ts` |
 | `summary`/`disclaimer` (§4.2) | `src/pages/results/components/SummaryCard.tsx` |
-| `strength_cards` (§4.3) | `src/pages/results/components/StrengthCardsSection.tsx` |
-| `interest_map` (§5) | `src/pages/results/components/InterestMapSection.tsx` |
-| `careers` (§6) | `src/pages/results/components/CareerCard.tsx`, `DirectionDetailPage.tsx` |
+| `strength_cards` (§4.3) | `src/pages/results/components/StrengthsDomainSection.tsx` |
+| `interest_map` (§5) | `src/pages/results/components/InterestDomainSection.tsx` |
+| `careers` (§6) | `src/pages/results/DirectionDetailPage.tsx`, `components/scenarios/` |
 | `exploration_activities` (§7) | `src/pages/results/components/ExplorationActivitiesSection.tsx` |
-| `thinking_style_notes` | `src/pages/results/components/ThinkingStyleSection.tsx` |
-| `motivation_highlights` | `src/pages/results/components/MotivationSection.tsx` |
+| `thinking_style_notes` / `motivation_highlights` | `src/pages/results/components/ThinkingStyleMotivationSection.tsx` |

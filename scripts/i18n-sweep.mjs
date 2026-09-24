@@ -32,6 +32,11 @@ const EXCLUDE_PREFIXES = [
 // source file. Structure: [relPath, lineRegex, reason].
 const ALLOW = [
   // KZ-206 — Cyrillic used to match/parse ru-only backend data, never shown.
+  // The admin panel is localized (KZ-210 reversed on review), so these three
+  // are the only Cyrillic literals left in it — none of them is UI copy.
+  ['src/pages/admin/AdminUniversitiesPage.tsx', /Казахстан|replace\(\/ё\/g/, 'backend country value + ё-normalizer for search'],
+  ['src/pages/admin/AdminFeedbackPage.tsx', /replace\(\/ё\/g/, 'ё-normalizer for search'],
+  ['src/pages/admin/AdminUserDetailPage.tsx', /^\s*[а-яё]: '[^']*',/, 'Cyrillic→Latin transliteration table for filenames'],
   ['src/pages/results/utils/programUtils.ts', /Казахстан|Қазақстан|тенге|евро|фунт|юан|вон|крон|рупи|франк|иен|йен|рэнд|ранд|реал|доллар|А-ЯA-Z/, 'backend-data matcher/parser'],
   ['src/pages/results/ProgramDetailPage.tsx', /Казахстан|Общий конкурс|проходной балл/, 'backend admission-score parser'],
   ['src/pages/results/hooks/useUniversityList.ts', /Казахстан/, 'backend country value match'],
@@ -41,8 +46,9 @@ const ALLOW = [
   ['src/pages/onboarding/ArtifactsSetupPage.tsx', /^("?[^']*"?\s*)?('[^']*'\s*,?\s*)+$/, 'canonical preset value (display via presetLabel/t)'],
   // Language picker shows each option in its own script (KZ-105).
   ['src/shared/ui/LanguageSwitcher.tsx', /'ҚАЗ'/, 'language-picker self-label'],
-  // Dev-only affordance behind import.meta.env.DEV — stripped from prod build.
-  ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить/, 'dev-only autofill (import.meta.env.DEV)'],
+  ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить|До мотивации|До Астур теста|психотеста|только в dev/, 'dev-only autofill (import.meta.env.DEV)'],
+  ['src/pages/assessment/hooks/useAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
+  ['src/pages/assessment/hooks/usePairAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
   // KZ-502 — ru→kk dictionary for catalog city/country strings (backend data).
   // Both sides are Cyrillic by nature; keys match backend values, values are
   // the localized output. Native review: KZ-502-вычитка-kk.md.
@@ -50,6 +56,20 @@ const ALLOW = [
   // Canonical ru subject label → onboarding `subject.<key>` map; the ru side is
   // the stored profile value, output is localized via t('onboarding:subject.*').
   ['src/shared/i18n/presets.ts', /^'[^']+':\s*'[a-z]+',$/, 'ru subject label → catalog key'],
+  // МЦВ stimulus material — id/hex are the accepted colorimetry (psych-block
+  // §B3, not localizable); `name` is canonical ru shared by the student-facing
+  // assessment flow (localized via t(`psychoemotional.color.${id}`) at the
+  // ColorSwatch call site) AND the excluded psychologist-only report section
+  // (src/pages/results/components/psych/**), which reads `name` as-is.
+  ['src/shared/config/psychoColors.ts', /name: '[а-яё]+'/, 'МЦВ canonical color name (id-keyed t() at call site)'],
+  // Check-in question bank — same dual-consumer shape as psychoColors.ts
+  // above: canonical ru read as-is by the excluded psychologist report
+  // section, localized via t(`psychoemotional.checkin.*`) in CheckInStep.tsx.
+  ['src/shared/config/psychoCheckin.ts', /'не указано'|label: '|options: \[/, 'psychoemotional check-in canonical ru (key-indexed t() at call site)'],
+  ['src/pages/assessment/astur/components/FigureAssemblyQuestion.tsx', /letter: '[АБВГ]'|alt="Фигура-эталон"|alt=\{`Вариант \$\{option\.letter\}`\}/, 'ASTUR figure options - canonical Cyrillic used for backend matching and alt text'],
+  ['src/pages/assessment/astur/components/HierarchyDragQuestion.tsx', /aria-label=\{`\$\{concept\}, позиция \$\{position \+ 1\}`\}/, 'ASTUR hierarchy - ARIA label'],
+  ['src/pages/assessment/astur/components/LabilityRunner.tsx', /кружок: 'Кружок'|квадрат: 'Квадрат'|плюс: 'Плюс'|минус: 'Минус'|галочка: 'Галочка \(✓\)'|крестик: 'Крестик \(✗\)'|да: 'Да'|нет: 'Нет'|выше: 'Выше'|ниже: 'Ниже'/, 'ASTUR Lability options - canonical Cyrillic for backend matching'],
+  ['src/pages/assessment/astur/hooks/useAsturAssessment.ts', /answers\[it\.id\] = 'А';/, 'ASTUR Autofill dummy value'],
 ];
 
 function isExcluded(rel) {

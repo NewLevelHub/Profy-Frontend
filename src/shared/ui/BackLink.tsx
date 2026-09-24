@@ -7,8 +7,8 @@ interface BackLinkProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'c
 }
 
 /**
- * Textual "back" control for journey detail screens (direction → roadmap →
- * programs, university detail, inquiry). Always shows a left arrow so the
+ * Textual "back" control for journey detail screens (direction → programs,
+ * university detail). Always shows a left arrow so the
  * affordance reads as navigation, not as a plain label.
  */
 export function BackLink({ children, className, type = 'button', ...props }: BackLinkProps) {

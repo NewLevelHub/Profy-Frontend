@@ -67,17 +67,17 @@ export function InsideSection() {
                 </svg>
               </div>
               <h4
-                className="font-display text-[0.94rem] font-semibold tracking-[-0.02em] mb-2"
+                className="font-display text-body-sm font-semibold tracking-[-0.02em] mb-2"
                 style={{ color: `color-mix(in srgb, ${group.color} 72%, var(--text-heading))` }}
               >
                 {group.name}
               </h4>
-              <p className="text-secondary text-[0.82rem] leading-[1.5] mb-[1.1rem]">{group.desc}</p>
+              <p className="text-secondary text-caption leading-[1.5] mb-[1.1rem]">{group.desc}</p>
               <div className="flex flex-wrap gap-[0.45rem]">
                 {group.chips.map(chip => (
                   <span
                     key={chip}
-                    className="text-[0.72rem] font-semibold px-[0.7rem] py-[0.35rem] rounded-pill border bg-surface"
+                    className="text-mono-xs font-semibold px-[0.7rem] py-[0.35rem] rounded-pill border bg-surface"
                     style={{
                       borderColor: `color-mix(in srgb, ${group.color} 34%, var(--bg-surface))`,
                       color: `color-mix(in srgb, ${group.color} 78%, var(--text-heading))`,

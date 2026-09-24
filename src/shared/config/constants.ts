@@ -49,46 +49,6 @@ export const RIASEC_DESCRIPTIONS: Record<string, string> = {
   C: 'results:riasecDesc.C',
 };
 
-// Junior's (6-9) interest instrument, replacing RIASEC — see MIType.
-export const MI_TYPES = [
-  'verbal', 'logical', 'musical', 'visual', 'bodily',
-  'interpersonal', 'intrapersonal', 'naturalistic',
-] as const;
-
-export const MI_LABELS: Record<string, string> = {
-  verbal: 'results:miLabel.verbal',
-  logical: 'results:miLabel.logical',
-  musical: 'results:miLabel.musical',
-  visual: 'results:miLabel.visual',
-  bodily: 'results:miLabel.bodily',
-  interpersonal: 'results:miLabel.interpersonal',
-  intrapersonal: 'results:miLabel.intrapersonal',
-  naturalistic: 'results:miLabel.naturalistic',
-};
-
-export const MI_ICONS: Record<string, string> = {
-  verbal: '📚',
-  logical: '🧩',
-  musical: '🎵',
-  visual: '🎨',
-  bodily: '🤸',
-  interpersonal: '🤝',
-  intrapersonal: '💭',
-  naturalistic: '🌿',
-};
-
-// One-sentence gloss per MI type — connects the label to what it looks like.
-export const MI_DESCRIPTIONS: Record<string, string> = {
-  verbal: 'results:miDesc.verbal',
-  logical: 'results:miDesc.logical',
-  musical: 'results:miDesc.musical',
-  visual: 'results:miDesc.visual',
-  bodily: 'results:miDesc.bodily',
-  interpersonal: 'results:miDesc.interpersonal',
-  intrapersonal: 'results:miDesc.intrapersonal',
-  naturalistic: 'results:miDesc.naturalistic',
-};
-
 export const LIKERT_SCALE: { value: number; label: string }[] = [
   { value: 1, label: 'assessment:likert.1' },
   { value: 2, label: 'assessment:likert.2' },
@@ -103,6 +63,42 @@ export const BIGFIVE_LIKERT_SCALE: { value: number; label: string }[] = [
   { value: 3, label: 'assessment:bigfiveLikert.3' },
   { value: 4, label: 'assessment:bigfiveLikert.4' },
   { value: 5, label: 'assessment:bigfiveLikert.5' },
+];
+
+// PRO-338 Ф0.5 — Eysenck (57п.) and Elers (41п.) are Да/Нет instruments,
+// reusing the Likert engine with a 2-point scale instead of 5. Backend
+// write semantics (app/models/user_response.py, question_service): plain
+// answer_value 1=Нет, 2=Да — not the 5-point 1..5 semantics reused at a
+// different range, an explicit 2-value scale of its own.
+export const YES_NO_SCALE: { value: number; label: string }[] = [
+  { value: 1, label: 'assessment:yesNo.no' },
+  { value: 2, label: 'assessment:yesNo.yes' },
+];
+
+// PRO-338 Ф1.2 — ДДО "способности" (professional_types_abilities) is a
+// genuine 0-3 scale in the source spec ("совсем не выражено".."ярко
+// выражено"), not a shifted 1-5 — backend stores the literal 0-3
+// answer_value (app/schemas/response.py widened its floor to 0 for this),
+// so professional_types_service reads raw scores directly with no +1/-1
+// conversion anywhere.
+export const ABILITIES_LIKERT_SCALE: { value: number; label: string }[] = [
+  { value: 0, label: 'assessment:abilitiesLikert.0' },
+  { value: 1, label: 'assessment:abilitiesLikert.1' },
+  { value: 2, label: 'assessment:abilitiesLikert.2' },
+  { value: 3, label: 'assessment:abilitiesLikert.3' },
+];
+
+// PRO-338 Ф1.10 — Kondash/Prikhozhan «тревожность» (kondash_anxiety, 40п.)
+// is a genuine 0-4 scale (Нет/Немного/Достаточно/Значительно/Очень, source:
+// docs/psych/new-tests-content-sources.md "Пробел 3"), stored as the literal
+// 0-4 answer_value — same widened-floor convention as ABILITIES_LIKERT_SCALE
+// above, no +1/-1 conversion in kondash_anxiety scoring (Ф1.11).
+export const KONDASH_ANXIETY_SCALE: { value: number; label: string }[] = [
+  { value: 0, label: 'assessment:kondashAnxietyLikert.0' },
+  { value: 1, label: 'assessment:kondashAnxietyLikert.1' },
+  { value: 2, label: 'assessment:kondashAnxietyLikert.2' },
+  { value: 3, label: 'assessment:kondashAnxietyLikert.3' },
+  { value: 4, label: 'assessment:kondashAnxietyLikert.4' },
 ];
 
 export const THINKING_STYLE_LABELS: Record<string, string> = {
@@ -154,118 +150,6 @@ export const CAREER_TIER_LABELS: Record<'strong' | 'good' | 'worth_trying', stri
   strong: 'results:careerTier.strong',
   good: 'results:careerTier.good',
   worth_trying: 'results:careerTier.worth_trying',
-};
-
-export const AGE_GROUPS = {
-  JUNIOR: 'junior',
-  MIDDLE: 'middle',
-  SENIOR: 'senior',
-} as const;
-
-export type AgeGroup = (typeof AGE_GROUPS)[keyof typeof AGE_GROUPS];
-
-export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
-  [AGE_GROUPS.JUNIOR]: 'common:ageGroup.junior',
-  [AGE_GROUPS.MIDDLE]: 'common:ageGroup.middle',
-  [AGE_GROUPS.SENIOR]: 'common:ageGroup.senior',
-};
-
-export const ROADMAP_HORIZON_LABELS: Record<string, string> = {
-  month_1: 'roadmap:horizon.month_1',
-  months_3: 'roadmap:horizon.months_3',
-  months_6: 'roadmap:horizon.months_6',
-  year_1: 'roadmap:horizon.year_1',
-  until_goal: 'roadmap:horizon.until_goal',
-};
-
-export const ROADMAP_CATEGORY_LABELS: Record<string, string> = {
-  study: 'roadmap:category.study',
-  language: 'roadmap:category.language',
-  project: 'roadmap:category.project',
-  exam: 'roadmap:category.exam',
-  explore: 'roadmap:category.explore',
-  achievement: 'roadmap:category.achievement',
-  knowledge: 'roadmap:category.knowledge',
-  skill: 'roadmap:category.skill',
-  practice: 'roadmap:category.practice',
-  portfolio: 'roadmap:category.portfolio',
-  career: 'roadmap:category.career',
-  education: 'roadmap:category.education',
-  planning: 'roadmap:category.planning',
-  documents: 'roadmap:category.documents',
-  requirement: 'roadmap:category.requirement',
-  finance: 'roadmap:category.finance',
-  admission: 'roadmap:category.admission',
-  application: 'roadmap:category.application',
-};
-
-export const ROADMAP_CATEGORY_EMOJIS: Record<string, string> = {
-  study: '📚',
-  language: '🌍',
-  project: '🛠️',
-  exam: '📝',
-  explore: '🔍',
-  achievement: '🏆',
-  knowledge: '💡',
-  skill: '⚡',
-  practice: '🔨',
-  portfolio: '🗂️',
-  career: '🚀',
-  education: '🎓',
-  planning: '🗓️',
-  documents: '📄',
-  requirement: '✅',
-  finance: '💰',
-  admission: '🏛️',
-  application: '📨',
-};
-
-// ─── Direction roadmap (PRO-64) ────────────────────────────────────────────────
-
-export const DIRECTION_HORIZON_LABELS: Record<string, string> = {
-  months_3: 'roadmap:directionHorizon.months_3',
-  months_6: 'roadmap:directionHorizon.months_6',
-  months_9: 'roadmap:directionHorizon.months_9',
-  months_12: 'roadmap:directionHorizon.months_12',
-};
-
-export const DIRECTION_HORIZON_HINTS: Record<string, string> = {
-  months_3: 'roadmap:directionHorizonHint.months_3',
-  months_6: 'roadmap:directionHorizonHint.months_6',
-  months_9: 'roadmap:directionHorizonHint.months_9',
-  months_12: 'roadmap:directionHorizonHint.months_12',
-};
-
-export const STEP_TRACK_LABELS: Record<string, string> = {
-  profile: 'roadmap:stepTrack.profile',
-  growth: 'roadmap:stepTrack.growth',
-  integration: 'roadmap:stepTrack.integration',
-};
-
-export const DIRECTION_CATEGORY_LABELS: Record<string, string> = {
-  knowledge: 'roadmap:directionCategory.knowledge',
-  skill: 'roadmap:directionCategory.skill',
-  practice: 'roadmap:directionCategory.practice',
-  project: 'roadmap:directionCategory.project',
-  portfolio: 'roadmap:directionCategory.portfolio',
-  soft_skill: 'roadmap:directionCategory.soft_skill',
-  subject: 'roadmap:directionCategory.subject',
-  community: 'roadmap:directionCategory.community',
-  exam: 'roadmap:directionCategory.exam',
-  university: 'roadmap:directionCategory.university',
-};
-
-export const DIRECTION_CATEGORY_EMOJIS: Record<string, string> = {
-  knowledge: '💡',
-  skill: '⚡',
-  practice: '🔨',
-  project: '🛠️',
-  portfolio: '🗂️',
-  soft_skill: '🤝',
-  subject: '📚',
-  community: '👥',
-  exam: '📝',
-  university: '🎓',
 };
 
 export const ARTIFACT_TYPE_LABELS: Record<string, string> = {

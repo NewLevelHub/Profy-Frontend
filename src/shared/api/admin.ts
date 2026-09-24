@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/api/client';
-import { API } from '@/shared/api/endpoints';
+import { API, type AdminContentResource } from '@/shared/api/endpoints';
 import type {
   AdminAssessmentDetail,
   AdminDirectionDetail,
@@ -7,9 +7,6 @@ import type {
   AdminDirectionUpdateRequest,
   AdminFeedbackListResponse,
   AdminFeedbackStatsResponse,
-  AdminMotivationPairDetail,
-  AdminMotivationPairListResponse,
-  AdminMotivationPairUpdateRequest,
   AdminMotivationStatementDetail,
   AdminMotivationStatementListResponse,
   AdminMotivationStatementUpdateRequest,
@@ -21,13 +18,19 @@ import type {
   AdminQuestionPairListResponse,
   AdminQuestionPairUpdateRequest,
   AdminQuestionUpdateRequest,
+  AdminSortParams,
+  AdminUniversityCountry,
   AdminUniversityDetail,
   AdminUniversityListResponse,
   AdminUniversityUpdateRequest,
   AdminUserCreateRequest,
   AdminUserDetail,
   AdminUserListResponse,
-  AgeGroup,
+  AdminUserStats,
+  AdminContentOverrideRequest,
+  AdminContentOverrideResponse,
+  BelbinSchemaResponse,
+  AsturSchemaResponse,
   AssessmentGoal,
   AssessmentStatus,
   Instrument,
@@ -36,17 +39,44 @@ import type {
 
 interface AdminUserFilterParams {
   search?: string;
-  age_group?: AgeGroup;
   status?: AssessmentStatus;
   goal?: AssessmentGoal;
+  /** Only users not seen for at least this many days. Registration counts as
+   *  activity, so a fresh account is never "quiet". */
+  inactive_days?: number;
   /** Defaults to `student` server-side when omitted — the list historically
    *  only showed students, so staff accounts created via `createUser` stay
    *  out of it unless this is passed explicitly. */
   role?: UserRole;
 }
 
+/** Filters shared by GET /admin/feedback and GET /admin/feedback/stats — the
+ *  stats endpoint takes the same set so the summary describes the rows the
+ *  table is showing, instead of always the whole table. */
+export interface AdminFeedbackFilterParams {
+  search?: string;
+  score_min?: number;
+  score_max?: number;
+  section?: string;
+  has_comment?: boolean;
+}
+
+export interface AdminUniversityFilterParams {
+  search?: string;
+  country?: string;
+  has_ranking?: boolean;
+  /** false = universities no student can ever be matched to. */
+  has_programs?: boolean;
+}
+
+/** Shared by the five question-bank content lists. */
+export interface AdminContentFilterParams {
+  search?: string;
+  has_overrides?: boolean;
+}
+
 export const adminApi = {
-  listUsers: (params?: AdminUserFilterParams & { page?: number; limit?: number }) =>
+  listUsers: (params?: AdminUserFilterParams & AdminSortParams & { page?: number; limit?: number }) =>
     apiClient
       .get<AdminUserListResponse>(API.admin.users, { params })
       .then((r) => r.data),
@@ -58,6 +88,11 @@ export const adminApi = {
     apiClient
       .get<Blob>(API.admin.usersExport, { params, responseType: 'blob' })
       .then((r) => r.data),
+
+  /** Whole-table counts for the tiles above the users list — none of them can
+   *  be derived from the page of 20 the list returns. */
+  getUserStats: (params?: { inactive_days?: number }) =>
+    apiClient.get<AdminUserStats>(API.admin.userStats, { params }).then((r) => r.data),
 
   getUser: (userId: string) =>
     apiClient.get<AdminUserDetail>(API.admin.userDetail(userId)).then((r) => r.data),
@@ -83,23 +118,30 @@ export const adminApi = {
       .get<Blob>(API.admin.assessmentExport(assessmentId), { responseType: 'blob' })
       .then((r) => r.data),
 
-  listFeedback: (params?: { page?: number; limit?: number }) =>
+  listFeedback: (
+    params?: AdminFeedbackFilterParams & AdminSortParams & { page?: number; limit?: number },
+  ) =>
     apiClient
       .get<AdminFeedbackListResponse>(API.admin.feedback, { params })
       .then((r) => r.data),
 
-  /** Currently unused: the feedback screen loads the list in full and computes
-   *  the same aggregates locally, so the summary always matches the rows the
-   *  filters left — see `useFeedbackFeed` and
-   *  docs/admin-backend-requests-pro-242.md §3. Kept for when the list endpoint
-   *  grows filters and the screen goes back to server paging. */
-  getFeedbackStats: () =>
-    apiClient.get<AdminFeedbackStatsResponse>(API.admin.feedbackStats).then((r) => r.data),
+  /** Takes the same filters as `listFeedback`, so the summary above the table
+   *  describes exactly the rows in it. That mismatch is why the screen used to
+   *  ignore this endpoint and recompute the aggregates from a fully-downloaded
+   *  list instead. */
+  getFeedbackStats: (params?: AdminFeedbackFilterParams) =>
+    apiClient.get<AdminFeedbackStatsResponse>(API.admin.feedbackStats, { params }).then((r) => r.data),
 
-  listUniversities: (params?: { page?: number; limit?: number; search?: string }) =>
+  listUniversities: (
+    params?: AdminUniversityFilterParams & AdminSortParams & { page?: number; limit?: number },
+  ) =>
     apiClient
       .get<AdminUniversityListResponse>(API.admin.universities, { params })
       .then((r) => r.data),
+
+  /** Options for the country filter, most-populated first. */
+  listUniversityCountries: () =>
+    apiClient.get<AdminUniversityCountry[]>(API.admin.universityCountries).then((r) => r.data),
 
   getUniversity: (universityId: string) =>
     apiClient
@@ -119,7 +161,10 @@ export const adminApi = {
       .patch<AdminProgramDetail>(API.admin.programDetail(programId), body)
       .then((r) => r.data),
 
-  listQuestions: (params?: { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup; search?: string }) =>
+  listQuestions: (
+    params?: AdminContentFilterParams &
+      AdminSortParams & { page?: number; limit?: number; instrument?: Instrument },
+  ) =>
     apiClient.get<AdminQuestionListResponse>(API.admin.questions, { params }).then((r) => r.data),
 
   getQuestion: (questionId: string) =>
@@ -128,7 +173,10 @@ export const adminApi = {
   updateQuestion: (questionId: string, body: AdminQuestionUpdateRequest) =>
     apiClient.patch<AdminQuestionDetail>(API.admin.questionDetail(questionId), body).then((r) => r.data),
 
-  listQuestionPairs: (params?: { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup }) =>
+  listQuestionPairs: (
+    params?: AdminContentFilterParams &
+      AdminSortParams & { page?: number; limit?: number; instrument?: Instrument },
+  ) =>
     apiClient.get<AdminQuestionPairListResponse>(API.admin.questionPairs, { params }).then((r) => r.data),
 
   getQuestionPair: (pairId: string) =>
@@ -137,7 +185,10 @@ export const adminApi = {
   updateQuestionPair: (pairId: string, body: AdminQuestionPairUpdateRequest) =>
     apiClient.patch<AdminQuestionPairDetail>(API.admin.questionPairDetail(pairId), body).then((r) => r.data),
 
-  listMotivationStatements: (params?: { page?: number; limit?: number }) =>
+  listMotivationStatements: (
+    params?: AdminContentFilterParams &
+      AdminSortParams & { page?: number; limit?: number; triplet_index?: number; category?: string },
+  ) =>
     apiClient
       .get<AdminMotivationStatementListResponse>(API.admin.motivationStatements, { params })
       .then((r) => r.data),
@@ -150,16 +201,10 @@ export const adminApi = {
       .patch<AdminMotivationStatementDetail>(API.admin.motivationStatementDetail(id), body)
       .then((r) => r.data),
 
-  listMotivationPairs: (params?: { page?: number; limit?: number }) =>
-    apiClient.get<AdminMotivationPairListResponse>(API.admin.motivationPairs, { params }).then((r) => r.data),
-
-  getMotivationPair: (id: string) =>
-    apiClient.get<AdminMotivationPairDetail>(API.admin.motivationPairDetail(id)).then((r) => r.data),
-
-  updateMotivationPair: (id: string, body: AdminMotivationPairUpdateRequest) =>
-    apiClient.patch<AdminMotivationPairDetail>(API.admin.motivationPairDetail(id), body).then((r) => r.data),
-
-  listDirections: (params?: { page?: number; limit?: number; search?: string }) =>
+  listDirections: (
+    params?: AdminContentFilterParams &
+      AdminSortParams & { page?: number; limit?: number; catalog_filled?: boolean },
+  ) =>
     apiClient.get<AdminDirectionListResponse>(API.admin.directions, { params }).then((r) => r.data),
 
   getDirection: (id: string) =>
@@ -167,4 +212,58 @@ export const adminApi = {
 
   updateDirection: (id: string, body: AdminDirectionUpdateRequest) =>
     apiClient.patch<AdminDirectionDetail>(API.admin.directionDetail(id), body).then((r) => r.data),
+
+  /** Undo one admin edit, or every edit on the row when `field` is omitted.
+   *
+   *  Returns the row as it now stands, with the bank value restored — not a
+   *  deferred "will be fixed on the next deploy". Responds 409, not 404, when
+   *  the field carries no override: the row is fine and the caller's view of
+   *  it was simply stale.
+   *
+   *  Typed loosely by design: the five content detail shapes differ, and every
+   *  caller already knows which one it asked for. */
+  clearContentOverrides: <T>(resource: AdminContentResource, id: string, field?: string) =>
+    apiClient
+      .delete<T>(
+        field
+          ? API.admin.contentOverrideField(resource, id, field)
+          : API.admin.contentOverrides(resource, id),
+      )
+      .then((r) => r.data),
+
+  /** Universities and programs record only the NAME of a hand-edited field,
+   *  never the value it replaced, so this restores nothing by itself — it
+   *  returns the field to the next seed run's control, which is the only
+   *  recovery path a lock has ever had. Label it accordingly in the UI. */
+  unlockUniversityFields: (universityId: string, field?: string) =>
+    apiClient
+      .delete<AdminUniversityDetail>(
+        field
+          ? API.admin.universityLockField(universityId, field)
+          : API.admin.universityLocks(universityId),
+      )
+      .then((r) => r.data),
+
+  unlockProgramFields: (programId: string, field?: string) =>
+    apiClient
+      .delete<AdminProgramDetail>(
+        field ? API.admin.programLockField(programId, field) : API.admin.programLocks(programId),
+      )
+      .then((r) => r.data),
+
+  getContentOverride: (instrument: string) =>
+    apiClient
+      .get<AdminContentOverrideResponse>(API.admin.contentOverride(instrument))
+      .then((r) => r.data),
+
+  getBelbinSchema: () =>
+    apiClient.get<BelbinSchemaResponse>(API.admin.belbinSchema).then((r) => r.data),
+
+  getAsturSchema: () =>
+    apiClient.get<AsturSchemaResponse>(API.admin.asturSchema).then((r) => r.data),
+
+  setContentOverride: (instrument: string, body: AdminContentOverrideRequest) =>
+    apiClient
+      .put<AdminContentOverrideResponse>(API.admin.contentOverride(instrument), body)
+      .then((r) => r.data),
 };

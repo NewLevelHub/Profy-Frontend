@@ -12,12 +12,28 @@ import { useAssessmentStore } from '@/shared/store/assessment';
  * осознанно, через /assessment/goal: там `resetAssessment()` гасит этот
  * флаг и спрашивает подтверждение.
  *
- * Флаг означает «отчёт готов» и выставляется только на ResultLoadingPage,
- * так что посреди прохождения он не сработает.
+ * `hasCompletedAssessment` also gets written by `syncFromServer` (not only
+ * ResultLoadingPage, as an earlier version of this comment assumed) — a
+ * stale `true` there (e.g. surviving from an earlier fully-completed
+ * attempt) would fire this guard mid-test and kick the student to /results
+ * with nothing to show. Cross-checking against the store's own live
+ * progress counters (updated on every answer, so always fresh for the
+ * *current* attempt) makes the guard self-healing against that, the same
+ * defensive check useResults applies before trusting the flag for its own
+ * pending-review gate.
  */
 export function useFinishedAssessmentGuard() {
   const navigate = useNavigate();
-  const hasCompleted = useAssessmentStore((s) => s.hasCompletedAssessment);
+  const hasCompletedFlag = useAssessmentStore((s) => s.hasCompletedAssessment);
+  const answeredCount = useAssessmentStore((s) => s.answeredCount);
+  const totalQuestions = useAssessmentStore((s) => s.totalQuestions);
+  const motivationAnsweredCount = useAssessmentStore((s) => s.motivationAnsweredCount);
+  const motivationTotal = useAssessmentStore((s) => s.motivationTotal);
+
+  const hasCompleted =
+    hasCompletedFlag &&
+    totalQuestions > 0 && answeredCount >= totalQuestions &&
+    motivationTotal > 0 && motivationAnsweredCount >= motivationTotal;
 
   useEffect(() => {
     if (hasCompleted) navigate('/results', { replace: true });

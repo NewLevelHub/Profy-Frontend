@@ -4,7 +4,6 @@
 // i18n key (common namespace) — TopRail resolves it with `t()`.
 export const NAV_ITEMS = [
   { label: 'common:nav.results', path: '/results' },
-  // 'План' (/roadmap) hidden from nav for now — route still exists, just not linked.
   // matchPrefix keeps the tab lit on /universities/:id, which NavLink's own
   // `isActive` would drop (it matches the exact path only for a nav item
   // whose route has children).
@@ -18,11 +17,17 @@ export const ADMIN_NAV_ITEM = {
   matchPrefix: '/admin',
 } as const;
 
+/** Staff cabinet nav — no student tabs (results / start test). */
 export const PSYCHOLOGIST_NAV_ITEMS = [
   {
-    label: 'Ученики',
+    label: 'psychologist:nav.students',
     path: '/psychologist/students',
-    matchPrefix: '/psychologist',
+    matchPrefix: '/psychologist/students',
+  },
+  {
+    label: 'psychologist:nav.reviews',
+    path: '/psychologist/reviews',
+    matchPrefix: '/psychologist/reviews',
   },
 ] as const;
 

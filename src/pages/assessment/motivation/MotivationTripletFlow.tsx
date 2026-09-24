@@ -10,9 +10,8 @@ import { TripletRanking } from '../components/TripletRanking';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 
-// Senior's motivation format — 12 triplets, MOST/LEAST forced choice via
-// drag-and-drop ranking. Junior and middle use MotivationHarterFlow.tsx
-// instead (see MotivationAssessmentPage.tsx).
+// Motivation block — 12 triplets, MOST/LEAST forced choice via
+// drag-and-drop ranking.
 export default function MotivationTripletFlow() {
   const { t } = useTranslation('assessment');
   const {

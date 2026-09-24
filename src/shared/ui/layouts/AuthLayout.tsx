@@ -156,7 +156,11 @@ export function AuthLayout() {
           стоял <span>-заглушка: без лендинга переход упирался бы в 404).
           ThemeToggle — справа в той же строке; LanguageSwitcher рядом с ним
           рендерит null, пока язык один (см. store/locale.ts). */}
-      <div className={`relative z-[1] pt-[1.7rem] pb-8 lg:pb-0 pl-4 flex items-center justify-between gap-4 ${column}`}>
+      {/* z-20, above the content row's z-[1]: the language dropdown is
+          absolutely positioned and its lower items overflow past this row's
+          own box. At equal z-index the later sibling (content) would paint
+          over that overflow and swallow clicks on it. */}
+      <div className={`relative z-20 pt-[1.7rem] pb-8 lg:pb-0 pl-4 flex items-center justify-between gap-4 ${column}`}>
         <Link
           to="/"
           className="brand-wordmark auth-enter inline-flex hover:opacity-70 transition-opacity"

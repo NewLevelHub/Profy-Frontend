@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowDown, ArrowUp, Check, Pencil, Plus, X } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_BUTTON, ADMIN_INPUT, ADMIN_META, ADMIN_NUM, ADMIN_TEXT, MONO_LABEL } from '@/shared/ui/admin/density';
@@ -20,6 +21,15 @@ interface StringListEditorProps {
    * содержательный факт.
    */
   emptyNote?: string;
+  /**
+   * False hides the "add new row" input — for lists whose length is
+   * meaningful beyond this field (ASTUR `options`/`words`: a hidden `answer`
+   * elsewhere picks one entry by exact text, so adding a row here doesn't
+   * corrupt anything, but the count/shape is otherwise fixed by the bank and
+   * PRO-424's editor keeps it that way — editing wording stays allowed).
+   * Defaults to true.
+   */
+  allowAdd?: boolean;
 }
 
 /**
@@ -34,7 +44,16 @@ interface StringListEditorProps {
  * "Поговорить с преподавателем биологии о профильных классах" across three
  * lines with the delete button orphaned at the end.
  */
-export function StringListEditor({ label, values, onChange, placeholder, ordered, emptyNote }: StringListEditorProps) {
+export function StringListEditor({
+  label,
+  values,
+  onChange,
+  placeholder,
+  ordered,
+  emptyNote,
+  allowAdd = true,
+}: StringListEditorProps) {
+  const { t } = useTranslation('admin');
   const [draft, setDraft] = useState('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState('');
@@ -95,7 +114,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
                     type="button"
                     onClick={() => commitEdit(index)}
                     className={cn(ADMIN_BUTTON, 'px-1.5')}
-                    aria-label="Сохранить строку"
+                    aria-label={t('list.saveRow')}
                   >
                     <Check size={12} />
                   </button>
@@ -113,7 +132,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
                         onClick={() => move(index, -1)}
                         disabled={index === 0}
                         className="p-1 text-muted hover:text-primary disabled:opacity-25 transition-colors"
-                        aria-label={`Поднять «${value}»`}
+                        aria-label={t('list.moveUp', { value })}
                       >
                         <ArrowUp size={12} />
                       </button>
@@ -122,7 +141,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
                         onClick={() => move(index, 1)}
                         disabled={index === values.length - 1}
                         className="p-1 text-muted hover:text-primary disabled:opacity-25 transition-colors"
-                        aria-label={`Опустить «${value}»`}
+                        aria-label={t('list.moveDown', { value })}
                       >
                         <ArrowDown size={12} />
                       </button>
@@ -136,7 +155,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
                       setEditingValue(value);
                     }}
                     className="p-1 text-muted hover:text-primary transition-colors"
-                    aria-label={`Изменить «${value}»`}
+                    aria-label={t('list.edit', { value })}
                   >
                     <Pencil size={12} />
                   </button>
@@ -144,7 +163,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
                     type="button"
                     onClick={() => onChange(values.filter((_, i) => i !== index))}
                     className="p-1 text-muted hover:text-danger transition-colors"
-                    aria-label={`Убрать «${value}»`}
+                    aria-label={t('list.remove', { value })}
                   >
                     <X size={12} />
                   </button>
@@ -155,6 +174,7 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
         </ul>
       )}
 
+      {allowAdd && (
       <div className="flex items-center gap-1.5">
         <input
           value={draft}
@@ -165,14 +185,15 @@ export function StringListEditor({ label, values, onChange, placeholder, ordered
               add();
             }
           }}
-          placeholder={placeholder ?? 'Добавить и нажать Enter'}
+          placeholder={placeholder ?? t('list.addPlaceholder')}
           className={cn(ADMIN_INPUT, 'flex-1 min-w-0 max-w-[360px] py-1.5')}
         />
         <button type="button" onClick={add} disabled={!draft.trim()} className={cn(ADMIN_BUTTON, ADMIN_TEXT)}>
           <Plus size={12} />
-          Добавить
+          {t('list.add')}
         </button>
       </div>
+      )}
     </div>
   );
 }

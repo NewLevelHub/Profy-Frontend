@@ -30,16 +30,12 @@
     "results": "Результаты",
     "universities": "Университеты",
     "profile": "Профиль",
-    "admin": "Админка"
+    "admin": "Админка",
+    "psychologist": "Ученики"
   },
   "sound": {
     "enable": "Включить звук",
     "disable": "Выключить звук"
-  },
-  "ageGroup": {
-    "junior": "5–7 класс",
-    "middle": "8–9 класс",
-    "senior": "10–11 класс"
   },
   "celebrationSound": {
     "chime": {
@@ -78,6 +74,11 @@
   },
   "languageSwitcherAria": "Тіл / Язык",
   "themeLabel": "Тема",
+  "theme": {
+    "light": "Светлая тема",
+    "dark": "Тёмная тема",
+    "groupLabel": "Тема оформления"
+  },
   "favoriteAdd": "Добавить в избранное",
   "favoriteRemove": "Убрать из избранного",
   "mascot": {

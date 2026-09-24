@@ -10,9 +10,13 @@
     "takeTest": "Пройти тест",
     "takeDiagnostic": "Пройти диагностику",
     "login": "Войти",
+    "language": "Язык",
+    "theme": "Тема",
     "howItWorks": "Как это работает",
     "openMenu": "Открыть меню",
-    "closeMenu": "Закрыть меню"
+    "closeMenu": "Закрыть меню",
+    "language": "Язык",
+    "theme": "Тема"
   },
   "trust": {
     "saveProgress": "Прогресс сохраняется",

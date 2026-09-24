@@ -1,6 +1,7 @@
 import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Spine } from '@/shared/ui/Spine';
 import type { RestStopState } from './utils/restStop';
@@ -17,9 +18,9 @@ export type { RestStopState };
 //    (process, never RIASEC type/profession/verdict) — e.g. "склонен выбирать вариант,
 //    который сложнее сразу проверить". Always undefined today: no endpoint in this
 //    frontend's API layer currently returns any mid-assessment behavioral-pattern signal
-//    (checked assessmentApi/pairsApi/motivationApi/motivationPairsApi response shapes —
+//    (checked assessmentApi/pairsApi/motivationApi response shapes —
 //    none carry one). Left wired here rather than faked client-side, so a future real
-//    signal only needs to be threaded into the `navigate(..., { state })` calls in the 4
+//    signal only needs to be threaded into the `navigate(..., { state })` calls in the 2
 //    assessment hooks, nothing here needs to change. Max one insight per stop is enforced
 //    simply by this being a single optional field, not a list.
 
@@ -96,7 +97,8 @@ export default function RestStopPage() {
       : t('restStop.neutralBody');
 
   return (
-    <div className="flex flex-col min-h-screen bg-page items-center justify-center px-6 py-10">
+    <div className="relative flex flex-col min-h-screen bg-page items-center justify-center px-6 py-10">
+      <FullScreenPreferences className="absolute top-4 right-4 sm:right-6 z-10" />
       <div
         className="w-full max-w-lg bg-surface rounded-[var(--radius-lg)] shadow-pop p-7 sm:p-8 flex flex-col gap-6"
         style={{ animation: 'fade-in-up 0.5s ease both' }}

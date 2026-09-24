@@ -3,15 +3,35 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
-import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
-import { autofillAssessment } from '@/shared/dev/autofillAssessment';
+import { autofillAssessment, autofillMainBattery, autofillToAstur } from '@/shared/dev/autofillAssessment';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
-import { buildPages, type Page } from '../utils/buildPages';
+import { buildPages, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
+import type { Instrument } from '@/shared/types';
+
+// PRO-338 Ф0.8 — professional_types_abilities/eysenck/elers/boyko_empathy/
+// kondash_anxiety land as one contiguous, non-interleaved sub-section right
+// after MI/RIASEC/BigFive (app/services/question_service.py::
+// get_all_questions, backed by the order ranges in scripts/
+// {professional_types,eysenck,elers,boyko_empathy,kondash_anxiety}_bank.py)
+// — the rail's section label switches to "Дополнительные тесты" for exactly
+// this run of pages, distinguishing it from the main "Диагностика" block.
+// boyko_empathy was missing here until Ф1.10 (its own Ф1.9 ticket shipped
+// only the content bank, not this wiring) — fixed alongside adding
+// kondash_anxiety. Belbin/АСТУР are deliberately never part of this list —
+// they don't flow through this screen at all (own routes, launched only
+// from the psychologist cabinet, see 01-Фаза0-Фундамент.md Ф0.8).
+const ADDITIONAL_TESTS_INSTRUMENTS: ReadonlySet<Instrument> = new Set([
+  'professional_types_abilities',
+  'eysenck',
+  'elers',
+  'boyko_empathy',
+  'kondash_anxiety',
+]);
 
 // Below this, a save reads as instant — showing a spinner for it would be
 // the flash the button was glitching with, not a fix for it. Only a request
@@ -35,6 +55,17 @@ function pairAnswersStorageKey(assessmentId: string) {
   return `profy-assessment-pair-answers:${assessmentId}`;
 }
 
+// One "seen" flag per (assessment, instrument) — same sessionStorage pattern
+// as the top-level intro's own flag below. The battery is a single flat
+// page sequence (buildDisplaySequence/buildPages), not separate routes per
+// instrument, so there is no natural "have I been here before" signal other
+// than this: a fresh forward crossing into an instrument that has never
+// shown its own intro gets one; revisiting it (Назад/Вперёд within the same
+// session) never shows it twice.
+function instrumentIntroSeenKey(assessmentId: string, instrument: Instrument) {
+  return `profy-assessment-test-intro-seen:${assessmentId}:${instrument}`;
+}
+
 function loadStoredAnswers<T>(key: string | null): T | null {
   if (!key || typeof sessionStorage === 'undefined') return null;
   try {
@@ -54,8 +85,6 @@ export function useAssessment() {
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const totalQuestionsFromStore = useAssessmentStore(s => s.totalQuestions);
   const setProgress = useAssessmentStore(s => s.setProgress);
-  const { profile } = useEnsureProfile();
-  const ageGroup = profile?.age_group;
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [pages, setPages] = useState<Page[]>([]);
@@ -75,8 +104,11 @@ export function useAssessment() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
+  // Mirrors instrumentIntroSeenKey's sessionStorage flags for reactivity —
+  // sessionStorage writes alone don't trigger a re-render, so dismissing a
+  // test-intro (markInstrumentIntroSeen below) also bumps this set.
+  const [seenInstruments, setSeenInstruments] = useState<Set<Instrument>>(new Set());
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
   // Reset whenever the current page changes (see the effect below) —
   // elapsed time from here to submit feeds the speed-flag rest stop.
@@ -125,6 +157,19 @@ export function useAssessment() {
             startIndex = i;
           }
           setPageIndex(startIndex);
+          // The instrument the student is about to land on (fresh start:
+          // the very first one, covered by the generic intro below; resume:
+          // whichever one they were already mid-way through) never gets its
+          // own test-intro card — only a genuine forward crossing into a
+          // new, not-yet-visited instrument does (see testIntroInstrument).
+          const startPage = built[startIndex];
+          if (startPage) {
+            const startInstrument = pageInstrument(startPage);
+            if (typeof sessionStorage !== 'undefined') {
+              sessionStorage.setItem(instrumentIntroSeenKey(assessmentId!, startInstrument), '1');
+            }
+            setSeenInstruments(prev => new Set(prev).add(startInstrument));
+          }
           const sequenceAnswerCount = questions.length + pairs.length * 2;
           if (answeredCountFromStore >= sequenceAnswerCount) {
             // Likert+pairs phase already fully answered — motivation may
@@ -147,12 +192,6 @@ export function useAssessment() {
           setPhase('question');
         } else {
           setPhase('intro');
-          introTimerRef.current = setTimeout(() => {
-            if (!cancelled) {
-              sessionStorage.setItem(introKey, '1');
-              setPhase('question');
-            }
-          }, 2000);
         }
       } catch {
         if (!cancelled) {
@@ -166,10 +205,6 @@ export function useAssessment() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
@@ -192,14 +227,20 @@ export function useAssessment() {
   }, [assessmentId, pairAnswers]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     if (assessmentId) {
       sessionStorage.setItem(`profy-assessment-intro-seen:${assessmentId}`, '1');
     }
     setPhase('question');
+  }
+
+  // Dismisses the between-tests intro card (testIntroInstrument below) —
+  // marks that instrument seen so re-entering it later this session (e.g.
+  // Назад then forward again) goes straight to its questions.
+  function handleStartTestIntro(instrument: Instrument) {
+    if (assessmentId && typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(instrumentIntroSeenKey(assessmentId, instrument), '1');
+    }
+    setSeenInstruments(prev => new Set(prev).add(instrument));
   }
 
   function handleBack() {
@@ -332,8 +373,41 @@ export function useAssessment() {
     setAutofilling(true);
     setError(null);
     try {
-      await autofillAssessment(assessmentId, ageGroup);
+      await autofillAssessment(assessmentId);
       navigate('/assessment/loading');
+    } catch {
+      setError(t('assessment:error.autofill'));
+    } finally {
+      setAutofilling(false);
+    }
+  }
+
+  // Stops right before motivation (unlike handleAutofill above, which races
+  // through it too) — for testing the motivation screen itself by hand.
+  async function handleAutofillToMotivation() {
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      await autofillMainBattery(assessmentId);
+      navigate('/assessment/motivation');
+    } catch {
+      setError(t('assessment:error.autofill'));
+    } finally {
+      setAutofilling(false);
+    }
+  }
+
+  // Stops right before АСТУР (main battery + motivation + Belbin, unlike
+  // handleAutofill above, which races through it too) — for testing the
+  // АСТУР flow itself by hand.
+  async function handleAutofillToAstur() {
+    if (!assessmentId || autofilling) return;
+    setAutofilling(true);
+    setError(null);
+    try {
+      await autofillToAstur(assessmentId);
+      navigate(`/assessment/astur/${assessmentId}`);
     } catch {
       setError(t('assessment:error.autofill'));
     } finally {
@@ -388,6 +462,22 @@ export function useAssessment() {
   const currentPage = pages[pageIndex];
   const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
   const currentPair = currentPage?.kind === 'pair' ? currentPage.pair : undefined;
+  const isAdditionalTestsSection =
+    currentLikertQuestions?.some(q => ADDITIONAL_TESTS_INSTRUMENTS.has(q.instrument)) ?? false;
+  // Between-tests card (post-Ф4.1 follow-up): a genuine forward crossing
+  // into an instrument this session hasn't dismissed the card for yet —
+  // derived straight from render state (not an effect) so there's no
+  // one-frame flash of the new instrument's questions first. The very
+  // first instrument a student ever lands on is pre-marked seen above
+  // (loadSequence) since the generic top-level AssessmentIntro already
+  // covers it.
+  const testIntroInstrument: Instrument | null =
+    phase === 'question' && currentPage && !seenInstruments.has(pageInstrument(currentPage))
+      ? pageInstrument(currentPage)
+      : null;
+  const testIntroItemCount = testIntroInstrument
+    ? pages.reduce((sum, p) => (pageInstrument(p) === testIntroInstrument ? sum + pageItemCount(p) : sum), 0)
+    : 0;
   const totalPages = pages.length;
   // "N вопросов" / time-estimate copy on the intro screen counts each
   // question and each pair as one unit, same as before pagination.
@@ -411,16 +501,22 @@ export function useAssessment() {
     error,
     currentLikertQuestions,
     currentPair,
+    isAdditionalTestsSection,
+    testIntroInstrument,
+    testIntroItemCount,
     progress,
     exitConfirmOpen,
     exiting,
     autofilling,
     handleBack,
     handleStartIntro,
+    handleStartTestIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
     handlePairAnswer,
     handleAutofill,
+    handleAutofillToMotivation,
+    handleAutofillToAstur,
     handleExit,
     confirmExit,
     cancelExit,

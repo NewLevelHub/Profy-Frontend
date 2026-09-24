@@ -1,3 +1,10 @@
+/** The five question-bank content types, as they appear in admin URLs. */
+export type AdminContentResource =
+  | 'questions'
+  | 'question-pairs'
+  | 'motivation-statements'
+  | 'directions';
+
 export const API = {
   auth: {
     me: '/auth/me',
@@ -24,22 +31,22 @@ export const API = {
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
     motivationTriplets: (assessmentId: string) => `/assessment/${assessmentId}/motivation-triplets`,
     motivationAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-answers`,
-    motivationPairs: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pairs`,
-    motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
+    psychoemotionalStart: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/start`,
+    psychoemotionalFinish: (assessmentId: string, runId: string) =>
+      `/assessment/${assessmentId}/psychoemotional/${runId}/finish`,
+    belbinContent: '/assessment/belbin/content',
+    belbin: (assessmentId: string) => `/assessment/${assessmentId}/belbin`,
+    asturContent: '/assessment/astur/content',
+    asturStart: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/start`,
+    asturSubtest: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}`,
+    extendedBlocks: (assessmentId: string) => `/assessment/${assessmentId}/extended-blocks`,
   },
   result: {
     generate: '/result/generate',
     get: (assessmentId: string) => `/result/${assessmentId}`,
     feedback: '/result/feedback',
-  },
-  roadmap: {
-    generate: '/roadmap/generate',
-    get: (assessmentId: string) => `/roadmap/${assessmentId}`,
-    generateDirection: '/roadmap/direction',
-    getDirection: (assessmentId: string, slug: string) =>
-      `/roadmap/${assessmentId}/directions/${slug}`,
   },
   universities: {
     programs: '/universities/programs',
@@ -49,14 +56,9 @@ export const API = {
     detail: (id: string) => `/universities/${id}`,
     favorite: (id: string) => `/universities/${id}/favorite`,
   },
-  inquiry: {
-    questions: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/questions`,
-    verdict: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/verdict`,
-  },
   admin: {
     users: '/admin/users',
+    userStats: '/admin/users/stats',
     usersExport: '/admin/users/export',
     userDetail: (id: string) => `/admin/users/${id}`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
@@ -64,6 +66,7 @@ export const API = {
     feedback: '/admin/feedback',
     feedbackStats: '/admin/feedback/stats',
     universities: '/admin/universities',
+    universityCountries: '/admin/universities/countries',
     universityDetail: (id: string) => `/admin/universities/${id}`,
     programDetail: (id: string) => `/admin/programs/${id}`,
     questions: '/admin/questions',
@@ -72,15 +75,46 @@ export const API = {
     questionPairDetail: (id: string) => `/admin/question-pairs/${id}`,
     motivationStatements: '/admin/motivation-statements',
     motivationStatementDetail: (id: string) => `/admin/motivation-statements/${id}`,
-    motivationPairs: '/admin/motivation-pairs',
-    motivationPairDetail: (id: string) => `/admin/motivation-pairs/${id}`,
     directions: '/admin/directions',
     directionDetail: (id: string) => `/admin/directions/${id}`,
+
+    // Undoing an admin edit. Clearing an override restores the bank value
+    // recorded when the field was first edited; a university/program lock
+    // stores only the field name, so unlocking returns the field to the next
+    // seed run's control rather than restoring anything.
+    contentOverrides: (resource: AdminContentResource, id: string) =>
+      `/admin/${resource}/${id}/overrides`,
+    contentOverrideField: (resource: AdminContentResource, id: string, field: string) =>
+      `/admin/${resource}/${id}/overrides/${encodeURIComponent(field)}`,
+    universityLocks: (id: string) => `/admin/universities/${id}/locks`,
+    universityLockField: (id: string, field: string) =>
+      `/admin/universities/${id}/locks/${encodeURIComponent(field)}`,
+    programLocks: (id: string) => `/admin/programs/${id}/locks`,
+    programLockField: (id: string, field: string) =>
+      `/admin/programs/${id}/locks/${encodeURIComponent(field)}`,
+    contentOverride: (instrument: string) => `/admin/content-overrides/${instrument}`,
+    belbinSchema: '/admin/belbin-schema',
+    asturSchema: '/admin/astur-schema',
   },
   psychologist: {
     students: '/psychologist/students',
+    availableStudents: '/psychologist/students/available',
+    claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
+    studentAssessmentReport: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/report`,
+    studentAssessmentTestResults: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/test-results`,
+    regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/report/ai-analysis/regenerate`,
+    assignExtendedBlock: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/extended-blocks`,
+    reviews: '/psychologist/reviews',
+    resultReview: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/results/${assessmentId}`,
+    publishResult: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/results/${assessmentId}/publish`,
   },
 } as const;

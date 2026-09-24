@@ -1,5 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
+import type { AdminSort } from '@/shared/ui/admin/AdminDataTable';
+
+/** Sort lives in the URL next to the filters, but is deliberately NOT one of
+ *  them: "сбросить фильтры" must not silently reorder the table, and the
+ *  "N фильтров" counter must not tick up because a column header was
+ *  clicked. Hence its own reserved keys, excluded from both. */
+const SORT_KEY = 'sort';
+const ORDER_KEY = 'order';
 
 /**
  * List state (page + filters) kept in the URL rather than in `useState`.
@@ -13,8 +21,24 @@ import { useSearchParams } from 'react-router';
  *
  * Only non-empty values are written, so a pristine list stays at a clean
  * `/admin/users` with no query string.
+ *
+ * Sorting is handled here too (`sort`/`setSort`), so every list spells it the
+ * same way the API does — `?sort=<field>&order=asc|desc`.
  */
-export function useAdminListParams<K extends string>(keys: readonly K[]) {
+export function useAdminListParams<K extends string>(
+  keys: readonly K[],
+  /**
+   * Поля, по которым этот список умеет сортироваться — тот же набор, что
+   * принимает эндпоинт.
+   *
+   * Нужен потому, что сортировка живёт в URL и переживает «сбросить фильтры»:
+   * закладка со старым `?sort=` (или правка адреса руками) отправила бы на
+   * сервер поле, которого он не знает, и экран встретил бы пользователя
+   * ошибкой 422 без единого способа из неё выйти. Незнакомое поле просто
+   * игнорируется — список открывается в порядке по умолчанию.
+   */
+  sortableKeys?: readonly string[],
+) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
@@ -71,6 +95,40 @@ export function useAdminListParams<K extends string>(keys: readonly K[]) {
     [write],
   );
 
+  /**
+   * Current sort, or undefined when the list is in its default order.
+   *
+   * `order` alone is meaningless, so a URL carrying one without a `sort` is
+   * treated as unsorted rather than as an ascending sort of nothing.
+   */
+  const sort = useMemo<AdminSort | undefined>(() => {
+    const key = searchParams.get(SORT_KEY);
+    if (!key) return undefined;
+    if (sortableKeys && !sortableKeys.includes(key)) return undefined;
+    return { key, order: searchParams.get(ORDER_KEY) === 'desc' ? 'desc' : 'asc' };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString(), sortableKeys]);
+
+  /**
+   * Both keys in ONE write.
+   *
+   * Two separate writes would each start from the `searchParams` of this
+   * render, so the second would drop the first — the bug `setFilters` exists
+   * to prevent, and sorting is exactly where it bit.
+   */
+  const setSort = useCallback(
+    (next: AdminSort) => {
+      write((params) => {
+        params.set(SORT_KEY, next.key);
+        params.set(ORDER_KEY, next.order);
+        // A reorder starts from the top: page 3 of the old order describes
+        // nothing in the new one.
+        params.delete('page');
+      });
+    },
+    [write],
+  );
+
   const setPage = useCallback(
     (nextPage: number) => {
       write((next) => {
@@ -85,10 +143,11 @@ export function useAdminListParams<K extends string>(keys: readonly K[]) {
     write((next) => {
       for (const key of keys) next.delete(key);
       next.delete('page');
+      // Sort survives on purpose — see SORT_KEY above.
     });
   }, [write, keys]);
 
   const activeCount = keys.reduce((n, key) => (searchParams.get(key) ? n + 1 : n), 0);
 
-  return { page, values, setFilter, setFilters, setPage, clearFilters, activeCount };
+  return { page, values, sort, setSort, setFilter, setFilters, setPage, clearFilters, activeCount };
 }

@@ -10,15 +10,8 @@ import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingVi
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
 import { ResultsReveal } from './components/ResultsReveal';
-import { SummaryCard } from './components/SummaryCard';
-import { InterestDomainSection } from './components/InterestDomainSection';
-import { StrengthsDomainSection } from './components/StrengthsDomainSection';
-import { PersonalityDomainSection } from './components/PersonalityDomainSection';
-import { ThinkingStyleMotivationSection } from './components/ThinkingStyleMotivationSection';
-import { ExplorationActivitiesSection } from './components/ExplorationActivitiesSection';
-import { FinalAnalysisSection } from './components/FinalAnalysisSection';
-import { GoalBranchSection } from './components/GoalBranchSection';
 import { FeedbackSection } from './components/FeedbackSection';
+import { ResultsReportBody } from './components/ResultsReportBody';
 
 function ResultsSkeleton() {
   return (
@@ -41,16 +34,18 @@ export default function ResultsPage() {
     report,
     isLoading,
     isTranslating,
+    isPendingReview,
     error,
     hasCompletedAssessment,
     assessmentId,
     goal,
     ageGroup,
-    isJunior,
     refetch,
     inProgress,
-    answeredCount,
-    totalQuestions,
+    completedPhaseCount,
+    totalPhaseCount,
+    currentPhase,
+    continueRoute,
   } = useResults();
 
   if (!hasCompletedAssessment) {
@@ -58,9 +53,10 @@ export default function ResultsPage() {
       <PageContainer>
         {inProgress ? (
           <AssessmentInProgressCard
-            answeredCount={answeredCount}
-            totalQuestions={totalQuestions}
-            onContinue={() => navigate('/assessment')}
+            completedPhaseCount={completedPhaseCount}
+            totalPhaseCount={totalPhaseCount}
+            currentPhase={currentPhase}
+            onContinue={() => navigate(continueRoute)}
           />
         ) : (
           <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />
@@ -77,6 +73,20 @@ export default function ResultsPage() {
     return (
       <PageContainer>
         <ResultLoadingView className="min-h-[70vh]" />
+      </PageContainer>
+    );
+  }
+
+  // Test finished, report generated, but a psychologist hasn't published it
+  // yet (PRO-337). useResults keeps polling and swaps the report in once it is.
+  if (isPendingReview) {
+    return (
+      <PageContainer>
+        <JourneyEmptyState
+          mascotState="pause"
+          title={t('pendingReview.title')}
+          body={t('pendingReview.body')}
+        />
       </PageContainer>
     );
   }
@@ -109,51 +119,17 @@ export default function ResultsPage() {
         </Button>
       </div>
 
-      <ResultsReveal>
-        <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
-      </ResultsReveal>
-
-      <ResultsReveal delay={1}>
-        <InterestDomainSection
-          isJunior={isJunior}
-          interestMap={report.interest_map}
-          interestMapNote={report.interest_map_note}
-        />
-      </ResultsReveal>
-
-      <ResultsReveal delay={1}>
-        <StrengthsDomainSection strengthCards={report.strength_cards} />
-      </ResultsReveal>
-
-      {report.personality_notes.length > 0 && (
-        <ResultsReveal>
-          <PersonalityDomainSection
-            personalityNotes={report.personality_notes}
-            personalityNote={report.personality_note}
-          />
-        </ResultsReveal>
-      )}
-
-      <ResultsReveal>
-        <ThinkingStyleMotivationSection
-          thinkingStyleNotes={report.thinking_style_notes}
-          motivationHighlights={report.motivation_highlights}
-        />
-      </ResultsReveal>
-
-      <ResultsReveal>
-        <ExplorationActivitiesSection activities={report.exploration_activities} note={report.exploration_note} />
-      </ResultsReveal>
-
-      <ResultsReveal>
-        <FinalAnalysisSection text={report.final_analysis} />
-      </ResultsReveal>
-
-      <div id="results-goal-branch">
-        <ResultsReveal>
-          <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal} />
-        </ResultsReveal>
-      </div>
+      {/* Порядок разделов — TZ_Profi.md §18.2. Тело отчёта вынесено в
+          ResultsReportBody и переиспользуется на экране психолога
+          (PsychologistStudentReportPage). Психоблок «Дополнительно для
+          специалиста» там же — на стороне бэкенда он отдаётся только
+          психологу/админу (report_service.psych_sections_for), у ученика
+          `validity`/`psychoemotional` = null и блок не рендерится. */}
+      <ResultsReportBody
+        report={report}
+        ageGroup={ageGroup}
+        goal={goal}
+      />
 
       <ResultsReveal>
         <FeedbackSection assessmentId={assessmentId} />
