@@ -150,21 +150,34 @@ export async function autofillAssessment(assessmentId: string, ageGroup: AgeGrou
     if (asturContent?.subtests?.length > 0) {
       for (const st of asturContent.subtests) {
         const answers: Record<string, unknown> = {};
-        st.items.forEach((it: any) => {
-          if (st.key === 'logical_schemas') {
-            answers[it.id] = (it.options || []).slice(0, 3);
-          } else if (st.key === 'classification' || st.key === 'numeric_series') {
-            answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
+        const elapsed_ms: Record<string, number> = {};
+        st.items.forEach((it: any, i: number) => {
+          // 1-based position keys — same contract as useAsturAssessment.handleAutofill
+          const key = String(i + 1);
+          if (st.key === 'lability') {
+            answers[key] = it.options?.[0] ?? '1';
+            elapsed_ms[key] = 500;
+          } else if (st.key === 'logical_schemas') {
+            answers[key] = [...(it.concepts ?? [])];
+          } else if (st.key === 'classification') {
+            const words = it.words ?? [];
+            answers[key] = [words[0] ?? '1', words[1] ?? '2'];
+          } else if (st.key === 'numeric_series') {
+            answers[key] = [1, 2];
+          } else if (st.key === 'generalization') {
+            answers[key] = 'тест';
           } else if (st.key === 'geometric_figures') {
-            // No `options` on the wire for this subtest (static image
-            // assets, addressed by position — see FigureAssemblyQuestion);
-            // any letter is a structurally valid dev-autofill answer.
-            answers[it.id] = 'A';
+            // No `options` on the wire (static image assets) — any letter is fine.
+            answers[key] = 'А';
           } else {
-            answers[it.id] = it.options?.[0] ?? '1';
+            answers[key] = it.options?.[0] ?? '1';
           }
         });
-        await asturApi.submitSubtest(assessmentId, st.number, { answers, elapsed_ms: {} });
+        await asturApi.submitSubtest(
+          assessmentId,
+          st.number,
+          st.key === 'lability' ? { answers, elapsed_ms } : { answers },
+        );
       }
       useAssessmentStore.getState().setAsturCompleted(true);
     }
