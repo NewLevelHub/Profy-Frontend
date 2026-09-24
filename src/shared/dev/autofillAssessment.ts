@@ -1,12 +1,11 @@
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
-import { motivationPairsApi } from '@/shared/api/motivationPairs';
 import { pairsApi } from '@/shared/api/pairs';
 import { belbinApi } from '@/shared/api/belbin';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
-import type { AgeGroup, Instrument, Question } from '@/shared/types';
+import type { Instrument, Question } from '@/shared/types';
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -50,10 +49,9 @@ function shuffled<T>(items: T[]): T[] {
  * Big Five + PRO-338's Eysenck/Elers/Boyko/Kondash/ДДО-abilities additions,
  * minus whatever's been pulled into pairs — see buildDisplaySequence.ts)
  * with a random value valid for THAT question's own instrument (see
- * randomValueForInstrument above — RIASEC/Big Five/MI/ДДО-pairs get 1-5,
- * everything else gets its own real range), then every pair (middle's
- * Dilemma/Scenario subset, or junior's whole test if this profile somehow
- * still hits this page) by picking a random option — the main battery only,
+ * randomValueForInstrument above — RIASEC/Big Five/ДДО-pairs get 1-5,
+ * everything else gets its own real range), then every ДДО pair by picking
+ * a random option — the main battery only,
  * stopping right before motivation. Split out of `autofillAssessment` so a
  * caller can land the tester ON the motivation screen (e.g. to test THAT
  * screen by hand) instead of racing straight through it. */
@@ -81,45 +79,27 @@ export async function autofillMainBattery(assessmentId: string): Promise<void> {
   }
 }
 
-/** Dev-only helper: fills every remaining Likert/pair question, then stops —
- * landing the caller right at /assessment/motivation ("Что тебя драйвит")
- * instead of racing through it, so that block can be tested by hand. */
-export const autofillUntilMotivation = autofillMainBattery;
-
 /** Dev-only helper: `autofillMainBattery` plus motivation plus Belbin —
  * everything ahead of АСТУР — so a caller can land the tester ON the
  * АСТУР flow itself (e.g. to test IT by hand, or after adding a new
  * subtest) instead of racing through it too. Split out of
  * `autofillAssessment` the same way `autofillMainBattery` was split out of
  * this originally (see its own comment). */
-export async function autofillToAstur(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
+export async function autofillToAstur(assessmentId: string): Promise<void> {
   await autofillMainBattery(assessmentId);
 
-  if (ageGroup === 'senior') {
-    const triplets = await motivationApi.getTriplets(assessmentId);
-    if (triplets.length > 0) {
-      await motivationApi.submitAnswers(assessmentId, {
-        answers: triplets.map(t => {
-          const [most, least] = shuffled(t.statements);
-          return {
-            triplet_index: t.triplet_index,
-            most_statement_id: most.id,
-            least_statement_id: least.id,
-          };
-        }),
-      });
-    }
-  } else {
-    const motivationPairs = await motivationPairsApi.getPairs(assessmentId);
-    if (motivationPairs.length > 0) {
-      await motivationPairsApi.submitAnswers(assessmentId, {
-        answers: motivationPairs.map(p => ({
-          pair_index: p.pair_index,
-          chosen_side: Math.random() < 0.5 ? 'a' : 'b',
-          intensity: Math.random() < 0.5 ? 'high' : 'medium',
-        })),
-      });
-    }
+  const triplets = await motivationApi.getTriplets(assessmentId);
+  if (triplets.length > 0) {
+    await motivationApi.submitAnswers(assessmentId, {
+      answers: triplets.map(t => {
+        const [most, least] = shuffled(t.statements);
+        return {
+          triplet_index: t.triplet_index,
+          most_statement_id: most.id,
+          least_statement_id: least.id,
+        };
+      }),
+    });
   }
 
   try {
@@ -142,8 +122,8 @@ export async function autofillToAstur(assessmentId: string, ageGroup: AgeGroup |
 
 /** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
  * completes in a handful of requests instead of up to ~278 clicks. */
-export async function autofillAssessment(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
-  await autofillToAstur(assessmentId, ageGroup);
+export async function autofillAssessment(assessmentId: string): Promise<void> {
+  await autofillToAstur(assessmentId);
 
   try {
     const asturContent = await asturApi.getContent();

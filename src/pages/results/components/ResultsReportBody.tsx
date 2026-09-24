@@ -14,7 +14,6 @@ interface ResultsReportBodyProps {
   report: ResultResponse;
   ageGroup: AgeGroup | undefined;
   goal: AssessmentGoal | null | undefined;
-  isJunior: boolean;
   /** Psychologist's view (PsychologistStudentReportPage): the "Направления
    *  под цель" list is informational only there, not a doorway into the
    *  student's own direction/university browsing flow — see
@@ -35,7 +34,7 @@ interface ResultsReportBodyProps {
  * (report_service.psych_sections_for → psychologist/admin only), so on the
  * student's page `hasPsych` is always false and nothing renders.
  */
-export function ResultsReportBody({ report, ageGroup, goal, isJunior, readOnly = false }: ResultsReportBodyProps) {
+export function ResultsReportBody({ report, ageGroup, goal, readOnly = false }: ResultsReportBodyProps) {
   const psychSections = {
     psychoemotional: report.psychoemotional ?? null,
   };
@@ -49,7 +48,6 @@ export function ResultsReportBody({ report, ageGroup, goal, isJunior, readOnly =
 
       <ResultsReveal delay={1}>
         <InterestDomainSection
-          isJunior={isJunior}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
           interestCombination={report.interest_instrument === 'riasec' ? report.interest_combination : null}

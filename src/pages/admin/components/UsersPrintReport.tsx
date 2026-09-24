@@ -1,8 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import type { AdminUserListItem, AgeGroup } from '@/shared/types';
+import type { AdminUserListItem } from '@/shared/types';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 /**
@@ -132,7 +131,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
                 <span style={{ color: MUTE, fontSize: '8pt' }}>{item.email}</span>
               </td>
               <td style={CELL}>
-                {item.age_group ? (AGE_TIER_LABELS[item.age_group as AgeGroup] ?? item.age_group) : '—'}
+                {item.age != null ? t('common:ageYears', { count: item.age }) : '—'}
               </td>
               <td style={CELL}>
                 {item.latest_assessment_status

@@ -18,9 +18,9 @@ export type { RestStopState };
 //    (process, never RIASEC type/profession/verdict) — e.g. "склонен выбирать вариант,
 //    который сложнее сразу проверить". Always undefined today: no endpoint in this
 //    frontend's API layer currently returns any mid-assessment behavioral-pattern signal
-//    (checked assessmentApi/pairsApi/motivationApi/motivationPairsApi response shapes —
+//    (checked assessmentApi/pairsApi/motivationApi response shapes —
 //    none carry one). Left wired here rather than faked client-side, so a future real
-//    signal only needs to be threaded into the `navigate(..., { state })` calls in the 4
+//    signal only needs to be threaded into the `navigate(..., { state })` calls in the 2
 //    assessment hooks, nothing here needs to change. Max one insight per stop is enforced
 //    simply by this being a single optional field, not a list.
 

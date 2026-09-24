@@ -24,7 +24,7 @@ export interface AssessmentRailProps {
    *  a separate action from `devAutofill` (which races through motivation
    *  too): for testing the motivation screen itself by hand without
    *  clicking through the whole Likert/pairs battery first. Only offered on
-   *  the main-battery screens (AssessmentPage/PairAssessmentPage), not on
+   *  the main-battery screen (AssessmentPage), not on
    *  the motivation screens themselves (nothing left to skip to). */
   devAutofillToMotivation?: { onClick: () => void; loading: boolean };
   /** Dev-only "autofill main battery + motivation + Belbin, then stop right
@@ -35,8 +35,7 @@ export interface AssessmentRailProps {
 }
 
 // The single collapsed rail used by every assessment-flow screen
-// (AssessmentPage, PairAssessmentPage, MotivationHarterFlow,
-// MotivationTripletFlow). Per the nav-shell spec these screens don't get the
+// (AssessmentPage, MotivationTripletFlow). Per the nav-shell spec these screens don't get the
 // full TopRail — they collapse to exactly three elements: progress
 // indicator · sound toggle · exit action.
 //

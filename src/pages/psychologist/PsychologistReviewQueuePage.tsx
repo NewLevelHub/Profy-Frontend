@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
+import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -76,12 +76,7 @@ const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
     key: 'age',
     header: 'Возраст',
     mobile: 'badge',
-    cell: (row) =>
-      row.age_group ? (
-        <AdminBadge tone="quiet">{AGE_TIER_LABELS[row.age_group] ?? row.age_group}</AdminBadge>
-      ) : (
-        <span className={ADMIN_META}>—</span>
-      ),
+    cell: (row) => <AgeBadge age={row.age} />,
   },
   {
     key: 'generated',

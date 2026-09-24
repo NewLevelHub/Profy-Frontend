@@ -6,11 +6,9 @@ import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
 import { isLocalizedFieldLocked } from '@/shared/lib/adminPatch';
 import {
-  AGE_TIER_LABELS,
   BIGFIVE_DOMAIN_LABELS,
   HOLLAND_TYPE_LABELS,
   INSTRUMENT_LABELS,
-  MI_TYPE_LABELS,
   QUESTION_KEYED_LABELS,
 } from '@/shared/lib/contentLabels';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
@@ -28,10 +26,8 @@ import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
 import type {
   AdminQuestionDetail,
   AdminQuestionUpdateRequest,
-  AgeGroup,
   BigFiveDomain,
   HollandType,
-  MIType,
   QuestionKeyed,
 } from '@/shared/types';
 
@@ -39,12 +35,10 @@ const EDITABLE_KEYS = [
   'text',
   'short_text',
   'icon',
-  'age_tier',
   'riasec_type',
   'bigfive_domain',
   'keyed',
   'facet',
-  'mi_category',
 ] as const satisfies readonly (keyof AdminQuestionUpdateRequest)[];
 
 /** Which of the keys above are per-locale (`{ru,kk}` map on the row) rather
@@ -58,24 +52,20 @@ const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
   text: 'admin:questions.field.text',
   short_text: 'admin:questions.field.shortText',
   icon: 'admin:questions.field.icon',
-  age_tier: 'admin:questions.field.ageTier',
   riasec_type: 'admin:questions.field.riasecType',
   bigfive_domain: 'admin:questions.field.bigfiveDomain',
   keyed: 'admin:questions.field.keyed',
   facet: 'admin:questions.field.facet',
-  mi_category: 'admin:questions.field.miCategory',
 };
 
 interface FormState {
   text: string;
   short_text: string;
   icon: string;
-  age_tier: AgeGroup;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
   keyed: QuestionKeyed | null;
   facet: string;
-  mi_category: MIType | null;
 }
 
 /** `text`/`short_text` are read for `locale` specifically — no cross-locale
@@ -87,12 +77,10 @@ function toFormState(detail: AdminQuestionDetail, locale: Locale): FormState {
     text: detail.text[locale] ?? '',
     short_text: detail.short_text?.[locale] ?? '',
     icon: detail.icon ?? '',
-    age_tier: detail.age_tier,
     riasec_type: detail.riasec_type,
     bigfive_domain: detail.bigfive_domain,
     keyed: detail.keyed,
     facet: detail.facet ?? '',
-    mi_category: detail.mi_category,
   };
 }
 
@@ -195,7 +183,7 @@ export default function AdminQuestionDetailPage() {
         title={headerText}
         meta={
           <p className={cn(ADMIN_META, 'm-0 flex items-center gap-2')}>
-            {INSTRUMENT_LABELS[detail.instrument]} · {AGE_TIER_LABELS[detail.age_tier]} · {t('questions.orderInline', { order: detail.order })}
+            {INSTRUMENT_LABELS[detail.instrument]} · {t('questions.orderInline', { order: detail.order })}
           </p>
         }
       />
@@ -269,29 +257,6 @@ export default function AdminQuestionDetailPage() {
             )}
           </AdminField>
         </div>
-
-        <AdminField
-          label={t('questions.field.ageTierLabel')}
-          locked={locked.has('age_tier')} revert={fieldRevert('age_tier')}
-          lockReason={LOCK_REASON}
-          hint={t('questions.ageTierHint')}
-        >
-          {({ id, describedBy }) => (
-            <AdminSelect
-              id={id}
-              aria-describedby={describedBy}
-              className="max-w-[220px]"
-              value={form.age_tier}
-              onChange={(e) => setField('age_tier', e.target.value as AgeGroup)}
-            >
-              {(Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => (
-                <option key={key} value={key}>
-                  {AGE_TIER_LABELS[key]}
-                </option>
-              ))}
-            </AdminSelect>
-          )}
-        </AdminField>
       </AdminCard>
 
       {/* Only this row's instrument gets a field set — showing all three would
@@ -380,32 +345,6 @@ export default function AdminQuestionDetailPage() {
               )}
             </AdminField>
           </div>
-        </AdminCard>
-      )}
-
-      {detail.instrument === 'mi' && (
-        <AdminCard
-          title="Multiple Intelligences"
-          description={t('questions.miDescription')}
-        >
-          <AdminField label={t('motivationPairs.col.category')} locked={locked.has('mi_category')} revert={fieldRevert('mi_category')} lockReason={LOCK_REASON}>
-            {({ id, describedBy }) => (
-              <AdminSelect
-                id={id}
-                aria-describedby={describedBy}
-                className="max-w-[320px]"
-                value={form.mi_category ?? ''}
-                onChange={(e) => setField('mi_category', (e.target.value || null) as MIType | null)}
-              >
-                <option value="">{t('questions.notSetF')}</option>
-                {(Object.keys(MI_TYPE_LABELS) as MIType[]).map((key) => (
-                  <option key={key} value={key}>
-                    {t(MI_TYPE_LABELS[key])}
-                  </option>
-                ))}
-              </AdminSelect>
-            )}
-          </AdminField>
         </AdminCard>
       )}
 

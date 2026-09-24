@@ -32,8 +32,8 @@ function pickHeadlineItems(items: InterestMapItem[]): InterestMapItem[] {
 
 /**
  * The mockup's exact phrasing ("Исследующий с сильной артистической
- * частью") is hand-authored NLG the backend doesn't supply — RIASEC_LABELS/
- * MI_LABELS are plain nominative-case labels, not declinable sentence
+ * частью") is hand-authored NLG the backend doesn't supply — RIASEC_LABELS
+ * are plain nominative-case labels, not declinable sentence
  * fragments — so a tie is rendered as "{Label} + {Label}" rather than
  * attempting Russian case agreement from data that isn't there.
  */

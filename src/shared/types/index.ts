@@ -115,7 +115,6 @@ export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
 export type Instrument =
   | 'riasec'
   | 'big_five'
-  | 'mi'
   | 'professional_types'
   | 'professional_types_abilities'
   | 'eysenck'
@@ -123,11 +122,6 @@ export type Instrument =
   | 'boyko_empathy'
   | 'kondash_anxiety';
 export type BigFiveDomain = 'N' | 'E' | 'O' | 'A' | 'C';
-// Junior's (6-9) interest instrument, replacing RIASEC — TZ_Profi.md §4.1
-// excludes career orientation for that age group. See MI_LABELS/MI_ICONS.
-export type MIType =
-  | 'verbal' | 'logical' | 'musical' | 'visual' | 'bodily'
-  | 'interpersonal' | 'intrapersonal' | 'naturalistic';
 
 export interface AssessmentResponse {
   id: string;
@@ -205,34 +199,7 @@ export interface SubmitMotivationResponse {
   completed: boolean;
 }
 
-// ─── Motivation pairs (Harter format, junior + middle) ──────────────────────────
-
-export interface MotivationPairItem {
-  pair_index: number;
-  text_a: string;
-  text_b: string;
-}
-
-export type MotivationPairSide = 'a' | 'b';
-export type MotivationIntensity = 'high' | 'medium';
-
-export interface MotivationPairAnswerPayload {
-  pair_index: number;
-  chosen_side: MotivationPairSide;
-  intensity: MotivationIntensity;
-}
-
-export interface SubmitMotivationPairPayload {
-  answers: MotivationPairAnswerPayload[];
-}
-
-export interface SubmitMotivationPairResponse {
-  answered_count: number;
-  total: number;
-  completed: boolean;
-}
-
-// ─── Question pairs (junior forced-choice format) ───────────────────────────────
+// ─── Question pairs (forced-choice, ДДО) ───────────────────────────────
 
 export interface QuestionPairOption {
   id: string;
@@ -240,7 +207,6 @@ export interface QuestionPairOption {
   icon: string | null;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
 }
 
 export interface QuestionPair {
@@ -476,9 +442,7 @@ export type PersonalityTrait =
 export interface AnalysisResultResponse {
   id: string;
   assessment_id: string;
-  // RIASEC letters (HollandType) for middle/senior; MI categories (MIType)
-  // for junior — see MI_LABELS/MI_ICONS in shared/config/constants.ts and
-  // useResults.ts's ageGroup branching. `careers` is always [] for junior.
+  // RIASEC letters (HollandType).
   profile: Record<string, number>;
   code: string[];
   meta: RiasecMeta;
@@ -719,154 +683,7 @@ export interface RiasecResultResponse extends ResultResponseBase {
 
 export type ResultResponse = MiResultResponse | RiasecResultResponse;
 
-// ─── Direction-fit inquiry ──────────────────────────────────────────────────────
-
-export interface DirectionQuestion {
-  text: string;
-  kind: 'interest' | 'readiness';
-}
-
-export interface DirectionQuestionsResponse {
-  direction_slug: string;
-  direction_name: string;
-  scale: string[];
-  questions: DirectionQuestion[];
-}
-
-export interface DirectionVerdict {
-  direction_slug: string;
-  readiness: string;
-  fit_summary: string;
-  note: string;
-}
-
-// ─── Roadmap ───────────────────────────────────────────────────────────────────
-
-export type RoadmapHorizonKey =
-  | 'month_1'
-  | 'months_3'
-  | 'months_6'
-  | 'year_1'
-  | 'until_goal';
-
-export type RoadmapTaskCategory =
-  | 'study'
-  | 'language'
-  | 'project'
-  | 'exam'
-  | 'explore'
-  | 'achievement'
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'portfolio'
-  | 'career'
-  | 'education'
-  | 'planning'
-  | 'documents'
-  | 'requirement'
-  | 'finance'
-  | 'admission'
-  | 'application';
-
-export interface RoadmapTask {
-  text: string;
-  description: string | null;
-  category: RoadmapTaskCategory;
-  priority: number;
-}
-
-export interface RoadmapMilestone {
-  horizon: RoadmapHorizonKey;
-  title: string;
-  tasks: RoadmapTask[];
-}
-
-export interface RoadmapResponse {
-  id: string;
-  assessment_id: string;
-  goal: string;
-  milestones: RoadmapMilestone[];
-}
-
-// ─── Direction roadmap ─────────────────────────────────────────────────────────
-
-export type DirectionHorizonKey = 'months_3' | 'months_6' | 'months_9' | 'months_12';
-
-export type DirectionTaskCategory =
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'project'
-  | 'portfolio'
-  | 'soft_skill'
-  | 'subject'
-  | 'community'
-  | 'exam'
-  | 'university';
-
-/** Item from the content catalogue. Always empty until the catalogue ships. */
-export interface RoadmapResource {
-  title: string;
-  kind: string;
-  url: string | null;
-}
-
-/** What a step works on. Steps are tagged, not grouped into fixed columns. */
-export type StepTrack = 'profile' | 'growth' | 'integration';
-
-export interface RoadmapStep {
-  text: string;
-  /** What to do, where to start, and how to know it's done — no googling required. */
-  description: string;
-  track: StepTrack;
-  category: DirectionTaskCategory;
-  priority: number;
-  resources: RoadmapResource[];
-}
-
-export interface DirectionStage {
-  horizon: DirectionHorizonKey;
-  title: string;
-  /** What the student will have by the end of the stage, and why it matters. */
-  outcome: string;
-  steps: RoadmapStep[];
-  /** Set from months_9 on, where profile and growth work converge. */
-  integration_project: string | null;
-}
-
-export interface RoadmapTarget {
-  role: string;
-  why: string;
-  horizon_years: number;
-}
-
-export interface GrowthFocus {
-  weakness: string;
-  why_it_matters: string;
-  /** The signal in the student's own answers this was derived from. */
-  evidence: string;
-}
-
-export interface UniversityTrack {
-  specialties: string[];
-  prepare: string[];
-}
-
-export interface DirectionRoadmapResponse {
-  id: string;
-  assessment_id: string;
-  direction_slug: string;
-  direction_name: string;
-  target: RoadmapTarget;
-  growth_focus: GrowthFocus;
-  stages: DirectionStage[];
-  skills_to_build: string[];
-  subjects_to_focus: string[];
-  university_track: UniversityTrack;
-}
-
-// ─── University / Gap-analysis ─────────────────────────────────────────────────
+// ─── University ─────────────────────────────────────────────────
 
 export interface AdmissionScoreItem {
   ovpo: string;
@@ -1032,7 +849,7 @@ export interface AdminUserListItem {
   grade: number | null;
   assessments_count: number;
   /** null if the profile isn't filled in yet. */
-  age_group: AgeGroup | null;
+  age: number | null;
   latest_assessment_status: AssessmentStatus | null;
   /** Always the user's actual latest assessment — independent of which assessment
    *  (if any) actually matched the `status`/`goal` list filters (see
@@ -1080,7 +897,6 @@ export interface AdminAssessmentSummary {
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
-  has_roadmap: boolean;
 }
 
 export interface AdminUserDetail {
@@ -1185,7 +1001,6 @@ export interface AdminAssessmentDetail {
   belbin_runs: AdminBelbinRunResponse[];
   psychoemotional_runs: AdminPsychoemotionalRunResponse[];
   analysis_result: AnalysisResultResponse | null;
-  roadmap: RoadmapResponse | null;
 }
 
 // ─── Admin feedback (TZ_Profi.md §28.4) ──────────────────────────────────────────
@@ -1196,7 +1011,6 @@ export interface AdminFeedbackListItem {
   user_email: string;
   profile_name: string | null;
   assessment_id: string | null;
-  age_group: string | null;
   /** Effective scenario A/B/C, see goal_overlay_service — null if the
    *  assessment or its profile no longer exists. */
   scenario: string | null;
@@ -1229,7 +1043,6 @@ export interface AdminFeedbackStatsResponse {
    *  cannot reconstruct this: 4.0 looks the same whether everyone said 4 or
    *  the room split between 5s and 3s. */
   score_counts: Record<string, number>;
-  by_age_group: FeedbackBreakdownItem[];
   by_scenario: FeedbackBreakdownItem[];
   by_top_direction: FeedbackBreakdownItem[];
   helpful_section_counts: Record<string, number>;
@@ -1383,7 +1196,7 @@ export interface PsychologistStudentListItem {
   id: string;
   email: string;
   profile_name: string | null;
-  age_group: AgeGroup | null;
+  age: number | null;
   assigned_at?: string;
   /** Student's registration date — a psychologist sees every student, there
    *  is no assignment step. */
@@ -1395,7 +1208,7 @@ export interface PsychologistAvailableStudentItem {
   id: string;
   email: string;
   profile_name: string | null;
-  age_group: AgeGroup | null;
+  age: number | null;
   has_pending_review: boolean;
 }
 
@@ -1410,7 +1223,6 @@ export interface PsychologistAssessmentSummary {
   has_result: boolean;
   /** `null` while there is no result yet. */
   review_status?: ReviewStatus | null;
-  has_roadmap: boolean;
 }
 
 /** Separate from `AdminUserDetail` — no `role` / `is_admin` in the payload. */
@@ -1658,7 +1470,7 @@ export interface PsychologistReviewQueueItem {
   student_id: string;
   student_name: string | null;
   student_email: string;
-  age_group: AgeGroup | null;
+  age: number | null;
   goal: AssessmentGoal;
   generated_at: string;
   reviewed_at: string | null;
@@ -1877,10 +1689,8 @@ export interface AdminQuestionListItem {
    *  (i18n-contract §2); edit both languages from the detail screen. */
   text: string;
   order: number;
-  age_tier: AgeGroup;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
   has_overrides: boolean;
 }
 
@@ -1896,7 +1706,6 @@ export interface AdminQuestionDetail {
   instrument: Instrument;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
   /** One row per question now — both languages live on this one row as a
@@ -1906,7 +1715,6 @@ export interface AdminQuestionDetail {
   icon: string | null;
   /** Read-only — structural, not part of `AdminQuestionUpdateRequest`. */
   order: number;
-  age_tier: AgeGroup;
   /** Field name → overridden value; for a localized field (`text`/
    *  `short_text`) the value is itself a `{locale: value}` map — only the
    *  edited locale's key is present, so overriding kk never locks ru.
@@ -1923,12 +1731,10 @@ export type AdminQuestionUpdateRequest = Partial<{
   locale: Locale;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
   /** The value for `locale` only — the other language's text is untouched. */
   text: string;
-  age_tier: AgeGroup;
   short_text: string | null;
   icon: string | null;
 }>;
@@ -1936,7 +1742,6 @@ export type AdminQuestionUpdateRequest = Partial<{
 export interface AdminQuestionPairListItem {
   id: string;
   instrument: Instrument;
-  age_tier: AgeGroup;
   pair_index: number;
   /** Short scenario intro shown above the pair; null for junior. */
   frame: string | null;
@@ -1960,7 +1765,6 @@ export interface AdminQuestionPairListResponse {
 export interface AdminQuestionPairDetail {
   id: string;
   instrument: Instrument;
-  age_tier: AgeGroup;
   pair_index: number;
   /** Read-only — which two Question rows form the pair is a structural edit,
    *  out of scope for this API. */
@@ -2024,57 +1828,14 @@ export interface AdminMotivationStatementDetail {
   category: MotivationCategory;
   text: Partial<Record<Locale, string>>;
   /** null = the senior `text` is reused for junior too, in every language. */
-  text_junior: Partial<Record<Locale, string>> | null;
   overrides: AdminOverrides;
 }
 
 export type AdminMotivationStatementUpdateRequest = Partial<{
-  /** Required whenever `text`/`text_junior` is present. */
+  /** Required whenever `text` is present. */
   locale: Locale;
   category: MotivationCategory;
   text: string;
-  text_junior: string | null;
-}>;
-
-export interface AdminMotivationPairListItem {
-  id: string;
-  pair_index: number;
-  /** Both sides are poles of the SAME category, so these two are always
-   *  equal and identify nothing — `text_a`/`text_b` are what tells two rows
-   *  apart. */
-  category_a: MotivationCategory;
-  category_b: MotivationCategory;
-  text_a: string;
-  text_b: string;
-  has_overrides: boolean;
-}
-
-export interface AdminMotivationPairListResponse {
-  items: AdminMotivationPairListItem[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface AdminMotivationPairDetail {
-  id: string;
-  pair_index: number;
-  /** Always equal — both sides are the SAME category, `text_a` its positive
-   *  pole and `text_b` its negative pole (not two different categories). */
-  category_a: MotivationCategory;
-  category_b: MotivationCategory;
-  text_a: Partial<Record<Locale, string>>;
-  text_b: Partial<Record<Locale, string>>;
-  overrides: AdminOverrides;
-}
-
-export type AdminMotivationPairUpdateRequest = Partial<{
-  /** Required whenever `text_a`/`text_b` is present. */
-  locale: Locale;
-  category_a: MotivationCategory;
-  category_b: MotivationCategory;
-  text_a: string;
-  text_b: string;
 }>;
 
 export interface AdminDirectionListItem {
@@ -2120,9 +1881,8 @@ export interface AdminDirectionDetail {
   description: Partial<Record<Locale, string>>;
   /** Empty on **all 92** directions as of 2026-09 — measured, not estimated.
    *  Every other catalog field (description, skills, subjects, first steps) is
-   *  filled everywhere. `Direction.professions` feeds the student's report and
-   *  the LLM context for the direction inquiry and roadmap, so all three get an
-   *  empty list today — see docs/admin-backend-requests-pro-242.md §13. */
+   *  filled everywhere. `Direction.professions` feeds the student's report, so
+   *  it gets an empty list today — see docs/admin-backend-requests-pro-242.md §13. */
   professions: Partial<Record<Locale, string[]>>;
   skills_needed: Partial<Record<Locale, string[]>>;
   subjects_to_develop: Partial<Record<Locale, string[]>>;
