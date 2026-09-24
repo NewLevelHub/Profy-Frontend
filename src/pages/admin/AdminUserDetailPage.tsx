@@ -545,6 +545,8 @@ function CardList({ label, cards }: { label: string; cards: { title: string; des
 
 function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDetail['analysis_result']> }) {
   const { t } = useTranslation('admin');
+  const hasBigFive = Object.keys(analysis.big_five).length > 0;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -583,6 +585,8 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
         </div>
       )}
 
+      {hasBigFive && (
+        <>
       <ValueList
         label={t('print.section.thinking')}
         values={analysis.thinking_style as unknown as Record<string, number>}
@@ -609,6 +613,8 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
         notes={analysis.personality_notes}
         labels={PERSONALITY_TRAIT_LABELS}
       />
+        </>
+      )}
       <ChipList
         label={t('users.motivationTop')}
         items={analysis.motivation_top.map((key) => t(MOTIVATION_CATEGORY_LABELS[key]) ?? key)}

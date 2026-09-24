@@ -310,13 +310,13 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
             rows={BIG_FIVE_ORDER.filter((key) => key in analysis.big_five).map((key) => ({
               key,
               label: t(BIG_FIVE_LABELS[key]),
-              value: analysis.big_five[key],
+              value: analysis.big_five[key]!,
             }))}
           />
         </Section>
       )}
 
-      {analysis && Object.keys(analysis.thinking_style).length > 0 && (
+      {analysis && Object.keys(analysis.big_five).length > 0 && (
         <Section title={t('print.section.thinking')}>
           <ScaleRows
             color={LAKE}

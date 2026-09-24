@@ -170,7 +170,8 @@ export function useAssessment() {
             }
             setSeenInstruments(prev => new Set(prev).add(startInstrument));
           }
-          if (answeredCountFromStore >= questions.length) {
+          const sequenceAnswerCount = questions.length + pairs.length * 2;
+          if (answeredCountFromStore >= sequenceAnswerCount) {
             // Likert+pairs phase already fully answered — motivation may
             // still be pending, so continue there rather than assuming the
             // whole test is done.

@@ -184,6 +184,9 @@ export const router = createBrowserRouter([
           // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
           { path: '/assessment/goal', element: <GoalSelectionPage /> },
           { path: '/assessment', element: <AssessmentPage /> },
+          // Preserve old bookmarked/session URLs after pair questions moved
+          // into the unified assessment sequence.
+          { path: '/assessment/pairs', element: <Navigate to="/assessment" replace /> },
           { path: '/assessment/motivation', element: <MotivationTripletFlow /> },
           { path: '/assessment/psychoemotional-start', element: <PsychoColorStartPage /> },
           { path: '/assessment/psychoemotional', element: <PsychoEmotionalPage /> },
