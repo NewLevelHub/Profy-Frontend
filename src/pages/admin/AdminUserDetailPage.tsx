@@ -184,7 +184,7 @@ function ChipList({ label, items }: { label: string; items: string[] }) {
  *
  * The assessment panel used to render everything at once: summary, all 60+
  * question/answer rows, motivation triplets, the full analysis result (about
- * ten sub-blocks) and the roadmap, in a single scroll with no navigation. The
+ * ten sub-blocks), in a single scroll with no navigation. The
  * question rows alone pushed the analysis — the part an admin actually opens
  * this screen for — thousands of pixels down the page. Sections now start
  * closed except the summary, and each says how much is inside.
@@ -813,23 +813,6 @@ function AssessmentPanel({
           </div>
         </Section>
       )}
-
-      {assessment.roadmap && (
-        <Section title="Roadmap" count={assessment.roadmap.milestones.length}>
-          <div className="flex flex-col gap-1.5">
-            {assessment.roadmap.milestones.map((milestone) => (
-              <div key={milestone.horizon} className="p-2.5 rounded-[2px] bg-page border border-default">
-                <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{milestone.title}</p>
-                <ul className={cn(ADMIN_TEXT, 'mt-1.5 mb-0 pl-4 text-secondary flex flex-col gap-0.5')}>
-                  {milestone.tasks.map((task) => (
-                    <li key={`${milestone.horizon}-${task.text}`}>{task.text}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
     </div>
   );
 }
@@ -1057,7 +1040,6 @@ export default function AdminUserDetailPage() {
                           {t('users.noResult')}
                         </AdminBadge>
                       )}
-                      {item.has_roadmap && <AdminBadge tone="brand">Roadmap</AdminBadge>}
                       <ChevronDown
                         size={16}
                         className={cn('text-muted transition-transform', isOpen && 'rotate-180')}

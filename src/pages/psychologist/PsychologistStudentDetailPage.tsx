@@ -234,7 +234,6 @@ export default function PsychologistStudentDetailPage() {
                     <AdminBadge tone="brand">{t('psychologist:detail.published', 'Опубликовано')}</AdminBadge>
                   )}
                   {a.has_result && !a.review_status && <AdminBadge tone="quiet">{t('detail.hasResult')}</AdminBadge>}
-                  {a.has_roadmap && <AdminBadge tone="quiet">{t('detail.hasRoadmap')}</AdminBadge>}
                   {/* Single unified report button */}
                   {(a.has_result || a.review_status) && (
                     <Link

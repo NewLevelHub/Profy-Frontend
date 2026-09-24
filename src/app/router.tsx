@@ -50,13 +50,10 @@ import CertificatesEditPage from '@/pages/profile/certificates/CertificatesEditP
 
 // ── Detail screens (mobile: App stack) ───────────────────────────────────────
 import DirectionDetailPage from '@/pages/results/DirectionDetailPage';
-import DirectionInquiryPage from '@/pages/results/inquiry/DirectionInquiryPage';
 import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
-import RoadmapPage from '@/pages/roadmap/RoadmapPage';
 import UniversitiesPage from '@/pages/universities/UniversitiesPage';
 import UniversityDetailPage from '@/pages/universities/UniversityDetailPage';
-import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
@@ -228,7 +225,6 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/results', element: <ResultsPage /> },
                   { path: '/profile', element: <ProfilePage /> },
-                  { path: '/roadmap', element: <RoadmapPage /> },
 
                   // Standalone university catalogue (PRO-265) — a top-level tab,
                   // deliberately outside /results: unlike the direction-scoped
@@ -238,8 +234,6 @@ export const router = createBrowserRouter([
 
                   // Detail screens (mobile: App stack over tabs)
                   { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
-                  { path: '/results/directions/:slug/inquiry', element: <DirectionInquiryPage /> },
-                  { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
                   { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
                   {
                     path: '/results/directions/:slug/universities/:programId',

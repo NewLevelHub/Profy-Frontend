@@ -51,13 +51,6 @@ export const API = {
     get: (assessmentId: string) => `/result/${assessmentId}`,
     feedback: '/result/feedback',
   },
-  roadmap: {
-    generate: '/roadmap/generate',
-    get: (assessmentId: string) => `/roadmap/${assessmentId}`,
-    generateDirection: '/roadmap/direction',
-    getDirection: (assessmentId: string, slug: string) =>
-      `/roadmap/${assessmentId}/directions/${slug}`,
-  },
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
@@ -65,12 +58,6 @@ export const API = {
     countries: '/universities/countries',
     detail: (id: string) => `/universities/${id}`,
     favorite: (id: string) => `/universities/${id}/favorite`,
-  },
-  inquiry: {
-    questions: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/questions`,
-    verdict: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/verdict`,
   },
   admin: {
     users: '/admin/users',

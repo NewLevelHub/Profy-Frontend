@@ -719,154 +719,7 @@ export interface RiasecResultResponse extends ResultResponseBase {
 
 export type ResultResponse = MiResultResponse | RiasecResultResponse;
 
-// ─── Direction-fit inquiry ──────────────────────────────────────────────────────
-
-export interface DirectionQuestion {
-  text: string;
-  kind: 'interest' | 'readiness';
-}
-
-export interface DirectionQuestionsResponse {
-  direction_slug: string;
-  direction_name: string;
-  scale: string[];
-  questions: DirectionQuestion[];
-}
-
-export interface DirectionVerdict {
-  direction_slug: string;
-  readiness: string;
-  fit_summary: string;
-  note: string;
-}
-
-// ─── Roadmap ───────────────────────────────────────────────────────────────────
-
-export type RoadmapHorizonKey =
-  | 'month_1'
-  | 'months_3'
-  | 'months_6'
-  | 'year_1'
-  | 'until_goal';
-
-export type RoadmapTaskCategory =
-  | 'study'
-  | 'language'
-  | 'project'
-  | 'exam'
-  | 'explore'
-  | 'achievement'
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'portfolio'
-  | 'career'
-  | 'education'
-  | 'planning'
-  | 'documents'
-  | 'requirement'
-  | 'finance'
-  | 'admission'
-  | 'application';
-
-export interface RoadmapTask {
-  text: string;
-  description: string | null;
-  category: RoadmapTaskCategory;
-  priority: number;
-}
-
-export interface RoadmapMilestone {
-  horizon: RoadmapHorizonKey;
-  title: string;
-  tasks: RoadmapTask[];
-}
-
-export interface RoadmapResponse {
-  id: string;
-  assessment_id: string;
-  goal: string;
-  milestones: RoadmapMilestone[];
-}
-
-// ─── Direction roadmap ─────────────────────────────────────────────────────────
-
-export type DirectionHorizonKey = 'months_3' | 'months_6' | 'months_9' | 'months_12';
-
-export type DirectionTaskCategory =
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'project'
-  | 'portfolio'
-  | 'soft_skill'
-  | 'subject'
-  | 'community'
-  | 'exam'
-  | 'university';
-
-/** Item from the content catalogue. Always empty until the catalogue ships. */
-export interface RoadmapResource {
-  title: string;
-  kind: string;
-  url: string | null;
-}
-
-/** What a step works on. Steps are tagged, not grouped into fixed columns. */
-export type StepTrack = 'profile' | 'growth' | 'integration';
-
-export interface RoadmapStep {
-  text: string;
-  /** What to do, where to start, and how to know it's done — no googling required. */
-  description: string;
-  track: StepTrack;
-  category: DirectionTaskCategory;
-  priority: number;
-  resources: RoadmapResource[];
-}
-
-export interface DirectionStage {
-  horizon: DirectionHorizonKey;
-  title: string;
-  /** What the student will have by the end of the stage, and why it matters. */
-  outcome: string;
-  steps: RoadmapStep[];
-  /** Set from months_9 on, where profile and growth work converge. */
-  integration_project: string | null;
-}
-
-export interface RoadmapTarget {
-  role: string;
-  why: string;
-  horizon_years: number;
-}
-
-export interface GrowthFocus {
-  weakness: string;
-  why_it_matters: string;
-  /** The signal in the student's own answers this was derived from. */
-  evidence: string;
-}
-
-export interface UniversityTrack {
-  specialties: string[];
-  prepare: string[];
-}
-
-export interface DirectionRoadmapResponse {
-  id: string;
-  assessment_id: string;
-  direction_slug: string;
-  direction_name: string;
-  target: RoadmapTarget;
-  growth_focus: GrowthFocus;
-  stages: DirectionStage[];
-  skills_to_build: string[];
-  subjects_to_focus: string[];
-  university_track: UniversityTrack;
-}
-
-// ─── University / Gap-analysis ─────────────────────────────────────────────────
+// ─── University ─────────────────────────────────────────────────
 
 export interface AdmissionScoreItem {
   ovpo: string;
@@ -1080,7 +933,6 @@ export interface AdminAssessmentSummary {
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
-  has_roadmap: boolean;
 }
 
 export interface AdminUserDetail {
@@ -1185,7 +1037,6 @@ export interface AdminAssessmentDetail {
   belbin_runs: AdminBelbinRunResponse[];
   psychoemotional_runs: AdminPsychoemotionalRunResponse[];
   analysis_result: AnalysisResultResponse | null;
-  roadmap: RoadmapResponse | null;
 }
 
 // ─── Admin feedback (TZ_Profi.md §28.4) ──────────────────────────────────────────
@@ -1410,7 +1261,6 @@ export interface PsychologistAssessmentSummary {
   has_result: boolean;
   /** `null` while there is no result yet. */
   review_status?: ReviewStatus | null;
-  has_roadmap: boolean;
 }
 
 /** Separate from `AdminUserDetail` — no `role` / `is_admin` in the payload. */
