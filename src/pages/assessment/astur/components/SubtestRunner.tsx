@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
-import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Text } from '@/shared/ui/typography/Text';
 import type {
   AsturAnalogyItem,
@@ -13,6 +11,7 @@ import type {
   AsturLogicalSchemaItem,
   AsturNumericSeriesItem,
 } from '@/shared/types';
+import { AssessmentTimer, formatCountdownMmSs } from '../../components/AssessmentTimer';
 import { useCountdown } from '../hooks/useCountdown';
 import { McQuestion } from './McQuestion';
 import { PickTwoQuestion } from './PickTwoQuestion';
@@ -26,13 +25,6 @@ interface SubtestRunnerProps {
   submitting: boolean;
   submitError: string | null;
   onSubmit: (answers: Record<string, unknown>) => void;
-}
-
-function formatMmSs(ms: number) {
-  const totalSec = Math.ceil(ms / 1000);
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 function initialAnswers(subtest: AsturContentSubtest): Record<string, unknown> {
@@ -82,12 +74,15 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
       <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
       {durationMs !== null && (
-        <div className="flex flex-col gap-1.5">
-          <ProgressBar value={(remainingMs / durationMs) * 100} variant={remainingMs < 15000 ? 'accent' : 'brand'} />
-          <Text variant="caption" className={cn('self-end', timeUp ? 'text-danger font-semibold' : 'text-muted')}>
-            {timeUp ? t('astur.timeUpWarning') : formatMmSs(remainingMs)}
-          </Text>
-        </div>
+        <AssessmentTimer
+          remainingMs={remainingMs}
+          durationMs={durationMs}
+          timeLabel={formatCountdownMmSs(remainingMs)}
+          expired={timeUp}
+          expiredMessage={t('astur.timeUpWarning')}
+          urgentBelowMs={15_000}
+          sticky
+        />
       )}
 
       <div className="flex flex-col gap-6">

@@ -311,6 +311,9 @@
     "points": "Баллы для «{{label}}»",
     "increase": "Увеличить «{{label}}»"
   },
+  "timer": {
+    "remaining": "Осталось"
+  },
   "astur": {
     "subtestOf": "Субтест {{index}} из {{count}}",
     "tasksCount": "{{count}} заданий",
@@ -326,6 +329,8 @@
     "numericPairSecond": "2-е число",
     "figureAssemblyPrompt": "Из каких частей можно без пропусков и остатка собрать фигуру-эталон?",
     "labilityHeader": "Команда {{x}} из {{y}} · {{t}} с",
+    "labilityMeta": "Команда {{x}} из {{y}}",
+    "labilitySeconds": "{{t}} с",
     "labilitySending": "Отправка…",
     "analogyPrompt": "«{{first}}» относится к «{{second}}» так же, как «{{third}}» относится к …",
     "doneTitle": "Все тесты успешно пройдены!",
