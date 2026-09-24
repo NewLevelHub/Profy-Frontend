@@ -502,6 +502,8 @@ function CardList({ label, cards }: { label: string; cards: { title: string; des
 }
 
 function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDetail['analysis_result']> }) {
+  const hasBigFive = Object.keys(analysis.big_five).length > 0;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -544,32 +546,32 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
         </div>
       )}
 
-      <ValueList
-        label="Стиль мышления"
-        values={analysis.thinking_style as unknown as Record<string, number>}
-        labels={{
-          creative_think: 'Творческое',
-          systematic: 'Системность',
-          strategic: 'Стратегичность',
-          practical: 'Практичность',
-        }}
-      />
-      <ChipList label="Личностные особенности" items={analysis.personality_highlights} />
-      <ValueList
-        label="Личностный профиль"
-        // Same five numbers as the Big Five bars in the summary above, under
-        // trait names instead of letters (with N inverted into "эмоциональная
-        // устойчивость"). Saying so beats letting an admin wonder which of two
-        // near-identical tables is the real one.
-        hint="Те же баллы Big Five, что в сводке выше, но по названиям черт."
-        values={analysis.personality_profile}
-        labels={PERSONALITY_TRAIT_LABELS}
-      />
-      <TextNoteList
-        label="Заметки по личностным чертам"
-        notes={analysis.personality_notes}
-        labels={PERSONALITY_TRAIT_LABELS}
-      />
+      {hasBigFive && (
+        <>
+          <ValueList
+            label="Стиль мышления"
+            values={analysis.thinking_style as unknown as Record<string, number>}
+            labels={{
+              creative_think: 'Творческое',
+              systematic: 'Системность',
+              strategic: 'Стратегичность',
+              practical: 'Практичность',
+            }}
+          />
+          <ChipList label="Личностные особенности" items={analysis.personality_highlights} />
+          <ValueList
+            label="Личностный профиль"
+            hint="Те же баллы Big Five, что в сводке выше, но по названиям черт."
+            values={analysis.personality_profile}
+            labels={PERSONALITY_TRAIT_LABELS}
+          />
+          <TextNoteList
+            label="Заметки по личностным чертам"
+            notes={analysis.personality_notes}
+            labels={PERSONALITY_TRAIT_LABELS}
+          />
+        </>
+      )}
       <ChipList
         label="Топ мотивации"
         items={analysis.motivation_top.map((key) => MOTIVATION_CATEGORY_LABELS[key] ?? key)}

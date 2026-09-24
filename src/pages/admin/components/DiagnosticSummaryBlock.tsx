@@ -126,7 +126,9 @@ export function DiagnosticSummaryBlock({ assessment }: { assessment: AdminAssess
   const isRiasecProfile = riasecEntries.length === RIASEC_DISPLAY_ORDER.length;
 
   const bigFiveEntries = analysis
-    ? BIG_FIVE_DISPLAY_ORDER.map((letter) => ({ letter, value: analysis.big_five[letter] }))
+    ? BIG_FIVE_DISPLAY_ORDER
+        .filter((letter) => letter in analysis.big_five)
+        .map((letter) => ({ letter, value: analysis.big_five[letter]! }))
     : [];
 
   const elapsedMs =

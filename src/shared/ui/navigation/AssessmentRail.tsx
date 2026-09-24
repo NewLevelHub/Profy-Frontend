@@ -22,7 +22,7 @@ export interface AssessmentRailProps {
 }
 
 // The single collapsed rail used by every assessment-flow screen
-// (AssessmentPage, PairAssessmentPage, MotivationHarterFlow,
+// (AssessmentPage, MotivationHarterFlow,
 // MotivationTripletFlow). Per the nav-shell spec these screens don't get the
 // full TopRail — they collapse to exactly three elements: progress
 // indicator · sound toggle · exit action.

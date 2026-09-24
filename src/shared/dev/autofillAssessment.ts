@@ -17,11 +17,8 @@ function shuffled<T>(items: T[]): T[] {
   return copy;
 }
 
-/** Dev-only helper: answers every remaining plain Likert question (RIASEC +
- * Big Five, minus whatever's been pulled into pairs — see
- * buildDisplaySequence.ts) with a random 1-5 value, every pair (middle's
- * Dilemma/Scenario subset, or junior's whole test if this profile somehow
- * still hits this page) by picking a random option, then the motivation
+/** Dev-only helper: answers every active Likert question (MI for junior,
+ * RIASEC for middle/senior), every remaining RIASEC pair for middle, then the motivation
  * phase — Harter pairs for junior/middle, MOST/LEAST triplets for senior
  * (app/routers/motivation_pairs.py vs motivation.py) — so the whole test
  * completes in three requests instead of up to ~278 clicks. */

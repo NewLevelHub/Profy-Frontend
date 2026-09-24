@@ -29,7 +29,6 @@ import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
 import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
 import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
-import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
 import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
 import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
@@ -129,7 +128,9 @@ export const router = createBrowserRouter([
       // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
       { path: '/assessment/goal', element: <GoalSelectionPage /> },
       { path: '/assessment', element: <AssessmentPage /> },
-      { path: '/assessment/pairs', element: <PairAssessmentPage /> },
+      // Backward-compatible redirect for sessions opened before the unified
+      // Likert/pair assessment flow replaced the junior-only pairs page.
+      { path: '/assessment/pairs', element: <Navigate to="/assessment" replace /> },
       { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
       { path: '/assessment/rest', element: <RestStopPage /> },
       { path: '/assessment/loading', element: <ResultLoadingPage /> },

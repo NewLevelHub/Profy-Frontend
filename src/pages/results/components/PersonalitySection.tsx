@@ -8,10 +8,12 @@ interface PersonalitySectionProps {
   note: string;
 }
 
-// Always exactly 5 items, one per Big Five domain (contract §4.3a) — unlike
-// StrengthCardsSection/ThinkingStyleSection, this never renders empty.
+// Kept for historical reports with a complete Big Five profile. New reports
+// return no notes, so the retired section must not leave an empty heading.
 export function PersonalitySection({ notes, note }: PersonalitySectionProps) {
   const { t } = useTranslation('results');
+  if (notes.length === 0) return null;
+
   return (
     <section aria-label={t('legacy.personalityTitle')}>
       <SectionHeading emoji="🌟" title={t('legacy.personalityTitle')} />

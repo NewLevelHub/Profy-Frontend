@@ -300,11 +300,11 @@ export interface AnalysisResultResponse {
   strengths: string[];
   weaknesses: string[];
   development_plan: DevelopmentPlan;
-  big_five: Record<BigFiveDomain, number>;
+  big_five: Partial<Record<BigFiveDomain, number>>;
   thinking_style: ThinkingStyle;
   personality_highlights: string[];
-  personality_profile: Record<PersonalityTrait, number>;
-  personality_notes: Record<PersonalityTrait, string>;
+  personality_profile: Partial<Record<PersonalityTrait, number>>;
+  personality_notes: Partial<Record<PersonalityTrait, string>>;
   motivation: Record<MotivationCategory, number>;
   motivation_top: MotivationCategory[];
   motivation_highlights: string[];
@@ -340,10 +340,9 @@ export interface ThinkingStyleNote {
 
 export type InterestLevel = 'low' | 'medium' | 'high';
 
-// One card per Big Five domain, always exactly 5, same order, for every
-// age group/instrument (Big Five is answered identically by all three —
-// only the wording differs: junior gets simplified phrasing). Deterministic
-// server text, not LLM-generated — see frontend-result-api-contract.md §4.3a.
+// Historical reports with a complete Big Five response contain one card per
+// domain (exactly five, stable order). New reports return [] because Big Five
+// is retired from the active test pool. Deterministic server text, not LLM.
 // `level` was added alongside interest_map's field of the same name — how
 // pronounced this trait is, same opaque low/medium/high enum, no raw score.
 export interface StudentPersonalityNote {
