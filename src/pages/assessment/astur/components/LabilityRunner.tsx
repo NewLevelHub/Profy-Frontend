@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Text } from '@/shared/ui/typography/Text';
+import { playClick } from '@/shared/lib/sounds';
+import { cn } from '@/shared/lib/cn';
 import type { AsturContentSubtest, AsturItemAnswer, AsturLabilityItem } from '@/shared/types';
 import { useCountdown } from '../hooks/useCountdown';
+import { LabilityChoiceGlyph, resolveLabilityGlyph } from './LabilityChoiceGlyph';
 
 interface LabilityRunnerProps {
   subtest: AsturContentSubtest;
@@ -78,6 +81,11 @@ const OPTION_LABEL: Record<string, string> = {
  * the buttons lock the instant a choice is made. A command left unanswered
  * when its time runs out is sent as an explicit skip, never as a blank
  * "answer". The whole block goes to the server in one idempotent submit.
+ *
+ * PRO-407: options render as large visual choice tiles (circle/square glyphs,
+ * ±/✓/✗ marks, big digits/words) instead of ghost text buttons — the
+ * instruction literally says «обведите кружок», so the affordance should look
+ * like a shape you tap, not a label you read twice.
  */
 export function LabilityRunner({
   subtest,
@@ -152,21 +160,43 @@ export function LabilityRunner({
           </Text>
         </div>
 
-        <Text variant="body-lg" className="font-semibold text-primary">
+        <Text variant="body-lg" className="font-semibold text-primary text-balance">
           {item.instruction}
         </Text>
 
-        <div key={index} className="flex items-center gap-3">
-          {item.options.map((option) => (
-            <Button
-              key={option}
-              variant="ghost"
-              disabled={locked}
-              onClick={() => commit({ status: 'answered', value: option }, itemLimitMs - remainingMs)}
-            >
-              {OPTION_LABEL[option] ?? option}
-            </Button>
-          ))}
+        <div
+          key={index}
+          className="grid grid-cols-2 gap-3 sm:gap-4"
+          style={{ animation: 'scale-in 0.18s ease both' }}
+        >
+          {item.options.map((option) => {
+            const glyph = resolveLabilityGlyph(option, item.answer_format);
+            const showCaption = glyph.kind !== 'digit' && glyph.kind !== 'word';
+            const label = OPTION_LABEL[option] ?? option;
+            return (
+              <button
+                key={option}
+                type="button"
+                disabled={locked}
+                aria-label={label}
+                onClick={() => {
+                  playClick();
+                  commit({ status: 'answered', value: option }, itemLimitMs - remainingMs);
+                }}
+                className={cn(
+                  'press-scale flex min-h-[132px] flex-col items-center justify-center gap-3 rounded-[18px]',
+                  'border-2 border-brand bg-transparent px-4 py-5 text-brand',
+                  'transition-colors hover:bg-brand-subtle',
+                  'focus:outline-none focus:ring-2 focus:ring-offset-1',
+                  'focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]',
+                  'disabled:cursor-not-allowed disabled:opacity-40',
+                )}
+              >
+                <LabilityChoiceGlyph glyph={glyph} />
+                {showCaption && <span className="text-caption font-semibold text-brand">{label}</span>}
+              </button>
+            );
+          })}
         </div>
 
         {submitError && (
