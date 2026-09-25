@@ -45,7 +45,6 @@ export default function ResultPrintPage() {
     hasCompletedAssessment,
     ageGroup,
     goal,
-    isJunior,
     profile,
     print,
     back,
@@ -71,7 +70,6 @@ export default function ResultPrintPage() {
             profile={profile}
             ageGroup={ageGroup}
             goal={goal}
-            isJunior={isJunior}
           />
         )}
       </div>

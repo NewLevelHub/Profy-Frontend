@@ -50,12 +50,18 @@ API — см. §9.
 (`results:completedPending`); после генерации с `pending_review` ученик
 уходит на `/profile`. Дизайн — `docs/psychologist-review-frontend-plan.md`.
 
-## 2. Возрастные ветки assessment
+## 2. Активный assessment flow
 
-- **junior (6–9)**: MI + Big Five + Harter motivation pairs.
-  RIASEC и career matching не используются вообще.
-- **middle (10–13)**: RIASEC + Big Five + Harter motivation pairs.
-- **senior (14–18)**: RIASEC + Big Five + MOST/LEAST motivation triplets.
+- Для новых прохождений используется единый flow для учеников 14–18 лет:
+  RIASEC + MOST/LEAST motivation triplets.
+- Формы junior/middle, MI и Harter могут встречаться в legacy API-типах и
+  исторических данных, но больше не являются точками входа нового frontend flow.
+
+Big Five исключён из активного пула для новых прохождений. Исторические
+результаты с полностью пройденным Big Five продолжают отображаться. Поэтому
+`personality_notes` содержит либо ровно 5 элементов для legacy-результата,
+либо `[]`; `personality_note` в новом результате равен `""`, а
+`thinking_style_notes` — `[]`. Пустые retired-секции frontend не отображает.
 
 Age group сам по себе **не часть ответа** и не должен использоваться
 фронтом для ветвления — см. §3 про `interest_instrument`.

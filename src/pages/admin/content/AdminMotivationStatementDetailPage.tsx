@@ -26,29 +26,26 @@ import type {
   MotivationCategory,
 } from '@/shared/types';
 
-const EDITABLE_KEYS = ['category', 'text', 'text_junior'] as const satisfies readonly (keyof AdminMotivationStatementUpdateRequest)[];
+const EDITABLE_KEYS = ['category', 'text'] as const satisfies readonly (keyof AdminMotivationStatementUpdateRequest)[];
 
 /** See `AdminQuestionDetailPage.LOCALIZED_KEYS` — kept in sync with
  *  `app/models/motivation.py::LOCALIZED_FIELDS` by hand. */
-const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>(['text', 'text_junior']);
+const LOCALIZED_KEYS = new Set<(typeof EDITABLE_KEYS)[number]>(['text']);
 
 const FIELD_LABELS: Record<(typeof EDITABLE_KEYS)[number], string> = {
   category: 'admin:statements.field.category',
   text: 'admin:statements.field.text',
-  text_junior: 'admin:statements.field.textJunior',
 };
 
 interface FormState {
   category: MotivationCategory;
   text: string;
-  text_junior: string;
 }
 
 function toFormState(detail: AdminMotivationStatementDetail, locale: Locale): FormState {
   return {
     category: detail.category,
     text: detail.text[locale] ?? '',
-    text_junior: detail.text_junior?.[locale] ?? '',
   };
 }
 
@@ -114,7 +111,6 @@ export default function AdminMotivationStatementDetailPage() {
     toForm: (d) => toFormState(d, locale),
     onSave: async (nextPatch) => {
       const wire = { ...nextPatch, locale } as AdminMotivationStatementUpdateRequest;
-      if ('text_junior' in wire) wire.text_junior = form!.text_junior.trim() || null;
       const updated = await adminApi.updateMotivationStatement(statementId!, wire);
       setDetail(updated);
       return updated;
@@ -189,7 +185,7 @@ export default function AdminMotivationStatementDetailPage() {
         description={t('statements.contentDescription')}
       >
         <AdminField
-          label={t('motivationPairs.col.category')}
+          label={t('contentFields.category')}
           locked={locked.has('category')}
           revert={fieldRevert('category')}
           lockReason={LOCK_REASON}
@@ -230,24 +226,6 @@ export default function AdminMotivationStatementDetailPage() {
               className={cn(ADMIN_INPUT, 'min-h-[64px] resize-y')}
               value={form.text}
               onChange={(e) => setField('text', e.target.value)}
-            />
-          )}
-        </AdminField>
-
-        <AdminField
-          label={t('statements.field.textJuniorLabel')}
-          locked={locked.has('text_junior')}
-          revert={fieldRevert('text_junior')}
-          lockReason={LOCK_REASON}
-          hint={t('statements.juniorHint')}
-        >
-          {({ id, describedBy }) => (
-            <textarea
-              id={id}
-              aria-describedby={describedBy}
-              className={cn(ADMIN_INPUT, 'min-h-[64px] resize-y')}
-              value={form.text_junior}
-              onChange={(e) => setField('text_junior', e.target.value)}
             />
           )}
         </AdminField>

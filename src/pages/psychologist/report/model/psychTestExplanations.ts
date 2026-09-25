@@ -179,42 +179,23 @@ export function getBelbinRoles(t: TFunction): Record<string, ScaleDetailInfo> {
 }
 
 /* ==========================================================================
-   6. АСТУР (Интеллект и умственное развитие)
+   6. АСТУР — когнитивные навыки (учебные задания), PRO-427
    ========================================================================== */
 
 export function getAsturMethodology(t: TFunction): TestMethodologyInfo {
   return t('psychReport:astur.methodology', { returnObjects: true }) as unknown as TestMethodologyInfo;
 }
 
+/** Skill texts for the АСТУР section; `normsExplanation` carries how the
+ *  skill is scored (the i18n `scoring` field) — the test has no norms. */
 export function getAsturSubtests(t: TFunction): Record<string, ScaleDetailInfo> {
   const raw = t('psychReport:astur.subtests', { returnObjects: true }) as Record<
     string,
-    Omit<ScaleDetailInfo, 'key'>
+    Omit<ScaleDetailInfo, 'key' | 'normsExplanation'> & { scoring: string }
   >;
   const result: Record<string, ScaleDetailInfo> = {};
-  for (const [k, v] of Object.entries(raw || {})) {
-    result[k] = { ...v, key: k };
+  for (const [k, { scoring, ...v }] of Object.entries(raw || {})) {
+    result[k] = { ...v, key: k, normsExplanation: scoring };
   }
   return result;
-}
-
-export function getAsturSpnGroups(
-  t: TFunction,
-): Record<number, { label: string; meaning: string; advice: string }> {
-  return t('psychReport:astur.spnGroups', { returnObjects: true }) as unknown as Record<
-    number,
-    { label: string; meaning: string; advice: string }
-  >;
-}
-
-export function getAsturLabilityNote(t: TFunction): {
-  title: string;
-  fatigueDetected: string;
-  stable: string;
-} {
-  return t('psychReport:astur.lability', { returnObjects: true }) as unknown as {
-    title: string;
-    fatigueDetected: string;
-    stable: string;
-  };
 }

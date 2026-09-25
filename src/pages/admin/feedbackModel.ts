@@ -1,6 +1,5 @@
 import { REPORT_SECTIONS } from '@/shared/api/feedback';
-import { AGE_GROUP_RANGE_KEYS, AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
-import type { AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
+import type { AdminFeedbackStatsResponse } from '@/shared/types';
 
 /**
  * Labels and shapes for the feedback summary.
@@ -67,16 +66,6 @@ export function sectionShortLabel(key: string, t: (key: string) => string): stri
   return labelKey ? t(labelKey) : sectionLabel(key, t);
 }
 
-/** Tiers in age order, not the alphabetical order the API returns them in. */
-export const AGE_ORDER: AgeGroup[] = ['junior', 'middle', 'senior'];
-
-/** Mirrors `compute_age_group` in app/models/profile.py. */
-export const AGE_RANGE_HINT = AGE_GROUP_RANGE_KEYS;
-
-export function ageLabel(key: string): string {
-  return AGE_TIER_LABELS[key as AgeGroup] ?? key;
-}
-
 /** A/B/C are the report scenarios the goal maps onto — opaque on their own. */
 export const SCENARIO_LABELS: Record<string, string> = {
   A: 'admin:feedback.goal.A',
@@ -97,7 +86,7 @@ export interface Bucket {
 
 /** One `FeedbackBreakdownItem` from the API, labelled for display. */
 export function toBuckets(
-  rows: AdminFeedbackStatsResponse['by_age_group'],
+  rows: AdminFeedbackStatsResponse['by_scenario'],
   labelOf: (key: string) => string = (key) => key,
 ): Bucket[] {
   return rows.map((row) => ({

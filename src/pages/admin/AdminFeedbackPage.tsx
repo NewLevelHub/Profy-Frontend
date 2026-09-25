@@ -14,22 +14,19 @@ import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_BUTTON, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { FeedbackOverview } from './components/FeedbackOverview';
 import {
-  AGE_ORDER,
-  AGE_RANGE_HINT,
   HIGH_SCORE_MIN,
   LOW_SCORE_MAX,
   MAX_SCORE,
-  ageLabel,
   scenarioLabel,
   scoreTone,
   sectionLabel,
   sectionShortLabel,
 } from './feedbackModel';
-import type { AdminFeedbackListItem, AdminFeedbackStatsResponse, AgeGroup } from '@/shared/types';
+import type { AdminFeedbackListItem, AdminFeedbackStatsResponse } from '@/shared/types';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 const PAGE_SIZE = 25;
-const FILTER_KEYS = ['search', 'score', 'age', 'section', 'comment'] as const;
+const FILTER_KEYS = ['search', 'score', 'section', 'comment'] as const;
 /** Поля сортировки, которые принимает эндпоинт — незнакомое значение
  *  в URL игнорируется, а не улетает на сервер за 422. */
 const SORTABLE_KEYS = ['created_at', 'relevance_score'] as const;
@@ -108,8 +105,8 @@ export default function AdminFeedbackPage() {
   const { page, values, sort, setSort, setFilter, setPage, clearFilters } =
     useAdminListParams(FILTER_KEYS, SORTABLE_KEYS);
 
-  const { search, score, age, section, comment } = values;
-  const hasFilters = Boolean(search || score || age || section || comment);
+  const { search, score, section, comment } = values;
+  const hasFilters = Boolean(search || score || section || comment);
 
   const [items, setItems] = useState<AdminFeedbackListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -123,12 +120,11 @@ export default function AdminFeedbackPage() {
   const filters: AdminFeedbackFilterParams = useMemo(
     () => ({
       search: search || undefined,
-      age_group: (age as AgeGroup) || undefined,
       section: section || undefined,
       has_comment: comment ? comment === 'yes' : undefined,
       ...scoreBounds(score),
     }),
-    [search, score, age, section, comment],
+    [search, score, section, comment],
   );
 
   useEffect(() => {
@@ -176,21 +172,6 @@ export default function AdminFeedbackPage() {
       cancelled = true;
     };
   }, [filters, page, score, sort?.key, sort?.order, reloadToken, t]);
-
-  /**
-   * Счётчики в подписях — только пока фильтр по возрасту не выбран.
-   *
-   * `stats` считается по текущим фильтрам, поэтому с выбранным возрастом у
-   * остальных вариантов было бы «(0)» — не «таких нет», а «мы их отфильтровали».
-   */
-  const ageOptions = useMemo(
-    () =>
-      AGE_ORDER.map((tier) => {
-        const row = age ? undefined : stats?.by_age_group.find((entry) => entry.key === tier);
-        return { value: tier, label: row ? `${ageLabel(tier)} (${row.count})` : ageLabel(tier) };
-      }),
-    [stats, age],
-  );
 
   const sectionOptions = useMemo(() => {
     const known = REPORT_SECTIONS.map((s) => s.value);
@@ -293,19 +274,13 @@ export default function AdminFeedbackPage() {
         t('feedback.col.contextHint'),
       cell: (item) => {
         const head: string[] = [];
-        if (item.age_group) head.push(ageLabel(item.age_group));
         if (item.scenario) head.push(t('feedback.scenario', { scenario: item.scenario }));
         if (head.length === 0 && !item.top_direction_name) {
           return <span className={ADMIN_META}>—</span>;
         }
-        // Расшифровка «Senior» и «сценарий C» — в подсказке: в ячейке они
-        // должны занимать одну строку, а без расшифровки это просто буквы.
-        const hint = [
-          item.age_group ? t(AGE_RANGE_HINT[item.age_group as AgeGroup]) : null,
-          item.scenario ? t(scenarioLabel(item.scenario)) : null,
-        ]
-          .filter(Boolean)
-          .join(' · ');
+        // Расшифровка «сценарий C» — в подсказке: в ячейке сценарий должен
+        // занимать одну строку, а без расшифровки это просто буква.
+        const hint = item.scenario ? t(scenarioLabel(item.scenario)) : '';
         return (
           <div className="min-w-0">
             {head.length > 0 && (
@@ -389,7 +364,6 @@ export default function AdminFeedbackPage() {
               { value: '1', label: '1' },
             ],
           },
-          { key: 'age', label: t('common.col.age'), value: age, options: ageOptions },
           { key: 'section', label: t('feedback.col.section'), value: section, options: sectionOptions },
           {
             key: 'comment',

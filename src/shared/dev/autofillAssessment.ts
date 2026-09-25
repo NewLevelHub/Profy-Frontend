@@ -1,14 +1,14 @@
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
-import { motivationPairsApi } from '@/shared/api/motivationPairs';
 import { pairsApi } from '@/shared/api/pairs';
 import { belbinApi } from '@/shared/api/belbin';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
 import type {
-  AgeGroup,
   AsturContentSubtest,
+  AsturItemAnswer,
+  AsturSubtestKey,
   Instrument,
   Question,
   SubmitAsturSubtestPayload,
@@ -56,10 +56,9 @@ function shuffled<T>(items: T[]): T[] {
  * Big Five + PRO-338's Eysenck/Elers/Boyko/Kondash/ДДО-abilities additions,
  * minus whatever's been pulled into pairs — see buildDisplaySequence.ts)
  * with a random value valid for THAT question's own instrument (see
- * randomValueForInstrument above — RIASEC/Big Five/MI/ДДО-pairs get 1-5,
- * everything else gets its own real range), then every pair (middle's
- * Dilemma/Scenario subset, or junior's whole test if this profile somehow
- * still hits this page) by picking a random option — the main battery only,
+ * randomValueForInstrument above — RIASEC/Big Five/ДДО-pairs get 1-5,
+ * everything else gets its own real range), then every ДДО pair by picking
+ * a random option — the main battery only,
  * stopping right before motivation. Split out of `autofillAssessment` so a
  * caller can land the tester ON the motivation screen (e.g. to test THAT
  * screen by hand) instead of racing straight through it. */
@@ -87,45 +86,27 @@ export async function autofillMainBattery(assessmentId: string): Promise<void> {
   }
 }
 
-/** Dev-only helper: fills every remaining Likert/pair question, then stops —
- * landing the caller right at /assessment/motivation ("Что тебя драйвит")
- * instead of racing through it, so that block can be tested by hand. */
-export const autofillUntilMotivation = autofillMainBattery;
-
 /** Dev-only helper: `autofillMainBattery` plus motivation plus Belbin —
  * everything ahead of АСТУР — so a caller can land the tester ON the
  * АСТУР flow itself (e.g. to test IT by hand, or after adding a new
  * subtest) instead of racing through it too. Split out of
  * `autofillAssessment` the same way `autofillMainBattery` was split out of
  * this originally (see its own comment). */
-export async function autofillToAstur(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
+export async function autofillToAstur(assessmentId: string): Promise<void> {
   await autofillMainBattery(assessmentId);
 
-  if (ageGroup === 'senior') {
-    const triplets = await motivationApi.getTriplets(assessmentId);
-    if (triplets.length > 0) {
-      await motivationApi.submitAnswers(assessmentId, {
-        answers: triplets.map(t => {
-          const [most, least] = shuffled(t.statements);
-          return {
-            triplet_index: t.triplet_index,
-            most_statement_id: most.id,
-            least_statement_id: least.id,
-          };
-        }),
-      });
-    }
-  } else {
-    const motivationPairs = await motivationPairsApi.getPairs(assessmentId);
-    if (motivationPairs.length > 0) {
-      await motivationPairsApi.submitAnswers(assessmentId, {
-        answers: motivationPairs.map(p => ({
-          pair_index: p.pair_index,
-          chosen_side: Math.random() < 0.5 ? 'a' : 'b',
-          intensity: Math.random() < 0.5 ? 'high' : 'medium',
-        })),
-      });
-    }
+  const triplets = await motivationApi.getTriplets(assessmentId);
+  if (triplets.length > 0) {
+    await motivationApi.submitAnswers(assessmentId, {
+      answers: triplets.map(t => {
+        const [most, least] = shuffled(t.statements);
+        return {
+          triplet_index: t.triplet_index,
+          most_statement_id: most.id,
+          least_statement_id: least.id,
+        };
+      }),
+    });
   }
 
   try {
@@ -146,70 +127,53 @@ export async function autofillToAstur(assessmentId: string, ageGroup: AgeGroup |
   }
 }
 
-/**
- * The payload one АСТУР subtest expects, filled with structurally valid
- * answers. THE single place that builds it — both dev autofills (the whole
- * test here, one block in `useAsturAssessment`) go through this, because
- * they drifted apart once already: this file kept keying answers by the
- * content-bank item id while the backend has always wanted 1-based item
- * positions, so «⚡ Автозаполнить» 422'd on АСТУР, swallowed the error and
- * dropped the tester on the result screen of an unfinished test (PRO-397).
- *
- * Keys are "1".."N" by position and `elapsed_ms` goes only to lability —
- * `astur_service._validate_item_keys` / `submit_subtest` reject anything else.
- */
-export function buildAsturSubtestPayload(subtest: AsturContentSubtest): SubmitAsturSubtestPayload {
-  const answers: Record<string, unknown> = {};
-  const elapsed_ms: Record<string, number> = {};
+/** Dev-only: a shape-valid (not necessarily correct) АСТУР answer per item. */
+function asturAutofillAnswer(subtestKey: AsturSubtestKey, item: Record<string, unknown>): unknown {
+  switch (subtestKey) {
+    case 'logical_schemas':
+      return item.concepts;
+    case 'classification':
+      return (item.words as string[]).slice(0, 2);
+    case 'numeric_series':
+      return [1, 2];
+    case 'geometric_figures':
+      return 'А';
+    case 'generalization':
+      return 'ответ';
+    default:
+      return (item.options as string[] | undefined)?.[0] ?? '1';
+  }
+}
 
+/** Dev-only: a whole subtest answered with shape-valid values. */
+export function asturAutofillPayload(subtest: AsturContentSubtest): Omit<SubmitAsturSubtestPayload, 'run_id'> {
+  const answers: Record<string, AsturItemAnswer> = {};
+  const elapsed: Record<string, number> = {};
   subtest.items.forEach((item, i) => {
-    const key = String(i + 1);
-    const it = item as {
-      options?: string[];
-      concepts?: string[];
-      words?: string[];
+    answers[String(i + 1)] = {
+      status: 'answered',
+      value: asturAutofillAnswer(subtest.key, item as unknown as Record<string, unknown>),
     };
-
-    if (subtest.key === 'lability') {
-      answers[key] = it.options?.[0] ?? '1';
-      elapsed_ms[key] = 500;
-    } else if (subtest.key === 'logical_schemas') {
-      answers[key] = [...(it.concepts ?? [])];
-    } else if (subtest.key === 'classification') {
-      answers[key] = [it.words?.[0] ?? '1', it.words?.[1] ?? '2'];
-    } else if (subtest.key === 'numeric_series') {
-      answers[key] = [1, 2];
-    } else if (subtest.key === 'generalization') {
-      answers[key] = 'тест';
-    } else if (subtest.key === 'geometric_figures') {
-      // No `options` on the wire for this subtest (static image assets,
-      // addressed by position — see FigureAssemblyQuestion); any letter is a
-      // structurally valid dev-autofill answer.
-      answers[key] = 'А';
-    } else {
-      // awareness | analogies
-      answers[key] = it.options?.[0] ?? '1';
-    }
+    elapsed[String(i + 1)] = 300;
   });
-
-  return subtest.key === 'lability' ? { answers, elapsed_ms } : { answers };
+  return subtest.key === 'lability' ? { answers, elapsed_ms: elapsed } : { answers };
 }
 
 /** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
  * completes in a handful of requests instead of up to ~278 clicks.
  *
- * АСТУР failures are NOT swallowed here (Belbin's still are — resubmitting a
- * finished Belbin is a normal no-op): the report can't be generated without
- * АСТУР, so a silent failure here means the caller navigates to the result
- * screen of an unfinished test. Let it surface as "не удалось автозаполнить". */
-export async function autofillAssessment(assessmentId: string, ageGroup: AgeGroup | undefined): Promise<void> {
-  await autofillToAstur(assessmentId, ageGroup);
+ * АСТУР failures are NOT swallowed here (PRO-397): the report can't be
+ * generated without АСТУР, so a silent failure sends the caller to the result
+ * screen of an unfinished test. Let it surface as "не удалось автозаполнить".
+ * Already-submitted subtests are skipped via `run.submitted_subtests`, so a
+ * repeat click is still a no-op rather than an error. */
+export async function autofillAssessment(assessmentId: string): Promise<void> {
+  await autofillToAstur(assessmentId);
 
-  const asturContent = await asturApi.getContent();
-  if (asturContent?.subtests?.length > 0) {
-    for (const st of asturContent.subtests) {
-      await asturApi.submitSubtest(assessmentId, st.number, buildAsturSubtestPayload(st));
-    }
-    useAssessmentStore.getState().setAsturCompleted(true);
+  const { run, content } = await asturApi.openAttempt(assessmentId);
+  for (const st of content.subtests.filter((s) => !run.submitted_subtests.includes(s.key))) {
+    await asturApi.startSubtest(assessmentId, st.number, run.run_id);
+    await asturApi.submitSubtest(assessmentId, st.number, { ...asturAutofillPayload(st), run_id: run.run_id });
   }
+  useAssessmentStore.getState().setAsturCompleted(true);
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -6,17 +6,28 @@ import { Spinner } from '@/shared/ui/Spinner';
 import { Text } from '@/shared/ui/typography/Text';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { useAssessmentJourneyProgress } from '../hooks/useAssessmentJourneyProgress';
 import { useAsturAssessment } from './hooks/useAsturAssessment';
 import { SubtestIntro } from './components/SubtestIntro';
 import { SubtestRunner } from './components/SubtestRunner';
 import { LabilityRunner } from './components/LabilityRunner';
 import { AsturDone } from './components/AsturDone';
+import { AsturCompleted } from './components/AsturCompleted';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 
-function blockIntroKey(assessmentId: string) {
-  return `profy-astur-block-intro-seen:${assessmentId}`;
+function blockIntroKey(scope: string) {
+  return `profy-astur-block-intro-seen:${scope}`;
+}
+
+function readIntroSeen(scope: string): boolean {
+  try {
+    return sessionStorage.getItem(blockIntroKey(scope)) === '1';
+  } catch {
+    return false;
+  }
 }
 
 export default function AsturPage() {
@@ -24,26 +35,15 @@ export default function AsturPage() {
   const navigate = useNavigate();
   const params = useParams<{ assessmentId: string }>();
   const storeAssessmentId = useAssessmentStore((s) => s.assessmentId);
-  const asturCompleted = useAssessmentStore((s) => s.asturCompleted);
   const effectiveAssessmentId = params.assessmentId || storeAssessmentId || '';
-
-  // One-time "let's begin" moment for the whole АСТУР block, matching the
-  // intro every other test block gets — only on a genuinely fresh start.
-  const [blockIntroSeen, setBlockIntroSeen] = useState(() => {
-    if (typeof sessionStorage === 'undefined' || !effectiveAssessmentId) return false;
-    return sessionStorage.getItem(blockIntroKey(effectiveAssessmentId)) === '1';
-  });
-
-  function handleStartBlockIntro() {
-    if (typeof sessionStorage !== 'undefined' && effectiveAssessmentId) {
-      sessionStorage.setItem(blockIntroKey(effectiveAssessmentId), '1');
-    }
-    setBlockIntroSeen(true);
-  }
 
   const {
     isLoading,
     loadError,
+    runId,
+    completedAt,
+    showCompleted,
+    isRetake,
     subtest,
     subtestIndex,
     subtestCount,
@@ -51,36 +51,48 @@ export default function AsturPage() {
     allDone,
     labilityItemLimitMs,
     exitConfirmOpen,
+    retakeConfirmOpen,
+    retaking,
     beginSubtest,
     completeSubtest,
     handleAutofill,
     handleExit,
     confirmExit,
     cancelExit,
+    openRetakeConfirm,
+    cancelRetake,
+    confirmRetake,
     submitting,
     submitError,
   } = useAsturAssessment(effectiveAssessmentId);
 
-  // Guards direct navigation back to an already-completed АСТУР test (e.g.
-  // browser back button); the in-flow completion instead lands on `allDone`
-  // and lets AsturDone own the transition, so this must not fire then.
-  useEffect(() => {
-    if (asturCompleted && !allDone && effectiveAssessmentId) {
-      navigate('/assessment/loading', { replace: true });
+  // One-time "let's begin" moment per attempt (a retake gets it again).
+  const introScope = runId ?? effectiveAssessmentId;
+  const [seenScopes, setSeenScopes] = useState<Set<string>>(() => new Set());
+  const blockIntroSeen = seenScopes.has(introScope) || readIntroSeen(introScope);
+
+  function handleStartBlockIntro() {
+    try {
+      sessionStorage.setItem(blockIntroKey(introScope), '1');
+    } catch {
+      // sessionStorage unavailable — the intro just shows again after a reload.
     }
-  }, [asturCompleted, allDone, effectiveAssessmentId, navigate]);
+    setSeenScopes((prev) => new Set(prev).add(introScope));
+  }
 
   const handleDoneContinue = useCallback(() => {
-    navigate('/assessment/loading');
-  }, [navigate]);
+    navigate(isRetake ? '/results' : afterBatteryRoute(effectiveAssessmentId));
+  }, [navigate, isRetake, effectiveAssessmentId]);
 
+  const ready = !isLoading && !loadError;
+  const running = ready && !showCompleted && !allDone && subtest;
   const headerTitle = subtestCount > 0
     ? t('rail.subtestOf', { current: Math.min(subtestIndex + 1, subtestCount), total: subtestCount })
     : t('rail.sectionAstur');
 
   const progress = useAssessmentJourneyProgress({
     asturFraction:
-      allDone || asturCompleted
+      allDone || showCompleted
         ? 1
         : !blockIntroSeen || subtestCount === 0
           ? 0
@@ -91,13 +103,23 @@ export default function AsturPage() {
   // own the screen and center themselves, so they render outside the
   // top-anchored PageContainer the running subtest uses — see BelbinPage for
   // the same split (PRO-397).
-  const showIntro = !isLoading && !loadError && !!subtest && stepPhase === 'instruction';
+  const showIntro = !!running && stepPhase === 'instruction';
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
       <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
+      <ConfirmDialog
+        open={retakeConfirmOpen}
+        title={t('astur.retake.confirmTitle')}
+        body={t('astur.retake.confirmBody')}
+        confirmLabel={retaking ? t('astur.retake.starting') : t('astur.retake.confirm')}
+        cancelLabel={t('astur.retake.cancel')}
+        confirming={retaking}
+        onConfirm={confirmRetake}
+        onCancel={cancelRetake}
+      />
 
-      {!allDone && (
+      {running && (
         <AssessmentRail
           title={headerTitle}
           sectionLabel={t('rail.sectionAstur')}
@@ -120,8 +142,15 @@ export default function AsturPage() {
         />
       )}
 
-      {showIntro && (subtestIndex > 0 || blockIntroSeen) && subtest && (
-        <SubtestIntro subtest={subtest} index={subtestIndex} count={subtestCount} onStart={beginSubtest} />
+      {showIntro && (subtestIndex > 0 || blockIntroSeen) && (
+        <>
+          <SubtestIntro subtest={subtest} index={subtestIndex} count={subtestCount} onStart={beginSubtest} />
+          {submitError && (
+            <Text variant="body-sm" className="text-danger text-center pb-8">
+              {submitError}
+            </Text>
+          )}
+        </>
       )}
 
       {!showIntro && (
@@ -138,26 +167,30 @@ export default function AsturPage() {
             </Text>
           )}
 
-          {!isLoading && !loadError && subtest && stepPhase === 'running' && subtest.key === 'lability' && (
+          {ready && showCompleted && (
+            <AsturCompleted completedAt={completedAt} onContinue={() => navigate('/results')} onRetake={openRetakeConfirm} />
+          )}
+
+          {running && stepPhase === 'running' && subtest.key === 'lability' && (
             <LabilityRunner
               subtest={subtest}
               itemLimitMs={labilityItemLimitMs}
               submitting={submitting}
               submitError={submitError}
-              onSubmit={(answers, elapsed_ms) => completeSubtest({ answers, elapsed_ms })}
+              onSubmit={completeSubtest}
             />
           )}
 
-          {!isLoading && !loadError && subtest && stepPhase === 'running' && subtest.key !== 'lability' && (
+          {running && stepPhase === 'running' && subtest.key !== 'lability' && (
             <SubtestRunner
               subtest={subtest}
               submitting={submitting}
               submitError={submitError}
-              onSubmit={(answers) => completeSubtest({ answers })}
+              onSubmit={completeSubtest}
             />
           )}
 
-          {!isLoading && !loadError && allDone && <AsturDone onContinue={handleDoneContinue} />}
+          {ready && allDone && <AsturDone isRetake={isRetake} onContinue={handleDoneContinue} />}
         </PageContainer>
       )}
     </div>
