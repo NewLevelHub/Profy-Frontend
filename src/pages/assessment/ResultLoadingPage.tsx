@@ -22,11 +22,12 @@ export default function ResultLoadingPage() {
   const setReport = useResultStore(s => s.setReport);
   const clearReport = useResultStore(s => s.clearReport);
 
-  // Diagnostic just finished — always route through the "here's what fits
-  // you" interstitial (step 5 of the onboarding→assessment journey) before
-  // the results report itself; its own goal-aware suggestion logic decides
-  // what to show (careers vs. self-understanding), so every goal lands here.
+  // Diagnostic just finished — when a published report exists, route through
+  // the "here's what fits you" interstitial before /results. When the report
+  // is still pending psychologist review, skip the waiting-room /results
+  // empty state (PRO-401) and send the student to profile instead.
   const postResultPath = '/assessment/goal-check';
+  const pendingReviewPath = '/profile';
 
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -43,12 +44,15 @@ export default function ResultLoadingPage() {
         // Tag with the locale the backend just served it in (the api
         // interceptor sends this same value as Accept-Language). Without a
         // real tag, useResults treats the report as matching *any* locale and
-        // never re-fetches on a language switch. A report still waiting for
-        // psychologist review isn't stored — /results shows the waiting state.
-        // Clear any leftover report from a previous attempt first (PRO-337).
-        if (isPendingReview(result)) clearReport();
-        else setReport(result, useLocaleStore.getState().locale);
-        navigate('/results', { replace: true });
+        // never re-fetches on a language switch. Clear leftover report from a
+        // previous attempt first (PRO-337). Pending review → profile (PRO-401).
+        if (isPendingReview(result)) {
+          clearReport();
+          navigate(pendingReviewPath, { replace: true });
+        } else {
+          setReport(result, useLocaleStore.getState().locale);
+          navigate('/results', { replace: true });
+        }
       }).catch(() => navigate('/results', { replace: true }));
       return;
     }
@@ -65,10 +69,10 @@ export default function ResultLoadingPage() {
           // file, same as other final-completion moments.
           playBlockFinishAudio(1, 1);
           if (isPendingReview(result)) {
-            // Nothing to suggest on goal-check without a report — go straight
-            // to /results, which shows the "psychologist is reviewing" state.
+            // Nothing to suggest on goal-check without a report — and no
+            // waiting-room on /results (PRO-401). Profile is the next useful step.
             clearReport();
-            navigate('/results', { replace: true });
+            navigate(pendingReviewPath, { replace: true });
           } else {
             setReport(result, useLocaleStore.getState().locale);
             navigate(postResultPath, { replace: true });
@@ -84,7 +88,7 @@ export default function ResultLoadingPage() {
               playBlockFinishAudio(1, 1);
               if (isPendingReview(existing)) {
                 clearReport();
-                navigate('/results', { replace: true });
+                navigate(pendingReviewPath, { replace: true });
               } else {
                 setReport(existing, useLocaleStore.getState().locale);
                 navigate(postResultPath, { replace: true });

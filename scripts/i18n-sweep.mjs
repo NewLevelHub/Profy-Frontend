@@ -70,6 +70,7 @@ const ALLOW = [
   ['src/pages/assessment/astur/components/HierarchyDragQuestion.tsx', /aria-label=\{`\$\{concept\}, позиция \$\{position \+ 1\}`\}/, 'ASTUR hierarchy - ARIA label'],
   ['src/pages/assessment/astur/components/LabilityRunner.tsx', /кружок: 'Кружок'|квадрат: 'Квадрат'|плюс: 'Плюс'|минус: 'Минус'|галочка: 'Галочка \(✓\)'|крестик: 'Крестик \(✗\)'|да: 'Да'|нет: 'Нет'|выше: 'Выше'|ниже: 'Ниже'/, 'ASTUR Lability options - canonical Cyrillic for backend matching'],
   ['src/shared/dev/autofillAssessment.ts', /return 'А';|return 'ответ';/, 'ASTUR dev autofill dummy answers (never shown)'],
+  ['src/pages/assessment/astur/hooks/useAsturAssessment.ts', /answers\[(?:it\.id|key)\] = '(?:А|тест)';/, 'ASTUR autofill dummy values, never rendered as UI copy'],
 ];
 
 function isExcluded(rel) {

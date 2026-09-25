@@ -45,9 +45,10 @@ API — см. §9.
 в `src/shared/types/index.ts`). `resultApi` пропускает этот конверт мимо
 `legacy_result_shape`-проверки (`isPendingReview` в
 `src/shared/api/result.ts`), `useResults` не кладёт его в стор, опрашивает
-эндпоинт раз в минуту и возвращает `isPendingReview`, а `ResultsPage`
-показывает экран ожидания (`results:pendingReview`). Дизайн —
-`docs/psychologist-review-frontend-plan.md`.
+эндпоинт раз в минуту и возвращает `isPendingReview`. `ResultsPage` больше
+не показывает экран ожидания (PRO-401) — вместо него карточка «тест пройден»
+(`results:completedPending`); после генерации с `pending_review` ученик
+уходит на `/profile`. Дизайн — `docs/psychologist-review-frontend-plan.md`.
 
 ## 2. Активный assessment flow
 

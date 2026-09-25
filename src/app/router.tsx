@@ -141,34 +141,41 @@ export const router = createBrowserRouter([
       {
         element: <RequireAdmin />,
         children: [
-          { path: '/admin', element: <Navigate to="/admin/users" replace /> },
           {
-            // Persistent admin chrome (section rail) for every admin page
-            element: <AdminLayout />,
+            // Same AppLayout shell as psychologist (TopRail: brand · nav ·
+            // language · theme · logout). Admin section destinations stay in
+            // AdminLayout's side rail — PRO-421 / PRO-391.
+            element: <AppLayout />,
             children: [
-              { path: '/admin/users', element: <AdminUsersPage /> },
-              { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-              { path: '/admin/feedback', element: <AdminFeedbackPage /> },
-              { path: '/admin/universities', element: <AdminUniversitiesPage /> },
-              { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
-              { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
+              { path: '/admin', element: <Navigate to="/admin/users" replace /> },
               {
-                path: '/admin/content',
-                element: <AdminContentLayout />,
+                element: <AdminLayout />,
                 children: [
-                  { index: true, element: <Navigate to="/admin/content/questions" replace /> },
-                  { path: 'questions', element: <AdminQuestionsPage /> },
-                  { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
-                  { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
-                  { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
-                  { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
-                  { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
-                  { path: 'directions', element: <AdminDirectionsPage /> },
-                  { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
-                  { path: 'belbin', element: <AdminBelbinEditorPage /> },
-                  { path: 'tests', element: <AdminAsturVersionsPage /> },
-                  { path: 'tests/versions/:versionId', element: <AdminAsturVersionPage /> },
-                  { path: 'tests/versions/:versionId/analytics', element: <AdminAsturAnalyticsPage /> },
+                  { path: '/admin/users', element: <AdminUsersPage /> },
+                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                  { path: '/admin/feedback', element: <AdminFeedbackPage /> },
+                  { path: '/admin/universities', element: <AdminUniversitiesPage /> },
+                  { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
+                  { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
+                  {
+                    path: '/admin/content',
+                    element: <AdminContentLayout />,
+                    children: [
+                      { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                      { path: 'questions', element: <AdminQuestionsPage /> },
+                      { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
+                      { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
+                      { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
+                      { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
+                      { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
+                      { path: 'directions', element: <AdminDirectionsPage /> },
+                      { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                      { path: 'belbin', element: <AdminBelbinEditorPage /> },
+                      { path: 'tests', element: <AdminAsturVersionsPage /> },
+                      { path: 'tests/versions/:versionId', element: <AdminAsturVersionPage /> },
+                      { path: 'tests/versions/:versionId/analytics', element: <AdminAsturAnalyticsPage /> },
+                    ],
+                  },
                 ],
               },
             ],

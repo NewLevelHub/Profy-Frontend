@@ -1239,6 +1239,8 @@ export interface PsychologistAvailableStudentItem {
   profile_name: string | null;
   age: number | null;
   has_pending_review: boolean;
+  /** At least one completed assessment — claim CTA only when true (PRO-402). */
+  has_completed_assessment: boolean;
 }
 
 export interface PsychologistAssessmentSummary {

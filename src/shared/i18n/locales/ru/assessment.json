@@ -65,7 +65,12 @@
     "itemCount_few": "{{count}} вопроса",
     "itemCount_many": "{{count}} вопросов",
     "itemCount_other": "{{count}} вопросов",
+    "taskCount_one": "{{count}} задание",
+    "taskCount_few": "{{count}} задания",
+    "taskCount_many": "{{count}} заданий",
+    "taskCount_other": "{{count}} заданий",
     "durationMin": "~{{count}} мин",
+    "durationExactMin": "{{count}} мин.",
     "duration2min": "~2 мин",
     "diagnostic": {
       "kicker": "Диагностика",
@@ -312,6 +317,13 @@
     "increase": "Увеличить «{{label}}»"
   },
   "astur": {
+    "subtest": {
+      "next": "Далее",
+      "timeUp": "Время вышло — переходим дальше",
+      "nextBlocked": "Ответь на все вопросы на этой странице, чтобы продолжить",
+      "nextBlockedTimed": "Ответь на все вопросы на этой странице или дождись конца таймера",
+      "pageOf": "Страница {{current}} из {{total}} · задания {{from}}–{{to}} из {{itemTotal}}"
+    },
     "subtestOf": "Субтест {{index}} из {{count}}",
     "tasksCount": "{{count}} заданий",
     "minutesShort": "{{min}} мин.",
@@ -325,6 +337,8 @@
     "numericPairFirst": "1-е число",
     "numericPairSecond": "2-е число",
     "figureAssemblyPrompt": "Из каких частей можно без пропусков и остатка собрать фигуру-эталон?",
+    "figureAssemblyTarget": "Фигура-эталон",
+    "figureAssemblyOption": "Вариант {{letter}}",
     "labilityHeader": "Команда {{x}} из {{y}} · {{t}} с",
     "labilitySending": "Отправка…",
     "analogyPrompt": "«{{first}}» относится к «{{second}}» так же, как «{{third}}» относится к …",

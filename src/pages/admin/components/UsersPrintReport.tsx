@@ -42,7 +42,7 @@ interface UsersPrintReportProps {
   items: readonly AdminUserListItem[];
   /** Сколько строк подошло под фильтры на сервере — может быть больше `items`. */
   total: number;
-  /** Человекочитаемые активные фильтры: «Возраст: Senior», … */
+  /** Человекочитаемые активные фильтры: «Ступень: 14 лет и старше», … */
   filters: readonly string[];
   /** True, когда выгрузка упёрлась в потолок и на листе не весь срез. */
   truncated: boolean;
@@ -100,7 +100,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4mm' }}>
         <thead>
           <tr>
-            {[t('feedback.col.user'), t('common.col.age'), t('users.col.assessment'), t('users.col.goal'), t('print.testsCount'), t('users.col.registered')].map(
+            {[t('feedback.col.user'), t('users.tier'), t('users.col.assessment'), t('users.col.goal'), t('print.testsCount'), t('users.col.registered')].map(
               (header, index) => (
                 <th
                   key={header}
