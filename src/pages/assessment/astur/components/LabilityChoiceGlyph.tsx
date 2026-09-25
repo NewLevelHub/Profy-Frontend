@@ -82,7 +82,7 @@ export function LabilityChoiceGlyph({ glyph }: { glyph: Glyph }) {
       );
     case 'digit':
       return (
-        <span aria-hidden className="font-mono text-[2.75rem] font-bold leading-none tracking-tight">
+        <span aria-hidden className="font-mono text-display-lg font-bold leading-none tracking-tight">
           {glyph.text}
         </span>
       );
