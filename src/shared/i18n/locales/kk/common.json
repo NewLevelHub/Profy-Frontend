@@ -35,11 +35,6 @@
     "enable": "Дыбысты қосу",
     "disable": "Дыбысты өшіру"
   },
-  "ageGroup": {
-    "junior": "5–7 сынып",
-    "middle": "8–9 сынып",
-    "senior": "10–11 сынып"
-  },
   "celebrationSound": {
     "chime": {
       "label": "Қоңырау",

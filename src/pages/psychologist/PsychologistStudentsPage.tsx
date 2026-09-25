@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
-import { AGE_GROUP_RANGE_KEYS } from '@/shared/lib/contentLabels';
 import { formatDate } from '@/shared/i18n/format';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
+import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import {
   ADMIN_META,
@@ -104,14 +104,7 @@ export default function PsychologistStudentsPage() {
         key: 'age',
         header: t('list.colAge'),
         mobile: 'badge',
-        cell: (row) =>
-          row.age_group ? (
-            <AdminBadge tone="quiet">
-              {t(AGE_GROUP_RANGE_KEYS[row.age_group as AgeGroup] ?? row.age_group)}
-            </AdminBadge>
-          ) : (
-            <span className={ADMIN_META}>—</span>
-          ),
+        cell: (row) => <AgeBadge age={row.age} />,
       },
       {
         key: 'assigned',
@@ -164,14 +157,7 @@ export default function PsychologistStudentsPage() {
         key: 'age',
         header: t('list.colAge'),
         mobile: 'badge',
-        cell: (row) =>
-          row.age_group ? (
-            <AdminBadge tone="quiet">
-              {t(AGE_GROUP_RANGE_KEYS[row.age_group as AgeGroup] ?? row.age_group)}
-            </AdminBadge>
-          ) : (
-            <span className={ADMIN_META}>—</span>
-          ),
+        cell: (row) => <AgeBadge age={row.age} />,
       },
       {
         key: 'pending',

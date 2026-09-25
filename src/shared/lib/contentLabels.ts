@@ -1,10 +1,9 @@
-import type { AgeGroup, BigFiveDomain, HollandType, Instrument, MIType, MotivationCategory, QuestionKeyed, UserRole } from '@/shared/types';
+import type { BigFiveDomain, HollandType, Instrument, MotivationCategory, QuestionKeyed, UserRole } from '@/shared/types';
 import type { Locale } from '@/shared/store/locale';
 
 export const INSTRUMENT_LABELS: Record<Instrument, string> = {
   riasec: 'RIASEC',
   big_five: 'Big Five',
-  mi: 'MI',
   professional_types: 'ДДО (интересы)',
   professional_types_abilities: 'ДДО (способности)',
   eysenck: 'Айзенк',
@@ -17,20 +16,6 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   student: 'Ученик',
   admin: 'Админ',
   psychologist: 'Психолог',
-};
-
-export const AGE_TIER_LABELS: Record<AgeGroup, string> = {
-  junior: 'Junior',
-  middle: 'Middle',
-  senior: 'Senior',
-};
-
-/** Year ranges matching `compute_age_group` in the backend — use with `t()`.
- *  Prefer these over `AGE_TIER_LABELS` in user-facing lists (PRO-418). */
-export const AGE_GROUP_RANGE_KEYS: Record<AgeGroup, string> = {
-  junior: 'admin:feedback.age.junior',
-  middle: 'admin:feedback.age.middle',
-  senior: 'admin:feedback.age.senior',
 };
 
 /**
@@ -53,17 +38,6 @@ export const BIGFIVE_DOMAIN_LABELS: Record<BigFiveDomain, string> = {
   O: 'admin:bigfive.O',
   A: 'admin:bigfive.A',
   C: 'admin:bigfive.C',
-};
-
-export const MI_TYPE_LABELS: Record<MIType, string> = {
-  verbal: 'admin:mi.verbal',
-  logical: 'admin:mi.logical',
-  musical: 'admin:mi.musical',
-  visual: 'admin:mi.visual',
-  bodily: 'admin:mi.bodily',
-  interpersonal: 'admin:mi.interpersonal',
-  intrapersonal: 'admin:mi.intrapersonal',
-  naturalistic: 'admin:mi.naturalistic',
 };
 
 export const QUESTION_KEYED_LABELS: Record<QuestionKeyed, string> = {

@@ -1,12 +1,10 @@
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 import type {
   AdminAssessmentDetail,
   AdminUserDetail,
-  AgeGroup,
   BigFiveDomain,
   HollandType,
   MotivationCategory,
@@ -237,7 +235,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
         <h1 style={{ fontSize: '17pt', fontWeight: 600, margin: '1.5mm 0 0' }}>{name}</h1>
         <p style={{ margin: '1mm 0 0', color: MUTE }}>
           {user.email}
-          {profile?.age_group ? ` · ${AGE_TIER_LABELS[profile.age_group as AgeGroup]}` : ''}
+          {profile?.age != null ? ` · ${t('common:ageYears', { count: profile.age })}` : ''}
           {' · '}
           {t(ASSESSMENT_GOAL_LABELS[assessment.goal])} · {t('print.attemptNo', { index })}
         </p>
@@ -312,13 +310,13 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
             rows={BIG_FIVE_ORDER.filter((key) => key in analysis.big_five).map((key) => ({
               key,
               label: t(BIG_FIVE_LABELS[key]),
-              value: analysis.big_five[key],
+              value: analysis.big_five[key]!,
             }))}
           />
         </Section>
       )}
 
-      {analysis && Object.keys(analysis.thinking_style).length > 0 && (
+      {analysis && Object.keys(analysis.big_five).length > 0 && (
         <Section title={t('print.section.thinking')}>
           <ScaleRows
             color={LAKE}

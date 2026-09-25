@@ -9,8 +9,9 @@ interface UseContentOverrideDraftOptions<T> {
 }
 
 /**
- * Baseline/draft/dirty/save/reset state machine shared by the Belbin and
- * ASTUR content-override editors (PRO-424).
+ * Baseline/draft/dirty/save/reset state machine shared by the Belbin
+ * content-override editor (PRO-424) and the АСТУР bank-version draft editor
+ * (PRO-427).
  *
  * Unlike `useAdminForm` (per-field PATCH + bank-lock semantics for
  * questions/directions/etc.), these editors round-trip a full bilingual

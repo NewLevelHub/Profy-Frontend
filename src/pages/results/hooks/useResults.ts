@@ -145,11 +145,6 @@ export function useResults() {
   // keeps the report readable and marks just those fields as updating.
   const isTranslating = !!effectiveReport && !reportMatchesLocale && isFetching;
 
-  // interest_instrument is the ONLY field the result-v2 contract (§3) allows
-  // for branching mi/riasec — never age group, array length, or `code`
-  // (there is no `code` in this contract at all).
-  const isJunior = effectiveReport?.interest_instrument === 'mi';
-
   // Backend returned the pre-v2 admin/raw AnalysisResult shape for this
   // assessment (see resultApi.assertResultV2) — retrying won't help since
   // `/result/generate` reuses the existing stored row rather than
@@ -228,7 +223,6 @@ export function useResults() {
     assessmentId,
     goal,
     ageGroup,
-    isJunior,
     refetch,
     hasAssessment,
     inProgress,

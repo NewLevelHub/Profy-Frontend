@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_GROUP_RANGE_KEYS } from '@/shared/lib/contentLabels';
+import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -18,11 +18,6 @@ import type { AgeGroup, PsychologistReviewQueueItem } from '@/shared/types';
 function GoalLabel({ goal }: { goal: PsychologistReviewQueueItem['goal'] }) {
   const { t } = useTranslation();
   return <span className={cn(ADMIN_TEXT, 'text-secondary')}>{t(ASSESSMENT_GOAL_LABELS[goal] ?? goal)}</span>;
-}
-
-function AgeGroupBadge({ ageGroup }: { ageGroup: AgeGroup }) {
-  const { t } = useTranslation();
-  return <AdminBadge tone="quiet">{t(AGE_GROUP_RANGE_KEYS[ageGroup])}</AdminBadge>;
 }
 
 function reviewPath(row: PsychologistReviewQueueItem) {
@@ -81,12 +76,7 @@ const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
     key: 'age',
     header: 'Ступень',
     mobile: 'badge',
-    cell: (row) =>
-      row.age_group ? (
-        <AgeGroupBadge ageGroup={row.age_group} />
-      ) : (
-        <span className={ADMIN_META}>—</span>
-      ),
+    cell: (row) => <AgeBadge age={row.age} />,
   },
   {
     key: 'generated',

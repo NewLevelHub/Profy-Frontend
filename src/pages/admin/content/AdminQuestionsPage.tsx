@@ -5,13 +5,7 @@ import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
-import {
-  AGE_TIER_LABELS,
-  BIGFIVE_DOMAIN_LABELS,
-  HOLLAND_TYPE_LABELS,
-  INSTRUMENT_LABELS,
-  MI_TYPE_LABELS,
-} from '@/shared/lib/contentLabels';
+import { BIGFIVE_DOMAIN_LABELS, HOLLAND_TYPE_LABELS, INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
@@ -19,20 +13,20 @@ import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
 import { MONO_MUTE } from '@/shared/ui/admin/density';
-import type { AdminQuestionListItem, AgeGroup, BigFiveDomain, HollandType, Instrument, MIType } from '@/shared/types';
+import type { AdminQuestionListItem, BigFiveDomain, HollandType, Instrument } from '@/shared/types';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
+const FILTER_KEYS = ['search', 'instrument'] as const;
 /** Поля сортировки, которые принимает эндпоинт — незнакомое значение
  *  в URL игнорируется, а не улетает на сервер за 422. */
-const SORTABLE_KEYS = ['order', 'instrument', 'age_tier', 'text'] as const;
+const SORTABLE_KEYS = ['order', 'instrument', 'text'] as const;
 
 /**
  * The scored category, named rather than coded.
  *
- * The list printed the raw enum value — "R", "N", "verbal" — while the detail
+ * The list printed the raw enum value — "R", "N" — while the detail
  * screen for the very same row showed "R — Реалистичный" / "N — Эмоциональная
- * чувствительность" / "Слова и истории". Nothing is gained by making the list
+ * чувствительность". Nothing is gained by making the list
  * the only place that speaks in codes.
  */
 function TypeCell({ item }: { item: AdminQuestionListItem }) {
@@ -49,9 +43,6 @@ function resolveTypeLabel(item: AdminQuestionListItem, t: (key: string) => strin
   if (item.instrument === 'big_five' && item.bigfive_domain) {
     return t(BIGFIVE_DOMAIN_LABELS[item.bigfive_domain as BigFiveDomain]) ?? item.bigfive_domain;
   }
-  if (item.instrument === 'mi' && item.mi_category) {
-    return t(MI_TYPE_LABELS[item.mi_category as MIType]) ?? item.mi_category;
-  }
   return null;
 }
 
@@ -66,7 +57,7 @@ export default function AdminQuestionsPage() {
   const [error, setError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
 
-  const { search, instrument, age_tier: ageTier } = values;
+  const { search, instrument } = values;
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +70,6 @@ export default function AdminQuestionsPage() {
           page,
           limit: PAGE_SIZE,
           instrument: (instrument as Instrument) || undefined,
-          age_tier: (ageTier as AgeGroup) || undefined,
           search: search || undefined,
           sort: sort?.key,
           order: sort?.order,
@@ -98,7 +88,7 @@ export default function AdminQuestionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, instrument, ageTier, search, sort?.key, sort?.order, reloadToken]);
+  }, [page, instrument, search, sort?.key, sort?.order, reloadToken]);
 
   const handleSearch = useCallback((value: string) => setFilter('search', value), [setFilter]);
 
@@ -137,15 +127,6 @@ export default function AdminQuestionsPage() {
       mobile: 'field',
       headerTitle: t('questions.col.scaleHint'),
       cell: (item) => <TypeCell item={item} />,
-    },
-    {
-      key: 'age',
-      header: t('common.col.age'),
-      sortKey: 'age_tier',
-      width: '104px',
-      mobile: 'field',
-      headerTitle: t('questions.col.ageHint'),
-      cell: (item) => <span className="text-secondary">{AGE_TIER_LABELS[item.age_tier]}</span>,
     },
     {
       key: 'order',
@@ -188,15 +169,6 @@ export default function AdminQuestionsPage() {
             options: (Object.keys(INSTRUMENT_LABELS) as Instrument[]).map((key) => ({
               value: key,
               label: INSTRUMENT_LABELS[key],
-            })),
-          },
-          {
-            key: 'age_tier',
-            label: t('common.col.age'),
-            value: ageTier,
-            options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
-              value: key,
-              label: AGE_TIER_LABELS[key],
             })),
           },
         ]}

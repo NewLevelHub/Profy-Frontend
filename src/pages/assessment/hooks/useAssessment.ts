@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
-import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
@@ -87,8 +86,6 @@ export function useAssessment() {
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const setProgress = useAssessmentStore(s => s.setProgress);
-  const { profile } = useEnsureProfile();
-  const ageGroup = profile?.age_group;
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [pages, setPages] = useState<Page[]>([]);
@@ -174,7 +171,8 @@ export function useAssessment() {
             }
             setSeenInstruments(prev => new Set(prev).add(startInstrument));
           }
-          if (answeredCountFromStore >= questions.length) {
+          const sequenceAnswerCount = questions.length + pairs.length * 2;
+          if (answeredCountFromStore >= sequenceAnswerCount) {
             // Likert+pairs phase already fully answered — motivation may
             // still be pending, so continue there rather than assuming the
             // whole test is done.
@@ -379,7 +377,7 @@ export function useAssessment() {
     setAutofilling(true);
     setError(null);
     try {
-      await autofillAssessment(assessmentId, ageGroup);
+      await autofillAssessment(assessmentId);
       navigate('/assessment/loading');
     } catch {
       setError(t('assessment:error.autofill'));
@@ -412,7 +410,7 @@ export function useAssessment() {
     setAutofilling(true);
     setError(null);
     try {
-      await autofillToAstur(assessmentId, ageGroup);
+      await autofillToAstur(assessmentId);
       navigate(`/assessment/astur/${assessmentId}`);
     } catch {
       setError(t('assessment:error.autofill'));

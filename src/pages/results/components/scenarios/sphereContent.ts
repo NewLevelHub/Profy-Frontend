@@ -23,9 +23,9 @@ export interface SphereCardData {
  * понаблюдать" suggestion copy per sphere. `interest_map` only carries a
  * shared free-text `interest_map_note` for the whole map, not per-item
  * suggestions, and there's no separate "spheres" endpoint distinct from the
- * 6 RIASEC / 8 MI categories. This copy is therefore hand-authored content,
+ * 6 RIASEC categories. This copy is therefore hand-authored content,
  * now kept in the i18n catalog under `results/sphere.<code>.{try,observe}`
- * keyed by the same `code` values RIASEC_ICONS/MI_ICONS already use — a real
+ * keyed by the same `code` values RIASEC_ICONS already uses — a real
  * content-source gap, flagged rather than presented as if it were
  * personalized. If/when the backend adds per-sphere suggestion text, drop
  * these keys and read that field.

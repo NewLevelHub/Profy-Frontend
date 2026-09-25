@@ -6,7 +6,7 @@ import { ClipboardCheck, FileText, Pencil, Trash2 } from 'lucide-react';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_GROUP_RANGE_KEYS } from '@/shared/lib/contentLabels';
+import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { formatDate } from '@/shared/i18n/format';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -159,7 +159,6 @@ export default function PsychologistStudentDetailPage() {
 
   const named = Boolean(student?.profile?.name);
   const title = student?.profile?.name ?? student?.email ?? t('detail.studentFallback');
-  const ageGroup = student?.profile?.age_group as AgeGroup | undefined;
 
   return (
     <PageContainer className="flex flex-col gap-5 pb-10">
@@ -174,9 +173,7 @@ export default function PsychologistStudentDetailPage() {
         meta={
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn(ADMIN_NUM, 'text-muted')}>{student?.email ?? studentId}</span>
-            {ageGroup && (
-              <AdminBadge tone="quiet">{t(AGE_GROUP_RANGE_KEYS[ageGroup])}</AdminBadge>
-            )}
+            {student?.profile && <AgeBadge age={student.profile.age} />}
             {!canAddNotes && (
               <AdminBadge tone="accent">{t('detail.assignmentRemoved')}</AdminBadge>
             )}
@@ -238,7 +235,6 @@ export default function PsychologistStudentDetailPage() {
                     <AdminBadge tone="brand">{t('psychologist:detail.published')}</AdminBadge>
                   )}
                   {a.has_result && !a.review_status && <AdminBadge tone="quiet">{t('detail.hasResult')}</AdminBadge>}
-                  {a.has_roadmap && <AdminBadge tone="quiet">{t('detail.hasRoadmap')}</AdminBadge>}
                   {/* Single unified report button */}
                   {(a.has_result || a.review_status) && (
                     <Link

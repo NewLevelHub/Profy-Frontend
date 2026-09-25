@@ -8,7 +8,7 @@ import { downloadBlob } from '@/shared/lib/downloadBlob';
 import { printWithTitle } from '@/shared/lib/printDocument';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_TIER_LABELS, MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
+import { MOTIVATION_CATEGORY_LABELS } from '@/shared/lib/contentLabels';
 import { Button } from '@/shared/ui/Button';
 import { Spine } from '@/shared/ui/Spine';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -21,7 +21,6 @@ import { AssessmentPrintReport } from './components/AssessmentPrintReport';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 import type {
   AdminAssessmentDetail,
-  AgeGroup,
   AdminMotivationResponseItem,
   AdminResponseItem,
   AdminUserDetail,
@@ -71,17 +70,6 @@ const BIGFIVE_DOMAIN_LABELS: Record<string, string> = {
   C: 'admin:bigfive.C',
 };
 
-const MI_TYPE_LABELS: Record<string, string> = {
-  verbal: 'admin:mi.verbal',
-  logical: 'admin:mi.logical',
-  musical: 'admin:mi.musical',
-  visual: 'admin:mi.visual',
-  bodily: 'admin:mi.bodily',
-  interpersonal: 'admin:mi.interpersonal',
-  intrapersonal: 'admin:mi.intrapersonal',
-  naturalistic: 'admin:mi.naturalistic',
-};
-
 /** RIASEC letter → its name, for the fields the API returns as bare letters. */
 function riasecName(letter: string, t: (key: string) => string): string {
   const key = RIASEC_TYPE_LABELS[letter];
@@ -91,7 +79,6 @@ function riasecName(letter: string, t: (key: string) => string): string {
 function groupLabel(instrument: string, category: string, t: (key: string) => string): string {
   if (instrument === 'big_five') return `Big Five: ${t(BIGFIVE_DOMAIN_LABELS[category]) ?? category}`;
   if (instrument === 'riasec') return `RIASEC: ${riasecName(category, t)}`;
-  if (instrument === 'mi') return `MI: ${t(MI_TYPE_LABELS[category]) ?? category}`;
   return t('users.other');
 }
 
@@ -184,7 +171,7 @@ function ChipList({ label, items }: { label: string; items: string[] }) {
  *
  * The assessment panel used to render everything at once: summary, all 60+
  * question/answer rows, motivation triplets, the full analysis result (about
- * ten sub-blocks) and the roadmap, in a single scroll with no navigation. The
+ * ten sub-blocks), in a single scroll with no navigation. The
  * question rows alone pushed the analysis — the part an admin actually opens
  * this screen for — thousands of pixels down the page. Sections now start
  * closed except the summary, and each says how much is inside.
@@ -558,6 +545,8 @@ function CardList({ label, cards }: { label: string; cards: { title: string; des
 
 function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDetail['analysis_result']> }) {
   const { t } = useTranslation('admin');
+  const hasBigFive = Object.keys(analysis.big_five).length > 0;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -596,6 +585,8 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
         </div>
       )}
 
+      {hasBigFive && (
+        <>
       <ValueList
         label={t('print.section.thinking')}
         values={analysis.thinking_style as unknown as Record<string, number>}
@@ -622,6 +613,8 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
         notes={analysis.personality_notes}
         labels={PERSONALITY_TRAIT_LABELS}
       />
+        </>
+      )}
       <ChipList
         label={t('users.motivationTop')}
         items={analysis.motivation_top.map((key) => t(MOTIVATION_CATEGORY_LABELS[key]) ?? key)}
@@ -644,7 +637,7 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
 }
 
 function AsturRunSection({ run, index }: { run: AdminAsturRunResponse; index: number }) {
-  const { t } = useTranslation('admin');
+  const snapshot = run.result_snapshot;
   return (
     <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
@@ -652,16 +645,20 @@ function AsturRunSection({ run, index }: { run: AdminAsturRunResponse; index: nu
       </p>
       
       <div className="grid gap-x-6 gap-y-4 grid-cols-2">
-        <Field label="Сырой балл" value={run.raw_score} />
-        <Field label="СПН-группа" value={run.spn_group} />
+        <Field label="Статус" value={run.status} />
+        <Field label="Формула" value={run.scoring_version} />
+        <Field label="Средний процент" value={snapshot?.overall_percent ?? null} />
+        <Field label="Завершена" value={run.completed_at ? formatDate(run.completed_at) : null} />
       </div>
-      
-      <ValueList
-        label="Баллы по субтестам"
-        values={run.subtest_scores}
-        labels={{}}
-      />
-      
+
+      {snapshot && (
+        <ValueList
+          label="Процент по навыкам"
+          values={Object.fromEntries(snapshot.subtests.map((s) => [s.key, s.percent]))}
+          labels={{}}
+        />
+      )}
+
       <div>
         <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Сырые ответы</p>
         <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
@@ -785,7 +782,7 @@ function AssessmentPanel({
       </Section>
 
       {assessment.astur_runs?.length > 0 && (
-        <Section title="АСТУР (Характеристики интеллекта)" count={assessment.astur_runs.length}>
+        <Section title="АСТУР (когнитивные навыки)" count={assessment.astur_runs.length}>
           <div className="flex flex-col gap-4">
             {assessment.astur_runs.map((run, i) => (
               <AsturRunSection key={run.id} run={run} index={i} />
@@ -809,23 +806,6 @@ function AssessmentPanel({
           <div className="flex flex-col gap-4">
             {assessment.psychoemotional_runs.map((run, i) => (
               <PsychoemotionalRunSection key={run.id} run={run} index={i} />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {assessment.roadmap && (
-        <Section title="Roadmap" count={assessment.roadmap.milestones.length}>
-          <div className="flex flex-col gap-1.5">
-            {assessment.roadmap.milestones.map((milestone) => (
-              <div key={milestone.horizon} className="p-2.5 rounded-[2px] bg-page border border-default">
-                <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{milestone.title}</p>
-                <ul className={cn(ADMIN_TEXT, 'mt-1.5 mb-0 pl-4 text-secondary flex flex-col gap-0.5')}>
-                  {milestone.tasks.map((task) => (
-                    <li key={`${milestone.horizon}-${task.text}`}>{task.text}</li>
-                  ))}
-                </ul>
-              </div>
             ))}
           </div>
         </Section>
@@ -975,19 +955,9 @@ export default function AdminUserDetailPage() {
             {/* One card, not two side by side. The account card held four rows
                 next to a much taller profile card, so a third of the screen was
                 empty box stretched to match its neighbour. */}
-            <div className="grid gap-x-6 gap-y-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-x-6 gap-y-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
               <Field label={t('common.col.age')} value={user.profile.age} />
               <Field label={t('print.grade')} value={user.profile.grade} />
-              <Field
-                label={t('users.tier')}
-                // Was printed raw from the DB — a lowercase latin "senior" in a
-                // column of Russian values.
-                value={
-                  user.profile.age_group
-                    ? (AGE_TIER_LABELS[user.profile.age_group as AgeGroup] ?? user.profile.age_group)
-                    : null
-                }
-              />
               <Field label={t('universities.col.city')} value={user.profile.city} />
               <Field label={t('universities.col.country')} value={user.profile.country} />
               <Field label={t('uni.languageCol')} value={user.profile.language} />
@@ -1057,7 +1027,6 @@ export default function AdminUserDetailPage() {
                           {t('users.noResult')}
                         </AdminBadge>
                       )}
-                      {item.has_roadmap && <AdminBadge tone="brand">Roadmap</AdminBadge>}
                       <ChevronDown
                         size={16}
                         className={cn('text-muted transition-transform', isOpen && 'rotate-180')}

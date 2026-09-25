@@ -10,12 +10,13 @@ import { printWithTitle } from '@/shared/lib/printDocument';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { AGE_GROUP_RANGE_KEYS, USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
+import { USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
+import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { UsersPrintReport } from './components/UsersPrintReport';
 import { CreateStaffModal } from './components/CreateStaffModal';
@@ -24,7 +25,6 @@ import type {
   AdminUserDetail,
   AdminUserListItem,
   AdminUserStats,
-  AgeGroup,
   AssessmentGoal,
   AssessmentStatus,
   UserRole,
@@ -34,10 +34,10 @@ import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 const PAGE_SIZE = 20;
 /** `role`/`inactive_days` live in the URL with the other filters, but Clear
  *  keeps the active role tab — see `clearListFilters`. */
-const FILTER_KEYS = ['search', 'age_group', 'status', 'goal', 'role', 'inactive_days'] as const;
+const FILTER_KEYS = ['search', 'status', 'goal', 'role', 'inactive_days'] as const;
 /** Поля сортировки, которые принимает эндпоинт — незнакомое значение
  *  в URL игнорируется, а не улетает на сервер за 422. */
-const SORTABLE_KEYS = ['created_at', 'last_active_at', 'email', 'age_group', 'latest_assessment_status'] as const;
+const SORTABLE_KEYS = ['created_at', 'last_active_at', 'email', 'latest_assessment_status'] as const;
 
 const ROLE_TABS: readonly UserRole[] = ['student', 'psychologist', 'admin'];
 
@@ -171,7 +171,6 @@ export default function AdminUsersPage() {
 
   const {
     search,
-    age_group: ageGroup,
     status,
     goal,
     role: roleRaw,
@@ -192,13 +191,12 @@ export default function AdminUsersPage() {
       inactive_days: inactiveDays ? Number(inactiveDays) : undefined,
       ...(isStudentRole
         ? {
-            age_group: (ageGroup as AgeGroup) || undefined,
             status: (status as AssessmentStatus) || undefined,
             goal: (goal as AssessmentGoal) || undefined,
           }
         : {}),
     }),
-    [search, role, isStudentRole, ageGroup, status, goal, inactiveDays],
+    [search, role, isStudentRole, status, goal, inactiveDays],
   );
 
   useEffect(() => {
@@ -257,7 +255,6 @@ export default function AdminUsersPage() {
       // and drops `role` from the URL when back on the default student tab.
       setFilters({
         role: next === 'student' ? '' : next,
-        age_group: '',
         status: '',
         goal: '',
       });
@@ -267,7 +264,7 @@ export default function AdminUsersPage() {
 
   const clearListFilters = useCallback(() => {
     // Keep the active role tab — Clear is for search/assessment/activity filters only.
-    setFilters({ search: '', age_group: '', status: '', goal: '', inactive_days: '' });
+    setFilters({ search: '', status: '', goal: '', inactive_days: '' });
   }, [setFilters]);
 
   /**
@@ -335,11 +332,6 @@ export default function AdminUsersPage() {
   const activeFilterLabels = [
     t(`users.roleTabs.${role}`),
     search ? t('users.filterEmail', { search }) : null,
-    isStudentRole && ageGroup
-      ? t('users.filterAge', {
-          age: t(AGE_GROUP_RANGE_KEYS[ageGroup as AgeGroup] ?? ageGroup),
-        })
-      : null,
     isStudentRole && status
       ? t('users.filterStatus', { status: t(ASSESSMENT_STATUS_LABELS[status as AssessmentStatus]) })
       : null,
@@ -425,12 +417,7 @@ export default function AdminUsersPage() {
           header: t('users.tier'),
           width: '146px',
           mobile: 'field',
-          cell: (item) =>
-            item.age_group ? (
-              <span className={ADMIN_TEXT}>{t(AGE_GROUP_RANGE_KEYS[item.age_group])}</span>
-            ) : (
-              <span className={ADMIN_META}>—</span>
-            ),
+          cell: (item) => <AgeBadge age={item.age} />,
         },
         {
           key: 'diagnostics',
@@ -550,15 +537,6 @@ export default function AdminUsersPage() {
           ...(isStudentRole
             ? [
                 {
-                  key: 'age_group',
-                  label: t('users.tier'),
-                  value: ageGroup,
-                  options: (Object.keys(AGE_GROUP_RANGE_KEYS) as AgeGroup[]).map((key) => ({
-                    value: key,
-                    label: t(AGE_GROUP_RANGE_KEYS[key]),
-                  })),
-                },
-                {
                   key: 'status',
                   label: t('users.filter.status'),
                   value: status,
@@ -633,7 +611,6 @@ export default function AdminUsersPage() {
           // Jump to the new staff member's role tab so they show up immediately.
           setFilters({
             role: user.role === 'student' ? '' : user.role,
-            age_group: '',
             status: '',
             goal: '',
           });
