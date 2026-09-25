@@ -69,7 +69,9 @@ import AdminMotivationStatementsPage from '@/pages/admin/content/AdminMotivation
 import AdminMotivationStatementDetailPage from '@/pages/admin/content/AdminMotivationStatementDetailPage';
 import AdminDirectionsPage from '@/pages/admin/content/AdminDirectionsPage';
 import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetailPage';
-import AdminTestsConfigPage from '@/pages/admin/content/AdminTestsConfigPage';
+import AdminAsturVersionsPage from '@/pages/admin/content/astur/AdminAsturVersionsPage';
+import AdminAsturVersionPage from '@/pages/admin/content/astur/AdminAsturVersionPage';
+import AdminAsturAnalyticsPage from '@/pages/admin/content/astur/AdminAsturAnalyticsPage';
 import AdminBelbinEditorPage from '@/pages/admin/content/AdminBelbinEditorPage';
 
 // ── Psychologist cabinet ──────────────────────────────────────────────────────
@@ -164,7 +166,9 @@ export const router = createBrowserRouter([
                   { path: 'directions', element: <AdminDirectionsPage /> },
                   { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
                   { path: 'belbin', element: <AdminBelbinEditorPage /> },
-                  { path: 'tests', element: <AdminTestsConfigPage /> },
+                  { path: 'tests', element: <AdminAsturVersionsPage /> },
+                  { path: 'tests/versions/:versionId', element: <AdminAsturVersionPage /> },
+                  { path: 'tests/versions/:versionId/analytics', element: <AdminAsturAnalyticsPage /> },
                 ],
               },
             ],

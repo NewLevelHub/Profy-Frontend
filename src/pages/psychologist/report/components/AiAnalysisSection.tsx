@@ -21,7 +21,7 @@ const BLOCK_LABELS: Record<string, string> = {
   aspiration_level: 'Мотивация к успеху (Элерс)',
   empathy_confidence: 'Эмпатия и соц. уверенность',
   team_role: 'Командная роль (Белбин)',
-  intelligence: 'Интеллект (АСТУР)',
+  intelligence: 'Когнитивные навыки (учебные задания)',
 };
 
 /**

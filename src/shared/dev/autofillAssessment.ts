@@ -5,7 +5,7 @@ import { belbinApi } from '@/shared/api/belbin';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
-import type { Instrument, Question } from '@/shared/types';
+import type { AsturSubtestKey, Instrument, Question } from '@/shared/types';
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -120,34 +120,45 @@ export async function autofillToAstur(assessmentId: string): Promise<void> {
   }
 }
 
+/** Dev-only: a shape-valid (not necessarily correct) АСТУР answer per item. */
+export function asturAutofillAnswer(subtestKey: AsturSubtestKey, item: Record<string, unknown>): unknown {
+  switch (subtestKey) {
+    case 'logical_schemas':
+      return item.concepts;
+    case 'classification':
+      return (item.words as string[]).slice(0, 2);
+    case 'numeric_series':
+      return [1, 2];
+    case 'geometric_figures':
+      return 'А';
+    case 'generalization':
+      return 'ответ';
+    default:
+      return (item.options as string[] | undefined)?.[0] ?? '1';
+  }
+}
+
 /** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
  * completes in a handful of requests instead of up to ~278 clicks. */
 export async function autofillAssessment(assessmentId: string): Promise<void> {
   await autofillToAstur(assessmentId);
 
   try {
-    const asturContent = await asturApi.getContent();
-    if (asturContent?.subtests?.length > 0) {
-      for (const st of asturContent.subtests) {
-        const answers: Record<string, unknown> = {};
-        st.items.forEach((it: any) => {
-          if (st.key === 'logical_schemas') {
-            answers[it.id] = (it.options || []).slice(0, 3);
-          } else if (st.key === 'classification' || st.key === 'numeric_series') {
-            answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
-          } else if (st.key === 'geometric_figures') {
-            // No `options` on the wire for this subtest (static image
-            // assets, addressed by position — see FigureAssemblyQuestion);
-            // any letter is a structurally valid dev-autofill answer.
-            answers[it.id] = 'A';
-          } else {
-            answers[it.id] = it.options?.[0] ?? '1';
-          }
-        });
-        await asturApi.submitSubtest(assessmentId, st.number, { answers, elapsed_ms: {} });
-      }
-      useAssessmentStore.getState().setAsturCompleted(true);
+    const asturContent = await asturApi.getContent(assessmentId);
+    for (const st of asturContent.subtests) {
+      const answers: Record<string, unknown> = {};
+      const elapsed: Record<string, number> = {};
+      st.items.forEach((item, i) => {
+        answers[String(i + 1)] = asturAutofillAnswer(st.key, item as Record<string, unknown>);
+        elapsed[String(i + 1)] = 1000;
+      });
+      await asturApi.submitSubtest(
+        assessmentId,
+        st.number,
+        st.key === 'lability' ? { answers, elapsed_ms: elapsed } : { answers },
+      );
     }
+    useAssessmentStore.getState().setAsturCompleted(true);
   } catch {
     // Ignore if already submitted or error
   }

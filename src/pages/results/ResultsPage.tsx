@@ -12,6 +12,7 @@ import { AssessmentInProgressCard } from './components/AssessmentInProgressCard'
 import { ResultsReveal } from './components/ResultsReveal';
 import { FeedbackSection } from './components/FeedbackSection';
 import { ResultsReportBody } from './components/ResultsReportBody';
+import { AsturRetakeCard } from './components/AsturRetakeCard';
 
 function ResultsSkeleton() {
   return (
@@ -130,6 +131,8 @@ export default function ResultsPage() {
         ageGroup={ageGroup}
         goal={goal}
       />
+
+      <AsturRetakeCard assessmentId={assessmentId} />
 
       <ResultsReveal>
         <FeedbackSection assessmentId={assessmentId} />

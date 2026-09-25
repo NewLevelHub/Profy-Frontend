@@ -637,7 +637,7 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
 }
 
 function AsturRunSection({ run, index }: { run: AdminAsturRunResponse; index: number }) {
-  const { t } = useTranslation('admin');
+  const snapshot = run.result_snapshot;
   return (
     <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
@@ -645,16 +645,20 @@ function AsturRunSection({ run, index }: { run: AdminAsturRunResponse; index: nu
       </p>
       
       <div className="grid gap-x-6 gap-y-4 grid-cols-2">
-        <Field label="Сырой балл" value={run.raw_score} />
-        <Field label="СПН-группа" value={run.spn_group} />
+        <Field label="Статус" value={run.status} />
+        <Field label="Формула" value={run.scoring_version} />
+        <Field label="Средний процент" value={snapshot?.overall_percent ?? null} />
+        <Field label="Завершена" value={run.completed_at ? formatDate(run.completed_at) : null} />
       </div>
-      
-      <ValueList
-        label="Баллы по субтестам"
-        values={run.subtest_scores}
-        labels={{}}
-      />
-      
+
+      {snapshot && (
+        <ValueList
+          label="Процент по навыкам"
+          values={Object.fromEntries(snapshot.subtests.map((s) => [s.key, s.percent]))}
+          labels={{}}
+        />
+      )}
+
       <div>
         <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Сырые ответы</p>
         <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
@@ -778,7 +782,7 @@ function AssessmentPanel({
       </Section>
 
       {assessment.astur_runs?.length > 0 && (
-        <Section title="АСТУР (Характеристики интеллекта)" count={assessment.astur_runs.length}>
+        <Section title="АСТУР (когнитивные навыки)" count={assessment.astur_runs.length}>
           <div className="flex flex-col gap-4">
             {assessment.astur_runs.map((run, i) => (
               <AsturRunSection key={run.id} run={run} index={i} />

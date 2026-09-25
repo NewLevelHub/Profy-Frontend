@@ -364,15 +364,38 @@ export interface AsturContentSubtest {
   name: string;
   instruction: string;
   item_count: number;
-  scored: boolean;
   /** `null` только у `lability` — у неё свой лимит на команду, не на весь субтест. */
   time_limit_sec: number | null;
   items: AsturContentItem[];
 }
 
+/** Content of the bank version the open attempt is pinned to (PRO-427) —
+ *  `run_id` is `null` before the first attempt exists. */
 export interface AsturContent {
+  run_id: string | null;
+  bank_version: number;
   subtests: AsturContentSubtest[];
   lability_item_limit_ms: number;
+}
+
+export type AsturRunStatus = 'in_progress' | 'completed' | 'invalidated';
+
+export interface AsturRunSummary {
+  run_id: string;
+  status: AsturRunStatus;
+  bank_version: number;
+  created_at: string;
+  completed_at: string | null;
+  submitted_subtests: AsturSubtestKey[];
+}
+
+/** `in_progress` = an attempt is open (resume it); `completed` = a finished
+ *  attempt exists and none is open. The two runs are reported separately so
+ *  an open retake never hides the finished result. */
+export interface AsturState {
+  status: 'not_started' | 'in_progress' | 'completed';
+  active_run: AsturRunSummary | null;
+  latest_completed_run: AsturRunSummary | null;
 }
 
 export interface StartAsturSubtestResponse {
@@ -384,10 +407,13 @@ export interface StartAsturSubtestResponse {
 export interface SubmitAsturSubtestPayload {
   /** Форма значения зависит от субтеста: строка (MC/обобщение), 2 строки
    *  (классификации), список понятий (логические схемы), 2 числа (ряды),
-   *  строка per-формату лабильности. */
+   *  строка-вариант для быстрых команд. */
   answers: Record<string, unknown>;
-  /** Только для лабильности — время на каждую команду. */
+  /** Только для быстрых команд — время на каждую команду. */
   elapsed_ms?: Record<string, number>;
+  /** Только для быстрых команд — IANA-таймзона, чтобы команда про день
+   *  недели проверялась по местному календарю. */
+  client_timezone?: string;
 }
 
 export interface SubmitAsturSubtestResponse {
@@ -395,8 +421,9 @@ export interface SubmitAsturSubtestResponse {
   subtest: string;
   actual_ms: number | null;
   over_limit_items: string[];
+  /** true — этот сабмит завершил попытку, результат зафиксирован. */
+  run_completed: boolean;
 }
-
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {
@@ -961,12 +988,15 @@ export interface AdminMotivationResponseItem {
 
 export interface AdminAsturRunResponse {
   id: string;
-  raw_score: number | null;
-  spn_group: number | null;
+  status: AsturRunStatus;
+  bank_version_id: string;
+  scoring_version: string | null;
   answers: Record<string, any>;
   lability_answers: Record<string, any>;
-  subtest_scores: Record<string, number>;
+  /** Frozen result; `null` until the attempt is completed. */
+  result_snapshot: AsturResultSnapshot | null;
   created_at: string;
+  completed_at: string | null;
 }
 
 export interface AdminBelbinRunResponse {
@@ -1344,17 +1374,106 @@ export interface TemperamentSection {
   lie_scale_evidence: BinaryScaleEvidence | null;
 }
 
-export interface IntelligenceSection {
-  raw_score: number | null;
-  subtest_scores: Record<string, number> | null;
-  spn_group: number | null;
-  learning_profile: string | null;
-  learning_profile_shares: Record<string, number> | null;
-  lability_first_half_accuracy: number | null;
-  lability_second_half_accuracy: number | null;
-  lability_fatigue_signal: boolean | null;
+// ─── АСТУР result snapshot (PRO-427) — frozen once per completed attempt ─────
+
+export interface AsturSubtestResult {
+  key: AsturSubtestKey;
+  score: number;
+  max_score: number;
+  percent: number;
+  item_count: number;
+  answered: number;
+  /** Counted in `overall_percent` under this snapshot's scoring version. */
+  in_overall: boolean;
 }
 
+export interface AsturSubjectAreaResult {
+  key: string;
+  earned: number;
+  item_count: number;
+  answered: number;
+  percent: number;
+}
+
+export type AsturProfileStatus = 'leading' | 'mixed' | 'insufficient_data';
+
+/** Knowledge of subject-area terms, not ability. */
+export interface AsturSubjectProfile {
+  status: AsturProfileStatus;
+  leading: string | null;
+  runner_up: string | null;
+  gap_pp: number | null;
+  threshold_pp: number | null;
+  areas: AsturSubjectAreaResult[];
+}
+
+export interface AsturMathReasoning {
+  numeric_series_percent: number;
+  physics_math_knowledge_percent: number | null;
+  gap_pp: number | null;
+  divergence: 'none' | 'knowledge_higher' | 'reasoning_higher' | null;
+  threshold_pp: number;
+}
+
+export interface AsturQuickInstructions {
+  status: 'ok' | 'insufficient_on_time';
+  total: number;
+  on_time: number;
+  first_half_correct: number;
+  first_half_total: number;
+  second_half_correct: number;
+  second_half_total: number;
+  first_half_percent: number | null;
+  second_half_percent: number | null;
+  accuracy_change_pp: number | null;
+  mean_ms: number | null;
+  median_ms: number | null;
+}
+
+export type AsturProtocolFlagCode =
+  | 'many_blank_answers'
+  | 'subtest_timing_missing'
+  | 'subtest_over_time'
+  | 'quick_over_limit'
+  | 'quick_insufficient_on_time'
+  | 'legacy_protocol'
+  | 'legacy_day_of_week_estimated';
+
+export interface AsturProtocolFlag {
+  code: AsturProtocolFlagCode;
+  subtest: string | null;
+  count: number | null;
+}
+
+export interface AsturProtocolQuality {
+  ok: boolean;
+  flags: AsturProtocolFlag[];
+}
+
+/** The frozen result of one completed АСТУР attempt (admin view carries
+ *  per-item scores too). */
+export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id' | 'retake_in_progress'> & {
+  item_scores: Record<string, number>;
+};
+
+/** «Когнитивные навыки (учебные задания)» — the latest COMPLETED attempt's
+ *  frozen result. Percent of tasks done, not an IQ or a norm. */
+export interface IntelligenceSection {
+  run_id: string;
+  retake_in_progress: boolean;
+  scoring_version: string;
+  bank_version: number;
+  legacy: boolean;
+  completed_at: string;
+  age_at_completion: number | null;
+  grade_at_completion: number | null;
+  subtests: AsturSubtestResult[];
+  overall_percent: number | null;
+  subject_profile: AsturSubjectProfile;
+  math_reasoning: AsturMathReasoning | null;
+  quick_instructions: AsturQuickInstructions | null;
+  protocol_quality: AsturProtocolQuality;
+}
 export interface AspirationLevelSection {
   score: number | null;
   level: string | null;
@@ -1626,12 +1745,8 @@ export interface BelbinSchemaResponse {
   sections: BelbinBankSection[];
 }
 
-/** Bank shape behind `GET /admin/astur-schema` and the `subtests` half of an
- *  `astur` content override — bilingual, unresolved, and restricted to
- *  exactly the fields real test-takers see (never `answer`/scoring keys,
- *  which the backend never sends here in the first place). Which of these
- *  keys is present on a given item depends on its subtest's `key` — see
- *  `ASTUR_ITEM_FIELDS_BY_SUBTEST` in `shared/lib/asturContent.ts`. */
+// ─── АСТУР bank versions (admin, PRO-427) ────────────────────────────────────
+
 export interface AsturBankLocalizedText {
   ru: string;
   kk: string;
@@ -1642,7 +1757,31 @@ export interface AsturBankLocalizedList {
   kk: string[];
 }
 
+export type AsturScoringMethod =
+  | 'single_choice'
+  | 'pick_pair'
+  | 'open_text_tiers'
+  | 'chain_links'
+  | 'number_pair'
+  | 'quick_instruction';
+
+export type AsturItemDifficulty = 'easy' | 'medium' | 'hard';
+export type AsturItemReviewStatus = 'unreviewed' | 'reviewed';
+
+/** One item of a bank version — text AND key together. Which fields are
+ *  present depends on the subtest's `scoring_method`: single_choice →
+ *  options + answer (option text); pick_pair → words + answer (2 words);
+ *  open_text_tiers → pair + score_2/score_1 synonym lists; chain_links →
+ *  concepts in the correct order; number_pair → sequence + answer (2
+ *  numbers); quick_instruction → instruction + options + answer, or
+ *  `dynamic` for context-dependent commands. */
 export interface AsturBankItem {
+  item_id: string;
+  skill: string;
+  subject?: string | null;
+  difficulty?: AsturItemDifficulty | null;
+  key_explanation?: { ru?: string; kk?: string } | null;
+  review_status?: AsturItemReviewStatus;
   text?: AsturBankLocalizedText;
   instruction?: AsturBankLocalizedText;
   third?: AsturBankLocalizedText;
@@ -1650,25 +1789,96 @@ export interface AsturBankItem {
   pair?: AsturBankLocalizedList;
   words?: AsturBankLocalizedList;
   concepts?: AsturBankLocalizedList;
-  /** Locale-independent — numeric_series only. */
   sequence?: number[];
-  /** Locale-independent tag driving the respondent's input widget
-   *  (digit/shape/symbol/word) — lability only, shown read-only. */
+  answer?: AsturBankLocalizedText | AsturBankLocalizedList | number[];
+  score_2?: AsturBankLocalizedList;
+  score_1?: AsturBankLocalizedList;
   answer_format?: string;
+  dynamic?: 'day_of_week' | 'own_name';
 }
 
 export interface AsturBankSubtest {
   number: number;
-  key: string;
+  key: AsturSubtestKey;
   name: AsturBankLocalizedText;
   instruction: AsturBankLocalizedText;
-  item_count: number;
-  scored: boolean;
+  scoring_method: AsturScoringMethod;
+  time_limit_sec: number | null;
   items: AsturBankItem[];
 }
 
-export interface AsturSchemaResponse {
+export interface AsturBankDocument {
+  schema_version: number;
+  subjects: Record<string, AsturBankLocalizedText>;
+  lability_item_limit_ms: number;
   subtests: AsturBankSubtest[];
+}
+
+export interface AsturBankIssue {
+  code: string;
+  message: string;
+  subtest: string | null;
+  item_id: string | null;
+  field: string | null;
+}
+
+export interface AsturBankVersionSummary {
+  id: string;
+  version: number | null;
+  status: 'draft' | 'published';
+  content_hash: string | null;
+  based_on_id: string | null;
+  notes: string | null;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
+  attempt_count: number;
+}
+
+export interface AsturBankVersionDetail extends AsturBankVersionSummary {
+  document: AsturBankDocument;
+  issues: AsturBankIssue[];
+  key_changed_item_ids: string[];
+  /** Draft only: false while the draft equals its base — nothing to publish. */
+  has_changes: boolean;
+}
+
+export interface AsturBankDiffEntry {
+  kind: 'added' | 'removed' | 'changed' | 'subtest_changed' | 'bank_changed';
+  subtest: string | null;
+  item_id: string | null;
+  fields: string[];
+}
+
+export interface AsturBankDiff {
+  from_version: number | null;
+  to_version: number | null;
+  changes: AsturBankDiffEntry[];
+}
+
+export type AsturAgeBand = 'under_14' | '14_15' | '16_17' | '18_plus' | 'unknown';
+
+export interface AsturItemAnalytics {
+  item_id: string;
+  position: number;
+  attempts: number;
+  answered: number;
+  skipped: number;
+  mean_score_share: number | null;
+  on_time_share?: number | null;
+  option_counts: { index: number; label: string; count: number }[];
+  unrecognized_answers: { text: string; count: number }[];
+  median_ms: number | null;
+}
+
+export interface AsturBankAnalytics {
+  bank_version: number | null;
+  attempts: number;
+  filters: { age_band?: AsturAgeBand | null; grade?: number | null };
+  age_bands: Partial<Record<AsturAgeBand, number>>;
+  grades: Record<string, number>;
+  subtests: { key: AsturSubtestKey; median_ms: number | null; items: AsturItemAnalytics[] }[];
 }
 
 /** `?sort=&order=` accepted by every admin list. The set of valid `sort`
