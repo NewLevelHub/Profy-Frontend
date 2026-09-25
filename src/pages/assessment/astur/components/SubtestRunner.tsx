@@ -4,7 +4,6 @@ import type { TFunction } from 'i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
-import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Text } from '@/shared/ui/typography/Text';
 import type {
   AsturAnalogyItem,
@@ -17,6 +16,7 @@ import type {
   AsturLogicalSchemaItem,
   AsturNumericSeriesItem,
 } from '@/shared/types';
+import { AssessmentTimer, formatCountdownMmSs } from '../../components/AssessmentTimer';
 import { useCountdown } from '../hooks/useCountdown';
 import {
   type AsturAnswerState,
@@ -37,16 +37,10 @@ const PAGE_SIZE = 5;
 
 interface SubtestRunnerProps {
   subtest: AsturContentSubtest;
+  startedAt: string | null;
   submitting: boolean;
   submitError: string | null;
   onSubmit: (payload: { answers: Record<string, AsturItemAnswer> }) => void;
-}
-
-function formatMmSs(ms: number) {
-  const totalSec = Math.ceil(ms / 1000);
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 function initialState(subtest: AsturContentSubtest): AsturAnswerState {
@@ -134,7 +128,7 @@ function renderItem(
  * for confirmation first. On expiry the subtest is sent automatically: what
  * is still open goes as skipped.
  */
-export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: SubtestRunnerProps) {
+export function SubtestRunner({ subtest, startedAt, submitting, submitError, onSubmit }: SubtestRunnerProps) {
   const { t } = useTranslation('assessment');
   const { t: tCommon } = useTranslation('common');
   const [state, setState] = useState<AsturAnswerState>(() => initialState(subtest));
@@ -169,7 +163,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
   const { remainingMs } = useCountdown(durationMs, subtest.key, () => {
     setTimeUp(true);
     send();
-  });
+  }, startedAt);
 
   const pageStart = pageIndex * PAGE_SIZE;
   const pageItems = subtest.items.slice(pageStart, pageStart + PAGE_SIZE);
@@ -219,12 +213,15 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
       <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
         {durationMs !== null && (
-          <div className="flex flex-col gap-1.5">
-            <ProgressBar value={(remainingMs / durationMs) * 100} variant={remainingMs < 15000 ? 'accent' : 'brand'} />
-            <Text variant="caption" className={cn('self-end', timeUp ? 'text-danger font-semibold' : 'text-muted')}>
-              {timeUp ? t('astur.subtest.timeUp') : formatMmSs(remainingMs)}
-            </Text>
-          </div>
+          <AssessmentTimer
+            remainingMs={remainingMs}
+            durationMs={durationMs}
+            timeLabel={formatCountdownMmSs(remainingMs)}
+            expired={timeUp}
+            expiredMessage={t('astur.subtest.timeUp')}
+            urgentBelowMs={15_000}
+            sticky
+          />
         )}
 
         {pageCount > 1 && (

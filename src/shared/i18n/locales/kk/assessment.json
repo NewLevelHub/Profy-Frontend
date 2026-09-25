@@ -312,6 +312,9 @@
     "points": "«{{label}}» үшін ұпайлар",
     "increase": "«{{label}}» көбейту"
   },
+  "timer": {
+    "remaining": "Қалды"
+  },
   "astur": {
     "subtest": {
       "next": "Әрі қарай",
@@ -342,6 +345,8 @@
     "figureAssemblyTarget": "Эталон фигура",
     "figureAssemblyOption": "{{letter}} нұсқасы",
     "labilityHeader": "{{y}} команданың {{x}}-шісі · {{t}} с",
+    "labilityMeta": "{{y}} команданың {{x}}-шісі",
+    "labilitySeconds": "{{t}} с",
     "labilitySending": "Жіберілуде…",
     "analogyPrompt": "«{{first}}» сөзі «{{second}}» сөзіне қалай қатысты болса, «{{third}}» сөзіне де дәл солай қатысты болатын сөзді таңдаңыз:",
     "doneTitle": "Барлық тесттер сәтті аяқталды!",

@@ -395,6 +395,8 @@ export interface AsturRunSummary {
   created_at: string;
   completed_at: string | null;
   submitted_subtests: AsturSubtestKey[];
+  /** First server start of every currently unfinished subtest. */
+  subtest_started_at: Partial<Record<AsturSubtestKey, string>>;
 }
 
 /** `in_progress` = an attempt is open (resume it); `completed` = a finished
