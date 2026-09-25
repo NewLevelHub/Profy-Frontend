@@ -36,7 +36,9 @@ export function ReportSection() {
                   <strong className="block text-body-sm font-semibold mb-[0.15rem]" style={{ color: 'var(--text-heading)' }}>
                     {fact.title}
                   </strong>
-                  <span className="text-caption leading-[1.55] text-secondary">{fact.desc}</span>
+                  {/* block: у строчного span высоту строки задаёт родитель
+                      (16px × 1.6), и 13px-текст идёт вразрядку. */}
+                  <span className="block text-caption leading-[1.55] text-secondary">{fact.desc}</span>
                 </div>
               </div>
             ))}
