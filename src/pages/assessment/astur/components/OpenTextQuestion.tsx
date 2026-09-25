@@ -19,13 +19,10 @@ export function OpenTextQuestion({ index, pair, value, onChange }: OpenTextQuest
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t('astur.generalizationPlaceholder')}
-        // Открытый ответ — короткая фраза, а не личные данные, так что
-        // включаем обычную мобильную клавиатуру с предиктивным набором
-        // (T9-стиль) и автокоррекцией/подсказками слов вместо более
-        // строгого набора без подсказок, который некоторые UI используют
-        // по умолчанию для полей ввода в тестах.
-        autoComplete="on"
-        name={`astur-generalization-${index}`}
+        // Keyboard prediction/autocorrect stay on (a short phrase typed on a
+        // phone), but the browser's own form history is off: on a retake it
+        // would offer the student their previous answers (PRO-427 §16).
+        autoComplete="off"
         inputMode="text"
         autoCapitalize="sentences"
         autoCorrect="on"

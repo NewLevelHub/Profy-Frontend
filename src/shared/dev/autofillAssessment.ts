@@ -5,7 +5,14 @@ import { belbinApi } from '@/shared/api/belbin';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
-import type { AsturSubtestKey, Instrument, Question } from '@/shared/types';
+import type {
+  AsturContentSubtest,
+  AsturItemAnswer,
+  AsturSubtestKey,
+  Instrument,
+  Question,
+  SubmitAsturSubtestPayload,
+} from '@/shared/types';
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -121,7 +128,7 @@ export async function autofillToAstur(assessmentId: string): Promise<void> {
 }
 
 /** Dev-only: a shape-valid (not necessarily correct) АСТУР answer per item. */
-export function asturAutofillAnswer(subtestKey: AsturSubtestKey, item: Record<string, unknown>): unknown {
+function asturAutofillAnswer(subtestKey: AsturSubtestKey, item: Record<string, unknown>): unknown {
   switch (subtestKey) {
     case 'logical_schemas':
       return item.concepts;
@@ -138,25 +145,30 @@ export function asturAutofillAnswer(subtestKey: AsturSubtestKey, item: Record<st
   }
 }
 
+/** Dev-only: a whole subtest answered with shape-valid values. */
+export function asturAutofillPayload(subtest: AsturContentSubtest): Omit<SubmitAsturSubtestPayload, 'run_id'> {
+  const answers: Record<string, AsturItemAnswer> = {};
+  const elapsed: Record<string, number> = {};
+  subtest.items.forEach((item, i) => {
+    answers[String(i + 1)] = {
+      status: 'answered',
+      value: asturAutofillAnswer(subtest.key, item as unknown as Record<string, unknown>),
+    };
+    elapsed[String(i + 1)] = 300;
+  });
+  return subtest.key === 'lability' ? { answers, elapsed_ms: elapsed } : { answers };
+}
+
 /** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
  * completes in a handful of requests instead of up to ~278 clicks. */
 export async function autofillAssessment(assessmentId: string): Promise<void> {
   await autofillToAstur(assessmentId);
 
   try {
-    const asturContent = await asturApi.getContent(assessmentId);
-    for (const st of asturContent.subtests) {
-      const answers: Record<string, unknown> = {};
-      const elapsed: Record<string, number> = {};
-      st.items.forEach((item, i) => {
-        answers[String(i + 1)] = asturAutofillAnswer(st.key, item as Record<string, unknown>);
-        elapsed[String(i + 1)] = 1000;
-      });
-      await asturApi.submitSubtest(
-        assessmentId,
-        st.number,
-        st.key === 'lability' ? { answers, elapsed_ms: elapsed } : { answers },
-      );
+    const { run, content } = await asturApi.openAttempt(assessmentId);
+    for (const st of content.subtests.filter((s) => !run.submitted_subtests.includes(s.key))) {
+      await asturApi.startSubtest(assessmentId, st.number, run.run_id);
+      await asturApi.submitSubtest(assessmentId, st.number, { ...asturAutofillPayload(st), run_id: run.run_id });
     }
     useAssessmentStore.getState().setAsturCompleted(true);
   } catch {

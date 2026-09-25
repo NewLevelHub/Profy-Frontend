@@ -346,7 +346,12 @@ export interface AsturNumericSeriesItem {
  *  (`/astur-figures/{itemNumber}-{target|a|b|v|g}.png`), addressed by the
  *  item's 1-based position within the subtest, not by any server-sent
  *  field. The server only ever holds this item's `answer` letter. */
-export type AsturFigureAssemblyItem = Record<string, never>;
+export interface AsturFigureAssemblyItem {
+  /** Image paths (relative to the site root) from the bank version's
+   *  stimulus manifest, addressed by the item's stable id — never by its
+   *  position in the subtest. */
+  stimulus: { target: string; options: Record<string, string> } | null;
+}
 
 export type AsturContentItem =
   | AsturAwarenessItem
@@ -366,14 +371,15 @@ export interface AsturContentSubtest {
   item_count: number;
   /** `null` только у `lability` — у неё свой лимит на команду, не на весь субтест. */
   time_limit_sec: number | null;
-  items: AsturContentItem[];
+  /** Every item carries its stable `item_id`. */
+  items: (AsturContentItem & { item_id: string })[];
 }
 
-/** Content of the bank version the open attempt is pinned to (PRO-427) —
- *  `run_id` is `null` before the first attempt exists. */
+/** Content of the bank version AND locale the attempt is pinned to (PRO-427). */
 export interface AsturContent {
-  run_id: string | null;
+  run_id: string;
   bank_version: number;
+  locale: string;
   subtests: AsturContentSubtest[];
   lability_item_limit_ms: number;
 }
@@ -384,6 +390,8 @@ export interface AsturRunSummary {
   run_id: string;
   status: AsturRunStatus;
   bank_version: number;
+  /** Language the attempt's items and keys are pinned to. */
+  locale: string;
   created_at: string;
   completed_at: string | null;
   submitted_subtests: AsturSubtestKey[];
@@ -398,17 +406,31 @@ export interface AsturState {
   latest_completed_run: AsturRunSummary | null;
 }
 
+/** The opened (or resumed) attempt with its own content — items are never
+ *  shown before the attempt that scores them exists. */
+export interface AsturAttempt {
+  run: AsturRunSummary;
+  content: AsturContent;
+}
+
 export interface StartAsturSubtestResponse {
   run_id: string;
   subtest: string;
   started_at: string;
 }
 
+/** One item's outcome: an explicit answer or an explicit skip. */
+export type AsturItemAnswer =
+  | { status: 'answered'; value: unknown }
+  | { status: 'skipped'; value: null };
+
 export interface SubmitAsturSubtestPayload {
+  /** The attempt being answered — a payload for another attempt is rejected. */
+  run_id: string;
   /** Форма значения зависит от субтеста: строка (MC/обобщение), 2 строки
    *  (классификации), список понятий (логические схемы), 2 числа (ряды),
    *  строка-вариант для быстрых команд. */
-  answers: Record<string, unknown>;
+  answers: Record<string, AsturItemAnswer>;
   /** Только для быстрых команд — время на каждую команду. */
   elapsed_ms?: Record<string, number>;
   /** Только для быстрых команд — IANA-таймзона, чтобы команда про день
@@ -1385,6 +1407,8 @@ export interface AsturSubtestResult {
   percent: number;
   item_count: number;
   answered: number;
+  skipped: number;
+  unanswered: number;
   /** Counted in `overall_percent` under this snapshot's scoring version. */
   in_overall: boolean;
 }
@@ -1421,6 +1445,7 @@ export interface AsturQuickInstructions {
   status: 'ok' | 'insufficient_on_time';
   total: number;
   on_time: number;
+  skipped: number;
   first_half_correct: number;
   first_half_total: number;
   second_half_correct: number;
@@ -1430,6 +1455,8 @@ export interface AsturQuickInstructions {
   accuracy_change_pp: number | null;
   mean_ms: number | null;
   median_ms: number | null;
+  server_block_ms: number | null;
+  client_total_ms: number | null;
 }
 
 export type AsturProtocolFlagCode =
@@ -1438,6 +1465,8 @@ export type AsturProtocolFlagCode =
   | 'subtest_over_time'
   | 'quick_over_limit'
   | 'quick_insufficient_on_time'
+  | 'quick_timing_mismatch'
+  | 'repeat_exposure'
   | 'legacy_protocol'
   | 'legacy_day_of_week_estimated';
 
@@ -1452,10 +1481,20 @@ export interface AsturProtocolQuality {
   flags: AsturProtocolFlag[];
 }
 
+/** Where an attempt sits among the student's attempts: a repeat exposure
+ *  to the same form means a changed score may reflect familiarity with the
+ *  items rather than a changed skill. */
+export interface AsturAttemptHistory {
+  attempt_number: number;
+  repeat_exposure: boolean;
+  days_since_previous: number | null;
+}
+
 /** The frozen result of one completed АСТУР attempt (admin view carries
  *  per-item scores too). */
 export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id' | 'retake_in_progress'> & {
   item_scores: Record<string, number>;
+  item_status: Record<string, 'correct' | 'partial' | 'wrong' | 'skipped' | 'unanswered'>;
 };
 
 /** «Когнитивные навыки (учебные задания)» — the latest COMPLETED attempt's
@@ -1469,6 +1508,7 @@ export interface IntelligenceSection {
   completed_at: string;
   age_at_completion: number | null;
   grade_at_completion: number | null;
+  history: AsturAttemptHistory;
   subtests: AsturSubtestResult[];
   overall_percent: number | null;
   subject_profile: AsturSubjectProfile;
@@ -1867,10 +1907,12 @@ export interface AsturItemAnalytics {
   attempts: number;
   answered: number;
   skipped: number;
+  unanswered: number;
   mean_score_share: number | null;
   on_time_share?: number | null;
   option_counts: { index: number; label: string; count: number }[];
-  unrecognized_answers: { text: string; count: number }[];
+  /** Only phrasings seen at least 3 times, masked and trimmed. */
+  unrecognized_answers: { text: string; locale: 'ru' | 'kk'; count: number }[];
   median_ms: number | null;
 }
 

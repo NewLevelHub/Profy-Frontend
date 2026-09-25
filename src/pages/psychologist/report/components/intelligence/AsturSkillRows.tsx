@@ -32,14 +32,6 @@ export function AsturSkillRows({ subtests, overallPercent }: AsturSkillRowsProps
   return (
     <div className="flex flex-col items-center gap-3 mb-4">
       {points.length > 0 && <LineChart points={points} />}
-      {overallPercent !== null && (
-        <div className="flex flex-col items-center gap-0.5 text-center">
-          <span className={cn(ADMIN_NUM, 'text-primary')}>
-            {t('psychReport:astur.overall', { percent: overallPercent })}
-          </span>
-          <span className={ADMIN_META}>{t('psychReport:astur.overallNote')}</span>
-        </div>
-      )}
 
       <div className="flex flex-col gap-1.5 w-full">
         {subtests.map((s) => {
@@ -74,6 +66,8 @@ export function AsturSkillRows({ subtests, overallPercent }: AsturSkillRowsProps
                       percent: s.percent,
                       scoring: info.normsExplanation ?? '',
                     }),
+                    s.skipped ? t('psychReport:astur.skippedNote', { skipped: s.skipped }) : '',
+                    s.unanswered ? t('psychReport:astur.unansweredNote', { unanswered: s.unanswered }) : '',
                     s.in_overall ? '' : t('psychReport:astur.notInOverall'),
                   ].filter(Boolean).join(' ')}
                 />
@@ -82,6 +76,17 @@ export function AsturSkillRows({ subtests, overallPercent }: AsturSkillRowsProps
           );
         })}
       </div>
+
+      {/* Secondary to the per-skill profile above: an equal-weight mean of
+          the blocks, never a single ability level. */}
+      {overallPercent !== null && (
+        <div className="flex flex-col items-center gap-0.5 text-center pt-1">
+          <span className={cn(ADMIN_TEXT, 'text-secondary')}>
+            {t('psychReport:astur.overall', { percent: overallPercent })}
+          </span>
+          <span className={ADMIN_META}>{t('psychReport:astur.overallNote')}</span>
+        </div>
+      )}
     </div>
   );
 }

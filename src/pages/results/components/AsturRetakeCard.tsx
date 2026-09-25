@@ -3,13 +3,14 @@ import { Brain, RotateCcw } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Text } from '@/shared/ui/typography/Text';
-import { RetakeConfirmModal } from '@/pages/assessment/astur/components/RetakeConfirmModal';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { useAsturRetake } from '../hooks/useAsturRetake';
 
 /** Status of the cognitive-skills test + explicit «Пройти заново». The
  *  result itself is shown to the psychologist, not here. */
 export function AsturRetakeCard({ assessmentId }: { assessmentId: string | null }) {
   const { t, i18n } = useTranslation('results');
+  const { t: tAssessment } = useTranslation('assessment');
   const retake = useAsturRetake(assessmentId);
   if (!retake.visible) return null;
 
@@ -41,9 +42,13 @@ export function AsturRetakeCard({ assessmentId }: { assessmentId: string | null 
           {t('astur.retake')}
         </Button>
       )}
-      <RetakeConfirmModal
+      <ConfirmDialog
         open={retake.confirmOpen}
-        pending={retake.starting}
+        title={tAssessment('astur.retake.confirmTitle')}
+        body={tAssessment('astur.retake.confirmBody')}
+        confirmLabel={retake.starting ? tAssessment('astur.retake.starting') : tAssessment('astur.retake.confirm')}
+        cancelLabel={tAssessment('astur.retake.cancel')}
+        confirming={retake.starting}
         onConfirm={retake.confirmRetake}
         onCancel={retake.cancelConfirm}
       />

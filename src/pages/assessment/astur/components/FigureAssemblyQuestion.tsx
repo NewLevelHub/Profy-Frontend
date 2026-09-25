@@ -1,25 +1,22 @@
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
+import type { AsturFigureAssemblyItem } from '@/shared/types';
 
 interface FigureAssemblyQuestionProps {
-  /** 1-based position within the subtest — the stimulus images for this
-   *  question are `/astur-figures/{index}-{target|a|b|v|g}.png` (own
-   *  brand-pine redraw, traced from the source stimulus sheet; see
-   *  scripts/tools that generated them). */
+  /** 1-based position, display only. */
   index: number;
+  /** Image paths from the bank version's stimulus manifest, addressed by the
+   *  item's own id (PRO-427 §12) — never derived from the position, so a
+   *  reordered bank can't pair a picture with another item's key. */
+  stimulus: AsturFigureAssemblyItem['stimulus'];
   value: string | undefined;
   onChange: (value: string) => void;
 }
 
-const OPTIONS: { letter: string; file: string }[] = [
-  { letter: 'А', file: 'a' },
-  { letter: 'Б', file: 'b' },
-  { letter: 'В', file: 'v' },
-  { letter: 'Г', file: 'g' },
-];
-
-export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssemblyQuestionProps) {
+export function FigureAssemblyQuestion({ index, stimulus, value, onChange }: FigureAssemblyQuestionProps) {
   const { t } = useTranslation('assessment');
+  if (!stimulus) return null;
+  const options = Object.entries(stimulus.options);
   return (
     <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
       <legend className="text-body-md text-primary font-semibold">
@@ -34,15 +31,15 @@ export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssembl
       <div className="theme-day flex gap-0 divide-x divide-default overflow-x-auto rounded-2xl border border-default bg-white">
         <div className="flex shrink-0 basis-1/5 flex-col items-center gap-2 p-3">
           <div className="flex aspect-square w-full min-w-[92px] items-center justify-center">
-            <img src={`/astur-figures/${index}-target.png`} alt={t('astur.figureAssemblyTarget')} className="max-h-full max-w-full object-contain" />
+            <img src={`/${stimulus.target}`} alt={t('astur.figureAssemblyTarget')} className="max-h-full max-w-full object-contain" />
           </div>
           <span className="text-body-sm font-semibold text-muted">{t('astur.figureAssemblyTarget')}</span>
         </div>
-        {OPTIONS.map((option) => {
-          const selected = value === option.letter;
+        {options.map(([letter, path]) => {
+          const selected = value === letter;
           return (
             <label
-              key={option.letter}
+              key={letter}
               className="flex shrink-0 basis-1/5 cursor-pointer flex-col items-center gap-2 p-3"
             >
               <div
@@ -55,17 +52,17 @@ export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssembl
                   type="radio"
                   name={`figure-${index}`}
                   checked={selected}
-                  onChange={() => onChange(option.letter)}
+                  onChange={() => onChange(letter)}
                   className="sr-only"
                 />
                 <img
-                  src={`/astur-figures/${index}-${option.file}.png`}
-                  alt={t('astur.figureAssemblyOption', { letter: option.letter })}
+                  src={`/${path}`}
+                  alt={t('astur.figureAssemblyOption', { letter })}
                   className="max-h-full max-w-full object-contain"
                 />
               </div>
               <span className={cn('text-body-sm font-semibold', selected ? 'text-brand' : 'text-primary')}>
-                {option.letter}
+                {letter}
               </span>
             </label>
           );

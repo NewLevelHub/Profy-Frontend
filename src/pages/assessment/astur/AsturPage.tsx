@@ -13,7 +13,7 @@ import { SubtestRunner } from './components/SubtestRunner';
 import { LabilityRunner } from './components/LabilityRunner';
 import { AsturDone } from './components/AsturDone';
 import { AsturCompleted } from './components/AsturCompleted';
-import { RetakeConfirmModal } from './components/RetakeConfirmModal';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 
@@ -101,7 +101,16 @@ export default function AsturPage() {
   return (
     <div className="min-h-screen bg-page">
       <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
-      <RetakeConfirmModal open={retakeConfirmOpen} pending={retaking} onConfirm={confirmRetake} onCancel={cancelRetake} />
+      <ConfirmDialog
+        open={retakeConfirmOpen}
+        title={t('astur.retake.confirmTitle')}
+        body={t('astur.retake.confirmBody')}
+        confirmLabel={retaking ? t('astur.retake.starting') : t('astur.retake.confirm')}
+        cancelLabel={t('astur.retake.cancel')}
+        confirming={retaking}
+        onConfirm={confirmRetake}
+        onCancel={cancelRetake}
+      />
 
       {running && (
         <AssessmentRail
@@ -144,7 +153,14 @@ export default function AsturPage() {
         )}
 
         {running && stepPhase === 'instruction' && (subtestIndex > 0 || blockIntroSeen) && (
-          <SubtestIntro subtest={subtest} index={subtestIndex} count={subtestCount} onStart={beginSubtest} />
+          <>
+            <SubtestIntro subtest={subtest} index={subtestIndex} count={subtestCount} onStart={beginSubtest} />
+            {submitError && (
+              <Text variant="body-sm" className="text-danger text-center">
+                {submitError}
+              </Text>
+            )}
+          </>
         )}
 
         {running && stepPhase === 'running' && subtest.key === 'lability' && (
@@ -153,7 +169,7 @@ export default function AsturPage() {
             itemLimitMs={labilityItemLimitMs}
             submitting={submitting}
             submitError={submitError}
-            onSubmit={(answers, elapsed_ms) => completeSubtest({ answers, elapsed_ms })}
+            onSubmit={completeSubtest}
           />
         )}
 
@@ -162,7 +178,7 @@ export default function AsturPage() {
             subtest={subtest}
             submitting={submitting}
             submitError={submitError}
-            onSubmit={(answers) => completeSubtest({ answers })}
+            onSubmit={completeSubtest}
           />
         )}
 

@@ -3,7 +3,7 @@ import { cn } from '@/shared/lib/cn';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
-import { ADMIN_CONTROL, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { ADMIN_BUTTON, ADMIN_CONTROL, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AsturAgeBand, AsturItemAnalytics } from '@/shared/types';
 import { useAsturAnalytics } from './hooks/useAsturAnalytics';
 import { asturVersionPath } from './hooks/useAsturVersions';
@@ -22,7 +22,9 @@ const pct = (share: number | null | undefined) => (share === null || share === u
  *  too-easy, confusing or broken items. Not a norm. */
 export default function AdminAsturAnalyticsPage() {
   const { versionId = '' } = useParams<{ versionId: string }>();
-  const { version, analytics, isLoading, isError, ageBand, setAgeBand, grade, setGrade } = useAsturAnalytics(versionId);
+  const {
+    version, analytics, isLoading, isError, ageBand, setAgeBand, grade, setGrade, addSynonym, isAdded, synonymError,
+  } = useAsturAnalytics(versionId);
 
   if (isError) return <AdminError message="Не удалось загрузить аналитику." />;
   if (isLoading || !version || !analytics) return <AdminLoading label="Загрузка аналитики…" />;
@@ -45,6 +47,8 @@ export default function AdminAsturAnalyticsPage() {
           </p>
         }
       />
+
+      {synonymError && <p className={cn(ADMIN_META, 'text-danger m-0')}>{synonymError}</p>}
 
       <div className="flex flex-wrap gap-2 items-center">
         <select className={ADMIN_CONTROL} value={ageBand ?? ''} onChange={(e) => setAgeBand((e.target.value || null) as AsturAgeBand | null)} aria-label="Возраст">
@@ -76,7 +80,7 @@ export default function AdminAsturAnalyticsPage() {
               <thead>
                 <tr className={cn(ADMIN_META, 'text-left')}>
                   <th className="py-2 pr-3 font-medium">№</th>
-                  <th className="py-2 pr-3 font-medium">Ответили / пропуск</th>
+                  <th className="py-2 pr-3 font-medium">Ответили / пропуск / без ответа</th>
                   <th className="py-2 pr-3 font-medium">{subtest.key === 'lability' ? 'В лимит' : 'Доля баллов'}</th>
                   <th className="py-2 pr-3 font-medium">Выбор вариантов</th>
                   <th className="py-2 font-medium">Нераспознанные ответы</th>
@@ -84,7 +88,13 @@ export default function AdminAsturAnalyticsPage() {
               </thead>
               <tbody>
                 {subtest.items.map((item) => (
-                  <ItemRow key={item.item_id} item={item} quick={subtest.key === 'lability'} />
+                  <ItemRow
+                    key={item.item_id}
+                    item={item}
+                    quick={subtest.key === 'lability'}
+                    onAccept={(locale, text, tier) => addSynonym(item.item_id, locale, text, tier)}
+                    isAdded={(locale, text) => isAdded(item.item_id, locale, text)}
+                  />
                 ))}
               </tbody>
             </table>
@@ -95,13 +105,20 @@ export default function AdminAsturAnalyticsPage() {
   );
 }
 
-function ItemRow({ item, quick }: { item: AsturItemAnalytics; quick: boolean }) {
+interface ItemRowProps {
+  item: AsturItemAnalytics;
+  quick: boolean;
+  onAccept: (locale: 'ru' | 'kk', text: string, tier: 'score_1' | 'score_2') => void;
+  isAdded: (locale: string, text: string) => boolean;
+}
+
+function ItemRow({ item, quick, onAccept, isAdded }: ItemRowProps) {
   const answeredTotal = item.option_counts.reduce((sum, o) => sum + o.count, 0);
   return (
     <tr className="border-t border-default align-top">
       <td className={cn(ADMIN_NUM, 'py-2 pr-3')}>{item.position}</td>
       <td className={cn(ADMIN_NUM, 'py-2 pr-3')}>
-        {item.answered} / {item.skipped}
+        {item.answered} / {item.skipped} / {item.unanswered}
       </td>
       <td className={cn(ADMIN_NUM, 'py-2 pr-3')}>{quick ? pct(item.on_time_share) : pct(item.mean_score_share)}</td>
       <td className={cn(ADMIN_TEXT, 'py-2 pr-3')}>
@@ -117,7 +134,25 @@ function ItemRow({ item, quick }: { item: AsturItemAnalytics; quick: boolean }) 
       <td className={cn(ADMIN_META, 'py-2')}>
         {item.unrecognized_answers.length === 0
           ? '—'
-          : item.unrecognized_answers.map((a) => `${a.text} (${a.count})`).join('; ')}
+          : item.unrecognized_answers.map((a) => (
+              <div key={`${a.locale}|${a.text}`} className="flex flex-wrap items-center gap-1.5">
+                <span>
+                  {a.text} <span className={ADMIN_NUM}>×{a.count}</span> · {a.locale}
+                </span>
+                {isAdded(a.locale, a.text) ? (
+                  <span className="text-brand">добавлено в черновик</span>
+                ) : (
+                  <>
+                    <button type="button" className={ADMIN_BUTTON} onClick={() => onAccept(a.locale, a.text, 'score_1')}>
+                      +1 балл
+                    </button>
+                    <button type="button" className={ADMIN_BUTTON} onClick={() => onAccept(a.locale, a.text, 'score_2')}>
+                      +2 балла
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
       </td>
     </tr>
   );

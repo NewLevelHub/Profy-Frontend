@@ -35,6 +35,10 @@ export const adminAsturApi = {
       .post<AsturBankVersionDetail>(API.admin.asturBankPublish(id), { confirmed_item_ids: confirmedItemIds })
       .then((r) => r.data),
 
+  /** Accept a recurring unrecognized open answer into the next draft. */
+  addSynonym: (body: { item_id: string; tier: 'score_1' | 'score_2'; locale: 'ru' | 'kk'; text: string }) =>
+    apiClient.post<AsturBankVersionDetail>(API.admin.asturBankSynonyms, body).then((r) => r.data),
+
   diff: (id: string, against?: string) =>
     apiClient
       .get<AsturBankDiff>(API.admin.asturBankDiff(id), { params: against ? { against } : undefined })

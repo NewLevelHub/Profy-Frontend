@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
-import { asturAutofillAnswer } from '@/shared/dev/autofillAssessment';
+import { asturAutofillPayload } from '@/shared/dev/autofillAssessment';
 import type { AsturContentSubtest, AsturSubtestKey, SubmitAsturSubtestPayload } from '@/shared/types';
-import { useLocaleStore } from '@/shared/store/locale';
 
 type StepPhase = 'instruction' | 'running';
+type SubtestSubmit = Omit<SubmitAsturSubtestPayload, 'run_id'>;
 
 export const asturStateQueryKey = (assessmentId: string) => ['asturState', assessmentId] as const;
+export const asturAttemptQueryKey = (assessmentId: string) => ['asturAttempt', assessmentId] as const;
 
 function clientTimezone(): string | undefined {
   try {
@@ -21,17 +22,19 @@ function clientTimezone(): string | undefined {
 }
 
 /**
- * АСТУР attempt flow (PRO-338 Ф3.6, lifecycle PRO-427). Progress comes from
- * the server: `state.active_run.submitted_subtests` tells which subtests of
- * the open attempt are already in, so a reload or another device resumes
- * exactly where the attempt stands. A finished attempt is never extended —
- * a new one only starts through `startRetake` («Пройти заново»).
+ * АСТУР attempt flow (PRO-338 Ф3.6, lifecycle PRO-427). The attempt is
+ * opened first and its content comes back in the same response, pinned to
+ * the attempt's bank version and language — items are never shown before
+ * the attempt that scores them exists, and switching the app language
+ * mid-attempt doesn't swap them. Every start/submit names the attempt
+ * (`run_id`). Progress comes from the server (`submitted_subtests`), so a
+ * reload or another device resumes exactly where the attempt stands. A
+ * finished attempt is never extended — «Пройти заново» opens a new one.
  */
 export function useAsturAssessment(assessmentId: string) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useTranslation('assessment');
-  const locale = useLocaleStore((s) => s.locale);
 
   const stateQuery = useQuery({
     queryKey: asturStateQueryKey(assessmentId),
@@ -39,23 +42,22 @@ export function useAsturAssessment(assessmentId: string) {
     enabled: !!assessmentId,
   });
   const attemptStatus = stateQuery.data?.status;
-  // A finished attempt with nothing open → the "completed" screen; content
-  // is only needed once an attempt is (or is about to be) running.
-  const needsContent = attemptStatus === 'not_started' || attemptStatus === 'in_progress';
+  const needsAttempt = attemptStatus === 'not_started' || attemptStatus === 'in_progress';
 
-  const contentQuery = useQuery({
-    queryKey: ['asturContent', assessmentId, stateQuery.data?.active_run?.run_id ?? null, locale] as const,
-    queryFn: () => asturApi.getContent(assessmentId),
-    enabled: !!assessmentId && needsContent,
-    // Logical-schema concepts are shuffled per request — refetching mid-attempt
-    // would reshuffle a subtest under the respondent's hands.
+  const attemptQuery = useQuery({
+    // No locale in the key: the attempt's language is its own.
+    queryKey: asturAttemptQueryKey(assessmentId),
+    queryFn: () => asturApi.openAttempt(assessmentId),
+    enabled: !!assessmentId && needsAttempt,
+    // Logical-schema concepts are shuffled per request — refetching
+    // mid-attempt would reshuffle a subtest under the respondent's hands.
     staleTime: Infinity,
+    retry: false,
   });
-  const content = contentQuery.data;
+  const attempt = attemptQuery.data;
+  const runId = attempt?.run.run_id ?? null;
+  const content = attempt?.content;
 
-  // Whether a finished result already existed when this screen opened — the
-  // attempt running here is then a retake, and finishing it goes back to the
-  // results instead of generating the report again.
   // Judged once, on the first state load — the first attempt finishing in
   // this session must not turn itself into a "retake".
   const [isRetake, setIsRetake] = useState<boolean | null>(null);
@@ -66,37 +68,51 @@ export function useAsturAssessment(assessmentId: string) {
   const [justSubmitted, setJustSubmitted] = useState<Set<AsturSubtestKey>>(new Set());
   const [finished, setFinished] = useState(false);
   const [stepPhase, setStepPhase] = useState<StepPhase>('instruction');
+  const [starting, setStarting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [retakeConfirmOpen, setRetakeConfirmOpen] = useState(false);
   const [retaking, setRetaking] = useState(false);
 
-  const submitted = useMemo(() => {
-    const fromServer = stateQuery.data?.active_run?.submitted_subtests ?? [];
-    return new Set<AsturSubtestKey>([...fromServer, ...justSubmitted]);
-  }, [stateQuery.data?.active_run?.submitted_subtests, justSubmitted]);
+  const submitted = useMemo(
+    () => new Set<AsturSubtestKey>([...(attempt?.run.submitted_subtests ?? []), ...justSubmitted]),
+    [attempt?.run.submitted_subtests, justSubmitted],
+  );
 
   const subtests = content?.subtests ?? [];
   const subtestIndex = subtests.findIndex((s) => !submitted.has(s.key));
   const subtestCount = subtests.length;
-  const allDone = finished;
   const subtest = !finished && subtestIndex >= 0 ? subtests[subtestIndex] : null;
   const showCompleted = !finished && attemptStatus === 'completed';
 
   useEffect(() => {
-    if (allDone) useAssessmentStore.getState().setAsturCompleted(true);
-  }, [allDone]);
+    if (finished) useAssessmentStore.getState().setAsturCompleted(true);
+  }, [finished]);
 
-  function beginSubtest() {
-    setStepPhase('running');
-    if (subtest && subtest.key !== 'lability') {
-      void asturApi.startSubtest(assessmentId, subtest.number).catch(() => {});
+  /** The subtest opens only after the server has recorded its start — its
+   *  timing is the server's, and a failed start never shows the items. */
+  async function beginSubtest() {
+    if (!subtest || !runId) return;
+    setStarting(true);
+    setSubmitError(null);
+    try {
+      await asturApi.startSubtest(assessmentId, subtest.number, runId);
+      setStepPhase('running');
+    } catch {
+      setSubmitError(t('astur.startError'));
+    } finally {
+      setStarting(false);
     }
   }
 
-  async function submitOne(target: AsturContentSubtest, payload: SubmitAsturSubtestPayload) {
-    const body = target.key === 'lability' ? { ...payload, client_timezone: clientTimezone() } : payload;
+  async function submitOne(target: AsturContentSubtest, payload: SubtestSubmit) {
+    if (!runId) return;
+    const body: SubmitAsturSubtestPayload = {
+      ...payload,
+      run_id: runId,
+      ...(target.key === 'lability' ? { client_timezone: clientTimezone() } : {}),
+    };
     const response = await asturApi.submitSubtest(assessmentId, target.number, body);
     setJustSubmitted((prev) => new Set(prev).add(target.key));
     if (response.run_completed) {
@@ -105,8 +121,8 @@ export function useAsturAssessment(assessmentId: string) {
     }
   }
 
-  async function completeSubtest(payload: SubmitAsturSubtestPayload) {
-    if (!subtest) return;
+  async function completeSubtest(payload: SubtestSubmit) {
+    if (!subtest || submitting) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -122,10 +138,12 @@ export function useAsturAssessment(assessmentId: string) {
   async function confirmRetake() {
     setRetaking(true);
     try {
-      await asturApi.startRetake(assessmentId);
+      const opened = await asturApi.openAttempt(assessmentId, true);
+      queryClient.setQueryData(asturAttemptQueryKey(assessmentId), opened);
       setJustSubmitted(new Set());
       setFinished(false);
       setIsRetake(true);
+      setStepPhase('instruction');
       await queryClient.invalidateQueries({ queryKey: asturStateQueryKey(assessmentId) });
       setRetakeConfirmOpen(false);
     } catch {
@@ -136,18 +154,13 @@ export function useAsturAssessment(assessmentId: string) {
   }
 
   async function handleAutofill() {
-    if (!content || submitting) return;
+    if (!content || !runId || submitting) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
       for (const st of content.subtests.filter((s) => !submitted.has(s.key))) {
-        const answers: Record<string, unknown> = {};
-        const elapsed: Record<string, number> = {};
-        st.items.forEach((item, i) => {
-          answers[String(i + 1)] = asturAutofillAnswer(st.key, item as Record<string, unknown>);
-          elapsed[String(i + 1)] = 1000;
-        });
-        await submitOne(st, st.key === 'lability' ? { answers, elapsed_ms: elapsed } : { answers });
+        await asturApi.startSubtest(assessmentId, st.number, runId);
+        await submitOne(st, asturAutofillPayload(st));
       }
     } catch {
       setSubmitError(t('astur.submitError'));
@@ -156,21 +169,10 @@ export function useAsturAssessment(assessmentId: string) {
     }
   }
 
-  // Every subtest is on the server the moment it's submitted — leaving only
-  // loses the subtest currently on screen.
-  function handleExit() {
-    setExitConfirmOpen(true);
-  }
-
-  function confirmExit() {
-    setExitConfirmOpen(false);
-    navigate('/results');
-  }
-
   return {
-    isLoading: stateQuery.isLoading || (needsContent && contentQuery.isLoading),
-    loadError: stateQuery.isError || contentQuery.isError ? t('astur.loadError') : null,
-    runId: stateQuery.data?.active_run?.run_id ?? null,
+    isLoading: stateQuery.isLoading || (needsAttempt && attemptQuery.isLoading),
+    loadError: stateQuery.isError || attemptQuery.isError ? t('astur.loadError') : null,
+    runId,
     completedAt: stateQuery.data?.latest_completed_run?.completed_at ?? null,
     showCompleted,
     isRetake: !!isRetake,
@@ -178,16 +180,22 @@ export function useAsturAssessment(assessmentId: string) {
     subtestIndex: subtestIndex === -1 ? subtestCount : subtestIndex,
     subtestCount,
     stepPhase,
-    allDone,
+    allDone: finished,
     labilityItemLimitMs: content?.lability_item_limit_ms ?? 20000,
     exitConfirmOpen,
     retakeConfirmOpen,
     retaking,
+    starting,
     beginSubtest,
     completeSubtest,
     handleAutofill,
-    handleExit,
-    confirmExit,
+    // Every subtest is on the server the moment it's submitted — leaving
+    // only loses the subtest currently on screen.
+    handleExit: () => setExitConfirmOpen(true),
+    confirmExit: () => {
+      setExitConfirmOpen(false);
+      navigate('/results');
+    },
     cancelExit: () => setExitConfirmOpen(false),
     openRetakeConfirm: () => setRetakeConfirmOpen(true),
     cancelRetake: () => setRetakeConfirmOpen(false),

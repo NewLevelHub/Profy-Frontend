@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { asturApi } from '@/shared/api/astur';
-import { asturStateQueryKey } from '@/pages/assessment/astur/hooks/useAsturAssessment';
+import { asturAttemptQueryKey, asturStateQueryKey } from '@/pages/assessment/astur/hooks/useAsturAssessment';
 
 /** «Пройти заново» for АСТУР from the student's results (PRO-427). Only
  *  offered once an attempt has been completed; an open retake is shown as
@@ -28,7 +28,8 @@ export function useAsturRetake(assessmentId: string | null) {
     setStarting(true);
     setFailed(false);
     try {
-      await asturApi.startRetake(assessmentId);
+      const opened = await asturApi.openAttempt(assessmentId, true);
+      queryClient.setQueryData(asturAttemptQueryKey(assessmentId), opened);
       await queryClient.invalidateQueries({ queryKey: asturStateQueryKey(assessmentId) });
       setConfirmOpen(false);
       navigate(testRoute);

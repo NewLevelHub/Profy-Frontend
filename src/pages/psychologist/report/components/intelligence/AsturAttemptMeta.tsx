@@ -11,7 +11,11 @@ export function AsturAttemptMeta({ section }: { section: IntelligenceSection }) 
   const { t, i18n } = useTranslation('psychReport');
   const subtestNames = t('psychReport:astur.subtests', { returnObjects: true }) as Record<string, { name: string }>;
   const date = new Date(section.completed_at).toLocaleDateString(i18n.language);
-  const warnings = section.protocol_quality.flags.filter((f) => f.code !== 'legacy_protocol');
+  // Legacy and repeat exposure are shown as context of their own below.
+  const warnings = section.protocol_quality.flags.filter(
+    (f) => f.code !== 'legacy_protocol' && f.code !== 'repeat_exposure',
+  );
+  const { history } = section;
 
   const ageParts = [
     section.age_at_completion !== null
@@ -34,6 +38,17 @@ export function AsturAttemptMeta({ section }: { section: IntelligenceSection }) 
       </div>
 
       {section.legacy && <p className={cn(ADMIN_META, 'm-0')}>{t('psychReport:astur.legacyNote')}</p>}
+
+      {history.repeat_exposure && (
+        <div className="flex items-start gap-2.5 p-3 rounded-[14px] border border-warning bg-warning-subtle">
+          <Info size={15} className="text-warning flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <p className={cn(ADMIN_TEXT, 'text-secondary m-0')}>
+            {t('psychReport:astur.history.repeat', { number: history.attempt_number })}
+            {history.days_since_previous !== null &&
+              ` ${t('psychReport:astur.history.daysSince', { days: history.days_since_previous })}`}
+          </p>
+        </div>
+      )}
 
       {section.retake_in_progress && (
         <div className="flex items-start gap-2.5 p-3 rounded-[14px] border border-default bg-hover">
