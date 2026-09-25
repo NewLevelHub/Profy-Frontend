@@ -37,11 +37,6 @@
     "enable": "Включить звук",
     "disable": "Выключить звук"
   },
-  "ageGroup": {
-    "junior": "5–7 класс",
-    "middle": "8–9 класс",
-    "senior": "10–11 класс"
-  },
   "celebrationSound": {
     "chime": {
       "label": "Колокольчик",

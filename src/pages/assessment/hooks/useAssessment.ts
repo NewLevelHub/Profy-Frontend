@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
-import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment, autofillMainBattery, autofillToAstur } from '@/shared/dev/autofillAssessment';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
+import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
+import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
@@ -84,10 +86,7 @@ export function useAssessment() {
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
   const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
-  const totalQuestionsFromStore = useAssessmentStore(s => s.totalQuestions);
   const setProgress = useAssessmentStore(s => s.setProgress);
-  const { profile } = useEnsureProfile();
-  const ageGroup = profile?.age_group;
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
   const [pages, setPages] = useState<Page[]>([]);
@@ -173,7 +172,8 @@ export function useAssessment() {
             }
             setSeenInstruments(prev => new Set(prev).add(startInstrument));
           }
-          if (answeredCountFromStore >= questions.length) {
+          const sequenceAnswerCount = questions.length + pairs.length * 2;
+          if (answeredCountFromStore >= sequenceAnswerCount) {
             // Likert+pairs phase already fully answered — motivation may
             // still be pending, so continue there rather than assuming the
             // whole test is done.
@@ -283,8 +283,11 @@ export function useAssessment() {
     const { shouldShow, totalAnswered } = useAssessmentStore.getState().recordQuestionAnswered();
     if (shouldShow || isSpeedFlag) {
       // Route change unmounts this page, taking `saving` with it — no reset needed.
+      // Read progress from the store (just updated by setProgress) rather than
+      // the stale render-time `progress` closed over this callback.
+      const restProgress = journeyProgressPercent(useAssessmentStore.getState());
       navigate('/assessment/rest', {
-        state: { returnTo: '/assessment', progress, totalAnswered, isSpeedFlag } satisfies RestStopState,
+        state: { returnTo: '/assessment', progress: restProgress, totalAnswered, isSpeedFlag } satisfies RestStopState,
       });
       return;
     }
@@ -375,8 +378,8 @@ export function useAssessment() {
     setAutofilling(true);
     setError(null);
     try {
-      await autofillAssessment(assessmentId, ageGroup);
-      navigate('/assessment/loading');
+      await autofillAssessment(assessmentId);
+      navigate(afterBatteryRoute(assessmentId));
     } catch {
       setError(t('assessment:error.autofill'));
     } finally {
@@ -408,7 +411,7 @@ export function useAssessment() {
     setAutofilling(true);
     setError(null);
     try {
-      await autofillToAstur(assessmentId, ageGroup);
+      await autofillToAstur(assessmentId);
       navigate(`/assessment/astur/${assessmentId}`);
     } catch {
       setError(t('assessment:error.autofill'));
@@ -484,7 +487,8 @@ export function useAssessment() {
   // "N вопросов" / time-estimate copy on the intro screen counts each
   // question and each pair as one unit, same as before pagination.
   const totalItems = pages.reduce((sum, p) => sum + (p.kind === 'pair' ? 1 : p.questions.length), 0);
-  const progress = totalQuestionsFromStore > 0 ? (answeredCountFromStore / totalQuestionsFromStore) * 100 : 0;
+  // Monotonic across all 4 phases — see journeyProgressPercent.
+  const progress = useAssessmentJourneyProgress();
   // `saving` itself still gates input immediately (see handleLikertSelect /
   // handleBack above) — this is only for what the Button visually shows.
   const savingVisible = useDelayedFlag(saving, SAVING_SPINNER_DELAY_MS);

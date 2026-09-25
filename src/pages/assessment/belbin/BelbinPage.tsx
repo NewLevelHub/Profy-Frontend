@@ -64,8 +64,14 @@ export default function BelbinPage() {
     navigate(`/assessment/astur/${effectiveAssessmentId}`);
   }, [navigate, effectiveAssessmentId]);
 
+  // The start gate is a stage moment: it owns the screen and centers itself
+  // (AssessmentStageShell), so it lives outside the top-anchored PageContainer
+  // the running test uses. Otherwise Belbin's intro sat under the rail while
+  // every other test's intro sat in the middle of the screen (PRO-397).
+  const showIntro = !isLoading && !loadError && phase === 'intro';
+
   return (
-    <div className="min-h-screen bg-page">
+    <div className="flex flex-col min-h-screen bg-page">
       <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
 
       {phase !== 'done' && (
@@ -79,50 +85,52 @@ export default function BelbinPage() {
         />
       )}
 
-      <PageContainer size="content" className="py-10">
-        {isLoading && (
-          <div className="flex justify-center py-16">
-            <Spinner size="lg" />
-          </div>
-        )}
+      {showIntro && (
+        <AssessmentIntro
+          kicker={t('intro.belbin.kicker')}
+          title={t('intro.belbin.title')}
+          subtitle={instruction || t('intro.belbin.subtitle')}
+          itemCountLabel={t('intro.itemCount', { count: sectionCount })}
+          durationLabel={t('intro.durationMin', { count: Math.max(5, sectionCount) })}
+          ctaLabel={t('intro.belbin.cta')}
+          onStart={start}
+        />
+      )}
 
-        {loadError && (
-          <Text variant="body-md" className="text-danger text-center py-16">
-            {loadError}
-          </Text>
-        )}
+      {!showIntro && (
+        <PageContainer size="content" className="py-10">
+          {isLoading && (
+            <div className="flex justify-center py-16">
+              <Spinner size="lg" />
+            </div>
+          )}
 
-        {!isLoading && !loadError && phase === 'intro' && (
-          <AssessmentIntro
-            kicker={t('intro.belbin.kicker')}
-            title={t('intro.belbin.title')}
-            subtitle={instruction || t('intro.belbin.subtitle')}
-            itemCountLabel={t('intro.itemCount', { count: sectionCount })}
-            durationLabel={t('intro.durationMin', { count: Math.max(5, sectionCount) })}
-            ctaLabel={t('intro.belbin.cta')}
-            onStart={start}
-          />
-        )}
+          {loadError && (
+            <Text variant="body-md" className="text-danger text-center py-16">
+              {loadError}
+            </Text>
+          )}
 
-        {!isLoading && !loadError && phase === 'block' && section && (
-          <BelbinBlock
-            section={section}
-            sectionIndex={sectionIndex}
-            sectionCount={sectionCount}
-            allocation={allocation}
-            blockTotal={blockTotal}
-            isValid={isBlockValid}
-            isLastBlock={isLastBlock}
-            submitting={submitting}
-            submitError={submitError}
-            onChange={setAllocationValue}
-            onBack={goBack}
-            onNext={goNext}
-          />
-        )}
+          {!isLoading && !loadError && phase === 'block' && section && (
+            <BelbinBlock
+              section={section}
+              sectionIndex={sectionIndex}
+              sectionCount={sectionCount}
+              allocation={allocation}
+              blockTotal={blockTotal}
+              isValid={isBlockValid}
+              isLastBlock={isLastBlock}
+              submitting={submitting}
+              submitError={submitError}
+              onChange={setAllocationValue}
+              onBack={goBack}
+              onNext={goNext}
+            />
+          )}
 
-        {phase === 'done' && <BelbinDone onContinue={handleDoneContinue} />}
-      </PageContainer>
+          {phase === 'done' && <BelbinDone onContinue={handleDoneContinue} />}
+        </PageContainer>
+      )}
     </div>
   );
 }

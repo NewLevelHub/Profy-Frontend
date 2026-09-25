@@ -5,7 +5,7 @@ import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
-import { AGE_TIER_LABELS, INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
+import { INSTRUMENT_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
@@ -13,13 +13,13 @@ import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { OverrideBadge } from '@/shared/ui/admin/OverrideBadge';
 import { ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import type { AdminQuestionPairListItem, AgeGroup, Instrument } from '@/shared/types';
+import type { AdminQuestionPairListItem, Instrument } from '@/shared/types';
 
 const PAGE_SIZE = 20;
-const FILTER_KEYS = ['search', 'instrument', 'age_tier'] as const;
+const FILTER_KEYS = ['search', 'instrument'] as const;
 /** Поля сортировки, которые принимает эндпоинт — незнакомое значение
  *  в URL игнорируется, а не улетает на сервер за 422. */
-const SORTABLE_KEYS = ['pair_index', 'instrument', 'age_tier'] as const;
+const SORTABLE_KEYS = ['pair_index', 'instrument'] as const;
 
 export default function AdminQuestionPairsPage() {
   const { t } = useTranslation('admin');
@@ -32,7 +32,7 @@ export default function AdminQuestionPairsPage() {
   const [error, setError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
 
-  const { search, instrument, age_tier: ageTier } = values;
+  const { search, instrument } = values;
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +45,6 @@ export default function AdminQuestionPairsPage() {
           page,
           limit: PAGE_SIZE,
           instrument: (instrument as Instrument) || undefined,
-          age_tier: (ageTier as AgeGroup) || undefined,
           search: search || undefined,
           sort: sort?.key,
           order: sort?.order,
@@ -64,7 +63,7 @@ export default function AdminQuestionPairsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, instrument, ageTier, search, sort?.key, sort?.order, reloadToken]);
+  }, [page, instrument, search, sort?.key, sort?.order, reloadToken]);
 
   const columns: AdminColumn<AdminQuestionPairListItem>[] = [
     {
@@ -113,14 +112,6 @@ export default function AdminQuestionPairsPage() {
       cell: (item) => <span className="text-secondary">{INSTRUMENT_LABELS[item.instrument]}</span>,
     },
     {
-      key: 'age',
-      header: t('common.col.age'),
-      sortKey: 'age_tier',
-      width: '104px',
-      mobile: 'field',
-      cell: (item) => <span className="text-secondary">{AGE_TIER_LABELS[item.age_tier]}</span>,
-    },
-    {
       key: 'overrides',
       header: '',
       align: 'right',
@@ -151,15 +142,6 @@ export default function AdminQuestionPairsPage() {
             options: (Object.keys(INSTRUMENT_LABELS) as Instrument[]).map((key) => ({
               value: key,
               label: INSTRUMENT_LABELS[key],
-            })),
-          },
-          {
-            key: 'age_tier',
-            label: t('common.col.age'),
-            value: ageTier,
-            options: (Object.keys(AGE_TIER_LABELS) as AgeGroup[]).map((key) => ({
-              value: key,
-              label: AGE_TIER_LABELS[key],
             })),
           },
         ]}

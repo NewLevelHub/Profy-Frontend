@@ -7,9 +7,6 @@ import type {
   AdminDirectionUpdateRequest,
   AdminFeedbackListResponse,
   AdminFeedbackStatsResponse,
-  AdminMotivationPairDetail,
-  AdminMotivationPairListResponse,
-  AdminMotivationPairUpdateRequest,
   AdminMotivationStatementDetail,
   AdminMotivationStatementListResponse,
   AdminMotivationStatementUpdateRequest,
@@ -30,7 +27,9 @@ import type {
   AdminUserDetail,
   AdminUserListResponse,
   AdminUserStats,
-  AgeGroup,
+  AdminContentOverrideRequest,
+  AdminContentOverrideResponse,
+  BelbinSchemaResponse,
   AssessmentGoal,
   AssessmentStatus,
   Instrument,
@@ -39,7 +38,6 @@ import type {
 
 interface AdminUserFilterParams {
   search?: string;
-  age_group?: AgeGroup;
   status?: AssessmentStatus;
   goal?: AssessmentGoal;
   /** Only users not seen for at least this many days. Registration counts as
@@ -58,7 +56,6 @@ export interface AdminFeedbackFilterParams {
   search?: string;
   score_min?: number;
   score_max?: number;
-  age_group?: AgeGroup;
   section?: string;
   has_comment?: boolean;
 }
@@ -165,7 +162,7 @@ export const adminApi = {
 
   listQuestions: (
     params?: AdminContentFilterParams &
-      AdminSortParams & { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup },
+      AdminSortParams & { page?: number; limit?: number; instrument?: Instrument },
   ) =>
     apiClient.get<AdminQuestionListResponse>(API.admin.questions, { params }).then((r) => r.data),
 
@@ -177,7 +174,7 @@ export const adminApi = {
 
   listQuestionPairs: (
     params?: AdminContentFilterParams &
-      AdminSortParams & { page?: number; limit?: number; instrument?: Instrument; age_tier?: AgeGroup },
+      AdminSortParams & { page?: number; limit?: number; instrument?: Instrument },
   ) =>
     apiClient.get<AdminQuestionPairListResponse>(API.admin.questionPairs, { params }).then((r) => r.data),
 
@@ -202,17 +199,6 @@ export const adminApi = {
     apiClient
       .patch<AdminMotivationStatementDetail>(API.admin.motivationStatementDetail(id), body)
       .then((r) => r.data),
-
-  listMotivationPairs: (
-    params?: AdminContentFilterParams & AdminSortParams & { page?: number; limit?: number; category?: string },
-  ) =>
-    apiClient.get<AdminMotivationPairListResponse>(API.admin.motivationPairs, { params }).then((r) => r.data),
-
-  getMotivationPair: (id: string) =>
-    apiClient.get<AdminMotivationPairDetail>(API.admin.motivationPairDetail(id)).then((r) => r.data),
-
-  updateMotivationPair: (id: string, body: AdminMotivationPairUpdateRequest) =>
-    apiClient.patch<AdminMotivationPairDetail>(API.admin.motivationPairDetail(id), body).then((r) => r.data),
 
   listDirections: (
     params?: AdminContentFilterParams &
@@ -262,5 +248,18 @@ export const adminApi = {
       .delete<AdminProgramDetail>(
         field ? API.admin.programLockField(programId, field) : API.admin.programLocks(programId),
       )
+      .then((r) => r.data),
+
+  getContentOverride: (instrument: string) =>
+    apiClient
+      .get<AdminContentOverrideResponse>(API.admin.contentOverride(instrument))
+      .then((r) => r.data),
+
+  getBelbinSchema: () =>
+    apiClient.get<BelbinSchemaResponse>(API.admin.belbinSchema).then((r) => r.data),
+
+  setContentOverride: (instrument: string, body: AdminContentOverrideRequest) =>
+    apiClient
+      .put<AdminContentOverrideResponse>(API.admin.contentOverride(instrument), body)
       .then((r) => r.data),
 };

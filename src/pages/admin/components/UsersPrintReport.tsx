@@ -1,8 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { AGE_TIER_LABELS } from '@/shared/lib/contentLabels';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import type { AdminUserListItem, AgeGroup } from '@/shared/types';
+import type { AdminUserListItem } from '@/shared/types';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
 
 /**
@@ -43,7 +42,7 @@ interface UsersPrintReportProps {
   items: readonly AdminUserListItem[];
   /** Сколько строк подошло под фильтры на сервере — может быть больше `items`. */
   total: number;
-  /** Человекочитаемые активные фильтры: «Возраст: Senior», … */
+  /** Человекочитаемые активные фильтры: «Ступень: 14 лет и старше», … */
   filters: readonly string[];
   /** True, когда выгрузка упёрлась в потолок и на листе не весь срез. */
   truncated: boolean;
@@ -101,7 +100,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4mm' }}>
         <thead>
           <tr>
-            {[t('feedback.col.user'), t('common.col.age'), t('users.col.assessment'), t('users.col.goal'), t('print.testsCount'), t('users.col.registered')].map(
+            {[t('feedback.col.user'), t('users.tier'), t('users.col.assessment'), t('users.col.goal'), t('print.testsCount'), t('users.col.registered')].map(
               (header, index) => (
                 <th
                   key={header}
@@ -132,7 +131,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
                 <span style={{ color: MUTE, fontSize: '8pt' }}>{item.email}</span>
               </td>
               <td style={CELL}>
-                {item.age_group ? (AGE_TIER_LABELS[item.age_group as AgeGroup] ?? item.age_group) : '—'}
+                {item.age != null ? t('common:ageYears', { count: item.age }) : '—'}
               </td>
               <td style={CELL}>
                 {item.latest_assessment_status

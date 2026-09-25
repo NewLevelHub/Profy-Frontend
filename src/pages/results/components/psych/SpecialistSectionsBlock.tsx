@@ -1,9 +1,8 @@
-import type { PsychValiditySection, PsychEmotionalSection } from '@/shared/types';
-import { ValiditySection } from './ValiditySection';
+import type { PsychEmotionalSection } from '@/shared/types';
 import { PsychoEmotionalSection } from './PsychoEmotionalSection';
 
 interface SpecialistSectionsBlockProps {
-  validity?: PsychValiditySection | null;
+
   psychoemotional?: PsychEmotionalSection | null;
 }
 
@@ -24,14 +23,14 @@ interface SpecialistSectionsBlockProps {
  * whatever payload that screen already has.
  */
 export function SpecialistSectionsBlock({
-  validity,
+
   psychoemotional,
 }: SpecialistSectionsBlockProps) {
-  if (!validity && !psychoemotional) return null;
+  if (!psychoemotional) return null;
 
   return (
     <div className="flex flex-col gap-4">
-      <ValiditySection section={validity} />
+
       <PsychoEmotionalSection section={psychoemotional} />
     </div>
   );

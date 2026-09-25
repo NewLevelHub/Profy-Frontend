@@ -17,14 +17,13 @@ export const PERSONALITY_STATUS_LABEL: Record<StudentPersonalityNote['level'], s
   high: 'results:personalityDomain.statusHigh',
 };
 
-// Always exactly 5 items, one per Big Five domain (contract §4.3a), for
-// every instrument. `level` (same opaque low/medium/high enum as
-// interest_map) was added to personality_notes too, so each cell now gets
-// the same fill-contrast treatment as InterestDomainSection — solid Dawn
-// fill + white text at `high`, unchanged neutral surface at `medium`,
-// transparent + dimmed at `low`.
+// Historical assessments with a complete Big Five response contain exactly
+// five items. New assessments do not run Big Five and return an empty list;
+// in that case the retired section must be absent rather than an empty card.
 export function PersonalityDomainSection({ personalityNotes, personalityNote }: PersonalityDomainSectionProps) {
   const { t } = useTranslation('results');
+  if (personalityNotes.length === 0) return null;
+
   return (
     <DomainCardFrame ariaLabel={t('personalityDomain.aria')}>
       <div>

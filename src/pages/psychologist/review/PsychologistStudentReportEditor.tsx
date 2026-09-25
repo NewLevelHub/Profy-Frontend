@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
@@ -103,6 +105,7 @@ export function PsychologistStudentReportEditor({
   assessmentId,
   onPublished,
 }: PsychologistStudentReportEditorProps) {
+  const { t } = useTranslation('psychologist');
   const [detail, setDetail] = useState<PsychologistResultDetail | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,6 +113,7 @@ export function PsychologistStudentReportEditor({
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<'save' | 'publish' | null>(null);
+  const [publishConfirmOpen, setPublishConfirmOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!studentId || !assessmentId) return;
@@ -163,15 +167,12 @@ export function PsychologistStudentReportEditor({
     }
   }
 
-  async function handlePublish() {
-    if (isDirty) return;
-    if (
-      !window.confirm(
-        'Опубликовать отчёт? Ученик сразу его увидит, а исправить отчёт после публикации будет нельзя.',
-      )
-    ) {
-      return;
-    }
+  function requestPublish() {
+    if (isDirty || busy !== null) return;
+    setPublishConfirmOpen(true);
+  }
+
+  async function handlePublishConfirm() {
     setBusy('publish');
     setActionError(null);
     try {
@@ -179,10 +180,12 @@ export function PsychologistStudentReportEditor({
       setDetail(published);
       setDraft(toDraft(published));
       setNotice('Отчёт опубликован — ученик уже может его открыть в своём кабинете');
+      setPublishConfirmOpen(false);
       onPublished?.(published);
     } catch (err) {
       setActionError(errorMessage(err, 'Не удалось опубликовать отчёт'));
       if (axios.isAxiosError(err) && err.response?.status === 409) void load();
+      setPublishConfirmOpen(false);
     } finally {
       setBusy(null);
     }
@@ -345,7 +348,7 @@ export function PsychologistStudentReportEditor({
               className={cn(ADMIN_BUTTON, BRAND_BUTTON, 'shadow-sm font-semibold')}
               disabled={isDirty || busy !== null}
               title={isDirty ? 'Сначала сохраните изменения' : undefined}
-              onClick={() => void handlePublish()}
+              onClick={requestPublish}
             >
               {busy === 'publish' ? 'Публикуем…' : 'Опубликовать ученику'}
             </button>
@@ -358,6 +361,19 @@ export function PsychologistStudentReportEditor({
           <p className={cn(ADMIN_TEXT, 'font-medium m-0')}>{notice}</p>
         </div>
       )}
+
+      <ConfirmDialog
+        open={publishConfirmOpen}
+        title={t('reportEditor.publishConfirm.title')}
+        body={t('reportEditor.publishConfirm.body')}
+        confirmLabel={t('reportEditor.publishConfirm.confirm')}
+        cancelLabel={t('reportEditor.publishConfirm.cancel')}
+        confirming={busy === 'publish'}
+        onConfirm={() => void handlePublishConfirm()}
+        onCancel={() => {
+          if (busy !== 'publish') setPublishConfirmOpen(false);
+        }}
+      />
     </div>
   );
 }

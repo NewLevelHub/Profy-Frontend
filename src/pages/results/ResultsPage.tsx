@@ -9,9 +9,11 @@ import { useResults } from './hooks/useResults';
 import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { AssessmentNotStartedCard } from './components/AssessmentNotStartedCard';
 import { AssessmentInProgressCard } from './components/AssessmentInProgressCard';
+import { AssessmentCompletedCard } from './components/AssessmentCompletedCard';
 import { ResultsReveal } from './components/ResultsReveal';
 import { FeedbackSection } from './components/FeedbackSection';
 import { ResultsReportBody } from './components/ResultsReportBody';
+import { AsturRetakeCard } from './components/AsturRetakeCard';
 
 function ResultsSkeleton() {
   return (
@@ -40,11 +42,11 @@ export default function ResultsPage() {
     assessmentId,
     goal,
     ageGroup,
-    isJunior,
     refetch,
     inProgress,
     completedPhaseCount,
     totalPhaseCount,
+    journeyProgress,
     currentPhase,
     continueRoute,
   } = useResults();
@@ -56,11 +58,14 @@ export default function ResultsPage() {
           <AssessmentInProgressCard
             completedPhaseCount={completedPhaseCount}
             totalPhaseCount={totalPhaseCount}
+            progress={journeyProgress}
             currentPhase={currentPhase}
             onContinue={() => navigate(continueRoute)}
           />
         ) : (
-          <AssessmentNotStartedCard onStart={() => navigate('/assessment/goal')} />
+          <AssessmentNotStartedCard
+            onStart={() => navigate('/assessment/goal', { state: { fromNotStarted: true } })}
+          />
         )}
       </PageContainer>
     );
@@ -78,15 +83,15 @@ export default function ResultsPage() {
     );
   }
 
-  // Test finished, report generated, but a psychologist hasn't published it
-  // yet (PRO-337). useResults keeps polling and swaps the report in once it is.
+  // Test finished, report not published yet (PRO-337). No waiting-room screen
+  // (PRO-401) — show a done state; useResults still polls so the report swaps
+  // in once a psychologist publishes.
   if (isPendingReview) {
     return (
       <PageContainer>
-        <JourneyEmptyState
-          mascotState="pause"
-          title={t('pendingReview.title')}
-          body={t('pendingReview.body')}
+        <AssessmentCompletedCard
+          onOpenProfile={() => navigate('/profile')}
+          onOpenUniversities={() => navigate('/universities')}
         />
       </PageContainer>
     );
@@ -130,8 +135,9 @@ export default function ResultsPage() {
         report={report}
         ageGroup={ageGroup}
         goal={goal}
-        isJunior={isJunior}
       />
+
+      <AsturRetakeCard assessmentId={assessmentId} />
 
       <ResultsReveal>
         <FeedbackSection assessmentId={assessmentId} />

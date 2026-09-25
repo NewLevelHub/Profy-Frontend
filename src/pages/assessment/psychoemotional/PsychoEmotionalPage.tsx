@@ -1,5 +1,5 @@
 import './psychoemotional.css';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
@@ -7,8 +7,6 @@ import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 import { usePsychoEmotional } from './hooks/usePsychoEmotional';
 import { ColorCircleStep } from './components/ColorCircleStep';
-
-const INTRO_AUTO_ADVANCE_MS = 2000;
 
 /**
  * Финальный экран психоэмоционального блока (PRO-3xx redesign): повторный
@@ -19,28 +17,13 @@ const INTRO_AUTO_ADVANCE_MS = 2000;
  * считает бэкенд на finish. `data-theme="light"` + `.pe-block` (см.
  * psychoemotional.css) принудительно держат светлую тему — колориметрия §4
  * это приёмочный критерий.
+ *
+ * Intro advances only on CTA click (PRO-397) — no auto-advance timer.
  */
 export default function PsychoEmotionalPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('assessment');
   const [introSeen, setIntroSeen] = useState(false);
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    introTimerRef.current = setTimeout(() => setIntroSeen(true), INTRO_AUTO_ADVANCE_MS);
-    return () => {
-      if (introTimerRef.current !== null) clearTimeout(introTimerRef.current);
-    };
-  }, []);
-
-  function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
-    setIntroSeen(true);
-  }
-
   const { submitting, handleCircle2 } = usePsychoEmotional();
 
   return (
@@ -58,7 +41,7 @@ export default function PsychoEmotionalPage() {
         onExit={() => navigate('/results')}
       />
 
-      <div className="flex-1 flex flex-col w-full max-w-2xl mx-auto">
+      <div className="flex-1 flex flex-col w-full">
         {!introSeen ? (
           <AssessmentIntro
             kicker={t('psychoemotional.circle2.introKicker')}
@@ -67,19 +50,17 @@ export default function PsychoEmotionalPage() {
             itemCountLabel={t('psychoemotional.circle2.introItemCount')}
             durationLabel={t('psychoemotional.circle2.introDuration')}
             ctaLabel={t('psychoemotional.circle2.introCta')}
-            onStart={handleStartIntro}
+            onStart={() => setIntroSeen(true)}
           />
         ) : submitting ? (
           <div className="flex-1 flex items-center justify-center">
             <Spinner size="lg" />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:px-6">
-            <ColorCircleStep
-              instruction={t('psychoemotional.circle2.instruction')}
-              onComplete={handleCircle2}
-            />
-          </div>
+          <ColorCircleStep
+            instruction={t('psychoemotional.circle2.instruction')}
+            onComplete={handleCircle2}
+          />
         )}
       </div>
     </div>
