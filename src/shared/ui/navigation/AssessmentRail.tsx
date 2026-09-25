@@ -1,5 +1,5 @@
-import { ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { useLayoutEffect, useRef } from 'react';
+import { ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { Spine } from '@/shared/ui/Spine';
@@ -60,27 +60,37 @@ export function AssessmentRail({
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
   const soundLabel = t(soundEnabled ? 'common:sound.disable' : 'common:sound.enable');
-  const headerRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLElement>(null);
 
-  // The rail is sticky; things that stick below it (the ASTUR timer) read
-  // its live height from --assessment-rail-h instead of guessing per breakpoint.
+  // The rail sits in flow, so anything centered *below* it lands half a rail
+  // too low on screen. Publish the measured height so the stage card
+  // (AssessmentStageShell) can center itself against the viewport instead of
+  // against the strip under the rail. Measured, not hardcoded: the title wraps
+  // on narrow screens and the rail grows.
   useLayoutEffect(() => {
-    const el = headerRef.current;
+    const el = railRef.current;
     if (!el) return;
-    const root = document.documentElement;
-    const sync = () => root.style.setProperty('--assessment-rail-h', `${el.offsetHeight}px`);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
+
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        '--assessment-rail-h',
+        `${Math.round(el.getBoundingClientRect().height)}px`,
+      );
+    };
+
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+
     return () => {
-      ro.disconnect();
-      root.style.removeProperty('--assessment-rail-h');
+      observer.disconnect();
+      document.documentElement.style.removeProperty('--assessment-rail-h');
     };
   }, []);
 
   return (
     <header
-      ref={headerRef}
+      ref={railRef}
       className="sticky top-0 z-10 px-3 pt-[18px] pb-4 sm:px-4 lg:px-6"
       style={{ background: 'color-mix(in srgb, var(--fog) 90%, transparent)', backdropFilter: 'blur(8px)' }}
     >

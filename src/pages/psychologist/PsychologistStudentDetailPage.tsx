@@ -20,6 +20,7 @@ import {
   ADMIN_TEXTAREA,
 } from '@/shared/ui/admin/density';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import type {
   AgeGroup,
   PsychologistNote,
@@ -39,6 +40,7 @@ export default function PsychologistStudentDetailPage() {
   const [noteError, setNoteError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
+  const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!studentId) return;
@@ -116,15 +118,17 @@ export default function PsychologistStudentDetailPage() {
     }
   }
 
-  async function handleDelete(noteId: string) {
-    if (!window.confirm(t('detail.deleteConfirm'))) return;
+  async function handleDeleteConfirm() {
+    if (!deleteNoteId) return;
     setSaving(true);
     setNoteError(null);
     try {
-      await psychologistApi.deleteNote(noteId);
-      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+      await psychologistApi.deleteNote(deleteNoteId);
+      setNotes((prev) => prev.filter((n) => n.id !== deleteNoteId));
+      setDeleteNoteId(null);
     } catch {
       setNoteError(t('detail.noteDeleteError'));
+      setDeleteNoteId(null);
     } finally {
       setSaving(false);
     }
@@ -192,7 +196,7 @@ export default function PsychologistStudentDetailPage() {
             <div>
               <dt className={ADMIN_META}>{t('detail.city')}</dt>
               <dd className={cn(ADMIN_TEXT, 'm-0 text-primary')}>
-                {student.profile.city}, {student.profile.country}
+                {[student.profile.city, student.profile.country].filter(Boolean).join(', ') || '—'}
               </dd>
             </div>
           </dl>
@@ -225,10 +229,10 @@ export default function PsychologistStudentDetailPage() {
                       : a.status}
                   </AdminBadge>
                   {a.review_status === 'pending_review' && (
-                    <AdminBadge tone="accent">{t('psychologist:detail.pendingReview', 'На проверке')}</AdminBadge>
+                    <AdminBadge tone="accent">{t('psychologist:detail.pendingReview')}</AdminBadge>
                   )}
                   {a.review_status === 'published' && (
-                    <AdminBadge tone="brand">{t('psychologist:detail.published', 'Опубликовано')}</AdminBadge>
+                    <AdminBadge tone="brand">{t('psychologist:detail.published')}</AdminBadge>
                   )}
                   {a.has_result && !a.review_status && <AdminBadge tone="quiet">{t('detail.hasResult')}</AdminBadge>}
                   {/* Single unified report button */}
@@ -249,12 +253,12 @@ export default function PsychologistStudentDetailPage() {
                       {a.review_status === 'pending_review' ? (
                         <>
                           <ClipboardCheck size={14} />
-                          {t('psychologist:detail.checkReport', 'Проверить отчёт')}
+                          {t('psychologist:detail.checkReport')}
                         </>
                       ) : (
                         <>
                           <FileText size={14} />
-                          {t('psychologist:detail.openReport', 'Открыть отчёт')}
+                          {t('psychologist:detail.openReport')}
                         </>
                       )}
                     </Link>
@@ -371,7 +375,7 @@ export default function PsychologistStudentDetailPage() {
                           className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
                           aria-label={t('detail.deleteAria')}
                           disabled={saving}
-                          onClick={() => void handleDelete(note.id)}
+                          onClick={() => setDeleteNoteId(note.id)}
                         >
                           <Trash2 size={13} />
                         </button>
@@ -384,6 +388,18 @@ export default function PsychologistStudentDetailPage() {
           </ul>
         )}
       </AdminCard>
+
+      <ConfirmDialog
+        open={deleteNoteId !== null}
+        title={t('detail.deleteConfirm')}
+        confirmLabel={t('detail.deleteAria')}
+        cancelLabel={t('detail.cancel')}
+        confirming={saving && deleteNoteId !== null}
+        onConfirm={() => void handleDeleteConfirm()}
+        onCancel={() => {
+          if (!saving) setDeleteNoteId(null);
+        }}
+      />
     </PageContainer>
   );
 }

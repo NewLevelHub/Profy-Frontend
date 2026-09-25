@@ -8,6 +8,50 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Entrance for a pre-test stage card (AssessmentStageShell).
+   Opacity only, at the standard 180ms tempo: a card that also travels or
+   scales on entry reads as "the card resized after it appeared", which is
+   exactly the flash PRO-397 is about. */
+.assessment-stage__enter {
+  animation: fade-in 180ms ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .assessment-stage__enter { animation: none; }
+}
+
+/* Pre-test stage: the card fills the strip under AssessmentRail and is
+   centred in it. The rail sits in flow, so that strip is half a rail lower
+   than the screen — hence the lift below. */
+.assessment-stage--centered {
+  min-height: calc(100dvh - var(--assessment-rail-h, 7rem));
+}
+
+/* Tall enough windows only, and deliberately a transform rather than padding:
+   padding would add real height and push the card into a scrollbar on short
+   windows, which is how it behaved when this was first fixed. 750px is the
+   threshold where the tallest stage card (Belbin, ~500px) still clears the
+   rail after being lifted; below it the card keeps the strip's own centre and
+   the page stays scroll-free. */
+@media (min-height: 750px) {
+  .assessment-stage--centered {
+    padding-block: 2rem;
+    transform: translateY(calc(var(--assessment-rail-h, 7rem) / -2));
+  }
+  /* One box for every step of a stage — 30.5rem is the tallest of them (the
+     psycho check-in), so intro → check-in → colour circle don't resize. */
+  .assessment-stage--centered .assessment-stage__shell {
+    min-height: 30.5rem;
+  }
+}
+@media (max-width: 639px) {
+  .assessment-stage--centered .assessment-stage__shell { min-height: 0; }
+}
+
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.6); }
   to   { opacity: 1; transform: scale(1); }

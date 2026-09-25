@@ -1,66 +1,73 @@
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
+import type { AsturFigureAssemblyItem } from '@/shared/types';
 
 interface FigureAssemblyQuestionProps {
-  /** 1-based position within the subtest — the stimulus images for this
-   *  question are `/astur-figures/{index}-{target|a|b|v|g}.png` (own
-   *  brand-pine redraw, traced from the source stimulus sheet; see
-   *  scripts/tools that generated them). */
+  /** 1-based position, display only. */
   index: number;
+  /** Image paths from the bank version's stimulus manifest, addressed by the
+   *  item's own id (PRO-427 §12) — never derived from the position, so a
+   *  reordered bank can't pair a picture with another item's key. */
+  stimulus: AsturFigureAssemblyItem['stimulus'];
   value: string | undefined;
   onChange: (value: string) => void;
 }
 
-const OPTIONS: { letter: string; file: string }[] = [
-  { letter: 'А', file: 'a' },
-  { letter: 'Б', file: 'b' },
-  { letter: 'В', file: 'v' },
-  { letter: 'Г', file: 'g' },
-];
-
-export function FigureAssemblyQuestion({ index, value, onChange }: FigureAssemblyQuestionProps) {
+export function FigureAssemblyQuestion({ index, stimulus, value, onChange }: FigureAssemblyQuestionProps) {
   const { t } = useTranslation('assessment');
+  if (!stimulus) return null;
+  const options = Object.entries(stimulus.options);
   return (
-    <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
-      <legend className="text-body-md text-primary font-semibold">
+    <div role="group" aria-labelledby={`figure-label-${index}`} className="flex flex-col gap-3">
+      <p id={`figure-label-${index}`} className="text-body-md text-primary font-semibold">
         {index}. {t('astur.figureAssemblyPrompt')}
-      </legend>
+      </p>
       {/* theme-day: this is a scan-derived stimulus image, not app chrome —
           it must stay legible on its own light ground even in dark mode,
-          same reasoning as theme.css's own .theme-day surfaces. */}
-      <div className="theme-day flex flex-col sm:flex-row items-start gap-6">
-        <div className="flex h-40 w-40 shrink-0 items-center justify-center rounded-2xl border border-strong bg-raised p-4">
-          <img src={`/astur-figures/${index}-target.png`} alt="Фигура-эталон" className="max-h-full max-w-full" />
+          same reasoning as theme.css's own .theme-day surfaces.
+          Single-row layout mirrors the original printed test sheet (эталон
+          + А/Б/В/Г as five equal cells read left-to-right in one strip),
+          rather than splitting the target into its own oversized card. */}
+      <div className="theme-day flex gap-0 divide-x divide-default overflow-x-auto rounded-2xl border border-default bg-white">
+        <div className="flex shrink-0 basis-1/5 flex-col items-center gap-2 p-3">
+          <div className="flex aspect-square w-full min-w-[92px] items-center justify-center">
+            <img src={`/${stimulus.target}`} alt={t('astur.figureAssemblyTarget')} className="max-h-full max-w-full object-contain" />
+          </div>
+          <span className="text-body-sm font-semibold text-muted">{t('astur.figureAssemblyTarget')}</span>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          {OPTIONS.map((option) => {
-            const selected = value === option.letter;
-            return (
-              <label
-                key={option.letter}
+        {options.map(([letter, path]) => {
+          const selected = value === letter;
+          return (
+            <label
+              key={letter}
+              className="flex shrink-0 basis-1/5 cursor-pointer flex-col items-center gap-2 p-3"
+            >
+              <div
                 className={cn(
-                  'flex h-32 w-32 flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-2 cursor-pointer transition-colors',
-                  selected ? 'border-brand bg-brand-subtle' : 'border-default hover:border-strong',
+                  'flex aspect-square w-full min-w-[92px] items-center justify-center rounded-xl border-2 transition-colors',
+                  selected ? 'border-brand' : 'border-transparent hover:border-strong',
                 )}
               >
                 <input
                   type="radio"
                   name={`figure-${index}`}
                   checked={selected}
-                  onChange={() => onChange(option.letter)}
+                  onChange={() => onChange(letter)}
                   className="sr-only"
                 />
                 <img
-                  src={`/astur-figures/${index}-${option.file}.png`}
-                  alt={`Вариант ${option.letter}`}
-                  className="h-20 w-20 object-contain"
+                  src={`/${path}`}
+                  alt={t('astur.figureAssemblyOption', { letter })}
+                  className="max-h-full max-w-full object-contain"
                 />
-                <span className="text-body-sm font-semibold text-primary">{option.letter}</span>
-              </label>
-            );
-          })}
-        </div>
+              </div>
+              <span className={cn('text-body-sm font-semibold', selected ? 'text-brand' : 'text-primary')}>
+                {letter}
+              </span>
+            </label>
+          );
+        })}
       </div>
-    </fieldset>
+    </div>
   );
 }

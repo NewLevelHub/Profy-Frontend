@@ -5,7 +5,14 @@ import { belbinApi } from '@/shared/api/belbin';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
-import type { Instrument, Question } from '@/shared/types';
+import type {
+  AsturContentSubtest,
+  AsturItemAnswer,
+  AsturSubtestKey,
+  Instrument,
+  Question,
+  SubmitAsturSubtestPayload,
+} from '@/shared/types';
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -120,35 +127,53 @@ export async function autofillToAstur(assessmentId: string): Promise<void> {
   }
 }
 
+/** Dev-only: a shape-valid (not necessarily correct) АСТУР answer per item. */
+function asturAutofillAnswer(subtestKey: AsturSubtestKey, item: Record<string, unknown>): unknown {
+  switch (subtestKey) {
+    case 'logical_schemas':
+      return item.concepts;
+    case 'classification':
+      return (item.words as string[]).slice(0, 2);
+    case 'numeric_series':
+      return [1, 2];
+    case 'geometric_figures':
+      return 'А';
+    case 'generalization':
+      return 'ответ';
+    default:
+      return (item.options as string[] | undefined)?.[0] ?? '1';
+  }
+}
+
+/** Dev-only: a whole subtest answered with shape-valid values. */
+export function asturAutofillPayload(subtest: AsturContentSubtest): Omit<SubmitAsturSubtestPayload, 'run_id'> {
+  const answers: Record<string, AsturItemAnswer> = {};
+  const elapsed: Record<string, number> = {};
+  subtest.items.forEach((item, i) => {
+    answers[String(i + 1)] = {
+      status: 'answered',
+      value: asturAutofillAnswer(subtest.key, item as unknown as Record<string, unknown>),
+    };
+    elapsed[String(i + 1)] = 300;
+  });
+  return subtest.key === 'lability' ? { answers, elapsed_ms: elapsed } : { answers };
+}
+
 /** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
- * completes in a handful of requests instead of up to ~278 clicks. */
+ * completes in a handful of requests instead of up to ~278 clicks.
+ *
+ * АСТУР failures are NOT swallowed here (PRO-397): the report can't be
+ * generated without АСТУР, so a silent failure sends the caller to the result
+ * screen of an unfinished test. Let it surface as "не удалось автозаполнить".
+ * Already-submitted subtests are skipped via `run.submitted_subtests`, so a
+ * repeat click is still a no-op rather than an error. */
 export async function autofillAssessment(assessmentId: string): Promise<void> {
   await autofillToAstur(assessmentId);
 
-  try {
-    const asturContent = await asturApi.getContent();
-    if (asturContent?.subtests?.length > 0) {
-      for (const st of asturContent.subtests) {
-        const answers: Record<string, unknown> = {};
-        st.items.forEach((it: any) => {
-          if (st.key === 'logical_schemas') {
-            answers[it.id] = (it.options || []).slice(0, 3);
-          } else if (st.key === 'classification' || st.key === 'numeric_series') {
-            answers[it.id] = [(it.options?.[0] ?? '1'), (it.options?.[1] ?? '2')];
-          } else if (st.key === 'geometric_figures') {
-            // No `options` on the wire for this subtest (static image
-            // assets, addressed by position — see FigureAssemblyQuestion);
-            // any letter is a structurally valid dev-autofill answer.
-            answers[it.id] = 'A';
-          } else {
-            answers[it.id] = it.options?.[0] ?? '1';
-          }
-        });
-        await asturApi.submitSubtest(assessmentId, st.number, { answers, elapsed_ms: {} });
-      }
-      useAssessmentStore.getState().setAsturCompleted(true);
-    }
-  } catch {
-    // Ignore if already submitted or error
+  const { run, content } = await asturApi.openAttempt(assessmentId);
+  for (const st of content.subtests.filter((s) => !run.submitted_subtests.includes(s.key))) {
+    await asturApi.startSubtest(assessmentId, st.number, run.run_id);
+    await asturApi.submitSubtest(assessmentId, st.number, { ...asturAutofillPayload(st), run_id: run.run_id });
   }
+  useAssessmentStore.getState().setAsturCompleted(true);
 }

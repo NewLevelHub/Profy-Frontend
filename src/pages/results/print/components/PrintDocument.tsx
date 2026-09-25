@@ -102,29 +102,30 @@ export function PrintDocument({ report, profile, ageGroup, goal }: PrintDocument
         <PrintNoteList items={report.strength_cards} emptyText={t('print.emptyMore')} />
       </PrintSection>
 
-      <PrintSection kicker={t('print.kicker.personality')}>
-        {report.personality_note && (
-          <p className="text-body-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
-            {report.personality_note}
-          </p>
-        )}
-        <PrintLevelRows
-          rows={report.personality_notes.map((note) => ({
-            id: note.trait,
-            title: note.label,
-            status: t(PERSONALITY_STATUS_LABEL[note.level]),
-            description: note.description,
-            level: note.level,
-          }))}
-        />
-      </PrintSection>
+      {report.personality_notes.length > 0 && (
+        <PrintSection kicker={t('print.kicker.personality')}>
+          {report.personality_note && (
+            <p className="text-body-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
+              {report.personality_note}
+            </p>
+          )}
+          <PrintLevelRows
+            rows={report.personality_notes.map((note) => ({
+              id: note.trait,
+              title: note.label,
+              status: t(PERSONALITY_STATUS_LABEL[note.level]),
+              description: note.description,
+              level: note.level,
+            }))}
+          />
+        </PrintSection>
+      )}
 
-      <PrintSection kicker={t('print.kicker.thinkingStyle')}>
-        <PrintNoteList
-          items={report.thinking_style_notes}
-          emptyText={t('print.emptyMore')}
-        />
-      </PrintSection>
+      {report.thinking_style_notes.length > 0 && (
+        <PrintSection kicker={t('print.kicker.thinkingStyle')}>
+          <PrintNoteList items={report.thinking_style_notes} emptyText={t('print.emptyMore')} />
+        </PrintSection>
+      )}
 
       <PrintSection kicker={t('print.kicker.motivation')}>
         {report.motivation_highlights.length === 0 ? (

@@ -47,6 +47,14 @@ export function hasPendingColorRun(assessmentId: string): boolean {
   return s.assessmentId === assessmentId && s.runId !== null;
 }
 
+/** Where the flow goes once every test of the battery is done: the second
+ *  colour circle if the first one was taken at the start of this
+ *  assessment, otherwise straight to report generation (the colour test is
+ *  optional). The one place that decides it — every "all done" exit uses it. */
+export function afterBatteryRoute(assessmentId: string | null): string {
+  return assessmentId && hasPendingColorRun(assessmentId) ? '/assessment/psychoemotional' : '/assessment/loading';
+}
+
 /**
  * Шаг-машина стартового экрана психоблока (check-in → круг 1), §B4 п.1-2 —
  * check-in идёт первым, перед основной батареей тестов. Живёт только на

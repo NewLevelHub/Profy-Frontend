@@ -58,12 +58,14 @@ export function ResultsReportBody({ report, ageGroup, goal, readOnly = false }: 
         <StrengthsDomainSection strengthCards={report.strength_cards} />
       </ResultsReveal>
 
-      <ResultsReveal>
-        <PersonalityDomainSection
-          personalityNotes={report.personality_notes}
-          personalityNote={report.personality_note}
-        />
-      </ResultsReveal>
+      {report.personality_notes.length > 0 && (
+        <ResultsReveal>
+          <PersonalityDomainSection
+            personalityNotes={report.personality_notes}
+            personalityNote={report.personality_note}
+          />
+        </ResultsReveal>
+      )}
 
       <ResultsReveal>
         <ThinkingStyleMotivationSection

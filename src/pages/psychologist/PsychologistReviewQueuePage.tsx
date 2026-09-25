@@ -11,7 +11,7 @@ import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_META, ADMIN_NUM, ADMIN_RADIUS, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import type { PsychologistReviewQueueItem } from '@/shared/types';
+import type { AgeGroup, PsychologistReviewQueueItem } from '@/shared/types';
 
 // ASSESSMENT_GOAL_LABELS holds i18n keys (admin namespace) since the admin
 // panel was localized — render them through t(), never as-is.
@@ -74,7 +74,7 @@ const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
   },
   {
     key: 'age',
-    header: 'Возраст',
+    header: 'Ступень',
     mobile: 'badge',
     cell: (row) => <AgeBadge age={row.age} />,
   },

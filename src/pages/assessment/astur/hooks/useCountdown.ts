@@ -7,7 +7,12 @@ import { useEffect, useRef, useState } from 'react';
  * means "no countdown for this screen" (kept as a hook, not conditional
  * rendering, so callers don't juggle two code paths).
  */
-export function useCountdown(durationMs: number | null, resetKey: string, onExpire: () => void) {
+export function useCountdown(
+  durationMs: number | null,
+  resetKey: string,
+  onExpire: () => void,
+  startedAt?: string | null,
+) {
   const [remainingMs, setRemainingMs] = useState(durationMs ?? 0);
   const expiredRef = useRef(false);
   const onExpireRef = useRef(onExpire);
@@ -19,21 +24,22 @@ export function useCountdown(durationMs: number | null, resetKey: string, onExpi
       setRemainingMs(0);
       return;
     }
-    const deadline = Date.now() + durationMs;
-    setRemainingMs(durationMs);
+    const parsedStart = startedAt ? Date.parse(startedAt) : Number.NaN;
+    const deadline = (Number.isFinite(parsedStart) ? parsedStart : Date.now()) + durationMs;
 
     const tick = () => {
-      const left = Math.max(0, deadline - Date.now());
+      const left = Math.min(durationMs, Math.max(0, deadline - Date.now()));
       setRemainingMs(left);
       if (left === 0 && !expiredRef.current) {
         expiredRef.current = true;
         onExpireRef.current();
       }
     };
+    tick();
     const id = window.setInterval(tick, 200);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [durationMs, resetKey]);
+  }, [durationMs, resetKey, startedAt]);
 
   return { remainingMs, remainingSec: Math.ceil(remainingMs / 1000) };
 }

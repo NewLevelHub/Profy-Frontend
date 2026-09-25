@@ -30,7 +30,6 @@ import type {
   AdminContentOverrideRequest,
   AdminContentOverrideResponse,
   BelbinSchemaResponse,
-  AsturSchemaResponse,
   AssessmentGoal,
   AssessmentStatus,
   Instrument,
@@ -258,9 +257,6 @@ export const adminApi = {
 
   getBelbinSchema: () =>
     apiClient.get<BelbinSchemaResponse>(API.admin.belbinSchema).then((r) => r.data),
-
-  getAsturSchema: () =>
-    apiClient.get<AsturSchemaResponse>(API.admin.asturSchema).then((r) => r.data),
 
   setContentOverride: (instrument: string, body: AdminContentOverrideRequest) =>
     apiClient
