@@ -6,6 +6,7 @@ import { Spinner } from '@/shared/ui/Spinner';
 import { Text } from '@/shared/ui/typography/Text';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { useAssessmentJourneyProgress } from '../hooks/useAssessmentJourneyProgress';
 import { useAsturAssessment } from './hooks/useAsturAssessment';
 import { SubtestIntro } from './components/SubtestIntro';
@@ -80,8 +81,8 @@ export default function AsturPage() {
   }
 
   const handleDoneContinue = useCallback(() => {
-    navigate(isRetake ? '/results' : '/assessment/loading');
-  }, [navigate, isRetake]);
+    navigate(isRetake ? '/results' : afterBatteryRoute(effectiveAssessmentId));
+  }, [navigate, isRetake, effectiveAssessmentId]);
 
   const ready = !isLoading && !loadError;
   const running = ready && !showCompleted && !allDone && subtest;

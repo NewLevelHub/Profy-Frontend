@@ -7,7 +7,7 @@ import { useResultStore } from '@/shared/store/result';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useProfileStore } from '@/shared/store/profile';
 import { useLocaleStore } from '@/shared/store/locale';
-import { hasPendingColorRun } from '@/shared/store/psychoemotional';
+import { afterBatteryRoute, hasPendingColorRun } from '@/shared/store/psychoemotional';
 import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
 
 export function useResults() {
@@ -203,7 +203,7 @@ export function useResults() {
       continueRoute = assessmentId ? `/assessment/astur/${assessmentId}` : '/assessment/astur';
     } else {
       currentPhase = 'done';
-      continueRoute = '/assessment/loading';
+      continueRoute = afterBatteryRoute(assessmentId);
     }
   }
 

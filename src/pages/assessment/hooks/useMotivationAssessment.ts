@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
@@ -72,7 +73,7 @@ export function useMotivationAssessment() {
               ? `/assessment/belbin/${assessmentId}`
               : !state.asturCompleted
               ? `/assessment/astur/${assessmentId}`
-              : '/assessment/loading';
+              : afterBatteryRoute(assessmentId);
             navigate(nextRoute, { replace: true });
             return;
           }

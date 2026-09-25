@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
 import { assessmentApi } from '@/shared/api/assessment';
@@ -378,7 +379,7 @@ export function useAssessment() {
     setError(null);
     try {
       await autofillAssessment(assessmentId);
-      navigate('/assessment/loading');
+      navigate(afterBatteryRoute(assessmentId));
     } catch {
       setError(t('assessment:error.autofill'));
     } finally {
