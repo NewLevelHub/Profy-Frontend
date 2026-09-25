@@ -1,5 +1,5 @@
 import './psychoemotional.css';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
@@ -15,7 +15,6 @@ const STEP_TITLE_KEY: Record<PsychoStartStep, string> = {
   checkin: 'psychoemotional.circle1.stepTitleCheckin',
   circle1: 'psychoemotional.circle1.stepTitleCircle1',
 };
-const INTRO_AUTO_ADVANCE_MS = 2000;
 
 /**
  * Стартовый экран психоблока (PRO-3xx redesign, §B4 п.1-2): check-in + круг 1,
@@ -24,31 +23,17 @@ const INTRO_AUTO_ADVANCE_MS = 2000;
  * `/assessment/psychoemotional`, в конце всего прохождения. `data-theme="light"`
  * + `.pe-block` держат светлую тему принудительно — колориметрия §4
  * приёмочный критерий, как и на финальном экране.
+ *
+ * Intro advances only on CTA click (PRO-397) — no auto-advance timer; that
+ * caused a flash: intro → check-in → layout settle.
  */
 export default function PsychoColorStartPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('assessment');
   const [introSeen, setIntroSeen] = useState(false);
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { ready, submitting, step, handleCheckin, handleCircle1 } = usePsychoColorStart();
   const progress = introSeen ? ((STEP_ORDER.indexOf(step) + 1) / STEP_ORDER.length) * 100 : 0;
-
-  useEffect(() => {
-    if (!ready) return;
-    introTimerRef.current = setTimeout(() => setIntroSeen(true), INTRO_AUTO_ADVANCE_MS);
-    return () => {
-      if (introTimerRef.current !== null) clearTimeout(introTimerRef.current);
-    };
-  }, [ready]);
-
-  function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
-    setIntroSeen(true);
-  }
 
   return (
     <div className="pe-block flex flex-col min-h-screen" data-theme="light">
@@ -60,7 +45,7 @@ export default function PsychoColorStartPage() {
         onExit={() => navigate('/results')}
       />
 
-      <div className="flex-1 flex flex-col w-full max-w-2xl mx-auto">
+      <div className="flex-1 flex flex-col w-full">
         {!ready ? (
           <div className="flex-1 flex items-center justify-center">
             <Spinner size="lg" />
@@ -73,14 +58,14 @@ export default function PsychoColorStartPage() {
             itemCountLabel={t('psychoemotional.circle1.introItemCount')}
             durationLabel={t('psychoemotional.circle1.introDuration')}
             ctaLabel={t('psychoemotional.circle1.introCta')}
-            onStart={handleStartIntro}
+            onStart={() => setIntroSeen(true)}
           />
         ) : submitting ? (
           <div className="flex-1 flex items-center justify-center">
             <Spinner size="lg" />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:px-6">
+          <>
             {step === 'checkin' && <CheckInStep onSubmit={handleCheckin} />}
             {step === 'circle1' && (
               <ColorCircleStep
@@ -88,7 +73,7 @@ export default function PsychoColorStartPage() {
                 onComplete={handleCircle1}
               />
             )}
-          </div>
+          </>
         )}
       </div>
     </div>
