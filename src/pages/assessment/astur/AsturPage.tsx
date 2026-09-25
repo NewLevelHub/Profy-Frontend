@@ -45,6 +45,7 @@ export default function AsturPage() {
     showCompleted,
     isRetake,
     subtest,
+    subtestStartedAt,
     subtestIndex,
     subtestCount,
     stepPhase,
@@ -167,6 +168,8 @@ export default function AsturPage() {
         {running && stepPhase === 'running' && subtest.key === 'lability' && (
           <LabilityRunner
             subtest={subtest}
+            runId={runId ?? ''}
+            startedAt={subtestStartedAt}
             itemLimitMs={labilityItemLimitMs}
             submitting={submitting}
             submitError={submitError}
@@ -177,6 +180,7 @@ export default function AsturPage() {
         {running && stepPhase === 'running' && subtest.key !== 'lability' && (
           <SubtestRunner
             subtest={subtest}
+            startedAt={subtestStartedAt}
             submitting={submitting}
             submitError={submitError}
             onSubmit={completeSubtest}

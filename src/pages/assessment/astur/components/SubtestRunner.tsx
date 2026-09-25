@@ -37,6 +37,7 @@ const PAGE_SIZE = 5;
 
 interface SubtestRunnerProps {
   subtest: AsturContentSubtest;
+  startedAt: string | null;
   submitting: boolean;
   submitError: string | null;
   onSubmit: (payload: { answers: Record<string, AsturItemAnswer> }) => void;
@@ -134,7 +135,7 @@ function renderItem(
  * for confirmation first. On expiry the subtest is sent automatically: what
  * is still open goes as skipped.
  */
-export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: SubtestRunnerProps) {
+export function SubtestRunner({ subtest, startedAt, submitting, submitError, onSubmit }: SubtestRunnerProps) {
   const { t } = useTranslation('assessment');
   const { t: tCommon } = useTranslation('common');
   const [state, setState] = useState<AsturAnswerState>(() => initialState(subtest));
@@ -169,7 +170,7 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
   const { remainingMs } = useCountdown(durationMs, subtest.key, () => {
     setTimeUp(true);
     send();
-  });
+  }, startedAt);
 
   const pageStart = pageIndex * PAGE_SIZE;
   const pageItems = subtest.items.slice(pageStart, pageStart + PAGE_SIZE);

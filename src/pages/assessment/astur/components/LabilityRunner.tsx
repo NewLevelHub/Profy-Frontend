@@ -8,10 +8,52 @@ import { useCountdown } from '../hooks/useCountdown';
 
 interface LabilityRunnerProps {
   subtest: AsturContentSubtest;
+  runId: string;
+  startedAt: string | null;
   itemLimitMs: number;
   submitting: boolean;
   submitError: string | null;
   onSubmit: (payload: { answers: Record<string, AsturItemAnswer>; elapsed_ms: Record<string, number> }) => void;
+}
+
+interface LabilityDraft {
+  startedAt: string | null;
+  itemIndex: number;
+  answers: Record<string, AsturItemAnswer>;
+  elapsedMs: Record<string, number>;
+  itemStartedAt: string;
+}
+
+function draftKey(runId: string) {
+  return `profy-astur-lability:${runId}`;
+}
+
+function readDraft(runId: string, startedAt: string | null, itemCount: number): LabilityDraft {
+  const fresh = (): LabilityDraft => ({
+    startedAt,
+    itemIndex: 0,
+    answers: {},
+    elapsedMs: {},
+    itemStartedAt: new Date().toISOString(),
+  });
+  if (!runId) return fresh();
+  try {
+    const raw = sessionStorage.getItem(draftKey(runId));
+    if (!raw) return fresh();
+    const saved = JSON.parse(raw) as LabilityDraft;
+    if (
+      saved.startedAt !== startedAt
+      || !Number.isInteger(saved.itemIndex)
+      || saved.itemIndex < 0
+      || saved.itemIndex >= itemCount
+      || !saved.answers
+      || !saved.elapsedMs
+      || !Number.isFinite(Date.parse(saved.itemStartedAt))
+    ) return fresh();
+    return saved;
+  } catch {
+    return fresh();
+  }
 }
 
 const OPTION_LABEL: Record<string, string> = {
@@ -37,15 +79,29 @@ const OPTION_LABEL: Record<string, string> = {
  * when its time runs out is sent as an explicit skip, never as a blank
  * "answer". The whole block goes to the server in one idempotent submit.
  */
-export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, onSubmit }: LabilityRunnerProps) {
+export function LabilityRunner({
+  subtest,
+  runId,
+  startedAt,
+  itemLimitMs,
+  submitting,
+  submitError,
+  onSubmit,
+}: LabilityRunnerProps) {
   const { t } = useTranslation('assessment');
-  const [itemIndex, setItemIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, AsturItemAnswer>>({});
-  const [elapsedMs, setElapsedMs] = useState<Record<string, number>>({});
-  const committedRef = useRef<Set<string>>(new Set());
-  const [lockedIndex, setLockedIndex] = useState<string | null>(null);
-
   const items = subtest.items as AsturLabilityItem[];
+  const initialRef = useRef<LabilityDraft | null>(null);
+  if (initialRef.current === null) initialRef.current = readDraft(runId, startedAt, items.length);
+  const initial = initialRef.current;
+  const [itemIndex, setItemIndex] = useState(initial.itemIndex);
+  const [answers, setAnswers] = useState<Record<string, AsturItemAnswer>>(initial.answers);
+  const [elapsedMs, setElapsedMs] = useState<Record<string, number>>(initial.elapsedMs);
+  const [itemStartedAt, setItemStartedAt] = useState(initial.itemStartedAt);
+  const committedRef = useRef<Set<string>>(new Set(Object.keys(initial.answers)));
+  const [lockedIndex, setLockedIndex] = useState<string | null>(
+    initial.answers[String(initial.itemIndex + 1)] ? String(initial.itemIndex + 1) : null,
+  );
+
   const item = items[itemIndex];
   const index = String(itemIndex + 1);
   const isLast = itemIndex === items.length - 1;
@@ -57,17 +113,33 @@ export function LabilityRunner({ subtest, itemLimitMs, submitting, submitError, 
     setLockedIndex(index);
     const nextAnswers = { ...answers, [index]: answer };
     const nextElapsed = { ...elapsedMs, [index]: Math.max(0, Math.round(elapsed)) };
+    const nextItemStartedAt = new Date().toISOString();
     setAnswers(nextAnswers);
     setElapsedMs(nextElapsed);
+    try {
+      sessionStorage.setItem(draftKey(runId), JSON.stringify({
+        startedAt,
+        itemIndex: isLast ? itemIndex : itemIndex + 1,
+        answers: nextAnswers,
+        elapsedMs: nextElapsed,
+        itemStartedAt: nextItemStartedAt,
+      } satisfies LabilityDraft));
+    } catch {
+      // The server anchor still protects the block timing when storage is unavailable.
+    }
     if (isLast) {
       onSubmit({ answers: nextAnswers, elapsed_ms: nextElapsed });
     } else {
+      setItemStartedAt(nextItemStartedAt);
       setItemIndex((i) => i + 1);
     }
   }
 
-  const { remainingMs } = useCountdown(itemLimitMs, `${subtest.key}-${itemIndex}`, () =>
-    commit({ status: 'skipped', value: null }, itemLimitMs),
+  const { remainingMs } = useCountdown(
+    itemLimitMs,
+    `${subtest.key}-${itemIndex}`,
+    () => commit({ status: 'skipped', value: null }, itemLimitMs),
+    itemStartedAt,
   );
 
   return (

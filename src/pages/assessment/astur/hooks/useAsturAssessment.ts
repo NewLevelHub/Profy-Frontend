@@ -71,6 +71,7 @@ export function useAsturAssessment(assessmentId: string) {
   const [starting, setStarting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [localStartedAt, setLocalStartedAt] = useState<Partial<Record<AsturSubtestKey, string>>>({});
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [retakeConfirmOpen, setRetakeConfirmOpen] = useState(false);
   const [retaking, setRetaking] = useState(false);
@@ -84,7 +85,17 @@ export function useAsturAssessment(assessmentId: string) {
   const subtestIndex = subtests.findIndex((s) => !submitted.has(s.key));
   const subtestCount = subtests.length;
   const subtest = !finished && subtestIndex >= 0 ? subtests[subtestIndex] : null;
+  const subtestStartedAt = subtest
+    ? localStartedAt[subtest.key] ?? attempt?.run.subtest_started_at?.[subtest.key] ?? null
+    : null;
   const showCompleted = !finished && attemptStatus === 'completed';
+
+  // A reload resumes an already-started section immediately. Its countdown
+  // remains anchored to the first server `/start`, never to this render.
+  useEffect(() => {
+    if (!subtest) return;
+    setStepPhase(subtestStartedAt ? 'running' : 'instruction');
+  }, [runId, subtest?.key, subtestStartedAt]);
 
   useEffect(() => {
     if (finished) useAssessmentStore.getState().setAsturCompleted(true);
@@ -97,7 +108,8 @@ export function useAsturAssessment(assessmentId: string) {
     setStarting(true);
     setSubmitError(null);
     try {
-      await asturApi.startSubtest(assessmentId, subtest.number, runId);
+      const started = await asturApi.startSubtest(assessmentId, subtest.number, runId);
+      setLocalStartedAt((prev) => ({ ...prev, [subtest.key]: started.started_at }));
       setStepPhase('running');
     } catch {
       setSubmitError(t('astur.startError'));
@@ -141,6 +153,7 @@ export function useAsturAssessment(assessmentId: string) {
       const opened = await asturApi.openAttempt(assessmentId, true);
       queryClient.setQueryData(asturAttemptQueryKey(assessmentId), opened);
       setJustSubmitted(new Set());
+      setLocalStartedAt({});
       setFinished(false);
       setIsRetake(true);
       setStepPhase('instruction');
@@ -177,6 +190,7 @@ export function useAsturAssessment(assessmentId: string) {
     showCompleted,
     isRetake: !!isRetake,
     subtest,
+    subtestStartedAt,
     subtestIndex: subtestIndex === -1 ? subtestCount : subtestIndex,
     subtestCount,
     stepPhase,
