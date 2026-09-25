@@ -49,6 +49,11 @@ const ALLOW = [
   ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить|До мотивации|До Астур теста|психотеста|только в dev/, 'dev-only autofill (import.meta.env.DEV)'],
   ['src/pages/assessment/hooks/useAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
   ['src/pages/assessment/hooks/usePairAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
+  // Answer VALUES the dev autofill posts for АСТУР — a valid figure letter and
+  // any non-empty word for the open-text subtest. Never rendered; they used to
+  // live under src/pages/assessment/astur/** (wholly excluded, PRO-338) and
+  // moved here when both autofills were merged into one builder (PRO-397).
+  ['src/shared/dev/autofillAssessment.ts', /^answers\[key\] = '(тест|А)';$/, 'dev-only АСТУР autofill answer values'],
   // KZ-502 — ru→kk dictionary for catalog city/country strings (backend data).
   // Both sides are Cyrillic by nature; keys match backend values, values are
   // the localized output. Native review: KZ-502-вычитка-kk.md.

@@ -160,18 +160,20 @@ export function asturAutofillPayload(subtest: AsturContentSubtest): Omit<SubmitA
 }
 
 /** Dev-only helper: `autofillToAstur` plus АСТУР itself — the whole test
- * completes in a handful of requests instead of up to ~278 clicks. */
+ * completes in a handful of requests instead of up to ~278 clicks.
+ *
+ * АСТУР failures are NOT swallowed here (PRO-397): the report can't be
+ * generated without АСТУР, so a silent failure sends the caller to the result
+ * screen of an unfinished test. Let it surface as "не удалось автозаполнить".
+ * Already-submitted subtests are skipped via `run.submitted_subtests`, so a
+ * repeat click is still a no-op rather than an error. */
 export async function autofillAssessment(assessmentId: string): Promise<void> {
   await autofillToAstur(assessmentId);
 
-  try {
-    const { run, content } = await asturApi.openAttempt(assessmentId);
-    for (const st of content.subtests.filter((s) => !run.submitted_subtests.includes(s.key))) {
-      await asturApi.startSubtest(assessmentId, st.number, run.run_id);
-      await asturApi.submitSubtest(assessmentId, st.number, { ...asturAutofillPayload(st), run_id: run.run_id });
-    }
-    useAssessmentStore.getState().setAsturCompleted(true);
-  } catch {
-    // Ignore if already submitted or error
+  const { run, content } = await asturApi.openAttempt(assessmentId);
+  for (const st of content.subtests.filter((s) => !run.submitted_subtests.includes(s.key))) {
+    await asturApi.startSubtest(assessmentId, st.number, run.run_id);
+    await asturApi.submitSubtest(assessmentId, st.number, { ...asturAutofillPayload(st), run_id: run.run_id });
   }
+  useAssessmentStore.getState().setAsturCompleted(true);
 }

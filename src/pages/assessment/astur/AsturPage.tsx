@@ -100,8 +100,14 @@ export default function AsturPage() {
           : subtestIndex / subtestCount,
   });
 
+  // Both start gates (block intro + per-subtest intro) are stage moments that
+  // own the screen and center themselves, so they render outside the
+  // top-anchored PageContainer the running subtest uses — see BelbinPage for
+  // the same split (PRO-397).
+  const showIntro = !!running && stepPhase === 'instruction';
+
   return (
-    <div className="min-h-screen bg-page">
+    <div className="flex flex-col min-h-screen bg-page">
       <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
       <ConfirmDialog
         open={retakeConfirmOpen}
@@ -125,70 +131,72 @@ export default function AsturPage() {
         />
       )}
 
-      <PageContainer size="content" className="py-10 flex flex-col gap-6">
-        {isLoading && (
-          <div className="flex justify-center py-16">
-            <Spinner size="lg" />
-          </div>
-        )}
+      {showIntro && subtestIndex === 0 && !blockIntroSeen && (
+        <AssessmentIntro
+          kicker={t('intro.astur.kicker')}
+          title={t('intro.astur.title')}
+          subtitle={t('intro.astur.subtitle')}
+          itemCountLabel={t('intro.astur.itemCount', { count: subtestCount })}
+          durationLabel={t('intro.durationMin', { count: Math.max(5, subtestCount * 4) })}
+          ctaLabel={t('intro.astur.cta')}
+          onStart={handleStartBlockIntro}
+        />
+      )}
 
-        {loadError && (
-          <Text variant="body-md" className="text-danger text-center py-16">
-            {loadError}
-          </Text>
-        )}
+      {showIntro && (subtestIndex > 0 || blockIntroSeen) && (
+        <>
+          <SubtestIntro subtest={subtest} index={subtestIndex} count={subtestCount} onStart={beginSubtest} />
+          {submitError && (
+            <Text variant="body-sm" className="text-danger text-center pb-8">
+              {submitError}
+            </Text>
+          )}
+        </>
+      )}
 
-        {ready && showCompleted && (
-          <AsturCompleted completedAt={completedAt} onContinue={() => navigate('/results')} onRetake={openRetakeConfirm} />
-        )}
+      {!showIntro && (
+        <PageContainer size="content" className="py-10 flex flex-col gap-6">
+          {isLoading && (
+            <div className="flex justify-center py-16">
+              <Spinner size="lg" />
+            </div>
+          )}
 
-        {running && stepPhase === 'instruction' && subtestIndex === 0 && !blockIntroSeen && (
-          <AssessmentIntro
-            kicker={t('intro.astur.kicker')}
-            title={t('intro.astur.title')}
-            subtitle={t('intro.astur.subtitle')}
-            itemCountLabel={t('intro.astur.itemCount', { count: subtestCount })}
-            durationLabel={t('intro.durationMin', { count: Math.max(5, subtestCount * 4) })}
-            ctaLabel={t('intro.astur.cta')}
-            onStart={handleStartBlockIntro}
-          />
-        )}
+          {loadError && (
+            <Text variant="body-md" className="text-danger text-center py-16">
+              {loadError}
+            </Text>
+          )}
 
-        {running && stepPhase === 'instruction' && (subtestIndex > 0 || blockIntroSeen) && (
-          <>
-            <SubtestIntro subtest={subtest} index={subtestIndex} count={subtestCount} onStart={beginSubtest} />
-            {submitError && (
-              <Text variant="body-sm" className="text-danger text-center">
-                {submitError}
-              </Text>
-            )}
-          </>
-        )}
+          {ready && showCompleted && (
+            <AsturCompleted completedAt={completedAt} onContinue={() => navigate('/results')} onRetake={openRetakeConfirm} />
+          )}
 
-        {running && stepPhase === 'running' && subtest.key === 'lability' && (
-          <LabilityRunner
-            subtest={subtest}
-            runId={runId ?? ''}
-            startedAt={subtestStartedAt}
-            itemLimitMs={labilityItemLimitMs}
-            submitting={submitting}
-            submitError={submitError}
-            onSubmit={completeSubtest}
-          />
-        )}
+          {running && stepPhase === 'running' && subtest.key === 'lability' && (
+            <LabilityRunner
+              subtest={subtest}
+              runId={runId ?? ''}
+              startedAt={subtestStartedAt}
+              itemLimitMs={labilityItemLimitMs}
+              submitting={submitting}
+              submitError={submitError}
+              onSubmit={completeSubtest}
+            />
+          )}
 
-        {running && stepPhase === 'running' && subtest.key !== 'lability' && (
-          <SubtestRunner
-            subtest={subtest}
-            startedAt={subtestStartedAt}
-            submitting={submitting}
-            submitError={submitError}
-            onSubmit={completeSubtest}
-          />
-        )}
+          {running && stepPhase === 'running' && subtest.key !== 'lability' && (
+            <SubtestRunner
+              subtest={subtest}
+              startedAt={subtestStartedAt}
+              submitting={submitting}
+              submitError={submitError}
+              onSubmit={completeSubtest}
+            />
+          )}
 
-        {ready && allDone && <AsturDone isRetake={isRetake} onContinue={handleDoneContinue} />}
-      </PageContainer>
+          {ready && allDone && <AsturDone isRetake={isRetake} onContinue={handleDoneContinue} />}
+        </PageContainer>
+      )}
     </div>
   );
 }

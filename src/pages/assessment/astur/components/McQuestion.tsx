@@ -10,10 +10,10 @@ interface McQuestionProps {
 
 export function McQuestion({ index, prompt, options, value, onChange }: McQuestionProps) {
   return (
-    <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
-      <legend className="text-body-md text-primary font-semibold">
+    <div role="group" aria-labelledby={`mc-label-${index}`} className="flex flex-col gap-3">
+      <p id={`mc-label-${index}`} className="text-body-md text-primary font-semibold">
         {index}. {prompt}
-      </legend>
+      </p>
       <div className="flex flex-col gap-2">
         {options.map((option) => {
           const selected = value === option;
@@ -37,6 +37,6 @@ export function McQuestion({ index, prompt, options, value, onChange }: McQuesti
           );
         })}
       </div>
-    </fieldset>
+    </div>
   );
 }
