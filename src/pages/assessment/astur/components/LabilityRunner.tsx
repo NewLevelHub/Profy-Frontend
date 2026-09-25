@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Text } from '@/shared/ui/typography/Text';
 import { playClick } from '@/shared/lib/sounds';
 import { cn } from '@/shared/lib/cn';
 import type { AsturContentSubtest, AsturItemAnswer, AsturLabilityItem } from '@/shared/types';
+import { AssessmentTimer } from '../../components/AssessmentTimer';
 import { useCountdown } from '../hooks/useCountdown';
 import { LabilityChoiceGlyph, resolveLabilityGlyph } from './LabilityChoiceGlyph';
 
@@ -153,12 +153,13 @@ export function LabilityRunner({
   return (
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
       <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
-        <div className="flex flex-col gap-1.5">
-          <ProgressBar value={(remainingMs / itemLimitMs) * 100} variant={remainingMs < 1500 ? 'accent' : 'brand'} />
-          <Text variant="caption" className="text-muted self-end">
-            {t('astur.labilityHeader', { x: itemIndex + 1, y: items.length, t: (remainingMs / 1000).toFixed(1) })}
-          </Text>
-        </div>
+        <AssessmentTimer
+          remainingMs={remainingMs}
+          durationMs={itemLimitMs}
+          timeLabel={t('astur.labilitySeconds', { t: (remainingMs / 1000).toFixed(1) })}
+          meta={t('astur.labilityMeta', { x: itemIndex + 1, y: items.length })}
+          urgentBelowMs={1_500}
+        />
 
         <Text variant="body-lg" className="font-semibold text-primary text-balance">
           {item.instruction}
