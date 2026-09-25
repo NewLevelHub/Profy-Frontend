@@ -30,8 +30,7 @@ import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
 import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
 import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
 import AssessmentPage from '@/pages/assessment/AssessmentPage';
-import PairAssessmentPage from '@/pages/assessment/pairs/PairAssessmentPage';
-import MotivationAssessmentPage from '@/pages/assessment/motivation/MotivationAssessmentPage';
+import MotivationTripletFlow from '@/pages/assessment/motivation/MotivationTripletFlow';
 import PsychoColorStartPage from '@/pages/assessment/psychoemotional/PsychoColorStartPage';
 import PsychoEmotionalPage from '@/pages/assessment/psychoemotional/PsychoEmotionalPage';
 import RestStopPage from '@/pages/assessment/RestStopPage';
@@ -50,13 +49,10 @@ import CertificatesEditPage from '@/pages/profile/certificates/CertificatesEditP
 
 // ── Detail screens (mobile: App stack) ───────────────────────────────────────
 import DirectionDetailPage from '@/pages/results/DirectionDetailPage';
-import DirectionInquiryPage from '@/pages/results/inquiry/DirectionInquiryPage';
 import UniversityListPage from '@/pages/results/UniversityListPage';
 import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
-import RoadmapPage from '@/pages/roadmap/RoadmapPage';
 import UniversitiesPage from '@/pages/universities/UniversitiesPage';
 import UniversityDetailPage from '@/pages/universities/UniversityDetailPage';
-import DirectionRoadmapPage from '@/pages/roadmap/direction/DirectionRoadmapPage';
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
@@ -71,10 +67,12 @@ import AdminQuestionPairsPage from '@/pages/admin/content/AdminQuestionPairsPage
 import AdminQuestionPairDetailPage from '@/pages/admin/content/AdminQuestionPairDetailPage';
 import AdminMotivationStatementsPage from '@/pages/admin/content/AdminMotivationStatementsPage';
 import AdminMotivationStatementDetailPage from '@/pages/admin/content/AdminMotivationStatementDetailPage';
-import AdminMotivationPairsPage from '@/pages/admin/content/AdminMotivationPairsPage';
-import AdminMotivationPairDetailPage from '@/pages/admin/content/AdminMotivationPairDetailPage';
 import AdminDirectionsPage from '@/pages/admin/content/AdminDirectionsPage';
 import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetailPage';
+import AdminAsturVersionsPage from '@/pages/admin/content/astur/AdminAsturVersionsPage';
+import AdminAsturVersionPage from '@/pages/admin/content/astur/AdminAsturVersionPage';
+import AdminAsturAnalyticsPage from '@/pages/admin/content/astur/AdminAsturAnalyticsPage';
+import AdminBelbinEditorPage from '@/pages/admin/content/AdminBelbinEditorPage';
 
 // ── Psychologist cabinet ──────────────────────────────────────────────────────
 import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
@@ -170,10 +168,12 @@ export const router = createBrowserRouter([
                       { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
                       { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
                       { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
-                      { path: 'motivation-pairs', element: <AdminMotivationPairsPage /> },
-                      { path: 'motivation-pairs/:pairId', element: <AdminMotivationPairDetailPage /> },
                       { path: 'directions', element: <AdminDirectionsPage /> },
                       { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
+                      { path: 'belbin', element: <AdminBelbinEditorPage /> },
+                      { path: 'tests', element: <AdminAsturVersionsPage /> },
+                      { path: 'tests/versions/:versionId', element: <AdminAsturVersionPage /> },
+                      { path: 'tests/versions/:versionId/analytics', element: <AdminAsturAnalyticsPage /> },
                     ],
                   },
                 ],
@@ -195,8 +195,10 @@ export const router = createBrowserRouter([
           // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
           { path: '/assessment/goal', element: <GoalSelectionPage /> },
           { path: '/assessment', element: <AssessmentPage /> },
-          { path: '/assessment/pairs', element: <PairAssessmentPage /> },
-          { path: '/assessment/motivation', element: <MotivationAssessmentPage /> },
+          // Preserve old bookmarked/session URLs after pair questions moved
+          // into the unified assessment sequence.
+          { path: '/assessment/pairs', element: <Navigate to="/assessment" replace /> },
+          { path: '/assessment/motivation', element: <MotivationTripletFlow /> },
           { path: '/assessment/psychoemotional-start', element: <PsychoColorStartPage /> },
           { path: '/assessment/psychoemotional', element: <PsychoEmotionalPage /> },
           { path: '/assessment/rest', element: <RestStopPage /> },
@@ -231,7 +233,6 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/results', element: <ResultsPage /> },
                   { path: '/profile', element: <ProfilePage /> },
-                  { path: '/roadmap', element: <RoadmapPage /> },
 
                   // Standalone university catalogue (PRO-265) — a top-level tab,
                   // deliberately outside /results: unlike the direction-scoped
@@ -241,8 +242,6 @@ export const router = createBrowserRouter([
 
                   // Detail screens (mobile: App stack over tabs)
                   { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
-                  { path: '/results/directions/:slug/inquiry', element: <DirectionInquiryPage /> },
-                  { path: '/results/directions/:slug/roadmap', element: <DirectionRoadmapPage /> },
                   { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
                   {
                     path: '/results/directions/:slug/universities/:programId',

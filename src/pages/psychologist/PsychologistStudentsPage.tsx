@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
-import { AGE_GROUP_RANGE_KEYS } from '@/shared/lib/contentLabels';
 import { formatDate } from '@/shared/i18n/format';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
+import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
 import {
   ADMIN_META,
@@ -64,7 +64,7 @@ export default function PsychologistStudentsPage() {
       await psychologistApi.claimStudent(studentId);
       navigate(`/psychologist/students/${studentId}`);
     } catch {
-      setError(t('psychologist:list.claimError', 'Не удалось взять ученика — попробуйте ещё раз'));
+      setError(t('psychologist:list.claimError'));
       setClaimingId(null);
     }
   }
@@ -104,14 +104,7 @@ export default function PsychologistStudentsPage() {
         key: 'age',
         header: t('list.colAge'),
         mobile: 'badge',
-        cell: (row) =>
-          row.age_group ? (
-            <AdminBadge tone="quiet">
-              {t(AGE_GROUP_RANGE_KEYS[row.age_group as AgeGroup] ?? row.age_group)}
-            </AdminBadge>
-          ) : (
-            <span className={ADMIN_META}>—</span>
-          ),
+        cell: (row) => <AgeBadge age={row.age} />,
       },
       {
         key: 'assigned',
@@ -164,25 +157,18 @@ export default function PsychologistStudentsPage() {
         key: 'age',
         header: t('list.colAge'),
         mobile: 'badge',
-        cell: (row) =>
-          row.age_group ? (
-            <AdminBadge tone="quiet">
-              {t(AGE_GROUP_RANGE_KEYS[row.age_group as AgeGroup] ?? row.age_group)}
-            </AdminBadge>
-          ) : (
-            <span className={ADMIN_META}>—</span>
-          ),
+        cell: (row) => <AgeBadge age={row.age} />,
       },
       {
         key: 'pending',
-        header: t('psychologist:list.colReport', 'Отчёт'),
+        header: t('psychologist:list.colReport'),
         mobile: 'field',
-        mobileLabel: t('psychologist:list.colReport', 'Отчёт'),
+        mobileLabel: t('psychologist:list.colReport'),
         cell: (row) =>
           row.has_pending_review ? (
-            <AdminBadge tone="accent">{t('psychologist:list.pendingReview', 'ждёт проверки')}</AdminBadge>
+            <AdminBadge tone="accent">{t('psychologist:list.pendingReview')}</AdminBadge>
           ) : !row.has_completed_assessment ? (
-            <AdminBadge tone="quiet">{t('psychologist:list.testNotDone', 'тест не пройден')}</AdminBadge>
+            <AdminBadge tone="quiet">{t('psychologist:list.testNotDone')}</AdminBadge>
           ) : (
             <span className={ADMIN_META}>—</span>
           ),
@@ -204,14 +190,14 @@ export default function PsychologistStudentsPage() {
                 void handleClaim(row.id);
               }}
             >
-              {claimingId === row.id ? '…' : t('psychologist:list.claim', 'Взять')}
+              {claimingId === row.id ? '…' : t('psychologist:list.claim')}
             </Button>
           ) : (
             <span
               className={cn(ADMIN_META, 'whitespace-nowrap')}
-              title={t('psychologist:list.claimDisabledHint', 'Ученик ещё не прошёл тест')}
+              title={t('psychologist:list.claimDisabledHint')}
             >
-              {t('psychologist:list.claimDisabled', 'Тест не пройден')}
+              {t('psychologist:list.claimDisabled')}
             </span>
           ),
       },
@@ -223,15 +209,15 @@ export default function PsychologistStudentsPage() {
     <PageContainer className="flex flex-col gap-5 pb-10">
       <AdminListHeader
         title={t('list.title')}
-        description={t('psychologist:list.selfSelectHint', 'Вы сами выбираете учеников — администратор в этом флоу не участвует.')}
+        description={t('psychologist:list.selfSelectHint')}
       />
 
       <div className="flex gap-2" role="tablist" aria-label={t('list.title')}>
         <TabButton active={tab === 'mine'} onClick={() => setTab('mine')}>
-          {t('psychologist:list.tabMine', 'Мои')} ({mine.length})
+          {t('psychologist:list.tabMine')} ({mine.length})
         </TabButton>
         <TabButton active={tab === 'available'} onClick={() => setTab('available')}>
-          {t('psychologist:list.tabAvailable', 'Доступные')} ({available.length})
+          {t('psychologist:list.tabAvailable')} ({available.length})
         </TabButton>
       </div>
 
@@ -243,7 +229,7 @@ export default function PsychologistStudentsPage() {
         mine.length === 0 ? (
           <EmptyState
             title={t('list.emptyTitle')}
-            body={t('psychologist:list.emptyMineBody', 'Откройте вкладку «Доступные» и нажмите «Взять» — ученик появится здесь.')}
+            body={t('psychologist:list.emptyMineBody')}
           />
         ) : (
           <AdminDataTable
@@ -256,12 +242,12 @@ export default function PsychologistStudentsPage() {
         )
       ) : available.length === 0 ? (
         <EmptyState
-          title={t('psychologist:list.emptyAvailableTitle', 'Нет доступных учеников')}
-          body={t('psychologist:list.emptyAvailableBody', 'Все ученики уже у вас, либо в системе пока никого нет.')}
+          title={t('psychologist:list.emptyAvailableTitle')}
+          body={t('psychologist:list.emptyAvailableBody')}
         />
       ) : (
         <AdminDataTable
-          label={t('psychologist:list.availableStudentsLabel', 'Доступные ученики')}
+          label={t('psychologist:list.availableStudentsLabel')}
           columns={availableColumns}
           rows={available}
           rowKey={(row) => row.id}

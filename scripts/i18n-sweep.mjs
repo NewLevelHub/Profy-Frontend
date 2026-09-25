@@ -49,6 +49,11 @@ const ALLOW = [
   ['src/shared/ui/navigation/AssessmentRail.tsx', /Автозаполнить|До мотивации|До Астур теста|психотеста|только в dev/, 'dev-only autofill (import.meta.env.DEV)'],
   ['src/pages/assessment/hooks/useAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
   ['src/pages/assessment/hooks/usePairAssessment.ts', /Не удалось автозаполнить тест/, 'dev-only autofill error (import.meta.env.DEV)'],
+  // Answer VALUES the dev autofill posts for АСТУР — a valid figure letter and
+  // any non-empty word for the open-text subtest. Never rendered; they used to
+  // live under src/pages/assessment/astur/** (wholly excluded, PRO-338) and
+  // moved here when both autofills were merged into one builder (PRO-397).
+  ['src/shared/dev/autofillAssessment.ts', /^answers\[key\] = '(тест|А)';$/, 'dev-only АСТУР autofill answer values'],
   // KZ-502 — ru→kk dictionary for catalog city/country strings (backend data).
   // Both sides are Cyrillic by nature; keys match backend values, values are
   // the localized output. Native review: KZ-502-вычитка-kk.md.
@@ -66,6 +71,11 @@ const ALLOW = [
   // above: canonical ru read as-is by the excluded psychologist report
   // section, localized via t(`psychoemotional.checkin.*`) in CheckInStep.tsx.
   ['src/shared/config/psychoCheckin.ts', /'не указано'|label: '|options: \[/, 'psychoemotional check-in canonical ru (key-indexed t() at call site)'],
+  ['src/pages/assessment/astur/components/FigureAssemblyQuestion.tsx', /letter: '[АБВГ]'|alt="Фигура-эталон"|alt=\{`Вариант \$\{option\.letter\}`\}/, 'ASTUR figure options - canonical Cyrillic used for backend matching and alt text'],
+  ['src/pages/assessment/astur/components/HierarchyDragQuestion.tsx', /aria-label=\{`\$\{concept\}, позиция \$\{position \+ 1\}`\}/, 'ASTUR hierarchy - ARIA label'],
+  ['src/pages/assessment/astur/components/LabilityRunner.tsx', /кружок: 'Кружок'|квадрат: 'Квадрат'|плюс: 'Плюс'|минус: 'Минус'|галочка: 'Галочка \(✓\)'|крестик: 'Крестик \(✗\)'|да: 'Да'|нет: 'Нет'|выше: 'Выше'|ниже: 'Ниже'/, 'ASTUR Lability options - canonical Cyrillic for backend matching'],
+  ['src/shared/dev/autofillAssessment.ts', /return 'А';|return 'ответ';/, 'ASTUR dev autofill dummy answers (never shown)'],
+  ['src/pages/assessment/astur/hooks/useAsturAssessment.ts', /answers\[(?:it\.id|key)\] = '(?:А|тест)';/, 'ASTUR autofill dummy values, never rendered as UI copy'],
 ];
 
 function isExcluded(rel) {

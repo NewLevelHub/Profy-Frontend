@@ -5,13 +5,7 @@ import { cn } from '@/shared/lib/cn';
 import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { RiasecIcon, type RiasecType } from '@/shared/ui/icons/RiasecIcon';
-import {
-  RIASEC_LABELS,
-  RIASEC_DESCRIPTIONS,
-  MI_LABELS,
-  MI_ICONS,
-  MI_DESCRIPTIONS,
-} from '@/shared/config/constants';
+import { RIASEC_LABELS, RIASEC_DESCRIPTIONS } from '@/shared/config/constants';
 import type { InterestCombination, InterestMapItem, InterestMapItemDetails } from '@/shared/types';
 import { buildHeadline, buildSecondaryNote } from '../utils/interestHeadline';
 import { DomainCardFrame, DomainKicker, DomainGrid, DomainCell, LEVEL_STATUS_LABEL } from './DomainCardParts';
@@ -19,7 +13,6 @@ import { InterestTypeDetail } from './InterestTypeDetail';
 import { InterestHowItWorks } from './InterestHowItWorks';
 
 interface InterestDomainSectionProps {
-  isJunior: boolean;
   interestMap: InterestMapItem[];
   interestMapNote: string;
   interestCombination?: InterestCombination | null;
@@ -41,8 +34,7 @@ const ICON_COLOR: Record<Level, string> = {
 const hasDetails = (item: InterestMapItem): item is DetailedItem => Boolean(item.details);
 
 /**
- * The page's one "type identity" moment — RIASEC ("Карьерные интересы") for
- * middle/senior, MI ("Ведущие способности") for junior. The only place on
+ * The page's one "type identity" moment — RIASEC ("Карьерные интересы"). The only place on
  * the results page besides PageHeader that uses `Heading` (display role),
  * since this is the single domain that actually has a rankable "type name"
  * to headline — Big Five (PersonalityDomainSection) never gets this
@@ -51,18 +43,17 @@ const hasDetails = (item: InterestMapItem): item is DetailedItem => Boolean(item
  * RIASEC reports carrying `details` (PRO-336) turn each cell into a toggle:
  * the selected type's "why" breakdown opens under the grid, and a closing
  * block explains how levels are computed and how the top types combine.
- * Junior/MI and older cached reports without `details` render as before.
+ * Older cached reports without `details` render as before.
  */
 export function InterestDomainSection({
-  isJunior,
   interestMap,
   interestMapNote,
   interestCombination = null,
 }: InterestDomainSectionProps) {
   const { t } = useTranslation();
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
-  const labelKeys = isJunior ? MI_LABELS : RIASEC_LABELS;
-  const descriptionKeys = isJunior ? MI_DESCRIPTIONS : RIASEC_DESCRIPTIONS;
+  const labelKeys = RIASEC_LABELS;
+  const descriptionKeys = RIASEC_DESCRIPTIONS;
   // Resolve the i18n key maps to display text once, so the pure headline
   // helpers keep taking a plain code -> string record.
   const labels = Object.fromEntries(
@@ -74,17 +65,17 @@ export function InterestDomainSection({
   const headline = buildHeadline(interestMap, labels);
   const secondaryNote = buildSecondaryNote(interestMap, labels);
 
-  const detailed = !isJunior && interestMap.some(hasDetails);
+  const detailed = interestMap.some(hasDetails);
   const selected = detailed
     ? interestMap.filter(hasDetails).find((i) => i.code === selectedCode) ?? interestMap.find(hasDetails)
     : undefined;
 
   return (
-    <DomainCardFrame ariaLabel={t(isJunior ? 'results:interestDomain.ariaMi' : 'results:interestDomain.ariaRiasec')}>
+    <DomainCardFrame ariaLabel={t('results:interestDomain.ariaRiasec')}>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
           <DomainKicker>
-            {t(isJunior ? 'results:interestDomain.kickerMi' : 'results:interestDomain.kickerRiasec')}
+            {t('results:interestDomain.kickerRiasec')}
           </DomainKicker>
           {headline && (
             <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)] text-balance">
@@ -118,7 +109,7 @@ export function InterestDomainSection({
             ) : (
               <>
                 {t('results:interestDomain.legendIntro', {
-                  kinds: t(isJunior ? 'results:interestDomain.kindsMi' : 'results:interestDomain.kindsRiasec'),
+                  kinds: t('results:interestDomain.kindsRiasec'),
                 })}
                 {headline && (
                   <Trans
@@ -130,15 +121,13 @@ export function InterestDomainSection({
               </>
             )}
           </p>
-          <DomainGrid
-            columnsClassName={isJunior ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'}
-          >
+          <DomainGrid columnsClassName="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
             {interestMap.map((item) => {
               const isSelected = selected?.code === item.code;
               return (
                 <DomainCell
                   key={item.code}
-                  icon={<TypeIcon item={item} isJunior={isJunior} />}
+                  icon={<TypeIcon item={item} />}
                   title={item.sphere}
                   status={t(LEVEL_STATUS_LABEL[item.level])}
                   description={detailed ? undefined : descriptions[item.code]}
@@ -202,28 +191,7 @@ function CellEvidence({ details, level, selected }: { details: InterestMapItemDe
   );
 }
 
-// MI (junior) has no pictogram set analogous to RiasecIcon — the emoji set
-// (MI_ICONS) is the junior-appropriate icon per the earlier MI work, not a
-// literal RIASEC re-skin. Since emoji glyphs carry their own fixed color,
-// the leading/noticeable/barely-present distinction is expressed via the
-// badge background instead of recoloring the glyph itself. `high`/`medium`
-// both get a translucent white badge now — their cells are solid Pine/Dawn
-// fills, so a same-hue badge would disappear into the fill.
-function TypeIcon({ item, isJunior }: { item: InterestMapItem; isJunior: boolean }) {
-  if (isJunior) {
-    return (
-      <span
-        className={cn(
-          'w-9 h-9 rounded-full flex items-center justify-center text-lg select-none',
-          (item.level === 'high' || item.level === 'medium') && 'bg-[color:color-mix(in_srgb,var(--text-on-brand)_22%,transparent)]',
-          item.level === 'low' && 'bg-surface border border-default',
-        )}
-        aria-hidden="true"
-      >
-        {MI_ICONS[item.code] ?? '🧭'}
-      </span>
-    );
-  }
+function TypeIcon({ item }: { item: InterestMapItem }) {
   return (
     <RiasecIcon
       type={item.code as RiasecType}

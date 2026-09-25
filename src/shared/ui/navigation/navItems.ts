@@ -4,7 +4,6 @@
 // i18n key (common namespace) — TopRail resolves it with `t()`.
 export const NAV_ITEMS = [
   { label: 'common:nav.results', path: '/results' },
-  // 'План' (/roadmap) hidden from nav for now — route still exists, just not linked.
   // matchPrefix keeps the tab lit on /universities/:id, which NavLink's own
   // `isActive` would drop (it matches the exact path only for a nav item
   // whose route has children).

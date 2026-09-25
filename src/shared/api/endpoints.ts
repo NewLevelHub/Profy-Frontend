@@ -3,7 +3,6 @@ export type AdminContentResource =
   | 'questions'
   | 'question-pairs'
   | 'motivation-statements'
-  | 'motivation-pairs'
   | 'directions';
 
 export const API = {
@@ -32,8 +31,6 @@ export const API = {
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
     motivationTriplets: (assessmentId: string) => `/assessment/${assessmentId}/motivation-triplets`,
     motivationAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-answers`,
-    motivationPairs: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pairs`,
-    motivationPairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-pair-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
     psychoemotionalStart: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/start`,
@@ -41,7 +38,8 @@ export const API = {
       `/assessment/${assessmentId}/psychoemotional/${runId}/finish`,
     belbinContent: '/assessment/belbin/content',
     belbin: (assessmentId: string) => `/assessment/${assessmentId}/belbin`,
-    asturContent: '/assessment/astur/content',
+    asturState: (assessmentId: string) => `/assessment/${assessmentId}/astur/state`,
+    asturAttempt: (assessmentId: string) => `/assessment/${assessmentId}/astur/attempt`,
     asturStart: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/start`,
     asturSubtest: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}`,
     extendedBlocks: (assessmentId: string) => `/assessment/${assessmentId}/extended-blocks`,
@@ -51,13 +49,6 @@ export const API = {
     get: (assessmentId: string) => `/result/${assessmentId}`,
     feedback: '/result/feedback',
   },
-  roadmap: {
-    generate: '/roadmap/generate',
-    get: (assessmentId: string) => `/roadmap/${assessmentId}`,
-    generateDirection: '/roadmap/direction',
-    getDirection: (assessmentId: string, slug: string) =>
-      `/roadmap/${assessmentId}/directions/${slug}`,
-  },
   universities: {
     programs: '/universities/programs',
     programDetail: (id: string) => `/universities/programs/${id}`,
@@ -65,12 +56,6 @@ export const API = {
     countries: '/universities/countries',
     detail: (id: string) => `/universities/${id}`,
     favorite: (id: string) => `/universities/${id}/favorite`,
-  },
-  inquiry: {
-    questions: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/questions`,
-    verdict: (assessmentId: string, slug: string) =>
-      `/inquiry/${assessmentId}/directions/${slug}/verdict`,
   },
   admin: {
     users: '/admin/users',
@@ -91,8 +76,6 @@ export const API = {
     questionPairDetail: (id: string) => `/admin/question-pairs/${id}`,
     motivationStatements: '/admin/motivation-statements',
     motivationStatementDetail: (id: string) => `/admin/motivation-statements/${id}`,
-    motivationPairs: '/admin/motivation-pairs',
-    motivationPairDetail: (id: string) => `/admin/motivation-pairs/${id}`,
     directions: '/admin/directions',
     directionDetail: (id: string) => `/admin/directions/${id}`,
 
@@ -110,18 +93,27 @@ export const API = {
     programLocks: (id: string) => `/admin/programs/${id}/locks`,
     programLockField: (id: string, field: string) =>
       `/admin/programs/${id}/locks/${encodeURIComponent(field)}`,
+    contentOverride: (instrument: string) => `/admin/content-overrides/${instrument}`,
+    belbinSchema: '/admin/belbin-schema',
+    asturBankVersions: '/admin/astur/bank-versions',
+    asturBankDraft: '/admin/astur/bank-versions/draft',
+    asturBankSynonyms: '/admin/astur/bank-versions/draft/synonyms',
+    asturBankVersion: (id: string) => `/admin/astur/bank-versions/${id}`,
+    asturBankPublish: (id: string) => `/admin/astur/bank-versions/${id}/publish`,
+    asturBankDiff: (id: string) => `/admin/astur/bank-versions/${id}/diff`,
+    asturBankAnalytics: (id: string) => `/admin/astur/bank-versions/${id}/analytics`,
   },
   psychologist: {
     students: '/psychologist/students',
     availableStudents: '/psychologist/students/available',
     claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
-    studentResult: (studentId: string, assessmentId: string) =>
-      `/psychologist/students/${studentId}/result/${assessmentId}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
     studentAssessmentReport: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/assessments/${assessmentId}/report`,
+    studentAssessmentTestResults: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/assessments/${assessmentId}/test-results`,
     regenerateReportAiAnalysis: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/assessments/${assessmentId}/report/ai-analysis/regenerate`,
     assignExtendedBlock: (studentId: string, assessmentId: string) =>

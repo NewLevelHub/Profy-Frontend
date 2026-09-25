@@ -8,7 +8,6 @@ import ruAuth from './locales/ru/auth.json';
 import ruOnboarding from './locales/ru/onboarding.json';
 import ruAssessment from './locales/ru/assessment.json';
 import ruResults from './locales/ru/results.json';
-import ruRoadmap from './locales/ru/roadmap.json';
 import ruProfile from './locales/ru/profile.json';
 import ruErrors from './locales/ru/errors.json';
 import ruLanding from './locales/ru/landing.json';
@@ -21,7 +20,6 @@ import kkAuth from './locales/kk/auth.json';
 import kkOnboarding from './locales/kk/onboarding.json';
 import kkAssessment from './locales/kk/assessment.json';
 import kkResults from './locales/kk/results.json';
-import kkRoadmap from './locales/kk/roadmap.json';
 import kkProfile from './locales/kk/profile.json';
 import kkErrors from './locales/kk/errors.json';
 import kkLanding from './locales/kk/landing.json';
@@ -39,7 +37,6 @@ export const NAMESPACES = [
   'onboarding',
   'assessment',
   'results',
-  'roadmap',
   'profile',
   'errors',
   'landing',
@@ -55,7 +52,6 @@ const resources = {
     onboarding: ruOnboarding,
     assessment: ruAssessment,
     results: ruResults,
-    roadmap: ruRoadmap,
     profile: ruProfile,
     errors: ruErrors,
     landing: ruLanding,
@@ -69,7 +65,6 @@ const resources = {
     onboarding: kkOnboarding,
     assessment: kkAssessment,
     results: kkResults,
-    roadmap: kkRoadmap,
     profile: kkProfile,
     errors: kkErrors,
     landing: kkLanding,

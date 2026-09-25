@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { Text } from '@/shared/ui/typography/Text';
 import type {
@@ -9,12 +11,20 @@ import type {
   AsturAwarenessItem,
   AsturClassificationItem,
   AsturContentSubtest,
+  AsturFigureAssemblyItem,
   AsturGeneralizationItem,
+  AsturItemAnswer,
   AsturLogicalSchemaItem,
   AsturNumericSeriesItem,
 } from '@/shared/types';
 import { useCountdown } from '../hooks/useCountdown';
-import { areAllAsturItemsAnswered, isAsturItemAnswered } from '../utils/asturAnswersComplete';
+import {
+  type AsturAnswerState,
+  areAllAsturItemsDone,
+  buildAsturAnswerPayload,
+  countAsturSkipped,
+  isAsturItemDone,
+} from '../utils/asturAnswersComplete';
 import { McQuestion } from './McQuestion';
 import { PickTwoQuestion } from './PickTwoQuestion';
 import { OpenTextQuestion } from './OpenTextQuestion';
@@ -29,7 +39,7 @@ interface SubtestRunnerProps {
   subtest: AsturContentSubtest;
   submitting: boolean;
   submitError: string | null;
-  onSubmit: (answers: Record<string, unknown>) => void;
+  onSubmit: (payload: { answers: Record<string, AsturItemAnswer> }) => void;
 }
 
 function formatMmSs(ms: number) {
@@ -39,210 +49,179 @@ function formatMmSs(ms: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function initialAnswers(subtest: AsturContentSubtest): Record<string, unknown> {
-  const entries = subtest.items.map((item, i) => {
-    const index = String(i + 1);
-    if (subtest.key === 'classification') return [index, [] as string[]];
-    if (subtest.key === 'numeric_series') return [index, ['', ''] as [string, string]];
-    if (subtest.key === 'logical_schemas') return [index, [...(item as AsturLogicalSchemaItem).concepts]];
-    return [index, ''];
-  });
-  return Object.fromEntries(entries);
+function initialState(subtest: AsturContentSubtest): AsturAnswerState {
+  const values = Object.fromEntries(
+    subtest.items.map((item, i) => {
+      const index = String(i + 1);
+      if (subtest.key === 'classification') return [index, [] as string[]];
+      if (subtest.key === 'numeric_series') return [index, ['', ''] as [string, string]];
+      if (subtest.key === 'logical_schemas') return [index, [...(item as AsturLogicalSchemaItem).concepts]];
+      return [index, ''];
+    }),
+  );
+  return { values, skipped: new Set(), touched: new Set() };
 }
 
 function renderItem(
   subtest: AsturContentSubtest,
   item: AsturContentSubtest['items'][number],
   absoluteIndex: number,
-  answers: Record<string, unknown>,
+  state: AsturAnswerState,
   setAnswer: (index: string, value: unknown) => void,
+  t: TFunction<'assessment'>,
 ) {
   const index = String(absoluteIndex + 1);
   const displayIndex = absoluteIndex + 1;
+  const value = state.values[index];
 
-  if (subtest.key === 'awareness') {
-    const it = item as AsturAwarenessItem;
-    return (
-      <McQuestion
-        key={index}
-        index={displayIndex}
-        prompt={it.text}
-        options={it.options}
-        value={answers[index] as string | undefined}
-        onChange={(v) => setAnswer(index, v)}
-      />
-    );
+  switch (subtest.key) {
+    case 'awareness': {
+      const it = item as AsturAwarenessItem;
+      return (
+        <McQuestion index={displayIndex} prompt={it.text} options={it.options}
+          value={value as string | undefined} onChange={(v) => setAnswer(index, v)} />
+      );
+    }
+    case 'analogies': {
+      const it = item as AsturAnalogyItem;
+      return (
+        <McQuestion index={displayIndex}
+          prompt={t('astur.analogyPrompt', { first: it.pair[0], second: it.pair[1], third: it.third })}
+          options={it.options} value={value as string | undefined} onChange={(v) => setAnswer(index, v)} />
+      );
+    }
+    case 'classification': {
+      const it = item as AsturClassificationItem;
+      return (
+        <PickTwoQuestion index={displayIndex} words={it.words}
+          value={value as string[]} onChange={(v) => setAnswer(index, v)} />
+      );
+    }
+    case 'generalization': {
+      const it = item as AsturGeneralizationItem;
+      return (
+        <OpenTextQuestion index={displayIndex} pair={it.pair}
+          value={value as string} onChange={(v) => setAnswer(index, v)} />
+      );
+    }
+    case 'numeric_series': {
+      const it = item as AsturNumericSeriesItem;
+      return (
+        <NumericPairQuestion index={displayIndex} sequence={it.sequence}
+          value={value as [string, string]} onChange={(v) => setAnswer(index, v)} />
+      );
+    }
+    case 'geometric_figures': {
+      const it = item as AsturFigureAssemblyItem;
+      return (
+        <FigureAssemblyQuestion index={displayIndex} stimulus={it.stimulus}
+          value={value as string | undefined} onChange={(v) => setAnswer(index, v)} />
+      );
+    }
+    default:
+      return (
+        <HierarchyDragQuestion index={displayIndex} value={value as string[]}
+          confirmed={state.touched.has(index)} onChange={(v) => setAnswer(index, v)} />
+      );
   }
-  if (subtest.key === 'analogies') {
-    const it = item as AsturAnalogyItem;
-    return (
-      <McQuestion
-        key={index}
-        index={displayIndex}
-        prompt={`«${it.pair[0]}» относится к «${it.pair[1]}» так же, как «${it.third}» относится к …`}
-        options={it.options}
-        value={answers[index] as string | undefined}
-        onChange={(v) => setAnswer(index, v)}
-      />
-    );
-  }
-  if (subtest.key === 'classification') {
-    const it = item as AsturClassificationItem;
-    return (
-      <PickTwoQuestion
-        key={index}
-        index={displayIndex}
-        words={it.words}
-        value={answers[index] as string[]}
-        onChange={(v) => setAnswer(index, v)}
-      />
-    );
-  }
-  if (subtest.key === 'generalization') {
-    const it = item as AsturGeneralizationItem;
-    return (
-      <OpenTextQuestion
-        key={index}
-        index={displayIndex}
-        pair={it.pair}
-        value={answers[index] as string}
-        onChange={(v) => setAnswer(index, v)}
-      />
-    );
-  }
-  if (subtest.key === 'numeric_series') {
-    const it = item as AsturNumericSeriesItem;
-    return (
-      <NumericPairQuestion
-        key={index}
-        index={displayIndex}
-        sequence={it.sequence}
-        value={answers[index] as [string, string]}
-        onChange={(v) => setAnswer(index, v)}
-      />
-    );
-  }
-  if (subtest.key === 'geometric_figures') {
-    return (
-      <FigureAssemblyQuestion
-        key={index}
-        index={displayIndex}
-        value={answers[index] as string | undefined}
-        onChange={(v) => setAnswer(index, v)}
-      />
-    );
-  }
-  return (
-    <HierarchyDragQuestion
-      key={index}
-      index={displayIndex}
-      value={answers[index] as string[]}
-      onChange={(v) => setAnswer(index, v)}
-    />
-  );
 }
 
 /**
  * One (non-lability) ASTUR subtest: items in pages of PAGE_SIZE (PRO-399),
- * one timer for the whole subtest. On expiry the subtest is submitted
- * automatically with whatever has been answered so far and the flow moves
- * on — a timeout, not a nudge. Before expiry «Далее» unlocks once the
- * current page is complete (PRO-400); on the last page it submits, earlier
- * pages only advance. `timeUp` still unlocks the button as a manual retry
- * path if the automatic submit fails.
+ * one timer for the whole subtest. Every item is either answered or
+ * explicitly skipped (PRO-427 §11) — «Далее» unlocks once each item on the
+ * page is one of the two (PRO-400), and sending a subtest with skips asks
+ * for confirmation first. On expiry the subtest is sent automatically: what
+ * is still open goes as skipped.
  */
 export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: SubtestRunnerProps) {
   const { t } = useTranslation('assessment');
   const { t: tCommon } = useTranslation('common');
-  const [answers, setAnswers] = useState<Record<string, unknown>>(() => initialAnswers(subtest));
+  const [state, setState] = useState<AsturAnswerState>(() => initialState(subtest));
   const [timeUp, setTimeUp] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
-  const autoSubmittedRef = useRef(false);
+  const [confirmSkipsOpen, setConfirmSkipsOpen] = useState(false);
+  const submittedRef = useRef(false);
 
   const pageCount = Math.max(1, Math.ceil(subtest.items.length / PAGE_SIZE));
 
-  // New subtest (or remount) — reset local paging; answers re-init via key on parent if needed.
   useEffect(() => {
     setPageIndex(0);
     setTimeUp(false);
-    autoSubmittedRef.current = false;
-    setAnswers(initialAnswers(subtest));
-  }, [subtest.key]);
+    setConfirmSkipsOpen(false);
+    submittedRef.current = false;
+    setState(initialState(subtest));
+  }, [subtest.key]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** One submit per subtest — a click racing the timer must not send twice. */
+  function send() {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    onSubmit({ answers: buildAsturAnswerPayload(subtest, state) });
+  }
+
+  // A failed submit re-opens the button for a manual retry.
+  useEffect(() => {
+    if (submitError) submittedRef.current = false;
+  }, [submitError]);
 
   const durationMs = subtest.time_limit_sec !== null ? subtest.time_limit_sec * 1000 : null;
   const { remainingMs } = useCountdown(durationMs, subtest.key, () => {
     setTimeUp(true);
-    // Timeout means skip: send whatever is filled in (blanks included) and let
-    // the parent advance to the next subtest. Guarded so only one submit can
-    // ever fire per subtest.
-    if (autoSubmittedRef.current) return;
-    autoSubmittedRef.current = true;
-    onSubmit(normalizedAnswers());
+    send();
   });
 
   const pageStart = pageIndex * PAGE_SIZE;
   const pageItems = subtest.items.slice(pageStart, pageStart + PAGE_SIZE);
   const isLastPage = pageIndex >= pageCount - 1;
-
-  const pageAnswered = pageItems.every((_, offset) =>
-    isAsturItemAnswered(subtest.key, answers[String(pageStart + offset + 1)]),
-  );
-  // timeUp unlocks every page so the student can reach submit with blanks.
-  const canProceed = pageAnswered || timeUp;
-  const allAnswered = areAllAsturItemsAnswered(subtest, answers);
+  const pageDone = pageItems.every((_, offset) => isAsturItemDone(subtest, state, String(pageStart + offset + 1)));
+  const allDone = areAllAsturItemsDone(subtest, state);
+  const skippedCount = countAsturSkipped(subtest, state);
 
   function setAnswer(index: string, value: unknown) {
-    setAnswers((prev) => ({ ...prev, [index]: value }));
+    setState((prev) => {
+      const skipped = new Set(prev.skipped);
+      skipped.delete(index);
+      const touched = subtest.key === 'logical_schemas' ? new Set(prev.touched).add(index) : prev.touched;
+      return { values: { ...prev.values, [index]: value }, skipped, touched };
+    });
   }
 
-  /** Числовые ряды хранятся как строки контролируемых инпутов — на выходе
-   *  бэкенд (scripts/astur_bank.py NUMERIC_SERIES_ITEMS) ждёт числа. */
-  function normalizedAnswers(): Record<string, unknown> {
-    if (subtest.key !== 'numeric_series') return answers;
-    return Object.fromEntries(
-      Object.entries(answers).map(([index, value]) => {
-        const [a, b] = value as [string, string];
-        return [index, [Number(a) || 0, Number(b) || 0]];
-      }),
-    );
+  function toggleSkip(index: string) {
+    setState((prev) => {
+      const skipped = new Set(prev.skipped);
+      if (skipped.has(index)) skipped.delete(index);
+      else skipped.add(index);
+      return { ...prev, skipped };
+    });
   }
 
   function handlePrimary() {
-    if (!canProceed || submitting) return;
-    // After a timeout the subtest is over wherever the student is, so the
-    // button retries the submit rather than paging on (it is only reachable
-    // at all if the automatic submit failed).
-    if (isLastPage || timeUp) {
-      // Last page still respects PRO-400 for the whole subtest: all answered
-      // or timer expired (same as pre-pagination).
-      if (!allAnswered && !timeUp) return;
-      onSubmit(normalizedAnswers());
+    if (submitting) return;
+    if (timeUp) {
+      send();
       return;
     }
-    setPageIndex((i) => i + 1);
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!isLastPage) {
+      if (!pageDone) return;
+      setPageIndex((i) => i + 1);
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
+    if (!allDone) return;
+    if (skippedCount > 0) setConfirmSkipsOpen(true);
+    else send();
   }
 
-  // On the last page before timeUp, require the full subtest complete — not
-  // only the visible five — so blanks on earlier pages can't sneak through.
-  const lastPageBlocked = isLastPage && !allAnswered && !timeUp;
-  const primaryEnabled = isLastPage ? !lastPageBlocked && !submitting : canProceed && !submitting;
+  const primaryEnabled = !submitting && (timeUp || (isLastPage ? allDone : pageDone));
 
   return (
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
       <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
         {durationMs !== null && (
           <div className="flex flex-col gap-1.5">
-            <ProgressBar
-              value={(remainingMs / durationMs) * 100}
-              variant={remainingMs < 15000 ? 'accent' : 'brand'}
-            />
-            <Text
-              variant="caption"
-              className={cn('self-end', timeUp ? 'text-danger font-semibold' : 'text-muted')}
-            >
+            <ProgressBar value={(remainingMs / durationMs) * 100} variant={remainingMs < 15000 ? 'accent' : 'brand'} />
+            <Text variant="caption" className={cn('self-end', timeUp ? 'text-danger font-semibold' : 'text-muted')}>
               {timeUp ? t('astur.subtest.timeUp') : formatMmSs(remainingMs)}
             </Text>
           </div>
@@ -261,9 +240,28 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
         )}
 
         <div className="flex flex-col gap-6">
-          {pageItems.map((item, offset) =>
-            renderItem(subtest, item, pageStart + offset, answers, setAnswer),
-          )}
+          {pageItems.map((item, offset) => {
+            const index = String(pageStart + offset + 1);
+            const skipped = state.skipped.has(index);
+            return (
+              <div key={index} className="flex flex-col gap-2">
+                <div className={cn(skipped && 'opacity-50')}>
+                  {renderItem(subtest, item, pageStart + offset, state, setAnswer, t)}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleSkip(index)}
+                  aria-pressed={skipped}
+                  className={cn(
+                    'self-start text-body-sm font-medium transition-colors',
+                    skipped ? 'text-brand' : 'text-muted hover:text-secondary',
+                  )}
+                >
+                  {skipped ? t('astur.subtest.unskip') : t('astur.subtest.skip')}
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {submitError && (
@@ -275,30 +273,36 @@ export function SubtestRunner({ subtest, submitting, submitError, onSubmit }: Su
         <div className="flex flex-col gap-2 w-full">
           {!primaryEnabled && !submitting && (
             <Text variant="caption" className="text-muted text-right">
-              {durationMs !== null
-                ? t('astur.subtest.nextBlockedTimed')
-                : t('astur.subtest.nextBlocked')}
+              {t('astur.subtest.answerOrSkip')}
             </Text>
           )}
           <div className="flex items-center justify-between gap-3">
             <Button
               variant="ghost"
               onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
-              disabled={pageIndex === 0 || submitting}
+              disabled={pageIndex === 0 || submitting || timeUp}
             >
               {tCommon('back')}
             </Button>
-            <Button
-              size="lg"
-              onClick={handlePrimary}
-              disabled={!primaryEnabled}
-              isLoading={(isLastPage || timeUp) && submitting}
-            >
+            <Button size="lg" onClick={handlePrimary} disabled={!primaryEnabled} isLoading={(isLastPage || timeUp) && submitting}>
               {t('astur.subtest.next')}
             </Button>
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmSkipsOpen}
+        title={t('astur.subtest.skipConfirmTitle', { count: skippedCount })}
+        body={t('astur.subtest.skipConfirmBody')}
+        confirmLabel={t('astur.subtest.skipConfirm')}
+        cancelLabel={t('astur.subtest.skipCancel')}
+        onConfirm={() => {
+          setConfirmSkipsOpen(false);
+          send();
+        }}
+        onCancel={() => setConfirmSkipsOpen(false)}
+      />
     </div>
   );
 }

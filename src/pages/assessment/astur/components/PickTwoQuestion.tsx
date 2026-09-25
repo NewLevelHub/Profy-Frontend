@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { useTranslation } from 'react-i18next';
 
 interface PickTwoQuestionProps {
   index: number;
@@ -7,8 +8,8 @@ interface PickTwoQuestionProps {
   onChange: (value: string[]) => void;
 }
 
-/** Субтест «Классификации» — выбрать ровно 2 слова из 6. */
 export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuestionProps) {
+  const { t } = useTranslation('assessment');
   function toggle(word: string) {
     if (value.includes(word)) {
       onChange(value.filter((w) => w !== word));
@@ -19,10 +20,10 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
   }
 
   return (
-    <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
-      <legend className="text-body-md text-primary font-semibold">
-        {index}. Найдите два связанных слова из шести
-      </legend>
+    <div role="group" aria-labelledby={`pick2-label-${index}`} className="flex flex-col gap-3">
+      <p id={`pick2-label-${index}`} className="text-body-md text-primary font-semibold">
+        {index}. {t('astur.pickTwoPrompt')}
+      </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {words.map((word) => {
           const selected = value.includes(word);
@@ -44,7 +45,7 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
           );
         })}
       </div>
-      <span className="text-body-sm text-muted">Выбрано: {value.length}/2</span>
-    </fieldset>
+      <span className="text-body-sm text-muted">{t('astur.selectedCount', { current: value.length, total: 2 })}</span>
+    </div>
   );
 }
