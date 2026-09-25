@@ -136,11 +136,12 @@ export function useArtifactsSetup() {
       // back to onboarding (see RequireProfile.tsx).
       if (userId) queryClient.setQueryData(['profile', userId], profile);
       clearProfileDraft();
-      // Fresh onboarding lands on /results, not straight into the test —
-      // hasCompletedAssessment is false there, so it shows
-      // AssessmentNotStartedCard (start-when-ready), not a forced funnel
-      // into /assessment/goal.
-      navigate(hasExistingProfile ? '/profile' : '/results', { replace: true });
+      // Fresh onboarding used to land on /results → AssessmentNotStartedCard
+      // ("Начать тест"), then /assessment/goal — two near-identical journey
+      // shells in a row (PRO-416). Send first-time students straight to goal
+      // selection; /results still shows the not-started card if they leave
+      // and come back later without starting.
+      navigate(hasExistingProfile ? '/profile' : '/assessment/goal', { replace: true });
     },
   });
 

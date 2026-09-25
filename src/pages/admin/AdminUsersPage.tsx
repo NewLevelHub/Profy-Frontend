@@ -414,8 +414,8 @@ export default function AdminUsersPage() {
         userColumn,
         {
           key: 'age',
-          header: t('common.col.age'),
-          width: '104px',
+          header: t('users.tier'),
+          width: '146px',
           mobile: 'field',
           cell: (item) => <AgeBadge age={item.age} />,
         },

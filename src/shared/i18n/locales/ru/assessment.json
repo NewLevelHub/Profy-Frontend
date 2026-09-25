@@ -40,11 +40,11 @@
     "sectionDiagnostic": "Диагностика",
     "sectionAdditionalTests": "Дополнительные тесты",
     "sectionMotivation": "Что тебя драйвит",
-    "sectionAstur": "Проверка способностей",
+    "sectionAstur": "Учебные задачи",
     "sectionBelbin": "Кто ты в команде",
     "progressAriaTest": "Прогресс теста",
     "progressAriaMotivation": "Прогресс блока мотивации",
-    "progressAriaAstur": "Прогресс теста способностей",
+    "progressAriaAstur": "Прогресс раздела с учебными задачами",
     "progressAriaBelbin": "Прогресс командного теста",
     "pageOf": "Страница {{current}} из {{total}}",
     "questionOf": "Вопрос {{current}} из {{total}}",
@@ -65,7 +65,12 @@
     "itemCount_few": "{{count}} вопроса",
     "itemCount_many": "{{count}} вопросов",
     "itemCount_other": "{{count}} вопросов",
+    "taskCount_one": "{{count}} задание",
+    "taskCount_few": "{{count}} задания",
+    "taskCount_many": "{{count}} заданий",
+    "taskCount_other": "{{count}} заданий",
     "durationMin": "~{{count}} мин",
+    "durationExactMin": "{{count}} мин.",
     "duration2min": "~2 мин",
     "diagnostic": {
       "kicker": "Диагностика",
@@ -81,8 +86,8 @@
     },
     "astur": {
       "kicker": "Новый этап",
-      "title": "Проверим твои способности",
-      "subtitle": "Несколько разделов на логику, память и внимание — перед каждым будет своя короткая инструкция",
+      "title": "Посмотрим, как ты справляешься с разными учебными задачами",
+      "subtitle": "Несколько разделов с заданиями на понятия, логику, числа и фигуры — перед каждым будет своя короткая инструкция",
       "cta": "Начать",
       "itemCount_one": "{{count}} раздел",
       "itemCount_few": "{{count}} раздела",
@@ -268,7 +273,9 @@
     "msg4": "Почти готово...",
     "takesSeconds": "Это займёт несколько секунд...",
     "stepAria": "Шаг {{current}} из {{total}}",
-    "error": "Не удалось сформировать результат. Попробуй ещё раз."
+    "error": "Не удалось сформировать результат. Попробуй ещё раз.",
+    "notCompleted": "Тест ещё не завершён — остались незаконченные задания. Вернись и допройди их.",
+    "backToTest": "Вернуться к тесту"
   },
   "goalCheck": {
     "kicker": "После диагностики",
@@ -312,6 +319,21 @@
     "increase": "Увеличить «{{label}}»"
   },
   "astur": {
+    "subtest": {
+      "next": "Далее",
+      "timeUp": "Время вышло — переходим дальше",
+      "pageOf": "Страница {{current}} из {{total}} · задания {{from}}–{{to}} из {{itemTotal}}",
+      "skip": "Пропустить задание",
+      "unskip": "Вернуться к заданию",
+      "answerOrSkip": "Ответь на каждое задание на этой странице или отметь «Пропустить задание»",
+      "skipConfirmTitle_one": "Пропущено {{count}} задание. Отправить раздел?",
+      "skipConfirmTitle_few": "Пропущено {{count}} задания. Отправить раздел?",
+      "skipConfirmTitle_many": "Пропущено {{count}} заданий. Отправить раздел?",
+      "skipConfirmTitle_other": "Пропущено {{count}} заданий. Отправить раздел?",
+      "skipConfirmBody": "Пропущенные задания засчитаются как пропуски. Вернуться к ним после отправки будет нельзя.",
+      "skipConfirm": "Отправить",
+      "skipCancel": "Вернуться к заданиям"
+    },
     "subtestOf": "Субтест {{index}} из {{count}}",
     "tasksCount": "{{count}} заданий",
     "minutesShort": "{{min}} мин.",
@@ -325,11 +347,37 @@
     "numericPairFirst": "1-е число",
     "numericPairSecond": "2-е число",
     "figureAssemblyPrompt": "Из каких частей можно без пропусков и остатка собрать фигуру-эталон?",
+    "figureAssemblyTarget": "Фигура-эталон",
+    "figureAssemblyOption": "Вариант {{letter}}",
     "labilityHeader": "Команда {{x}} из {{y}} · {{t}} с",
     "labilitySending": "Отправка…",
     "analogyPrompt": "«{{first}}» относится к «{{second}}» так же, как «{{third}}» относится к …",
     "doneTitle": "Все тесты успешно пройдены!",
     "doneMessage": "Поздравляем! Основные и специальные тесты полностью завершены...",
-    "generateReport": "Сформировать отчёт"
+    "generateReport": "Сформировать отчёт",
+    "completed": {
+      "title": "Тест когнитивных навыков уже пройден",
+      "body": "Результат сохранён и доступен психологу.",
+      "bodyWithDate": "Результат от {{date}} сохранён и доступен психологу.",
+      "continue": "К результатам"
+    },
+    "retake": {
+      "cta": "Пройти заново",
+      "confirmTitle": "Пройти тест заново?",
+      "confirmBody": "Начнётся новая попытка. Прошлый результат останется у психолога, пока новая попытка не будет полностью завершена.",
+      "confirm": "Начать заново",
+      "cancel": "Отмена",
+      "starting": "Запускаем…",
+      "doneTitle": "Повторное прохождение завершено",
+      "doneMessage": "Новый результат сохранён и заменит прошлый в отчёте психолога.",
+      "backToResults": "К результатам"
+    },
+    "startError": "Не удалось начать раздел. Проверь соединение и попробуй ещё раз.",
+    "retrySubmit": "Отправить ещё раз",
+    "hierarchyItemAria": "{{concept}}, позиция {{position}}",
+    "moveUp": "Переместить «{{concept}}» выше",
+    "moveDown": "Переместить «{{concept}}» ниже",
+    "confirmOrder": "Порядок верный",
+    "orderConfirmed": "Порядок подтверждён"
   }
 }

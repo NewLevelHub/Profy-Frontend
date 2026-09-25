@@ -14,6 +14,8 @@ interface AssessmentInProgressCardProps {
    *  fully done — see useResults.ts. */
   completedPhaseCount: number;
   totalPhaseCount: number;
+  /** Monotonic 0–100 across all 4 phases (see journeyProgressPercent). */
+  progress: number;
   /** Which phase the student would land back on via `onContinue`. */
   currentPhase: AssessmentPhase;
   onContinue: () => void;
@@ -21,18 +23,18 @@ interface AssessmentInProgressCardProps {
 
 /** Shown on /results while the assessment is started but not finished —
  *  there is no report to show yet, so the page's only job is "continue the
- *  test". Progress is phase-based (Likert+pairs -> motivation -> Belbin ->
- *  АСТУР), not just the Likert block's own answered/total — showing only
- *  Likert progress reads as "100%, test finished" the moment that one phase
- *  is done, even with 3 more phases still ahead. */
+ *  test". Progress is the overall journey percentage (each of the 4 phases
+ *  weighted equally), not whole-phase steps alone — otherwise the bar stays
+ *  at 0% for the entire diagnostic stage. */
 export function AssessmentInProgressCard({
   completedPhaseCount,
   totalPhaseCount,
+  progress,
   currentPhase,
   onContinue,
 }: AssessmentInProgressCardProps) {
   const { t } = useTranslation('results');
-  const progressPct = totalPhaseCount > 0 ? Math.round((completedPhaseCount / totalPhaseCount) * 100) : 0;
+  const progressPct = Math.max(0, Math.min(100, Math.round(progress)));
 
   return (
     <Card

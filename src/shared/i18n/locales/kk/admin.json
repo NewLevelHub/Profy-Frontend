@@ -145,7 +145,9 @@
   },
   "form": {
     "saveError": "Өзгерістерді сақтау мүмкін болмады",
-    "unsavedWarning": "Өзгерістер сақталмаған. Беттен кетесіз бе?"
+    "unsavedWarning": "Өзгерістер сақталмаған. Беттен кетесіз бе?",
+    "unsavedLeave": "Кету",
+    "unsavedStay": "Қалу"
   },
   "goal": {
     "explore": "Зерттеу",
@@ -201,7 +203,7 @@
     "motivationStatements": "Мотивация тұжырымдары",
     "questionPairs": "Сұрақ жұптары",
     "questions": "Сұрақтар",
-    "tests": "ASTUR (баптаулары)",
+    "tests": "АСТУР (банк нұсқалары)",
     "belbin": "Belbin (редакторы)",
     "title": "Басқару",
     "universities": "Университеттер",
