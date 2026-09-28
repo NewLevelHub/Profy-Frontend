@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -5,24 +6,23 @@ import { AdminEmpty } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { PsychAiAnalysis } from '@/shared/types';
 
-// Mirrors app/services/psych_ai_analysis_context.py's BLOCK_LABELS exactly —
-// same block keys, same Russian labels, kept in sync by hand (small, fixed
-// set of instruments, not worth round-tripping through the API just for a
-// label string).
-const BLOCK_LABELS: Record<string, string> = {
-  interests: 'Карта интересов',
-  personality: 'Личность (Big Five)',
-  thinking_style: 'Стиль мышления',
-  motivation: 'Мотивация',
-  validity: 'Достоверность протокола',
-  psychoemotional: 'Психоэмоциональное состояние (МЦВ)',
-  professional_types: 'ДДО (интересы и способности)',
-  temperament: 'Темперамент (Айзенк)',
-  aspiration_level: 'Мотивация к успеху (Элерс)',
-  empathy_confidence: 'Эмпатия и соц. уверенность',
-  team_role: 'Командная роль (Белбин)',
-  intelligence: 'Когнитивные навыки (учебные задания)',
-};
+// Same block keys as app/services/psych_ai_analysis_context.py's BLOCK_LABELS
+// (kept in sync by hand — small, fixed set of instruments); the wording lives
+// in the catalog under `ai.block.*`.
+const BLOCKS = new Set([
+  'interests',
+  'personality',
+  'thinking_style',
+  'motivation',
+  'validity',
+  'psychoemotional',
+  'professional_types',
+  'temperament',
+  'aspiration_level',
+  'empathy_confidence',
+  'team_role',
+  'intelligence',
+]);
 
 /**
  * Specialist-only AI synthesis: ~2 sentences per raw-data block, a final
@@ -44,10 +44,11 @@ export function AiAnalysisSection({
   regenerating: boolean;
   regenerateError: boolean;
 }) {
+  const { t } = useTranslation('psychologist');
   return (
     <AdminCard
-      title="ИИ-анализ"
-      description="Черновая интерпретация для специалиста — не заменяет клиническое заключение"
+      title={t('ai.title')}
+      description={t('ai.description')}
       aside={
         <button
           type="button"
@@ -55,18 +56,18 @@ export function AiAnalysisSection({
           disabled={regenerating}
           className="text-caption font-semibold text-brand hover:opacity-70 disabled:opacity-50 transition-opacity bg-transparent border-none cursor-pointer p-0"
         >
-          {regenerating ? 'Обновление…' : '🔄 Обновить анализ'}
+          {regenerating ? t('ai.refreshing') : t('ai.refresh')}
         </button>
       }
     >
       {regenerateError && (
-        <p className={cn(ADMIN_TEXT, 'text-danger m-0 mb-3')}>Не удалось обновить анализ — попробуйте ещё раз.</p>
+        <p className={cn(ADMIN_TEXT, 'text-danger m-0 mb-3')}>{t('ai.refreshFailed')}</p>
       )}
 
       {!analysis && !regenerating && (
         <AdminEmpty
-          title="Анализ пока недоступен"
-          hint="ИИ-анализ мог быть отключён или ещё не сформирован — попробуйте «Обновить анализ»."
+          title={t('ai.unavailableTitle')}
+          hint={t('ai.unavailableHint')}
         />
       )}
 
@@ -76,7 +77,7 @@ export function AiAnalysisSection({
             {analysis.block_analyses.map((item) => (
               <li key={item.block}>
                 <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-                  {BLOCK_LABELS[item.block] ?? item.block}
+                  {BLOCKS.has(item.block) ? t(`ai.block.${item.block}`) : item.block}
                 </p>
                 <p className={cn(ADMIN_TEXT, 'text-muted m-0 mt-0.5')}>{item.text}</p>
               </li>
@@ -84,14 +85,14 @@ export function AiAnalysisSection({
           </ul>
 
           <div className="pt-3 border-t border-default">
-            <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0 mb-1')}>Итог</p>
+            <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0 mb-1')}>{t('ai.summary')}</p>
             <p className={cn(ADMIN_TEXT, 'text-primary m-0 whitespace-pre-wrap')}>{analysis.final_summary}</p>
           </div>
 
           {analysis.recommended_profession && (
             <div className="pt-3 border-t border-default">
               <div className="flex items-center gap-2 mb-1">
-                <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>Рекомендуемая профессия</p>
+                <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{t('ai.profession')}</p>
                 <AdminBadge tone="brand">{analysis.recommended_profession.name}</AdminBadge>
               </div>
               <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>{analysis.recommended_profession.reasoning}</p>

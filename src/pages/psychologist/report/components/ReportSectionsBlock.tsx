@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AdminEmpty } from '@/shared/ui/admin/AdminStates';
 import type { ArtifactItem, PsychAiAnalysis, PsychologistTestResultsResponse } from '@/shared/types';
 import { AiAnalysisSection } from './AiAnalysisSection';
@@ -53,12 +54,13 @@ export function ReportSectionsBlock({
   regeneratingAiAnalysis: boolean;
   regenerateAiAnalysisError: boolean;
 }) {
+  const { t } = useTranslation('psychologist');
   return (
     <div className="flex flex-col gap-8">
       <ArtifactsSection artifacts={artifacts} />
 
       <div>
-        <GroupHeading>Личность</GroupHeading>
+        <GroupHeading>{t('report.groups.personality')}</GroupHeading>
         <div className="flex flex-col gap-5">
           <TemperamentSection section={testResults.temperament} />
           <PsychoEmotionalSection section={testResults.psychoemotional} />
@@ -66,7 +68,7 @@ export function ReportSectionsBlock({
       </div>
 
       <div>
-        <GroupHeading>Интересы и способности</GroupHeading>
+        <GroupHeading>{t('report.groups.interests')}</GroupHeading>
         <div className="flex flex-col gap-5">
           <ProfessionalTypesSection section={testResults.professional_types} />
           <AspirationLevelSection section={testResults.aspiration_level} />
@@ -75,20 +77,20 @@ export function ReportSectionsBlock({
       </div>
 
       <div>
-        <GroupHeading>Интеллект</GroupHeading>
+        <GroupHeading>{t('report.groups.intelligence')}</GroupHeading>
         {testResults.intelligence ? (
           <IntelligenceSection section={testResults.intelligence} />
         ) : (
-          <AdminEmpty title="Данных пока нет" hint="Появится после завершения учеником теста характеристик интеллекта (АСТУР)." />
+          <AdminEmpty title={t('report.noData')} hint={t('report.noAsturHint')} />
         )}
       </div>
 
       <div>
-        <GroupHeading>Командная роль</GroupHeading>
+        <GroupHeading>{t('report.groups.teamRole')}</GroupHeading>
         {testResults.team_role ? (
           <TeamRoleSection section={testResults.team_role} />
         ) : (
-          <AdminEmpty title="Данных пока нет" hint="Появится после завершения учеником теста «Роли в команде» (Belbin)." />
+          <AdminEmpty title={t('report.noData')} hint={t('report.noBelbinHint')} />
         )}
       </div>
 

@@ -199,7 +199,7 @@ export default function AdminDirectionDetailPage() {
         pending={revertingAll}
         disabledReason={
           dirty
-            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            ? t('revert.draftFirst')
             : undefined
         }
         onRevertAll={revertAll}
@@ -343,14 +343,14 @@ export default function AdminDirectionDetailPage() {
       </AdminCard>
 
       <AdminCard
-        title="Программы вузов"
-        description="Привязка через program_directions — именно она решает, попадёт ли направление в подбор ученику. Меняется не отсюда, а скриптами контент-пайплайна."
+        title={t('directions.programsCard')}
+        description={t('directions.programsCardHint')}
       >
         {detail.programs.length === 0 ? (
           // Не пустое место: направление без единой программы никогда не
           // выпадет ученику, и это важнее, чем «список пуст».
           <p className={cn(ADMIN_TEXT, 'text-danger m-0')}>
-            К направлению не привязана ни одна программа — оно не может попасть в подбор.
+            {t('directions.noPrograms')}
           </p>
         ) : (
           <ul className="flex flex-col gap-1 m-0 p-0 list-none">

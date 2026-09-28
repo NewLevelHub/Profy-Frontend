@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_BUTTON, ADMIN_INPUT, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
@@ -15,6 +16,7 @@ interface ReviewCardsEditorProps {
 
 /** Title + description cards — "Сильные стороны", "Стиль мышления". */
 export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemName }: ReviewCardsEditorProps) {
+  const { t } = useTranslation('psychologist');
   function patchCard(index: number, patch: Partial<PsychologistReviewCard>) {
     onChange(cards.map((card, i) => (i === index ? { ...card, ...patch } : card)));
   }
@@ -22,7 +24,7 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemNam
   return (
     <div className="flex flex-col gap-3">
       {cards.length === 0 ? (
-        <p className={cn(ADMIN_META, 'm-0')}>Карточек нет</p>
+        <p className={cn(ADMIN_META, 'm-0')}>{t('reportEditor.cards.none')}</p>
       ) : (
         <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
           {cards.map((card, index) => (
@@ -32,8 +34,8 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemNam
                   value={card.title}
                   onChange={(e) => patchCard(index, { title: e.target.value })}
                   disabled={disabled}
-                  placeholder="Заголовок"
-                  aria-label={`Заголовок ${itemName}`}
+                  placeholder={t('reportEditor.cards.title')}
+                  aria-label={t('reportEditor.cards.titleAria', { item: itemName })}
                   className={cn(ADMIN_INPUT, 'font-semibold')}
                 />
                 <textarea
@@ -41,8 +43,8 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemNam
                   onChange={(e) => patchCard(index, { description: e.target.value })}
                   disabled={disabled}
                   rows={3}
-                  placeholder="Описание"
-                  aria-label={`Описание ${itemName}`}
+                  placeholder={t('reportEditor.cards.description')}
+                  aria-label={t('reportEditor.cards.descriptionAria', { item: itemName })}
                   className={ADMIN_TEXTAREA}
                 />
               </div>
@@ -50,7 +52,7 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemNam
                 <button
                   type="button"
                   className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
-                  aria-label={`Удалить: ${card.title.trim() || itemName}`}
+                  aria-label={t('reportEditor.cards.remove', { title: card.title.trim() || itemName })}
                   onClick={() => onChange(cards.filter((_, i) => i !== index))}
                 >
                   <Trash2 size={13} />

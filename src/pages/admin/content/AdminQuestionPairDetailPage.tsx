@@ -215,7 +215,7 @@ export default function AdminQuestionPairDetailPage() {
         title={t('questionPairs.detailTitle', { index: detail.pair_index })}
         meta={
           <span className="flex items-center gap-2">
-            {INSTRUMENT_LABELS[detail.instrument]}
+            {t(INSTRUMENT_LABELS[detail.instrument])}
           </span>
         }
       />
@@ -227,7 +227,7 @@ export default function AdminQuestionPairDetailPage() {
         pending={revertingAll}
         disabledReason={
           dirty
-            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            ? t('revert.draftFirst')
             : undefined
         }
         onRevertAll={revertAll}

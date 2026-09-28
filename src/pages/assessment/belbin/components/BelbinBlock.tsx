@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { PointAllocator } from '@/shared/ui/PointAllocator';
 import { Text } from '@/shared/ui/typography/Text';
@@ -32,12 +33,13 @@ export function BelbinBlock({
   onBack,
   onNext,
 }: BelbinBlockProps) {
+  const { t } = useTranslation('assessment');
   return (
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
       <div className="assessment-stage__shell journey-shell flex flex-col gap-6 !p-6 sm:!p-8">
         <div className="flex flex-col gap-2">
           <Text variant="caption" className="text-muted">
-            Раздел {section.section} · {sectionIndex + 1}/{sectionCount}
+            {t('belbin.sectionLabel', { section: section.section, current: sectionIndex + 1, total: sectionCount })}
           </Text>
           <p
             className="font-sans font-semibold text-[color:var(--text-heading)]"
@@ -62,10 +64,10 @@ export function BelbinBlock({
 
         <div className="flex items-center justify-between gap-3">
           <Button variant="ghost" onClick={onBack} disabled={submitting}>
-            Назад
+            {t('common:back')}
           </Button>
           <Button onClick={onNext} disabled={!isValid} isLoading={isLastBlock && submitting}>
-            {isLastBlock ? 'Завершить' : 'Далее'}
+            {isLastBlock ? t('belbin.finish') : t('common:next')}
           </Button>
         </div>
       </div>

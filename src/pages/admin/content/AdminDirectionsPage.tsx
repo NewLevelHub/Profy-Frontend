@@ -19,13 +19,13 @@ const FILTER_KEYS = ['search', 'catalog_filled'] as const;
  *  в URL игнорируется, а не улетает на сервер за 422. */
 const SORTABLE_KEYS = ['name', 'holland_code', 'slug'] as const;
 
-/** Русские имена полей каталога — список приходит машинными. */
+/** Catalog field → i18n key: the API sends machine names. */
 const CATALOG_FIELD_LABELS: Record<string, string> = {
-  description: 'описание',
-  professions: 'профессии',
-  skills_needed: 'навыки',
-  subjects_to_develop: 'предметы',
-  first_steps: 'первые шаги',
+  description: 'directions.catalogField.description',
+  professions: 'directions.catalogField.professions',
+  skills_needed: 'directions.catalogField.skills_needed',
+  subjects_to_develop: 'directions.catalogField.subjects_to_develop',
+  first_steps: 'directions.catalogField.first_steps',
 };
 
 export default function AdminDirectionsPage() {
@@ -117,12 +117,11 @@ export default function AdminDirectionsPage() {
     },
     {
       key: 'programs',
-      header: 'Программ',
+      header: t('directions.col.programs'),
       align: 'right',
       width: '104px',
       mobile: 'field',
-      headerTitle:
-        'Сколько программ вузов привязано к направлению. Ноль — направление никогда не попадёт в подбор',
+      headerTitle: t('directions.col.programsHint'),
       cell: (item) => (
         <span
           className={
@@ -138,7 +137,7 @@ export default function AdminDirectionsPage() {
       // поле было видно только внутри карточки. Строка называет, чего не
       // хватает, а не просто «не заполнено».
       key: 'gaps',
-      header: 'Не заполнено',
+      header: t('directions.col.gaps'),
       width: '220px',
       mobile: 'subtitle',
       cell: (item) =>
@@ -147,7 +146,7 @@ export default function AdminDirectionsPage() {
         ) : (
           <span className={ADMIN_META}>
             {item.empty_catalog_fields
-              .map((field) => CATALOG_FIELD_LABELS[field] ?? field)
+              .map((field) => (CATALOG_FIELD_LABELS[field] ? t(CATALOG_FIELD_LABELS[field]) : field))
               .join(', ')}
           </span>
         ),
@@ -174,11 +173,11 @@ export default function AdminDirectionsPage() {
         selects={[
           {
             key: 'catalog_filled',
-            label: 'Каталог',
+            label: t('directions.catalogFilter.label'),
             value: catalogFilled,
             options: [
-              { value: 'no', label: 'Есть пустые поля' },
-              { value: 'yes', label: 'Заполнен полностью' },
+              { value: 'no', label: t('directions.catalogFilter.no') },
+              { value: 'yes', label: t('directions.catalogFilter.yes') },
             ],
           },
         ]}

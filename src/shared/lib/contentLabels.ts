@@ -1,21 +1,22 @@
 import type { BigFiveDomain, HollandType, Instrument, MotivationCategory, QuestionKeyed, UserRole } from '@/shared/types';
 import type { Locale } from '@/shared/store/locale';
 
+/** Code → i18n key (see HOLLAND_TYPE_LABELS below): `t(INSTRUMENT_LABELS[x])`. */
 export const INSTRUMENT_LABELS: Record<Instrument, string> = {
-  riasec: 'RIASEC',
-  big_five: 'Big Five',
-  professional_types: 'ДДО (интересы)',
-  professional_types_abilities: 'ДДО (способности)',
-  eysenck: 'Айзенк',
-  elers: 'Элерс',
-  boyko_empathy: 'Бойко (эмпатия)',
-  kondash_anxiety: 'Кондаш/Прихожан (тревожность)',
+  riasec: 'admin:instrument.riasec',
+  big_five: 'admin:instrument.big_five',
+  professional_types: 'admin:instrument.professional_types',
+  professional_types_abilities: 'admin:instrument.professional_types_abilities',
+  eysenck: 'admin:instrument.eysenck',
+  elers: 'admin:instrument.elers',
+  boyko_empathy: 'admin:instrument.boyko_empathy',
+  kondash_anxiety: 'admin:instrument.kondash_anxiety',
 };
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
-  student: 'Ученик',
-  admin: 'Админ',
-  psychologist: 'Психолог',
+  student: 'admin:role.student',
+  admin: 'admin:role.admin',
+  psychologist: 'admin:role.psychologist',
 };
 
 /**

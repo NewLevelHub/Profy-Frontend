@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import { formatDate as formatLocaleDate } from '@/shared/i18n/format';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
@@ -52,26 +54,26 @@ function buildPatch(detail: PsychologistResultDetail, draft: Draft): Psychologis
   return patch as PsychologistResultPatch;
 }
 
-function validateDraft(draft: Draft): string | null {
-  if (!draft.summary.trim()) return 'Сводка не может быть пустой';
-  if (!draft.final_analysis.trim()) return 'Итог не может быть пустым';
+function validateDraft(draft: Draft, t: TFunction<'psychologist'>): string | null {
+  if (!draft.summary.trim()) return t('reportEditor.validate.summaryEmpty');
+  if (!draft.final_analysis.trim()) return t('reportEditor.validate.finalEmpty');
   const sections: [string, typeof draft.strength_cards][] = [
-    ['Сильные стороны', draft.strength_cards],
-    ['Стиль мышления', draft.thinking_style_notes],
+    [t('reportEditor.sections.strengths'), draft.strength_cards],
+    [t('reportEditor.sections.thinking'), draft.thinking_style_notes],
   ];
   for (const [name, cards] of sections) {
     if (cards.some((card) => !card.title.trim() || !card.description.trim())) {
-      return `В блоке «${name}» есть карточка без заголовка или описания`;
+      return t('reportEditor.validate.cardIncomplete', { section: name });
     }
   }
   if (draft.motivation_highlights.some((item) => !item.trim())) {
-    return 'Удалите пустые пункты мотивации';
+    return t('reportEditor.validate.emptyMotivation');
   }
   return null;
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleString('ru-RU', {
+  return formatLocaleDate(value, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -80,16 +82,16 @@ function formatDate(value: string) {
   });
 }
 
-function errorMessage(err: unknown, fallback: string): string {
+function errorMessage(err: unknown, fallback: string, t: TFunction<'psychologist'>): string {
   if (!axios.isAxiosError(err)) return fallback;
   const status = err.response?.status;
-  if (status === 409) return 'Отчёт уже опубликован — правки больше не принимаются';
-  if (status === 404) return 'Отчёт не найден или ученик больше не назначен вам';
+  if (status === 409) return t('reportEditor.errors.published');
+  if (status === 404) return t('reportEditor.errors.notFound');
   if (status === 422) {
     const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
     return typeof detail === 'string'
-      ? `Сервер отклонил правки: ${detail}`
-      : 'Сервер отклонил правки — проверьте, что все поля заполнены';
+      ? t('reportEditor.errors.rejectedDetail', { detail })
+      : t('reportEditor.errors.rejected');
   }
   return fallback;
 }
@@ -124,11 +126,11 @@ export function PsychologistStudentReportEditor({
       setDetail(result);
       setDraft(toDraft(result));
     } catch (err) {
-      setLoadError(errorMessage(err, 'Не удалось загрузить отчёт для проверки'));
+      setLoadError(errorMessage(err, t('reportEditor.errors.load'), t));
     } finally {
       setLoading(false);
     }
-  }, [studentId, assessmentId]);
+  }, [studentId, assessmentId, t]);
 
   useEffect(() => {
     void load();
@@ -147,7 +149,7 @@ export function PsychologistStudentReportEditor({
 
   async function handleSave() {
     if (!draft || !isDirty) return;
-    const invalid = validateDraft(draft);
+    const invalid = validateDraft(draft, t);
     if (invalid) {
       setActionError(invalid);
       return;
@@ -158,9 +160,9 @@ export function PsychologistStudentReportEditor({
       const updated = await psychologistApi.updateResultContent(studentId, assessmentId, patch);
       setDetail(updated);
       setDraft(toDraft(updated));
-      setNotice('Изменения сохранены');
+      setNotice(t('reportEditor.saved'));
     } catch (err) {
-      setActionError(errorMessage(err, 'Не удалось сохранить изменения'));
+      setActionError(errorMessage(err, t('reportEditor.errors.save'), t));
       if (axios.isAxiosError(err) && err.response?.status === 409) void load();
     } finally {
       setBusy(null);
@@ -179,11 +181,11 @@ export function PsychologistStudentReportEditor({
       const published = await psychologistApi.publishResult(studentId, assessmentId);
       setDetail(published);
       setDraft(toDraft(published));
-      setNotice('Отчёт опубликован — ученик уже может его открыть в своём кабинете');
+      setNotice(t('reportEditor.publishedNotice'));
       setPublishConfirmOpen(false);
       onPublished?.(published);
     } catch (err) {
-      setActionError(errorMessage(err, 'Не удалось опубликовать отчёт'));
+      setActionError(errorMessage(err, t('reportEditor.errors.publish'), t));
       if (axios.isAxiosError(err) && err.response?.status === 409) void load();
       setPublishConfirmOpen(false);
     } finally {
@@ -196,7 +198,7 @@ export function PsychologistStudentReportEditor({
   }
 
   if (loadError || !detail || !draft) {
-    return <AdminError message={loadError ?? 'Не удалось загрузить отчёт для проверки'} onRetry={() => void load()} />;
+    return <AdminError message={loadError ?? t('reportEditor.errors.load')} onRetry={() => void load()} />;
   }
 
   const locked = isPublished || busy !== null;
@@ -207,31 +209,31 @@ export function PsychologistStudentReportEditor({
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-[14px] bg-[color-mix(in_srgb,var(--paper)_75%,transparent)] border border-default">
         <div className="flex flex-wrap items-center gap-2.5">
           <AdminBadge tone={isPublished ? 'brand' : 'accent'}>
-            {isPublished ? 'Опубликовано' : 'На проверке'}
+            {isPublished ? t('reportEditor.status.published') : t('reportEditor.status.pending')}
           </AdminBadge>
           <span className={cn(ADMIN_NUM, 'text-muted')}>
-            Сформирован {formatDate(detail.created_at)}
+            {t('reportEditor.status.generated', { date: formatDate(detail.created_at) })}
           </span>
           {detail.reviewed_at && (
             <span className={cn(ADMIN_NUM, 'text-muted')}>
-              · Проверен {formatDate(detail.reviewed_at)}
+              {t('reportEditor.status.reviewed', { date: formatDate(detail.reviewed_at) })}
             </span>
           )}
           {detail.published_at && (
             <span className={cn(ADMIN_NUM, 'text-muted')}>
-              · Опубликован {formatDate(detail.published_at)}
+              {t('reportEditor.status.publishedAt', { date: formatDate(detail.published_at) })}
             </span>
           )}
         </div>
 
         <p className={cn(ADMIN_META, 'm-0')}>
           {isPublished
-            ? 'Отчёт виден ученику. Изменение опубликованного отчёта заблокировано.'
-            : 'Ученик не увидит отчёт, пока вы его не проверите и не нажмёте «Опубликовать».'}
+            ? t('reportEditor.status.publishedHint')
+            : t('reportEditor.status.pendingHint')}
         </p>
       </div>
 
-      <AdminCard title="Сводка" description="Первый блок, который читает ученик в начале отчёта.">
+      <AdminCard title={t('reportEditor.sections.summary')} description={t('reportEditor.sections.summaryHint')}>
         <ReviewTextField
           value={draft.summary}
           onChange={(value) => update('summary', value)}
@@ -241,17 +243,17 @@ export function PsychologistStudentReportEditor({
       </AdminCard>
 
       <AdminCard
-        title="Интересы и направления"
-        description="Перетащите направление или стрелками поменяйте порядок; неподходящее можно убрать. Баллы остаются как посчитала система."
+        title={t('reportEditor.sections.careers')}
+        description={t('reportEditor.sections.careersHint')}
         aside={
           <div className="flex flex-wrap gap-1.5 justify-end">
             {detail.strengths.map((code) => (
-              <AdminBadge key={`s-${code}`} tone="brand" title="Выраженная сфера">
+              <AdminBadge key={`s-${code}`} tone="brand" title={t('reportEditor.sections.strongSphere')}>
                 {code}
               </AdminBadge>
             ))}
             {detail.weaknesses.map((code) => (
-              <AdminBadge key={`w-${code}`} tone="quiet" title="Слабо выраженная сфера">
+              <AdminBadge key={`w-${code}`} tone="quiet" title={t('reportEditor.sections.weakSphere')}>
                 {code}
               </AdminBadge>
             ))}
@@ -265,19 +267,19 @@ export function PsychologistStudentReportEditor({
         />
       </AdminCard>
 
-      <AdminCard title="Сильные стороны" description="Ключевые преимущества и способности подростка.">
+      <AdminCard title={t('reportEditor.sections.strengths')} description={t('reportEditor.sections.strengthsHint')}>
         <ReviewCardsEditor
           cards={draft.strength_cards}
           onChange={(value) => update('strength_cards', value)}
           disabled={locked}
-          addLabel="Добавить сильную сторону"
-          itemName="сильной стороны"
+          addLabel={t('reportEditor.sections.addStrength')}
+          itemName={t('reportEditor.sections.strengthItem')}
         />
       </AdminCard>
 
       <AdminCard
-        title="Характер"
-        description="Это текст, который читает ученик. Он рассчитан по шкалам — правьте только то, что нужно исправить: нетронутые черты продолжат считаться автоматически."
+        title={t('reportEditor.sections.character')}
+        description={t('reportEditor.sections.characterHint')}
       >
         <ReviewPersonalityNotesEditor
           notes={draft.personality_notes}
@@ -286,26 +288,26 @@ export function PsychologistStudentReportEditor({
         />
       </AdminCard>
 
-      <AdminCard title="Стиль мышления" description="Особенности восприятия информации и принятия решений.">
+      <AdminCard title={t('reportEditor.sections.thinking')} description={t('reportEditor.sections.thinkingHint')}>
         <ReviewCardsEditor
           cards={draft.thinking_style_notes}
           onChange={(value) => update('thinking_style_notes', value)}
           disabled={locked}
-          addLabel="Добавить заметку"
-          itemName="заметки о мышлении"
+          addLabel={t('reportEditor.sections.addNote')}
+          itemName={t('reportEditor.sections.thinkingItem')}
         />
       </AdminCard>
 
-      <AdminCard title="Что драйвит" description="Источники внутренней мотивации и вовлечённости.">
+      <AdminCard title={t('reportEditor.sections.drivers')} description={t('reportEditor.sections.driversHint')}>
         <ReviewStringListEditor
           items={draft.motivation_highlights}
           onChange={(value) => update('motivation_highlights', value)}
           disabled={locked}
-          addLabel="Добавить пункт"
+          addLabel={t('reportEditor.sections.addItem')}
         />
       </AdminCard>
 
-      <AdminCard title="Итог" description="Завершает отчёт ученика персональными выводами и напутствием.">
+      <AdminCard title={t('reportEditor.sections.final')} description={t('reportEditor.sections.finalHint')}>
         <ReviewTextField
           value={draft.final_analysis}
           onChange={(value) => update('final_analysis', value)}
@@ -330,7 +332,7 @@ export function PsychologistStudentReportEditor({
               <p className={cn(ADMIN_TEXT, 'text-brand font-medium m-0')}>{notice}</p>
             ) : (
               <p className={cn(ADMIN_META, 'm-0')}>
-                {isDirty ? 'Есть несохранённые изменения' : 'Все изменения сохранены'}
+                {isDirty ? t('reportEditor.bar.unsaved') : t('reportEditor.bar.allSaved')}
               </p>
             )}
           </div>
@@ -341,16 +343,16 @@ export function PsychologistStudentReportEditor({
               disabled={!isDirty || busy !== null}
               onClick={() => void handleSave()}
             >
-              {busy === 'save' ? 'Сохраняем…' : 'Сохранить черновик'}
+              {busy === 'save' ? t('reportEditor.bar.saving') : t('reportEditor.bar.saveDraft')}
             </button>
             <button
               type="button"
               className={cn(ADMIN_BUTTON, BRAND_BUTTON, 'shadow-sm font-semibold')}
               disabled={isDirty || busy !== null}
-              title={isDirty ? 'Сначала сохраните изменения' : undefined}
+              title={isDirty ? t('reportEditor.bar.saveFirst') : undefined}
               onClick={requestPublish}
             >
-              {busy === 'publish' ? 'Публикуем…' : 'Опубликовать ученику'}
+              {busy === 'publish' ? t('reportEditor.bar.publishing') : t('reportEditor.bar.publish')}
             </button>
           </div>
         </div>

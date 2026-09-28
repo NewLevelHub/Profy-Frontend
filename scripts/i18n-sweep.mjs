@@ -62,14 +62,13 @@ const ALLOW = [
   // the stored profile value, output is localized via t('onboarding:subject.*').
   ['src/shared/i18n/presets.ts', /^'[^']+':\s*'[a-z]+',$/, 'ru subject label → catalog key'],
   // МЦВ stimulus material — id/hex are the accepted colorimetry (psych-block
-  // §B3, not localizable); `name` is canonical ru shared by the student-facing
-  // assessment flow (localized via t(`psychoemotional.color.${id}`) at the
-  // ColorSwatch call site) AND the excluded psychologist-only report section
-  // (src/pages/results/components/psych/**), which reads `name` as-is.
+  // §B3, not localizable); `name` is canonical ru, never shown: every screen
+  // (the assessment flow and both psych report sections) renders the colour
+  // through t(`assessment:psychoemotional.color.${id}`).
   ['src/shared/config/psychoColors.ts', /name: '[а-яё]+'/, 'МЦВ canonical color name (id-keyed t() at call site)'],
-  // Check-in question bank — same dual-consumer shape as psychoColors.ts
-  // above: canonical ru read as-is by the excluded psychologist report
-  // section, localized via t(`psychoemotional.checkin.*`) in CheckInStep.tsx.
+  // Check-in question bank — canonical ru values (that is what the backend
+  // stores as the answer), shown only through t(`psychoemotional.checkin.*`)
+  // in CheckInStep.tsx and in the psych report's check-in list.
   ['src/shared/config/psychoCheckin.ts', /'не указано'|label: '|options: \[/, 'psychoemotional check-in canonical ru (key-indexed t() at call site)'],
   ['src/pages/assessment/astur/components/FigureAssemblyQuestion.tsx', /letter: '[АБВГ]'|alt="Фигура-эталон"|alt=\{`Вариант \$\{option\.letter\}`\}/, 'ASTUR figure options - canonical Cyrillic used for backend matching and alt text'],
   ['src/pages/assessment/astur/components/HierarchyDragQuestion.tsx', /aria-label=\{`\$\{concept\}, позиция \$\{position \+ 1\}`\}/, 'ASTUR hierarchy - ARIA label'],

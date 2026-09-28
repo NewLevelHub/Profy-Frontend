@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_BUTTON, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
@@ -11,10 +12,11 @@ interface ReviewStringListEditorProps {
 
 /** A list of short phrases — "Что тебя драйвит". */
 export function ReviewStringListEditor({ items, onChange, disabled, addLabel }: ReviewStringListEditorProps) {
+  const { t } = useTranslation('psychologist');
   return (
     <div className="flex flex-col gap-3">
       {items.length === 0 ? (
-        <p className={cn(ADMIN_META, 'm-0')}>Пунктов нет</p>
+        <p className={cn(ADMIN_META, 'm-0')}>{t('reportEditor.list.none')}</p>
       ) : (
         <ul className="flex flex-col gap-2 m-0 p-0 list-none">
           {items.map((item, index) => (
@@ -24,14 +26,14 @@ export function ReviewStringListEditor({ items, onChange, disabled, addLabel }: 
                 onChange={(e) => onChange(items.map((v, i) => (i === index ? e.target.value : v)))}
                 disabled={disabled}
                 rows={2}
-                aria-label={`Пункт ${index + 1}`}
+                aria-label={t('reportEditor.list.item', { n: index + 1 })}
                 className={cn(ADMIN_TEXTAREA, 'min-h-[56px]')}
               />
               {!disabled && (
                 <button
                   type="button"
                   className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
-                  aria-label="Удалить пункт"
+                  aria-label={t('reportEditor.list.remove')}
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
                 >
                   <Trash2 size={13} />

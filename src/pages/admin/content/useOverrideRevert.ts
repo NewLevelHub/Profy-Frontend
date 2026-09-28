@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/shared/api/admin';
 import type { AdminContentResource } from '@/shared/api/endpoints';
 import type { AdminFieldRevert } from '@/shared/ui/admin/AdminField';
@@ -35,6 +36,7 @@ export function useOverrideRevert<T extends { overrides: AdminOverrides }>({
   dirty,
   onReverted,
 }: Options<T>) {
+  const { t } = useTranslation('admin');
   const [pendingField, setPendingField] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -48,20 +50,14 @@ export function useOverrideRevert<T extends { overrides: AdminOverrides }>({
       try {
         const detail = await adminApi.clearContentOverrides<T>(resource, id, field);
         onReverted(detail);
-        setNotice(
-          field ? 'Значение из контент-банка возвращено.' : 'Все правки сняты, строка снова из банка.',
-        );
+        setNotice(field ? t('revert.restored') : t('revert.restoredAll'));
       } catch {
-        setError(
-          field
-            ? 'Не удалось вернуть исходное значение'
-            : 'Не удалось снять правки',
-        );
+        setError(field ? t('revert.restoreFailed') : t('revert.restoreAllFailed'));
       } finally {
         setPendingField(null);
       }
     },
-    [resource, id, onReverted],
+    [resource, id, onReverted, t],
   );
 
   /** Props for one `AdminField`, or undefined when the field is untouched. */
@@ -73,13 +69,11 @@ export function useOverrideRevert<T extends { overrides: AdminOverrides }>({
         bankValue: entry.bank_value,
         bankValueKnown: entry.bank_value_known,
         pending: pendingField === field,
-        disabledReason: dirty
-          ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
-          : undefined,
+        disabledReason: dirty ? t('revert.draftFirst') : undefined,
         onRevert: () => void revert(field),
       };
     },
-    [overrides, pendingField, dirty, revert],
+    [overrides, pendingField, dirty, revert, t],
   );
 
   return {

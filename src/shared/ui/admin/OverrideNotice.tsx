@@ -1,6 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Undo2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { plural } from '@/shared/lib/plural';
 import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
 
 /**
@@ -29,6 +29,7 @@ export function OverrideNotice({
    *  произошло». */
   notice?: string;
 }) {
+  const { t } = useTranslation('admin');
   if (count === 0 && !error && !notice) return null;
 
   return (
@@ -36,8 +37,7 @@ export function OverrideNotice({
       {count > 0 && (
         <div className="flex items-center justify-between gap-3 flex-wrap bg-raised border border-default rounded-[3px] px-3 py-2">
           <p className={cn(ADMIN_TEXT, 'text-secondary m-0')}>
-            {count} {plural(count, 'поле задано', 'поля заданы', 'полей заданы')} вручную —
-            автообновление контента при деплое их не перезапишет.
+            {t('revert.overridden', { count })}
           </p>
           <button
             type="button"
@@ -52,7 +52,7 @@ export function OverrideNotice({
             )}
           >
             <Undo2 size={12} />
-            {pending ? 'Снимаю правки…' : 'Снять все правки'}
+            {pending ? t('revert.revertingAll') : t('revert.revertAll')}
           </button>
         </div>
       )}

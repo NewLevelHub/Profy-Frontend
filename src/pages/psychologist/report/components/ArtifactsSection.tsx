@@ -31,11 +31,12 @@ const ARTIFACT_LABELS: Record<ArtifactType, string> = {
  */
 export function ArtifactsSection({ artifacts }: { artifacts: ArtifactItem[] }) {
   const { t } = useTranslation('admin');
+  const { t: tp } = useTranslation('psychologist');
 
   if (artifacts.length === 0) {
     return (
-      <AdminCard title="Артефакты онбординга">
-        <AdminEmpty title="Ученик пока ничего не отметил" hint="Хобби, кружки, достижения и другое, что ученик указывает при онбординге, появятся здесь." />
+      <AdminCard title={tp('report.artifacts.title')}>
+        <AdminEmpty title={tp('report.artifacts.emptyTitle')} hint={tp('report.artifacts.emptyHint')} />
       </AdminCard>
     );
   }
@@ -46,7 +47,7 @@ export function ArtifactsSection({ artifacts }: { artifacts: ArtifactItem[] }) {
   }, {});
 
   return (
-    <AdminCard title="Артефакты онбординга" description="Что ученик отметил о себе при онбординге">
+    <AdminCard title={tp('report.artifacts.title')} description={tp('report.artifacts.description')}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(byType).map(([type, values]) => (
           <div key={type} className="flex flex-col gap-1 min-w-0">

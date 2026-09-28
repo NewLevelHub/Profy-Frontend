@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import { formatDate as formatLocaleDate } from '@/shared/i18n/format';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { cn } from '@/shared/lib/cn';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
@@ -25,7 +27,7 @@ function reviewPath(row: PsychologistReviewQueueItem) {
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleString('ru-RU', {
+  return formatLocaleDate(value, {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
@@ -33,10 +35,10 @@ function formatDate(value: string) {
   });
 }
 
-const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
+const columns = (t: TFunction<'psychologist'>): AdminColumn<PsychologistReviewQueueItem>[] => [
   {
     key: 'name',
-    header: 'Ученик',
+    header: t('list.colStudent'),
     mobile: 'title',
     grow: true,
     cell: (row) => {
@@ -57,7 +59,7 @@ const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
   },
   {
     key: 'email',
-    header: 'Email',
+    header: t('list.colEmail'),
     mobile: 'subtitle',
     cell: (row) => (
       <span className={cn(ADMIN_TEXT, 'font-mono text-mono-sm text-secondary')}>{row.student_email}</span>
@@ -65,41 +67,42 @@ const COLUMNS: AdminColumn<PsychologistReviewQueueItem>[] = [
   },
   {
     key: 'goal',
-    header: 'Цель',
+    header: t('queue.colGoal'),
     mobile: 'field',
-    mobileLabel: 'Цель',
+    mobileLabel: t('queue.colGoal'),
     cell: (row) => (
       <GoalLabel goal={row.goal} />
     ),
   },
   {
     key: 'age',
-    header: 'Ступень',
+    header: t('list.colAge'),
     mobile: 'badge',
     cell: (row) => <AgeBadge age={row.age} />,
   },
   {
     key: 'generated',
-    header: 'Сформирован',
+    header: t('queue.colGenerated'),
     mobile: 'field',
-    mobileLabel: 'Сформирован',
+    mobileLabel: t('queue.colGenerated'),
     cell: (row) => <span className={cn(ADMIN_NUM, 'text-muted')}>{formatDate(row.generated_at)}</span>,
   },
   {
     key: 'state',
-    header: 'Правки',
+    header: t('queue.colEdits'),
     mobile: 'field',
-    mobileLabel: 'Правки',
+    mobileLabel: t('queue.colEdits'),
     cell: (row) =>
       row.reviewed_at ? (
-        <AdminBadge tone="accent">Есть правки</AdminBadge>
+        <AdminBadge tone="accent">{t('queue.hasEdits')}</AdminBadge>
       ) : (
-        <AdminBadge tone="quiet">Не открывался</AdminBadge>
+        <AdminBadge tone="quiet">{t('queue.notOpened')}</AdminBadge>
       ),
   },
 ];
 
 export default function PsychologistReviewQueuePage() {
+  const { t } = useTranslation('psychologist');
   const [items, setItems] = useState<PsychologistReviewQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +116,7 @@ export default function PsychologistReviewQueuePage() {
         const rows = await psychologistApi.listReviews();
         if (!cancelled) setItems(rows);
       } catch {
-        if (!cancelled) setError('Не удалось загрузить отчёты на проверке');
+        if (!cancelled) setError(t('queue.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -122,13 +125,13 @@ export default function PsychologistReviewQueuePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   return (
     <PageContainer className="flex flex-col gap-5 pb-10">
       <AdminListHeader
-        title="Проверка отчётов"
-        description="Отчёты ваших учеников, которые ещё не опубликованы. Ученик увидит результат только после публикации."
+        title={t('queue.title')}
+        description={t('queue.description')}
       />
 
       {error && <AdminError message={error} onRetry={() => window.location.reload()} />}
@@ -137,15 +140,15 @@ export default function PsychologistReviewQueuePage() {
         <AdminTableSkeleton rows={4} columns={6} />
       ) : items.length === 0 ? (
         <div className={cn('border border-default bg-surface px-5 py-10 text-center', ADMIN_RADIUS)}>
-          <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>Все отчёты проверены</p>
+          <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{t('queue.emptyTitle')}</p>
           <p className={cn(ADMIN_META, 'mt-2 m-0')}>
-            Когда назначенный вам ученик завершит тест, его отчёт появится здесь.
+            {t('queue.emptyHint')}
           </p>
         </div>
       ) : (
         <AdminDataTable
-          label="Отчёты на проверке"
-          columns={COLUMNS}
+          label={t('queue.tableLabel')}
+          columns={columns(t)}
           rows={items}
           rowKey={(row) => row.assessment_id}
           rowHref={reviewPath}

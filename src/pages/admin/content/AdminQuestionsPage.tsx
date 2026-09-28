@@ -116,7 +116,7 @@ export default function AdminQuestionsPage() {
       sortKey: 'instrument',
       width: '112px',
       mobile: 'field',
-      cell: (item) => <span className="text-secondary">{INSTRUMENT_LABELS[item.instrument]}</span>,
+      cell: (item) => <span className="text-secondary">{t(INSTRUMENT_LABELS[item.instrument])}</span>,
     },
     {
       key: 'type',
@@ -168,7 +168,7 @@ export default function AdminQuestionsPage() {
             value: instrument,
             options: (Object.keys(INSTRUMENT_LABELS) as Instrument[]).map((key) => ({
               value: key,
-              label: INSTRUMENT_LABELS[key],
+              label: t(INSTRUMENT_LABELS[key]),
             })),
           },
         ]}

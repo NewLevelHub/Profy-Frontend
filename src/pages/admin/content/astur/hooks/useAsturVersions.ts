@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminAsturApi } from '@/shared/api/adminAstur';
 
@@ -8,6 +9,7 @@ export const asturVersionPath = (id: string) => `/admin/content/tests/versions/$
 
 /** АСТУР bank versions list + "open the draft" (created on demand). */
 export function useAsturVersions() {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [opening, setOpening] = useState(false);
@@ -30,7 +32,7 @@ export function useAsturVersions() {
       await queryClient.invalidateQueries({ queryKey: ASTUR_VERSIONS_KEY });
       navigate(asturVersionPath(created.id));
     } catch {
-      setOpenError('Не удалось открыть черновик.');
+      setOpenError(t('astur.versions.openDraftFailed'));
     } finally {
       setOpening(false);
     }

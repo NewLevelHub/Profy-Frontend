@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminAsturApi } from '@/shared/api/adminAstur';
@@ -19,6 +20,7 @@ const versionKey = (id: string) => ['adminAsturVersion', id] as const;
  * published version is shown read-only.
  */
 export function useAsturVersionEditor(versionId: string) {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeSubtestIdx, setActiveSubtestIdx] = useState(0);
@@ -107,7 +109,7 @@ export function useAsturVersionEditor(versionId: string) {
       try {
         applyServerVersion(await adminAsturApi.updateDraft(versionId, draft, notes));
       } catch {
-        setActionError('Не удалось сохранить комментарий.');
+        setActionError(t('astur.version.saveNotesFailed'));
       }
     }
   }
@@ -121,7 +123,7 @@ export function useAsturVersionEditor(versionId: string) {
     } catch (error) {
       const detail = isAxiosError(error) ? error.response?.data?.detail : null;
       setPublishIssues(Array.isArray(detail?.issues) ? detail.issues : []);
-      if (!Array.isArray(detail?.issues)) setActionError('Не удалось опубликовать версию.');
+      if (!Array.isArray(detail?.issues)) setActionError(t('astur.version.publishFailed'));
     } finally {
       setPublishing(false);
     }
@@ -134,7 +136,7 @@ export function useAsturVersionEditor(versionId: string) {
       await queryClient.invalidateQueries({ queryKey: ASTUR_VERSIONS_KEY });
       navigate('/admin/content/tests');
     } catch {
-      setActionError('Не удалось удалить черновик.');
+      setActionError(t('astur.version.deleteDraftFailed'));
     }
   }
 
@@ -145,7 +147,7 @@ export function useAsturVersionEditor(versionId: string) {
       await queryClient.invalidateQueries({ queryKey: ASTUR_VERSIONS_KEY });
       navigate(asturVersionPath(created.id));
     } catch {
-      setActionError('Не удалось создать черновик.');
+      setActionError(t('astur.version.createDraftFailed'));
     }
   }
 

@@ -170,7 +170,7 @@ export default function AdminMotivationStatementDetailPage() {
         pending={revertingAll}
         disabledReason={
           dirty
-            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            ? t('revert.draftFirst')
             : undefined
         }
         onRevertAll={revertAll}

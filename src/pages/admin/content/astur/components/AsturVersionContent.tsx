@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
@@ -29,22 +30,24 @@ function itemPreview(item: AsturBankItem): string {
 /** Subtest rail + subtest header (names, instruction, timer) + item list /
  *  selected item editor. */
 export function AsturVersionContent({ editor, document, readOnly }: AsturVersionContentProps) {
+  const { t, i18n } = useTranslation('admin');
+  const withLang = (label: string, lang: 'ru' | 'kk') => t('astur.item.withLang', { label, lang: lang.toUpperCase() });
   const subtest = document.subtests[editor.activeSubtestIdx];
   const selectedIdx = editor.selectedItemIdx;
   const keyChanged = new Set(editor.version?.key_changed_item_ids ?? []);
 
   const columns: AdminInlineItemColumn<AsturBankItem>[] = [
     { key: 'index', header: '№', width: '56px', cell: (_item, index) => <span className={MONO_LABEL}>{index + 1}</span> },
-    { key: 'preview', header: 'Задание (RU)', cell: (item) => itemPreview(item) },
+    { key: 'preview', header: t('astur.content.colTask'), cell: (item) => itemPreview(item) },
     {
       key: 'status',
-      header: 'Статус',
+      header: t('astur.content.colStatus'),
       width: '200px',
       cell: (item) => (
         <span className="flex flex-wrap gap-1">
-          {keyChanged.has(item.item_id) && <AdminBadge tone="accent">ключ изменён</AdminBadge>}
+          {keyChanged.has(item.item_id) && <AdminBadge tone="accent">{t('astur.content.keyChanged')}</AdminBadge>}
           <AdminBadge tone={item.review_status === 'reviewed' ? 'brand' : 'quiet'}>
-            {item.review_status === 'reviewed' ? 'проверено' : 'не проверено'}
+            {item.review_status === 'reviewed' ? t('astur.content.reviewed') : t('astur.content.unreviewed')}
           </AdminBadge>
         </span>
       ),
@@ -53,7 +56,7 @@ export function AsturVersionContent({ editor, document, readOnly }: AsturVersion
 
   return (
     <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
-      <nav aria-label="Субтесты АСТУР" className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+      <nav aria-label={t('astur.content.subtestsNav')} className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
         {document.subtests.map((s, idx) => (
           <button
             key={s.key}
@@ -65,23 +68,26 @@ export function AsturVersionContent({ editor, document, readOnly }: AsturVersion
               editor.activeSubtestIdx === idx ? 'field-tile text-brand font-semibold' : 'text-secondary hover:text-primary hover:bg-hover',
             )}
           >
-            {s.number}. {s.name.ru}
+            {s.number}. {(i18n.language === 'kk' && s.name.kk) || s.name.ru}
           </button>
         ))}
       </nav>
 
       <div className="flex flex-col gap-5 min-w-0">
-        <AdminCard title="Субтест" description={`${subtest.items.length} заданий · метод оценки: ${subtest.scoring_method}`}>
+        <AdminCard
+          title={t('astur.content.subtest')}
+          description={t('astur.content.subtestMeta', { count: subtest.items.length, method: subtest.scoring_method })}
+        >
           <fieldset disabled={readOnly} className="grid gap-3.5 sm:grid-cols-2 m-0 p-0 border-0 min-w-0">
             {(['ru', 'kk'] as const).map((lang) => (
-              <AdminField key={`name-${lang}`} label={`Название (${lang.toUpperCase()})`}>
+              <AdminField key={`name-${lang}`} label={withLang(t('astur.content.name'), lang)}>
                 {({ id }) => (
                   <input id={id} className={ADMIN_INPUT} value={subtest.name[lang]} onChange={(e) => editor.setSubtestText(lang, 'name', e.target.value)} />
                 )}
               </AdminField>
             ))}
             {(['ru', 'kk'] as const).map((lang) => (
-              <AdminField key={`instr-${lang}`} label={`Инструкция (${lang.toUpperCase()})`}>
+              <AdminField key={`instr-${lang}`} label={withLang(t('astur.content.instruction'), lang)}>
                 {({ id }) => (
                   <textarea
                     id={id}
@@ -93,7 +99,7 @@ export function AsturVersionContent({ editor, document, readOnly }: AsturVersion
               </AdminField>
             ))}
             {subtest.time_limit_sec !== null && (
-              <AdminField label="Таймер субтеста, секунд">
+              <AdminField label={t('astur.content.timer')}>
                 {({ id }) => (
                   <input
                     id={id}
@@ -110,12 +116,12 @@ export function AsturVersionContent({ editor, document, readOnly }: AsturVersion
         </AdminCard>
 
         {selectedIdx === null ? (
-          <AdminCard title="Задания" description="Нажмите на строку, чтобы открыть задание: текст, варианты и ключ вместе.">
-            <AdminInlineItemTable label="Задания субтеста" columns={columns} rows={subtest.items} onRowClick={editor.setSelectedItemIdx} />
+          <AdminCard title={t('astur.content.tasks')} description={t('astur.content.tasksHint')}>
+            <AdminInlineItemTable label={t('astur.content.tasksTable')} columns={columns} rows={subtest.items} onRowClick={editor.setSelectedItemIdx} />
           </AdminCard>
         ) : (
           <AdminCard
-            title={`Задание #${selectedIdx + 1}`}
+            title={t('astur.content.task', { n: selectedIdx + 1 })}
             aside={
               <button
                 type="button"
@@ -123,7 +129,7 @@ export function AsturVersionContent({ editor, document, readOnly }: AsturVersion
                 className="inline-flex items-center gap-1.5 text-body-sm font-medium text-secondary hover:text-brand transition-colors"
               >
                 <ArrowLeft size={14} aria-hidden="true" />
-                Назад к списку
+                {t('astur.content.backToList')}
               </button>
             }
           >

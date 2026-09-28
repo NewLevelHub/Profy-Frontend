@@ -97,11 +97,9 @@ export function FeedbackOverview({
    */
   const scope = (count: number, ownDimensionFiltered = false) => {
     if (ownDimensionFiltered) {
-      // HEAD nuance: chart ignores its own filter dimension. No catalog key yet.
-      return t('overview.scopeFiltered', { count }).replace(
-        ' в текущем фильтре',
-        ' — без учёта фильтра этой шкалы',
-      );
+      // The chart ignores its own filter dimension, so its count is not the
+      // table's — say so instead of "в текущем фильтре".
+      return t('overview.scopeIgnoringOwnFilter', { count });
     }
     return filtered ? t('overview.scopeFiltered', { count }) : t('overview.scopeAll', { count });
   };
