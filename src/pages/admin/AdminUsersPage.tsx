@@ -498,7 +498,7 @@ export default function AdminUsersPage() {
           <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>
             {t('users.createdStaff', {
               email: createdUser.email,
-              role: USER_ROLE_LABELS[createdUser.role],
+              role: t(USER_ROLE_LABELS[createdUser.role]),
             })}
           </p>
           <Link to={`/admin/users/${createdUser.id}`} className={cn(ADMIN_TEXT, 'text-brand font-semibold underline whitespace-nowrap')}>

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import axios from 'axios';
 import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
@@ -14,26 +16,26 @@ const STAFF_ROLES: AdminStaffRole[] = ['admin', 'psychologist'];
 /** Same rule as self-registration (`RegisterPage.validatePassword`) — the
  *  backend enforces its own version anyway, this just avoids a round trip
  *  for the obvious cases. */
-function validatePassword(password: string): string {
-  if (password.length < 8) return 'Минимум 8 символов';
-  if (!/[A-Za-z]/.test(password)) return 'Пароль должен содержать хотя бы одну букву';
-  if (!/\d/.test(password)) return 'Пароль должен содержать хотя бы одну цифру';
+function validatePassword(password: string, t: TFunction<'admin'>): string {
+  if (password.length < 8) return t('staff.errors.passwordMin');
+  if (!/[A-Za-z]/.test(password)) return t('staff.errors.passwordLetter');
+  if (!/\d/.test(password)) return t('staff.errors.passwordDigit');
   return '';
 }
 
 /** 400s here carry a plain string `detail`; 422s (pydantic validation) carry
  *  an array of `{msg, loc, ...}` objects instead — both need to end up as one
  *  readable line. */
-function extractErrorMessage(error: unknown): string {
-  if (!axios.isAxiosError(error)) return 'Не удалось создать сотрудника';
+function extractErrorMessage(error: unknown, t: TFunction<'admin'>): string {
+  if (!axios.isAxiosError(error)) return t('staff.errors.createFailed');
   const detail = (error.response?.data as { detail?: unknown } | undefined)?.detail;
   if (typeof detail === 'string') {
-    return detail === 'Email already exists' ? 'Этот email уже занят' : detail;
+    return detail === 'Email already exists' ? t('staff.errors.emailTaken') : detail;
   }
   if (Array.isArray(detail) && detail.length) {
     return detail.map((item) => (typeof item?.msg === 'string' ? item.msg : String(item))).join('; ');
   }
-  return 'Не удалось создать сотрудника';
+  return t('staff.errors.createFailed');
 }
 
 interface CreateStaffModalProps {
@@ -55,6 +57,7 @@ interface CreateStaffModalProps {
  * against.
  */
 export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalProps) {
+  const { t } = useTranslation('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<AdminStaffRole>('psychologist');
@@ -91,8 +94,8 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const trimmedEmail = email.trim();
-    const eErr = trimmedEmail && /\S+@\S+\.\S+/.test(trimmedEmail) ? '' : 'Введите корректный email';
-    const pErr = validatePassword(password);
+    const eErr = trimmedEmail && /\S+@\S+\.\S+/.test(trimmedEmail) ? '' : t('staff.errors.email');
+    const pErr = validatePassword(password, t);
     setEmailError(eErr);
     setPasswordError(pErr);
     if (eErr || pErr) return;
@@ -109,7 +112,7 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
       onCreated(created);
       onClose();
     } catch (error) {
-      setSubmitError(extractErrorMessage(error));
+      setSubmitError(extractErrorMessage(error, t));
     } finally {
       setSubmitting(false);
     }
@@ -130,10 +133,10 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
       >
         <div>
           <h2 id="create-staff-title" className="text-title font-black text-primary m-0">
-            Создать сотрудника
+            {t('staff.title')}
           </h2>
           <p className={cn(ADMIN_TEXT, 'text-muted mt-1')}>
-            Только для админов и психологов — ученики регистрируются сами.
+            {t('staff.subtitle')}
           </p>
         </div>
 
@@ -154,7 +157,7 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
           )}
         </AdminField>
 
-        <AdminField label="Пароль" error={passwordError} hint="Минимум 8 символов, буква и цифра">
+        <AdminField label={t('staff.password')} error={passwordError} hint={t('staff.passwordHint')}>
           {({ id, invalid, describedBy }) => (
             <input
               id={id}
@@ -170,7 +173,7 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
           )}
         </AdminField>
 
-        <AdminField label="Роль">
+        <AdminField label={t('staff.role')}>
           {({ id }) => (
             <AdminSelect
               id={id}
@@ -180,7 +183,7 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
             >
               {STAFF_ROLES.map((value) => (
                 <option key={value} value={value}>
-                  {USER_ROLE_LABELS[value]}
+                  {t(USER_ROLE_LABELS[value])}
                 </option>
               ))}
             </AdminSelect>
@@ -195,7 +198,7 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
             disabled={submitting}
             className="w-4 h-4 accent-brand"
           />
-          Email уже подтверждён
+          {t('staff.emailVerified')}
         </label>
 
         {submitError && (
@@ -206,10 +209,10 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
 
         <div className="flex items-center gap-2 pt-1">
           <Button type="submit" size="md" className="flex-1" isLoading={submitting} muteSound>
-            Создать
+            {t('staff.create')}
           </Button>
           <Button type="button" variant="ghost" size="md" muteSound onClick={onClose} disabled={submitting}>
-            Отмена
+            {t('staff.cancel')}
           </Button>
         </div>
       </form>

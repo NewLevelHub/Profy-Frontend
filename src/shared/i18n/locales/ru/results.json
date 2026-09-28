@@ -304,6 +304,8 @@
     "searchPlaceholder": "Название, аббревиатура или город",
     "searchAria": "Поиск университета",
     "clearSearchAria": "Очистить поиск",
+    "scrollCountriesBackAria": "Прокрутить страны назад",
+    "scrollCountriesForwardAria": "Прокрутить страны вперёд",
     "favorites": "Избранные",
     "emptyFavoritesTitle": "Пока ничего не в избранном",
     "emptyFavoritesBody": "Нажми на звёздочку у понравившегося вуза — он появится здесь",

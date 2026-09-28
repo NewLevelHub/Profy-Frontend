@@ -29,8 +29,9 @@ import kkPsychReport from './locales/kk/psychReport.json';
 
 // One namespace per product area. Mirror this list when adding a namespace, in
 // both locales, and in the parity check (KZ-211 / KZ-602). `admin` covers
-// /admin/* — it was ru-only under KZ-210, and that decision was reversed on
-// review: the panel is localized like any other area.
+// /admin/* and `psychologist` the psychologist cabinet plus the specialist-only
+// psych sections of /result — both were ru-only under KZ-210, and that
+// decision was reversed on review: they are localized like any other area.
 export const NAMESPACES = [
   'common',
   'auth',

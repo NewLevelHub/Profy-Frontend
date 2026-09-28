@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT, MONO_LABEL } from '@/shared/ui/admin/density';
@@ -11,25 +12,26 @@ interface AsturKeyEditorProps {
 }
 
 const DYNAMIC_LABELS: Record<string, string> = {
-  day_of_week: 'Ключ зависит от дня недели в момент ответа',
-  own_name: 'Ключ зависит от первой буквы имени ученика',
+  day_of_week: 'astur.key.dynamic.day_of_week',
+  own_name: 'astur.key.dynamic.own_name',
 };
 
 /** The answer key, edited by option POSITION so RU and KK always point at
  *  the same option — the server rejects a key that isn't among the options
  *  or differs between languages anyway. */
 export function AsturKeyEditor({ method, item, onChange }: AsturKeyEditorProps) {
+  const { t } = useTranslation('admin');
   switch (method) {
     case 'single_choice':
     case 'quick_instruction': {
       if (item.dynamic) {
-        return <KeyNote>{DYNAMIC_LABELS[item.dynamic] ?? item.dynamic}</KeyNote>;
+        return <KeyNote>{DYNAMIC_LABELS[item.dynamic] ? t(DYNAMIC_LABELS[item.dynamic]) : item.dynamic}</KeyNote>;
       }
       const options = item.options ?? { ru: [], kk: [] };
       const answer = item.answer as AsturBankLocalizedText | undefined;
       const selected = answer ? options.ru.indexOf(answer.ru) : -1;
       return (
-        <KeyBlock label="Правильный ответ">
+        <KeyBlock label={t('astur.key.correctAnswer')}>
           <div role="radiogroup" className="flex flex-col gap-1.5">
             {options.ru.map((option, i) => (
               <label key={i} className={cn(ADMIN_TEXT, 'flex items-center gap-2 cursor-pointer')}>
@@ -59,7 +61,7 @@ export function AsturKeyEditor({ method, item, onChange }: AsturKeyEditorProps) 
         onChange({ ...item, answer: { ru: ordered.map((j) => words.ru[j]), kk: ordered.map((j) => words.kk[j] ?? '') } });
       };
       return (
-        <KeyBlock label="Правильная пара (ровно 2 слова)">
+        <KeyBlock label={t('astur.key.correctPair')}>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
             {words.ru.map((word, i) => (
               <label key={i} className={cn(ADMIN_TEXT, 'flex items-center gap-2 cursor-pointer')}>
@@ -77,18 +79,18 @@ export function AsturKeyEditor({ method, item, onChange }: AsturKeyEditorProps) 
       const setTier = (key: 'score_2' | 'score_1', lang: 'ru' | 'kk', values: string[]) =>
         onChange({ ...item, [key]: { ...tier(key), [lang]: values } });
       return (
-        <KeyBlock label="Словарь ответов">
+        <KeyBlock label={t('astur.key.dictionary')}>
           <div className="grid gap-3.5 sm:grid-cols-2">
-            <StringListEditor label="2 балла (RU)" values={tier('score_2').ru} onChange={(v) => setTier('score_2', 'ru', v)} />
-            <StringListEditor label="2 балла (KK)" values={tier('score_2').kk} onChange={(v) => setTier('score_2', 'kk', v)} />
-            <StringListEditor label="1 балл (RU)" values={tier('score_1').ru} onChange={(v) => setTier('score_1', 'ru', v)} />
-            <StringListEditor label="1 балл (KK)" values={tier('score_1').kk} onChange={(v) => setTier('score_1', 'kk', v)} />
+            <StringListEditor label={t('astur.key.score2ru')} values={tier('score_2').ru} onChange={(v) => setTier('score_2', 'ru', v)} />
+            <StringListEditor label={t('astur.key.score2kk')} values={tier('score_2').kk} onChange={(v) => setTier('score_2', 'kk', v)} />
+            <StringListEditor label={t('astur.key.score1ru')} values={tier('score_1').ru} onChange={(v) => setTier('score_1', 'ru', v)} />
+            <StringListEditor label={t('astur.key.score1kk')} values={tier('score_1').kk} onChange={(v) => setTier('score_1', 'kk', v)} />
           </div>
         </KeyBlock>
       );
     }
     case 'chain_links':
-      return <KeyNote>Ключ — сам порядок понятий выше: от общего к частному.</KeyNote>;
+      return <KeyNote>{t('astur.key.chainNote')}</KeyNote>;
     case 'number_pair': {
       const answer = (item.answer as number[] | undefined) ?? [0, 0];
       const setAt = (i: number, value: string) => {
@@ -97,7 +99,7 @@ export function AsturKeyEditor({ method, item, onChange }: AsturKeyEditorProps) 
         onChange({ ...item, answer: next });
       };
       return (
-        <KeyBlock label="Правильное продолжение ряда">
+        <KeyBlock label={t('astur.key.seriesContinuation')}>
           <div className="grid grid-cols-2 gap-2 max-w-xs">
             {[0, 1].map((i) => (
               <input
@@ -106,7 +108,7 @@ export function AsturKeyEditor({ method, item, onChange }: AsturKeyEditorProps) 
                 className={ADMIN_INPUT}
                 value={Number.isFinite(answer[i]) ? answer[i] : ''}
                 onChange={(e) => setAt(i, e.target.value)}
-                aria-label={`${i + 1}-е число`}
+                aria-label={t('astur.key.nthNumber', { n: i + 1 })}
               />
             ))}
           </div>
@@ -117,14 +119,21 @@ export function AsturKeyEditor({ method, item, onChange }: AsturKeyEditorProps) 
 }
 
 function KeyBlock({ label, children }: { label: string; children: ReactNode }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="flex flex-col gap-2 p-3.5 rounded-[14px] border border-brand bg-[color-mix(in_srgb,var(--brand)_6%,transparent)]">
-      <p className={cn(MONO_LABEL, 'text-brand m-0')}>Ключ · {label}</p>
+      <p className={cn(MONO_LABEL, 'text-brand m-0')}>{t('astur.key.block', { label })}</p>
       {children}
     </div>
   );
 }
 
 function KeyNote({ children }: { children: ReactNode }) {
-  return <p className={cn(ADMIN_META, 'm-0')}>Ключ: {children}</p>;
+  const { t } = useTranslation('admin');
+  return (
+    <p className={cn(ADMIN_META, 'm-0')}>
+      {t('astur.key.note')}
+      {children}
+    </p>
+  );
 }

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import { psychologistApi } from '@/shared/api/psychologist';
 
@@ -20,6 +21,7 @@ import { psychologistApi } from '@/shared/api/psychologist';
  * 404 handling.
  */
 export function usePsychologistReport(studentId: string, assessmentId: string) {
+  const { t } = useTranslation('psychologist');
   const queryClient = useQueryClient();
   const enabled = !!studentId && !!assessmentId;
   const retry = (failureCount: number, err: unknown) => {
@@ -72,7 +74,7 @@ export function usePsychologistReport(studentId: string, assessmentId: string) {
     forbidden: status === 403,
     error:
       !testResults && testResultsError && status !== 404 && status !== 403
-        ? 'Не удалось загрузить отчёт'
+        ? t('report.loadError')
         : null,
     refetch: () => {
       void refetchTestResults();

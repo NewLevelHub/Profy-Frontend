@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 
 interface PsychSectionShellProps {
@@ -7,8 +8,6 @@ interface PsychSectionShellProps {
    *  placeholder is shown instead; Фазы 1/2/3 pass their real content. */
   children?: ReactNode;
 }
-
-const PLACEHOLDER = 'Раздел появится позже — блок ещё в разработке.';
 
 /**
  * Shared frame for the two psych-block sections — same heading + card
@@ -20,6 +19,7 @@ const PLACEHOLDER = 'Раздел появится позже — блок ещ�
  * specialist-only and read as report sections, not student-facing cards.
  */
 export function PsychSectionShell({ title, children }: PsychSectionShellProps) {
+  const { t } = useTranslation('psychologist');
   return (
     <section aria-label={title}>
       <p className="text-label font-bold text-primary font-mono uppercase tracking-label mb-4">
@@ -27,7 +27,7 @@ export function PsychSectionShell({ title, children }: PsychSectionShellProps) {
       </p>
       <Card className="flex flex-col gap-2">
         {children ?? (
-          <p className="text-body text-secondary leading-relaxed">{PLACEHOLDER}</p>
+          <p className="text-body text-secondary leading-relaxed">{t('report.sectionPlaceholder')}</p>
         )}
       </Card>
     </section>

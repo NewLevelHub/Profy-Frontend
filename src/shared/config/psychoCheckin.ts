@@ -6,7 +6,9 @@
  * вопросы отсюда — так `checkin.q1/q2/q3` в отчёте разворачивается в текст
  * вопроса, а не в сырой ключ.
  *
- * Строки хардкод RU (i18n на психоблоке нет; PRO-293 — `psychEmotional` ns).
+ * `label`/`options`/`CHECKIN_SKIPPED` — канонические ru-значения: так ответ
+ * хранится на бэке. На экран они выводятся только через каталог
+ * (`assessment:psychoemotional.checkin.*`, `psychologist:psycho.checkinSkipped`).
  */
 export const CHECKIN_SKIPPED = 'не указано';
 

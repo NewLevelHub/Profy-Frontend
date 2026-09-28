@@ -175,7 +175,7 @@
     "phase": {
       "diagnostic": "Диагностика",
       "motivation": "Сені не жігерлендіреді",
-      "belbin": "Топта кім екеніңді анықтау",
+      "belbin": "Командадағы рөліңді анықтау",
       "astur": "Оқу тапсырмалары",
       "done": "Дайын"
     }
@@ -302,6 +302,8 @@
     "searchPlaceholder": "Атауы, аббревиатура немесе қала",
     "searchAria": "Университет іздеу",
     "clearSearchAria": "Іздеуді тазалау",
+    "scrollCountriesBackAria": "Елдерді артқа айналдыру",
+    "scrollCountriesForwardAria": "Елдерді алға айналдыру",
     "favorites": "Таңдаулылар",
     "emptyFavoritesTitle": "Әзірге таңдаулыда ештеңе жоқ",
     "emptyFavoritesBody": "Ұнаған ЖОО жанындағы жұлдызшаны бас — ол осында пайда болады",

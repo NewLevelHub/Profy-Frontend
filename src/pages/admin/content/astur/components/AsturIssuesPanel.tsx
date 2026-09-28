@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
@@ -15,12 +16,13 @@ interface AsturIssuesPanelProps {
 /** Server-side validation of the draft: every problem that blocks
  *  publishing, each one clickable to jump to its item. */
 export function AsturIssuesPanel({ issues, stale, hasChanges, onSelect }: AsturIssuesPanelProps) {
+  const { t } = useTranslation('admin');
   if (issues.length === 0) {
     const message = stale
-      ? 'Сохраните черновик, чтобы перепроверить изменения.'
+      ? t('astur.issues.stale')
       : hasChanges
-        ? 'Проверки пройдены — черновик можно публиковать.'
-        : 'Черновик пока совпадает с опубликованной версией — публиковать нечего.';
+        ? t('astur.issues.ok')
+        : t('astur.issues.unchanged');
     return (
       <div className="flex items-center gap-2.5 p-3.5 rounded-[14px] border border-default">
         <CheckCircle2 size={15} className="text-success flex-shrink-0" aria-hidden="true" />
@@ -34,8 +36,8 @@ export function AsturIssuesPanel({ issues, stale, hasChanges, onSelect }: AsturI
       <div className="flex items-center gap-2">
         <AlertTriangle size={15} className="text-danger flex-shrink-0" aria-hidden="true" />
         <p className={cn(ADMIN_TEXT, 'font-semibold text-danger m-0')}>
-          Нельзя опубликовать: {issues.length} замечани{issues.length === 1 ? 'е' : issues.length < 5 ? 'я' : 'й'}
-          {stale ? ' (по последнему сохранению)' : ''}
+          {t('astur.issues.blocked', { count: issues.length })}
+          {stale ? t('astur.issues.staleSuffix') : ''}
         </p>
       </div>
       <ul className="m-0 p-0 list-none flex flex-col gap-1 max-h-64 overflow-y-auto">
@@ -46,7 +48,7 @@ export function AsturIssuesPanel({ issues, stale, hasChanges, onSelect }: AsturI
               onClick={() => onSelect(issue.subtest, issue.item_id)}
               className={cn(ADMIN_TEXT, 'text-left text-primary hover:text-brand')}
             >
-              {issue.item_id ?? issue.subtest ?? 'Банк'}: {issue.message}
+              {issue.item_id ?? issue.subtest ?? t('astur.issues.bank')}: {issue.message}
             </button>
             <span className={cn(ADMIN_META, 'ml-2')}>{issue.code}</span>
           </li>
