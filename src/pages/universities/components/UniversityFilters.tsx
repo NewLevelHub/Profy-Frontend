@@ -1,4 +1,4 @@
-import { Search, Star, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Star, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { localizeGeo } from '@/shared/i18n/geo';
@@ -20,6 +20,9 @@ const PILL_BASE =
 const PILL_ON = 'bg-brand text-on-brand border-transparent';
 const PILL_OFF =
   'bg-[color-mix(in_srgb,var(--paper)_75%,transparent)] text-secondary border-[color:color-mix(in_srgb,#fff_50%,var(--border))] hover:border-brand hover:text-brand';
+// Центр стрелки совпадает с центром чипа: у строки pb-1, поэтому bottom-1.
+const STRIP_ARROW =
+  'hidden pointer-fine:flex absolute top-0 bottom-1 my-auto w-9 h-9 items-center justify-center rounded-full border cursor-pointer transition-colors press-scale bg-[color:var(--paper)] text-secondary border-[color:var(--border)] shadow-sm hover:border-brand hover:text-brand';
 
 export function UniversityFilters({
   searchInput,
@@ -54,6 +57,33 @@ export function UniversityFilters({
     ro.observe(el);
     return () => ro.disconnect();
   }, [syncEdges, countries]);
+
+  // Скроллбар у строки скрыт, а обычное колесо мыши крутит только по вертикали —
+  // без этого на десктопе до стран за краем было не добраться. Колесо
+  // перехватываем, лишь пока строке есть куда ехать в эту сторону: у края
+  // событие уходит странице, и прокрутка вниз не залипает на фильтре.
+  // Слушатель нативный, т.к. React вешает onWheel пассивным и preventDefault там не работает.
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 0) return;
+      const canMove = e.deltaY > 0 ? el.scrollLeft < max - 1 : el.scrollLeft > 1;
+      if (!canMove) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
+  const scrollStrip = (direction: 1 | -1) => {
+    const el = stripRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: 'smooth' });
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -101,35 +131,61 @@ export function UniversityFilters({
       {/* One horizontal strip instead of a wrapping wall of ~30 pills — the
           catalogue has dozens of countries, and a multi-row chip cloud eats
           the first viewport before any card appears. */}
-      <div
-        ref={stripRef}
-        onScroll={syncEdges}
-        data-fade-start={edges.start ? '' : undefined}
-        data-fade-end={edges.end ? '' : undefined}
-        className="filter-strip-fade flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        role="group"
-        aria-label={t('programList.countryFilterAria')}
-      >
-        <button
-          type="button"
-          onClick={() => onCountryChange(undefined)}
-          aria-pressed={activeCountry === undefined}
-          className={cn(PILL_BASE, activeCountry === undefined ? PILL_ON : PILL_OFF)}
+      <div className="relative">
+        <div
+          ref={stripRef}
+          onScroll={syncEdges}
+          data-fade-start={edges.start ? '' : undefined}
+          data-fade-end={edges.end ? '' : undefined}
+          className="filter-strip-fade flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          role="group"
+          aria-label={t('programList.countryFilterAria')}
         >
-          {t('programList.allCountries')}
-        </button>
-        {countries.map(({ country, count }) => (
           <button
-            key={country}
             type="button"
-            onClick={() => onCountryChange(country)}
-            aria-pressed={activeCountry === country}
-            className={cn(PILL_BASE, activeCountry === country ? PILL_ON : PILL_OFF)}
+            onClick={() => onCountryChange(undefined)}
+            aria-pressed={activeCountry === undefined}
+            className={cn(PILL_BASE, activeCountry === undefined ? PILL_ON : PILL_OFF)}
           >
-            {localizeGeo(country)}
-            <span className="ml-1.5 opacity-60">{count}</span>
+            {t('programList.allCountries')}
           </button>
-        ))}
+          {countries.map(({ country, count }) => (
+            <button
+              key={country}
+              type="button"
+              onClick={() => onCountryChange(country)}
+              aria-pressed={activeCountry === country}
+              className={cn(PILL_BASE, activeCountry === country ? PILL_ON : PILL_OFF)}
+            >
+              {localizeGeo(country)}
+              <span className="ml-1.5 opacity-60">{count}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Стрелки — только для мыши (pointer-fine): на тачскрине строку и так
+            листают свайпом, а кнопки перекрывали бы чипы. Стоят поверх зон
+            затухания, поэтому не закрывают читаемые чипы. */}
+        {edges.start && (
+          <button
+            type="button"
+            onClick={() => scrollStrip(-1)}
+            aria-label={t('catalog.scrollCountriesBackAria')}
+            className={cn(STRIP_ARROW, '-left-1')}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        )}
+        {edges.end && (
+          <button
+            type="button"
+            onClick={() => scrollStrip(1)}
+            aria-label={t('catalog.scrollCountriesForwardAria')}
+            className={cn(STRIP_ARROW, '-right-1')}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
