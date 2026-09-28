@@ -257,8 +257,8 @@ export default function AdminUniversitiesPage() {
             label: t('universities.col.programs'),
             value: hasPrograms,
             options: [
-              { value: 'no', label: 'Без программ' },
-              { value: 'yes', label: 'С программами' },
+              { value: 'no', label: t('universities.programsFilter.no') },
+              { value: 'yes', label: t('universities.programsFilter.yes') },
             ],
           },
         ]}

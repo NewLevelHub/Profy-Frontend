@@ -109,7 +109,7 @@ export default function AdminQuestionPairsPage() {
       sortKey: 'instrument',
       width: '112px',
       mobile: 'field',
-      cell: (item) => <span className="text-secondary">{INSTRUMENT_LABELS[item.instrument]}</span>,
+      cell: (item) => <span className="text-secondary">{t(INSTRUMENT_LABELS[item.instrument])}</span>,
     },
     {
       key: 'overrides',
@@ -132,7 +132,7 @@ export default function AdminQuestionPairsPage() {
         search={{
           value: search,
           onChange: (value) => setFilter('search', value),
-          placeholder: 'Текст варианта или сценария',
+          placeholder: t('questionPairs.searchPlaceholder'),
         }}
         selects={[
           {
@@ -141,7 +141,7 @@ export default function AdminQuestionPairsPage() {
             value: instrument,
             options: (Object.keys(INSTRUMENT_LABELS) as Instrument[]).map((key) => ({
               value: key,
-              label: INSTRUMENT_LABELS[key],
+              label: t(INSTRUMENT_LABELS[key]),
             })),
           },
         ]}

@@ -1,4 +1,6 @@
 import { useId, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Undo2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Tooltip } from '@/shared/ui/Tooltip';
@@ -111,20 +113,21 @@ export function AdminField({
 function RevertButton({
   bankValue,
   bankValueKnown,
-  label = 'Вернуть исходное',
+  label,
   description,
   pending,
   disabledReason,
   onRevert,
 }: AdminFieldRevert) {
+  const { t } = useTranslation('admin');
   const content = disabledReason
     ? disabledReason
     : (description ??
       (bankValueKnown
-        ? `Вернуть значение из контент-банка: ${formatBankValue(bankValue)}`
+        ? t('revert.toBankValue', { value: formatBankValue(bankValue, t) })
         : // Overrides written before the original was recorded. Saying so beats
           // implying a restore that will not happen until the next deploy.
-          'Исходное значение не сохранялось. Правка будет снята, а значение вернёт ближайший деплой.'));
+          t('revert.bankValueUnknown')));
 
   return (
     <Tooltip content={content}>
@@ -141,7 +144,7 @@ function RevertButton({
         )}
       >
         <Undo2 size={10} />
-        {pending ? 'Применяю…' : label}
+        {pending ? t('revert.applying') : (label ?? t('revert.button'))}
       </button>
     </Tooltip>
   );
@@ -149,9 +152,9 @@ function RevertButton({
 
 const BANK_VALUE_PREVIEW_LIMIT = 120;
 
-function formatBankValue(value: unknown): string {
-  if (value === null || value === undefined) return 'пусто';
-  if (Array.isArray(value)) return value.length === 0 ? 'пустой список' : value.join(', ');
+function formatBankValue(value: unknown, t: TFunction<'admin'>): string {
+  if (value === null || value === undefined) return t('revert.emptyValue');
+  if (Array.isArray(value)) return value.length === 0 ? t('revert.emptyList') : value.join(', ');
   const text = String(value);
   return text.length > BANK_VALUE_PREVIEW_LIMIT
     ? `${text.slice(0, BANK_VALUE_PREVIEW_LIMIT)}…`

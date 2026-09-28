@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { belbinApi } from '@/shared/api/belbin';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -58,6 +59,7 @@ function clearProgress(assessmentId: string) {
  * Part of the continuous assessment sequence (RIASEC -> BigFive -> Motivation -> Belbin -> ASTUR).
  */
 export function useBelbinAssessment(assessmentId: string) {
+  const { t } = useTranslation('assessment');
   const navigate = useNavigate();
   const belbinCompleted = useAssessmentStore(s => s.belbinCompleted);
   const { data: content, isLoading, isError } = useQuery({
@@ -171,7 +173,7 @@ export function useBelbinAssessment(assessmentId: string) {
 
   return {
     isLoading,
-    loadError: isError ? 'Не удалось загрузить содержимое теста' : null,
+    loadError: isError ? t('belbin.loadError') : null,
     instruction: content?.instruction ?? '',
     phase,
     section,
@@ -193,6 +195,6 @@ export function useBelbinAssessment(assessmentId: string) {
     confirmExit,
     cancelExit,
     submitting: submitMutation.isPending,
-    submitError: submitMutation.isError ? 'Не удалось отправить ответы, попробуйте ещё раз' : null,
+    submitError: submitMutation.isError ? t('belbin.submitError') : null,
   };
 }

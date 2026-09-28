@@ -294,7 +294,7 @@ function MotivationResponsesSection({ responses }: { responses: AdminMotivationR
             <RankedLine
               position={2}
               rank={t('users.rank.neutral')}
-              hint="Ученик это утверждение не отмечал — оно третье по остаточному принципу, а не выбрано как среднее"
+              hint={t('users.notPickedHint')}
               text={item.not_picked_text}
               category={item.not_picked_category}
               tone="muted"
@@ -348,7 +348,7 @@ function RankedLine({
           после его перестройки. Голый вопросительный знак в админке читается
           как сбой интерфейса, поэтому здесь он назван словами. */}
       {text === MISSING_STATEMENT ? (
-        <span className={cn(ADMIN_META, 'italic')}>утверждение больше не найдено в банке</span>
+        <span className={cn(ADMIN_META, 'italic')}>{t('users.statementMissing')}</span>
       ) : (
         <>
           <span className="text-primary min-w-0">{text}</span>
@@ -637,36 +637,37 @@ function AnalysisSection({ analysis }: { analysis: NonNullable<AdminAssessmentDe
 }
 
 function AsturRunSection({ run, index }: { run: AdminAsturRunResponse; index: number }) {
+  const { t } = useTranslation('admin');
   const snapshot = run.result_snapshot;
   return (
     <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-        Попытка #{index + 1} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
+        {t('users.runs.attempt', { n: index + 1 })} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
       </p>
       
       <div className="grid gap-x-6 gap-y-4 grid-cols-2">
-        <Field label="Статус" value={run.status} />
-        <Field label="Формула" value={run.scoring_version} />
-        <Field label="Средний процент" value={snapshot?.overall_percent ?? null} />
-        <Field label="Завершена" value={run.completed_at ? formatDate(run.completed_at) : null} />
+        <Field label={t('users.runs.status')} value={run.status} />
+        <Field label={t('users.runs.formula')} value={run.scoring_version} />
+        <Field label={t('users.runs.averagePercent')} value={snapshot?.overall_percent ?? null} />
+        <Field label={t('users.runs.completed')} value={run.completed_at ? formatDate(run.completed_at) : null} />
       </div>
 
       {snapshot && (
         <ValueList
-          label="Процент по навыкам"
+          label={t('users.runs.skillPercent')}
           values={Object.fromEntries(snapshot.subtests.map((s) => [s.key, s.percent]))}
           labels={{}}
         />
       )}
 
       <div>
-        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Сырые ответы</p>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>{t('users.runs.rawAnswers')}</p>
         <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
           {JSON.stringify(run.answers, null, 2)}
         </pre>
       </div>
       <div>
-        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Ответы на лабильность</p>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>{t('users.runs.labilityAnswers')}</p>
         <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
           {JSON.stringify(run.lability_answers, null, 2)}
         </pre>
@@ -676,20 +677,21 @@ function AsturRunSection({ run, index }: { run: AdminAsturRunResponse; index: nu
 }
 
 function BelbinRunSection({ run, index }: { run: AdminBelbinRunResponse; index: number }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-        Попытка #{index + 1} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
+        {t('users.runs.attempt', { n: index + 1 })} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
       </p>
 
       <ValueList
-        label="Итоговые баллы по ролям"
+        label={t('users.runs.roleTotals')}
         sorted
         values={run.role_totals}
         labels={{}}
       />
       <div>
-        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Аллокации (сырые данные)</p>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>{t('users.runs.allocations')}</p>
         <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
           {JSON.stringify(run.allocations, null, 2)}
         </pre>
@@ -699,20 +701,21 @@ function BelbinRunSection({ run, index }: { run: AdminBelbinRunResponse; index: 
 }
 
 function PsychoemotionalRunSection({ run, index }: { run: AdminPsychoemotionalRunResponse; index: number }) {
+  const { t } = useTranslation('admin');
   return (
     <div className="flex flex-col gap-4 p-4 border border-default rounded-[3px] bg-page">
       <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-        Попытка #{index + 1} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
+        {t('users.runs.attempt', { n: index + 1 })} <span className={ADMIN_META}>· {formatDate(run.created_at)}</span>
       </p>
 
       <div>
-        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Check-in (состояние)</p>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>{t('users.runs.checkin')}</p>
         <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
           {JSON.stringify(run.checkin, null, 2)}
         </pre>
       </div>
       <div>
-        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>Вычисленные метрики</p>
+        <p className={cn(MONO_LABEL, 'text-muted mb-1')}>{t('users.runs.metrics')}</p>
         <pre className={cn(ADMIN_TEXT, 'p-2 bg-page border border-default rounded-[2px] overflow-auto max-h-40 whitespace-pre-wrap break-all')}>
           {JSON.stringify(run.metrics, null, 2)}
         </pre>
@@ -782,7 +785,7 @@ function AssessmentPanel({
       </Section>
 
       {assessment.astur_runs?.length > 0 && (
-        <Section title="АСТУР (когнитивные навыки)" count={assessment.astur_runs.length}>
+        <Section title={t('users.runs.asturSection')} count={assessment.astur_runs.length}>
           <div className="flex flex-col gap-4">
             {assessment.astur_runs.map((run, i) => (
               <AsturRunSection key={run.id} run={run} index={i} />
@@ -792,7 +795,7 @@ function AssessmentPanel({
       )}
 
       {assessment.belbin_runs?.length > 0 && (
-        <Section title="Командные роли (Белбин)" count={assessment.belbin_runs.length}>
+        <Section title={t('users.runs.belbinSection')} count={assessment.belbin_runs.length}>
           <div className="flex flex-col gap-4">
             {assessment.belbin_runs.map((run, i) => (
               <BelbinRunSection key={run.id} run={run} index={i} />
@@ -802,7 +805,7 @@ function AssessmentPanel({
       )}
 
       {assessment.psychoemotional_runs?.length > 0 && (
-        <Section title="Психоэмоциональное состояние" count={assessment.psychoemotional_runs.length}>
+        <Section title={t('users.runs.psychoemotionalSection')} count={assessment.psychoemotional_runs.length}>
           <div className="flex flex-col gap-4">
             {assessment.psychoemotional_runs.map((run, i) => (
               <PsychoemotionalRunSection key={run.id} run={run} index={i} />

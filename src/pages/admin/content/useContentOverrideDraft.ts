@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { SaveState } from '@/shared/ui/admin/AdminSaveBar';
 
 interface UseContentOverrideDraftOptions<T> {
@@ -19,6 +20,7 @@ interface UseContentOverrideDraftOptions<T> {
  * is just "draft differs from baseline" by value.
  */
 export function useContentOverrideDraft<T>({ seed, onSave }: UseContentOverrideDraftOptions<T>) {
+  const { t } = useTranslation('admin');
   const [baseline, setBaseline] = useState<T | null>(null);
   const [draft, setDraft] = useState<T | null>(null);
   const [seeded, setSeeded] = useState<T | null>(null);
@@ -52,12 +54,12 @@ export function useContentOverrideDraft<T>({ seed, onSave }: UseContentOverrideD
     } catch (error) {
       setState({
         kind: 'error',
-        message: error instanceof Error && error.message ? error.message : 'Не удалось сохранить изменения',
+        message: error instanceof Error && error.message ? error.message : t('revert.saveFailed'),
       });
     } finally {
       setSaving(false);
     }
-  }, [draft, dirty, onSave]);
+  }, [draft, dirty, onSave, t]);
 
   return { draft, setDraft, dirty, saving, state, reset, save };
 }

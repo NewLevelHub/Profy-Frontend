@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminAsturApi } from '@/shared/api/adminAstur';
 import type { AsturAgeBand } from '@/shared/types';
@@ -6,6 +7,7 @@ import type { AsturAgeBand } from '@/shared/types';
 /** Per-item analytics of one published version, cut by age band / grade at
  *  completion — for finding too-easy, confusing or broken items. */
 export function useAsturAnalytics(versionId: string) {
+  const { t } = useTranslation('admin');
   const [ageBand, setAgeBand] = useState<AsturAgeBand | null>(null);
   const [grade, setGrade] = useState<number | null>(null);
   const [added, setAdded] = useState<Set<string>>(new Set());
@@ -30,7 +32,7 @@ export function useAsturAnalytics(versionId: string) {
       setAdded((prev) => new Set(prev).add(`${itemId}|${locale}|${text}`));
       await queryClient.invalidateQueries({ queryKey: ['adminAsturVersions'] });
     } catch {
-      setSynonymError('Не удалось добавить формулировку — возможно, она уже есть в словаре черновика.');
+      setSynonymError(t('astur.analytics.synonymFailed'));
     }
   }
 

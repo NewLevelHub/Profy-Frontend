@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
@@ -17,6 +18,7 @@ interface AsturPublishModalProps {
  *  changed must be ticked off explicitly — a re-keyed question is never
  *  published by accident. */
 export function AsturPublishModal({ open, keyChangedItemIds, publishing, issues, onPublish, onClose }: AsturPublishModalProps) {
+  const { t } = useTranslation('admin');
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -47,24 +49,23 @@ export function AsturPublishModal({ open, keyChangedItemIds, publishing, issues,
         onClick={(event) => event.stopPropagation()}
       >
         <h2 id="astur-publish-title" className="text-title font-black text-primary m-0">
-          Опубликовать новую версию?
+          {t('astur.publish.title')}
         </h2>
         <p className={cn(ADMIN_TEXT, 'text-secondary m-0')}>
-          Опубликованная версия не редактируется. Новые попытки учеников начнутся на ней; уже начатые и завершённые
-          попытки останутся на своих версиях и не пересчитываются.
+          {t('astur.publish.body')}
         </p>
 
         {keyChangedItemIds.length > 0 && (
           <div className="flex flex-col gap-2">
             <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>
-              Подтвердите новые ключи ({keyChangedItemIds.length}):
+              {t('astur.publish.confirmKeys', { count: keyChangedItemIds.length })}
             </p>
             <ul className="m-0 p-0 list-none flex flex-col gap-1 max-h-48 overflow-y-auto">
               {keyChangedItemIds.map((id) => (
                 <li key={id}>
                   <label className={cn(ADMIN_TEXT, 'flex items-center gap-2 cursor-pointer')}>
                     <input type="checkbox" checked={confirmed.has(id)} onChange={() => toggle(id)} />
-                    {id} — варианты или ключ изменены, ключ проверен
+                    {t('astur.publish.keyChanged', { id })}
                   </label>
                 </li>
               ))}
@@ -76,7 +77,7 @@ export function AsturPublishModal({ open, keyChangedItemIds, publishing, issues,
           <ul role="alert" className="m-0 pl-4 flex flex-col gap-0.5">
             {issues.map((issue, i) => (
               <li key={i} className={cn(ADMIN_META, 'text-danger')}>
-                {issue.item_id ?? issue.subtest ?? 'Банк'}: {issue.message}
+                {issue.item_id ?? issue.subtest ?? t('astur.issues.bank')}: {issue.message}
               </li>
             ))}
           </ul>
@@ -84,14 +85,14 @@ export function AsturPublishModal({ open, keyChangedItemIds, publishing, issues,
 
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={publishing}>
-            Отмена
+            {t('astur.publish.cancel')}
           </Button>
           <Button
             variant="primary"
             onClick={() => onPublish([...confirmed])}
             disabled={publishing || !allConfirmed}
           >
-            {publishing ? 'Публикуем…' : 'Опубликовать'}
+            {publishing ? t('astur.publish.publishing') : t('astur.publish.publish')}
           </Button>
         </div>
       </div>

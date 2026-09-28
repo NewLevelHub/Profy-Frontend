@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
@@ -12,6 +13,7 @@ import { useBelbinEditor } from './useBelbinEditor';
 import type { BelbinBankItem } from '@/shared/types';
 
 export default function AdminBelbinEditorPage() {
+  const { t } = useTranslation('admin');
   const {
     isLoading,
     isLoadError,
@@ -36,11 +38,11 @@ export default function AdminBelbinEditorPage() {
   };
 
   if (isLoadError) {
-    return <AdminError message="Не удалось загрузить контент Belbin." />;
+    return <AdminError message={t('belbinEditor.loadError')} />;
   }
 
   if (isLoading) {
-    return <AdminLoading label="Загрузка контента Belbin…" />;
+    return <AdminLoading label={t('belbinEditor.loading')} />;
   }
 
   const activeSectionRu = sectionsRu[activeSectionIdx];
@@ -48,25 +50,25 @@ export default function AdminBelbinEditorPage() {
 
   const columns: AdminInlineItemColumn<BelbinBankItem>[] = [
     { key: 'id', header: '№', width: '64px', cell: (item) => <span className={MONO_LABEL}>{item.id}</span> },
-    { key: 'text', header: 'Утверждение (RU)', cell: (item) => item.text.ru || '—' },
-    { key: 'role', header: 'Роль', width: '176px', cell: (item) => item.role },
+    { key: 'text', header: t('belbinEditor.colStatement'), cell: (item) => item.text.ru || '—' },
+    { key: 'role', header: t('belbinEditor.colRole'), width: '176px', cell: (item) => item.role },
   ];
 
   return (
     <>
       <AdminPageHeader
-        crumbs={[{ label: 'Belbin — редактор контента' }]}
+        crumbs={[{ label: t('belbinEditor.crumb') }]}
         title="Belbin (BTRSPI)"
         meta={
           <p className={cn(ADMIN_META, 'm-0')}>
-            7 секций · 56 утверждений · правки хранятся поверх банка и переживают деплой, но не пересоздание базы
+            {t('belbinEditor.meta')}
           </p>
         }
         actions={dirty && <UnsavedBadge />}
       />
 
       <div className="grid gap-5 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <nav aria-label="Секции Belbin" className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+        <nav aria-label={t('belbinEditor.sectionsNav')} className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
           {sectionsRu.map((sec, idx) => (
             <button
               key={sec.section}
@@ -80,13 +82,13 @@ export default function AdminBelbinEditorPage() {
                   : 'text-secondary hover:text-primary hover:bg-hover',
               )}
             >
-              Секция {sec.section}
+              {t('belbinEditor.section', { n: sec.section })}
             </button>
           ))}
         </nav>
 
         <div className="flex flex-col gap-5 min-w-0">
-          <AdminCard title="Название секции" description="Показывается перед 8 утверждениями этого блока.">
+          <AdminCard title={t('belbinEditor.sectionTitle')} description={t('belbinEditor.sectionTitleHint')}>
             <div className="grid gap-3.5 sm:grid-cols-2">
               <AdminField label="RU">
                 {({ id, describedBy }) => (
@@ -114,13 +116,13 @@ export default function AdminBelbinEditorPage() {
           </AdminCard>
 
           {selectedItemIdx === null ? (
-            <AdminCard title="Утверждения" description="Нажмите на строку, чтобы отредактировать текст на обоих языках.">
-              <AdminInlineItemTable label="Утверждения секции" columns={columns} rows={activeSectionRu.items} onRowClick={setSelectedItemIdx} />
+            <AdminCard title={t('belbinEditor.statements')} description={t('belbinEditor.statementsHint')}>
+              <AdminInlineItemTable label={t('belbinEditor.statementsTable')} columns={columns} rows={activeSectionRu.items} onRowClick={setSelectedItemIdx} />
             </AdminCard>
           ) : (
             <AdminCard
-              title={`Утверждение ${activeSectionRu.items[selectedItemIdx].id}`}
-              description={`Роль: ${activeSectionRu.items[selectedItemIdx].role}`}
+              title={t('belbinEditor.statement', { id: activeSectionRu.items[selectedItemIdx].id })}
+              description={t('belbinEditor.statementRole', { role: activeSectionRu.items[selectedItemIdx].role })}
               aside={<BackButton onClick={() => setSelectedItemIdx(null)} />}
             >
               <div className="grid gap-3.5 sm:grid-cols-2">
@@ -159,15 +161,17 @@ export default function AdminBelbinEditorPage() {
 }
 
 function UnsavedBadge() {
+  const { t } = useTranslation('admin');
   return (
     <span className={cn(MONO_LABEL, 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] bg-warning-subtle text-warning')}>
       <span className="w-1.5 h-1.5 rounded-full bg-warning" aria-hidden="true" />
-      Есть несохранённые изменения
+      {t('belbinEditor.unsaved')}
     </span>
   );
 }
 
 function BackButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation('admin');
   return (
     <button
       type="button"
@@ -175,7 +179,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
       className="inline-flex items-center gap-1.5 text-body-sm font-medium text-secondary hover:text-brand transition-colors"
     >
       <ArrowLeft size={14} />
-      Назад к списку
+      {t('belbinEditor.backToList')}
     </button>
   );
 }

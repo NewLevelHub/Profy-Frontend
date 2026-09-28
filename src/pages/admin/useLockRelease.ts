@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/shared/api/admin';
 import type { AdminFieldRevert } from '@/shared/ui/admin/AdminField';
 
@@ -29,6 +30,7 @@ export function useLockRelease<T extends { admin_locked_fields: string[] }>({
   dirty: boolean;
   onReleased: (detail: T) => void;
 }) {
+  const { t } = useTranslation('admin');
   const [pendingField, setPendingField] = useState<string | null>(null);
   const [error, setError] = useState('');
   // Снятие замка ничего не меняет на экране, кроме исчезнувшего бейджа: само
@@ -49,17 +51,15 @@ export function useLockRelease<T extends { admin_locked_fields: string[] }>({
             : await adminApi.unlockProgramFields(id, field);
         onReleased(detail as unknown as T);
         setNotice(
-          field
-            ? 'Поле снова под автообновлением. Значение осталось прежним — его сможет перезаписать ближайший деплой.'
-            : 'Все поля снова под автообновлением. Значения остались прежними.',
+          field ? t('lock.released') : t('lock.releasedAll'),
         );
       } catch {
-        setError('Не удалось вернуть поле под автообновление');
+        setError(t('lock.releaseFailed'));
       } finally {
         setPendingField(null);
       }
     },
-    [kind, id, onReleased],
+    [kind, id, onReleased, t],
   );
 
   const fieldRelease = useCallback(
@@ -69,17 +69,14 @@ export function useLockRelease<T extends { admin_locked_fields: string[] }>({
         // Always false here: a lock never carried a previous value, so the
         // control must never promise to put one back.
         bankValueKnown: false,
-        label: 'Вернуть под автообновление',
-        description:
-          'Значение останется как есть — прежнее нигде не сохранялось. Поле снова сможет быть перезаписано сид-скриптом на ближайшем деплое.',
+        label: t('lock.release'),
+        description: t('lock.releaseHint'),
         pending: pendingField === field,
-        disabledReason: dirty
-          ? 'Сначала сохраните или сбросьте черновик — снятие перечитывает строку с сервера.'
-          : undefined,
+        disabledReason: dirty ? t('lock.draftFirst') : undefined,
         onRevert: () => void release(field),
       };
     },
-    [lockedFields, pendingField, dirty, release],
+    [lockedFields, pendingField, dirty, release, t],
   );
 
   return {

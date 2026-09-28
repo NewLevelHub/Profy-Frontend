@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { formatDate } from '@/shared/i18n/format';
 import { useParams } from 'react-router';
 import { AlertTriangle, Check } from 'lucide-react';
@@ -184,7 +185,7 @@ export default function AdminProgramDetailPage() {
   );
   const grantsDirty = JSON.stringify(grants) !== JSON.stringify(initialGrants);
 
-  const grantsError = useMemo(() => validateGrants(grants), [grants]);
+  const grantsError = useMemo(() => validateGrants(grants, t), [grants, t]);
 
   const changedLabels = [
     ...(Object.keys(simplePatch) as (keyof SimpleForm)[]).map((key) => SIMPLE_LABELS[key]),
@@ -458,7 +459,7 @@ export default function AdminProgramDetailPage() {
 
       <AdminCard
         title={t('prog.grantsCard')}
-        description="Стипендии и гранты программы. Название обязательно, сумма и условия — по желанию."
+        description={t('prog.grantsCardHint')}
         aside={locked.has('grants') ? <span className={cn(MONO_LABEL, 'text-brand')}>{t('prog.setManually')}</span> : null}
       >
         <GrantsEditor entries={grants} onChange={setGrants} error={grantsError} />
@@ -545,9 +546,9 @@ function toFloatOrNull(value: string): number | null {
  * структуре можно было молча испортить данные. Теперь форма зафиксирована в
  * схеме API, и проверять остаётся только заполненность.
  */
-function validateGrants(entries: readonly AdminProgramGrant[]): string | null {
+function validateGrants(entries: readonly AdminProgramGrant[], t: TFunction<'admin'>): string | null {
   const empty = entries.findIndex((entry) => !entry.name?.trim());
-  return empty === -1 ? null : `У записи №${empty + 1} не заполнено название.`;
+  return empty === -1 ? null : t('prog.grants.emptyName', { n: empty + 1 });
 }
 
 /**
@@ -572,6 +573,7 @@ function GrantsEditor({
   onChange: (next: AdminProgramGrant[]) => void;
   error: string | null;
 }) {
+  const { t } = useTranslation('admin');
   const patch = (index: number, field: 'name' | 'amount' | 'conditions', value: string) => {
     onChange(
       entries.map((entry, i) => {
@@ -592,7 +594,7 @@ function GrantsEditor({
   return (
     <div className="flex flex-col gap-3">
       {entries.length === 0 ? (
-        <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>Грантов не указано.</p>
+        <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>{t('prog.grants.none')}</p>
       ) : (
         entries.map((entry, index) => (
           <div
@@ -603,32 +605,32 @@ function GrantsEditor({
               <input
                 className={cn(ADMIN_INPUT, 'flex-1', !entry.name?.trim() && 'border-danger')}
                 value={entry.name ?? ''}
-                placeholder="Название гранта"
-                aria-label={`Название гранта ${index + 1}`}
+                placeholder={t('prog.grants.name')}
+                aria-label={t('prog.grants.nameAria', { n: index + 1 })}
                 onChange={(e) => patch(index, 'name', e.target.value)}
               />
               <button
                 type="button"
                 onClick={() => onChange(entries.filter((_, i) => i !== index))}
-                title="Удалить запись"
+                title={t('prog.grants.removeTitle')}
                 className={cn(ADMIN_TEXT, 'px-2 py-1.5 rounded-[3px] text-muted hover:text-danger hover:bg-hover')}
               >
-                Удалить
+                {t('prog.grants.remove')}
               </button>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <input
                 className={ADMIN_INPUT}
                 value={entry.amount ?? ''}
-                placeholder="Сумма (например, 1 200 000 ₸)"
-                aria-label={`Сумма гранта ${index + 1}`}
+                placeholder={t('prog.grants.amount')}
+                aria-label={t('prog.grants.amountAria', { n: index + 1 })}
                 onChange={(e) => patch(index, 'amount', e.target.value)}
               />
               <input
                 className={ADMIN_INPUT}
                 value={entry.conditions ?? ''}
-                placeholder="Условия получения"
-                aria-label={`Условия гранта ${index + 1}`}
+                placeholder={t('prog.grants.conditions')}
+                aria-label={t('prog.grants.conditionsAria', { n: index + 1 })}
                 onChange={(e) => patch(index, 'conditions', e.target.value)}
               />
             </div>
@@ -648,7 +650,7 @@ function GrantsEditor({
         onClick={() => onChange([...entries, { name: '' }])}
         className={cn(ADMIN_TEXT, 'self-start px-2 py-1 rounded-[3px] text-muted hover:text-primary hover:bg-hover')}
       >
-        + Добавить грант
+        {t('prog.grants.add')}
       </button>
     </div>
   );

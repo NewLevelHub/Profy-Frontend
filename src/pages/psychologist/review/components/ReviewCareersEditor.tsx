@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, GripVertical, Trash2 } from 'lucide-react';
 import {
   DndContext,
@@ -59,6 +60,7 @@ function SortableCareerRow({
   onMove,
   onRemove,
 }: SortableCareerRowProps) {
+  const { t } = useTranslation('psychologist');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: career.slug,
     disabled,
@@ -96,7 +98,7 @@ function SortableCareerRow({
             type="button"
             className={ADMIN_BUTTON}
             disabled={index === 0}
-            aria-label={`Поднять «${career.name}» выше`}
+            aria-label={t('reportEditor.careers.moveUp', { name: career.name })}
             onClick={() => onMove(index, index - 1)}
           >
             <ChevronUp size={13} />
@@ -105,7 +107,7 @@ function SortableCareerRow({
             type="button"
             className={ADMIN_BUTTON}
             disabled={index === total - 1}
-            aria-label={`Опустить «${career.name}» ниже`}
+            aria-label={t('reportEditor.careers.moveDown', { name: career.name })}
             onClick={() => onMove(index, index + 1)}
           >
             <ChevronDown size={13} />
@@ -113,7 +115,7 @@ function SortableCareerRow({
           <button
             type="button"
             className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
-            aria-label={`Убрать направление «${career.name}»`}
+            aria-label={t('reportEditor.careers.remove', { name: career.name })}
             onClick={() => onRemove(index)}
           >
             <Trash2 size={13} />
@@ -129,6 +131,7 @@ function SortableCareerRow({
  * (or use the arrows) to change priority; drop a direction that does not fit.
  */
 export function ReviewCareersEditor({ careers, onChange, disabled }: ReviewCareersEditorProps) {
+  const { t } = useTranslation('psychologist');
   const [dragging, setDragging] = useState(false);
 
   const sensors = useSensors(
@@ -138,7 +141,7 @@ export function ReviewCareersEditor({ careers, onChange, disabled }: ReviewCaree
   );
 
   if (careers.length === 0) {
-    return <p className={cn(ADMIN_META, 'm-0')}>Направления не подбирались</p>;
+    return <p className={cn(ADMIN_META, 'm-0')}>{t('reportEditor.careers.none')}</p>;
   }
 
   function handleDragEnd(event: DragEndEvent) {

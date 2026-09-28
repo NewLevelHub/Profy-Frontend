@@ -7,7 +7,7 @@ import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
-import type { ArtifactItem, ArtifactType } from '@/shared/types';
+import type { ArtifactItem, ArtifactType, ProfilePayload, ProfileResponse } from '@/shared/types';
 
 // 5 groups. During onboarding these render as steps 3-4 of the same linear
 // flow ProfileSetupPage starts (see ArtifactsSetupPage): the first four
@@ -25,6 +25,27 @@ function toggle(list: string[], item: string): string[] {
 
 function valuesOf(items: ArtifactItem[], type: ArtifactType): string[] {
   return items.filter(i => i.type === type).map(i => i.value);
+}
+
+const PERSONAL_FIELDS = [
+  'name', 'age', 'grade', 'city', 'country', 'language',
+  'subjects_liked', 'subjects_disliked', 'subjects_easy', 'subjects_hard',
+] as const satisfies readonly (keyof ProfilePayload & keyof ProfileResponse)[];
+
+// Updating an existing profile sends only the personal fields that actually
+// changed. Re-sending untouched ones made the backend re-validate them against
+// today's rules, so a profile saved before a rule tightened (age 12, a
+// two-letter name, 17 + grade 3) could not save a single hobby — 422
+// (PRO-430). Artifacts and certificates always go: both are replaced wholesale.
+function changedFieldsOnly(payload: ProfilePayload, saved: ProfileResponse): Partial<ProfilePayload> {
+  const changed = PERSONAL_FIELDS
+    .filter(key => JSON.stringify(payload[key]) !== JSON.stringify(saved[key]))
+    .map(key => [key, payload[key]]);
+  return {
+    ...(Object.fromEntries(changed) as Partial<ProfilePayload>),
+    artifacts: payload.artifacts,
+    certificates: payload.certificates,
+  };
 }
 
 export function useArtifactsSetup() {
@@ -125,7 +146,8 @@ export function useArtifactsSetup() {
         // handleEditArtifacts.
         certificates: profileDraft.certificates,
       };
-      return hasExistingProfile ? profileApi.update(payload) : profileApi.create(payload);
+      if (!ensuredProfile) return profileApi.create(payload);
+      return profileApi.update(changedFieldsOnly(payload, ensuredProfile));
     },
     onSuccess: (profile) => {
       setProfile(profile);

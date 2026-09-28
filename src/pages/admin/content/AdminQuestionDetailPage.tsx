@@ -183,7 +183,7 @@ export default function AdminQuestionDetailPage() {
         title={headerText}
         meta={
           <p className={cn(ADMIN_META, 'm-0 flex items-center gap-2')}>
-            {INSTRUMENT_LABELS[detail.instrument]} · {t('questions.orderInline', { order: detail.order })}
+            {t(INSTRUMENT_LABELS[detail.instrument])} · {t('questions.orderInline', { order: detail.order })}
           </p>
         }
       />
@@ -200,7 +200,7 @@ export default function AdminQuestionDetailPage() {
         pending={revertingAll}
         disabledReason={
           dirty
-            ? 'Сначала сохраните или сбросьте черновик — возврат перечитывает строку с сервера.'
+            ? t('revert.draftFirst')
             : undefined
         }
         onRevertAll={revertAll}
