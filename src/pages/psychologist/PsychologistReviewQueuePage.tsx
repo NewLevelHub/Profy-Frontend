@@ -274,7 +274,7 @@ export default function PsychologistReviewQueuePage() {
           active={tab}
           onChange={setTab}
           tabs={[
-            { key: 'pool', label: t('queue.tabPool', { count: poolWaiting }) },
+            { key: 'pool', label: t('queue.tabPool', { count: pool.length }) },
             { key: 'mine', label: t('queue.tabMine', { count: mine.length }) },
           ]}
         />
