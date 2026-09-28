@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
-import { cn } from '@/shared/lib/cn';
-import { ADMIN_BUTTON, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
+import { Button } from '@/shared/ui/Button';
+import { Mono, Text } from '@/shared/ui/typography';
+import { REVIEW_LINE_INPUT } from './reviewFieldStyles';
 
 interface ReviewStringListEditorProps {
   items: string[];
@@ -11,43 +13,53 @@ interface ReviewStringListEditorProps {
 
 /** A list of short phrases — "Что тебя драйвит". */
 export function ReviewStringListEditor({ items, onChange, disabled, addLabel }: ReviewStringListEditorProps) {
+  const { t } = useTranslation('psychologist');
   return (
     <div className="flex flex-col gap-3">
       {items.length === 0 ? (
-        <p className={cn(ADMIN_META, 'm-0')}>Пунктов нет</p>
+        <Text variant="body-sm" className="text-muted m-0">
+          {t('review.list.empty')}
+        </Text>
       ) : (
-        <ul className="flex flex-col gap-2 m-0 p-0 list-none">
+        <ol className="flex flex-col gap-1 m-0 p-0 list-none">
           {items.map((item, index) => (
-            <li key={index} className="flex gap-2 items-start">
-              <textarea
+            <li key={index} className="flex gap-3.5 items-center">
+              <Mono variant="sm" className="text-[color:var(--dawn-deep)] w-6 flex-none">
+                {String(index + 1).padStart(2, '0')}
+              </Mono>
+              <input
                 value={item}
                 onChange={(e) => onChange(items.map((v, i) => (i === index ? e.target.value : v)))}
                 disabled={disabled}
-                rows={2}
-                aria-label={`Пункт ${index + 1}`}
-                className={cn(ADMIN_TEXTAREA, 'min-h-[56px]')}
+                aria-label={t('review.list.itemAria', { number: index + 1 })}
+                className={REVIEW_LINE_INPUT}
               />
               {!disabled && (
                 <button
                   type="button"
-                  className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
-                  aria-label="Удалить пункт"
+                  className="w-9 h-9 flex-none inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)] transition-colors"
+                  aria-label={t('review.list.removeAria', { number: index + 1 })}
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
                 >
-                  <Trash2 size={13} />
+                  <Trash2 size={14} aria-hidden="true" />
                 </button>
               )}
             </li>
           ))}
-        </ul>
+        </ol>
       )}
       {!disabled && (
-        <div>
-          <button type="button" className={ADMIN_BUTTON} onClick={() => onChange([...items, ''])}>
-            <Plus size={13} />
-            {addLabel}
-          </button>
-        </div>
+        <Button
+          type="button"
+          variant="text"
+          size="sm"
+          muteSound
+          className="self-start px-0 no-underline hover:underline"
+          onClick={() => onChange([...items, ''])}
+        >
+          <Plus size={14} aria-hidden="true" />
+          {addLabel}
+        </Button>
       )}
     </div>
   );

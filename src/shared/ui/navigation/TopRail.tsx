@@ -11,6 +11,8 @@ import { playClick } from '@/shared/lib/sounds';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useProfileStore } from '@/shared/store/profile';
+import { usePsychologistReviews } from '@/shared/hooks/usePsychologistReviews';
+import { Mono } from '@/shared/ui/typography';
 import { NAV_ITEMS, ADMIN_NAV_ITEM, PSYCHOLOGIST_NAV_ITEMS, isNavActive, type NavItem } from './navItems';
 
 // TopRail replaces the old two-piece nav shell (a desktop-only left
@@ -35,6 +37,10 @@ export function TopRail() {
         : [...NAV_ITEMS];
 
   const homePath = homePathForUser(user);
+  const isPsychologist = user?.role === 'psychologist';
+  const { data: reviews } = usePsychologistReviews({ enabled: isPsychologist });
+  const counterFor = (item: NavItem): number | null =>
+    'counter' in item && item.counter === 'psychologistReviews' && reviews?.length ? reviews.length : null;
 
   function handleLogout() {
     logout();
@@ -51,14 +57,21 @@ export function TopRail() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4"
         style={{ height: 'var(--header-h)' }}
       >
-        <Link
-          to={homePath}
-          className="brand-wordmark flex-shrink-0 hover:opacity-80 transition-opacity press-scale"
-          aria-label={env.APP_NAME}
-        >
-          {env.APP_NAME}
-          <span className="brand-dot" aria-hidden="true">.</span>
-        </Link>
+        <div className="flex items-baseline gap-3.5 flex-shrink-0">
+          <Link
+            to={homePath}
+            className="brand-wordmark flex-shrink-0 hover:opacity-80 transition-opacity press-scale"
+            aria-label={env.APP_NAME}
+          >
+            {env.APP_NAME}
+            <span className="brand-dot" aria-hidden="true">.</span>
+          </Link>
+          {isPsychologist && (
+            <Mono variant="xs" className="hidden lg:inline uppercase tracking-label text-muted">
+              {t('psychologist:nav.cabinet')}
+            </Mono>
+          )}
+        </div>
 
         <nav className="hidden md:flex items-center gap-1.5">
           {navItems.map((item) => (
@@ -86,9 +99,15 @@ export function TopRail() {
                     location.pathname,
                     isActive,
                   );
+                  const count = counterFor(item);
                   return (
                     <>
                       {t(item.label)}
+                      {count !== null && (
+                        <Mono variant="sm" className="ml-1.5 text-[color:var(--dawn-deep)]">
+                          {count}
+                        </Mono>
+                      )}
                       <span
                         aria-hidden="true"
                         className={cn(
@@ -161,6 +180,11 @@ export function TopRail() {
               }
             >
               {t(item.label)}
+              {counterFor(item) !== null && (
+                <Mono variant="sm" className="text-[color:var(--dawn-deep)]">
+                  {counterFor(item)}
+                </Mono>
+              )}
             </NavLink>
           ))}
           {LOCALE_SWITCH_ENABLED && (

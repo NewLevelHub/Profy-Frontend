@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_CARD, ADMIN_TEXT } from '@/shared/ui/admin/density';
 
@@ -31,6 +31,18 @@ export function AdminSectionHeading({ title, description, aside, className }: Ad
   );
 }
 
+/**
+ * Inside an `AdminCardEmbed` an `AdminCard` drops its own shell and heading
+ * and renders just its content — for a container that already shows the
+ * title (the psychologist report's accordion rows), so a section component
+ * doesn't need a second, chrome-less copy of itself.
+ */
+const AdminCardEmbedContext = createContext(false);
+
+export function AdminCardEmbed({ children }: { children: ReactNode }) {
+  return <AdminCardEmbedContext.Provider value>{children}</AdminCardEmbedContext.Provider>;
+}
+
 /** Card shell for admin forms — heading, hairline edge, consistent padding. */
 export function AdminCard({
   title,
@@ -39,6 +51,15 @@ export function AdminCard({
   children,
   className,
 }: AdminSectionHeadingProps & { children: ReactNode }) {
+  const embedded = useContext(AdminCardEmbedContext);
+  if (embedded) {
+    return (
+      <div className={cn('flex flex-col gap-3.5', className)}>
+        {aside && <div className="flex justify-end">{aside}</div>}
+        {children}
+      </div>
+    );
+  }
   return (
     <section className={cn(ADMIN_CARD, 'flex flex-col gap-3.5', className)}>
       <AdminSectionHeading title={title} description={description} aside={aside} />

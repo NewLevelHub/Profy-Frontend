@@ -8,6 +8,7 @@ import type {
   PsychologistReportResponse,
   PsychologistResultDetail,
   PsychologistResultPatch,
+  PsychologistReviewEdit,
   PsychologistReviewQueueItem,
   PsychologistStudentDetail,
   PsychologistStudentListItem,
@@ -87,6 +88,11 @@ export const psychologistApi = {
   updateResultContent: (studentId: string, assessmentId: string, patch: PsychologistResultPatch) =>
     apiClient
       .patch<PsychologistResultDetail>(API.psychologist.resultReview(studentId, assessmentId), patch)
+      .then((r) => r.data),
+
+  listResultEdits: (studentId: string, assessmentId: string) =>
+    apiClient
+      .get<PsychologistReviewEdit[]>(API.psychologist.resultEdits(studentId, assessmentId))
       .then((r) => r.data),
 
   publishResult: (studentId: string, assessmentId: string) =>

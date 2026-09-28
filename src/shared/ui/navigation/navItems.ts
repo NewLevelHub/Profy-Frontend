@@ -17,17 +17,19 @@ export const ADMIN_NAV_ITEM = {
   matchPrefix: '/admin',
 } as const;
 
-/** Staff cabinet nav — no student tabs (results / start test). */
+/** Staff cabinet nav — no student tabs (results / start test). The review
+ *  queue comes first: it is where the psychologist's work starts. */
 export const PSYCHOLOGIST_NAV_ITEMS = [
-  {
-    label: 'psychologist:nav.students',
-    path: '/psychologist/students',
-    matchPrefix: '/psychologist/students',
-  },
   {
     label: 'psychologist:nav.reviews',
     path: '/psychologist/reviews',
     matchPrefix: '/psychologist/reviews',
+    counter: 'psychologistReviews',
+  },
+  {
+    label: 'psychologist:nav.students',
+    path: '/psychologist/students',
+    matchPrefix: '/psychologist/students',
   },
 ] as const;
 
