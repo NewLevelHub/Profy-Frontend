@@ -302,6 +302,8 @@
     "searchPlaceholder": "Атауы, аббревиатура немесе қала",
     "searchAria": "Университет іздеу",
     "clearSearchAria": "Іздеуді тазалау",
+    "scrollCountriesBackAria": "Елдерді артқа айналдыру",
+    "scrollCountriesForwardAria": "Елдерді алға айналдыру",
     "favorites": "Таңдаулылар",
     "emptyFavoritesTitle": "Әзірге таңдаулыда ештеңе жоқ",
     "emptyFavoritesBody": "Ұнаған ЖОО жанындағы жұлдызшаны бас — ол осында пайда болады",
