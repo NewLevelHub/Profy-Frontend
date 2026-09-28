@@ -37,11 +37,11 @@ export function ReviewStringListEditor({ items, onChange, disabled, addLabel }: 
               {!disabled && (
                 <button
                   type="button"
-                  className="w-9 h-9 flex-none inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)] transition-colors"
+                  className="w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 flex-none inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)] transition-colors"
                   aria-label={t('review.list.removeAria', { number: index + 1 })}
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
                 >
-                  <Trash2 size={14} aria-hidden="true" />
+                  <Trash2 size={16} aria-hidden="true" />
                 </button>
               )}
             </li>
@@ -54,10 +54,10 @@ export function ReviewStringListEditor({ items, onChange, disabled, addLabel }: 
           variant="text"
           size="sm"
           muteSound
-          className="self-start px-0 no-underline hover:underline"
+          className="min-h-10 [@media(pointer:coarse)]:min-h-11 self-start px-0 no-underline hover:underline"
           onClick={() => onChange([...items, ''])}
         >
-          <Plus size={14} aria-hidden="true" />
+          <Plus size={16} aria-hidden="true" />
           {addLabel}
         </Button>
       )}

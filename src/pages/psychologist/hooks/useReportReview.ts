@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import axios from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -7,36 +7,9 @@ import { psychologistApi } from '@/shared/api/psychologist';
 import { psychologistKeys } from '@/shared/api/psychologistKeys';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
 import type { PsychologistResultDetail, PsychologistResultPatch } from '@/shared/types';
+import { EDITABLE_KEYS, EMPTY_DRAFT, dirtyKeys, reportDraftReducer, toDraft, type EditableKey, type ReviewDraft } from './reportReviewDraft';
 
-/** Report fields the psychologist edits, in the order the student reads them. */
-const EDITABLE_KEYS = [
-  'summary',
-  'careers',
-  'strength_cards',
-  'personality_notes',
-  'thinking_style_notes',
-  'motivation_highlights',
-  'final_analysis',
-] as const;
-
-export type EditableKey = (typeof EDITABLE_KEYS)[number];
-export type ReviewDraft = Pick<PsychologistResultDetail, EditableKey>;
-
-function toDraft(detail: PsychologistResultDetail): ReviewDraft {
-  return {
-    summary: detail.summary,
-    careers: detail.careers,
-    strength_cards: detail.strength_cards,
-    personality_notes: detail.personality_notes,
-    thinking_style_notes: detail.thinking_style_notes,
-    motivation_highlights: detail.motivation_highlights,
-    final_analysis: detail.final_analysis,
-  };
-}
-
-function dirtyKeys(detail: PsychologistResultDetail, draft: ReviewDraft): EditableKey[] {
-  return EDITABLE_KEYS.filter((key) => JSON.stringify(draft[key]) !== JSON.stringify(detail[key]));
-}
+export type { EditableKey, ReviewDraft } from './reportReviewDraft';
 
 function validateDraft(t: TFunction, draft: ReviewDraft): string | null {
   if (!draft.summary.trim()) return t('psychologist:review.validation.summaryEmpty');
@@ -79,7 +52,9 @@ export function useReportReview(studentId: string, assessmentId: string) {
   const { t } = useTranslation('psychologist');
   const queryClient = useQueryClient();
   const enabled = !!studentId && !!assessmentId;
+  const reportId = `${studentId}/${assessmentId}`;
   const resultKey = psychologistKeys.result(studentId, assessmentId);
+  const writing = useRef(false);
 
   const result = useQuery({
     queryKey: resultKey,
@@ -95,13 +70,15 @@ export function useReportReview(studentId: string, assessmentId: string) {
   });
 
   const detail = result.data ?? null;
-  const [draft, setDraft] = useState<ReviewDraft | null>(null);
+  const [draftState, dispatch] = useReducer(reportDraftReducer, EMPTY_DRAFT);
+  const draft = draftState.reportId === reportId ? draftState.draft : null;
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // A fresh server copy (first load, after save) resets the draft to it.
   useEffect(() => {
-    if (detail) setDraft(toDraft(detail));
-  }, [detail]);
+    if (detail) dispatch({ type: 'receive', reportId, draft: toDraft(detail), published: detail.review_status === 'published' });
+  }, [detail, reportId]);
+
+  useEffect(() => setActionError(null), [reportId]);
 
   const dirty = useMemo(() => (detail && draft ? dirtyKeys(detail, draft) : []), [detail, draft]);
   const isDirty = dirty.length > 0;
@@ -121,7 +98,8 @@ export function useReportReview(studentId: string, assessmentId: string) {
 
   useUnsavedGuard(isDirty);
 
-  function afterWrite(updated: PsychologistResultDetail) {
+  function afterWrite(updated: PsychologistResultDetail, submitted: ReviewDraft) {
+    dispatch({ type: 'saved', reportId, submitted, draft: toDraft(updated) });
     queryClient.setQueryData(resultKey, updated);
     void queryClient.invalidateQueries({ queryKey: psychologistKeys.resultEdits(studentId, assessmentId) });
     void queryClient.invalidateQueries({ queryKey: psychologistKeys.reviews() });
@@ -137,21 +115,24 @@ export function useReportReview(studentId: string, assessmentId: string) {
   }
 
   const save = useMutation({
-    mutationFn: (patch: PsychologistResultPatch) =>
-      psychologistApi.updateResultContent(studentId, assessmentId, patch),
-    onSuccess: afterWrite,
+    mutationFn: async ({ patch }: { patch: PsychologistResultPatch; submitted: ReviewDraft }) => {
+      await queryClient.cancelQueries({ queryKey: resultKey, exact: true });
+      return psychologistApi.updateResultContent(studentId, assessmentId, patch);
+    },
+    onSuccess: (updated, { submitted }) => afterWrite(updated, submitted),
   });
 
   const publish = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (submitted: ReviewDraft) => {
+      await queryClient.cancelQueries({ queryKey: resultKey, exact: true });
       // Unsaved edits go out with the publication, not get lost behind it.
       const patch = buildPatch();
       if (patch && Object.keys(patch).length > 0) {
-        afterWrite(await psychologistApi.updateResultContent(studentId, assessmentId, patch));
+        afterWrite(await psychologistApi.updateResultContent(studentId, assessmentId, patch), submitted);
       }
       return psychologistApi.publishResult(studentId, assessmentId);
     },
-    onSuccess: afterWrite,
+    onSuccess: (updated, submitted) => afterWrite(updated, submitted),
   });
 
   function reportConflict(err: unknown, fallbackKey: string) {
@@ -169,27 +150,33 @@ export function useReportReview(studentId: string, assessmentId: string) {
 
   async function saveDraft(): Promise<void> {
     const patch = buildPatch();
-    if (!patch || !isDirty || !validate()) return;
+    if (writing.current || !patch || !draft || !isDirty || isPublished || !validate()) return;
+    writing.current = true;
     try {
-      await save.mutateAsync(patch);
+      await save.mutateAsync({ patch, submitted: draft });
     } catch (err) {
       reportConflict(err, 'psychologist:review.errors.save');
+    } finally {
+      writing.current = false;
     }
   }
 
   async function publishReport(): Promise<boolean> {
-    if (!validate()) return false;
+    if (writing.current || !draft || isPublished || !validate()) return false;
+    writing.current = true;
     try {
-      await publish.mutateAsync();
+      await publish.mutateAsync(draft);
       return true;
     } catch (err) {
       reportConflict(err, 'psychologist:review.errors.publish');
       return false;
+    } finally {
+      writing.current = false;
     }
   }
 
   function update<K extends EditableKey>(key: K, value: ReviewDraft[K]) {
-    setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
+    dispatch({ type: 'change', reportId, patch: { [key]: value } });
     setActionError(null);
   }
 
@@ -200,6 +187,9 @@ export function useReportReview(studentId: string, assessmentId: string) {
     loadError: result.isError ? errorMessage(t, result.error, 'psychologist:review.errors.load') : null,
     reload: () => void result.refetch(),
     edits: edits.data ?? [],
+    editsLoading: edits.isLoading,
+    editsError: edits.isError,
+    reloadEdits: () => void edits.refetch(),
     editedKeys,
     isDirty,
     isPublished,

@@ -1,7 +1,7 @@
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { env } from '@/shared/config/env';
 import { homePathForUser } from '@/shared/lib/homePath';
@@ -12,7 +12,7 @@ import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { useProfileStore } from '@/shared/store/profile';
 import { usePsychologistReviews } from '@/shared/hooks/usePsychologistReviews';
-import { Mono } from '@/shared/ui/typography';
+import { Mono, Text } from '@/shared/ui/typography';
 import { NAV_ITEMS, ADMIN_NAV_ITEM, PSYCHOLOGIST_NAV_ITEMS, isNavActive, type NavItem } from './navItems';
 
 // TopRail replaces the old two-piece nav shell (a desktop-only left
@@ -42,6 +42,12 @@ export function TopRail() {
   const counterFor = (item: NavItem): number | null =>
     'counter' in item && item.counter === 'psychologistReviews' && reviews?.length ? reviews.length : null;
 
+  const activeFor = (item: NavItem) => isNavActive(
+    'matchPrefix' in item ? item.matchPrefix : undefined,
+    location.pathname,
+    location.pathname === item.path || location.pathname.startsWith(`${item.path}/`),
+  );
+
   function handleLogout() {
     logout();
     navigate('/login', { replace: true });
@@ -67,59 +73,43 @@ export function TopRail() {
             <span className="brand-dot" aria-hidden="true">.</span>
           </Link>
           {isPsychologist && (
-            <Mono variant="xs" className="hidden lg:inline uppercase tracking-label text-muted">
+            <Text as="span" variant="caption" className="hidden lg:inline text-muted">
               {t('psychologist:nav.cabinet')}
-            </Mono>
+            </Text>
           )}
         </div>
 
         <nav className="hidden md:flex items-center gap-1.5">
-          {navItems.map((item) => (
-              <NavLink
+          {navItems.map((item) => {
+            const on = activeFor(item);
+            const count = counterFor(item);
+            return (
+              <Link
                 key={item.path}
                 to={item.path}
+                aria-current={on ? 'page' : undefined}
                 onClick={() => playClick()}
-                className={({ isActive }) => {
-                  const on = isNavActive(
-                    'matchPrefix' in item ? item.matchPrefix : undefined,
-                    location.pathname,
-                    isActive,
-                  );
-                  return cn(
-                    'relative px-3 py-1.5 rounded-[10px] text-sm font-bold transition-[color,background-color] press-scale',
-                    on
-                      ? 'text-nav-active bg-[color:var(--bg-nav-active,var(--brand-subtle))]'
-                      : 'text-nav hover:text-primary hover:bg-hover',
-                  );
-                }}
+                className={cn(
+                  'relative px-3 py-1.5 rounded-[10px] text-sm font-bold transition-[color,background-color] press-scale',
+                  on
+                    ? 'text-nav-active bg-[color:var(--bg-nav-active,var(--brand-subtle))]'
+                    : 'text-nav hover:text-primary hover:bg-hover',
+                )}
               >
-                {({ isActive }) => {
-                  const on = isNavActive(
-                    'matchPrefix' in item ? item.matchPrefix : undefined,
-                    location.pathname,
-                    isActive,
-                  );
-                  const count = counterFor(item);
-                  return (
-                    <>
-                      {t(item.label)}
-                      {count !== null && (
-                        <Mono variant="sm" className="ml-1.5 text-[color:var(--dawn-deep)]">
-                          {count}
-                        </Mono>
-                      )}
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          'pointer-events-none absolute left-3 right-3 -bottom-0.5 h-0.5 rounded-full bg-[color:var(--nav-active-border)] transition-opacity duration-200',
-                          on ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                    </>
-                  );
-                }}
-              </NavLink>
-          ))}
+                {t(item.label)}
+                {count !== null && (
+                  <Mono variant="sm" className="ml-1.5 text-[color:var(--dawn-deep)]">{count}</Mono>
+                )}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'pointer-events-none absolute left-3 right-3 -bottom-0.5 h-0.5 rounded-full bg-[color:var(--nav-active-border)] transition-opacity duration-200',
+                    on ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -163,21 +153,20 @@ export function TopRail() {
             <ThemeToggle />
           </div>
           {navItems.map((item) => (
-            <NavLink
+            <Link
               key={item.path}
               to={item.path}
+              aria-current={activeFor(item) ? 'page' : undefined}
               onClick={() => {
                 playClick();
                 setMobileOpen(false);
               }}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors press-scale',
-                  isNavActive('matchPrefix' in item ? item.matchPrefix : undefined, location.pathname, isActive)
-                    ? 'bg-nav-active text-nav-active'
-                    : 'text-nav hover:bg-nav-hover hover:text-primary',
-                )
-              }
+              className={cn(
+                'flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors press-scale',
+                activeFor(item)
+                  ? 'bg-nav-active text-nav-active'
+                  : 'text-nav hover:bg-nav-hover hover:text-primary',
+              )}
             >
               {t(item.label)}
               {counterFor(item) !== null && (
@@ -185,7 +174,7 @@ export function TopRail() {
                   {counterFor(item)}
                 </Mono>
               )}
-            </NavLink>
+            </Link>
           ))}
           {LOCALE_SWITCH_ENABLED && (
             <div className="px-3 py-2.5">

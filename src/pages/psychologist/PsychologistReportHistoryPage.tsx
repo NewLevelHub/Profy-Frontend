@@ -130,7 +130,7 @@ export default function PsychologistReportHistoryPage() {
       <BackLink onClick={() => navigate(reportPath)}>{t('history.back')}</BackLink>
 
       <PageHeader
-        level="display-lg"
+        level="display-md"
         kicker={
           review.detail
             ? t('history.kicker', { name, date: dateTimeLabel(review.detail.created_at) })
@@ -139,10 +139,12 @@ export default function PsychologistReportHistoryPage() {
         title={t('history.title')}
       />
 
-      {review.isLoading ? (
+      {review.isLoading || review.editsLoading ? (
         <AdminLoading />
       ) : review.loadError ? (
         <AdminError message={review.loadError} onRetry={review.reload} />
+      ) : review.editsError ? (
+        <AdminError message={t('history.loadError')} onRetry={review.reloadEdits} />
       ) : rows.length === 0 ? (
         <div className="bg-surface border border-strong rounded-[10px]">
           <AdminEmpty title={t('history.emptyTitle')} hint={t('history.emptyText')} />

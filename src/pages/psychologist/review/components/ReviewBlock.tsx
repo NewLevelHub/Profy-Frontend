@@ -39,12 +39,11 @@ export function ReviewBlock({ number, title, hint, edited, aside, children }: Re
         </div>
         <div className="flex items-center gap-3">
           {aside}
-          <Mono
-            variant="xs"
-            className={cn('uppercase tracking-label', edited ? 'text-[color:var(--dawn-deep)]' : 'text-muted')}
-          >
-            {edited ? t('review.markEdited') : t('review.markSystem')}
-          </Mono>
+          {edited && (
+            <Text as="span" variant="caption" className="text-[color:var(--dawn-deep)]">
+              {t('review.markEdited')}
+            </Text>
+          )}
         </div>
       </header>
       {hint && (

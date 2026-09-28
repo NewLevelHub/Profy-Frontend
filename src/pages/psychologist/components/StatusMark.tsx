@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
-import { Mono } from '@/shared/ui/typography';
+import { Text } from '@/shared/ui/typography';
 
 export type StatusTone = 'pine' | 'dawn' | 'lake' | 'clay' | 'mute';
 
@@ -21,7 +21,7 @@ const TONE_DOT: Record<StatusTone, string> = {
 };
 
 /**
- * Cabinet status: a dot and an uppercase machine label ("НА ПРОВЕРКЕ",
+ * Cabinet status: a dot and a readable status label ("НА ПРОВЕРКЕ",
  * "ОПУБЛИКОВАН"). Hollow dot = nothing has happened yet (new, no edits),
  * filled = a state the psychologist should notice. Colour is never the only
  * signal — the label always says it.
@@ -43,9 +43,9 @@ export function StatusMark({
         aria-hidden="true"
         className={cn('w-2 h-2 rounded-full flex-none border-[1.5px]', TONE_DOT[tone], hollow && 'bg-transparent')}
       />
-      <Mono variant="xs" className={cn('uppercase tracking-label truncate', TONE_TEXT[tone])}>
+      <Text as="span" variant="caption" className={cn('truncate', TONE_TEXT[tone])}>
         {children}
-      </Mono>
+      </Text>
     </span>
   );
 }

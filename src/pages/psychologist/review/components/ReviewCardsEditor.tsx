@@ -60,11 +60,11 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, section
                 {!disabled && (
                   <button
                     type="button"
-                    className="mt-1.5 w-9 h-9 flex-none inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)] transition-colors"
+                    className="mt-1.5 w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 flex-none inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)] transition-colors"
                     aria-label={t('review.cards.removeAria', { title: card.title.trim() || section })}
                     onClick={() => onChange(cards.filter((_, i) => i !== index))}
                   >
-                    <Trash2 size={14} aria-hidden="true" />
+                    <Trash2 size={16} aria-hidden="true" />
                   </button>
                 )}
               </li>
@@ -78,10 +78,10 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, section
           variant="text"
           size="sm"
           muteSound
-          className="self-start px-0 no-underline hover:underline"
+          className="min-h-10 [@media(pointer:coarse)]:min-h-11 self-start px-0 no-underline hover:underline"
           onClick={() => onChange([...cards, { title: '', description: '' }])}
         >
-          <Plus size={14} aria-hidden="true" />
+          <Plus size={16} aria-hidden="true" />
           {addLabel}
         </Button>
       )}

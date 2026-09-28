@@ -46,7 +46,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
       <ReviewBlock
         number={2}
         title={t('review.blocks.careers.title')}
-        hint={t('review.blocks.careers.hint')}
+        hint={review.isPublished ? undefined : t('review.blocks.careers.hint')}
         edited={edited('careers')}
         aside={
           detail.strengths.length > 0 && (
@@ -124,7 +124,9 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         to={historyPath}
         className="self-start mt-2 py-2 font-sans text-body-sm text-brand underline underline-offset-4 hover:opacity-70"
       >
-        {t('review.historyLink', { count: review.edits.length })}
+        {review.editsLoading || review.editsError
+          ? t('history.title')
+          : t('review.historyLink', { count: review.edits.length })}
       </Link>
     </div>
   );

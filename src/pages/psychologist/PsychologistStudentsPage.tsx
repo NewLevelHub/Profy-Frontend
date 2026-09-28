@@ -37,19 +37,19 @@ export default function PsychologistStudentsPage() {
       cell: (row) => {
         const name = studentName(row.profile_name, row.email);
         return (
-          <Link to={studentPath(row)} className="flex items-center gap-3.5 min-w-0 group">
+          <span className="flex items-center gap-3.5 min-w-0 group">
             <StudentInitials name={name} />
             <span className="flex flex-col min-w-0">
               <Text as="span" variant="body-md" className="font-medium text-heading truncate group-hover:underline">
                 {name}
               </Text>
               {row.profile_name?.trim() && (
-                <Mono variant="sm" className="text-muted truncate">
+                <Text as="span" variant="caption" className="text-muted truncate">
                   {row.email}
-                </Mono>
+                </Text>
               )}
             </span>
-          </Link>
+          </span>
         );
       },
     },
@@ -88,7 +88,7 @@ export default function PsychologistStudentsPage() {
         <Link
           to={studentPath(row)}
           aria-label={t('students.openCard', { name: studentName(row.profile_name, row.email) })}
-          className="inline-flex text-brand hover:opacity-70"
+          className="inline-flex items-center justify-center min-w-10 min-h-10 [@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:min-h-11 rounded-[8px] text-brand hover:bg-hover"
         >
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
@@ -97,13 +97,13 @@ export default function PsychologistStudentsPage() {
   ];
 
   return (
-    <PageContainer className="flex flex-col gap-7 pb-16">
+    <PageContainer className="flex flex-col gap-5 pb-12">
       <PageHeader
-        level="display-lg"
+        level="display-md"
         kicker={t('students.kicker')}
         title={t('students.title')}
         subtitle={t('students.lead')}
-        className="pb-7 border-b border-strong"
+        className="pb-5 border-b border-strong"
       />
 
       {students.isError ? (
@@ -114,11 +114,12 @@ export default function PsychologistStudentsPage() {
           columns={columns}
           rows={students.data ?? []}
           rowKey={(row) => row.id}
+          rowHref={studentPath}
           loading={students.isLoading}
           emptyTitle={t('students.emptyTitle')}
           emptyHint={t('students.emptyText')}
           emptyAction={
-            <Link to="/psychologist/reviews" className={buttonClasses({ size: 'sm', variant: 'ghost' })}>
+            <Link to="/psychologist/reviews" className={buttonClasses({ size: 'sm', variant: 'ghost', className: 'min-h-10 [@media(pointer:coarse)]:min-h-11' })}>
               {t('students.emptyAction')}
             </Link>
           }

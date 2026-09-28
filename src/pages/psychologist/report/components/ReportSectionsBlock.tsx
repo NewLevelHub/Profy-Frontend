@@ -175,9 +175,6 @@ function sectionDefs(
   ];
 }
 
-/** Rows in the accordion — the publish dialog reports "opened N of these". */
-export const TEST_SECTION_COUNT = 9;
-
 /**
  * "Результаты тестов" — raw instrument results, specialist-only. Each
  * instrument is one row that folds open: number, name, method, and a chip
@@ -186,8 +183,7 @@ export const TEST_SECTION_COUNT = 9;
  * tests, to the AI synthesis last — the psychologist sees the raw results
  * before the model's reading of them.
  *
- * Which rows are open is owned by the page: the publish dialog reports how
- * many of them the psychologist actually looked at.
+ * Expanded rows are owned by the page so they survive switching report tabs.
  */
 export function ReportSectionsBlock({
   testResults,
@@ -242,15 +238,15 @@ export function ReportSectionsBlock({
                 <Text as="span" variant="body-lg" className="font-semibold text-heading">
                   {section.title}
                 </Text>
-                <Mono variant="xs" className="text-muted">
+                <Text as="span" variant="caption" className="text-muted">
                   {section.method}
-                </Mono>
+                </Text>
               </span>
               <StatusMark tone={section.chip.tone} hollow={section.chip.hollow} className="max-w-[260px]">
                 {section.chip.label}
               </StatusMark>
               <ChevronDown
-                size={18}
+                size={16}
                 aria-hidden="true"
                 className={cn('flex-none text-brand transition-transform duration-150', open && 'rotate-180')}
               />

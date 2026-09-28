@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +10,7 @@ import { Button, buttonClasses } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { Mono, Text } from '@/shared/ui/typography';
+import { Mono, Text, typeClass } from '@/shared/ui/typography';
 import type { AssessmentGoal, PsychologistAvailableStudentItem, PsychologistReviewQueueItem } from '@/shared/types';
 import { LedgerRows } from './components/LedgerRows';
 import { SegmentedTabs } from './components/SegmentedTabs';
@@ -39,9 +40,9 @@ function StudentCell({ name, email }: { name: string | null; email: string }) {
         {studentName(name, email)}
       </Text>
       {name?.trim() && (
-        <Mono variant="sm" className="text-muted truncate">
+        <Text as="span" variant="caption" className="text-muted truncate">
           {email}
-        </Mono>
+        </Text>
       )}
     </span>
   );
@@ -164,6 +165,7 @@ export default function PsychologistReviewQueuePage() {
           <Button
             type="button"
             size="sm"
+            className="min-h-10 [@media(pointer:coarse)]:min-h-11"
             variant="ghost"
             muteSound
             isLoading={claim.isPending && claim.variables === row.id}
@@ -233,8 +235,9 @@ export default function PsychologistReviewQueuePage() {
         align: 'right',
         width: '176px',
         cell: (row) => (
-          <Link to={reportPath(row)} className={buttonClasses({ size: 'sm' })}>
+          <Link to={reportPath(row)} className={buttonClasses({ size: 'sm', className: 'min-h-10 [@media(pointer:coarse)]:min-h-11' })}>
             {t('queue.check')}
+            <ArrowRight size={16} aria-hidden="true" />
           </Link>
         ),
       },
@@ -244,14 +247,14 @@ export default function PsychologistReviewQueuePage() {
   const failed = tab === 'pool' ? available.isError : reviews.isError;
 
   return (
-    <PageContainer className="flex flex-col gap-7 pb-16">
+    <PageContainer className="flex flex-col gap-5 pb-12">
       <PageHeader
-        level="display-lg"
+        level="display-md"
         kicker={t('queue.kicker')}
         title={t('queue.title')}
         subtitle={t('queue.lead')}
         wrap
-        className="pb-7 border-b border-strong"
+        className="pb-5 border-b border-strong"
         aside={
           <LedgerRows
             className="min-w-[240px]"
@@ -282,6 +285,7 @@ export default function PsychologistReviewQueuePage() {
           <Input
             type="search"
             label={t('queue.searchLabel')}
+            labelClassName={`${typeClass.caption} normal-case tracking-normal`}
             placeholder={t('queue.searchPlaceholder')}
             value={query}
             onChange={(event) => setQuery(event.target.value)}

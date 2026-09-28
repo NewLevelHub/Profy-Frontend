@@ -22,10 +22,10 @@ export function LedgerRows({ rows, className }: { rows: LedgerRow[]; className?:
             index < rows.length - 1 && 'pb-1.5 border-b border-dotted border-strong',
           )}
         >
-          <dt className={cn(typeClass.monoSm, 'text-muted')}>{row.label}</dt>
+          <dt className={cn(typeClass.caption, 'text-muted')}>{row.label}</dt>
           <dd
             className={cn(
-              typeClass.monoSm,
+              typeClass.monoMd,
               'm-0 tabular-nums',
               row.tone === 'pine' && 'text-[color:var(--pine)]',
               row.tone === 'dawn' && 'text-[color:var(--dawn-deep)]',

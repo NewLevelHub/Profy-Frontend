@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
@@ -14,7 +15,7 @@ import { LedgerRows } from './components/LedgerRows';
 import { dateTimeLabel, gradeShort, studentName } from './components/cabinetFormat';
 import { useStudentDetail } from './hooks/useCabinetQueries';
 import { useReportReview } from './hooks/useReportReview';
-import { ReportSectionsBlock, TEST_SECTION_COUNT } from './report/components/ReportSectionsBlock';
+import { ReportSectionsBlock } from './report/components/ReportSectionsBlock';
 import { usePsychologistReport } from './report/hooks/usePsychologistReport';
 import { PsychologistStudentReportEditor } from './review/PsychologistStudentReportEditor';
 
@@ -55,9 +56,9 @@ function TabButton({
       <Text as="span" variant="body-lg" className={cn('font-semibold', active ? 'text-heading' : 'text-muted')}>
         {label}
       </Text>
-      <Mono variant="xs" className={noteAccent ? 'text-[color:var(--dawn-deep)]' : 'text-muted'}>
+      <Text as="span" variant="caption" className={noteAccent ? 'text-[color:var(--dawn-deep)]' : 'text-muted'}>
         {note}
-      </Mono>
+      </Text>
     </button>
   );
 }
@@ -116,6 +117,7 @@ export default function PsychologistReportPage() {
   const detail = review.detail;
   const pending = detail?.review_status === 'pending_review';
   const editedCount = review.editedKeys.size;
+  const historyReady = !review.editsLoading && !review.editsError;
 
   const metaLine = [
     profile?.grade ? gradeShort(t, profile.grade) : null,
@@ -128,9 +130,13 @@ export default function PsychologistReportPage() {
     ? t('report.bar.saving')
     : review.isDirty
       ? t('report.bar.unsaved')
-      : editedCount > 0
-        ? t('report.bar.saved', { count: editedCount })
-        : t('report.bar.untouched');
+      : !historyReady
+        ? t('report.bar.clean')
+        : editedCount > 0
+          ? t('report.bar.saved', { count: editedCount })
+          : detail?.reviewed_at
+            ? t('report.bar.savedDraft')
+            : t('report.bar.untouched');
 
   return (
     <PageContainer className="flex flex-col gap-6 pb-10">
@@ -143,7 +149,7 @@ export default function PsychologistReportPage() {
       )}
 
       <PageHeader
-        level="display-lg"
+        level="display-md"
         kicker={
           detail ? (
             <span className={pending ? 'text-[color:var(--dawn-deep)]' : 'text-[color:var(--pine)]'}>
@@ -160,9 +166,9 @@ export default function PsychologistReportPage() {
         aside={
           <div className="flex flex-col items-end gap-1 text-right">
             {metaLine && (
-              <Mono variant="sm" className="text-muted">
+              <Text as="span" variant="caption" className="text-muted">
                 {metaLine}
-              </Mono>
+              </Text>
             )}
             {detail && (
               <Mono variant="sm" className="text-muted">
@@ -184,7 +190,7 @@ export default function PsychologistReportPage() {
         <TabButton
           number="02"
           label={t('report.tabReview')}
-          note={editedCount > 0 ? t('report.tabReviewEdited', { count: editedCount }) : t('report.tabReviewClean')}
+          note={!historyReady ? '' : editedCount > 0 ? t('report.tabReviewEdited', { count: editedCount }) : t('report.tabReviewClean')}
           noteAccent={editedCount > 0}
           active={tab === 'review'}
           onClick={() => switchTab('review')}
@@ -214,17 +220,20 @@ export default function PsychologistReportPage() {
         </div>
       )}
 
-      {tab === 'review' &&
-        (review.isLoading ? (
+      {/* Keep local editor controls, including undo, when switching tabs. */}
+      <div hidden={tab !== 'review'}>
+        {review.isLoading ? (
           <AdminLoading />
         ) : review.loadError ? (
           <AdminError message={review.loadError} onRetry={review.reload} />
         ) : (
           <PsychologistStudentReportEditor
+            key={`${studentId}/${assessmentId}`}
             review={review}
             historyPath={`/psychologist/students/${studentId}/assessments/${assessmentId}/report/history`}
           />
-        ))}
+        )}
+      </div>
 
       {pending && (
         <div className="sticky bottom-4 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-strong bg-surface px-5 py-3.5 shadow-pop">
@@ -242,39 +251,42 @@ export default function PsychologistReportPage() {
                     review.isDirty || editedCount > 0 ? 'bg-[color:var(--dawn)]' : 'bg-[color:var(--pine)]',
                   )}
                 />
-                <Mono variant="sm" className="text-muted">
+                <Text as="span" variant="caption" className="text-muted">
                   {saveLabel}
-                </Mono>
+                </Text>
               </>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:items-center">
             {tab === 'tests' ? (
-              <Button type="button" variant="ghost" muteSound onClick={() => switchTab('review')}>
+              <Button type="button" className="col-span-2 py-2.5" muteSound onClick={() => switchTab('review')}>
                 {t('report.bar.toReview')}
+                <ArrowRight size={16} aria-hidden="true" />
               </Button>
             ) : (
-              review.isDirty && (
+              <>
                 <Button
                   type="button"
                   variant="ghost"
+                  className="px-3 py-2.5 sm:px-5"
                   muteSound
                   isLoading={review.saving}
-                  disabled={review.publishing}
+                  disabled={!review.isDirty || review.publishing}
                   onClick={() => void review.saveDraft()}
                 >
                   {t('report.bar.save')}
                 </Button>
-              )
+                <Button
+                  type="button"
+                  className="px-3 py-2.5 sm:px-5"
+                  muteSound
+                  disabled={review.saving || review.publishing || !review.draft}
+                  onClick={requestPublish}
+                >
+                  {t('report.bar.publish')}
+                </Button>
+              </>
             )}
-            <Button
-              type="button"
-              muteSound
-              disabled={review.saving || review.publishing || !review.draft}
-              onClick={requestPublish}
-            >
-              {t('report.bar.publish')}
-            </Button>
           </div>
         </div>
       )}
@@ -294,21 +306,13 @@ export default function PsychologistReportPage() {
         }}
       >
         <div className="flex flex-col gap-4">
-          <LedgerRows
-            rows={[
-              { label: t('report.publish.edits'), value: editedCount },
-              {
-                label: t('report.publish.opened'),
-                value: t('report.publish.openedValue', { opened: openSections.size, total: TEST_SECTION_COUNT }),
-              },
-            ]}
-          />
+          {historyReady && <LedgerRows rows={[{ label: t('report.publish.edits'), value: editedCount }]} />}
           {review.isDirty && (
             <Text variant="body-sm" className="text-secondary m-0">
               {t('report.publish.unsavedNote')}
             </Text>
           )}
-          {editedCount === 0 && (
+          {historyReady && editedCount === 0 && (
             <Text
               variant="body-sm"
               className="m-0 px-4 py-3 border-l-[3px] border-l-[color:var(--dawn)] bg-accent-soft text-secondary"

@@ -43,6 +43,9 @@ export function isNavActive(
   pathname: string,
   isActive: boolean,
 ): boolean {
-  if (matchPrefix) return pathname.startsWith(matchPrefix);
+  const reportRoute = /^\/psychologist\/students\/[^/]+\/assessments\/[^/]+\/report(?:\/|$)/.test(pathname);
+  if (reportRoute && matchPrefix === '/psychologist/reviews') return true;
+  if (reportRoute && matchPrefix === '/psychologist/students') return false;
+  if (matchPrefix) return pathname === matchPrefix || pathname.startsWith(`${matchPrefix}/`);
   return isActive;
 }

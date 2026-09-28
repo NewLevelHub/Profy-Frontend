@@ -66,9 +66,9 @@ function ReportPath({ assessment }: { assessment: PsychologistAssessmentSummary 
 
   return (
     <section className={cn(PANEL, 'rounded-b-none px-6 pt-6 pb-5')}>
-      <Mono as="h2" variant="xs" className="uppercase tracking-label text-muted m-0">
+      <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
         {t('detail.path.title')}
-      </Mono>
+      </Text>
       <Spine nodes={nodes} showLabels className="mt-5" ariaLabel={t('detail.path.title')} />
     </section>
   );
@@ -176,7 +176,7 @@ export default function PsychologistStudentDetailPage() {
       <BackLink onClick={() => navigate('/psychologist/students')}>{t('detail.back')}</BackLink>
 
       <PageHeader
-        level="display-lg"
+        level="display-md"
         kicker={profile ? t('detail.kicker', { grade: gradeShort(t, profile.grade) }) : t('detail.kickerNoProfile')}
         title={name}
         subtitle={
@@ -189,10 +189,10 @@ export default function PsychologistStudentDetailPage() {
           )
         }
         wrap
-        className="pb-7 border-b border-strong"
+        className="pb-5 border-b border-strong"
         actions={
           current && (
-            <Link to={reportPath(studentId, current)} className={buttonClasses({ size: 'lg' })}>
+            <Link to={reportPath(studentId, current)} className={buttonClasses({ size: 'md' })}>
               {current.review_status === 'pending_review' ? t('detail.checkReport') : t('detail.openReport')}
             </Link>
           )
@@ -207,7 +207,7 @@ export default function PsychologistStudentDetailPage() {
           <dl className="grid grid-cols-1 sm:grid-cols-3 gap-px m-0 bg-[color:var(--hairline)] border border-t-0 border-strong rounded-b-[10px] overflow-hidden">
             {facts.map((fact) => (
               <div key={fact.label} className="bg-surface px-6 py-4">
-                <dt className={cn(typeClass.monoXs, 'uppercase tracking-label text-muted')}>{fact.label}</dt>
+                <dt className={cn(typeClass.caption, 'text-muted')}>{fact.label}</dt>
                 <dd className={cn(typeClass.bodyMd, 'text-heading mt-1.5 m-0')}>{fact.value}</dd>
               </div>
             ))}
@@ -218,9 +218,9 @@ export default function PsychologistStudentDetailPage() {
       {assessments.length > 0 && (
         <section className={PANEL}>
           <header className="px-6 pt-5 pb-3">
-            <Mono as="h2" variant="xs" className="uppercase tracking-label text-muted m-0">
+            <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
               {t('detail.diagnosticsTitle')}
-            </Mono>
+            </Text>
           </header>
           <ul className="m-0 p-0 list-none">
             {assessments.map((a) => (
@@ -251,6 +251,7 @@ export default function PsychologistStudentDetailPage() {
                       to={reportPath(studentId, a)}
                       className={buttonClasses({
                         size: 'sm',
+                        className: 'min-h-10 [@media(pointer:coarse)]:min-h-11',
                         variant: a.review_status === 'pending_review' ? 'primary' : 'ghost',
                       })}
                     >
@@ -267,9 +268,9 @@ export default function PsychologistStudentDetailPage() {
       <section className={cn(PANEL, 'px-6 py-5 flex flex-col gap-4')}>
         <header className="flex items-baseline justify-between gap-3">
           <div>
-            <Mono as="h2" variant="xs" className="uppercase tracking-label text-muted m-0">
+            <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
               {t('detail.notesTitle')}
-            </Mono>
+            </Text>
             <Text variant="body-sm" className="text-muted mt-1 mb-0">
               {canAddNotes ? t('detail.notesHintActive') : t('detail.notesHintReadonly')}
             </Text>
@@ -292,6 +293,7 @@ export default function PsychologistStudentDetailPage() {
           >
             <textarea
               value={draft}
+              disabled={savingNote}
               onChange={(e) => setDraft(e.target.value)}
               rows={3}
               placeholder={t('detail.notePlaceholder')}
@@ -301,8 +303,8 @@ export default function PsychologistStudentDetailPage() {
             <Button
               type="submit"
               size="sm"
+              className="self-end min-h-10 [@media(pointer:coarse)]:min-h-11"
               muteSound
-              className="self-end"
               isLoading={createNote.isPending}
               disabled={savingNote || !draft.trim()}
             >
@@ -329,6 +331,7 @@ export default function PsychologistStudentDetailPage() {
                   <div className="flex flex-col gap-2">
                     <textarea
                       value={editDraft}
+                      disabled={savingNote}
                       onChange={(e) => setEditDraft(e.target.value)}
                       rows={3}
                       aria-label={t('detail.editAria')}
@@ -338,6 +341,7 @@ export default function PsychologistStudentDetailPage() {
                       <Button
                         type="button"
                         size="sm"
+                        className="min-h-10 [@media(pointer:coarse)]:min-h-11"
                         variant="ghost"
                         muteSound
                         onClick={() => {
@@ -350,6 +354,7 @@ export default function PsychologistStudentDetailPage() {
                       <Button
                         type="button"
                         size="sm"
+                        className="min-h-10 [@media(pointer:coarse)]:min-h-11"
                         muteSound
                         isLoading={updateNote.isPending}
                         disabled={savingNote || !editDraft.trim()}
@@ -371,23 +376,23 @@ export default function PsychologistStudentDetailPage() {
                       <div className="flex gap-1">
                         <button
                           type="button"
-                          className="w-8 h-8 inline-flex items-center justify-center rounded-[8px] border border-default text-secondary hover:border-brand"
+                          className="w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 inline-flex items-center justify-center rounded-[8px] border border-default text-secondary hover:border-brand"
                           aria-label={t('detail.editAria')}
                           onClick={() => {
                             setEditingId(note.id);
                             setEditDraft(note.content);
                           }}
                         >
-                          <Pencil size={13} aria-hidden="true" />
+                          <Pencil size={16} aria-hidden="true" />
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)]"
+                          className="w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)]"
                           aria-label={t('detail.deleteAria')}
                           disabled={savingNote}
                           onClick={() => setDeleteNoteId(note.id)}
                         >
-                          <Trash2 size={13} aria-hidden="true" />
+                          <Trash2 size={16} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
