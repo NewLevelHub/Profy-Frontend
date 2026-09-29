@@ -14,9 +14,9 @@ import { ColorCircleStep } from './components/ColorCircleStep';
  * (`/assessment/psychoemotional-start`, §B4 п.1-2, перед основной батареей) и
  * после всех тестов. Реальное время между кругами (вся батарея + pairs +
  * motivation) заменяет прежнюю искусственную 120с-паузу — `pause_actual_sec`
- * считает бэкенд на finish. `data-theme="light"` + `.pe-block` (см.
- * psychoemotional.css) принудительно держат светлую тему — колориметрия §4
- * это приёмочный критерий.
+ * считает бэкенд на finish. Цветовые образцы сохраняют эталонные HEX-значения
+ * независимо от темы, а остальной экран следует общей светлой/тёмной палитре
+ * приложения.
  *
  * Intro advances only on CTA click (PRO-397) — no auto-advance timer.
  */
@@ -27,7 +27,7 @@ export default function PsychoEmotionalPage() {
   const { submitting, handleCircle2 } = usePsychoEmotional();
 
   return (
-    <div className="pe-block flex flex-col min-h-screen" data-theme="light">
+    <div className="pe-block flex flex-col min-h-screen">
       <AssessmentRail
         title={introSeen ? t('psychoemotional.circle2.stepTitleCircle2') : t('psychoemotional.circle1.railTitleIntro')}
         sectionLabel={t('psychoemotional.sectionLabel')}

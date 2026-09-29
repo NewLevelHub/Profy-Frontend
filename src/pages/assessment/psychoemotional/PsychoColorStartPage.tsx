@@ -20,9 +20,9 @@ const STEP_TITLE_KEY: Record<PsychoStartStep, string> = {
  * Стартовый экран психоблока (PRO-3xx redesign, §B4 п.1-2): check-in + круг 1,
  * идут ПЕРЕД основной батареей тестов (после выбора цели, перед
  * `/assessment`) — check-in первым, как в спеке. Круг 2 — на
- * `/assessment/psychoemotional`, в конце всего прохождения. `data-theme="light"`
- * + `.pe-block` держат светлую тему принудительно — колориметрия §4
- * приёмочный критерий, как и на финальном экране.
+ * `/assessment/psychoemotional`, в конце всего прохождения. Цветовые образцы
+ * сохраняют эталонные HEX-значения независимо от темы, а остальной экран
+ * следует общей светлой/тёмной палитре приложения.
  *
  * Intro advances only on CTA click (PRO-397) — no auto-advance timer; that
  * caused a flash: intro → check-in → layout settle.
@@ -36,7 +36,7 @@ export default function PsychoColorStartPage() {
   const progress = introSeen ? ((STEP_ORDER.indexOf(step) + 1) / STEP_ORDER.length) * 100 : 0;
 
   return (
-    <div className="pe-block flex flex-col min-h-screen" data-theme="light">
+    <div className="pe-block flex flex-col min-h-screen">
       <AssessmentRail
         title={introSeen ? t(STEP_TITLE_KEY[step]) : t('psychoemotional.circle1.railTitleIntro')}
         sectionLabel={t('psychoemotional.sectionLabel')}
