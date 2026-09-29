@@ -36,7 +36,7 @@ const StrengthItem = memo(function StrengthItem({ card, whyLabel }: { card: Stre
       icon={<Sparkles size={22} strokeWidth={1.75} className="text-primary flex-shrink-0" aria-hidden="true" />}
       title={card.title}
       description={card.description}
-      descriptionLabel={whyLabel}
+      descriptionLabel={card.is_test_grounded ? whyLabel : undefined}
     />
   );
 });

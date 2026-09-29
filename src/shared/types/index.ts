@@ -537,6 +537,8 @@ export type StrengthBasis = 'task_result' | 'self_report' | 'cross_signal' | 'in
 export interface StrengthCard {
   title: string;
   description: string;
+  /** True when the explanation was derived from selected test evidence. */
+  is_test_grounded: boolean;
 }
 
 export interface ThinkingStyleNote {

@@ -63,8 +63,17 @@ export function ReviewCardsEditor({
                   onChange={(e) => patchCard(index, { description: e.target.value })}
                   disabled={disabled}
                   rows={3}
-                  placeholder={t('reportEditor.cards.description')}
-                  aria-label={t('reportEditor.cards.descriptionAria', { item: itemName })}
+                  placeholder={t(
+                    withStrengthBasis
+                      ? 'reportEditor.cards.strengthExplanation'
+                      : 'reportEditor.cards.description',
+                  )}
+                  aria-label={t(
+                    withStrengthBasis
+                      ? 'reportEditor.cards.strengthExplanationAria'
+                      : 'reportEditor.cards.descriptionAria',
+                    { item: itemName },
+                  )}
                   className={ADMIN_TEXTAREA}
                 />
               </div>
