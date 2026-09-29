@@ -1,295 +1,130 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { psychologistApi } from '@/shared/api/psychologist';
-import { cn } from '@/shared/lib/cn';
-import { formatDate } from '@/shared/i18n/format';
-import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
+import { ArrowRight } from 'lucide-react';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
-import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
-import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
-import { AdminError, AdminTableSkeleton } from '@/shared/ui/admin/AdminStates';
-import {
-  ADMIN_META,
-  ADMIN_NUM,
-  ADMIN_RADIUS,
-  ADMIN_TEXT,
-} from '@/shared/ui/admin/density';
-import { Button } from '@/shared/ui/Button';
+import { AdminError } from '@/shared/ui/admin/AdminStates';
+import { buttonClasses } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import type {
-  AgeGroup,
-  PsychologistAvailableStudentItem,
-  PsychologistStudentListItem,
-} from '@/shared/types';
+import { PageHeader } from '@/shared/ui/PageHeader';
+import { Mono, Text } from '@/shared/ui/typography';
+import type { PsychologistStudentListItem } from '@/shared/types';
+import { StatusMark } from './components/StatusMark';
+import { StudentInitials } from './components/StudentInitials';
+import { gradeShort, shortDateLabel, studentName } from './components/cabinetFormat';
+import { useMyStudents } from './hooks/useCabinetQueries';
 
-type Tab = 'mine' | 'available';
+function studentPath(row: PsychologistStudentListItem) {
+  return `/psychologist/students/${row.id}`;
+}
+
+function ReportStatus({ status }: { status: PsychologistStudentListItem['report_status'] }) {
+  const { t } = useTranslation('psychologist');
+  if (status === 'pending_review') return <StatusMark tone="dawn">{t('students.status.pending')}</StatusMark>;
+  if (status === 'published') return <StatusMark tone="pine">{t('students.status.published')}</StatusMark>;
+  return <StatusMark tone="mute" hollow>{t('students.status.none')}</StatusMark>;
+}
 
 export default function PsychologistStudentsPage() {
-  const { t } = useTranslation(['psychologist', 'admin', 'common']);
-  const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('mine');
-  const [mine, setMine] = useState<PsychologistStudentListItem[]>([]);
-  const [available, setAvailable] = useState<PsychologistAvailableStudentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const { t } = useTranslation('psychologist');
+  const students = useMyStudents();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [mineRows, availableRows] = await Promise.all([
-        psychologistApi.listStudents(),
-        psychologistApi.listAvailableStudents(),
-      ]);
-      setMine(mineRows);
-      setAvailable(availableRows);
-    } catch {
-      setError(t('list.loadError'));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  async function handleClaim(studentId: string) {
-    if (claimingId) return;
-    setClaimingId(studentId);
-    setError(null);
-    try {
-      await psychologistApi.claimStudent(studentId);
-      navigate(`/psychologist/students/${studentId}`);
-    } catch {
-      setError(t('psychologist:list.claimError'));
-      setClaimingId(null);
-    }
-  }
-
-  const mineColumns = useMemo<AdminColumn<PsychologistStudentListItem>[]>(
-    () => [
-      {
-        key: 'name',
-        header: t('list.colStudent'),
-        mobile: 'title',
-        grow: true,
-        cell: (row) => {
-          const named = Boolean(row.profile_name);
-          return (
-            <Link
-              to={`/psychologist/students/${row.id}`}
-              className={cn(
-                ADMIN_TEXT,
-                'font-semibold text-primary hover:text-brand hover:underline truncate',
-                !named && 'font-mono text-mono-sm',
+  const columns: AdminColumn<PsychologistStudentListItem>[] = [
+    {
+      key: 'student',
+      header: t('students.col.student'),
+      mobile: 'title',
+      grow: true,
+      cell: (row) => {
+        const name = studentName(row.profile_name, row.email);
+        return (
+          <span className="flex items-center gap-3.5 min-w-0 group">
+            <StudentInitials name={name} />
+            <span className="flex flex-col min-w-0">
+              <Text as="span" variant="body-md" className="font-medium text-heading truncate group-hover:underline">
+                {name}
+              </Text>
+              {row.profile_name?.trim() && (
+                <Text as="span" variant="caption" className="text-muted truncate">
+                  {row.email}
+                </Text>
               )}
-            >
-              {named ? row.profile_name : row.email}
-            </Link>
-          );
-        },
-      },
-      {
-        key: 'email',
-        header: t('list.colEmail'),
-        mobile: 'subtitle',
-        cell: (row) => (
-          <span className={cn(ADMIN_TEXT, 'font-mono text-mono-sm text-secondary')}>{row.email}</span>
-        ),
-      },
-      {
-        key: 'age',
-        header: t('list.colAge'),
-        mobile: 'badge',
-        cell: (row) => <AgeBadge age={row.age} />,
-      },
-      {
-        key: 'assigned',
-        header: t('list.colAssigned'),
-        mobile: 'field',
-        mobileLabel: t('list.colAssigned'),
-        cell: (row) => (
-          <span className={cn(ADMIN_NUM, 'text-muted')}>
-            {row.assigned_at
-              ? formatDate(row.assigned_at, { day: '2-digit', month: 'short', year: 'numeric' })
-              : '—'}
+            </span>
           </span>
-        ),
+        );
       },
-    ],
-    [t],
-  );
-
-  const availableColumns = useMemo<AdminColumn<PsychologistAvailableStudentItem>[]>(
-    () => [
-      {
-        key: 'name',
-        header: t('list.colStudent'),
-        mobile: 'title',
-        grow: true,
-        cell: (row) => {
-          const named = Boolean(row.profile_name);
-          return (
-            <span
-              className={cn(
-                ADMIN_TEXT,
-                'font-semibold text-primary truncate',
-                !named && 'font-mono text-mono-sm',
-              )}
-            >
-              {named ? row.profile_name : row.email}
-            </span>
-          );
-        },
-      },
-      {
-        key: 'email',
-        header: t('list.colEmail'),
-        mobile: 'subtitle',
-        cell: (row) => (
-          <span className={cn(ADMIN_TEXT, 'font-mono text-mono-sm text-secondary')}>{row.email}</span>
-        ),
-      },
-      {
-        key: 'age',
-        header: t('list.colAge'),
-        mobile: 'badge',
-        cell: (row) => <AgeBadge age={row.age} />,
-      },
-      {
-        key: 'pending',
-        header: t('psychologist:list.colReport'),
-        mobile: 'field',
-        mobileLabel: t('psychologist:list.colReport'),
-        cell: (row) =>
-          row.has_pending_review ? (
-            <AdminBadge tone="accent">{t('psychologist:list.pendingReview')}</AdminBadge>
-          ) : !row.has_completed_assessment ? (
-            <AdminBadge tone="quiet">{t('psychologist:list.testNotDone')}</AdminBadge>
-          ) : (
-            <span className={ADMIN_META}>—</span>
-          ),
-      },
-      {
-        key: 'action',
-        header: '',
-        mobile: 'field',
-        cell: (row) =>
-          row.has_completed_assessment ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="primary"
-              disabled={claimingId === row.id}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                void handleClaim(row.id);
-              }}
-            >
-              {claimingId === row.id ? '…' : t('psychologist:list.claim')}
-            </Button>
-          ) : (
-            <span
-              className={cn(ADMIN_META, 'whitespace-nowrap')}
-              title={t('psychologist:list.claimDisabledHint')}
-            >
-              {t('psychologist:list.claimDisabled')}
-            </span>
-          ),
-      },
-    ],
-    [claimingId, t],
-  );
+    },
+    {
+      key: 'grade',
+      header: t('students.col.grade'),
+      mobile: 'field',
+      width: '96px',
+      cell: (row) => <Mono variant="md">{gradeShort(t, row.grade)}</Mono>,
+    },
+    {
+      key: 'assigned',
+      header: t('students.col.assigned'),
+      mobile: 'field',
+      width: '120px',
+      cell: (row) => (
+        <Mono variant="md" className="text-muted">
+          {row.assigned_at ? shortDateLabel(row.assigned_at) : '—'}
+        </Mono>
+      ),
+    },
+    {
+      key: 'report',
+      header: t('students.col.report'),
+      mobile: 'badge',
+      width: '190px',
+      cell: (row) => <ReportStatus status={row.report_status} />,
+    },
+    {
+      key: 'open',
+      header: '',
+      mobile: 'hidden',
+      align: 'right',
+      width: '56px',
+      cell: (row) => (
+        <Link
+          to={studentPath(row)}
+          aria-label={t('students.openCard', { name: studentName(row.profile_name, row.email) })}
+          className="inline-flex items-center justify-center min-w-10 min-h-10 [@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:min-h-11 rounded-[8px] text-brand hover:bg-hover"
+        >
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      ),
+    },
+  ];
 
   return (
-    <PageContainer className="flex flex-col gap-5 pb-10">
-      <AdminListHeader
-        title={t('list.title')}
-        description={t('psychologist:list.selfSelectHint')}
+    <PageContainer className="flex flex-col gap-5 pb-12">
+      <PageHeader
+        level="display-md"
+        kicker={t('students.kicker')}
+        title={t('students.title')}
+        subtitle={t('students.lead')}
+        className="pb-5 border-b border-strong"
       />
 
-      <div className="flex gap-2" role="tablist" aria-label={t('list.title')}>
-        <TabButton active={tab === 'mine'} onClick={() => setTab('mine')}>
-          {t('psychologist:list.tabMine')} ({mine.length})
-        </TabButton>
-        <TabButton active={tab === 'available'} onClick={() => setTab('available')}>
-          {t('psychologist:list.tabAvailable')} ({available.length})
-        </TabButton>
-      </div>
-
-      {error && <AdminError message={error} onRetry={() => void load()} />}
-
-      {loading ? (
-        <AdminTableSkeleton rows={5} columns={4} />
-      ) : tab === 'mine' ? (
-        mine.length === 0 ? (
-          <EmptyState
-            title={t('list.emptyTitle')}
-            body={t('psychologist:list.emptyMineBody')}
-          />
-        ) : (
-          <AdminDataTable
-            label={t('list.tableLabel')}
-            columns={mineColumns}
-            rows={mine}
-            rowKey={(row) => row.id}
-            rowHref={(row) => `/psychologist/students/${row.id}`}
-          />
-        )
-      ) : available.length === 0 ? (
-        <EmptyState
-          title={t('psychologist:list.emptyAvailableTitle')}
-          body={t('psychologist:list.emptyAvailableBody')}
-        />
+      {students.isError ? (
+        <AdminError message={t('students.loadError')} onRetry={() => void students.refetch()} />
       ) : (
         <AdminDataTable
-          label={t('psychologist:list.availableStudentsLabel')}
-          columns={availableColumns}
-          rows={available}
+          label={t('students.tableLabel')}
+          columns={columns}
+          rows={students.data ?? []}
           rowKey={(row) => row.id}
+          rowHref={studentPath}
+          loading={students.isLoading}
+          emptyTitle={t('students.emptyTitle')}
+          emptyHint={t('students.emptyText')}
+          emptyAction={
+            <Link to="/psychologist/reviews" className={buttonClasses({ size: 'sm', variant: 'ghost', className: 'min-h-10 [@media(pointer:coarse)]:min-h-11' })}>
+              {t('students.emptyAction')}
+            </Link>
+          }
         />
       )}
     </PageContainer>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
-      className={cn(
-        'px-3 py-1.5 text-body-sm font-semibold border transition-colors',
-        ADMIN_RADIUS,
-        active
-          ? 'bg-brand text-[color:var(--text-on-brand)] border-transparent'
-          : 'bg-surface text-secondary border-default hover:text-primary',
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function EmptyState({ title, body }: { title: string; body: string }) {
-  return (
-    <div className={cn('border border-default bg-surface px-5 py-10 text-center', ADMIN_RADIUS)}>
-      <p className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{title}</p>
-      <p className={cn(ADMIN_META, 'mt-2 m-0')}>{body}</p>
-    </div>
   );
 }

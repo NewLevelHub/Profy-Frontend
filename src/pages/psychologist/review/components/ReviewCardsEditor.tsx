@@ -1,19 +1,20 @@
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
-import { ADMIN_BUTTON, ADMIN_INPUT, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
+import { Button } from '@/shared/ui/Button';
+import { Mono, Text } from '@/shared/ui/typography';
 import type { PsychologistReviewCard } from '@/shared/types';
+import { REVIEW_LINE_INPUT, REVIEW_TEXTAREA } from './reviewFieldStyles';
 
 interface ReviewCardsEditorProps {
   cards: PsychologistReviewCard[];
   onChange: (cards: PsychologistReviewCard[]) => void;
   disabled?: boolean;
   addLabel: string;
-  /** Genitive name of one card ("сильной стороны") — both sections on the
-   *  page use this editor, so the field labels must say which one is which. */
-  itemName: string;
-  /** Strength cards (PRO-432): show what each card is grounded in. */
+  /** Section name for the fields' accessible labels — two sections use this editor. */
+  section: string;
+  /** Strength cards (PRO-432): show what each card is grounded in and ask
+   *  for the concrete answer or task result behind it. */
   withStrengthBasis?: boolean;
 }
 
@@ -23,85 +24,93 @@ export function ReviewCardsEditor({
   onChange,
   disabled,
   addLabel,
-  itemName,
+  section,
   withStrengthBasis = false,
 }: ReviewCardsEditorProps) {
   const { t } = useTranslation('psychologist');
+
   function patchCard(index: number, patch: Partial<PsychologistReviewCard>) {
     onChange(cards.map((card, i) => (i === index ? { ...card, ...patch } : card)));
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       {cards.length === 0 ? (
-        <p className={cn(ADMIN_META, 'm-0')}>{t('reportEditor.cards.none')}</p>
+        <Text variant="body-sm" className="text-muted m-0">
+          {t('review.cards.empty')}
+        </Text>
       ) : (
-        <ul className="divide-y divide-[var(--border)] m-0 p-0 list-none">
-          {cards.map((card, index) => (
-            <li key={index} className="py-3 flex gap-2 items-start">
-              <div className="flex-1 min-w-0 flex flex-col gap-2">
-                {withStrengthBasis && card.basis && (
-                  <div>
-                    <AdminBadge
-                      tone="quiet"
-                      title={t('reportEditor.cards.basisTitle', { basis: t(`reportEditor.cards.basis.${card.basis}`) })}
+        <ol className="flex flex-col gap-5 m-0 p-0 list-none">
+          {cards.map((card, index) => {
+            const number = index + 1;
+            return (
+              <li key={index} className="flex gap-3.5 items-start">
+                <Mono variant="sm" className="text-[color:var(--dawn-deep)] pt-2.5 w-6 flex-none">
+                  {String(number).padStart(2, '0')}
+                </Mono>
+                <div className="flex-1 min-w-0 flex flex-col gap-2">
+                  {withStrengthBasis && card.basis && (
+                    <span
+                      className="self-start"
+                      title={t('review.cards.basisTitle', { basis: t(`review.cards.basis.${card.basis}`) })}
                     >
-                      {t(`reportEditor.cards.basis.${card.basis}`)}
-                    </AdminBadge>
-                  </div>
+                      <Mono variant="label" className="text-muted">
+                        {t(`review.cards.basis.${card.basis}`)}
+                      </Mono>
+                    </span>
+                  )}
+                  <input
+                    value={card.title}
+                    onChange={(e) => patchCard(index, { title: e.target.value })}
+                    disabled={disabled}
+                    placeholder={t('review.cards.titlePlaceholder')}
+                    aria-label={t('review.cards.titleAria', { section, number })}
+                    className={cn(REVIEW_LINE_INPUT, 'font-semibold text-body-lg')}
+                  />
+                  <textarea
+                    value={card.description}
+                    onChange={(e) => patchCard(index, { description: e.target.value })}
+                    disabled={disabled}
+                    rows={2}
+                    placeholder={t(
+                      withStrengthBasis
+                        ? 'review.cards.strengthExplanationPlaceholder'
+                        : 'review.cards.descriptionPlaceholder',
+                    )}
+                    aria-label={t(
+                      withStrengthBasis ? 'review.cards.strengthExplanationAria' : 'review.cards.descriptionAria',
+                      { section, number },
+                    )}
+                    className={REVIEW_TEXTAREA}
+                  />
+                </div>
+                {!disabled && (
+                  <button
+                    type="button"
+                    className="mt-1.5 w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 flex-none inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)] transition-colors"
+                    aria-label={t('review.cards.removeAria', { title: card.title.trim() || section })}
+                    onClick={() => onChange(cards.filter((_, i) => i !== index))}
+                  >
+                    <Trash2 size={16} aria-hidden="true" />
+                  </button>
                 )}
-                <input
-                  value={card.title}
-                  onChange={(e) => patchCard(index, { title: e.target.value })}
-                  disabled={disabled}
-                  placeholder={t('reportEditor.cards.title')}
-                  aria-label={t('reportEditor.cards.titleAria', { item: itemName })}
-                  className={cn(ADMIN_INPUT, 'font-semibold')}
-                />
-                <textarea
-                  value={card.description}
-                  onChange={(e) => patchCard(index, { description: e.target.value })}
-                  disabled={disabled}
-                  rows={3}
-                  placeholder={t(
-                    withStrengthBasis
-                      ? 'reportEditor.cards.strengthExplanation'
-                      : 'reportEditor.cards.description',
-                  )}
-                  aria-label={t(
-                    withStrengthBasis
-                      ? 'reportEditor.cards.strengthExplanationAria'
-                      : 'reportEditor.cards.descriptionAria',
-                    { item: itemName },
-                  )}
-                  className={ADMIN_TEXTAREA}
-                />
-              </div>
-              {!disabled && (
-                <button
-                  type="button"
-                  className={cn(ADMIN_BUTTON, 'px-2 hover:text-danger hover:border-danger')}
-                  aria-label={t('reportEditor.cards.remove', { title: card.title.trim() || itemName })}
-                  onClick={() => onChange(cards.filter((_, i) => i !== index))}
-                >
-                  <Trash2 size={13} />
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+              </li>
+            );
+          })}
+        </ol>
       )}
       {!disabled && (
-        <div>
-          <button
-            type="button"
-            className={ADMIN_BUTTON}
-            onClick={() => onChange([...cards, { title: '', description: '' }])}
-          >
-            <Plus size={13} />
-            {addLabel}
-          </button>
-        </div>
+        <Button
+          type="button"
+          variant="text"
+          size="sm"
+          muteSound
+          className="min-h-10 [@media(pointer:coarse)]:min-h-11 self-start px-0 no-underline hover:underline"
+          onClick={() => onChange([...cards, { title: '', description: '' }])}
+        >
+          <Plus size={16} aria-hidden="true" />
+          {addLabel}
+        </Button>
       )}
     </div>
   );

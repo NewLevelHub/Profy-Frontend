@@ -1257,7 +1257,10 @@ export interface PsychologistStudentListItem {
   email: string;
   profile_name: string | null;
   age: number | null;
+  grade?: number | null;
   assigned_at?: string;
+  /** Review status of the student's latest report; `null` — no report yet. */
+  report_status?: ReviewStatus | null;
   /** Student's registration date — a psychologist sees every student, there
    *  is no assignment step. */
   registered_at?: string;
@@ -1269,9 +1272,13 @@ export interface PsychologistAvailableStudentItem {
   email: string;
   profile_name: string | null;
   age: number | null;
+  grade?: number | null;
   has_pending_review: boolean;
   /** At least one completed assessment — claim CTA only when true (PRO-402). */
   has_completed_assessment: boolean;
+  /** Goal / completion time of the latest completed assessment. */
+  goal?: AssessmentGoal | null;
+  completed_at?: string | null;
 }
 
 export interface PsychologistAssessmentSummary {
@@ -1297,6 +1304,8 @@ export interface PsychologistStudentDetail {
   profile: ProfileResponse | null;
   artifacts: ArtifactItem[];
   assessments: PsychologistAssessmentSummary[];
+  /** When this psychologist claimed the student. */
+  assigned_at?: string | null;
 }
 
 export interface PsychologistNote {
@@ -1640,9 +1649,19 @@ export interface PsychologistReviewQueueItem {
   student_name: string | null;
   student_email: string;
   age: number | null;
+  grade?: number | null;
   goal: AssessmentGoal;
   generated_at: string;
   reviewed_at: string | null;
+}
+
+/** One saved edit of a report under review (GET .../results/{id}/edits). */
+export interface PsychologistReviewEdit {
+  id: string;
+  edited_at: string;
+  editor_id: string | null;
+  editor_email: string | null;
+  changed_fields: Record<string, { old: unknown; new: unknown }>;
 }
 
 export interface PsychologistReviewCard {

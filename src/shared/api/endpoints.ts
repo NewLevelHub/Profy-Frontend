@@ -125,5 +125,7 @@ export const API = {
       `/psychologist/students/${studentId}/results/${assessmentId}/publish`,
     rebuildStrengths: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/results/${assessmentId}/strengths/rebuild`,
+    resultEdits: (studentId: string, assessmentId: string) =>
+      `/psychologist/students/${studentId}/results/${assessmentId}/edits`,
   },
 } as const;

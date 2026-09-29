@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { type as typeClass } from '@/shared/ui/typography/tokens';
@@ -7,6 +7,12 @@ export interface ConfirmDialogProps {
   open: boolean;
   title: string;
   body?: string;
+  /** Small uppercase line above the title (step, context). */
+  kicker?: string;
+  /** Extra content under the body — a summary, a warning. */
+  children?: ReactNode;
+  /** `md` — wider card, for a dialog that carries `children`. */
+  size?: 'sm' | 'md';
   confirmLabel: string;
   cancelLabel: string;
   onConfirm: () => void;
@@ -30,6 +36,9 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   confirming = false,
+  kicker,
+  children,
+  size = 'sm',
 }: ConfirmDialogProps) {
   const titleId = useId();
   const bodyId = useId();
@@ -67,10 +76,16 @@ export function ConfirmDialog({
       onClick={confirming ? undefined : onCancel}
     >
       <div
-        className="w-full max-w-sm bg-raised rounded-[var(--radius-lg)] shadow-pop p-6 flex flex-col gap-5"
+        className={cn(
+          'w-full bg-raised rounded-[var(--radius-lg)] shadow-pop p-6 flex flex-col gap-5',
+          size === 'md' ? 'max-w-lg' : 'max-w-sm',
+        )}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex flex-col gap-2">
+          {kicker ? (
+            <span className={cn(typeClass.monoXs, 'uppercase tracking-label text-muted')}>{kicker}</span>
+          ) : null}
           <h2 id={titleId} className={cn(typeClass.bodyLg, 'font-semibold text-heading m-0')}>
             {title}
           </h2>
@@ -80,6 +95,8 @@ export function ConfirmDialog({
             </p>
           ) : null}
         </div>
+
+        {children}
 
         <div className="flex items-center justify-end gap-2">
           <Button
