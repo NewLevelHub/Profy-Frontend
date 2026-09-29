@@ -80,6 +80,7 @@ import PsychologistStudentDetailPage from '@/pages/psychologist/PsychologistStud
 import PsychologistReportPage from '@/pages/psychologist/PsychologistReportPage';
 import PsychologistReviewQueuePage from '@/pages/psychologist/PsychologistReviewQueuePage';
 import PsychologistResultReviewPage from '@/pages/psychologist/PsychologistResultReviewPage';
+import PsychologistReportHistoryPage from '@/pages/psychologist/PsychologistReportHistoryPage';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 import NotFoundPage from '@/pages/errors/NotFoundPage';
@@ -119,7 +120,8 @@ export const router = createBrowserRouter([
           {
             element: <AppLayout />,
             children: [
-              { path: '/psychologist', element: <Navigate to="/psychologist/students" replace /> },
+              // The review queue is the cabinet's front page (it's where work starts).
+              { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
               { path: '/psychologist/students', element: <PsychologistStudentsPage /> },
               {
                 path: '/psychologist/students/:studentId',
@@ -128,6 +130,10 @@ export const router = createBrowserRouter([
               {
                 path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
                 element: <PsychologistReportPage />,
+              },
+              {
+                path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
+                element: <PsychologistReportHistoryPage />,
               },
               { path: '/psychologist/reviews', element: <PsychologistReviewQueuePage /> },
               {
