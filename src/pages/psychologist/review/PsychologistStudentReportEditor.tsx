@@ -114,8 +114,9 @@ export function PsychologistStudentReportEditor({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'save' | 'publish' | null>(null);
+  const [busy, setBusy] = useState<'save' | 'publish' | 'rebuild' | null>(null);
   const [publishConfirmOpen, setPublishConfirmOpen] = useState(false);
+  const [rebuildConfirmOpen, setRebuildConfirmOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!studentId || !assessmentId) return;
@@ -188,6 +189,29 @@ export function PsychologistStudentReportEditor({
       setActionError(errorMessage(err, t('reportEditor.errors.publish'), t));
       if (axios.isAxiosError(err) && err.response?.status === 409) void load();
       setPublishConfirmOpen(false);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function requestStrengthsRebuild() {
+    if (isDirty || busy !== null) return;
+    setRebuildConfirmOpen(true);
+  }
+
+  async function handleStrengthsRebuildConfirm() {
+    setBusy('rebuild');
+    setActionError(null);
+    try {
+      const rebuilt = await psychologistApi.rebuildStrengths(studentId, assessmentId);
+      setDetail(rebuilt);
+      setDraft(toDraft(rebuilt));
+      setNotice(t('reportEditor.strengths.rebuiltNotice'));
+      setRebuildConfirmOpen(false);
+    } catch (err) {
+      setActionError(errorMessage(err, t('reportEditor.strengths.error'), t));
+      if (axios.isAxiosError(err) && err.response?.status === 409) void load();
+      setRebuildConfirmOpen(false);
     } finally {
       setBusy(null);
     }
@@ -267,6 +291,24 @@ export function PsychologistStudentReportEditor({
         />
       </AdminCard>
 
+      {detail.strengths_stale && (
+        <div className="rounded-[14px] border border-accent/30 bg-accent-subtle p-4">
+          <p className={cn(ADMIN_TEXT, 'm-0 font-semibold')}>{t('reportEditor.strengths.staleTitle')}</p>
+          <p className={cn(ADMIN_META, 'mt-1 mb-0')}>{t('reportEditor.strengths.staleBody')}</p>
+          <button
+            type="button"
+            className={cn(ADMIN_BUTTON, 'mt-3')}
+            disabled={isDirty || busy !== null}
+            title={isDirty ? t('reportEditor.strengths.saveFirst') : undefined}
+            onClick={requestStrengthsRebuild}
+          >
+            {busy === 'rebuild'
+              ? t('reportEditor.strengths.rebuilding')
+              : t('reportEditor.strengths.rebuild')}
+          </button>
+        </div>
+      )}
+
       <AdminCard title={t('reportEditor.sections.strengths')} description={t('reportEditor.sections.strengthsHint')}>
         <ReviewCardsEditor
           cards={draft.strength_cards}
@@ -274,6 +316,7 @@ export function PsychologistStudentReportEditor({
           disabled={locked}
           addLabel={t('reportEditor.sections.addStrength')}
           itemName={t('reportEditor.sections.strengthItem')}
+          withStrengthBasis
         />
       </AdminCard>
 
@@ -374,6 +417,19 @@ export function PsychologistStudentReportEditor({
         onConfirm={() => void handlePublishConfirm()}
         onCancel={() => {
           if (busy !== 'publish') setPublishConfirmOpen(false);
+        }}
+      />
+
+      <ConfirmDialog
+        open={rebuildConfirmOpen}
+        title={t('reportEditor.strengths.confirm.title')}
+        body={t('reportEditor.strengths.confirm.body')}
+        confirmLabel={t('reportEditor.strengths.confirm.confirm')}
+        cancelLabel={t('reportEditor.strengths.confirm.cancel')}
+        confirming={busy === 'rebuild'}
+        onConfirm={() => void handleStrengthsRebuildConfirm()}
+        onCancel={() => {
+          if (busy !== 'rebuild') setRebuildConfirmOpen(false);
         }}
       />
     </div>

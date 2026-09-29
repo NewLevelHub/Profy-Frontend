@@ -102,12 +102,9 @@ export function PrintDocument({ report, profile, ageGroup, goal }: PrintDocument
         <PrintNoteList
           items={report.strength_cards.map((card) => ({
             title: card.title,
-            description: card.description,
-            tag: card.source_label,
-            note: card.try_now,
+            description: `${t('strengths.whyLabel')} ${card.description}`,
           }))}
           emptyText={t('strengths.empty')}
-          noteLabel={t('strengths.tryNowLabel')}
         />
       </PrintSection>
 

@@ -172,29 +172,26 @@ export function DomainListCard({
   icon,
   title,
   description,
-  badge,
-  children,
+  descriptionLabel,
 }: {
   icon?: React.ReactNode;
   title: string;
   description?: string;
-  /** Small label above the title (e.g. what a strength is grounded in). */
-  badge?: React.ReactNode;
-  /** Extra content under the description. */
-  children?: React.ReactNode;
+  descriptionLabel?: string;
 }) {
   return (
     <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
       {icon}
       <div className="min-w-0">
-        {badge && <div className="mb-2">{badge}</div>}
         <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">{title}</p>
         {description && (
           <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
+            {descriptionLabel && (
+              <span className="font-semibold text-[color:var(--text-heading)]">{descriptionLabel} </span>
+            )}
             {description}
           </p>
         )}
-        {children}
       </div>
     </div>
   );

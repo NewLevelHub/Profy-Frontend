@@ -13,9 +13,8 @@ interface ReviewCardsEditorProps {
   /** Genitive name of one card ("сильной стороны") — both sections on the
    *  page use this editor, so the field labels must say which one is which. */
   itemName: string;
-  /** Strength cards (PRO-432): show what each card is grounded in and let
-   *  the psychologist edit its "try now" line. */
-  withStrengthFields?: boolean;
+  /** Strength cards (PRO-432): show what each card is grounded in. */
+  withStrengthBasis?: boolean;
 }
 
 /** Title + description cards — "Сильные стороны", "Стиль мышления". */
@@ -25,7 +24,7 @@ export function ReviewCardsEditor({
   disabled,
   addLabel,
   itemName,
-  withStrengthFields = false,
+  withStrengthBasis = false,
 }: ReviewCardsEditorProps) {
   const { t } = useTranslation('psychologist');
   function patchCard(index: number, patch: Partial<PsychologistReviewCard>) {
@@ -41,7 +40,7 @@ export function ReviewCardsEditor({
           {cards.map((card, index) => (
             <li key={index} className="py-3 flex gap-2 items-start">
               <div className="flex-1 min-w-0 flex flex-col gap-2">
-                {withStrengthFields && card.basis && (
+                {withStrengthBasis && card.basis && (
                   <div>
                     <AdminBadge
                       tone="quiet"
@@ -68,17 +67,6 @@ export function ReviewCardsEditor({
                   aria-label={t('reportEditor.cards.descriptionAria', { item: itemName })}
                   className={ADMIN_TEXTAREA}
                 />
-                {withStrengthFields && (
-                  <textarea
-                    value={card.try_now ?? ''}
-                    onChange={(e) => patchCard(index, { try_now: e.target.value })}
-                    disabled={disabled}
-                    rows={2}
-                    placeholder={t('reportEditor.cards.tryNow')}
-                    aria-label={t('reportEditor.cards.tryNowAria', { item: itemName })}
-                    className={ADMIN_TEXTAREA}
-                  />
-                )}
               </div>
               {!disabled && (
                 <button

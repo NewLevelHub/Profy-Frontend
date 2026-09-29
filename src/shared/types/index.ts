@@ -537,12 +537,6 @@ export type StrengthBasis = 'task_result' | 'self_report' | 'cross_signal' | 'in
 export interface StrengthCard {
   title: string;
   description: string;
-  /** Absent on cards a psychologist wrote by hand and on older reports. */
-  basis?: StrengthBasis | null;
-  /** Localized badge text for `basis`, resolved by the backend. */
-  source_label?: string | null;
-  /** A short, safe experiment to try the strength out. */
-  try_now?: string | null;
 }
 
 export interface ThinkingStyleNote {
@@ -1654,7 +1648,6 @@ export interface PsychologistReviewCard {
   description: string;
   /** Strength cards only (PRO-432) — kept as-is when the card is edited. */
   basis?: StrengthBasis | null;
-  try_now?: string | null;
 }
 
 /** Stored career match — the backend validates this exact shape on PATCH. */
