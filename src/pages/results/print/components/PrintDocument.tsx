@@ -99,7 +99,15 @@ export function PrintDocument({ report, profile, ageGroup, goal }: PrintDocument
       </PrintSection>
 
       <PrintSection kicker={t('print.kicker.strengths')}>
-        <PrintNoteList items={report.strength_cards} emptyText={t('print.emptyMore')} />
+        <PrintNoteList
+          items={report.strength_cards.map((card) => ({
+            title: card.title,
+            description: card.is_test_grounded
+              ? `${t('strengths.whyLabel')} ${card.description}`
+              : card.description,
+          }))}
+          emptyText={t('strengths.empty')}
+        />
       </PrintSection>
 
       {report.personality_notes.length > 0 && (

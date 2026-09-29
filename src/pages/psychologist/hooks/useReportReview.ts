@@ -135,6 +135,16 @@ export function useReportReview(studentId: string, assessmentId: string) {
     onSuccess: (updated, submitted) => afterWrite(updated, submitted),
   });
 
+  // PRO-432: after a Belbin/АСТУР retake the backend flags the strength
+  // cards as stale; rebuilding replaces them from the current results.
+  const rebuild = useMutation({
+    mutationFn: async (_submitted: ReviewDraft) => {
+      await queryClient.cancelQueries({ queryKey: resultKey, exact: true });
+      return psychologistApi.rebuildStrengths(studentId, assessmentId);
+    },
+    onSuccess: (updated, submitted) => afterWrite(updated, submitted),
+  });
+
   function reportConflict(err: unknown, fallbackKey: string) {
     setActionError(errorMessage(t, err, fallbackKey));
     if (axios.isAxiosError(err) && err.response?.status === 409) void result.refetch();
@@ -175,6 +185,21 @@ export function useReportReview(studentId: string, assessmentId: string) {
     }
   }
 
+  /** Only from a saved state — the rebuild would overwrite unsaved edits. */
+  async function rebuildStrengths(): Promise<boolean> {
+    if (writing.current || !draft || isDirty || isPublished) return false;
+    writing.current = true;
+    try {
+      await rebuild.mutateAsync(draft);
+      return true;
+    } catch (err) {
+      reportConflict(err, 'psychologist:review.strengthsRebuild.error');
+      return false;
+    } finally {
+      writing.current = false;
+    }
+  }
+
   function update<K extends EditableKey>(key: K, value: ReviewDraft[K]) {
     dispatch({ type: 'change', reportId, patch: { [key]: value } });
     setActionError(null);
@@ -195,10 +220,12 @@ export function useReportReview(studentId: string, assessmentId: string) {
     isPublished,
     saving: save.isPending,
     publishing: publish.isPending,
+    rebuilding: rebuild.isPending,
     actionError,
     update,
     saveDraft,
     publishReport,
+    rebuildStrengths,
     validate,
   };
 }

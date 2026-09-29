@@ -13,10 +13,20 @@ interface ReviewCardsEditorProps {
   addLabel: string;
   /** Section name for the fields' accessible labels — two sections use this editor. */
   section: string;
+  /** Strength cards (PRO-432): show what each card is grounded in and ask
+   *  for the concrete answer or task result behind it. */
+  withStrengthBasis?: boolean;
 }
 
 /** Title + description cards — "Сильные стороны", "Стиль мышления". */
-export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, section }: ReviewCardsEditorProps) {
+export function ReviewCardsEditor({
+  cards,
+  onChange,
+  disabled,
+  addLabel,
+  section,
+  withStrengthBasis = false,
+}: ReviewCardsEditorProps) {
   const { t } = useTranslation('psychologist');
 
   function patchCard(index: number, patch: Partial<PsychologistReviewCard>) {
@@ -39,6 +49,16 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, section
                   {String(number).padStart(2, '0')}
                 </Mono>
                 <div className="flex-1 min-w-0 flex flex-col gap-2">
+                  {withStrengthBasis && card.basis && (
+                    <span
+                      className="self-start"
+                      title={t('review.cards.basisTitle', { basis: t(`review.cards.basis.${card.basis}`) })}
+                    >
+                      <Mono variant="label" className="text-muted">
+                        {t(`review.cards.basis.${card.basis}`)}
+                      </Mono>
+                    </span>
+                  )}
                   <input
                     value={card.title}
                     onChange={(e) => patchCard(index, { title: e.target.value })}
@@ -52,8 +72,15 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, section
                     onChange={(e) => patchCard(index, { description: e.target.value })}
                     disabled={disabled}
                     rows={2}
-                    placeholder={t('review.cards.descriptionPlaceholder')}
-                    aria-label={t('review.cards.descriptionAria', { section, number })}
+                    placeholder={t(
+                      withStrengthBasis
+                        ? 'review.cards.strengthExplanationPlaceholder'
+                        : 'review.cards.descriptionPlaceholder',
+                    )}
+                    aria-label={t(
+                      withStrengthBasis ? 'review.cards.strengthExplanationAria' : 'review.cards.descriptionAria',
+                      { section, number },
+                    )}
                     className={REVIEW_TEXTAREA}
                   />
                 </div>

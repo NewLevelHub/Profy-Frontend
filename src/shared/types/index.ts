@@ -529,9 +529,16 @@ export interface AnalysisResultResponse {
 // decide which branch of the union applies — never infer it from age group,
 // array lengths, or any other field (contract §3).
 
+/** How a strength card is grounded (PRO-432): observed in the АСТУР tasks,
+ *  the student's own self-description, confirmed by several tests, or an
+ *  interest still to be checked — never a proven ability. */
+export type StrengthBasis = 'task_result' | 'self_report' | 'cross_signal' | 'interest';
+
 export interface StrengthCard {
   title: string;
   description: string;
+  /** True when the explanation was derived from selected test evidence. */
+  is_test_grounded: boolean;
 }
 
 export interface ThinkingStyleNote {
@@ -1660,6 +1667,8 @@ export interface PsychologistReviewEdit {
 export interface PsychologistReviewCard {
   title: string;
   description: string;
+  /** Strength cards only (PRO-432) — kept as-is when the card is edited. */
+  basis?: StrengthBasis | null;
 }
 
 /** Stored career match — the backend validates this exact shape on PATCH. */
@@ -1695,6 +1704,9 @@ export interface PsychologistResultDetail {
   personality_notes: Record<string, string>;
   motivation_highlights: string[];
   created_at: string;
+  /** The strength cards were built from Belbin/АСТУР results the student has
+   *  since retaken — rebuild them or publish as they are (PRO-432). */
+  strengths_stale: boolean;
 }
 
 export type PsychologistResultPatch = Partial<

@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/shared/ui/Button';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { Mono, Text } from '@/shared/ui/typography';
 import type { ReportReview } from '../hooks/useReportReview';
 import { ReviewBlock } from './components/ReviewBlock';
@@ -22,6 +25,7 @@ interface PsychologistStudentReportEditorProps {
 export function PsychologistStudentReportEditor({ review, historyPath }: PsychologistStudentReportEditorProps) {
   const { t } = useTranslation('psychologist');
   const { detail, draft, editedKeys, update } = review;
+  const [rebuildOpen, setRebuildOpen] = useState(false);
   if (!detail || !draft) return null;
 
   const locked = review.isPublished || review.publishing;
@@ -67,13 +71,44 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         />
       </ReviewBlock>
 
-      <ReviewBlock number={3} title={t('review.blocks.strengths.title')} edited={edited('strength_cards')}>
+      <ReviewBlock
+        number={3}
+        title={t('review.blocks.strengths.title')}
+        hint={review.isPublished ? undefined : t('review.blocks.strengths.hint')}
+        edited={edited('strength_cards')}
+      >
+        {detail.strengths_stale && !review.isPublished && (
+          <div
+            role="status"
+            className="mb-5 rounded-[8px] border border-default border-l-[3px] px-4 py-3"
+            style={{ borderLeftColor: 'var(--dawn)' }}
+          >
+            <Text variant="body-sm" className="font-semibold text-heading m-0">
+              {t('review.strengthsRebuild.staleTitle')}
+            </Text>
+            <Text variant="body-sm" className="text-muted mt-1 mb-0 max-w-[72ch]">
+              {t('review.strengthsRebuild.staleBody')}
+            </Text>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mt-3"
+              disabled={review.isDirty || review.rebuilding || review.saving}
+              title={review.isDirty ? t('review.strengthsRebuild.saveFirst') : undefined}
+              onClick={() => setRebuildOpen(true)}
+            >
+              {review.rebuilding ? t('review.strengthsRebuild.rebuilding') : t('review.strengthsRebuild.rebuild')}
+            </Button>
+          </div>
+        )}
         <ReviewCardsEditor
           cards={draft.strength_cards}
           onChange={(value) => update('strength_cards', value)}
           disabled={locked}
           addLabel={t('review.blocks.strengths.add')}
           section={t('review.blocks.strengths.title')}
+          withStrengthBasis
         />
       </ReviewBlock>
 
@@ -128,6 +163,21 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
           ? t('history.title')
           : t('review.historyLink', { count: review.edits.length })}
       </Link>
+
+      <ConfirmDialog
+        open={rebuildOpen}
+        title={t('review.strengthsRebuild.confirm.title')}
+        body={t('review.strengthsRebuild.confirm.body')}
+        confirmLabel={t('review.strengthsRebuild.confirm.confirm')}
+        cancelLabel={t('review.strengthsRebuild.confirm.cancel')}
+        confirming={review.rebuilding}
+        onConfirm={() => {
+          void review.rebuildStrengths().finally(() => setRebuildOpen(false));
+        }}
+        onCancel={() => {
+          if (!review.rebuilding) setRebuildOpen(false);
+        }}
+      />
     </div>
   );
 }

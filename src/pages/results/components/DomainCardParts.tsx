@@ -172,10 +172,12 @@ export function DomainListCard({
   icon,
   title,
   description,
+  descriptionLabel,
 }: {
   icon?: React.ReactNode;
   title: string;
   description?: string;
+  descriptionLabel?: string;
 }) {
   return (
     <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
@@ -184,6 +186,9 @@ export function DomainListCard({
         <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">{title}</p>
         {description && (
           <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
+            {descriptionLabel && (
+              <span className="font-semibold text-[color:var(--text-heading)]">{descriptionLabel} </span>
+            )}
             {description}
           </p>
         )}
