@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { ADMIN_BUTTON, ADMIN_INPUT, ADMIN_META, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
 import type { PsychologistReviewCard } from '@/shared/types';
 
@@ -12,10 +13,20 @@ interface ReviewCardsEditorProps {
   /** Genitive name of one card ("сильной стороны") — both sections on the
    *  page use this editor, so the field labels must say which one is which. */
   itemName: string;
+  /** Strength cards (PRO-432): show what each card is grounded in and let
+   *  the psychologist edit its "try now" line. */
+  withStrengthFields?: boolean;
 }
 
 /** Title + description cards — "Сильные стороны", "Стиль мышления". */
-export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemName }: ReviewCardsEditorProps) {
+export function ReviewCardsEditor({
+  cards,
+  onChange,
+  disabled,
+  addLabel,
+  itemName,
+  withStrengthFields = false,
+}: ReviewCardsEditorProps) {
   const { t } = useTranslation('psychologist');
   function patchCard(index: number, patch: Partial<PsychologistReviewCard>) {
     onChange(cards.map((card, i) => (i === index ? { ...card, ...patch } : card)));
@@ -30,6 +41,16 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemNam
           {cards.map((card, index) => (
             <li key={index} className="py-3 flex gap-2 items-start">
               <div className="flex-1 min-w-0 flex flex-col gap-2">
+                {withStrengthFields && card.basis && (
+                  <div>
+                    <AdminBadge
+                      tone="quiet"
+                      title={t('reportEditor.cards.basisTitle', { basis: t(`reportEditor.cards.basis.${card.basis}`) })}
+                    >
+                      {t(`reportEditor.cards.basis.${card.basis}`)}
+                    </AdminBadge>
+                  </div>
+                )}
                 <input
                   value={card.title}
                   onChange={(e) => patchCard(index, { title: e.target.value })}
@@ -47,6 +68,17 @@ export function ReviewCardsEditor({ cards, onChange, disabled, addLabel, itemNam
                   aria-label={t('reportEditor.cards.descriptionAria', { item: itemName })}
                   className={ADMIN_TEXTAREA}
                 />
+                {withStrengthFields && (
+                  <textarea
+                    value={card.try_now ?? ''}
+                    onChange={(e) => patchCard(index, { try_now: e.target.value })}
+                    disabled={disabled}
+                    rows={2}
+                    placeholder={t('reportEditor.cards.tryNow')}
+                    aria-label={t('reportEditor.cards.tryNowAria', { item: itemName })}
+                    className={ADMIN_TEXTAREA}
+                  />
+                )}
               </div>
               {!disabled && (
                 <button

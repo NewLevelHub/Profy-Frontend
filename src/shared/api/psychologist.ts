@@ -93,4 +93,9 @@ export const psychologistApi = {
     apiClient
       .post<PsychologistResultDetail>(API.psychologist.publishResult(studentId, assessmentId), {})
       .then((r) => r.data),
+
+  rebuildStrengths: (studentId: string, assessmentId: string) =>
+    apiClient
+      .post<PsychologistResultDetail>(API.psychologist.rebuildStrengths(studentId, assessmentId), {})
+      .then((r) => r.data),
 };
