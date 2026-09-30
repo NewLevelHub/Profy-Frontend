@@ -72,7 +72,6 @@
     "durationMin": "~{{count}} мин",
     "durationExactMin": "{{count}} мин.",
     "durationUpToMin": "до {{count}} мин",
-    "duration2min": "~2 мин",
     "diagnostic": {
       "kicker": "Диагностика",
       "title": "Узнаем твои склонности",
@@ -80,7 +79,7 @@
       "cta": "Начать тест"
     },
     "motivationTriplet": {
-      "kicker": "Последний блок",
+      "kicker": "Новый этап",
       "title": "Что тебя драйвит",
       "subtitle": "В каждом вопросе расставь варианты по приоритету — от самого важного до наименее важного",
       "cta": "Начать"

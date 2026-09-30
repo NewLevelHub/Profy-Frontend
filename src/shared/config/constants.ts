@@ -101,6 +101,22 @@ export const KONDASH_ANXIETY_SCALE: { value: number; label: string }[] = [
   { value: 4, label: 'assessment:kondashAnxietyLikert.4' },
 ];
 
+/** PRO-439: expected minutes per assessment phase — weights of the overall
+ * progress bar and the estimates on the phase intros. Starting values from
+ * item counts (diagnostic: 325 scale/yes-no items × ~7 s + 20 pairs × ~8 s;
+ * motivation: 12 triplets × ~30 s; Belbin: 7 sections × ~90 s; АСТУР: the
+ * 50 min of limits + ~3 min lability, real passes finish sooner). Revisit
+ * after 20–30 real passes. */
+export const ASSESSMENT_PHASE_MINUTES = {
+  diagnostic: 40,
+  motivation: 6,
+  belbin: 10,
+  astur: 44,
+} as const;
+
+/** Average time on one scale / yes-no item — per-test intro estimates. */
+export const SECONDS_PER_LIKERT_ITEM = 7;
+
 export const THINKING_STYLE_LABELS: Record<string, string> = {
   creative_think: 'results:thinkingStyle.creative_think',
   systematic: 'results:thinkingStyle.systematic',
