@@ -92,13 +92,11 @@ export default function AsturPage() {
     ? t('rail.subtestOf', { current: Math.min(subtestIndex + 1, subtestCount), total: subtestCount })
     : t('rail.sectionAstur');
 
+  // Submitted subtests over all of them, from the server — not gated on the
+  // block intro: that flag lives in sessionStorage, so a resume in a new tab
+  // dropped the rail back to 0% of АСТУР with subtests already done (PRO-439).
   const progress = useAssessmentJourneyProgress({
-    asturFraction:
-      allDone || showCompleted
-        ? 1
-        : !blockIntroSeen || subtestCount === 0
-          ? 0
-          : subtestIndex / subtestCount,
+    asturFraction: allDone || showCompleted ? 1 : subtestCount === 0 ? 0 : subtestIndex / subtestCount,
   });
 
   // Both start gates (block intro + per-subtest intro) are stage moments that
