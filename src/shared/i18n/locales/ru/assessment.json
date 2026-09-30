@@ -342,7 +342,10 @@
       "labilityLimitNotice_one": "На каждое задание — {{count}} секунда",
       "labilityLimitNotice_few": "На каждое задание — {{count}} секунды",
       "labilityLimitNotice_many": "На каждое задание — {{count}} секунд",
-      "labilityLimitNotice_other": "На каждое задание — {{count}} секунды"
+      "labilityLimitNotice_other": "На каждое задание — {{count}} секунды",
+      "showInstruction": "Показать инструкцию",
+      "hideInstruction": "Скрыть инструкцию",
+      "instructionTimerNote": "Время продолжает идти"
     },
     "subtestOf": "Субтест {{index}} из {{count}}",
     "tasksCount": "{{count}} заданий",

@@ -332,7 +332,10 @@
       "skipCancel": "Тапсырмаларға оралу",
       "timeLimitNotice": "Бұл бөлімге {{count}} мин. беріледі. Таймер «Бастау» батырмасын басқан сәтте іске қосылады және тоқтамайды",
       "labilityLimitNotice_one": "Әр тапсырмаға — {{count}} секунд",
-      "labilityLimitNotice_other": "Әр тапсырмаға — {{count}} секунд"
+      "labilityLimitNotice_other": "Әр тапсырмаға — {{count}} секунд",
+      "showInstruction": "Нұсқаулықты көрсету",
+      "hideInstruction": "Нұсқаулықты жасыру",
+      "instructionTimerNote": "Уақыт жүріп жатыр"
     },
     "subtestOf": "{{count}} субтесттің {{index}}-шісі",
     "tasksCount": "{{count}} тапсырма",

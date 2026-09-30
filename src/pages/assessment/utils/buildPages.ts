@@ -51,6 +51,14 @@ export function pageInstrument(page: Page): Instrument {
   return page.kind === 'likert' ? page.instrument : page.pair.instrument;
 }
 
+/** The page opens its instrument: the first page overall, or the one right
+ *  after a page of another instrument — where that test's intro card sits. */
+export function isFirstPageOfInstrument(pages: Page[], index: number): boolean {
+  const page = pages[index];
+  if (!page) return false;
+  return index === 0 || pageInstrument(pages[index - 1]) !== pageInstrument(page);
+}
+
 export function pageItemCount(page: Page): number {
   return page.kind === 'likert' ? page.questions.length : 1;
 }
