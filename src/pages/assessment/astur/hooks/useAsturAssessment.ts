@@ -49,8 +49,9 @@ export function useAsturAssessment(assessmentId: string) {
     queryKey: asturAttemptQueryKey(assessmentId),
     queryFn: () => asturApi.openAttempt(assessmentId),
     enabled: !!assessmentId && needsAttempt,
-    // Logical-schema concepts are shuffled per request — refetching
-    // mid-attempt would reshuffle a subtest under the respondent's hands.
+    // The server shuffles options/words/concepts seeded by run and item
+    // (PRO-441), so a refetch returns the same order — no need to refetch
+    // the attempt's content once loaded.
     staleTime: Infinity,
     retry: false,
   });
