@@ -6,6 +6,7 @@ import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { asturAutofillPayload } from '@/shared/dev/autofillAssessment';
 import type { AsturContentSubtest, AsturSubtestKey, SubmitAsturSubtestPayload } from '@/shared/types';
+import { asturMaxMinutes } from '@/pages/assessment/astur/utils/asturDuration';
 
 type StepPhase = 'instruction' | 'running';
 type SubtestSubmit = Omit<SubmitAsturSubtestPayload, 'run_id'>;
@@ -86,6 +87,7 @@ export function useAsturAssessment(assessmentId: string) {
   const subtestIndex = subtests.findIndex((s) => !submitted.has(s.key));
   const subtestCount = subtests.length;
   const subtest = !finished && subtestIndex >= 0 ? subtests[subtestIndex] : null;
+  const labilityItemLimitMs = content?.lability_item_limit_ms ?? 20000;
   const subtestStartedAt = subtest
     ? localStartedAt[subtest.key] ?? attempt?.run.subtest_started_at?.[subtest.key] ?? null
     : null;
@@ -196,7 +198,8 @@ export function useAsturAssessment(assessmentId: string) {
     subtestCount,
     stepPhase,
     allDone: finished,
-    labilityItemLimitMs: content?.lability_item_limit_ms ?? 20000,
+    labilityItemLimitMs,
+    maxMinutes: asturMaxMinutes(subtests, labilityItemLimitMs),
     exitConfirmOpen,
     retakeConfirmOpen,
     retaking,
