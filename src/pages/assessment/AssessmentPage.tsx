@@ -77,7 +77,7 @@ export default function AssessmentPage() {
         sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
-        showBack={phase === 'question' && !testIntroInstrument && pageIndex > 0}
+        showBack={phase === 'question' && pageIndex > 0}
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
