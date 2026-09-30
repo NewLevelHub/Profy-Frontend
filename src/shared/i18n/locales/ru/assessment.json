@@ -161,6 +161,8 @@
     "poleRight": "Точно моё",
     "poleLeftAbilities": "Совсем не выражено",
     "poleRightAbilities": "Ярко выражено",
+    "poleLeftAnxiety": "Совсем не тревожит",
+    "poleRightAnxiety": "Очень тревожит",
     "valueOfFive": "{{value}} из 5"
   },
   "priority": {

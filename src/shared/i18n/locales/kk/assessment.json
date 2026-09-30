@@ -155,6 +155,8 @@
     "poleRight": "Нақ менікі",
     "poleLeftAbilities": "Мүлдем байқалмайды",
     "poleRightAbilities": "Айқын байқалады",
+    "poleLeftAnxiety": "Мүлдем алаңдатпайды",
+    "poleRightAnxiety": "Қатты алаңдатады",
     "valueOfFive": "{{value}} / 5"
   },
   "priority": {
