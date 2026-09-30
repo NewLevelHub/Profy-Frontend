@@ -17,6 +17,8 @@ export interface AssessmentIntroProps {
   durationLabel?: string;
   ctaLabel: string;
   onStart: () => void;
+  secondaryCtaLabel?: string;
+  onSecondaryAction?: () => void;
 }
 
 /**
@@ -39,6 +41,8 @@ export function AssessmentIntro({
   durationLabel,
   ctaLabel,
   onStart,
+  secondaryCtaLabel,
+  onSecondaryAction,
 }: AssessmentIntroProps) {
   const showDuration = Boolean(durationLabel && durationLabel.trim());
 
@@ -84,14 +88,26 @@ export function AssessmentIntro({
           )}
         </div>
 
-        <Button
-          onClick={onStart}
-          size="lg"
-          className="w-full max-w-[320px] rounded-pill text-body-lg font-extrabold"
-          style={{ height: 56 }}
-        >
-          {ctaLabel}
-        </Button>
+        <div className="flex w-full flex-col items-center gap-2">
+          <Button
+            onClick={onStart}
+            size="lg"
+            className="w-full max-w-[320px] rounded-pill text-body-lg font-extrabold"
+            style={{ height: 56 }}
+          >
+            {ctaLabel}
+          </Button>
+          {secondaryCtaLabel && onSecondaryAction && (
+            <Button
+              variant="ghost"
+              onClick={onSecondaryAction}
+              size="lg"
+              className="w-full max-w-[320px] rounded-pill"
+            >
+              {secondaryCtaLabel}
+            </Button>
+          )}
+        </div>
       </div>
     </AssessmentStageShell>
   );
