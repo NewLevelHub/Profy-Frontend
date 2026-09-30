@@ -12,6 +12,7 @@ import { PSYCHO_COLOR_BY_ID } from '@/shared/config/psychoColors';
 import { CHECKIN_QUESTION_BY_KEY, CHECKIN_SKIPPED } from '@/shared/config/psychoCheckin';
 import { formatDate } from '@/shared/i18n/format';
 import { cn } from '@/shared/lib/cn';
+import { PsychoEmotionalInterpretation } from '@/shared/ui';
 import { PsychSectionShell } from './PsychSectionShell';
 import { MetricList } from './MetricList';
 
@@ -24,9 +25,8 @@ interface PsychoEmotionalSectionProps {
  * PRO-282 §4). The specialist-facing composition (§B8 / PRO-309): the two
  * colour rows, D, functional pairs with ( )/[ ], the anxiety / compensation /
  * СО / ВК indices with levels + breakdowns, and a compact dynamics list of
- * past runs. No canned hint texts — removed by product decision: the reader
- * is a licensed psychologist, who doesn't need research-derived phrasing and
- * could find it confusing. The structural indices (Р/concentricity/
+ * past runs, with the text interpretation on top (PRO-448 — specialists asked
+ * for it after it had been removed as unneeded). The structural indices (Р/concentricity/
  * heteronomy/Ккп) block was dropped too, 2026-09-11 — product decided they
  * won't be shown.
  *
@@ -94,6 +94,8 @@ export function PsychoEmotionalSection({ section }: PsychoEmotionalSectionProps)
         )}
 
         <CheckIn checkin={section.checkin} />
+
+        <PsychoEmotionalInterpretation interpretation={section.interpretation} className="border-t border-default pt-3" />
 
         <Block title={t('psychoResult.choices')}>
           <ColourRow label={t('psychoResult.round1')} ids={section.choice_1} />
