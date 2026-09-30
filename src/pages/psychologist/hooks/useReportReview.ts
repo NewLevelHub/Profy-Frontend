@@ -7,7 +7,16 @@ import { psychologistApi } from '@/shared/api/psychologist';
 import { psychologistKeys } from '@/shared/api/psychologistKeys';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
 import type { PsychologistResultDetail, PsychologistResultPatch } from '@/shared/types';
-import { EDITABLE_KEYS, EMPTY_DRAFT, dirtyKeys, reportDraftReducer, toDraft, type EditableKey, type ReviewDraft } from './reportReviewDraft';
+import {
+  EDITABLE_KEYS,
+  EMPTY_DRAFT,
+  dirtyKeys,
+  reportDraftReducer,
+  toDraft,
+  visibleReviewBlocks,
+  type EditableKey,
+  type ReviewDraft,
+} from './reportReviewDraft';
 
 export type { EditableKey, ReviewDraft } from './reportReviewDraft';
 
@@ -95,6 +104,8 @@ export function useReportReview(studentId: string, assessmentId: string) {
     () => new Set<EditableKey>(EDITABLE_KEYS.filter((key) => savedEdited.has(key) || dirty.includes(key))),
     [savedEdited, dirty],
   );
+
+  const visibleBlocks = useMemo(() => (detail ? visibleReviewBlocks(detail) : []), [detail]);
 
   useUnsavedGuard(isDirty);
 
@@ -216,6 +227,7 @@ export function useReportReview(studentId: string, assessmentId: string) {
     editsError: edits.isError,
     reloadEdits: () => void edits.refetch(),
     editedKeys,
+    visibleBlocks,
     isDirty,
     isPublished,
     saving: save.isPending,
