@@ -11,6 +11,7 @@ import { BelbinBlock } from './components/BelbinBlock';
 import { BelbinDone } from './components/BelbinDone';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
+import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
 
 export default function BelbinPage() {
   const { t } = useTranslation('assessment');
@@ -91,7 +92,7 @@ export default function BelbinPage() {
           title={t('intro.belbin.title')}
           subtitle={instruction || t('intro.belbin.subtitle')}
           itemCountLabel={t('intro.itemCount', { count: sectionCount })}
-          durationLabel={t('intro.durationMin', { count: Math.max(5, sectionCount) })}
+          durationLabel={t('intro.durationMin', { count: ASSESSMENT_PHASE_MINUTES.belbin })}
           ctaLabel={t('intro.belbin.cta')}
           onStart={start}
         />

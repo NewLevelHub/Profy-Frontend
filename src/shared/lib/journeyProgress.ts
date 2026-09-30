@@ -1,11 +1,19 @@
+import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
+
 /**
  * Overall assessment progress across the four phases
- * (diagnostic → motivation → Belbin → АСТУР), each weighted equally.
+ * (diagnostic → motivation → Belbin → АСТУР), each weighted by how long it
+ * takes (`ASSESSMENT_PHASE_MINUTES`).
  *
  * Phase-local bars (0–100% then reset) and whole-phase stepping (0/25/50/75)
  * both read as chaotic: the resume card stays at 0% for the entire longest
  * phase, and the rail snaps back to 0% at every phase boundary. This helper
  * keeps a single monotonic 0–100 for the rail and the in-progress card.
+ *
+ * Weights follow time, not phase count (PRO-439): with four equal quarters
+ * the ~40-minute diagnostic and the 12 motivation triplets each moved the bar
+ * by 25%, so a student past half of the real time still saw 25% and then
+ * watched it jump.
  */
 
 export interface JourneyProgressInput {
@@ -21,7 +29,11 @@ export interface JourneyProgressInput {
   asturCompleted?: boolean;
 }
 
-const PHASE_COUNT = 4;
+const TOTAL_MINUTES =
+  ASSESSMENT_PHASE_MINUTES.diagnostic +
+  ASSESSMENT_PHASE_MINUTES.motivation +
+  ASSESSMENT_PHASE_MINUTES.belbin +
+  ASSESSMENT_PHASE_MINUTES.astur;
 
 function clamp01(n: number): number {
   if (!Number.isFinite(n) || n <= 0) return 0;
@@ -50,5 +62,10 @@ export function journeyProgressPercent(input: JourneyProgressInput): number {
         ? 1
         : 0;
 
-  return Math.round(((diagnostic + motivation + belbin + astur) / PHASE_COUNT) * 100);
+  const doneMinutes =
+    diagnostic * ASSESSMENT_PHASE_MINUTES.diagnostic +
+    motivation * ASSESSMENT_PHASE_MINUTES.motivation +
+    belbin * ASSESSMENT_PHASE_MINUTES.belbin +
+    astur * ASSESSMENT_PHASE_MINUTES.astur;
+  return Math.round((doneMinutes / TOTAL_MINUTES) * 100);
 }
