@@ -1,5 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { i18n } from '@/shared/i18n';
+import { homePathForUser } from '@/shared/lib/homePath';
+import { useAuthStore } from '@/shared/store/auth';
 
 interface Props {
   children: ReactNode;
@@ -52,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <button
             onClick={() => {
               this.setState({ error: null });
-              window.location.replace('/results');
+              window.location.replace(homePathForUser(useAuthStore.getState().user));
             }}
             className="px-6 py-3 bg-transparent text-brand font-semibold rounded-pill text-base border border-default transition-colors hover:bg-raised"
           >

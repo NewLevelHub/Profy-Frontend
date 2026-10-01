@@ -18,21 +18,10 @@ export function useProfile() {
   const profile = useProfileStore((s) => s.profile);
   const resetAssessment = useAssessmentStore((s) => s.resetAssessment);
   const clearReport = useResultStore((s) => s.clearReport);
-  // Passive read only — the profile page never triggers a report
-  // generate/fetch as a side effect of just being viewed (that belongs to
-  // /results). If nothing's been completed yet, the junior strengths section
-  // shows a real empty state instead.
-  const report = useResultStore((s) => s.report);
   const setProfileDraft = useOnboardingDraftStore((s) => s.setProfileDraft);
 
   const displayName = profile?.name?.trim() || user?.name?.trim() || t('page.defaultName');
   const initial = displayName[0]?.toUpperCase() ?? '?';
-
-  // Only two real layout variants exist per spec — 'junior' (under-12,
-  // "Мои штуки") vs. everyone else (full account). There's no third variant
-  // described for 'middle' (11-14), so it renders the full/senior layout —
-  // a judgment call, not a documented product decision.
-  const isJunior = profile?.age_group === 'junior';
 
   const hasSubjects =
     (profile?.subjects_liked?.length ?? 0) > 0 ||
@@ -127,12 +116,10 @@ export function useProfile() {
     profile,
     displayName,
     initial,
-    isJunior,
     hasSubjects,
     artifacts,
     certificates,
     railSections,
-    strengthCards: report?.strength_cards ?? [],
     confirmRestart,
     handleLogout,
     handleRestartRequest,

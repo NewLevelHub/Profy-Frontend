@@ -11,10 +11,10 @@ interface AssessmentNotStartedCardProps {
   onStart: () => void;
 }
 
-const HIGHLIGHTS = [
-  { Icon: Clock, title: '~15 минут', sub: 'Без секундомера', tone: 'pine' as const },
-  { Icon: Shield, title: 'Без оценок', sub: 'Нет «правильно / нет»', tone: 'dawn' as const },
-  { Icon: Compass, title: 'Карта интересов', sub: 'И направления дальше', tone: 'iris' as const },
+const HIGHLIGHT_CONFIGS = [
+  { Icon: Clock, titleKey: 'notStarted.perks.time', subKey: 'notStarted.perks.timeSub', tone: 'pine' as const },
+  { Icon: Shield, titleKey: 'notStarted.perks.noGrades', subKey: 'notStarted.perks.noGradesSub', tone: 'dawn' as const },
+  { Icon: Compass, titleKey: 'notStarted.perks.map', subKey: 'notStarted.perks.mapSub', tone: 'iris' as const },
 ] as const;
 
 /** Shown on /results before any assessment has been started — results have
@@ -44,14 +44,14 @@ export function AssessmentNotStartedCard({ onStart }: AssessmentNotStartedCardPr
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {HIGHLIGHTS.map(({ Icon, title, sub, tone }) => (
-          <div key={title} className="journey-feature">
+        {HIGHLIGHT_CONFIGS.map(({ Icon, titleKey, subKey, tone }) => (
+          <div key={titleKey} className="journey-feature">
             <span className={`journey-feature-icon journey-feature-icon--${tone}`} aria-hidden="true">
               <Icon size={18} strokeWidth={2} />
             </span>
             <div className="flex flex-col gap-0.5">
-              <span className="text-body-sm font-semibold text-[color:var(--text-heading)]">{title}</span>
-              <span className="text-caption font-book text-muted">{sub}</span>
+              <span className="text-body-sm font-semibold text-[color:var(--text-heading)]">{t(titleKey)}</span>
+              <span className="text-caption font-book text-muted">{t(subKey)}</span>
             </div>
           </div>
         ))}

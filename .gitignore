@@ -4,3 +4,6 @@ dist
 .env.local
 .DS_Store
 *.local
+
+# Инкрементальный кэш tsc — артефакт сборки, а не исходник.
+*.tsbuildinfo

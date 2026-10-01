@@ -16,7 +16,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
         aria-expanded={open}
         className="w-full flex items-center justify-between gap-4 px-6 py-[1.3rem] text-left"
       >
-        <span className="font-display font-medium text-[0.92rem] tracking-[-0.02em]" style={{ color: 'var(--text-heading)' }}>
+        <span className="font-display font-medium text-body-sm tracking-[-0.02em]" style={{ color: 'var(--text-heading)' }}>
           {q}
         </span>
         <span
@@ -39,7 +39,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
         style={{ maxHeight: open ? bodyRef.current?.scrollHeight ?? 400 : 0 }}
       >
         <div ref={bodyRef}>
-          <p className="px-6 pb-[1.4rem] text-secondary text-[0.9rem] leading-[1.65]">{a}</p>
+          <p className="px-6 pb-[1.4rem] text-secondary text-body-sm leading-[1.65]">{a}</p>
         </div>
       </div>
     </Reveal>

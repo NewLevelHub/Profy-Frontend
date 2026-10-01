@@ -9,7 +9,6 @@ import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
-import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useResults } from '@/pages/results/hooks/useResults';
 import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
@@ -70,7 +69,6 @@ export default function DirectionDetailPage() {
   const { t } = useTranslation('results');
 
   const { report, isLoading, isTranslating, error, refetch } = useResults();
-  const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
 
   const {
     programs,
@@ -87,7 +85,6 @@ export default function DirectionDetailPage() {
   const direction = report && report.interest_instrument === 'riasec'
     ? report.careers.find(d => d.slug === slug)
     : undefined;
-  const hasRoadmap = selectedDirectionSlug === slug;
 
   const skills = direction?.skills_needed ?? [];
   const subjects = direction?.subjects_to_develop ?? [];
@@ -221,17 +218,6 @@ export default function DirectionDetailPage() {
             onToggleFavorite={toggleFavorite}
           />
         </div>
-      )}
-
-      {hasRoadmap && (
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-fit rounded-pill"
-          onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/roadmap`)}
-        >
-          {t('direction.myPlan')}
-        </Button>
       )}
     </PageContainer>
   );

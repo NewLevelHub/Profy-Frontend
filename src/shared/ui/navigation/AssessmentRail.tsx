@@ -1,7 +1,9 @@
+import { useLayoutEffect, useRef } from 'react';
 import { ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { Spine } from '@/shared/ui/Spine';
+import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 export interface AssessmentRailProps {
   /** Text next to the back button (e.g. "Вопрос 3 из 20" or the flow's static title). */
@@ -19,11 +21,22 @@ export interface AssessmentRailProps {
   /** Dev-only "autofill" affordance already present on these flows; kept as
    *  a 4th, dev-gated slot rather than folded into the 3 production slots. */
   devAutofill?: { onClick: () => void; loading: boolean };
+  /** Dev-only "autofill main battery, then stop right before motivation" —
+   *  a separate action from `devAutofill` (which races through motivation
+   *  too): for testing the motivation screen itself by hand without
+   *  clicking through the whole Likert/pairs battery first. Only offered on
+   *  the main-battery screen (AssessmentPage), not on
+   *  the motivation screens themselves (nothing left to skip to). */
+  devAutofillToMotivation?: { onClick: () => void; loading: boolean };
+  /** Dev-only "autofill main battery + motivation + Belbin, then stop right
+   *  before АСТУР" — same idea as `devAutofillToMotivation` but one phase
+   *  further, for testing the АСТУР flow itself without clicking through
+   *  everything ahead of it. Only offered on the main-battery screens. */
+  devAutofillToAstur?: { onClick: () => void; loading: boolean };
 }
 
 // The single collapsed rail used by every assessment-flow screen
-// (AssessmentPage, PairAssessmentPage, MotivationHarterFlow,
-// MotivationTripletFlow). Per the nav-shell spec these screens don't get the
+// (AssessmentPage, MotivationTripletFlow). Per the nav-shell spec these screens don't get the
 // full TopRail — they collapse to exactly three elements: progress
 // indicator · sound toggle · exit action.
 //
@@ -41,13 +54,43 @@ export function AssessmentRail({
   onBack,
   onExit,
   devAutofill,
+  devAutofillToMotivation,
+  devAutofillToAstur,
 }: AssessmentRailProps) {
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
   const soundLabel = t(soundEnabled ? 'common:sound.disable' : 'common:sound.enable');
+  const railRef = useRef<HTMLElement>(null);
+
+  // The rail sits in flow, so anything centered *below* it lands half a rail
+  // too low on screen. Publish the measured height so the stage card
+  // (AssessmentStageShell) can center itself against the viewport instead of
+  // against the strip under the rail. Measured, not hardcoded: the title wraps
+  // on narrow screens and the rail grows.
+  useLayoutEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        '--assessment-rail-h',
+        `${Math.round(el.getBoundingClientRect().height)}px`,
+      );
+    };
+
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty('--assessment-rail-h');
+    };
+  }, []);
 
   return (
     <header
+      ref={railRef}
       className="sticky top-0 z-10 px-3 pt-[18px] pb-4 sm:px-4 lg:px-6"
       style={{ background: 'color-mix(in srgb, var(--fog) 90%, transparent)', backdropFilter: 'blur(8px)' }}
     >
@@ -87,6 +130,35 @@ export function AssessmentRail({
             </button>
           )}
 
+          {import.meta.env.DEV && devAutofillToMotivation && (
+            <button
+              type="button"
+              onClick={devAutofillToMotivation.onClick}
+              disabled={devAutofillToMotivation.loading}
+              aria-label="Автозаполнить до мотивации (dev)"
+              title="Автозаполнить основную батарею и остановиться перед блоком мотивации (только в dev)"
+              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-caption font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+              style={{ boxShadow: 'var(--shadow-pop)' }}
+            >
+              {devAutofillToMotivation.loading ? '…' : '⚡ До мотивации'}
+            </button>
+          )}
+
+          {import.meta.env.DEV && devAutofillToAstur && (
+            <button
+              type="button"
+              onClick={devAutofillToAstur.onClick}
+              disabled={devAutofillToAstur.loading}
+              aria-label="Автозаполнить до Астур теста (dev)"
+              title="Автозаполнить основную батарею, мотивацию и Белбина, остановиться перед АСТУР (только в dev)"
+              className="h-[38px] px-3 flex items-center justify-center gap-1 rounded-pill bg-surface text-secondary text-caption font-bold transition-colors hover:bg-brand-subtle hover:text-brand disabled:opacity-50"
+              style={{ boxShadow: 'var(--shadow-pop)' }}
+            >
+              {devAutofillToAstur.loading ? '…' : '⚡ До Астур теста'}
+            </button>
+          )}
+
+          <ThemeToggle />
           {/* Slot 2: sound toggle */}
           <button
             type="button"
@@ -107,7 +179,7 @@ export function AssessmentRail({
             onClick={onExit}
             aria-label={t('assessment:rail.exit')}
             className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
-            style={{ boxShadow: '0 2px 8px rgba(30,27,75,.06)' }}
+            style={{ boxShadow: 'var(--shadow-pop)' }}
           >
             ✕
           </button>

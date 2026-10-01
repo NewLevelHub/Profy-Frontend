@@ -22,12 +22,10 @@ interface RoadmapHorizonsProps {
 
 /**
  * Horizon strip shared by all three goal scenarios on /results. Content is
- * static, hand-authored per scenario type (see ScenarioA/B/C) rather than
- * pulled from the per-direction 12-month roadmap API — that roadmap is a
- * separate, deeper feature (`/results/directions/:slug/roadmap`) generated
- * per-student server-side; nothing in the result-v2 payload itself supplies
- * short "roadmap of the next N months toward a goal" copy for this summary
- * strip, so this is a structural placeholder, not personalized backend data.
+ * static, hand-authored per scenario type (see ScenarioA/B/C) — nothing in
+ * the result-v2 payload supplies "the next N months toward a goal" copy for
+ * this summary strip, so this is a structural placeholder, not personalized
+ * backend data.
  */
 export function RoadmapHorizons({ title, horizons, ariaLabel, lastNodeStyle }: RoadmapHorizonsProps) {
   const nodes: SpineNode[] = horizons.map((h, i) => ({

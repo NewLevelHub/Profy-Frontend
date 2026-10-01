@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
-import { Button, Mascot } from '@/shared/ui';
+import { Button, FullScreenPreferences, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { useArtifactsSetup, ARTIFACT_SECTIONS, type ArtifactSection } from './hooks/useArtifactsSetup';
@@ -298,6 +298,11 @@ export default function ArtifactsSetupPage() {
   if (!isLinearFlow) {
     return (
       <div className="journey-page journey-page--lit min-h-screen flex flex-col">
+        <div className="relative z-10 px-4 pt-4 sm:px-5 sm:pt-5">
+          <div className="max-w-6xl mx-auto">
+            <FullScreenPreferences />
+          </div>
+        </div>
         <div className="relative z-[1] flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6 lg:py-12">
           <div className="max-w-6xl mx-auto flex flex-col gap-6">
 
@@ -373,7 +378,8 @@ export default function ArtifactsSetupPage() {
           ничего не скрывала, зато клала плоский фог поверх градиента холста и
           давала видимый горизонтальный шов. */}
       <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto flex flex-col gap-3">
+          <FullScreenPreferences />
           <OnboardingProgress
             current={PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1)}
             total={TOTAL_ONBOARDING_STEPS}

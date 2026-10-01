@@ -5,6 +5,7 @@ import { useProfileStore } from '@/shared/store/profile';
 import { CERTIFICATE_TYPES, validateCertificateScore } from '@/shared/config/certificates';
 import type { CertificateItem, CertificateType } from '@/shared/types';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
+import { gradesForAge, isAgeGradeCompatible } from '@/shared/lib/ageGrade';
 
 // Exam score fields are keyed by exam ('ielts' | 'unt' | ...), so they share
 // this error map with the plain profile fields rather than living in a
@@ -156,7 +157,16 @@ export function useProfileSetup() {
 
   function validateSchool(): boolean {
     const gradeNum = Number(grade);
-    const grade_ = (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) ? t('validation.gradeRange') : undefined;
+    const ageNum = Number(age);
+    let grade_: string | undefined;
+    if (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) {
+      grade_ = t('validation.gradeRange');
+    } else if (!isNaN(ageNum) && !isAgeGradeCompatible(ageNum, gradeNum)) {
+      const allowed = gradesForAge(ageNum);
+      grade_ = allowed.length
+        ? t('validation.gradeForAge', { age: ageNum, min: allowed[0], max: allowed[allowed.length - 1] })
+        : t('validation.gradeRange');
+    }
     setErrors(prev => ({ ...prev, grade: grade_ }));
     return !grade_;
   }
@@ -232,7 +242,18 @@ export function useProfileSetup() {
     totalSteps: TOTAL_STEPS,
     progress: (step / TOTAL_STEPS) * 100,
     name, setName,
-    age, setAge,
+    age, setAge: (value: string) => {
+      setAge(value);
+      clearError('age');
+      const ageNum = Number(value);
+      const gradeNum = Number(grade);
+      // Drop a grade that no longer fits the new age so the student can't
+      // carry 17→3 through to submit by changing age after picking grade.
+      if (grade && !isNaN(ageNum) && !isNaN(gradeNum) && !isAgeGradeCompatible(ageNum, gradeNum)) {
+        setGrade('');
+        clearError('grade');
+      }
+    },
     grade, setGrade,
     city, setCity,
     country, setCountry,

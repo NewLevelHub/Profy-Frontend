@@ -39,6 +39,8 @@ interface AssessmentState {
   // run-wide percentage the rest-stop cadence and grand total are based on.
   motivationAnsweredCount: number;
   motivationTotal: number;
+  belbinCompleted: boolean;
+  asturCompleted: boolean;
   hasCompletedAssessment: boolean;
   syncDone: boolean;
 
@@ -67,6 +69,8 @@ interface AssessmentState {
   ) => void;
   setProgress: (answeredCount: number, totalQuestions: number) => void;
   setMotivationProgress: (motivationAnsweredCount: number, motivationTotal: number) => void;
+  setBelbinCompleted: (completed: boolean) => void;
+  setAsturCompleted: (completed: boolean) => void;
   completeAssessment: () => void;
   resetAssessment: () => void;
   syncFromServer: (data: AssessmentResponse, userId: string) => void;
@@ -116,6 +120,8 @@ export const useAssessmentStore = create<AssessmentState>()(
       totalQuestions: 0,
       motivationAnsweredCount: 0,
       motivationTotal: 0,
+      belbinCompleted: false,
+      asturCompleted: false,
       hasCompletedAssessment: false,
       syncDone: false,
       ...REST_STOP_INITIAL_STATE,
@@ -128,6 +134,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           totalQuestions,
           motivationAnsweredCount,
           motivationTotal,
+          belbinCompleted: false,
+          asturCompleted: false,
           ...REST_STOP_INITIAL_STATE,
           ...SPEED_FLAG_INITIAL_STATE,
         }),
@@ -135,6 +143,8 @@ export const useAssessmentStore = create<AssessmentState>()(
         set({ answeredCount, totalQuestions }),
       setMotivationProgress: (motivationAnsweredCount, motivationTotal) =>
         set({ motivationAnsweredCount, motivationTotal }),
+      setBelbinCompleted: (belbinCompleted) => set({ belbinCompleted }),
+      setAsturCompleted: (asturCompleted) => set({ asturCompleted }),
       completeAssessment: () => set({ hasCompletedAssessment: true }),
       resetAssessment: () =>
         set({
@@ -145,6 +155,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           totalQuestions: 0,
           motivationAnsweredCount: 0,
           motivationTotal: 0,
+          belbinCompleted: false,
+          asturCompleted: false,
           hasCompletedAssessment: false,
           syncDone: true,
           ...REST_STOP_INITIAL_STATE,
@@ -159,6 +171,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           totalQuestions: data.total_questions,
           motivationAnsweredCount: data.motivation_answered_count,
           motivationTotal: data.motivation_total,
+          belbinCompleted: Boolean(data.belbin_completed),
+          asturCompleted: Boolean(data.astur_completed),
           hasCompletedAssessment: data.status === 'completed',
           syncDone: true,
         }),
@@ -171,6 +185,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           totalQuestions: 0,
           motivationAnsweredCount: 0,
           motivationTotal: 0,
+          belbinCompleted: false,
+          asturCompleted: false,
           hasCompletedAssessment: false,
           syncDone: true,
           ...REST_STOP_INITIAL_STATE,

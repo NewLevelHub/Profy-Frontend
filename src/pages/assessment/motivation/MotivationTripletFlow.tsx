@@ -9,10 +9,10 @@ import { useMotivationAssessment } from '../hooks/useMotivationAssessment';
 import { TripletRanking } from '../components/TripletRanking';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 import { AssessmentIntro } from '../components/AssessmentIntro';
+import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
 
-// Senior's motivation format — 12 triplets, MOST/LEAST forced choice via
-// drag-and-drop ranking. Junior and middle use MotivationHarterFlow.tsx
-// instead (see MotivationAssessmentPage.tsx).
+// Motivation block — 12 triplets, MOST/LEAST forced choice via
+// drag-and-drop ranking.
 export default function MotivationTripletFlow() {
   const { t } = useTranslation('assessment');
   const {
@@ -77,7 +77,7 @@ export default function MotivationTripletFlow() {
             title={t('intro.motivationTriplet.title')}
             subtitle={t('intro.motivationTriplet.subtitle')}
             itemCountLabel={t('intro.itemCount', { count: totalTriplets })}
-            durationLabel={t('intro.duration2min')}
+            durationLabel={t('intro.durationMin', { count: ASSESSMENT_PHASE_MINUTES.motivation })}
             ctaLabel={t('intro.motivationTriplet.cta')}
             onStart={handleStartIntro}
           />

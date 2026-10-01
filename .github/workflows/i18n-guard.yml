@@ -9,6 +9,9 @@ on:
       - 'src/**'
       - 'scripts/i18n-*.mjs'
       - 'scripts/i18n-exclude.json'
+      - 'scripts/no-arbitrary-text-size.mjs'
+      - 'eslint.config.js'
+      - 'eslint-rules/**'
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig*.json'
@@ -30,6 +33,12 @@ jobs:
       # BE↔FE sync — all four are `npm run i18n:check`.
       - name: i18n check (parity / plurals / sweep / subjects)
         run: npm run i18n:check
+
+      - name: typography (no arbitrary text-[…] sizes)
+        run: npm run lint:typography
+
+      - name: eslint (typography rule)
+        run: npm run lint
 
       - name: typecheck
         run: npm run typecheck

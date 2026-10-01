@@ -28,16 +28,12 @@
     "results": "Нәтижелер",
     "universities": "Университеттер",
     "profile": "Профиль",
-    "admin": "Әкімші"
+    "admin": "Әкімші",
+    "psychologist": "Оқушылар"
   },
   "sound": {
     "enable": "Дыбысты қосу",
     "disable": "Дыбысты өшіру"
-  },
-  "ageGroup": {
-    "junior": "5–7 сынып",
-    "middle": "8–9 сынып",
-    "senior": "10–11 сынып"
   },
   "celebrationSound": {
     "chime": {
@@ -74,6 +70,11 @@
   },
   "languageSwitcherAria": "Тіл / Язык",
   "themeLabel": "Тақырып",
+  "theme": {
+    "light": "Ашық тақырып",
+    "dark": "Күңгірт тақырып",
+    "groupLabel": "Безендіру тақырыбы"
+  },
   "favoriteAdd": "Таңдаулыға қосу",
   "favoriteRemove": "Таңдаулыдан алу",
   "mascot": {

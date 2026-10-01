@@ -14,16 +14,26 @@ interface DirectionMatchListProps {
    *  tier's detail page has nothing university-shaped to point at yet, so
    *  the hint would be a promise the click doesn't keep. */
   showUniversitiesHint?: boolean;
+  /** Psychologist's read-only view of a student's report
+   *  (PsychologistStudentReportPage): a plain list, not a doorway into the
+   *  student's own browsing flow (direction detail → universities/programs).
+   *  Rows render as static `<div>`s, not `<Link>`s — no navigation, no hover
+   *  "Open" caption, no "открой направление" CTA. */
+  readOnly?: boolean;
 }
 
 /**
  * Shared "direction + match ladder" list — glass rows, no arrow/cap chrome.
- * Every row is a real `<Link>` to the direction detail page.
+ * By default every row is a real `<Link>` to the direction detail page;
+ * `readOnly` (the psychologist's read-only view of a student's report)
+ * renders plain `<div>` rows instead — no navigation, no hover "Open"
+ * caption, no "открой направление" CTA.
  */
 export const DirectionMatchList = memo(function DirectionMatchList({
   careers,
   emptyText,
   showUniversitiesHint = false,
+  readOnly = false,
 }: DirectionMatchListProps) {
   const { t } = useTranslation('results');
 
@@ -35,17 +45,14 @@ export const DirectionMatchList = memo(function DirectionMatchList({
     <div className="flex flex-col gap-2.5">
       {careers.map((career, i) => {
         const isTop = i === 0;
-        return (
-          <Link
-            key={career.slug}
-            to={`/results/directions/${encodeURIComponent(career.slug)}`}
-            className={cn(
-              'group panel-glass flex flex-col gap-3 text-left !p-4 sm:!p-5',
-              'transition-[border-color,box-shadow,transform] duration-200 press-scale',
-              'hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--pine)_28%,var(--border))]',
-              isTop && 'bg-[color-mix(in_srgb,var(--pine)_4%,var(--paper))]',
-            )}
-          >
+        const rowClassName = cn(
+          'group panel-glass flex flex-col gap-3 text-left !p-4 sm:!p-5',
+          'transition-[border-color,box-shadow,transform] duration-200',
+          !readOnly && 'press-scale hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--pine)_28%,var(--border))]',
+          isTop && 'bg-[color-mix(in_srgb,var(--pine)_4%,var(--paper))]',
+        );
+        const rowContent = (
+          <>
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex flex-col gap-1">
                 {isTop && (
@@ -65,9 +72,11 @@ export const DirectionMatchList = memo(function DirectionMatchList({
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
                 <CareerMatchLadder tier={career.tier} showLabel={isTop} />
-                <span className="text-caption font-semibold text-brand opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
-                  {t('directionMatch.open')}
-                </span>
+                {!readOnly && (
+                  <span className="text-caption font-semibold text-brand opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
+                    {t('directionMatch.open')}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -85,7 +94,8 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                 <p className="text-body-sm leading-relaxed m-0" style={{ color: 'var(--ink)' }}>
                   {career.why}
                 </p>
-                {showUniversitiesHint && (
+                {/* CTA — only makes sense where the row itself is clickable. */}
+                {showUniversitiesHint && !readOnly && (
                   <p
                     className="text-caption font-semibold mt-2.5 pt-2.5 m-0"
                     style={{
@@ -98,6 +108,20 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                 )}
               </div>
             )}
+          </>
+        );
+
+        return readOnly ? (
+          <div key={career.slug} className={rowClassName}>
+            {rowContent}
+          </div>
+        ) : (
+          <Link
+            key={career.slug}
+            to={`/results/directions/${encodeURIComponent(career.slug)}`}
+            className={rowClassName}
+          >
+            {rowContent}
           </Link>
         );
       })}

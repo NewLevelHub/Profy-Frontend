@@ -227,7 +227,7 @@ re-exported in layers or a rigged format — not in scope here.
 ## Components
 
 Reusable primitives live in `src/shared/ui/` (`Button`, `Badge`, `Card`,
-`Input`, `Spinner`, `Skeleton`, `ProgressBar`, `PageContainer`, `PageHeader`,
+`Input`, `Spinner`, `Skeleton`, `PageContainer`, `PageHeader`,
 `SectionHeading`, `Mascot`, `Tooltip`, …). Check there before building a new
 one-off version of something that likely already exists — a second bespoke
 card/button implementation is how a codebase drifts away from this system

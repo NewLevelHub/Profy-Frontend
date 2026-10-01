@@ -17,27 +17,26 @@ export function ThinkingStyleMotivationSection({
   const { t } = useTranslation('results');
   return (
     <DomainCardFrame ariaLabel={t('thinkingMotivation.aria')}>
-      <div>
-        <DomainKicker>{t('thinkingMotivation.kickerThinking')}</DomainKicker>
-        {thinkingStyleNotes.length === 0 ? (
-          <DomainEmptyState>{t('domain.emptyMore')}</DomainEmptyState>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {thinkingStyleNotes.map((note, i) => (
-              <div key={i}>
-                <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">
-                  {note.title}
-                </p>
-                <p className="text-caption leading-snug mt-0.5" style={{ color: 'var(--ink)' }}>
-                  {note.description}
-                </p>
-              </div>
-            ))}
+      {thinkingStyleNotes.length > 0 && (
+        <>
+          <div>
+            <DomainKicker>{t('thinkingMotivation.kickerThinking')}</DomainKicker>
+            <div className="flex flex-col gap-3">
+              {thinkingStyleNotes.map((note, i) => (
+                <div key={i}>
+                  <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">
+                    {note.title}
+                  </p>
+                  <p className="text-caption leading-snug mt-0.5" style={{ color: 'var(--ink)' }}>
+                    {note.description}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
-        )}
-      </div>
-
-      <div className="border-t border-[var(--hairline)]" />
+          <div className="border-t border-[var(--hairline)]" />
+        </>
+      )}
 
       <div>
         <DomainKicker>{t('thinkingMotivation.kickerMotivation')}</DomainKicker>

@@ -385,23 +385,26 @@
   border-radius: 9999px;
   background: color-mix(in srgb, var(--muted, var(--text-muted)) 35%, transparent);
 }
+/* Все кадры лежат в одной ячейке сетки, и высота сцены — всегда высота
+   самого высокого из них. Раньше в потоке стоял только активный кадр, а
+   остальные были absolute: маскоты у кадров разных пропорций, кадр
+   «Результаты» на ~3px выше, и каждые 2,8с вся страница ниже демо
+   подпрыгивала вверх-вниз. */
 .landing-demo-stage {
-  position: relative;
+  display: grid;
   min-height: 220px;
   padding: 1.25rem 1.35rem 1.5rem;
 }
 .landing-demo-frame {
+  grid-area: 1 / 1;
   transition: opacity 380ms ease, transform 380ms ease;
 }
 .landing-demo-frame--idle {
-  position: absolute;
-  inset: 1.25rem 1.35rem 1.5rem;
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
 }
 .landing-demo-frame--active {
-  position: relative;
   opacity: 1;
   transform: translateY(0);
 }
@@ -457,7 +460,8 @@
     transition-duration: 0.01ms !important;
   }
   .landing .pv-window::after { display: none; }
-  .landing-demo-frame { opacity: 1; transform: none; position: relative; inset: auto; }
-  .landing-demo-frame:not(.landing-demo-frame--active) { display: none; }
+  .landing-demo-frame { opacity: 1; transform: none; }
+  /* visibility, а не display: кадр остаётся в сетке и держит высоту сцены. */
+  .landing-demo-frame:not(.landing-demo-frame--active) { visibility: hidden; }
 }
 

@@ -1,6 +1,9 @@
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
 
+export { ConfirmDialog } from './ConfirmDialog';
+export type { ConfirmDialogProps } from './ConfirmDialog';
+
 export { Input } from './Input';
 export type { InputProps } from './Input';
 
@@ -12,6 +15,8 @@ export { LazyMedia } from './LazyMedia';
 export { ProgressBar } from './ProgressBar';
 export type { ProgressBarProps, ProgressBarVariant } from './ProgressBar';
 
+export { PointAllocator } from './PointAllocator';
+export type { PointAllocatorProps, PointAllocatorItem } from './PointAllocator';
 export { Spine } from './Spine';
 export type { SpineProps, SpineNode, SpineNodeStatus, SpineSegmentStyle } from './Spine';
 
@@ -25,6 +30,7 @@ export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant } from './Badge';
 
 export { ThemeToggle } from './ThemeToggle';
+export { FullScreenPreferences } from './FullScreenPreferences';
 export type { ThemeToggleProps } from './ThemeToggle';
 
 export { Spinner } from './Spinner';
@@ -40,7 +46,6 @@ export { FavoriteStar } from './FavoriteStar';
 export { UniversityRankBadges } from './UniversityRankBadges';
 export { LanguageSwitcher } from './LanguageSwitcher';
 export type { LanguageSwitcherProps } from './LanguageSwitcher';
-export { PageStub } from './PageStub';
 export { PageContainer } from './PageContainer';
 export { PageHeader } from './PageHeader';
 export { BackLink } from './BackLink';
@@ -49,6 +54,8 @@ export type { JourneyEmptyStateProps } from './JourneyEmptyState';
 export { SectionHeading } from './SectionHeading';
 export { Heading, Text, Mono, typeClass } from './typography';
 export type { HeadingLevel, TextVariant, MonoVariant, TypeRole } from './typography';
+export { PsychoEmotionalInterpretation } from './PsychoEmotionalInterpretation';
+export type { PsychoEmotionalInterpretationProps } from './PsychoEmotionalInterpretation';
 export { AppLayout } from './layouts/AppLayout';
 export { AuthLayout } from './layouts/AuthLayout';
 export { TopRail } from './navigation/TopRail';

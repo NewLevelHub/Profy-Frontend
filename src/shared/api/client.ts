@@ -52,3 +52,15 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+/**
+ * `error_code` from an AppError response (`{detail, error_code}` — see the
+ * backend's main.py handler), or null for anything else: a plain
+ * HTTPException, a network failure, a thrown Error.
+ *
+ * The code is what a screen should branch on, never the ru `detail` text.
+ */
+export function apiErrorCode(error: unknown): string | null {
+  const code = (error as { response?: { data?: { error_code?: unknown } } })?.response?.data?.error_code;
+  return typeof code === 'string' ? code : null;
+}

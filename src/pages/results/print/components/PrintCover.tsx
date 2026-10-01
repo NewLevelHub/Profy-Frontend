@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
-import { AGE_GROUP_LABELS } from '@/shared/config/constants';
 import { formatDate } from '@/shared/i18n/format';
 import type { ProfileResponse } from '@/shared/types';
 
@@ -23,7 +22,7 @@ export function PrintCover({ profile, subtitle, createdAt }: PrintCoverProps) {
   const dateLabel = Number.isNaN(date.getTime()) ? '' : formatDate(date);
   const meta = [
     profile?.name,
-    profile?.age_group ? t(AGE_GROUP_LABELS[profile.age_group]) : null,
+    profile?.age != null ? t('common:ageYears', { count: profile.age }) : null,
     profile?.city,
   ].filter(Boolean).join(' · ');
 

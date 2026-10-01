@@ -11,9 +11,8 @@ interface PrintNoteListProps {
 
 /**
  * Title + description rows (strengths, thinking style). No icons: the
- * on-screen icons for these are explicitly decorative (STRENGTH_ICONS
- * cycles for variety, it carries no meaning), and decoration that survives
- * into a PDF only costs ink.
+ * on-screen icons for these are decoration or a restatement of the tag, and
+ * decoration that survives into a PDF only costs ink.
  */
 export function PrintNoteList({ items, emptyText }: PrintNoteListProps) {
   if (items.length === 0) {

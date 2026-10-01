@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
 import { cn } from '@/shared/lib/cn';
-import { Button, Spinner } from '@/shared/ui';
+import { Button, FullScreenPreferences, Spinner } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { type as typeClass } from '@/shared/ui/typography/tokens';
@@ -202,6 +202,11 @@ export default function GoalSelectionPage() {
       />
 
       <div className="min-h-screen bg-page flex flex-col">
+        <div className="px-3 pt-4 sm:px-4 lg:px-6">
+          <div className="w-full max-w-7xl mx-auto">
+            <FullScreenPreferences />
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
           <div className="w-full max-w-7xl mx-auto flex flex-col">
 
@@ -248,7 +253,9 @@ export default function GoalSelectionPage() {
                         background: isHovered ? 'color-mix(in srgb, var(--brand) 6%, var(--bg-surface))' : 'var(--bg-surface)',
                         borderRadius: 'var(--radius)',
                         border: isHovered ? '1px solid var(--brand)' : '1px solid var(--border)',
-                        boxShadow: isHovered ? '0 18px 40px rgba(91, 71, 255, 0.12)' : 'none',
+                        boxShadow: isHovered
+                          ? '0 18px 40px color-mix(in srgb, var(--midnight) 8%, transparent)'
+                          : 'none',
                       }}
                     >
                       <div className="flex items-center">

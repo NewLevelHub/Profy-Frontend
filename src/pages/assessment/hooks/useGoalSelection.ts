@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { usePsychoColorRunStore } from '@/shared/store/psychoemotional';
+import { useResultStore } from '@/shared/store/result';
 import { useAuthStore } from '@/shared/store/auth';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import type { AssessmentGoal } from '@/shared/types';
@@ -11,7 +13,17 @@ import type { AxiosError } from 'axios';
 
 export function useGoalGuard() {
   const syncDone = useAssessmentStore(s => s.syncDone);
-  const hasCompletedAssessment = useAssessmentStore(s => s.hasCompletedAssessment);
+  const hasCompletedAssessmentFlag = useAssessmentStore(s => s.hasCompletedAssessment);
+  const answeredCount = useAssessmentStore(s => s.answeredCount);
+  const totalQuestions = useAssessmentStore(s => s.totalQuestions);
+  const motivationAnsweredCount = useAssessmentStore(s => s.motivationAnsweredCount);
+  const motivationTotal = useAssessmentStore(s => s.motivationTotal);
+  // Cross-checked against live progress counters — see useFinishedAssessmentGuard
+  // for why the raw flag alone can't be trusted.
+  const hasCompletedAssessment =
+    hasCompletedAssessmentFlag &&
+    totalQuestions > 0 && answeredCount >= totalQuestions &&
+    motivationTotal > 0 && motivationAnsweredCount >= motivationTotal;
   // Redirect to results if user already has completed assessment (guard fires from store)
   const shouldRedirect = syncDone && hasCompletedAssessment;
   return { syncDone, shouldRedirect };
@@ -24,6 +36,8 @@ export function useGoalSelection() {
   const fromRestart = !!(location.state as { fromRestart?: boolean } | null)?.fromRestart;
   const setAssessment = useAssessmentStore(s => s.setAssessment);
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
+  const resetPsychoColorRun = usePsychoColorRunStore(s => s.reset);
+  const clearReport = useResultStore(s => s.clearReport);
   // Экран вне RequireProfile: без запроса профиля восьмилетний после F5
   // читал бы формулировки для средней школы.
   const { profile } = useEnsureProfile();
@@ -50,17 +64,23 @@ export function useGoalSelection() {
     }
   }, [isCheckingCurrent, current, fromRestart]);
 
-  // `current` (queried above) reflects whatever assessment record exists
-  // *before* this start call — null only when the user has never started
-  // one before, ever. Captured in a ref at click time (not read inside
-  // onSuccess) so it can't go stale between the click and the mutation
-  // resolving.
+  // Captured in a ref at click time (not read inside onSuccess) so it can't
+  // go stale between the click and the mutation resolving. Same for the
+  // NotStarted skip flag — location.state is cleared on navigate away.
   const wasFirstEverRef = useRef(false);
+  const fromNotStartedRef = useRef(false);
 
   const startMutation = useMutation({
     mutationFn: (goal: AssessmentGoal) => assessmentApi.start(goal),
     onSuccess: (assessment) => {
       resetAssessment();
+      // A brand-new assessment (new goal pick) starts its own circle 1 —
+      // drop any leftover pending run from an abandoned previous attempt.
+      resetPsychoColorRun();
+      // Drop the previous attempt's report — otherwise /results keeps showing
+      // it while the new one is pending_review (PRO-337), because useResults
+      // only re-fetches when the stored locale mismatches.
+      clearReport();
       setAssessment(
         assessment.id,
         assessment.goal,
@@ -69,18 +89,20 @@ export function useGoalSelection() {
         assessment.motivation_answered_count,
         assessment.motivation_total,
       );
-      // Junior answers MI as plain Likert now (product override — ipsative
-      // pair choices between unrelated MI categories made an already-weak
-      // construct less reliable) woven with Big Five pair cards, same mixed
-      // flow middle already uses — see buildDisplaySequence.ts.
-      // First-ever attempt gets the "how this works" intro screen once;
-      // every retake/resume goes straight into the quiz.
-      navigate(wasFirstEverRef.current ? '/welcome' : '/assessment');
+      // First-ever attempt gets the "how this works" intro (/welcome) once —
+      // unless the student just came from AssessmentNotStartedCard, which is the
+      // same journey-shell intro (PRO-416). Retakes/resumes go straight in.
+      // Either way, psychoemotional circle 1 comes before the main battery.
+      const showWelcome = wasFirstEverRef.current && !fromNotStartedRef.current;
+      navigate(showWelcome ? '/welcome' : '/assessment/psychoemotional-start');
     },
   });
 
   function handleGoalSelect(goal: AssessmentGoal) {
     wasFirstEverRef.current = current === null;
+    fromNotStartedRef.current = !!(
+      location.state as { fromNotStarted?: boolean } | null
+    )?.fromNotStarted;
     startMutation.mutate(goal);
   }
 
@@ -97,7 +119,9 @@ export function useGoalSelection() {
         current.motivation_answered_count,
         current.motivation_total,
       );
-      navigate('/assessment');
+      // Routes through the same circle-1 gate as a fresh start — it skips
+      // straight to /assessment on its own if this attempt already did it.
+      navigate('/assessment/psychoemotional-start');
     }
   }
 
