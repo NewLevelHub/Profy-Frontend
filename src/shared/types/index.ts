@@ -700,9 +700,41 @@ export interface PsychoEmotionalSection {
   vk_level: PsychoVkLevel;
   structural?: PsychoEmotionalStructural;
   black_first: boolean;
+  interpretation: PsychoEmotionalInterpretation;
 }
 
 export type PsychEmotionalSection = PsychoEmotionalSection;
+
+/** PRO-448 — specialist-facing text interpretation, already in the viewer's
+ *  locale (texts come from the backend catalog, not from i18n here). */
+export interface PsychoEmotionalHighlight {
+  key: string;
+  text: string;
+  /** Position depth controls ordering only; it is not a risk or probability score. */
+  position_depth: 1 | 2 | 3;
+}
+
+export interface PsychoEmotionalIndexNote {
+  metric: 'anxiety' | 'so' | 'vk';
+  level: string;
+  text: string;
+}
+
+/** `plus_minus` — descriptive contrast: [first, last] colour of choice 2. */
+export type PsychoPositionSign = PsychoFunctionalSign | 'plus_minus';
+
+export interface PsychoEmotionalPositionNote {
+  sign: PsychoPositionSign;
+  colors: number[];
+  text: string;
+}
+
+export interface PsychoEmotionalInterpretation {
+  reading: string[];
+  highlights: PsychoEmotionalHighlight[];
+  indices: PsychoEmotionalIndexNote[];
+  positions: PsychoEmotionalPositionNote[];
+}
 
 interface ResultResponseBase {
   report_version: 2;
