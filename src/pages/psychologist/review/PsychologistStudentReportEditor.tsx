@@ -8,7 +8,6 @@ import type { ReportReview } from '../hooks/useReportReview';
 import { ReviewBlock } from './components/ReviewBlock';
 import { ReviewCardsEditor } from './components/ReviewCardsEditor';
 import { ReviewCareersEditor } from './components/ReviewCareersEditor';
-import { ReviewPersonalityNotesEditor } from './components/ReviewPersonalityNotesEditor';
 import { ReviewStringListEditor } from './components/ReviewStringListEditor';
 import { ReviewTextField } from './components/ReviewTextField';
 
@@ -112,31 +111,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         />
       </ReviewBlock>
 
-      <ReviewBlock
-        number={4}
-        title={t('review.blocks.traits.title')}
-        hint={t('review.blocks.traits.hint')}
-        edited={edited('personality_notes')}
-      >
-        <ReviewPersonalityNotesEditor
-          notes={draft.personality_notes}
-          bigFive={detail.big_five}
-          onChange={(value) => update('personality_notes', value)}
-          disabled={locked}
-        />
-      </ReviewBlock>
-
-      <ReviewBlock number={5} title={t('review.blocks.thinking.title')} edited={edited('thinking_style_notes')}>
-        <ReviewCardsEditor
-          cards={draft.thinking_style_notes}
-          onChange={(value) => update('thinking_style_notes', value)}
-          disabled={locked}
-          addLabel={t('review.blocks.thinking.add')}
-          section={t('review.blocks.thinking.title')}
-        />
-      </ReviewBlock>
-
-      <ReviewBlock number={6} title={t('review.blocks.motivation.title')} edited={edited('motivation_highlights')}>
+      <ReviewBlock number={4} title={t('review.blocks.motivation.title')} edited={edited('motivation_highlights')}>
         <ReviewStringListEditor
           items={draft.motivation_highlights}
           onChange={(value) => update('motivation_highlights', value)}
@@ -145,7 +120,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         />
       </ReviewBlock>
 
-      <ReviewBlock number={7} title={t('review.blocks.final.title')} edited={edited('final_analysis')}>
+      <ReviewBlock number={5} title={t('review.blocks.final.title')} edited={edited('final_analysis')}>
         <ReviewTextField
           label={t('review.blocks.final.title')}
           value={draft.final_analysis}
