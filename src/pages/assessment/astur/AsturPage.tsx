@@ -14,7 +14,6 @@ import { SubtestRunner } from './components/SubtestRunner';
 import { LabilityRunner } from './components/LabilityRunner';
 import { AsturDone } from './components/AsturDone';
 import { AsturCompleted } from './components/AsturCompleted';
-import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 
@@ -43,7 +42,6 @@ export default function AsturPage() {
     runId,
     completedAt,
     showCompleted,
-    isRetake,
     subtest,
     subtestStartedAt,
     subtestIndex,
@@ -53,22 +51,17 @@ export default function AsturPage() {
     labilityItemLimitMs,
     maxMinutes,
     exitConfirmOpen,
-    retakeConfirmOpen,
-    retaking,
     beginSubtest,
     completeSubtest,
     handleAutofill,
     handleExit,
     confirmExit,
     cancelExit,
-    openRetakeConfirm,
-    cancelRetake,
-    confirmRetake,
     submitting,
     submitError,
   } = useAsturAssessment(effectiveAssessmentId);
 
-  // One-time "let's begin" moment per attempt (a retake gets it again).
+  // One-time "let's begin" moment per attempt.
   const introScope = runId ?? effectiveAssessmentId;
   const [seenScopes, setSeenScopes] = useState<Set<string>>(() => new Set());
   const blockIntroSeen = seenScopes.has(introScope) || readIntroSeen(introScope);
@@ -83,8 +76,8 @@ export default function AsturPage() {
   }
 
   const handleDoneContinue = useCallback(() => {
-    navigate(isRetake ? '/results' : afterBatteryRoute(effectiveAssessmentId));
-  }, [navigate, isRetake, effectiveAssessmentId]);
+    navigate(afterBatteryRoute(effectiveAssessmentId));
+  }, [navigate, effectiveAssessmentId]);
 
   const ready = !isLoading && !loadError;
   const running = ready && !showCompleted && !allDone && subtest;
@@ -108,16 +101,6 @@ export default function AsturPage() {
   return (
     <div className="flex flex-col min-h-screen bg-page">
       <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
-      <ConfirmDialog
-        open={retakeConfirmOpen}
-        title={t('astur.retake.confirmTitle')}
-        body={t('astur.retake.confirmBody')}
-        confirmLabel={retaking ? t('astur.retake.starting') : t('astur.retake.confirm')}
-        cancelLabel={t('astur.retake.cancel')}
-        confirming={retaking}
-        onConfirm={confirmRetake}
-        onCancel={cancelRetake}
-      />
 
       {running && (
         <AssessmentRail
@@ -176,7 +159,7 @@ export default function AsturPage() {
           )}
 
           {ready && showCompleted && (
-            <AsturCompleted completedAt={completedAt} onContinue={() => navigate('/results')} onRetake={openRetakeConfirm} />
+            <AsturCompleted completedAt={completedAt} onContinue={() => navigate('/results')} />
           )}
 
           {running && stepPhase === 'running' && subtest.key === 'lability' && (
@@ -201,7 +184,7 @@ export default function AsturPage() {
             />
           )}
 
-          {ready && allDone && <AsturDone isRetake={isRetake} onContinue={handleDoneContinue} />}
+          {ready && allDone && <AsturDone onContinue={handleDoneContinue} />}
         </PageContainer>
       )}
     </div>

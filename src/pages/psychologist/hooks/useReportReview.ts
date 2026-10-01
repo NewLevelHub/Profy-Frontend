@@ -126,7 +126,7 @@ export function useReportReview(studentId: string, assessmentId: string) {
     onSuccess: (updated, submitted) => afterWrite(updated, submitted),
   });
 
-  // PRO-432: after a Belbin/АСТУР retake the backend flags the strength
+  // PRO-432: after a Belbin retake the backend flags the strength
   // cards as stale; rebuilding replaces them from the current results.
   const rebuild = useMutation({
     mutationFn: async (_submitted: ReviewDraft) => {

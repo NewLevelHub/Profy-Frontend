@@ -399,9 +399,8 @@ export interface AsturRunSummary {
   subtest_started_at: Partial<Record<AsturSubtestKey, string>>;
 }
 
-/** `in_progress` = an attempt is open (resume it); `completed` = a finished
- *  attempt exists and none is open. The two runs are reported separately so
- *  an open retake never hides the finished result. */
+/** `in_progress` = an attempt is open (resume it); `completed` = the
+ *  attempt is finished and can't be reopened. */
 export interface AsturState {
   status: 'not_started' | 'in_progress' | 'completed';
   active_run: AsturRunSummary | null;
@@ -1542,7 +1541,7 @@ export interface AsturAttemptHistory {
 
 /** The frozen result of one completed АСТУР attempt (admin view carries
  *  per-item scores too). */
-export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id' | 'retake_in_progress'> & {
+export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id'> & {
   item_scores: Record<string, number>;
   item_status: Record<string, 'correct' | 'partial' | 'wrong' | 'skipped' | 'unanswered'>;
 };
@@ -1551,7 +1550,6 @@ export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id' | 'retake_i
  *  frozen result. Percent of tasks done, not an IQ or a norm. */
 export interface IntelligenceSection {
   run_id: string;
-  retake_in_progress: boolean;
   scoring_version: string;
   bank_version: number;
   legacy: boolean;

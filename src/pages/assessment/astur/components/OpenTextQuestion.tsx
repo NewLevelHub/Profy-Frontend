@@ -20,7 +20,7 @@ export function OpenTextQuestion({ index, pair, value, onChange }: OpenTextQuest
         onChange={(e) => onChange(e.target.value)}
         placeholder={t('astur.generalizationPlaceholder')}
         // Keyboard prediction/autocorrect stay on (a short phrase typed on a
-        // phone), but the browser's own form history is off: on a retake it
+        // phone), but the browser's own form history is off: on a later attempt it
         // would offer the student their previous answers (PRO-427 §16).
         autoComplete="off"
         inputMode="text"

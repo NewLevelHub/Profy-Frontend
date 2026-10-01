@@ -11,8 +11,8 @@ import { asturMaxMinutes } from '@/pages/assessment/astur/utils/asturDuration';
 type StepPhase = 'instruction' | 'running';
 type SubtestSubmit = Omit<SubmitAsturSubtestPayload, 'run_id'>;
 
-export const asturStateQueryKey = (assessmentId: string) => ['asturState', assessmentId] as const;
-export const asturAttemptQueryKey = (assessmentId: string) => ['asturAttempt', assessmentId] as const;
+const asturStateQueryKey = (assessmentId: string) => ['asturState', assessmentId] as const;
+const asturAttemptQueryKey = (assessmentId: string) => ['asturAttempt', assessmentId] as const;
 
 function clientTimezone(): string | undefined {
   try {
@@ -30,7 +30,7 @@ function clientTimezone(): string | undefined {
  * mid-attempt doesn't swap them. Every start/submit names the attempt
  * (`run_id`). Progress comes from the server (`submitted_subtests`), so a
  * reload or another device resumes exactly where the attempt stands. A
- * finished attempt is never extended — «Пройти заново» opens a new one.
+ * finished attempt is never extended or reopened.
  */
 export function useAsturAssessment(assessmentId: string) {
   const navigate = useNavigate();
@@ -60,13 +60,6 @@ export function useAsturAssessment(assessmentId: string) {
   const runId = attempt?.run.run_id ?? null;
   const content = attempt?.content;
 
-  // Judged once, on the first state load — the first attempt finishing in
-  // this session must not turn itself into a "retake".
-  const [isRetake, setIsRetake] = useState<boolean | null>(null);
-  useEffect(() => {
-    if (stateQuery.data && isRetake === null) setIsRetake(!!stateQuery.data.latest_completed_run);
-  }, [stateQuery.data, isRetake]);
-
   const [justSubmitted, setJustSubmitted] = useState<Set<AsturSubtestKey>>(new Set());
   const [finished, setFinished] = useState(false);
   const [stepPhase, setStepPhase] = useState<StepPhase>('instruction');
@@ -75,8 +68,6 @@ export function useAsturAssessment(assessmentId: string) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [localStartedAt, setLocalStartedAt] = useState<Partial<Record<AsturSubtestKey, string>>>({});
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
-  const [retakeConfirmOpen, setRetakeConfirmOpen] = useState(false);
-  const [retaking, setRetaking] = useState(false);
 
   const submitted = useMemo(
     () => new Set<AsturSubtestKey>([...(attempt?.run.submitted_subtests ?? []), ...justSubmitted]),
@@ -150,25 +141,6 @@ export function useAsturAssessment(assessmentId: string) {
     }
   }
 
-  async function confirmRetake() {
-    setRetaking(true);
-    try {
-      const opened = await asturApi.openAttempt(assessmentId, true);
-      queryClient.setQueryData(asturAttemptQueryKey(assessmentId), opened);
-      setJustSubmitted(new Set());
-      setLocalStartedAt({});
-      setFinished(false);
-      setIsRetake(true);
-      setStepPhase('instruction');
-      await queryClient.invalidateQueries({ queryKey: asturStateQueryKey(assessmentId) });
-      setRetakeConfirmOpen(false);
-    } catch {
-      setSubmitError(t('astur.submitError'));
-    } finally {
-      setRetaking(false);
-    }
-  }
-
   async function handleAutofill() {
     if (!content || !runId || submitting) return;
     setSubmitting(true);
@@ -191,7 +163,6 @@ export function useAsturAssessment(assessmentId: string) {
     runId,
     completedAt: stateQuery.data?.latest_completed_run?.completed_at ?? null,
     showCompleted,
-    isRetake: !!isRetake,
     subtest,
     subtestStartedAt,
     subtestIndex: subtestIndex === -1 ? subtestCount : subtestIndex,
@@ -201,8 +172,6 @@ export function useAsturAssessment(assessmentId: string) {
     labilityItemLimitMs,
     maxMinutes: asturMaxMinutes(subtests, labilityItemLimitMs),
     exitConfirmOpen,
-    retakeConfirmOpen,
-    retaking,
     starting,
     beginSubtest,
     completeSubtest,
@@ -215,9 +184,6 @@ export function useAsturAssessment(assessmentId: string) {
       navigate('/results');
     },
     cancelExit: () => setExitConfirmOpen(false),
-    openRetakeConfirm: () => setRetakeConfirmOpen(true),
-    cancelRetake: () => setRetakeConfirmOpen(false),
-    confirmRetake,
     submitting,
     submitError,
   };
