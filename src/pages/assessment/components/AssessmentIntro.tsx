@@ -1,4 +1,4 @@
-import { Clock, FileText } from 'lucide-react';
+import { Clock, FileText, Timer } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
@@ -15,6 +15,10 @@ export interface AssessmentIntroProps {
   itemCountLabel: string;
   /** Already localized, e.g. "6 мин.". Omit / empty to hide the clock row. */
   durationLabel?: string;
+  /** Already localized. A hard rule the student must know before pressing
+   *  start — e.g. АСТУР's time limit (PRO-440) — shown as a highlighted line
+   *  above the button. The clock row only estimates; this one is binding. */
+  notice?: string;
   ctaLabel: string;
   onStart: () => void;
   secondaryCtaLabel?: string;
@@ -39,6 +43,7 @@ export function AssessmentIntro({
   subtitle,
   itemCountLabel,
   durationLabel,
+  notice,
   ctaLabel,
   onStart,
   secondaryCtaLabel,
@@ -87,6 +92,19 @@ export function AssessmentIntro({
             </>
           )}
         </div>
+
+        {notice && (
+          <p
+            className={cn(
+              typeClass.bodySm,
+              'm-0 flex max-w-[34rem] items-start gap-2 rounded-[12px] px-4 py-3 text-left font-semibold',
+              'bg-[color:var(--warning-bg)] text-[color:var(--dawn-deep)]',
+            )}
+          >
+            <Timer size={18} strokeWidth={2} aria-hidden="true" className="mt-[2px] shrink-0" />
+            <span>{notice}</span>
+          </p>
+        )}
 
         <div className="flex w-full flex-col items-center gap-2">
           <Button

@@ -71,7 +71,7 @@
     "taskCount_other": "{{count}} заданий",
     "durationMin": "~{{count}} мин",
     "durationExactMin": "{{count}} мин.",
-    "duration2min": "~2 мин",
+    "durationUpToMin": "до {{count}} мин",
     "diagnostic": {
       "kicker": "Диагностика",
       "title": "Узнаем твои склонности",
@@ -79,7 +79,7 @@
       "cta": "Начать тест"
     },
     "motivationTriplet": {
-      "kicker": "Последний блок",
+      "kicker": "Новый этап",
       "title": "Что тебя драйвит",
       "subtitle": "В каждом вопросе расставь варианты по приоритету — от самого важного до наименее важного",
       "cta": "Начать"
@@ -162,6 +162,8 @@
     "poleRight": "Точно моё",
     "poleLeftAbilities": "Совсем не выражено",
     "poleRightAbilities": "Ярко выражено",
+    "poleLeftAnxiety": "Совсем не тревожит",
+    "poleRightAnxiety": "Очень тревожит",
     "valueOfFive": "{{value}} из 5"
   },
   "priority": {
@@ -338,7 +340,15 @@
       "skipConfirmTitle_other": "Пропущено {{count}} заданий. Отправить раздел?",
       "skipConfirmBody": "Пропущенные задания засчитаются как пропуски. Вернуться к ним после отправки будет нельзя.",
       "skipConfirm": "Отправить",
-      "skipCancel": "Вернуться к заданиям"
+      "skipCancel": "Вернуться к заданиям",
+      "timeLimitNotice": "На этот раздел даётся {{count}} мин. Таймер запустится, как только нажмёшь «Начать», и не остановится",
+      "labilityLimitNotice_one": "На каждое задание — {{count}} секунда",
+      "labilityLimitNotice_few": "На каждое задание — {{count}} секунды",
+      "labilityLimitNotice_many": "На каждое задание — {{count}} секунд",
+      "labilityLimitNotice_other": "На каждое задание — {{count}} секунды",
+      "showInstruction": "Показать инструкцию",
+      "hideInstruction": "Скрыть инструкцию",
+      "instructionTimerNote": "Время продолжает идти"
     },
     "subtestOf": "Субтест {{index}} из {{count}}",
     "tasksCount": "{{count}} заданий",

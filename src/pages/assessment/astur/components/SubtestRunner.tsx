@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { cn } from '@/shared/lib/cn';
@@ -144,6 +144,10 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
   const [timeUp, setTimeUp] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [confirmSkipsOpen, setConfirmSkipsOpen] = useState(false);
+  // PRO-438: the instruction stays reachable after the start — "Назад" on the
+  // first page can't lead back to the intro card once the timer runs.
+  const [instructionOpen, setInstructionOpen] = useState(false);
+  const instructionId = useId();
   const submittedRef = useRef(false);
 
   const pageSize = pageSizeFor(subtest);
@@ -154,6 +158,7 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
     setPageIndex(0);
     setTimeUp(false);
     setConfirmSkipsOpen(false);
+    setInstructionOpen(false);
     submittedRef.current = false;
     setState(initialState(subtest));
   }, [subtest.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -234,6 +239,32 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
             sticky
           />
         )}
+
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => setInstructionOpen((open) => !open)}
+            aria-expanded={instructionOpen}
+            aria-controls={instructionId}
+            className="self-start text-body-sm font-medium text-brand underline underline-offset-4 hover:opacity-70"
+          >
+            {instructionOpen ? t('astur.subtest.hideInstruction') : t('astur.subtest.showInstruction')}
+          </button>
+          {instructionOpen && (
+            <div id={instructionId} className="rounded-[12px] border border-default px-4 py-3">
+              <Text variant="body-md" className="m-0 text-secondary whitespace-pre-wrap">
+                {subtest.instruction}
+              </Text>
+              {/* The countdown runs off the server's startedAt (useCountdown) —
+                  opening the instruction neither pauses nor restarts it. */}
+              {durationMs !== null && (
+                <Text variant="caption" className="mt-2 mb-0 text-muted">
+                  {t('astur.subtest.instructionTimerNote')}
+                </Text>
+              )}
+            </div>
+          )}
+        </div>
 
         {pageCount > 1 && (
           <Text variant="caption" className={cn(isGeometry ? 'font-semibold text-secondary' : 'text-muted')}>

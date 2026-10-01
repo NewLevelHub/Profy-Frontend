@@ -217,6 +217,8 @@ export function useMotivationAssessment() {
           };
         }),
       });
+      // Same store update as a hand-given answer — the rail reads it (PRO-439).
+      useAssessmentStore.getState().setMotivationProgress(response.answered_count, response.total);
       navigate(`/assessment/belbin/${assessmentId}`);
     } catch {
       setError(t('assessment:error.autofill'));

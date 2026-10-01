@@ -51,6 +51,7 @@ export default function AsturPage() {
     stepPhase,
     allDone,
     labilityItemLimitMs,
+    maxMinutes,
     exitConfirmOpen,
     retakeConfirmOpen,
     retaking,
@@ -91,13 +92,11 @@ export default function AsturPage() {
     ? t('rail.subtestOf', { current: Math.min(subtestIndex + 1, subtestCount), total: subtestCount })
     : t('rail.sectionAstur');
 
+  // Submitted subtests over all of them, from the server — not gated on the
+  // block intro: that flag lives in sessionStorage, so a resume in a new tab
+  // dropped the rail back to 0% of АСТУР with subtests already done (PRO-439).
   const progress = useAssessmentJourneyProgress({
-    asturFraction:
-      allDone || showCompleted
-        ? 1
-        : !blockIntroSeen || subtestCount === 0
-          ? 0
-          : subtestIndex / subtestCount,
+    asturFraction: allDone || showCompleted ? 1 : subtestCount === 0 ? 0 : subtestIndex / subtestCount,
   });
 
   // Both start gates (block intro + per-subtest intro) are stage moments that
@@ -137,7 +136,7 @@ export default function AsturPage() {
           title={t('intro.astur.title')}
           subtitle={t('intro.astur.subtitle')}
           itemCountLabel={t('intro.astur.itemCount', { count: subtestCount })}
-          durationLabel={t('intro.durationMin', { count: Math.max(5, subtestCount * 4) })}
+          durationLabel={t('intro.durationUpToMin', { count: maxMinutes })}
           ctaLabel={t('intro.astur.cta')}
           onStart={handleStartBlockIntro}
           secondaryCtaLabel={t('intro.astur.pause')}
@@ -147,7 +146,13 @@ export default function AsturPage() {
 
       {showIntro && (subtestIndex > 0 || blockIntroSeen) && (
         <>
-          <SubtestIntro subtest={subtest} index={subtestIndex} count={subtestCount} onStart={beginSubtest} />
+          <SubtestIntro
+            subtest={subtest}
+            index={subtestIndex}
+            count={subtestCount}
+            labilityItemLimitMs={labilityItemLimitMs}
+            onStart={beginSubtest}
+          />
           {submitError && (
             <Text variant="body-sm" className="text-danger text-center pb-8">
               {submitError}

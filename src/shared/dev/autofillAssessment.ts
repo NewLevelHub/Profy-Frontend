@@ -4,6 +4,7 @@ import { pairsApi } from '@/shared/api/pairs';
 import { belbinApi } from '@/shared/api/belbin';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useAuthStore } from '@/shared/store/auth';
 import { ABILITIES_LIKERT_SCALE, KONDASH_ANXIETY_SCALE, YES_NO_SCALE } from '@/shared/config/constants';
 import type {
   AsturContentSubtest,
@@ -52,6 +53,15 @@ function shuffled<T>(items: T[]): T[] {
   return copy;
 }
 
+/** The answers above go straight to the API, past the store counters the
+ *  rail reads — without this the progress bar sits at 0% after an autofill
+ *  until something else resyncs the store (PRO-439). */
+async function syncStoreFromServer(): Promise<void> {
+  const userId = useAuthStore.getState().user?.id;
+  if (!userId) return;
+  useAssessmentStore.getState().syncFromServer(await assessmentApi.current(), userId);
+}
+
 /** Dev-only helper: answers every remaining plain Likert question (RIASEC +
  * Big Five + PRO-338's Eysenck/Elers/Boyko/Kondash/ДДО-abilities additions,
  * minus whatever's been pulled into pairs — see buildDisplaySequence.ts)
@@ -84,6 +94,7 @@ export async function autofillMainBattery(assessmentId: string): Promise<void> {
       })),
     });
   }
+  await syncStoreFromServer();
 }
 
 /** Dev-only helper: `autofillMainBattery` plus motivation plus Belbin —
@@ -125,6 +136,7 @@ export async function autofillToAstur(assessmentId: string): Promise<void> {
   } catch {
     // Ignore if already submitted or error
   }
+  await syncStoreFromServer();
 }
 
 /** Dev-only: a shape-valid (not necessarily correct) АСТУР answer per item. */

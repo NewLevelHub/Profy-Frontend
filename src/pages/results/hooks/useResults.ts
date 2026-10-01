@@ -165,9 +165,11 @@ export function useResults() {
   // The whole test is 4 phases (Likert+pairs -> motivation -> Belbin ->
   // АСТУР — see assessment_shared.try_complete_assessment on the backend for
   // the matching definition), not just the Likert block. Progress on the
-  // in-progress card is the monotonic journey percentage (each phase 25%)
-  // so mid-diagnostic no longer reads as a stuck 0%, and finishing Likert
-  // alone no longer reads as 100%/done.
+  // in-progress card is the monotonic journey percentage (phases weighted by
+  // their expected minutes, see journeyProgressPercent) so mid-diagnostic no
+  // longer reads as a stuck 0%, and finishing Likert alone no longer reads as
+  // 100%/done. АСТУР counts here only once completed — the server reports no
+  // per-subtest progress to this card.
   const likertDone = totalQuestions > 0 && answeredCount >= totalQuestions;
   const motivationDone = motivationTotal > 0 && motivationAnsweredCount >= motivationTotal;
   const completedPhaseCount = [likertDone, motivationDone, belbinCompleted, asturCompleted].filter(Boolean).length;

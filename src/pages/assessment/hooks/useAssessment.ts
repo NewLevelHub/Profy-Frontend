@@ -12,7 +12,7 @@ import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
-import { buildPages, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
+import { buildPages, isFirstPageOfInstrument, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
 import type { Instrument } from '@/shared/types';
 
@@ -63,8 +63,9 @@ function pairAnswersStorageKey(assessmentId: string) {
 // page sequence (buildDisplaySequence/buildPages), not separate routes per
 // instrument, so there is no natural "have I been here before" signal other
 // than this: a fresh forward crossing into an instrument that has never
-// shown its own intro gets one; revisiting it (Назад/Вперёд within the same
-// session) never shows it twice.
+// shown its own intro gets one. Coming back to it on purpose ("Назад" from
+// its first page, or forward again after leaving it) reopens it through
+// `reopenedIntro` instead (PRO-438).
 function instrumentIntroSeenKey(assessmentId: string, instrument: Instrument) {
   return `profy-assessment-test-intro-seen:${assessmentId}:${instrument}`;
 }
@@ -110,6 +111,10 @@ export function useAssessment() {
   // sessionStorage writes alone don't trigger a re-render, so dismissing a
   // test-intro (markInstrumentIntroSeen below) also bumps this set.
   const [seenInstruments, setSeenInstruments] = useState<Set<Instrument>>(new Set());
+  // PRO-438: a test's intro card brought back after it was already dismissed
+  // — "Назад" from the test's first page, or a forward step into a test the
+  // student had already started. Wins over the seen-once rule below.
+  const [reopenedIntro, setReopenedIntro] = useState<Instrument | null>(null);
 
   const startIndexApplied = useRef(false);
   // Reset whenever the current page changes (see the effect below) —
@@ -159,18 +164,27 @@ export function useAssessment() {
             startIndex = i;
           }
           setPageIndex(startIndex);
-          // The instrument the student is about to land on (fresh start:
-          // the very first one, covered by the generic intro below; resume:
-          // whichever one they were already mid-way through) never gets its
-          // own test-intro card — only a genuine forward crossing into a
-          // new, not-yet-visited instrument does (see testIntroInstrument).
+          // The instrument the student is about to land on skips its own
+          // test-intro card when it's the very first one (covered by the
+          // generic intro below) or one they were already mid-way through.
+          // Landing exactly on a later test's first page (a rest stop or a
+          // resume right at the boundary) still shows that test's card —
+          // otherwise its instruction was skipped entirely (PRO-438).
           const startPage = built[startIndex];
-          if (startPage) {
+          if (startPage && (startIndex === 0 || !isFirstPageOfInstrument(built, startIndex))) {
             const startInstrument = pageInstrument(startPage);
             if (typeof sessionStorage !== 'undefined') {
               sessionStorage.setItem(instrumentIntroSeenKey(assessmentId!, startInstrument), '1');
             }
             setSeenInstruments(prev => new Set(prev).add(startInstrument));
+          }
+          // Tests before the landing page are already behind the student —
+          // "Назад" into one of them lands on its pages, not on its card.
+          // Without this, a remount (rest stop) forgot them and going back
+          // popped the previous test's card (PRO-438).
+          const passedInstruments = built.slice(0, startIndex).map(pageInstrument);
+          if (passedInstruments.length > 0) {
+            setSeenInstruments(prev => new Set([...prev, ...passedInstruments]));
           }
           const sequenceAnswerCount = questions.length + pairs.length * 2;
           if (answeredCountFromStore >= sequenceAnswerCount) {
@@ -236,17 +250,37 @@ export function useAssessment() {
   }
 
   // Dismisses the between-tests intro card (testIntroInstrument below) —
-  // marks that instrument seen so re-entering it later this session (e.g.
-  // Назад then forward again) goes straight to its questions.
+  // marks that instrument seen and closes a reopened card (PRO-438).
   function handleStartTestIntro(instrument: Instrument) {
+    markInstrumentIntroSeen(instrument);
+    setReopenedIntro(null);
+  }
+
+  function markInstrumentIntroSeen(instrument: Instrument) {
     if (assessmentId && typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem(instrumentIntroSeenKey(assessmentId, instrument), '1');
     }
     setSeenInstruments(prev => new Set(prev).add(instrument));
   }
 
+  /**
+   * PRO-438: "Назад" steps through a test's instruction, not past it — from
+   * a test's first page it opens that test's intro card; from the card it
+   * goes to the last page of the previous test. Answers are not lost on the
+   * way: they stay in `likertAnswers` / sessionStorage.
+   */
   function handleBack() {
     if (pageIndex === 0 || transitioning || saving) return;
+    if (testIntroInstrument) {
+      markInstrumentIntroSeen(testIntroInstrument);
+      setReopenedIntro(null);
+      setPageIndex(i => i - 1);
+      return;
+    }
+    if (currentPage && isFirstPageOfInstrument(pages, pageIndex)) {
+      setReopenedIntro(pageInstrument(currentPage));
+      return;
+    }
     setPageIndex(i => i - 1);
   }
 
@@ -292,6 +326,16 @@ export function useAssessment() {
       return;
     }
 
+    // Stepping forward into a test the student already started (after going
+    // back out of it) shows its instruction again — the seen-once rule only
+    // covers the very first crossing. Applied with the page swap below, not
+    // before it, so the card doesn't replace the page mid-fade.
+    const next = pages[pageIndex + 1];
+    const reopenNext =
+      next && isFirstPageOfInstrument(pages, pageIndex + 1) && seenInstruments.has(pageInstrument(next))
+        ? pageInstrument(next)
+        : null;
+
     setTransitioning(true);
     // Matches the wrapper's `transition-opacity duration-300` in
     // AssessmentPage.tsx — firing this before the CSS fade actually finishes
@@ -299,6 +343,7 @@ export function useAssessment() {
     // visible, reading as a snap instead of a cross-fade.
     setTimeout(() => {
       setPageIndex(i => i + 1);
+      if (reopenNext) setReopenedIntro(reopenNext);
       setTransitioning(false);
       // Held true since the click, through the fade-out and the page swap —
       // releasing it earlier (e.g. right after the save request resolves,
@@ -469,7 +514,8 @@ export function useAssessment() {
   const currentPair = currentPage?.kind === 'pair' ? currentPage.pair : undefined;
   const isAdditionalTestsSection =
     currentLikertQuestions?.some(q => ADDITIONAL_TESTS_INSTRUMENTS.has(q.instrument)) ?? false;
-  // Between-tests card (post-Ф4.1 follow-up): a genuine forward crossing
+  // Between-tests card (post-Ф4.1 follow-up): a card reopened on purpose
+  // (PRO-438, see handleBack / advance), or a genuine forward crossing
   // into an instrument this session hasn't dismissed the card for yet —
   // derived straight from render state (not an effect) so there's no
   // one-frame flash of the new instrument's questions first. The very
@@ -477,9 +523,9 @@ export function useAssessment() {
   // (loadSequence) since the generic top-level AssessmentIntro already
   // covers it.
   const testIntroInstrument: Instrument | null =
-    phase === 'question' && currentPage && !seenInstruments.has(pageInstrument(currentPage))
-      ? pageInstrument(currentPage)
-      : null;
+    phase !== 'question' || !currentPage
+      ? null
+      : reopenedIntro ?? (!seenInstruments.has(pageInstrument(currentPage)) ? pageInstrument(currentPage) : null);
   const testIntroItemCount = testIntroInstrument
     ? pages.reduce((sum, p) => (pageInstrument(p) === testIntroInstrument ? sum + pageItemCount(p) : sum), 0)
     : 0;

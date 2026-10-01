@@ -67,7 +67,7 @@
     "taskCount_other": "{{count}} тапсырма",
     "durationMin": "~{{count}} мин",
     "durationExactMin": "{{count}} мин.",
-    "duration2min": "~2 мин",
+    "durationUpToMin": "{{count}} минутқа дейін",
     "diagnostic": {
       "kicker": "Диагностика",
       "title": "Бейімділіктеріңді анықтаймыз",
@@ -75,7 +75,7 @@
       "cta": "Тестті бастау"
     },
     "motivationTriplet": {
-      "kicker": "Соңғы блок",
+      "kicker": "Жаңа кезең",
       "title": "Сені не жігерлендіреді",
       "subtitle": "Әр сұрақта нұсқаларды маңыздылығы бойынша орналастыр — ең маңыздысынан ең аз маңыздысына дейін",
       "cta": "Бастау"
@@ -156,6 +156,8 @@
     "poleRight": "Нақ менікі",
     "poleLeftAbilities": "Мүлдем байқалмайды",
     "poleRightAbilities": "Айқын байқалады",
+    "poleLeftAnxiety": "Мүлдем алаңдатпайды",
+    "poleRightAnxiety": "Қатты алаңдатады",
     "valueOfFive": "{{value}} / 5"
   },
   "priority": {
@@ -330,7 +332,13 @@
       "skipConfirmTitle_other": "{{count}} тапсырма өткізіп жіберілді. Бөлімді жіберу керек пе?",
       "skipConfirmBody": "Өткізіп жіберілген тапсырмалар өткізу ретінде есептеледі. Жібергеннен кейін оларға оралу мүмкін болмайды.",
       "skipConfirm": "Жіберу",
-      "skipCancel": "Тапсырмаларға оралу"
+      "skipCancel": "Тапсырмаларға оралу",
+      "timeLimitNotice": "Бұл бөлімге {{count}} мин. беріледі. Таймер «Бастау» батырмасын басқан сәтте іске қосылады және тоқтамайды",
+      "labilityLimitNotice_one": "Әр тапсырмаға — {{count}} секунд",
+      "labilityLimitNotice_other": "Әр тапсырмаға — {{count}} секунд",
+      "showInstruction": "Нұсқаулықты көрсету",
+      "hideInstruction": "Нұсқаулықты жасыру",
+      "instructionTimerNote": "Уақыт жүріп жатыр"
     },
     "subtestOf": "{{count}} субтесттің {{index}}-шісі",
     "tasksCount": "{{count}} тапсырма",

@@ -9,6 +9,7 @@ import { LikertPage } from './components/LikertPage';
 import { PairChoice } from './components/PairChoice';
 import { ExitAssessmentModal } from './components/ExitAssessmentModal';
 import { AssessmentIntro } from './components/AssessmentIntro';
+import { ASSESSMENT_PHASE_MINUTES, SECONDS_PER_LIKERT_ITEM } from '@/shared/config/constants';
 
 export default function AssessmentPage() {
   const { t } = useTranslation('assessment');
@@ -76,7 +77,7 @@ export default function AssessmentPage() {
         sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
-        showBack={phase === 'question' && !testIntroInstrument && pageIndex > 0}
+        showBack={phase === 'question' && pageIndex > 0}
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
@@ -98,7 +99,7 @@ export default function AssessmentPage() {
             title={t('intro.diagnostic.title')}
             subtitle={t('intro.diagnostic.subtitle')}
             itemCountLabel={t('intro.itemCount', { count: totalItems })}
-            durationLabel={t('intro.durationMin', { count: Math.max(1, Math.ceil(totalItems / 20)) })}
+            durationLabel={t('intro.durationMin', { count: ASSESSMENT_PHASE_MINUTES.diagnostic })}
             ctaLabel={t('intro.diagnostic.cta')}
             onStart={handleStartIntro}
           />
@@ -110,7 +111,9 @@ export default function AssessmentPage() {
             title={t(`intro.tests.${testIntroInstrument}.title`)}
             subtitle={t(`intro.tests.${testIntroInstrument}.subtitle`)}
             itemCountLabel={t('intro.itemCount', { count: testIntroItemCount })}
-            durationLabel={t('intro.durationMin', { count: Math.max(1, Math.ceil(testIntroItemCount / 20)) })}
+            durationLabel={t('intro.durationMin', {
+              count: Math.max(1, Math.ceil((testIntroItemCount * SECONDS_PER_LIKERT_ITEM) / 60)),
+            })}
             ctaLabel={t('intro.diagnostic.cta')}
             onStart={() => handleStartTestIntro(testIntroInstrument)}
           />

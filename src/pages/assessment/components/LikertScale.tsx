@@ -9,9 +9,11 @@ interface LikertScaleProps {
   selected: number | null;
   onSelect: (value: number) => void;
   scale?: { value: number; label: string }[];
-  /** Override the flanking pole text — PRO-338 Ф1.2: the generic "Совсем не
-   * моё…Точно моё" doesn't fit professional_types_abilities' "выражено"
-   * framing. Defaults to the generic pair, unused by the 2-option branch. */
+  /** Override the flanking pole text — the generic "Совсем не моё…Точно моё"
+   * doesn't fit professional_types_abilities' "выражено" framing (PRO-338
+   * Ф1.2) nor kondash_anxiety's "тревожит" (PRO-435); see
+   * `polesForInstrument` in LikertPage. Defaults to the generic pair, unused
+   * by the 2-option branch. */
   poleLeft?: string;
   poleRight?: string;
 }
