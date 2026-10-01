@@ -5,6 +5,7 @@ import { formatDate as formatLocaleDate } from '@/shared/i18n/format';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge, type AdminBadgeTone } from '@/shared/ui/admin/AdminBadge';
+import { PsychoEmotionalInterpretation } from '@/shared/ui';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { PsychoEmotionalSection as PsychoEmotionalSectionData } from '@/shared/types';
 
@@ -31,9 +32,9 @@ function formatDate(value: string) {
 }
 
 /** PRO-282 «Психоэмоциональный тест» (МЦВ Собчик — слово «Люшер» в продукте
- *  не используется). Ф4.1 — впервые на этом фронтенде. Только сырые числа/
- *  раскладки: трактовка — целиком за специалистом (та же оговорка, что в
- *  схеме бэкенда), эта секция намеренно не подсказывает выводов. */
+ *  не используется). Ф4.1 — впервые на этом фронтенде. Сверху — текстовое
+ *  толкование-гипотезы (PRO-448, по запросу специалистов), под ним сырые
+ *  числа и раскладки. */
 export function PsychoEmotionalSection({ section }: { section?: PsychoEmotionalSectionData | null }) {
   const { t } = useTranslation('psychologist');
   if (!section) return null;
@@ -70,6 +71,8 @@ export function PsychoEmotionalSection({ section }: { section?: PsychoEmotionalS
           </p>
         </div>
       )}
+
+      <PsychoEmotionalInterpretation interpretation={section.interpretation} className="mb-4 pb-4 border-b border-default" />
 
       <div className="flex flex-col gap-2 mb-4">
         <div className="flex items-center gap-2">
@@ -166,10 +169,6 @@ export function PsychoEmotionalSection({ section }: { section?: PsychoEmotionalS
           </ul>
         </div>
       )}
-
-      <p className={cn(ADMIN_META, 'mt-3')}>
-        {t('psychoCabinet.disclaimer')}
-      </p>
     </AdminCard>
   );
 }

@@ -7,36 +7,18 @@ import { psychologistApi } from '@/shared/api/psychologist';
 import { psychologistKeys } from '@/shared/api/psychologistKeys';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
 import type { PsychologistResultDetail, PsychologistResultPatch } from '@/shared/types';
-import {
-  EDITABLE_KEYS,
-  EMPTY_DRAFT,
-  dirtyKeys,
-  reportDraftReducer,
-  toDraft,
-  visibleReviewBlocks,
-  type EditableKey,
-  type ReviewDraft,
-} from './reportReviewDraft';
+import { EDITABLE_KEYS, EMPTY_DRAFT, dirtyKeys, reportDraftReducer, toDraft, type EditableKey, type ReviewDraft } from './reportReviewDraft';
 
 export type { EditableKey, ReviewDraft } from './reportReviewDraft';
 
 function validateDraft(t: TFunction, draft: ReviewDraft): string | null {
   if (!draft.summary.trim()) return t('psychologist:review.validation.summaryEmpty');
   if (!draft.final_analysis.trim()) return t('psychologist:review.validation.finalEmpty');
-  const cardSections: [string, ReviewDraft['strength_cards']][] = [
-    [t('psychologist:review.blocks.strengths.title'), draft.strength_cards],
-    [t('psychologist:review.blocks.thinking.title'), draft.thinking_style_notes],
-  ];
-  for (const [section, cards] of cardSections) {
-    if (cards.some((card) => !card.title.trim() || !card.description.trim())) {
-      return t('psychologist:review.validation.cardEmpty', { section });
-    }
+  if (draft.strength_cards.some((card) => !card.title.trim() || !card.description.trim())) {
+    return t('psychologist:review.validation.cardEmpty', { section: t('psychologist:review.blocks.strengths.title') });
   }
   if (draft.motivation_highlights.some((item) => !item.trim())) {
     return t('psychologist:review.validation.motivationEmpty');
-  }
-  if (Object.values(draft.personality_notes).some((text) => !text.trim())) {
-    return t('psychologist:review.validation.traitEmpty');
   }
   return null;
 }
@@ -104,8 +86,6 @@ export function useReportReview(studentId: string, assessmentId: string) {
     () => new Set<EditableKey>(EDITABLE_KEYS.filter((key) => savedEdited.has(key) || dirty.includes(key))),
     [savedEdited, dirty],
   );
-
-  const visibleBlocks = useMemo(() => (detail ? visibleReviewBlocks(detail) : []), [detail]);
 
   useUnsavedGuard(isDirty);
 
@@ -227,7 +207,6 @@ export function useReportReview(studentId: string, assessmentId: string) {
     editsError: edits.isError,
     reloadEdits: () => void edits.refetch(),
     editedKeys,
-    visibleBlocks,
     isDirty,
     isPublished,
     saving: save.isPending,

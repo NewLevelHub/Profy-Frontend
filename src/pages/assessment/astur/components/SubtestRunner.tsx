@@ -32,8 +32,16 @@ import { NumericPairQuestion } from './NumericPairQuestion';
 import { HierarchyDragQuestion } from './HierarchyDragQuestion';
 import { FigureAssemblyQuestion } from './FigureAssemblyQuestion';
 
-/** Same page size as the main Likert battery (`buildPages` LIKERT_PAGE_SIZE) — PRO-399. */
-const PAGE_SIZE = 5;
+/** Most subtests keep the same page size as the main Likert battery
+ * (`buildPages` LIKERT_PAGE_SIZE) — PRO-399. Geometry is deliberately one
+ * item per page: its target and four spatial options need the whole viewport
+ * to stay large and visible together without horizontal scrolling. */
+const DEFAULT_PAGE_SIZE = 5;
+const GEOMETRY_PAGE_SIZE = 1;
+
+function pageSizeFor(subtest: AsturContentSubtest): number {
+  return subtest.key === 'geometric_figures' ? GEOMETRY_PAGE_SIZE : DEFAULT_PAGE_SIZE;
+}
 
 interface SubtestRunnerProps {
   subtest: AsturContentSubtest;
@@ -121,8 +129,9 @@ function renderItem(
 }
 
 /**
- * One (non-lability) ASTUR subtest: items in pages of PAGE_SIZE (PRO-399),
- * one timer for the whole subtest. Every item is either answered or
+ * One (non-lability) ASTUR subtest: ordinary items are shown five per page,
+ * while spatial geometry uses one item per page. There is still one timer
+ * for the whole subtest. Every item is either answered or
  * explicitly skipped (PRO-427 §11) — «Далее» unlocks once each item on the
  * page is one of the two (PRO-400), and sending a subtest with skips asks
  * for confirmation first. On expiry the subtest is sent automatically: what
@@ -141,7 +150,9 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
   const instructionId = useId();
   const submittedRef = useRef(false);
 
-  const pageCount = Math.max(1, Math.ceil(subtest.items.length / PAGE_SIZE));
+  const pageSize = pageSizeFor(subtest);
+  const pageCount = Math.max(1, Math.ceil(subtest.items.length / pageSize));
+  const isGeometry = subtest.key === 'geometric_figures';
 
   useEffect(() => {
     setPageIndex(0);
@@ -170,8 +181,8 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
     send();
   }, startedAt);
 
-  const pageStart = pageIndex * PAGE_SIZE;
-  const pageItems = subtest.items.slice(pageStart, pageStart + PAGE_SIZE);
+  const pageStart = pageIndex * pageSize;
+  const pageItems = subtest.items.slice(pageStart, pageStart + pageSize);
   const isLastPage = pageIndex >= pageCount - 1;
   const pageDone = pageItems.every((_, offset) => isAsturItemDone(subtest, state, String(pageStart + offset + 1)));
   const allDone = areAllAsturItemsDone(subtest, state);
@@ -256,14 +267,16 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
         </div>
 
         {pageCount > 1 && (
-          <Text variant="caption" className="text-muted">
-            {t('astur.subtest.pageOf', {
-              current: pageIndex + 1,
-              total: pageCount,
-              from: pageStart + 1,
-              to: pageStart + pageItems.length,
-              itemTotal: subtest.items.length,
-            })}
+          <Text variant="caption" className={cn(isGeometry ? 'font-semibold text-secondary' : 'text-muted')}>
+            {isGeometry
+              ? t('astur.subtest.itemOf', { current: pageIndex + 1, total: subtest.items.length })
+              : t('astur.subtest.pageOf', {
+                  current: pageIndex + 1,
+                  total: pageCount,
+                  from: pageStart + 1,
+                  to: pageStart + pageItems.length,
+                  itemTotal: subtest.items.length,
+                })}
           </Text>
         )}
 
@@ -300,8 +313,8 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
 
         <div className="flex flex-col gap-2 w-full">
           {!primaryEnabled && !submitting && (
-            <Text variant="caption" className="text-muted text-right">
-              {t('astur.subtest.answerOrSkip')}
+            <Text variant="caption" className={cn('text-muted', isGeometry ? 'text-center' : 'text-right')}>
+              {t(isGeometry ? 'astur.subtest.answerOrSkipOne' : 'astur.subtest.answerOrSkip')}
             </Text>
           )}
           <div className="flex items-center justify-between gap-3">

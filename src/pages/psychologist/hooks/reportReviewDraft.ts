@@ -17,24 +17,6 @@ export function toDraft(detail: PsychologistResultDetail): ReviewDraft {
   return Object.fromEntries(EDITABLE_KEYS.map((key) => [key, detail[key]])) as ReviewDraft;
 }
 
-/**
- * PRO-445: blocks of the student report the editor shows, in order — their
- * position is the block's number. «Характер» and «Стиль мышления» are built
- * only from Big Five, which new attempts no longer take, so for them both
- * come back empty and the student report and PDF skip them; the editor
- * hides them too instead of showing numbered empty blocks. Decided on the
- * saved result, not the draft: removing the last card must not make the
- * block vanish from under the psychologist mid-edit.
- */
-export function visibleReviewBlocks(detail: PsychologistResultDetail): EditableKey[] {
-  const hasBigFive = Object.keys(detail.big_five).length > 0;
-  return EDITABLE_KEYS.filter((key) => {
-    if (key === 'personality_notes') return hasBigFive || Object.keys(detail.personality_notes).length > 0;
-    if (key === 'thinking_style_notes') return hasBigFive || detail.thinking_style_notes.length > 0;
-    return true;
-  });
-}
-
 export function dirtyKeys(baseline: ReviewDraft, draft: ReviewDraft): EditableKey[] {
   return EDITABLE_KEYS.filter((key) => JSON.stringify(draft[key]) !== JSON.stringify(baseline[key]));
 }

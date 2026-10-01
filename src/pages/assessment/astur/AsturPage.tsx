@@ -139,6 +139,8 @@ export default function AsturPage() {
           durationLabel={t('intro.durationUpToMin', { count: maxMinutes })}
           ctaLabel={t('intro.astur.cta')}
           onStart={handleStartBlockIntro}
+          secondaryCtaLabel={t('intro.astur.pause')}
+          onSecondaryAction={() => navigate('/results')}
         />
       )}
 

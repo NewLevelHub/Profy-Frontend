@@ -4,11 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { Mono, Text } from '@/shared/ui/typography';
-import type { EditableKey, ReportReview } from '../hooks/useReportReview';
+import type { ReportReview } from '../hooks/useReportReview';
 import { ReviewBlock } from './components/ReviewBlock';
 import { ReviewCardsEditor } from './components/ReviewCardsEditor';
 import { ReviewCareersEditor } from './components/ReviewCareersEditor';
-import { ReviewPersonalityNotesEditor } from './components/ReviewPersonalityNotesEditor';
 import { ReviewStringListEditor } from './components/ReviewStringListEditor';
 import { ReviewTextField } from './components/ReviewTextField';
 
@@ -24,15 +23,12 @@ interface PsychologistStudentReportEditorProps {
  */
 export function PsychologistStudentReportEditor({ review, historyPath }: PsychologistStudentReportEditorProps) {
   const { t } = useTranslation('psychologist');
-  const { detail, draft, editedKeys, visibleBlocks, update } = review;
+  const { detail, draft, editedKeys, update } = review;
   const [rebuildOpen, setRebuildOpen] = useState(false);
   if (!detail || !draft) return null;
 
   const locked = review.isPublished || review.publishing;
-  const edited = (key: EditableKey) => editedKeys.has(key);
-  const shown = (key: EditableKey) => visibleBlocks.includes(key);
-  // Numbered by position among the shown blocks — no gap where a block is hidden.
-  const numberOf = (key: EditableKey) => visibleBlocks.indexOf(key) + 1;
+  const edited = (key: Parameters<typeof editedKeys.has>[0]) => editedKeys.has(key);
 
   return (
     <div className="flex flex-col gap-3">
@@ -40,7 +36,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         {review.isPublished ? t('review.introPublished') : t('review.intro')}
       </Text>
 
-      <ReviewBlock number={numberOf('summary')} title={t('review.blocks.summary.title')} edited={edited('summary')}>
+      <ReviewBlock number={1} title={t('review.blocks.summary.title')} edited={edited('summary')}>
         <ReviewTextField
           label={t('review.blocks.summary.title')}
           value={draft.summary}
@@ -51,7 +47,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
       </ReviewBlock>
 
       <ReviewBlock
-        number={numberOf('careers')}
+        number={2}
         title={t('review.blocks.careers.title')}
         hint={review.isPublished ? undefined : t('review.blocks.careers.hint')}
         edited={edited('careers')}
@@ -75,7 +71,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
       </ReviewBlock>
 
       <ReviewBlock
-        number={numberOf('strength_cards')}
+        number={3}
         title={t('review.blocks.strengths.title')}
         hint={review.isPublished ? undefined : t('review.blocks.strengths.hint')}
         edited={edited('strength_cards')}
@@ -115,43 +111,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         />
       </ReviewBlock>
 
-      {shown('personality_notes') && (
-        <ReviewBlock
-          number={numberOf('personality_notes')}
-          title={t('review.blocks.traits.title')}
-          hint={t('review.blocks.traits.hint')}
-          edited={edited('personality_notes')}
-        >
-          <ReviewPersonalityNotesEditor
-            notes={draft.personality_notes}
-            bigFive={detail.big_five}
-            onChange={(value) => update('personality_notes', value)}
-            disabled={locked}
-          />
-        </ReviewBlock>
-      )}
-
-      {shown('thinking_style_notes') && (
-        <ReviewBlock
-          number={numberOf('thinking_style_notes')}
-          title={t('review.blocks.thinking.title')}
-          edited={edited('thinking_style_notes')}
-        >
-          <ReviewCardsEditor
-            cards={draft.thinking_style_notes}
-            onChange={(value) => update('thinking_style_notes', value)}
-            disabled={locked}
-            addLabel={t('review.blocks.thinking.add')}
-            section={t('review.blocks.thinking.title')}
-          />
-        </ReviewBlock>
-      )}
-
-      <ReviewBlock
-        number={numberOf('motivation_highlights')}
-        title={t('review.blocks.motivation.title')}
-        edited={edited('motivation_highlights')}
-      >
+      <ReviewBlock number={4} title={t('review.blocks.motivation.title')} edited={edited('motivation_highlights')}>
         <ReviewStringListEditor
           items={draft.motivation_highlights}
           onChange={(value) => update('motivation_highlights', value)}
@@ -160,11 +120,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         />
       </ReviewBlock>
 
-      <ReviewBlock
-        number={numberOf('final_analysis')}
-        title={t('review.blocks.final.title')}
-        edited={edited('final_analysis')}
-      >
+      <ReviewBlock number={5} title={t('review.blocks.final.title')} edited={edited('final_analysis')}>
         <ReviewTextField
           label={t('review.blocks.final.title')}
           value={draft.final_analysis}
