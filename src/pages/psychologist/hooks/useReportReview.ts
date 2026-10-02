@@ -20,6 +20,9 @@ function validateDraft(t: TFunction, draft: ReviewDraft): string | null {
   if (draft.motivation_highlights.some((item) => !item.trim())) {
     return t('psychologist:review.validation.motivationEmpty');
   }
+  if (draft.top_career_why !== null && !draft.top_career_why.trim()) {
+    return t('psychologist:review.validation.topCareerWhyEmpty');
+  }
   return null;
 }
 

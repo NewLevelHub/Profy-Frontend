@@ -29,6 +29,10 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
 
   const locked = review.isPublished || review.publishing;
   const edited = (key: Parameters<typeof editedKeys.has>[0]) => editedKeys.has(key);
+  // The AI's text belongs to its pick and reaches the student only while that career is first.
+  const topCareer = draft.careers[0];
+  const showTopCareerWhy =
+    draft.top_career_why !== null && !!topCareer && topCareer.slug === detail.top_career_why_slug;
 
   return (
     <div className="flex flex-col gap-3">
@@ -50,7 +54,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         number={2}
         title={t('review.blocks.careers.title')}
         hint={review.isPublished ? undefined : t('review.blocks.careers.hint')}
-        edited={edited('careers')}
+        edited={edited('careers') || edited('top_career_why')}
         aside={
           detail.strengths.length > 0 && (
             <span className="flex gap-1.5" title={t('review.blocks.careers.codesTitle')}>
@@ -69,6 +73,20 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
           disabled={locked}
           aiRecommendedSlug={detail.ai_recommended_slug}
         />
+        {showTopCareerWhy && (
+          <div className="mt-5 flex flex-col gap-2">
+            <Text as="span" variant="caption" className="text-muted">
+              {t('review.blocks.careers.topWhyLabel', { name: topCareer.name })}
+            </Text>
+            <ReviewTextField
+              label={t('review.blocks.careers.topWhyLabel', { name: topCareer.name })}
+              value={draft.top_career_why ?? ''}
+              onChange={(value) => update('top_career_why', value)}
+              disabled={locked}
+              rows={4}
+            />
+          </div>
+        )}
       </ReviewBlock>
 
       <ReviewBlock

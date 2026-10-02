@@ -25,6 +25,7 @@ interface HistoryRow {
 const FIELD_TITLE_KEYS: Record<string, string> = {
   summary: 'psychologist:review.blocks.summary.title',
   careers: 'psychologist:review.blocks.careers.title',
+  top_career_why: 'psychologist:review.blocks.careers.topWhyTitle',
   strength_cards: 'psychologist:review.blocks.strengths.title',
   personality_notes: 'psychologist:review.blocks.traits.title',
   thinking_style_notes: 'psychologist:review.blocks.thinking.title',

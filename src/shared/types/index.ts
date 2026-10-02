@@ -621,6 +621,9 @@ export interface StudentCareer {
   fit_reasons: StudentFitReason[];
   /** Locale-free keys the fit rests on, for comparing careers; never shown. */
   fit_keys: string[];
+  /** `why` is the AI analysis's text for the best match — it already covers
+   *  the reasons, so nothing is listed under it. */
+  why_by_ai: boolean;
 }
 
 // ─── PRO-282 psych-block sections — «Достоверность протокола» + «Психоэмоц.
@@ -1614,6 +1617,9 @@ export interface PsychProfessionRecommendation {
   slug: string;
   name: string;
   reasoning: string;
+  /** `reasoning` translated to Kazakh word for word — what a kk student reads
+   *  as their best match's «Почему тебе подходит». */
+  reasoning_kk: string;
 }
 
 /** Per-block AI commentary + a final synthesis + one profession picked from
@@ -1757,6 +1763,10 @@ export interface PsychologistResultDetail {
   /** The AI analysis's recommended profession — first in `careers` by
    *  default; null until the analysis exists. */
   ai_recommended_slug: string | null;
+  /** «Почему тебе подходит» the student reads under their best match while
+   *  `top_career_why_slug` is first in `careers`; null until the AI analysis exists. */
+  top_career_why: string | null;
+  top_career_why_slug: string | null;
 }
 
 export type PsychologistResultPatch = Partial<
@@ -1771,6 +1781,7 @@ export type PsychologistResultPatch = Partial<
     | 'final_analysis'
     | 'personality_notes'
     | 'motivation_highlights'
+    | 'top_career_why'
   >
 >;
 
