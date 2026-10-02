@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { CertificateItem } from '@/shared/types';
+import type { ArtifactItem, CertificateItem } from '@/shared/types';
 
 // Backend now accepts profile + artifacts in a single POST /profile call
 // (one transaction — nothing half-created if artifacts are invalid), so
@@ -39,12 +39,22 @@ export interface OnboardingProfileDraft {
 
 interface OnboardingDraftState {
   profileDraft: OnboardingProfileDraft | null;
+  /** Unsaved step 3-4 picks, parked when "Назад" leaves ArtifactsSetupPage
+   *  for profile setup — the page unmounts on that route change, and
+   *  without this its local state (and every chip picked so far) was gone
+   *  by the time "Далее" brought the student back. */
+  artifactsDraft: ArtifactItem[] | null;
   setProfileDraft: (draft: OnboardingProfileDraft) => void;
-  clearProfileDraft: () => void;
+  setArtifactsDraft: (items: ArtifactItem[]) => void;
+  clearArtifactsDraft: () => void;
+  clearDrafts: () => void;
 }
 
 export const useOnboardingDraftStore = create<OnboardingDraftState>((set) => ({
   profileDraft: null,
+  artifactsDraft: null,
   setProfileDraft: (profileDraft) => set({ profileDraft }),
-  clearProfileDraft: () => set({ profileDraft: null }),
+  setArtifactsDraft: (artifactsDraft) => set({ artifactsDraft }),
+  clearArtifactsDraft: () => set({ artifactsDraft: null }),
+  clearDrafts: () => set({ profileDraft: null, artifactsDraft: null }),
 }));
