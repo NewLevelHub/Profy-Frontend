@@ -236,6 +236,18 @@ export interface SubmitPairAnswersResponse {
   completed: boolean;
 }
 
+/** GET /assessment/{id}/saved-answers — what the server already stored, so
+ *  "Назад" can show earlier answers again; the question / pair / triplet
+ *  endpoints never echo them back. */
+export interface SavedAnswersResponse {
+  /** Stored scale answers by question id (a picked pair's two rows excluded — see pair_picks). */
+  question_values: Record<string, number>;
+  /** pair_index → picked option's question id. */
+  pair_picks: Record<string, string>;
+  /** triplet_index → MOST / LEAST statement ids. */
+  motivation: Record<string, { most_statement_id: string; least_statement_id: string }>;
+}
+
 // ─── Psychoemotional (МЦВ Собчик) — PRO-306 ────────────────────────────────────
 // Сырое прохождение, двухфазно: check-in + круг 1 — перед основной батареей
 // тестов (start, §B4 п.1-2 — check-in идёт первым), круг 2 — в конце всего

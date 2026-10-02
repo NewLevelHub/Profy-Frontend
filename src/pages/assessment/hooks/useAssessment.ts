@@ -14,7 +14,7 @@ import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, isFirstPageOfInstrument, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
-import type { Instrument } from '@/shared/types';
+import type { Instrument, SavedAnswersResponse } from '@/shared/types';
 
 // PRO-338 Ф0.8 — professional_types_abilities/eysenck/elers/boyko_empathy/
 // kondash_anxiety land as one contiguous, non-interleaved sub-section right
@@ -43,14 +43,11 @@ const SAVING_SPINNER_DELAY_MS = 250;
 
 export type AssessmentPhase = 'loading' | 'intro' | 'question';
 
-// Likert/pair answers already saved to the server are only known to this
-// hook via local state — the questions endpoint doesn't echo previous
-// values back. A rest stop (or any other route change away from
-// /assessment) unmounts this hook and would otherwise wipe that buffer, so
-// going "Назад" past a rest-stop boundary made earlier selections vanish
-// even though they were saved fine. Mirroring these two maps into
-// sessionStorage (same pattern as the intro-seen flag below) survives
-// remounts within the same tab.
+// Likert/pair picks live in local state, mirrored into sessionStorage (same
+// pattern as the intro-seen flag below) so a remount within the tab — a
+// rest stop, a reload — keeps picks not sent yet. What's already on the
+// server comes back from GET saved-answers on load (loadSequence): a new
+// tab or another device used to show every answered page blank on "Назад".
 function likertAnswersStorageKey(assessmentId: string) {
   return `profy-assessment-likert-answers:${assessmentId}`;
 }
@@ -116,6 +113,10 @@ export function useAssessment() {
   const [reopenedIntro, setReopenedIntro] = useState<Instrument | null>(null);
 
   const startIndexApplied = useRef(false);
+  // What the server holds — saved-answers on load, then every successful
+  // submit. A page whose picks all match it isn't re-sent on "Далее".
+  const savedLikertRef = useRef<Record<string, number>>({});
+  const savedPairsRef = useRef<Record<number, string>>({});
   // Reset whenever the current page changes (see the effect below) —
   // elapsed time from here to submit feeds the speed-flag rest stop.
   const itemShownAtRef = useRef(Date.now());
@@ -132,17 +133,20 @@ export function useAssessment() {
       setPhase('loading');
       setError(null);
       try {
-        const [questions, pairs] = await Promise.all([
+        const [questions, pairs, saved] = await Promise.all([
           assessmentApi.getQuestions(assessmentId!),
           pairsApi.getPairs(assessmentId!),
+          // Not fatal: without it "Назад" just can't show answers this tab never saw.
+          assessmentApi.getSavedAnswers(assessmentId!).catch(() => null),
         ]);
         if (cancelled) return;
         if (questions.length === 0) throw new Error('empty_questions');
         setRawQuestionCount(questions.length);
         // All Likert questions first, then all pairs (buildDisplaySequence),
-        // then grouped into pages of up to 5 Likert questions / 1 pair each.
+        // then grouped into pages of up to 5 Likert questions / 5 pairs each.
         const built = buildPages(buildDisplaySequence(questions, pairs));
         setPages(built);
+        if (saved) applySavedAnswers(built, saved);
 
         if (!startIndexApplied.current) {
           startIndexApplied.current = true;
@@ -237,6 +241,41 @@ export function useAssessment() {
     if (!assessmentId || typeof sessionStorage === 'undefined') return;
     sessionStorage.setItem(pairAnswersStorageKey(assessmentId), JSON.stringify(pairAnswers));
   }, [assessmentId, pairAnswers]);
+
+  function applySavedAnswers(built: Page[], saved: SavedAnswersResponse) {
+    const likert: Record<string, number> = {};
+    const picks: Record<number, string> = {};
+    for (const page of built) {
+      if (page.kind === 'likert') {
+        for (const q of page.questions) {
+          if (saved.question_values[q.id] !== undefined) likert[q.id] = saved.question_values[q.id];
+        }
+      } else {
+        for (const pair of page.pairs) {
+          if (saved.pair_picks[pair.pair_index]) picks[pair.pair_index] = saved.pair_picks[pair.pair_index];
+        }
+      }
+    }
+    savedLikertRef.current = likert;
+    savedPairsRef.current = picks;
+    // The server wins where both have a pick: this tab's sessionStorage copy
+    // may be older than an answer changed since from another tab or device,
+    // and re-sending it would silently overwrite that. Picks not sent yet
+    // aren't on the server, so they stay.
+    setLikertAnswers(prev => ({ ...prev, ...likert }));
+    setPairAnswers(prev => ({ ...prev, ...picks }));
+  }
+
+  /** "Назад" then "Далее" through a page the server already has unchanged —
+   *  nothing to send, just move on. The last page is always sent: its
+   *  response is what says the phase is complete. */
+  function advanceIfUnchanged(unchanged: boolean) {
+    if (!unchanged || pageIndex >= pages.length - 1) return false;
+    setSaving(true);
+    setError(null);
+    advance();
+    return true;
+  }
 
   function handleStartIntro() {
     if (assessmentId) {
@@ -360,6 +399,7 @@ export function useAssessment() {
     if (!page || page.kind !== 'likert' || saving || transitioning) return;
     const { questions } = page;
     if (!questions.every(q => likertAnswers[q.id] !== undefined)) return;
+    if (advanceIfUnchanged(questions.every(q => savedLikertRef.current[q.id] === likertAnswers[q.id]))) return;
 
     setSaving(true);
     setError(null);
@@ -368,6 +408,7 @@ export function useAssessment() {
       const response = await assessmentApi.saveAnswers(assessmentId!, {
         answers: questions.map(q => ({ question_id: q.id, value: likertAnswers[q.id] })),
       });
+      for (const q of questions) savedLikertRef.current[q.id] = likertAnswers[q.id];
       setProgress(response.answered_count, response.total);
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
@@ -395,6 +436,7 @@ export function useAssessment() {
     if (!page || page.kind !== 'pair' || saving || transitioning) return;
     const { pairs } = page;
     if (!pairs.every(pair => pairAnswers[pair.pair_index] !== undefined)) return;
+    if (advanceIfUnchanged(pairs.every(pair => savedPairsRef.current[pair.pair_index] === pairAnswers[pair.pair_index]))) return;
 
     setSaving(true);
     setError(null);
@@ -403,6 +445,7 @@ export function useAssessment() {
       const response = await pairsApi.submitAnswers(assessmentId!, {
         answers: pairs.map(pair => ({ pair_index: pair.pair_index, picked_question_id: pairAnswers[pair.pair_index] })),
       });
+      for (const pair of pairs) savedPairsRef.current[pair.pair_index] = pairAnswers[pair.pair_index];
       setProgress(response.answered_count, response.total);
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
