@@ -173,6 +173,10 @@
     "rankedAria": "{{text}}, приоритет {{position}}",
     "unrankedAria": "{{text}}, не отмечено"
   },
+  "reorder": {
+    "moveUp": "Переместить «{{item}}» выше",
+    "moveDown": "Переместить «{{item}}» ниже"
+  },
   "triplet": {
     "keyboardInstructions": "Чтобы изменить порядок, нажми пробел или Enter на карточке. Используй стрелки вверх и вниз, чтобы переместить её. Нажми пробел или Enter ещё раз, чтобы отпустить, или Escape, чтобы отменить.",
     "cardRoleDesc": "перетаскиваемая карточка",
@@ -403,8 +407,6 @@
     "startError": "Не удалось начать раздел. Проверь соединение и попробуй ещё раз.",
     "retrySubmit": "Отправить ещё раз",
     "hierarchyItemAria": "{{concept}}, позиция {{position}}",
-    "moveUp": "Переместить «{{concept}}» выше",
-    "moveDown": "Переместить «{{concept}}» ниже",
     "confirmOrder": "Порядок верный",
     "orderConfirmed": "Порядок подтверждён"
   },

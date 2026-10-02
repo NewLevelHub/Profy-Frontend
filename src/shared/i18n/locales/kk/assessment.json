@@ -167,6 +167,10 @@
     "rankedAria": "{{text}}, маңыздылығы {{position}}",
     "unrankedAria": "{{text}}, белгіленбеген"
   },
+  "reorder": {
+    "moveUp": "«{{item}}» жоғары жылжыту",
+    "moveDown": "«{{item}}» төмен жылжыту"
+  },
   "triplet": {
     "keyboardInstructions": "Ретін өзгерту үшін карточкада бос орын немесе Enter басыңыз. Оны жылжыту үшін жоғары және төмен көрсеткілерін қолданыңыз. Босату үшін бос орын немесе Enter-ді тағы бір рет, ал бас тарту үшін Escape басыңыз.",
     "cardRoleDesc": "сүйреп апарылатын карточка",
@@ -391,8 +395,6 @@
     "startError": "Бөлімді бастау мүмкін болмады. Байланысты тексеріп, қайталап көр.",
     "retrySubmit": "Қайта жіберу",
     "hierarchyItemAria": "{{concept}}, {{position}}-орын",
-    "moveUp": "«{{concept}}» жоғары жылжыту",
-    "moveDown": "«{{concept}}» төмен жылжыту",
     "confirmOrder": "Реті дұрыс",
     "orderConfirmed": "Реті расталды"
   },
