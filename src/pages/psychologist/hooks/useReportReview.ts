@@ -77,7 +77,11 @@ export function useReportReview(studentId: string, assessmentId: string) {
 
   const savedEdited = useMemo(() => {
     const keys = new Set<string>();
-    for (const edit of edits.data ?? []) for (const field of Object.keys(edit.changed_fields)) keys.add(field);
+    for (const edit of edits.data ?? []) {
+      // The AI pick moved to the top is the system's default, not a correction.
+      if (edit.source === 'ai_recommendation') continue;
+      for (const field of Object.keys(edit.changed_fields)) keys.add(field);
+    }
     return keys;
   }, [edits.data]);
 

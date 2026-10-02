@@ -39,9 +39,11 @@ function toRows(t: TFunction, edits: PsychologistReviewEdit[], currentUserId: st
   for (const edit of edits) {
     const when = dateTimeLabel(edit.edited_at);
     const who =
-      edit.editor_id && edit.editor_id === currentUserId
-        ? t('psychologist:history.you')
-        : (edit.editor_email ?? t('psychologist:history.unknownEditor'));
+      edit.source === 'ai_recommendation'
+        ? t('psychologist:history.aiEditor')
+        : edit.editor_id && edit.editor_id === currentUserId
+          ? t('psychologist:history.you')
+          : (edit.editor_email ?? t('psychologist:history.unknownEditor'));
     for (const [field, change] of Object.entries(edit.changed_fields)) {
       const title = FIELD_TITLE_KEYS[field] ? t(FIELD_TITLE_KEYS[field]) : field;
       if (field === 'personality_notes') {

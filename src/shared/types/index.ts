@@ -1705,6 +1705,9 @@ export interface PsychologistReviewEdit {
   edited_at: string;
   editor_id: string | null;
   editor_email: string | null;
+  /** `ai_recommendation` — the system put the AI analysis's recommended
+   *  profession first in `careers`; such an edit has no editor. */
+  source: 'psychologist' | 'ai_recommendation';
   changed_fields: Record<string, { old: unknown; new: unknown }>;
 }
 
@@ -1751,6 +1754,9 @@ export interface PsychologistResultDetail {
   /** The strength cards were built from Belbin/АСТУР results the student has
    *  since retaken — rebuild them or publish as they are (PRO-432). */
   strengths_stale: boolean;
+  /** The AI analysis's recommended profession — first in `careers` by
+   *  default; null until the analysis exists. */
+  ai_recommended_slug: string | null;
 }
 
 export type PsychologistResultPatch = Partial<

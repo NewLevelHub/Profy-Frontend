@@ -24,6 +24,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/shared/lib/cn';
 import { formatNumber } from '@/shared/i18n/format';
+import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { Mono, Text } from '@/shared/ui/typography';
 import type { PsychologistReviewCareer } from '@/shared/types';
 
@@ -31,6 +32,8 @@ interface ReviewCareersEditorProps {
   careers: PsychologistReviewCareer[];
   onChange: (careers: PsychologistReviewCareer[]) => void;
   disabled?: boolean;
+  /** The AI analysis's recommended profession — marked wherever it stands. */
+  aiRecommendedSlug?: string | null;
 }
 
 /** Backend stores Pearson / normalized match as 0–1 (PRO-385). Older rows
@@ -51,11 +54,12 @@ interface SortableCareerRowProps {
   index: number;
   total: number;
   disabled?: boolean;
+  isAiRecommended: boolean;
   onMove: (from: number, to: number) => void;
   onRemove: (index: number) => void;
 }
 
-function SortableCareerRow({ career, index, total, disabled, onMove, onRemove }: SortableCareerRowProps) {
+function SortableCareerRow({ career, index, total, disabled, isAiRecommended, onMove, onRemove }: SortableCareerRowProps) {
   const { t } = useTranslation('psychologist');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: career.slug,
@@ -80,9 +84,12 @@ function SortableCareerRow({ career, index, total, disabled, onMove, onRemove }:
       >
         {!disabled && <GripVertical size={16} className="text-muted flex-none" aria-hidden="true" />}
         <span className="min-w-0">
-          <Text as="span" variant="body-md" className="block text-heading">
-            {career.name}
-          </Text>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Text as="span" variant="body-md" className="text-heading">
+              {career.name}
+            </Text>
+            {isAiRecommended && <AdminBadge tone="brand">{t('review.careers.aiRecommended')}</AdminBadge>}
+          </span>
           <Mono variant="sm" className="block sm:hidden text-muted mt-1">
             {career.holland_code} · {formatMatchPercent(career.match_score)}%
           </Mono>
@@ -137,7 +144,7 @@ function SortableCareerRow({ career, index, total, disabled, onMove, onRemove }:
  * (or use the arrows) to change priority; drop a direction that does not fit.
  * Scores are the system's and stay read-only.
  */
-export function ReviewCareersEditor({ careers, onChange, disabled }: ReviewCareersEditorProps) {
+export function ReviewCareersEditor({ careers, onChange, disabled, aiRecommendedSlug }: ReviewCareersEditorProps) {
   const { t } = useTranslation('psychologist');
   const [dragging, setDragging] = useState(false);
   const [removed, setRemoved] = useState<{ career: PsychologistReviewCareer; index: number }[]>([]);
@@ -235,6 +242,7 @@ export function ReviewCareersEditor({ careers, onChange, disabled }: ReviewCaree
                     index={index}
                     total={careers.length}
                     disabled={disabled}
+                    isAiRecommended={career.slug === aiRecommendedSlug}
                     onMove={move}
                     onRemove={remove}
                   />

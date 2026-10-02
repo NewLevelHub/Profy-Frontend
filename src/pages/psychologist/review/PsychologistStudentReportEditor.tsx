@@ -67,6 +67,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
           careers={draft.careers}
           onChange={(value) => update('careers', value)}
           disabled={locked}
+          aiRecommendedSlug={detail.ai_recommended_slug}
         />
       </ReviewBlock>
 
