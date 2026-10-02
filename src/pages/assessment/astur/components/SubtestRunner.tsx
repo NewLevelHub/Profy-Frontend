@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { cn } from '@/shared/lib/cn';
@@ -46,21 +47,23 @@ function pageSizeFor(subtest: AsturContentSubtest): number {
 interface SubtestRunnerProps {
   subtest: AsturContentSubtest;
   startedAt: string | null;
+  /** AssessmentRail's status slot — the countdown renders up there. */
+  timerSlot: HTMLElement | null;
   submitting: boolean;
   submitError: string | null;
   onSubmit: (payload: { answers: Record<string, AsturItemAnswer> }) => void;
 }
 
+/** An item as served, before the student touches it. */
+function blankValue(subtest: AsturContentSubtest, item: AsturContentSubtest['items'][number]): unknown {
+  if (subtest.key === 'classification') return [] as string[];
+  if (subtest.key === 'numeric_series') return ['', ''] as [string, string];
+  if (subtest.key === 'logical_schemas') return [...(item as AsturLogicalSchemaItem).concepts];
+  return '';
+}
+
 function initialState(subtest: AsturContentSubtest): AsturAnswerState {
-  const values = Object.fromEntries(
-    subtest.items.map((item, i) => {
-      const index = String(i + 1);
-      if (subtest.key === 'classification') return [index, [] as string[]];
-      if (subtest.key === 'numeric_series') return [index, ['', ''] as [string, string]];
-      if (subtest.key === 'logical_schemas') return [index, [...(item as AsturLogicalSchemaItem).concepts]];
-      return [index, ''];
-    }),
-  );
+  const values = Object.fromEntries(subtest.items.map((item, i) => [String(i + 1), blankValue(subtest, item)]));
   return { values, skipped: new Set(), touched: new Set() };
 }
 
@@ -137,7 +140,7 @@ function renderItem(
  * for confirmation first. On expiry the subtest is sent automatically: what
  * is still open goes as skipped.
  */
-export function SubtestRunner({ subtest, startedAt, submitting, submitError, onSubmit }: SubtestRunnerProps) {
+export function SubtestRunner({ subtest, startedAt, timerSlot, submitting, submitError, onSubmit }: SubtestRunnerProps) {
   const { t } = useTranslation('assessment');
   const { t: tCommon } = useTranslation('common');
   const [state, setState] = useState<AsturAnswerState>(() => initialState(subtest));
@@ -197,12 +200,21 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
     });
   }
 
+  /** Skipping wipes the item back to blank: a skipped item goes to the
+   *  server as `skipped` whatever was picked, so a pick left on screen under
+   *  "Вернуться к заданию" showed an answer that was never sent. */
   function toggleSkip(index: string) {
     setState((prev) => {
       const skipped = new Set(prev.skipped);
-      if (skipped.has(index)) skipped.delete(index);
-      else skipped.add(index);
-      return { ...prev, skipped };
+      if (skipped.has(index)) {
+        skipped.delete(index);
+        return { ...prev, skipped };
+      }
+      skipped.add(index);
+      const touched = new Set(prev.touched);
+      touched.delete(index);
+      const values = { ...prev.values, [index]: blankValue(subtest, subtest.items[Number(index) - 1]) };
+      return { values, skipped, touched };
     });
   }
 
@@ -227,8 +239,9 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
 
   return (
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
-      <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
-        {durationMs !== null && (
+      {durationMs !== null &&
+        timerSlot &&
+        createPortal(
           <AssessmentTimer
             remainingMs={remainingMs}
             durationMs={durationMs}
@@ -236,10 +249,11 @@ export function SubtestRunner({ subtest, startedAt, submitting, submitError, onS
             expired={timeUp}
             expiredMessage={t('astur.subtest.timeUp')}
             urgentBelowMs={15_000}
-            sticky
-          />
+            variant="rail"
+          />,
+          timerSlot,
         )}
-
+      <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
         <div className="flex flex-col gap-2">
           <button
             type="button"

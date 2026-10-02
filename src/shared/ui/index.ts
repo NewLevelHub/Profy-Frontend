@@ -17,6 +17,8 @@ export type { ProgressBarProps, ProgressBarVariant } from './ProgressBar';
 
 export { PointAllocator } from './PointAllocator';
 export type { PointAllocatorProps, PointAllocatorItem } from './PointAllocator';
+export { LikertScale } from './LikertScale';
+
 export { Spine } from './Spine';
 export type { SpineProps, SpineNode, SpineNodeStatus, SpineSegmentStyle } from './Spine';
 

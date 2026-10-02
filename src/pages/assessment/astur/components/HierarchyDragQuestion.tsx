@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Check, GripVertical } from 'lucide-react';
+import { Check, GripVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   DndContext,
@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/shared/lib/cn';
+import { ReorderArrows } from '../../components/ReorderArrows';
 
 interface HierarchyDragQuestionProps {
   index: number;
@@ -62,25 +63,7 @@ function SortableConcept({ concept, position, total, onMove }: SortableConceptPr
         <span className="flex-1">{concept}</span>
         <GripVertical size={16} className="text-muted flex-shrink-0" aria-hidden />
       </span>
-      {/* Buttons for everyone who can't or doesn't want to drag. */}
-      <button
-        type="button"
-        onClick={() => onMove(position, position - 1)}
-        disabled={position === 0}
-        className="p-1.5 rounded-lg text-secondary hover:text-primary disabled:opacity-30"
-        aria-label={t('astur.moveUp', { concept })}
-      >
-        <ArrowUp size={16} aria-hidden />
-      </button>
-      <button
-        type="button"
-        onClick={() => onMove(position, position + 1)}
-        disabled={position === total - 1}
-        className="p-1.5 rounded-lg text-secondary hover:text-primary disabled:opacity-30"
-        aria-label={t('astur.moveDown', { concept })}
-      >
-        <ArrowDown size={16} aria-hidden />
-      </button>
+      <ReorderArrows label={concept} position={position} total={total} onMove={onMove} />
     </div>
   );
 }

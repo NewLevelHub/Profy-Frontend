@@ -2,11 +2,10 @@ import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
-import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { useAssessment } from './hooks/useAssessment';
 import { LikertPage } from './components/LikertPage';
-import { PairChoice } from './components/PairChoice';
+import { PairPage } from './components/PairPage';
 import { ExitAssessmentModal } from './components/ExitAssessmentModal';
 import { AssessmentIntro } from './components/AssessmentIntro';
 import { ASSESSMENT_PHASE_MINUTES, SECONDS_PER_LIKERT_ITEM } from '@/shared/config/constants';
@@ -18,13 +17,13 @@ export default function AssessmentPage() {
     pageIndex,
     totalItems,
     likertAnswers,
-    selectedPairOptionId,
+    pairAnswers,
     transitioning,
     saving,
     savingVisible,
     error,
     currentLikertQuestions,
-    currentPair,
+    currentPairs,
     isAdditionalTestsSection,
     testIntroInstrument,
     testIntroItemCount,
@@ -37,7 +36,8 @@ export default function AssessmentPage() {
     handleStartTestIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
-    handlePairAnswer,
+    handlePairSelect,
+    handleSubmitPairPage,
     handleAutofill,
     handleAutofillToMotivation,
     handleAutofillToAstur,
@@ -149,28 +149,26 @@ export default function AssessmentPage() {
                 </div>
               )}
 
-              {currentPair !== undefined && (
+              {currentPairs !== undefined && (
                 <div
                   className={cn(
                     'transition-opacity duration-300',
                     transitioning ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  <Heading level="display-md" as="h2" className="text-primary mb-8 text-center">
-                    {t('format.pickCloser')}
-                  </Heading>
-                  <PairChoice
-                    frame={currentPair.frame}
-                    optionA={currentPair.option_a}
-                    optionB={currentPair.option_b}
-                    onSelect={handlePairAnswer}
-                    selected={selectedPairOptionId}
+                  <PairPage
+                    pairs={currentPairs}
+                    answers={pairAnswers}
+                    onSelect={handlePairSelect}
+                    onSubmit={handleSubmitPairPage}
+                    saving={saving}
+                    savingVisible={savingVisible}
                   />
                 </div>
               )}
             </div>
 
-            {currentLikertQuestions !== undefined && (
+            {(currentLikertQuestions !== undefined || currentPairs !== undefined) && (
               <div className="px-3 py-5 sm:px-4 lg:px-6" style={{ borderTop: '1px solid var(--line)' }}>
                 <Text variant="body-sm" className="text-muted">
                   {t('format.noWrongAnswers')}

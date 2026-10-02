@@ -33,6 +33,10 @@ export interface AssessmentRailProps {
    *  further, for testing the АСТУР flow itself without clicking through
    *  everything ahead of it. Only offered on the main-battery screens. */
   devAutofillToAstur?: { onClick: () => void; loading: boolean };
+  /** Ref for an empty slot left of the theme toggle. A screen that owns
+   *  live status for the header (АСТУР's countdown) portals it in here, so
+   *  the state stays with the screen instead of being lifted to the page. */
+  statusSlotRef?: (el: HTMLDivElement | null) => void;
 }
 
 // The single collapsed rail used by every assessment-flow screen
@@ -56,6 +60,7 @@ export function AssessmentRail({
   devAutofill,
   devAutofillToMotivation,
   devAutofillToAstur,
+  statusSlotRef,
 }: AssessmentRailProps) {
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
@@ -122,6 +127,7 @@ export function AssessmentRail({
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
+              {statusSlotRef && <div ref={statusSlotRef} className="flex empty:hidden" />}
               <ThemeToggle />
               {/* Slot 2: sound toggle */}
               <button

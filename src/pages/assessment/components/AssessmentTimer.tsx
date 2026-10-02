@@ -15,8 +15,9 @@ export interface AssessmentTimerProps {
   expiredMessage?: string;
   /** Switch ring + digits to dawn once remaining drops below this (ms). */
   urgentBelowMs?: number;
-  /** Pin the chip under the assessment rail while the questions scroll. */
-  sticky?: boolean;
+  /** `rail` — the compact chip in AssessmentRail's slot: rail-button height,
+   *  and on phones just the digits (the words stay in the aria-label). */
+  variant?: 'card' | 'rail';
   className?: string;
 }
 
@@ -37,28 +38,28 @@ export function AssessmentTimer({
   expired = false,
   expiredMessage,
   urgentBelowMs = 15_000,
-  sticky = false,
+  variant = 'card',
   className,
 }: AssessmentTimerProps) {
   const { t } = useTranslation('assessment');
   const ratio = durationMs > 0 ? Math.max(0, Math.min(1, remainingMs / durationMs)) : 0;
   const urgent = !expired && remainingMs > 0 && remainingMs < urgentBelowMs;
   const tone = expired ? 'expired' : urgent ? 'urgent' : 'calm';
+  const rail = variant === 'rail';
+  // In the rail the row is shared with the subtest title and three buttons —
+  // on a phone only the digits fit beside them without cutting the title.
+  const desktopOnly = rail ? 'hidden sm:inline' : undefined;
 
   return (
     <div
-      className={cn(
-        'flex items-center justify-between gap-3',
-        sticky && 'assessment-timer--sticky',
-        className,
-      )}
+      className={cn('flex items-center justify-between gap-3', className)}
     >
       {meta ? (
         <span className={cn(typeClass.caption, 'font-semibold text-muted')}>{meta}</span>
       ) : null}
 
       <div
-        className={cn('assessment-timer ml-auto', `assessment-timer--${tone}`)}
+        className={cn('assessment-timer ml-auto', `assessment-timer--${tone}`, rail && 'assessment-timer--rail')}
         role="timer"
         aria-live="polite"
         aria-atomic="true"
@@ -66,14 +67,14 @@ export function AssessmentTimer({
       >
         {expired ? (
           <>
-            <TimerOff size={18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
-            <span className={cn(typeClass.bodySm, 'font-semibold')}>{expiredMessage}</span>
+            <TimerOff size={rail ? 16 : 18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+            <span className={cn(typeClass.bodySm, 'font-semibold', desktopOnly)}>{expiredMessage}</span>
           </>
         ) : (
           <>
             <svg
               viewBox="0 0 20 20"
-              className="assessment-timer__ring size-5 shrink-0 -rotate-90"
+              className={cn('assessment-timer__ring shrink-0 -rotate-90', rail ? 'size-4 hidden sm:block' : 'size-5')}
               aria-hidden="true"
             >
               <circle cx="10" cy="10" r={RING_R} className="assessment-timer__ring-track" />
@@ -86,7 +87,7 @@ export function AssessmentTimer({
                 strokeDashoffset={RING_C * (1 - ratio)}
               />
             </svg>
-            <span className={cn(typeClass.caption, 'assessment-timer__label')}>
+            <span className={cn(rail ? typeClass.bodySm : typeClass.caption, 'assessment-timer__label', desktopOnly)}>
               {t('timer.remaining')}
             </span>
             <time className="assessment-timer__digits">{timeLabel}</time>
