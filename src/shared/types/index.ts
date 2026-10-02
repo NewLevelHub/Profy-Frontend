@@ -596,17 +596,31 @@ export interface InterestCombination {
 
 export type CareerTier = 'strong' | 'good' | 'worth_trying';
 
+/** One «Почему тебе подходит» reason: a vetted fact about the student tied
+ *  to something this profession needs. `fact` is the student half alone. */
+export interface StudentFitReason {
+  kind: 'fact' | 'subject';
+  fact: string;
+  text: string;
+}
+
 export interface StudentCareer {
   slug: string;
   name: string;
   rank: number;
   tier: CareerTier;
+  /** «Почему тебе подходит»: one connected text over every reason below
+   *  (or the shared interests / a profession skill) — never empty. */
   why: string;
-  matched_strengths: string[];
   try_now: string;
   description: string | null;
   skills_needed: string[];
   subjects_to_develop: string[];
+  /** The reasons `why` is written from, one by one — for compact views, not
+   *  to list under `why` again. Empty for a career added by hand. */
+  fit_reasons: StudentFitReason[];
+  /** Locale-free keys the fit rests on, for comparing careers; never shown. */
+  fit_keys: string[];
 }
 
 // ─── PRO-282 psych-block sections — «Достоверность протокола» + «Психоэмоц.

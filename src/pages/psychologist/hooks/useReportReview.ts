@@ -126,8 +126,8 @@ export function useReportReview(studentId: string, assessmentId: string) {
     onSuccess: (updated, submitted) => afterWrite(updated, submitted),
   });
 
-  // PRO-432: after a Belbin retake the backend flags the strength
-  // cards as stale; rebuilding replaces them from the current results.
+  // PRO-432: cards built under an older strength rules version are flagged
+  // stale; rebuilding replaces them under the current rules.
   const rebuild = useMutation({
     mutationFn: async (_submitted: ReviewDraft) => {
       await queryClient.cancelQueries({ queryKey: resultKey, exact: true });
