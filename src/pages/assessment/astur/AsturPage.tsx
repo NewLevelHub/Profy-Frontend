@@ -73,6 +73,9 @@ export default function AsturPage() {
   const [seenScopes, setSeenScopes] = useState<Set<string>>(() => new Set());
   const blockIntroSeen = seenScopes.has(introScope) || readIntroSeen(introScope);
 
+  // The rail's status slot — SubtestRunner portals its countdown into it.
+  const [railStatusSlot, setRailStatusSlot] = useState<HTMLDivElement | null>(null);
+
   function handleStartBlockIntro() {
     try {
       sessionStorage.setItem(blockIntroKey(introScope), '1');
@@ -127,6 +130,7 @@ export default function AsturPage() {
           progress={progress}
           onExit={handleExit}
           devAutofill={{ onClick: handleAutofill, loading: submitting }}
+          statusSlotRef={setRailStatusSlot}
         />
       )}
 
@@ -195,6 +199,7 @@ export default function AsturPage() {
             <SubtestRunner
               subtest={subtest}
               startedAt={subtestStartedAt}
+              timerSlot={railStatusSlot}
               submitting={submitting}
               submitError={submitError}
               onSubmit={completeSubtest}

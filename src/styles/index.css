@@ -79,7 +79,8 @@
 }
 
 /* АСТУР countdown chip (AssessmentTimer). Surfaces are opaque on purpose:
-   when sticky, the chip floats over the questions. Pine → dawn → clay. */
+   in the rail the chip sits on the blurred header over scrolling questions.
+   Pine → dawn → clay. */
 .assessment-timer {
   display: inline-flex;
   align-items: center;
@@ -136,14 +137,24 @@
   color: var(--danger-text);
 }
 
-/* The shell clips instead of hiding overflow — hidden would make it the
-   sticky element's scroll container and pin the chip to nothing. */
-.journey-shell > .assessment-timer--sticky {
-  position: sticky;
-  top: calc(var(--assessment-rail-h, 0px) + 0.75rem);
-  z-index: 5;
+/* In the assessment rail: same 38px height as the theme/sound/exit buttons
+   beside it, and the rail's own text size — label and digits both body-sm
+   like "Субтест N из M", the digits set apart by weight, not size. On phones
+   it's digits only (AssessmentTimer hides the ring and words), so the title
+   still fits at 360px. */
+.assessment-timer--rail {
+  min-height: 38px;
+  gap: 0.375rem;
+  padding: 0 0.875rem 0 0.75rem;
 }
-.assessment-stage__shell.journey-shell { overflow: clip; }
+.assessment-timer--rail .assessment-timer__digits {
+  font-size: var(--text-body-sm);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+@media (max-width: 639.98px) {
+  .assessment-timer--rail { padding: 0 0.75rem; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .assessment-timer--urgent .assessment-timer__ring { animation: none; }
