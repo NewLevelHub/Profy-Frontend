@@ -93,7 +93,6 @@ export function useAssessment() {
   const [pages, setPages] = useState<Page[]>([]);
   const [rawQuestionCount, setRawQuestionCount] = useState(0);
   const [pageIndex, setPageIndex] = useState(0);
-  const [selectedPairOptionId, setSelectedPairOptionId] = useState<string | null>(null);
   const [likertAnswers, setLikertAnswers] = useState<Record<string, number>>(
     () => loadStoredAnswers(assessmentId ? likertAnswersStorageKey(assessmentId) : null) ?? {},
   );
@@ -147,7 +146,7 @@ export function useAssessment() {
 
         if (!startIndexApplied.current) {
           startIndexApplied.current = true;
-          // Each page consumes 1-5 (Likert) or 2 (pair) raw UserResponse
+          // Each page consumes 1-5 (Likert) or 2 per pair raw UserResponse
           // rows — walk until we've accounted for everything the store
           // says is already answered, landing on the first not-yet-fully-
           // answered page.
@@ -155,7 +154,7 @@ export function useAssessment() {
           let startIndex = built.length > 0 ? built.length - 1 : 0;
           for (let i = 0; i < built.length; i++) {
             const page = built[i];
-            const weight = page.kind === 'pair' ? 2 : page.questions.length;
+            const weight = page.kind === 'pair' ? page.pairs.length * 2 : page.questions.length;
             if (cumulative + weight > answeredCountFromStore) {
               startIndex = i;
               break;
@@ -226,10 +225,7 @@ export function useAssessment() {
   }, [assessmentId, retryCount]);
 
   useEffect(() => {
-    const page = pages[pageIndex];
     itemShownAtRef.current = Date.now();
-    setSelectedPairOptionId(page?.kind === 'pair' ? (pairAnswers[page.pair.pair_index] ?? null) : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageIndex, pages]);
 
   useEffect(() => {
@@ -389,20 +385,24 @@ export function useAssessment() {
     }
   }
 
-  async function handlePairAnswer(pickedQuestionId: string) {
+  function handlePairSelect(pairIndex: number, pickedQuestionId: string) {
+    if (saving || transitioning) return;
+    setPairAnswers(prev => ({ ...prev, [pairIndex]: pickedQuestionId }));
+  }
+
+  async function handleSubmitPairPage() {
     const page = pages[pageIndex];
     if (!page || page.kind !== 'pair' || saving || transitioning) return;
-    const { pair } = page;
+    const { pairs } = page;
+    if (!pairs.every(pair => pairAnswers[pair.pair_index] !== undefined)) return;
 
-    setSelectedPairOptionId(pickedQuestionId);
     setSaving(true);
     setError(null);
 
     try {
       const response = await pairsApi.submitAnswers(assessmentId!, {
-        answers: [{ pair_index: pair.pair_index, picked_question_id: pickedQuestionId }],
+        answers: pairs.map(pair => ({ pair_index: pair.pair_index, picked_question_id: pairAnswers[pair.pair_index] })),
       });
-      setPairAnswers(prev => ({ ...prev, [pair.pair_index]: pickedQuestionId }));
       setProgress(response.answered_count, response.total);
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
@@ -469,37 +469,48 @@ export function useAssessment() {
     setExitConfirmOpen(true);
   }
 
+  /** Sends what's picked on the current page so far; null when nothing is. */
+  function saveCurrentPagePicks() {
+    const page = pages[pageIndex];
+    if (!assessmentId || !page) return null;
+    if (page.kind === 'likert') {
+      const answered = page.questions.filter(q => likertAnswers[q.id] !== undefined);
+      if (answered.length === 0) return null;
+      return assessmentApi.saveAnswers(assessmentId, {
+        answers: answered.map(q => ({ question_id: q.id, value: likertAnswers[q.id] })),
+      });
+    }
+    const answered = page.pairs.filter(pair => pairAnswers[pair.pair_index] !== undefined);
+    if (answered.length === 0) return null;
+    return pairsApi.submitAnswers(assessmentId, {
+      answers: answered.map(pair => ({ pair_index: pair.pair_index, picked_question_id: pairAnswers[pair.pair_index] })),
+    });
+  }
+
   async function confirmExit() {
     setExitConfirmOpen(false);
-    // A Likert page only reaches the server on its "Далее" click
-    // (handleSubmitLikertPage) — a page abandoned before that click never
-    // sent anything, whether the user stopped partway through it or filled
-    // every question on it and exited instead of pressing "Далее". So this
-    // always flushes whatever's answered on the current page, not just a
-    // partial one — resubmitting a page that *did* already get its "Далее"
-    // click (e.g. after "Назад" back onto it) is a harmless no-op, same as
-    // the resume-recovery path in advance() above relies on.
-    // Pair pages don't have this gap: handlePairAnswer saves the single
-    // choice the moment it's made, before this page can even be showing an
-    // unsaved pick.
-    const page = pages[pageIndex];
-    if (assessmentId && page?.kind === 'likert') {
-      const answeredQuestions = page.questions.filter(q => likertAnswers[q.id] !== undefined);
-      if (answeredQuestions.length > 0) {
-        setExiting(true);
-        try {
-          const response = await assessmentApi.saveAnswers(assessmentId, {
-            answers: answeredQuestions.map(q => ({ question_id: q.id, value: likertAnswers[q.id] })),
-          });
-          setProgress(response.answered_count, response.total);
-        } catch (err) {
-          // Surfaced (not swallowed) so a failed flush is visible instead of
-          // silently leaving the displayed count stale — answers stay
-          // buffered in sessionStorage either way and retry next page load.
-          console.error('[assessment] failed to flush answers on exit', err);
-        } finally {
-          setExiting(false);
-        }
+    // A page only reaches the server on its "Далее" click
+    // (handleSubmitLikertPage / handleSubmitPairPage) — a page abandoned
+    // before that click never sent anything, whether the user stopped
+    // partway through it or filled every item on it and exited instead of
+    // pressing "Далее". So this always flushes whatever's answered on the
+    // current page, not just a partial one — resubmitting a page that *did*
+    // already get its "Далее" click (e.g. after "Назад" back onto it) is a
+    // harmless no-op, same as the resume-recovery path in advance() above
+    // relies on.
+    const request = saveCurrentPagePicks();
+    if (request) {
+      setExiting(true);
+      try {
+        const response = await request;
+        setProgress(response.answered_count, response.total);
+      } catch (err) {
+        // Surfaced (not swallowed) so a failed flush is visible instead of
+        // silently leaving the displayed count stale — answers stay
+        // buffered in sessionStorage either way and retry next page load.
+        console.error('[assessment] failed to flush answers on exit', err);
+      } finally {
+        setExiting(false);
       }
     }
     navigate('/results');
@@ -511,7 +522,7 @@ export function useAssessment() {
 
   const currentPage = pages[pageIndex];
   const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
-  const currentPair = currentPage?.kind === 'pair' ? currentPage.pair : undefined;
+  const currentPairs = currentPage?.kind === 'pair' ? currentPage.pairs : undefined;
   const isAdditionalTestsSection =
     currentLikertQuestions?.some(q => ADDITIONAL_TESTS_INSTRUMENTS.has(q.instrument)) ?? false;
   // Between-tests card (post-Ф4.1 follow-up): a card reopened on purpose
@@ -532,7 +543,7 @@ export function useAssessment() {
   const totalPages = pages.length;
   // "N вопросов" / time-estimate copy on the intro screen counts each
   // question and each pair as one unit, same as before pagination.
-  const totalItems = pages.reduce((sum, p) => sum + (p.kind === 'pair' ? 1 : p.questions.length), 0);
+  const totalItems = pages.reduce((sum, p) => sum + pageItemCount(p), 0);
   // Monotonic across all 4 phases — see journeyProgressPercent.
   const progress = useAssessmentJourneyProgress();
   // `saving` itself still gates input immediately (see handleLikertSelect /
@@ -546,13 +557,13 @@ export function useAssessment() {
     totalItems,
     rawQuestionCount,
     likertAnswers,
-    selectedPairOptionId,
+    pairAnswers,
     transitioning,
     saving,
     savingVisible,
     error,
     currentLikertQuestions,
-    currentPair,
+    currentPairs,
     isAdditionalTestsSection,
     testIntroInstrument,
     testIntroItemCount,
@@ -565,7 +576,8 @@ export function useAssessment() {
     handleStartTestIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
-    handlePairAnswer,
+    handlePairSelect,
+    handleSubmitPairPage,
     handleAutofill,
     handleAutofillToMotivation,
     handleAutofillToAstur,
