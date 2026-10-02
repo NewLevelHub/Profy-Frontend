@@ -399,9 +399,8 @@ export interface AsturRunSummary {
   subtest_started_at: Partial<Record<AsturSubtestKey, string>>;
 }
 
-/** `in_progress` = an attempt is open (resume it); `completed` = a finished
- *  attempt exists and none is open. The two runs are reported separately so
- *  an open retake never hides the finished result. */
+/** `in_progress` = an attempt is open (resume it); `completed` = the
+ *  attempt is finished and can't be reopened. */
 export interface AsturState {
   status: 'not_started' | 'in_progress' | 'completed';
   active_run: AsturRunSummary | null;
@@ -597,17 +596,34 @@ export interface InterestCombination {
 
 export type CareerTier = 'strong' | 'good' | 'worth_trying';
 
+/** One «Почему тебе подходит» reason: a vetted fact about the student tied
+ *  to something this profession needs. `fact` is the student half alone. */
+export interface StudentFitReason {
+  kind: 'fact' | 'subject';
+  fact: string;
+  text: string;
+}
+
 export interface StudentCareer {
   slug: string;
   name: string;
   rank: number;
   tier: CareerTier;
+  /** «Почему тебе подходит»: one connected text over every reason below
+   *  (or the shared interests / a profession skill) — never empty. */
   why: string;
-  matched_strengths: string[];
   try_now: string;
   description: string | null;
   skills_needed: string[];
   subjects_to_develop: string[];
+  /** The reasons `why` is written from, one by one — for compact views, not
+   *  to list under `why` again. Empty for a career added by hand. */
+  fit_reasons: StudentFitReason[];
+  /** Locale-free keys the fit rests on, for comparing careers; never shown. */
+  fit_keys: string[];
+  /** `why` is the AI analysis's text for the best match — it already covers
+   *  the reasons, so nothing is listed under it. */
+  why_by_ai: boolean;
 }
 
 // ─── PRO-282 psych-block sections — «Достоверность протокола» + «Психоэмоц.
@@ -1542,7 +1558,7 @@ export interface AsturAttemptHistory {
 
 /** The frozen result of one completed АСТУР attempt (admin view carries
  *  per-item scores too). */
-export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id' | 'retake_in_progress'> & {
+export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id'> & {
   item_scores: Record<string, number>;
   item_status: Record<string, 'correct' | 'partial' | 'wrong' | 'skipped' | 'unanswered'>;
 };
@@ -1551,7 +1567,6 @@ export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id' | 'retake_i
  *  frozen result. Percent of tasks done, not an IQ or a norm. */
 export interface IntelligenceSection {
   run_id: string;
-  retake_in_progress: boolean;
   scoring_version: string;
   bank_version: number;
   legacy: boolean;
@@ -1602,6 +1617,9 @@ export interface PsychProfessionRecommendation {
   slug: string;
   name: string;
   reasoning: string;
+  /** `reasoning` translated to Kazakh word for word — what a kk student reads
+   *  as their best match's «Почему тебе подходит». */
+  reasoning_kk: string;
 }
 
 /** Per-block AI commentary + a final synthesis + one profession picked from
@@ -1693,6 +1711,9 @@ export interface PsychologistReviewEdit {
   edited_at: string;
   editor_id: string | null;
   editor_email: string | null;
+  /** `ai_recommendation` — the system put the AI analysis's recommended
+   *  profession first in `careers`; such an edit has no editor. */
+  source: 'psychologist' | 'ai_recommendation';
   changed_fields: Record<string, { old: unknown; new: unknown }>;
 }
 
@@ -1739,6 +1760,13 @@ export interface PsychologistResultDetail {
   /** The strength cards were built from Belbin/АСТУР results the student has
    *  since retaken — rebuild them or publish as they are (PRO-432). */
   strengths_stale: boolean;
+  /** The AI analysis's recommended profession — first in `careers` by
+   *  default; null until the analysis exists. */
+  ai_recommended_slug: string | null;
+  /** «Почему тебе подходит» the student reads under their best match while
+   *  `top_career_why_slug` is first in `careers`; null until the AI analysis exists. */
+  top_career_why: string | null;
+  top_career_why_slug: string | null;
 }
 
 export type PsychologistResultPatch = Partial<
@@ -1753,6 +1781,7 @@ export type PsychologistResultPatch = Partial<
     | 'final_analysis'
     | 'personality_notes'
     | 'motivation_highlights'
+    | 'top_career_why'
   >
 >;
 
@@ -2225,3 +2254,11 @@ export type AdminDirectionUpdateRequest = Partial<{
   subjects_to_develop: string[];
   first_steps: string[];
 }>;
+
+/** A form validation error kept as a fully-qualified i18n key + params and
+ *  translated at render. Stored as text, an error stayed in the language it
+ *  was raised in after a language switch (PRO-450). */
+export interface ValidationMessage {
+  key: string;
+  params?: Record<string, string | number>;
+}

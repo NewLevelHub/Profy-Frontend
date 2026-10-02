@@ -19,6 +19,7 @@ export function useProfile() {
   const resetAssessment = useAssessmentStore((s) => s.resetAssessment);
   const clearReport = useResultStore((s) => s.clearReport);
   const setProfileDraft = useOnboardingDraftStore((s) => s.setProfileDraft);
+  const clearArtifactsDraft = useOnboardingDraftStore((s) => s.clearArtifactsDraft);
 
   const displayName = profile?.name?.trim() || user?.name?.trim() || t('page.defaultName');
   const initial = displayName[0]?.toUpperCase() ?? '?';
@@ -70,11 +71,15 @@ export function useProfile() {
     setConfirmRestart(false);
   }
 
+  // Every edit entry from here passes through the artifacts step, which
+  // prefers a parked unsaved pass over the saved profile — so start clean.
   function handleEditPersonal() {
+    clearArtifactsDraft();
     navigate('/onboarding/profile');
   }
 
   function handleEditSubjects() {
+    clearArtifactsDraft();
     navigate('/onboarding/profile', { state: { resumeAtLastStep: true } });
   }
 
@@ -105,6 +110,7 @@ export function useProfile() {
       subjectsHard: profile.subjects_hard,
       certificates: profile.certificates,
     });
+    clearArtifactsDraft();
     navigate('/onboarding/artifacts');
   }
 

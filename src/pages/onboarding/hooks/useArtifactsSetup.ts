@@ -19,6 +19,10 @@ import type { ArtifactItem, ArtifactType, ProfilePayload, ProfileResponse } from
 export const ARTIFACT_SECTIONS = ['activities', 'achievements', 'professions', 'targets', 'dreams'] as const;
 export type ArtifactSection = (typeof ARTIFACT_SECTIONS)[number];
 
+// Mirrors the backend's ARTIFACT_FREE_TEXT_MAX_LENGTH for the free-text
+// "мечты" answer (artifact type `goal`).
+export const DREAMS_MAX_LENGTH = 500;
+
 function toggle(list: string[], item: string): string[] {
   return list.includes(item) ? list.filter(s => s !== item) : [...list, item];
 }
@@ -55,7 +59,9 @@ export function useArtifactsSetup() {
   const profile = useProfileStore(s => s.profile);
   const setProfile = useProfileStore(s => s.setProfile);
   const profileDraft = useOnboardingDraftStore(s => s.profileDraft);
-  const clearProfileDraft = useOnboardingDraftStore(s => s.clearProfileDraft);
+  const artifactsDraft = useOnboardingDraftStore(s => s.artifactsDraft);
+  const setArtifactsDraft = useOnboardingDraftStore(s => s.setArtifactsDraft);
+  const clearDrafts = useOnboardingDraftStore(s => s.clearDrafts);
 
   // Reliable without an extra fetch: /onboarding/* sits outside RequireProfile,
   // but the "Изменить" buttons that land here from /profile are always
@@ -75,15 +81,19 @@ export function useArtifactsSetup() {
   // artifacts after onboarding is done — pre-fill from whatever's already
   // saved on the profile.
   const existing = ensuredProfile?.artifacts;
+  // Picks parked by "Назад" on a previous pass through this screen (see
+  // handleBack) win over the saved profile: they are newer, just not saved yet.
+  const parked = profileDraft !== null ? artifactsDraft : null;
+  const initial = parked ?? existing;
 
   const [activeSection, setActiveSection] = useState<ArtifactSection>('activities');
 
-  const [hobbies, setHobbies] = useState<string[]>(() => valuesOf(existing ?? [], 'hobby'));
-  const [clubs, setClubs] = useState<string[]>(() => valuesOf(existing ?? [], 'club'));
-  const [achievements, setAchievements] = useState<string[]>(() => valuesOf(existing ?? [], 'achievement'));
-  const [professions, setProfessions] = useState<string[]>(() => valuesOf(existing ?? [], 'profession'));
-  const [targets, setTargets] = useState<string[]>(() => valuesOf(existing ?? [], 'university'));
-  const [dreams, setDreams] = useState(() => existing?.find(i => i.type === 'goal')?.value ?? '');
+  const [hobbies, setHobbies] = useState<string[]>(() => valuesOf(initial ?? [], 'hobby'));
+  const [clubs, setClubs] = useState<string[]>(() => valuesOf(initial ?? [], 'club'));
+  const [achievements, setAchievements] = useState<string[]>(() => valuesOf(initial ?? [], 'achievement'));
+  const [professions, setProfessions] = useState<string[]>(() => valuesOf(initial ?? [], 'profession'));
+  const [targets, setTargets] = useState<string[]>(() => valuesOf(initial ?? [], 'university'));
+  const [dreams, setDreams] = useState(() => initial?.find(i => i.type === 'goal')?.value ?? '');
 
   // Поля выше инициализируются один раз. Если экран открыт по прямой ссылке
   // или после F5, профиль к этому моменту ещё не пришёл — редактор открылся
@@ -91,7 +101,7 @@ export function useArtifactsSetup() {
   // Досинхронизируем ровно один раз и только в этом случае: когда профиль был
   // на месте с самого начала, начальные значения уже верные, и перезапись затёрла
   // бы то, что человек успел напечатать.
-  const needsHydration = useRef(existing === undefined);
+  const needsHydration = useRef(initial === undefined);
   useEffect(() => {
     if (!needsHydration.current || !existing) return;
     needsHydration.current = false;
@@ -157,7 +167,7 @@ export function useArtifactsSetup() {
       // outlive the mutation and later clobber the store, bouncing the user
       // back to onboarding (see RequireProfile.tsx).
       if (userId) queryClient.setQueryData(['profile', userId], profile);
-      clearProfileDraft();
+      clearDrafts();
       // Fresh onboarding used to land on /results → AssessmentNotStartedCard
       // ("Начать тест"), then /assessment/goal — two near-identical journey
       // shells in a row (PRO-416). Send first-time students straight to goal
@@ -269,6 +279,9 @@ export function useArtifactsSetup() {
       if (activeSection === 'dreams') {
         setActiveSection('activities');
       } else {
+        // Leaving the route unmounts this page — park the unsaved picks so
+        // "Далее" from profile setup brings them back.
+        setArtifactsDraft(buildItems());
         navigate('/onboarding/profile', { state: { resumeAtLastStep: true } });
       }
       return;

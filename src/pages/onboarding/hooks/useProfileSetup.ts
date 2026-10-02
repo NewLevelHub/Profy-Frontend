@@ -3,14 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
 import { useProfileStore } from '@/shared/store/profile';
 import { CERTIFICATE_TYPES, validateCertificateScore } from '@/shared/config/certificates';
-import type { CertificateItem, CertificateType } from '@/shared/types';
+import { translateErrors } from '@/shared/lib/validationMessage';
+import type { CertificateItem, CertificateType, ValidationMessage } from '@/shared/types';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
 import { gradesForAge, isAgeGradeCompatible } from '@/shared/lib/ageGrade';
 
 // Exam score fields are keyed by exam ('ielts' | 'unt' | ...), so they share
 // this error map with the plain profile fields rather than living in a
-// second one — step 2 renders both kinds of error the same way.
-type FieldErrors = Partial<Record<'name' | 'age' | 'grade' | CertificateType, string>>;
+// second one — step 2 renders both kinds of error the same way. Kept as
+// keys, not text: the hook translates them on every render, so a language
+// switch re-translates errors already on screen.
+type FieldErrors = Partial<Record<'name' | 'age' | 'grade' | CertificateType, ValidationMessage>>;
 
 /** Raw, as-typed score per exam — parsed only at submit time, like `age`. */
 type ExamScores = Record<CertificateType, string>;
@@ -140,17 +143,19 @@ export function useProfileSetup() {
   // the second call's setErrors wipe out the first's.
   function validateNameAge(): boolean {
     const trimmedName = name.trim();
-    const name_ = !trimmedName
-      ? t('validation.nameRequired')
+    const name_: ValidationMessage | undefined = !trimmedName
+      ? { key: 'onboarding:validation.nameRequired' }
       : trimmedName.length < NAME_MIN_LENGTH
-        ? t('validation.nameTooShort', { min: NAME_MIN_LENGTH })
+        ? { key: 'onboarding:validation.nameTooShort', params: { min: NAME_MIN_LENGTH } }
         : trimmedName.length > NAME_MAX_LENGTH
-          ? t('validation.nameTooLong', { max: NAME_MAX_LENGTH })
+          ? { key: 'onboarding:validation.nameTooLong', params: { max: NAME_MAX_LENGTH } }
           : !NAME_PATTERN.test(trimmedName)
-            ? t('validation.nameLettersOnly')
+            ? { key: 'onboarding:validation.nameLettersOnly' }
             : undefined;
     const ageNum = Number(age);
-    const age_ = (!age || isNaN(ageNum) || ageNum < 14 || ageNum > 18) ? t('validation.ageRange') : undefined;
+    const age_: ValidationMessage | undefined = (!age || isNaN(ageNum) || ageNum < 14 || ageNum > 18)
+      ? { key: 'onboarding:validation.ageRange' }
+      : undefined;
     setErrors(prev => ({ ...prev, name: name_, age: age_ }));
     return !name_ && !age_;
   }
@@ -158,14 +163,17 @@ export function useProfileSetup() {
   function validateSchool(): boolean {
     const gradeNum = Number(grade);
     const ageNum = Number(age);
-    let grade_: string | undefined;
+    let grade_: ValidationMessage | undefined;
     if (!grade || isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) {
-      grade_ = t('validation.gradeRange');
+      grade_ = { key: 'onboarding:validation.gradeRange' };
     } else if (!isNaN(ageNum) && !isAgeGradeCompatible(ageNum, gradeNum)) {
       const allowed = gradesForAge(ageNum);
       grade_ = allowed.length
-        ? t('validation.gradeForAge', { age: ageNum, min: allowed[0], max: allowed[allowed.length - 1] })
-        : t('validation.gradeRange');
+        ? {
+          key: 'onboarding:validation.gradeForAge',
+          params: { age: ageNum, min: allowed[0], max: allowed[allowed.length - 1] },
+        }
+        : { key: 'onboarding:validation.gradeRange' };
     }
     setErrors(prev => ({ ...prev, grade: grade_ }));
     return !grade_;
@@ -181,7 +189,7 @@ export function useProfileSetup() {
       CERTIFICATE_TYPES.map(type => [
         type,
         examsTaken.includes(type)
-          ? validateCertificateScore(type, examScores[type], { required: true, t })
+          ? validateCertificateScore(type, examScores[type], { required: true })
           : undefined,
       ]),
     ) as FieldErrors;
@@ -264,7 +272,7 @@ export function useProfileSetup() {
     subjectsHard, setSubjectsHard,
     examsTaken, toggleExam,
     examScores, setExamScore,
-    errors,
+    errors: translateErrors(errors, t),
     clearError,
     handleNext,
     handleBack,

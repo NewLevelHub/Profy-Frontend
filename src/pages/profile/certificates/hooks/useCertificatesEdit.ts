@@ -6,11 +6,12 @@ import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
-import type { CertificateItem, CertificateType } from '@/shared/types';
+import { translateErrors } from '@/shared/lib/validationMessage';
+import type { CertificateItem, CertificateType, ValidationMessage } from '@/shared/types';
 import { CERTIFICATE_TYPES, validateCertificateScore } from '@/shared/config/certificates';
 
 type Scores = Record<CertificateType, string>;
-type FieldErrors = Partial<Record<CertificateType, string>>;
+type FieldErrors = Partial<Record<CertificateType, ValidationMessage>>;
 
 function scoreOf(items: CertificateItem[], type: CertificateType): string {
   const found = items.find(i => i.type === type);
@@ -81,7 +82,7 @@ export function useCertificatesEdit() {
   function validate(): boolean {
     const nextErrors: FieldErrors = {};
     for (const type of CERTIFICATE_TYPES) {
-      nextErrors[type] = validateCertificateScore(type, scores[type], { t });
+      nextErrors[type] = validateCertificateScore(type, scores[type]);
     }
     setErrors(nextErrors);
     return Object.values(nextErrors).every(e => e === undefined);
@@ -100,7 +101,7 @@ export function useCertificatesEdit() {
   return {
     scores,
     setScore,
-    errors,
+    errors: translateErrors(errors, t),
     isLoading: saveMutation.isPending,
     saveError: saveMutation.isError,
     handleSave,

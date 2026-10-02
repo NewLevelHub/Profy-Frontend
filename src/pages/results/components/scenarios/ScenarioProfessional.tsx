@@ -60,12 +60,15 @@ export function ScenarioProfessional({ careers, ageGroup, readOnly = false }: Sc
   const isBridge = level <= 2;
 
   // "Adjacent directions that share the same strength" — real data: other
-  // careers in the list whose matched_strengths overlap with the top
-  // direction's, not a fabricated relation.
+  // careers resting on the same vetted strength fact as the top direction
+  // (`strength:*` keys — not interests or subjects), not a fabricated relation.
+  const topStrengths = top.fit_keys.filter((key) => key.startsWith('strength:'));
   const adjacent = sorted
     .slice(1)
-    .filter((c) => c.matched_strengths.some((s) => top.matched_strengths.includes(s)))
+    .filter((c) => c.fit_keys.some((key) => topStrengths.includes(key)))
     .slice(0, 3);
+  // What already works toward the goal: the student halves of its reasons.
+  const alreadyWorks = top.fit_reasons.map((r) => r.fact);
 
   return (
     <div className="flex flex-col gap-6">
@@ -88,7 +91,7 @@ export function ScenarioProfessional({ careers, ageGroup, readOnly = false }: Sc
                 {t('scenarioProfessional.alreadyWorksLabel')}
               </p>
               <ul className="flex flex-col gap-1.5">
-                {(top.matched_strengths.length > 0 ? top.matched_strengths.slice(0, 3) : [t('scenarioProfessional.baseForStart')]).map((s, i) => (
+                {(alreadyWorks.length > 0 ? alreadyWorks.slice(0, 3) : [t('scenarioProfessional.baseForStart')]).map((s, i) => (
                   <li key={i} className="text-caption text-primary leading-snug">— {s}</li>
                 ))}
               </ul>

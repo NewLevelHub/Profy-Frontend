@@ -1,12 +1,13 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button, FullScreenPreferences, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
-import { useArtifactsSetup, ARTIFACT_SECTIONS, type ArtifactSection } from './hooks/useArtifactsSetup';
+import { Mono } from '@/shared/ui/typography/Mono';
+import { useArtifactsSetup, ARTIFACT_SECTIONS, DREAMS_MAX_LENGTH, type ArtifactSection } from './hooks/useArtifactsSetup';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { SelectableChip } from './components/SelectableChip';
+import { AddCustomChip } from './components/AddCustomChip';
 import { PROFILE_STEP_COUNT, TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
 // ── Artifacts — onboarding steps 5-9 ────────────────────────────────────────
@@ -101,52 +102,6 @@ function SectionTabs({ active, onChange }: { active: ArtifactSection; onChange: 
   );
 }
 
-function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
-  const { t } = useTranslation('onboarding');
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
-
-  function commit() {
-    const trimmed = value.trim();
-    if (trimmed) onAdd(trimmed);
-    setValue('');
-    setOpen(false);
-  }
-
-  if (open) {
-    return (
-      <input
-        autoFocus
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        onBlur={commit}
-        onKeyDown={e => {
-          if (e.key === 'Enter') { e.preventDefault(); commit(); }
-          if (e.key === 'Escape') { setValue(''); setOpen(false); }
-        }}
-        placeholder={t('artifacts.customPlaceholder')}
-        className="field-tile px-3.5 py-2 rounded-pill text-caption font-semibold w-36 focus:outline-none border-[color:var(--pine)]"
-        style={{ color: 'var(--text-heading)' }}
-      />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      className="px-3.5 py-2 rounded-pill text-caption font-semibold transition-colors press-scale"
-      style={{
-        background: 'transparent',
-        color: 'var(--mute)',
-        border: '1.5px dashed color-mix(in srgb, var(--pine) 28%, var(--hairline))',
-      }}
-    >
-      {t('artifacts.addCustom')}
-    </button>
-  );
-}
-
 function ChipGrid({
   options, selected, onToggle, onAddCustom, subtitle, labelFor,
 }: {
@@ -157,6 +112,7 @@ function ChipGrid({
   /** value -> display label. Defaults to identity (custom entries). */
   labelFor?: (value: string) => string;
 }) {
+  const { t } = useTranslation('onboarding');
   const label = labelFor ?? ((v: string) => v);
   const custom = selected.filter(s => !options.includes(s));
   return (
@@ -171,7 +127,11 @@ function ChipGrid({
         {custom.map(o => (
           <SelectableChip key={o} label={label(o)} selected onClick={() => onToggle(o)} />
         ))}
-        <AddCustomChip onAdd={onAddCustom} />
+        <AddCustomChip
+          label={t('artifacts.addCustom')}
+          placeholder={t('artifacts.customPlaceholder')}
+          onAdd={onAddCustom}
+        />
       </div>
     </div>
   );
@@ -265,21 +225,39 @@ export default function ArtifactsSetupPage() {
     />
   );
 
+  // Счётчик под полем: без него maxLength молча переставал принимать ввод, и
+  // казалось, что поле сломалось. Сохранённый раньше длинный текст (> лимита)
+  // подсвечивается — бэкенд такой не примет.
+  const isDreamsOverLimit = dreams.length > DREAMS_MAX_LENGTH;
   const dreamsBody = (
-    <textarea
-      value={dreams}
-      onChange={e => setDreams(e.target.value)}
-      placeholder={t('artifacts.dreamsPlaceholder')}
-      className={cn(
-        // Высота под пару строк, а не aspect-[2/1]: пропорция растила поле вместе
-        // с карточкой и на широком экране разворачивала «одну строку, без правил»
-        // в пустой прямоугольник в треть экрана.
-        'w-full min-h-[8.5rem] mx-auto field-tile !rounded-[16px] px-4 py-3.5 text-body-md resize-none',
-        'placeholder:text-placeholder focus:outline-none transition-colors',
-        'focus:border-[color:var(--pine)]',
-      )}
-      style={{ color: 'var(--ink)' }}
-    />
+    <div className="w-full flex flex-col gap-1.5">
+      <textarea
+        value={dreams}
+        maxLength={DREAMS_MAX_LENGTH}
+        onChange={e => setDreams(e.target.value)}
+        placeholder={t('artifacts.dreamsPlaceholder')}
+        aria-describedby="dreams-counter"
+        aria-invalid={isDreamsOverLimit}
+        className={cn(
+          // Высота под пару строк, а не aspect-[2/1]: пропорция растила поле вместе
+          // с карточкой и на широком экране разворачивала «одну строку, без правил»
+          // в пустой прямоугольник в треть экрана.
+          'w-full min-h-[8.5rem] mx-auto field-tile !rounded-[16px] px-4 py-3.5 text-body-md resize-none',
+          'placeholder:text-placeholder focus:outline-none transition-colors',
+          'focus:border-[color:var(--pine)]',
+        )}
+        style={{ color: 'var(--ink)' }}
+      />
+      <Mono
+        variant="xs"
+        as="p"
+        className={cn('self-end m-0', isDreamsOverLimit ? 'text-danger' : 'text-muted')}
+      >
+        <span id="dreams-counter" aria-live="polite">
+          {t('artifacts.dreamsCounter', { current: dreams.length, max: DREAMS_MAX_LENGTH })}
+        </span>
+      </Mono>
+    </div>
   );
 
   const sectionContent = (

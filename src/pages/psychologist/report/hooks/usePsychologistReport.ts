@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import { psychologistApi } from '@/shared/api/psychologist';
+import { psychologistKeys } from '@/shared/api/psychologistKeys';
 
 /**
  * PRO-338 Ф0.4 — all data fetching/derived state for the specialist report
@@ -43,10 +44,20 @@ export function usePsychologistReport(studentId: string, assessmentId: string) {
     retry,
   });
 
+  // Getting (or regenerating) the AI analysis puts its recommended
+  // profession first in the student's careers server-side — the editor tab
+  // must re-read the result (and its edit history) to show that order.
+  const refreshReviewedResult = () =>
+    queryClient.invalidateQueries({ queryKey: psychologistKeys.result(studentId, assessmentId) });
+
   const reportKey = ['psychologistReport', studentId, assessmentId] as const;
   const { data, isLoading: isAiAnalysisLoading, refetch: refetchReport } = useQuery({
     queryKey: reportKey,
-    queryFn: () => psychologistApi.getReport(studentId, assessmentId),
+    queryFn: async () => {
+      const report = await psychologistApi.getReport(studentId, assessmentId);
+      void refreshReviewedResult();
+      return report;
+    },
     enabled,
     retry,
   });
@@ -61,6 +72,7 @@ export function usePsychologistReport(studentId: string, assessmentId: string) {
       queryClient.setQueryData(reportKey, (prev: typeof data) =>
         prev ? { ...prev, ai_analysis: aiAnalysis } : prev,
       );
+      void refreshReviewedResult();
     },
   });
 

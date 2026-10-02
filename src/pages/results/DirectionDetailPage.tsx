@@ -14,6 +14,7 @@ import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingVi
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 import { DomainCardFrame, DomainKicker } from '@/pages/results/components/DomainCardParts';
+import { reasonsBeyondWhy } from '@/pages/results/utils/careerReasons';
 
 function capitalizeFirst(text: string): string {
   return text.length > 0 ? text[0].toUpperCase() + text.slice(1) : text;
@@ -88,6 +89,7 @@ export default function DirectionDetailPage() {
 
   const skills = direction?.skills_needed ?? [];
   const subjects = direction?.subjects_to_develop ?? [];
+  const fitReasons = direction ? reasonsBeyondWhy(direction) : [];
 
   if (isLoading) {
     return <DirectionDetailSkeleton />;
@@ -186,14 +188,21 @@ export default function DirectionDetailPage() {
       )}
 
       <DomainCardFrame ariaLabel={t('direction.whyFitAria')}>
-        {direction.matched_strengths.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <DomainKicker>{t('direction.whyFitKicker')}</DomainKicker>
-            <p className="text-body-md font-semibold text-[color:var(--text-heading)] leading-relaxed m-0">
-              {direction.matched_strengths.join(', ')}
-            </p>
-          </div>
-        )}
+        <div className="flex flex-col gap-3">
+          <DomainKicker>{t('direction.whyFitKicker')}</DomainKicker>
+          <p className="text-body-md font-semibold text-[color:var(--text-heading)] leading-relaxed m-0">
+            {direction.why}
+          </p>
+          {fitReasons.length > 0 && (
+            <ul className="flex flex-col gap-2 m-0 pl-5 list-disc">
+              {fitReasons.map((reason) => (
+                <li key={reason.text} className="text-body-md text-primary leading-relaxed">
+                  {reason.text}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="flex flex-col gap-3">
           <DomainKicker>{t('direction.tryNowKicker')}</DomainKicker>

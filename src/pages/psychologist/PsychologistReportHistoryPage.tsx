@@ -25,6 +25,7 @@ interface HistoryRow {
 const FIELD_TITLE_KEYS: Record<string, string> = {
   summary: 'psychologist:review.blocks.summary.title',
   careers: 'psychologist:review.blocks.careers.title',
+  top_career_why: 'psychologist:review.blocks.careers.topWhyTitle',
   strength_cards: 'psychologist:review.blocks.strengths.title',
   personality_notes: 'psychologist:review.blocks.traits.title',
   thinking_style_notes: 'psychologist:review.blocks.thinking.title',
@@ -39,9 +40,11 @@ function toRows(t: TFunction, edits: PsychologistReviewEdit[], currentUserId: st
   for (const edit of edits) {
     const when = dateTimeLabel(edit.edited_at);
     const who =
-      edit.editor_id && edit.editor_id === currentUserId
-        ? t('psychologist:history.you')
-        : (edit.editor_email ?? t('psychologist:history.unknownEditor'));
+      edit.source === 'ai_recommendation'
+        ? t('psychologist:history.aiEditor')
+        : edit.editor_id && edit.editor_id === currentUserId
+          ? t('psychologist:history.you')
+          : (edit.editor_email ?? t('psychologist:history.unknownEditor'));
     for (const [field, change] of Object.entries(edit.changed_fields)) {
       const title = FIELD_TITLE_KEYS[field] ? t(FIELD_TITLE_KEYS[field]) : field;
       if (field === 'personality_notes') {
