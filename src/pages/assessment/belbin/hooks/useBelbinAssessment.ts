@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import { belbinApi } from '@/shared/api/belbin';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useAssessmentJourneyProgress } from '../../hooks/useAssessmentJourneyProgress';
@@ -88,12 +89,23 @@ export function useBelbinAssessment(assessmentId: string) {
     persistProgress(assessmentId, { blockIndex, allocations });
   }, [assessmentId, blockIndex, allocations]);
 
+  function finish() {
+    clearProgress(assessmentId);
+    useAssessmentStore.getState().setBelbinCompleted(true);
+    setPhase('done');
+  }
+
+  // One Belbin per assessment: 409 means it is already on the server (e.g.
+  // submitted from another tab) — the same outcome as a fresh submit.
+  function isAlreadyCompleted(err: unknown): boolean {
+    return (err as AxiosError)?.response?.status === 409;
+  }
+
   const submitMutation = useMutation({
     mutationFn: () => belbinApi.submit(assessmentId, { allocations }),
-    onSuccess: () => {
-      clearProgress(assessmentId);
-      useAssessmentStore.getState().setBelbinCompleted(true);
-      setPhase('done');
+    onSuccess: finish,
+    onError: (err) => {
+      if (isAlreadyCompleted(err)) finish();
     },
   });
 
@@ -148,11 +160,9 @@ export function useBelbinAssessment(assessmentId: string) {
     setAllocations(autofillAllocations);
     try {
       await belbinApi.submit(assessmentId, { allocations: autofillAllocations });
-      clearProgress(assessmentId);
-      useAssessmentStore.getState().setBelbinCompleted(true);
-      setPhase('done');
-    } catch {
-      // ignore
+      finish();
+    } catch (err) {
+      if (isAlreadyCompleted(err)) finish();
     }
   }
 
@@ -195,6 +205,7 @@ export function useBelbinAssessment(assessmentId: string) {
     confirmExit,
     cancelExit,
     submitting: submitMutation.isPending,
-    submitError: submitMutation.isError ? t('belbin.submitError') : null,
+    submitError:
+      submitMutation.isError && !isAlreadyCompleted(submitMutation.error) ? t('belbin.submitError') : null,
   };
 }

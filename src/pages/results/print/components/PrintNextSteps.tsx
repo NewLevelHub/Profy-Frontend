@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { CAREER_TIER_LABELS } from '@/shared/config/constants';
 import type { StudentCareer } from '@/shared/types';
+import { reasonsBeyondWhy } from '@/pages/results/utils/careerReasons';
 import type { SphereCardData } from '../../components/scenarios/sphereContent';
 import { PrintSection } from './PrintSection';
 
@@ -92,11 +93,14 @@ export function PrintCareers({ careers }: { careers: StudentCareer[] }) {
             <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
               {career.why}
             </p>
-            {career.matched_strengths.length > 0 && (
-              <p className="text-caption leading-snug mt-1" style={{ color: 'var(--ink)' }}>
-                <span className="font-semibold">{t('print.nextSteps.matchesLabel')} </span>
-                {career.matched_strengths.join(', ')}
-              </p>
+            {reasonsBeyondWhy(career).length > 0 && (
+              <ul className="mt-1 m-0 pl-4 list-disc">
+                {reasonsBeyondWhy(career).map((reason) => (
+                  <li key={reason.text} className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
+                    {reason.text}
+                  </li>
+                ))}
+              </ul>
             )}
             {career.try_now && (
               <p className="text-caption leading-snug" style={{ color: 'var(--ink)' }}>
