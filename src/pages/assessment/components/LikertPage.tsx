@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { LikertScale } from '@/shared/ui';
+import { playClick } from '@/shared/lib/sounds';
 import {
   LIKERT_SCALE,
   BIGFIVE_LIKERT_SCALE,
@@ -9,7 +11,6 @@ import {
   KONDASH_ANXIETY_SCALE,
 } from '@/shared/config/constants';
 import type { Instrument, Question } from '@/shared/types';
-import { LikertScale } from './LikertScale';
 
 /** PRO-338 Ф0.5: eysenck/elers/boyko_empathy are Да/Нет (binary) instruments
  * reusing this same Likert engine — 2 options instead of 5, everything else
@@ -105,7 +106,10 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
             </p>
             <LikertScale
               selected={answers[question.id] ?? null}
-              onSelect={value => onSelect(question.id, value)}
+              onSelect={value => {
+                playClick('soft');
+                onSelect(question.id, value);
+              }}
               scale={scaleForInstrument(question.instrument)}
               poleLeft={poles ? tAssessment(poles.left) : undefined}
               poleRight={poles ? tAssessment(poles.right) : undefined}
