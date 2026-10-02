@@ -19,6 +19,10 @@ import type { ArtifactItem, ArtifactType, ProfilePayload, ProfileResponse } from
 export const ARTIFACT_SECTIONS = ['activities', 'achievements', 'professions', 'targets', 'dreams'] as const;
 export type ArtifactSection = (typeof ARTIFACT_SECTIONS)[number];
 
+// Mirrors the backend's ARTIFACT_FREE_TEXT_MAX_LENGTH for the free-text
+// "мечты" answer (artifact type `goal`).
+export const DREAMS_MAX_LENGTH = 500;
+
 function toggle(list: string[], item: string): string[] {
   return list.includes(item) ? list.filter(s => s !== item) : [...list, item];
 }

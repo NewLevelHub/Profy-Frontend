@@ -100,6 +100,7 @@
     "addCustom": "+ своё",
     "customPlaceholder": "Своё",
     "dreamsPlaceholder": "Например: хочу однажды поехать на настоящие раскопки",
+    "dreamsCounter": "{{current}} / {{max}}",
     "tab": {
       "activities": "01 чем занимаешься",
       "achievements": "02 может, уже было",
