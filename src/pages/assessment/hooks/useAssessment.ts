@@ -9,7 +9,7 @@ import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment, autofillMainBattery, autofillToAstur } from '@/shared/dev/autofillAssessment';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
-import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
+import { journeyStages } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
 import { buildPages, isFirstPageOfInstrument, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
@@ -319,9 +319,9 @@ export function useAssessment() {
       // Route change unmounts this page, taking `saving` with it — no reset needed.
       // Read progress from the store (just updated by setProgress) rather than
       // the stale render-time `progress` closed over this callback.
-      const restProgress = journeyProgressPercent(useAssessmentStore.getState());
+      const stages = journeyStages(useAssessmentStore.getState());
       navigate('/assessment/rest', {
-        state: { returnTo: '/assessment', progress: restProgress, totalAnswered, isSpeedFlag } satisfies RestStopState,
+        state: { returnTo: '/assessment', stages, totalAnswered, isSpeedFlag } satisfies RestStopState,
       });
       return;
     }

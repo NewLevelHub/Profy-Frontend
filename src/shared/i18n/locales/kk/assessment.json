@@ -46,7 +46,6 @@
     "progressAriaMotivation": "Мотивация блогының барысы",
     "progressAriaAstur": "Оқу тапсырмалары бөлімінің барысы",
     "progressAriaBelbin": "Топтық тесттің барысы",
-    "pageOf": "Бет: {{current}} / {{total}}",
     "questionOf": "Сұрақ: {{current}} / {{total}}",
     "subtestOf": "Субтест: {{current}} / {{total}}",
     "sectionOf": "Бөлім: {{current}} / {{total}}"
@@ -188,14 +187,22 @@
     "kickerInsight": "Жол бойы байқаймын",
     "kickerRest": "Демалыс",
     "speedHeadline": "Оқып үлгергеннен жылдамырақ жүрсің",
-    "neutralHeadline": "{{count}} өттік, біркелкі жүріп келеміз",
+    "neutralHeadline_one": "{{count}} сұрақ артта қалды",
+    "neutralHeadline_other": "{{count}} сұрақ артта қалды",
     "speedBody": "Бұл тестті ешкім тексермейді және ешкімге көрсетпейді — асығудың қажеті жоқ. Демалып, сол сұраққа қайта оралуға болады, орын сақталады.",
     "insightBody": "Әзірге бұл тек бақылау — оның нені білдіретінін ең соңында есептейміз. Жалғастырамыз ба?",
     "neutralBody": "Керек болса, бір секунд демал — сұрақтар ешқайда қашпайды. Жалғастырамыз ба?",
     "continue": "Жалғастырамыз",
     "continueSlow": "Асықпай жалғастырамыз",
     "pause": "Үзіліс жасау",
-    "progressAria": "Диагностика барысы"
+    "progressAria": "Диагностика барысы",
+    "stage": {
+      "diagnostic": "Диагностика",
+      "motivation": "Мотивация",
+      "belbin": "Команда",
+      "astur": "Оқу тапсырмалары"
+    },
+    "stageRemaining": "тағы ≈ {{count}} мин"
   },
   "psychoemotional": {
     "sectionLabel": "Психоэмоционалды сынама",

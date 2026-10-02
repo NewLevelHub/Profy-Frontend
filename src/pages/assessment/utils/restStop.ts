@@ -1,3 +1,5 @@
+import type { JourneyStage } from '@/shared/lib/journeyProgress';
+
 /**
  * Shared shape for the `navigate('/assessment/rest', { state })` call made
  * by both assessment flows (useAssessment, useMotivationAssessment) when
@@ -7,7 +9,8 @@
  */
 export interface RestStopState {
   returnTo: string;
-  progress: number;
+  /** Snapshot of journeyStages() at the moment of the stop — feeds the stage map. */
+  stages: JourneyStage[];
   totalAnswered: number;
   microInsight?: string;
   /** True when this stop was triggered by useAssessmentStore.recordAnswerTiming

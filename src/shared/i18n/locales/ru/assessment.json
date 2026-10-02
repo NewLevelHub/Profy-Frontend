@@ -46,7 +46,6 @@
     "progressAriaMotivation": "Прогресс блока мотивации",
     "progressAriaAstur": "Прогресс раздела с учебными задачами",
     "progressAriaBelbin": "Прогресс командного теста",
-    "pageOf": "Страница {{current}} из {{total}}",
     "questionOf": "Вопрос {{current}} из {{total}}",
     "subtestOf": "Субтест {{current}} из {{total}}",
     "sectionOf": "Раздел {{current}} из {{total}}"
@@ -194,14 +193,24 @@
     "kickerInsight": "Замечаю по ходу",
     "kickerRest": "Привал",
     "speedHeadline": "Ты идёшь быстрее, чем успеваешь прочитать",
-    "neutralHeadline": "Прошли {{count}}, идём ровно",
+    "neutralHeadline_one": "Позади {{count}} вопрос",
+    "neutralHeadline_few": "Позади {{count}} вопроса",
+    "neutralHeadline_many": "Позади {{count}} вопросов",
+    "neutralHeadline_other": "Позади {{count}} вопросов",
     "speedBody": "Этот тест никто не проверяет и никому не показывает — торопиться не нужно. Можно отдохнуть и вернуться к тому же вопросу, место сохранится.",
     "insightBody": "Пока это только наблюдение — что оно значит, посчитаем в самом конце. Продолжаем?",
     "neutralBody": "Отдохни секунду, если нужно, — вопросы никуда не убегут. Продолжаем?",
     "continue": "Продолжаем",
     "continueSlow": "Продолжаем не спеша",
     "pause": "Сделать паузу",
-    "progressAria": "Прогресс диагностики"
+    "progressAria": "Прогресс диагностики",
+    "stage": {
+      "diagnostic": "Диагностика",
+      "motivation": "Мотивация",
+      "belbin": "Команда",
+      "astur": "Учебные задачи"
+    },
+    "stageRemaining": "ещё ≈ {{count}} мин"
   },
   "psychoemotional": {
     "sectionLabel": "Психоэмоциональный срез",

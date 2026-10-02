@@ -16,7 +16,6 @@ export default function AssessmentPage() {
   const {
     phase,
     pageIndex,
-    totalPages,
     totalItems,
     likertAnswers,
     selectedPairOptionId,
@@ -55,10 +54,10 @@ export default function AssessmentPage() {
   const sectionLabel = isAdditionalTestsSection
     ? t('rail.sectionAdditionalTests')
     : t('rail.sectionDiagnostic');
+  // No "Страница N из M" while answering: 88 pages read as an endless test.
+  // The section label + percentage under the bar carry the progress instead.
   const headerTitle =
-    phase === 'question' && !testIntroInstrument && totalPages > 0
-      ? t('rail.pageOf', { current: pageIndex + 1, total: totalPages })
-      : sectionLabel;
+    phase === 'question' && !testIntroInstrument ? undefined : sectionLabel;
 
   return (
     <div className="flex flex-col min-h-screen bg-page">

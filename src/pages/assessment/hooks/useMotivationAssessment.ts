@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { afterBatteryRoute } from '@/shared/store/psychoemotional';
-import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
+import { journeyStages } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
@@ -176,7 +176,7 @@ export function useMotivationAssessment() {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/motivation',
-            progress: journeyProgressPercent(useAssessmentStore.getState()),
+            stages: journeyStages(useAssessmentStore.getState()),
             totalAnswered: restCheck.totalAnswered,
             isSpeedFlag,
           } satisfies RestStopState,
