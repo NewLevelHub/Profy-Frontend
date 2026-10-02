@@ -6,9 +6,9 @@ import { Spine } from '@/shared/ui/Spine';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 
 export interface AssessmentRailProps {
-  /** Text next to the back button (e.g. "Вопрос 3 из 20" or the flow's static title). */
-  title: string;
-  /** Constant label shown bottom-left under the progress bar (e.g. "Тест RIASEC"). */
+  /** Text next to the back button (e.g. "Вопрос 3 из 20" or the flow's static title). Omit to show only the back button. */
+  title?: string;
+  /** Constant label shown inline before the progress bar (e.g. "Тест RIASEC"). */
   sectionLabel: string;
   /** aria-label for the progress bar element itself. */
   progressAriaLabel: string;
@@ -33,6 +33,10 @@ export interface AssessmentRailProps {
    *  further, for testing the АСТУР flow itself without clicking through
    *  everything ahead of it. Only offered on the main-battery screens. */
   devAutofillToAstur?: { onClick: () => void; loading: boolean };
+  /** Ref for an empty slot left of the theme toggle. A screen that owns
+   *  live status for the header (АСТУР's countdown) portals it in here, so
+   *  the state stays with the screen instead of being lifted to the page. */
+  statusSlotRef?: (el: HTMLDivElement | null) => void;
 }
 
 // The single collapsed rail used by every assessment-flow screen
@@ -56,6 +60,7 @@ export function AssessmentRail({
   devAutofill,
   devAutofillToMotivation,
   devAutofillToAstur,
+  statusSlotRef,
 }: AssessmentRailProps) {
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
@@ -88,35 +93,88 @@ export function AssessmentRail({
     };
   }, []);
 
-  return (
-    <header
-      ref={railRef}
-      className="sticky top-0 z-10 px-3 pt-[18px] pb-4 sm:px-4 lg:px-6"
-      style={{ background: 'color-mix(in srgb, var(--fog) 90%, transparent)', backdropFilter: 'blur(8px)' }}
-    >
-      <div className="flex items-center justify-between w-full max-w-7xl mx-auto mb-[14px] gap-2">
-        {/* Slot 1: progress indicator (back + title fold in here) */}
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          {showBack ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className="inline-flex items-center gap-1.5 shrink-0 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
-            >
-              <ArrowLeft className="w-4 h-4 flex-shrink-0" strokeWidth={2.25} aria-hidden="true" />
-              {t('common:back')}
-            </button>
-          ) : null}
-          <span className="font-extrabold text-primary truncate text-body-sm">
-            {title}
-          </span>
-        </div>
+  const devButtons = import.meta.env.DEV && (devAutofill || devAutofillToMotivation || devAutofillToAstur);
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Dev-only autofill — pre-existing dev tool, kept out of the 3 prod
-              slots. Strings are gated behind import.meta.env.DEV, never ship to
-              users, so they're intentionally left un-localized. */}
-          {import.meta.env.DEV && devAutofill && (
+  return (
+    <>
+      <header
+        ref={railRef}
+        className="sticky top-0 z-10 px-3 pt-[18px] pb-4 sm:px-4 lg:px-6"
+        style={{ background: 'color-mix(in srgb, var(--fog) 90%, transparent)', backdropFilter: 'blur(8px)' }}
+      >
+        {/* Same width as the stage card below (assessment-stage, 720px), so the
+            back button, bar and exit line up with the card edges instead of
+            stretching across the whole screen. */}
+        <div className="w-full max-w-[720px] mx-auto">
+          <div className="flex items-center justify-between mb-3 gap-2">
+            {/* Slot 1: progress indicator (back + title fold in here) */}
+            <div className="flex items-center gap-2 min-w-0 flex-1 min-h-[38px]">
+              {showBack ? (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="inline-flex items-center gap-1.5 shrink-0 text-brand text-label font-extrabold hover:opacity-70 transition-opacity border-none bg-transparent cursor-pointer p-0"
+                >
+                  <ArrowLeft className="w-4 h-4 flex-shrink-0" strokeWidth={2.25} aria-hidden="true" />
+                  {t('common:back')}
+                </button>
+              ) : null}
+              {title ? (
+                <span className="font-extrabold text-primary truncate text-body-sm">
+                  {title}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {statusSlotRef && <div ref={statusSlotRef} className="flex empty:hidden" />}
+              <ThemeToggle />
+              {/* Slot 2: sound toggle */}
+              <button
+                type="button"
+                onClick={toggleSound}
+                role="switch"
+                aria-checked={soundEnabled}
+                aria-label={soundLabel}
+                title={soundLabel}
+                className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-secondary transition-colors hover:bg-brand-subtle flex-shrink-0"
+                style={{ boxShadow: 'var(--shadow-pop)' }}
+              >
+                {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
+              </button>
+
+              {/* Slot 3: exit action */}
+              <button
+                type="button"
+                onClick={onExit}
+                aria-label={t('assessment:rail.exit')}
+                className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
+                style={{ boxShadow: 'var(--shadow-pop)' }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Section label · bar · percent on one line, so the label and the
+              number read as belonging to the bar rather than to opposite
+              screen edges. */}
+          <div className="flex items-center gap-3 text-mono-sm">
+            <span className="font-bold text-muted shrink-0 max-w-[45%] truncate">{sectionLabel}</span>
+            <Spine value={progress} ariaLabel={progressAriaLabel} flat thickness={4 / 3} className="flex-1" />
+            <span className="font-bold text-muted shrink-0 w-[4ch] text-right tabular-nums">{Math.round(progress)}%</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Dev-only autofill — pre-existing dev tool, kept out of the rail so
+          the 720px row stays as it ships. Rendered outside <header>: its
+          backdrop-filter would turn `fixed` into header-relative. Strings are gated behind
+          import.meta.env.DEV, never ship to users, so they're intentionally
+          left un-localized. */}
+      {devButtons && (
+        <div className="fixed left-3 bottom-3 z-20 flex flex-col items-start gap-2">
+          {devAutofill && (
             <button
               type="button"
               onClick={devAutofill.onClick}
@@ -130,7 +188,7 @@ export function AssessmentRail({
             </button>
           )}
 
-          {import.meta.env.DEV && devAutofillToMotivation && (
+          {devAutofillToMotivation && (
             <button
               type="button"
               onClick={devAutofillToMotivation.onClick}
@@ -144,7 +202,7 @@ export function AssessmentRail({
             </button>
           )}
 
-          {import.meta.env.DEV && devAutofillToAstur && (
+          {devAutofillToAstur && (
             <button
               type="button"
               onClick={devAutofillToAstur.onClick}
@@ -157,42 +215,8 @@ export function AssessmentRail({
               {devAutofillToAstur.loading ? '…' : '⚡ До Астур теста'}
             </button>
           )}
-
-          <ThemeToggle />
-          {/* Slot 2: sound toggle */}
-          <button
-            type="button"
-            onClick={toggleSound}
-            role="switch"
-            aria-checked={soundEnabled}
-            aria-label={soundLabel}
-            title={soundLabel}
-            className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-secondary transition-colors hover:bg-brand-subtle flex-shrink-0"
-            style={{ boxShadow: 'var(--shadow-pop)' }}
-          >
-            {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
-          </button>
-
-          {/* Slot 3: exit action */}
-          <button
-            type="button"
-            onClick={onExit}
-            aria-label={t('assessment:rail.exit')}
-            className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
-            style={{ boxShadow: 'var(--shadow-pop)' }}
-          >
-            ✕
-          </button>
         </div>
-      </div>
-
-      <div className="w-full max-w-7xl mx-auto">
-        <Spine value={progress} ariaLabel={progressAriaLabel} flat />
-        <div className="flex justify-between mt-2 mx-0.5 text-mono-sm">
-          <span className="font-bold text-muted">{sectionLabel}</span>
-          <span className="font-bold text-muted">{Math.round(progress)}%</span>
-        </div>
-      </div>
-    </header>
+      )}
+    </>
   );
 }

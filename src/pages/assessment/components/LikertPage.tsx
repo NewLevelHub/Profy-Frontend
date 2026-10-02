@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { LikertScale } from '@/shared/ui';
+import { playClick } from '@/shared/lib/sounds';
 import {
   LIKERT_SCALE,
   BIGFIVE_LIKERT_SCALE,
@@ -9,7 +10,7 @@ import {
   KONDASH_ANXIETY_SCALE,
 } from '@/shared/config/constants';
 import type { Instrument, Question } from '@/shared/types';
-import { LikertScale } from './LikertScale';
+import { useFollowActiveItem } from '../hooks/useFollowActiveItem';
 
 /** PRO-338 Ф0.5: eysenck/elers/boyko_empathy are Да/Нет (binary) instruments
  * reusing this same Likert engine — 2 options instead of 5, everything else
@@ -61,28 +62,8 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
   const { t: tAssessment } = useTranslation('assessment');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
 
-  // The next unanswered question on this page — answering one "cuts" to
-  // this one via a smooth scroll, guiding the eye down the page instead of
-  // leaving the user to hunt for what's next among 5 stacked questions.
-  // No opacity/position entrance animation here: every question is already
-  // fully visible on screen (all 5 render at once), so animating one "in"
-  // meant snapping an already-readable block to invisible and back — a
-  // visible flicker rather than a transition.
   const activeQuestion = questions.find(question => answers[question.id] === undefined) ?? null;
-  const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const prevActiveIdRef = useRef<string | null>(activeQuestion?.id ?? null);
-  const justBecameActive = activeQuestion !== null && activeQuestion.id !== prevActiveIdRef.current;
-
-  useEffect(() => {
-    if (justBecameActive && activeQuestion) {
-      const node = questionRefs.current[activeQuestion.id];
-      const reducedMotion =
-        typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      node?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
-    }
-    prevActiveIdRef.current = activeQuestion?.id ?? null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQuestion?.id]);
+  const itemRef = useFollowActiveItem(activeQuestion?.id ?? null);
 
   return (
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
@@ -92,9 +73,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
         return (
           <div
             key={question.id}
-            ref={el => {
-              questionRefs.current[question.id] = el;
-            }}
+            ref={itemRef(question.id)}
             className="flex flex-col gap-6 scroll-mt-24 text-center"
           >
             <p
@@ -105,7 +84,10 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
             </p>
             <LikertScale
               selected={answers[question.id] ?? null}
-              onSelect={value => onSelect(question.id, value)}
+              onSelect={value => {
+                playClick('soft');
+                onSelect(question.id, value);
+              }}
               scale={scaleForInstrument(question.instrument)}
               poleLeft={poles ? tAssessment(poles.left) : undefined}
               poleRight={poles ? tAssessment(poles.right) : undefined}
