@@ -54,16 +54,16 @@ interface SubtestRunnerProps {
   onSubmit: (payload: { answers: Record<string, AsturItemAnswer> }) => void;
 }
 
+/** An item as served, before the student touches it. */
+function blankValue(subtest: AsturContentSubtest, item: AsturContentSubtest['items'][number]): unknown {
+  if (subtest.key === 'classification') return [] as string[];
+  if (subtest.key === 'numeric_series') return ['', ''] as [string, string];
+  if (subtest.key === 'logical_schemas') return [...(item as AsturLogicalSchemaItem).concepts];
+  return '';
+}
+
 function initialState(subtest: AsturContentSubtest): AsturAnswerState {
-  const values = Object.fromEntries(
-    subtest.items.map((item, i) => {
-      const index = String(i + 1);
-      if (subtest.key === 'classification') return [index, [] as string[]];
-      if (subtest.key === 'numeric_series') return [index, ['', ''] as [string, string]];
-      if (subtest.key === 'logical_schemas') return [index, [...(item as AsturLogicalSchemaItem).concepts]];
-      return [index, ''];
-    }),
-  );
+  const values = Object.fromEntries(subtest.items.map((item, i) => [String(i + 1), blankValue(subtest, item)]));
   return { values, skipped: new Set(), touched: new Set() };
 }
 
@@ -200,12 +200,21 @@ export function SubtestRunner({ subtest, startedAt, timerSlot, submitting, submi
     });
   }
 
+  /** Skipping wipes the item back to blank: a skipped item goes to the
+   *  server as `skipped` whatever was picked, so a pick left on screen under
+   *  "Вернуться к заданию" showed an answer that was never sent. */
   function toggleSkip(index: string) {
     setState((prev) => {
       const skipped = new Set(prev.skipped);
-      if (skipped.has(index)) skipped.delete(index);
-      else skipped.add(index);
-      return { ...prev, skipped };
+      if (skipped.has(index)) {
+        skipped.delete(index);
+        return { ...prev, skipped };
+      }
+      skipped.add(index);
+      const touched = new Set(prev.touched);
+      touched.delete(index);
+      const values = { ...prev.values, [index]: blankValue(subtest, subtest.items[Number(index) - 1]) };
+      return { values, skipped, touched };
     });
   }
 
