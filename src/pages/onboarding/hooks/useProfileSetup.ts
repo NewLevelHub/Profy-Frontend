@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
 import { useProfileStore } from '@/shared/store/profile';
+import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
 import { CERTIFICATE_TYPES, validateCertificateScore } from '@/shared/config/certificates';
 import type { CertificateItem, CertificateType } from '@/shared/types';
 import { useOnboardingDraftStore } from '../onboardingDraftStore';
@@ -71,6 +72,11 @@ export function useProfileSetup() {
 
   const draft = useOnboardingDraftStore(s => s.profileDraft);
   const setProfileDraft = useOnboardingDraftStore(s => s.setProfileDraft);
+  const clearDrafts = useOnboardingDraftStore(s => s.clearDrafts);
+  // Asked of the server, not just the store: after F5 the store is empty, and
+  // an edit would look like fresh onboarding — with no way back to /profile.
+  const { profile: savedProfile } = useEnsureProfile();
+  const isEditing = savedProfile !== null;
 
   const locationState = location.state as { resumeAtLastStep?: boolean } | null;
   // Arriving back here via "Назад" from artifacts' first group (see
@@ -206,6 +212,12 @@ export function useProfileSetup() {
     setStep(s => s - 1);
   }
 
+  // Editing only: leave without saving anything parked on the way.
+  function handleCancel() {
+    clearDrafts();
+    navigate('/profile', { replace: true });
+  }
+
   function handleSubmit() {
     if (!validateScores()) return;
 
@@ -269,6 +281,8 @@ export function useProfileSetup() {
     handleNext,
     handleBack,
     handleSubmit,
+    isEditing,
+    handleCancel,
     toggle,
   };
 }

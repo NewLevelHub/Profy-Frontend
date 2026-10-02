@@ -8,6 +8,7 @@ import { gradesForAge } from '@/shared/lib/ageGrade';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { SelectableChip } from './components/SelectableChip';
 import { AddCustomChip } from './components/AddCustomChip';
+import { EditCancelButton } from './components/EditCancelButton';
 import { ExamScoresBlock } from './components/ExamScoresBlock';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
@@ -103,6 +104,7 @@ export default function ProfileSetupPage() {
     examScores, setExamScore,
     errors, clearError,
     handleNext, handleBack, handleSubmit, toggle,
+    isEditing, handleCancel,
   } = useProfileSetup();
 
   const currentStepMascot = step === PROFILE_STEPS.NAME_SCHOOL
@@ -126,7 +128,10 @@ export default function ProfileSetupPage() {
           давала видимый горизонтальный шов. */}
       <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
         <div className="max-w-6xl mx-auto flex flex-col gap-3">
-          <FullScreenPreferences />
+          <div className="flex items-center gap-3">
+            {isEditing && <EditCancelButton onClick={handleCancel} />}
+            <FullScreenPreferences className="ml-auto" />
+          </div>
           <OnboardingProgress current={step} total={TOTAL_ONBOARDING_STEPS} />
         </div>
       </div>

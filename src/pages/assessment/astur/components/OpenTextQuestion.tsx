@@ -1,6 +1,11 @@
 import { Input } from '@/shared/ui/Input';
 import { useTranslation } from 'react-i18next';
 
+// Mirrors the backend's MAX_OPEN_TEXT_LENGTH (app/services/astur/runs.py).
+// An answer is a word or a short phrase; anything longer made the server
+// reject the whole subtest — including the automatic submit on timer expiry.
+const OPEN_TEXT_MAX_LENGTH = 200;
+
 interface OpenTextQuestionProps {
   index: number;
   pair: [string, string];
@@ -17,6 +22,7 @@ export function OpenTextQuestion({ index, pair, value, onChange }: OpenTextQuest
       </p>
       <Input
         value={value}
+        maxLength={OPEN_TEXT_MAX_LENGTH}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t('astur.generalizationPlaceholder')}
         // Keyboard prediction/autocorrect stay on (a short phrase typed on a
