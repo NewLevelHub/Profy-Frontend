@@ -274,13 +274,6 @@ export function useArtifactsSetup() {
   // ProfileSetupPage's own handleBack — and on the very first group, steps
   // back across the page boundary into profile setup's last step, since from
   // the student's point of view this is still one flow.
-  // Editing only (hasExistingProfile): back to /profile, nothing saved —
-  // neither these picks nor personal fields parked by profile setup.
-  function handleCancel() {
-    clearDrafts();
-    navigate('/profile', { replace: true });
-  }
-
   function handleBack() {
     if (isLinearFlow) {
       if (activeSection === 'dreams') {
@@ -305,7 +298,6 @@ export function useArtifactsSetup() {
     sectionIndex,
     isLastSection,
     isLinearFlow,
-    hasExistingProfile,
     hobbies, setHobbies,
     clubs, setClubs,
     achievements, setAchievements,
@@ -317,7 +309,6 @@ export function useArtifactsSetup() {
     handleNext: advance,
     handleSkip: advance,
     handleBack,
-    handleCancel,
     toggle,
   };
 }

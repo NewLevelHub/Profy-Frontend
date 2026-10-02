@@ -8,7 +8,6 @@ import { useArtifactsSetup, ARTIFACT_SECTIONS, DREAMS_MAX_LENGTH, type ArtifactS
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { SelectableChip } from './components/SelectableChip';
 import { AddCustomChip } from './components/AddCustomChip';
-import { EditCancelButton } from './components/EditCancelButton';
 import { PROFILE_STEP_COUNT, TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
 // ── Artifacts — onboarding steps 5-9 ────────────────────────────────────────
@@ -153,7 +152,7 @@ export default function ArtifactsSetupPage() {
   const { t: tc } = useTranslation('common');
   const {
     activeSection, setActiveSection, sectionIndex, isLastSection,
-    isLinearFlow, hasExistingProfile,
+    isLinearFlow,
     hobbies, setHobbies,
     clubs, setClubs,
     achievements, setAchievements,
@@ -161,7 +160,7 @@ export default function ArtifactsSetupPage() {
     targets, setTargets,
     dreams, setDreams,
     isLoading, saveError,
-    handleNext, handleSkip, handleBack, handleCancel,
+    handleNext, handleSkip, handleBack,
     toggle,
   } = useArtifactsSetup();
 
@@ -278,9 +277,8 @@ export default function ArtifactsSetupPage() {
     return (
       <div className="journey-page journey-page--lit min-h-screen flex flex-col">
         <div className="relative z-10 px-4 pt-4 sm:px-5 sm:pt-5">
-          <div className="max-w-6xl mx-auto flex items-center gap-3">
-            <EditCancelButton onClick={handleCancel} />
-            <FullScreenPreferences className="ml-auto" />
+          <div className="max-w-6xl mx-auto">
+            <FullScreenPreferences />
           </div>
         </div>
         <div className="relative z-[1] flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6 lg:py-12">
@@ -359,10 +357,7 @@ export default function ArtifactsSetupPage() {
           давала видимый горизонтальный шов. */}
       <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
         <div className="max-w-6xl mx-auto flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            {hasExistingProfile && <EditCancelButton onClick={handleCancel} />}
-            <FullScreenPreferences className="ml-auto" />
-          </div>
+          <FullScreenPreferences />
           <OnboardingProgress
             current={PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1)}
             total={TOTAL_ONBOARDING_STEPS}

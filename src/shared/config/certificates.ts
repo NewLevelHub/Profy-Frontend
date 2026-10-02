@@ -1,5 +1,4 @@
-import type { TFunction } from 'i18next';
-import type { CertificateType } from '@/shared/types';
+import type { CertificateType, ValidationMessage } from '@/shared/types';
 
 // Shared by the two places that collect exam scores — onboarding step 2's
 // optional exam block (pick the exams you sat, then enter each score) and
@@ -31,21 +30,21 @@ export const CERTIFICATE_SCORE_RANGES: Record<CertificateType, { min: number; ma
 // run the same check against the ranges above, so the rule lives here rather
 // than being written twice with two different error strings.
 
-/** `undefined` when `raw` is a valid score for `type`, else the localized
- *  error to show. An empty string is only valid when the exam wasn't claimed
- *  at all — callers that let a student tick "I sat this one" pass
- *  `required: true`. Keys are `profile:`-qualified so the caller's bound
- *  namespace doesn't matter. */
+/** `undefined` when `raw` is a valid score for `type`, else the error to
+ *  show — as a key, translated at render (see translateErrors). An empty
+ *  string is only valid when the exam wasn't claimed at all — callers that
+ *  let a student tick "I sat this one" pass `required: true`. Keys are
+ *  `profile:`-qualified so the caller's bound namespace doesn't matter. */
 export function validateCertificateScore(
   type: CertificateType,
   raw: string,
-  { required = false, t }: { required?: boolean; t: TFunction },
-): string | undefined {
+  { required = false }: { required?: boolean } = {},
+): ValidationMessage | undefined {
   const trimmed = raw.trim();
-  if (!trimmed) return required ? t('profile:edit.errorEnterScore') : undefined;
+  if (!trimmed) return required ? { key: 'profile:edit.errorEnterScore' } : undefined;
   const value = Number(trimmed);
   const { min, max } = CERTIFICATE_SCORE_RANGES[type];
   return Number.isNaN(value) || value < min || value > max
-    ? t('profile:edit.errorRange', { min, max })
+    ? { key: 'profile:edit.errorRange', params: { min, max } }
     : undefined;
 }

@@ -2254,3 +2254,11 @@ export type AdminDirectionUpdateRequest = Partial<{
   subjects_to_develop: string[];
   first_steps: string[];
 }>;
+
+/** A form validation error kept as a fully-qualified i18n key + params and
+ *  translated at render. Stored as text, an error stayed in the language it
+ *  was raised in after a language switch (PRO-450). */
+export interface ValidationMessage {
+  key: string;
+  params?: Record<string, string | number>;
+}
