@@ -23,8 +23,7 @@ export function AuthShell({ children, mode = 'login' }: { children: ReactNode; m
             <p>{t(`${storyKey}.storyDescription`)}</p>
           </div>
           <div className="rd-auth-art">
-            <span className="rd-auth-orbit" aria-hidden="true" />
-            <img src={`/mascot/redesign/${mode === 'register' ? 'book' : 'greeting'}.jpg`} alt={t(mode === 'register' ? 'redesign.register.mascotAlt' : 'redesign.mascotAlt')} width="800" height="900" />
+            <img src={`/mascot/redesign/${mode === 'register' ? 'book' : 'greeting'}.png`} alt={t(mode === 'register' ? 'redesign.register.mascotAlt' : 'redesign.mascotAlt')} width="1254" height="1254" />
             <span className="rd-auth-star" aria-hidden="true">✦</span>
             <div className="rd-auth-sticker"><Sparkles aria-hidden="true" /><p>{t('redesign.stickerLine1')}<strong>{t('redesign.stickerLine2')}</strong></p></div>
           </div>

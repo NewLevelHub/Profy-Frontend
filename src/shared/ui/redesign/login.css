@@ -1,15 +1,14 @@
-.rd-login-shell { display: grid; grid-template-columns: 1fr 1fr; max-width: 1680px; min-height: 100svh; margin-inline: auto; }
+.rd-login-shell { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); min-height: 100svh; }
 .rd-login-story { background: var(--rd-sage); padding: 40px 55px 30px; border-radius: 0 0 36px 0; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 .rd-story-top { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
 .rd-story-top>span { text-align: right; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; max-width: 150px; color: var(--rd-muted); }
 .rd-story-copy { margin-top: 65px; }
 .rd-story-copy h2 { font-size: clamp(36px,3.5vw,57px); line-height: 1.12; color: var(--rd-pine); margin: 20px 0 24px; }
 .rd-story-copy>p:last-child { font-size: 14px; line-height: 1.9; max-width: 370px; color: var(--rd-text); }
-.rd-auth-art { position: relative; min-height: 345px; flex: 1; display: flex; justify-content: center; align-items: center; margin-top: 20px; }
-.rd-auth-art>img { width: 268px; height: 300px; object-fit: cover; border-radius: 46% 47% 43% 46%; transform: rotate(-5deg); z-index: 1; }
-.rd-auth-orbit { position: absolute; width: 355px; max-width: 95%; height: 255px; border: 1px solid var(--rd-line); border-radius: 50%; transform: rotate(-31deg); }
+.rd-auth-art { position: relative; min-height: 370px; flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 20px; }
+.rd-auth-art>img { width: 360px; max-width: 100%; height: 320px; object-fit: contain; }
 .rd-auth-star { position: absolute; right: 18%; top: 20px; font-size: 31px; color: var(--rd-purple); z-index: 2; }
-.rd-auth-sticker { position: absolute; bottom: 20px; right: 0; display: flex; gap: 13px; align-items: center; background: var(--rd-card); padding: 16px 20px; border-radius: 13px; transform: rotate(5deg); z-index: 2; box-shadow: var(--rd-shadow); font-size: 12px; color: var(--rd-text); max-width: 90%; }
+.rd-auth-sticker { align-self: flex-end; display: flex; gap: 13px; align-items: center; background: var(--rd-card); padding: 16px 20px; border-radius: 13px; box-shadow: var(--rd-shadow); font-size: 12px; color: var(--rd-text); max-width: 90%; }
 .rd-auth-sticker>svg { color: var(--rd-purple); width: 27px; height: 27px; flex-shrink: 0; }
 .rd-auth-sticker strong { display: block; font-weight: 500; color: var(--rd-pine); margin-top: 3px; }
 .rd-story-footer { font-size: 12px; color: var(--rd-muted); margin-top: 30px !important; }
@@ -43,7 +42,8 @@
 .rd-login-switch a { color: var(--rd-pine); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
 .rd-login-note { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; color: var(--rd-muted); line-height: 1.7; }
 .rd-login-note svg { flex-shrink: 0; }
-@media (min-width: 1500px) { .rd-login-story { padding: 46px 70px 32px; } .rd-auth-art>img { width: 310px; height: 340px; } }
+/* Keep content bounded on wide screens while both panel backgrounds reach the edges. */
+@media (min-width: 1500px) { .rd-login-story { padding: 46px 70px 32px max(70px,calc((100vw - 1540px) / 2)); } .rd-login-panel { padding-right: max(55px,calc((100vw - 1570px) / 2)); } .rd-auth-art>img { width: 400px; height: 360px; } }
 @media (max-width: 1150px) { .rd-login-story { padding-inline: 35px; } .rd-login-panel { padding-inline: 35px; } .rd-story-top>span { max-width: 110px; } .rd-login-top { flex-wrap: wrap; } }
 @media (max-width: 900px) {
   .rd-login-shell { display: block; }

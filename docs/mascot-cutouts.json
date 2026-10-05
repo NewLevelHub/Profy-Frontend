@@ -1,0 +1,26 @@
+{
+  "tool": "built-in image_gen",
+  "intent": "background-extraction",
+  "format": "PNG RGBA",
+  "size": [
+    1254,
+    1254
+  ],
+  "assets": [
+    {
+      "output": "public/mascot/redesign/greeting.png",
+      "input": "public/mascot/redesign/greeting.jpg",
+      "prompt": "Use case: background-extraction. Edit target: the attached existing mascot illustration. Make a clean faithful cutout for a website. Remove ONLY the beige background and any floor/ground shadow. Output a PNG with a genuinely transparent alpha background, including transparent holes between limbs and tail. Preserve the exact same snow leopard character, facial expression, eyes, muzzle, markings, green hoodie, orange backpack straps, raised waving paw and standing pose, dark outlines, proportions, position, original upright orientation, and colors. Do not redesign or redraw the character. Do not add a border, oval, backdrop, shadow, text, checkerboard, or new objects. Keep the complete ears, hands, feet and tail fully visible with modest transparent padding. Same square framing as the original."
+    },
+    {
+      "output": "public/mascot/redesign/book.png",
+      "input": "public/mascot/redesign/book.jpg",
+      "prompt": "Use case: background-extraction. Edit target: the attached existing mascot illustration. Make a clean faithful cutout for a website. Remove ONLY the beige background and any floor/ground shadow. Output a PNG with a genuinely transparent alpha background, including transparent holes between limbs and tail. Preserve the exact same snow leopard character, facial expression, eyes, muzzle, markings, green hoodie, orange backpack straps, open book, reading pose, dark outlines, proportions, position, original upright orientation, and colors. Do not redesign or redraw the character. Do not add a border, oval, backdrop, shadow, text, checkerboard, or new objects. Keep the complete ears, hands, feet and tail fully visible with modest transparent padding. Same square framing as the original."
+    },
+    {
+      "output": "public/mascot/redesign/celebrate.png",
+      "input": "public/mascot/redesign/celebrate.jpg",
+      "prompt": "Use case: background-extraction. Edit target: the attached existing mascot illustration. Make a clean faithful cutout for a website. Remove ONLY the beige background and any floor/ground shadow. Output a PNG with a genuinely transparent alpha background, including transparent holes between limbs and tail. Preserve the exact same snow leopard character, facial expression, eyes, muzzle, markings, green hoodie, orange backpack straps, gold medal and celebratory jumping pose, dark outlines, proportions, position, original upright orientation, and colors. Do not redesign or redraw the character. Do not add a border, oval, backdrop, shadow, text, checkerboard, or new objects. Keep the complete ears, hands, feet and tail fully visible with modest transparent padding. Same square framing as the original."
+    }
+  ]
+}

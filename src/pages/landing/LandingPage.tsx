@@ -30,7 +30,7 @@ function ReportExample({ onClose }: { onClose: () => void }) {
         <p className="rd-eyebrow">{t('redesign.example.eyebrow')}</p>
         <h2 id="report-example-title">{t('redesign.example.title')}</h2>
         <p className="rd-example-note">{t('redesign.example.note')}</p>
-        <div className="rd-example-summary"><div><Sparkles aria-hidden="true" /><h3>{t('redesign.example.strengthTitle')}</h3><p>{t('redesign.example.strengthBody')}</p></div><img src="/mascot/redesign/celebrate.jpg" alt="" width="600" height="700" /></div>
+        <div className="rd-example-summary"><div><Sparkles aria-hidden="true" /><h3>{t('redesign.example.strengthTitle')}</h3><p>{t('redesign.example.strengthBody')}</p></div><img src="/mascot/redesign/celebrate.png" alt="" width="1254" height="1254" /></div>
         <div className="rd-example-sections">
           {['interests', 'directions', 'step'].map(key => <section key={key}><span className="rd-eyebrow">{t(`redesign.example.${key}Label`)}</span><h3>{t(`redesign.example.${key}Title`)}</h3><p>{t(`redesign.example.${key}Body`)}</p></section>)}
         </div>
@@ -45,9 +45,8 @@ function HeroArt() {
   return (
     <div className="rd-hero-art">
       <div className="rd-art-orbit rd-orbit-one" aria-hidden="true" /><div className="rd-art-orbit rd-orbit-two" aria-hidden="true" />
-      <div className="rd-art-sun" aria-hidden="true" />
       <span className="rd-art-star rd-star-one" aria-hidden="true">✦</span><span className="rd-art-star rd-star-two" aria-hidden="true">✦</span>
-      <div className="rd-mascot-scene"><img src="/mascot/redesign/greeting.jpg" alt={t('redesign.mascotAlt')} width="800" height="900" fetchPriority="high" /></div>
+      <div className="rd-mascot-scene"><img src="/mascot/redesign/greeting.png" alt={t('redesign.mascotAlt')} width="1254" height="1254" fetchPriority="high" /></div>
       <div className="rd-floating-card rd-card-interest"><span className="rd-icon-tile rd-lilac"><Sparkles aria-hidden="true" /></span><div><small>{t('redesign.hero.interestLabel')}</small><strong>{t('redesign.hero.interestTitle')}</strong><div className="rd-mini-bars" aria-hidden="true">{[1,2,3,4,5,6,7].map(i => <i key={i} />)}</div></div></div>
       <div className="rd-floating-card rd-card-path"><span className="rd-icon-tile rd-peach"><Compass aria-hidden="true" /></span><div><small>{t('redesign.hero.pathLabel')}</small><strong>{t('redesign.hero.pathTitle')}</strong><div className="rd-path-dots" aria-hidden="true"><b /><i /><b /><i /><b /></div></div></div>
       <p className="rd-art-note">{t('redesign.hero.note')}</p>
@@ -99,7 +98,7 @@ export default function LandingPage() {
           <div className="rd-teaser-copy"><p className="rd-eyebrow">{t('redesign.report.eyebrow')}</p><h2>{t('redesign.report.title')}</h2><p>{t('redesign.report.description')}</p><button type="button" className="rd-button" onClick={showExample}>{t('redesign.cta.openExample')}<ArrowRight size={20} aria-hidden="true" /></button></div>
           <div className="rd-teaser-preview"><div className="rd-teaser-window"><i /><i /><i /><span>{t('redesign.report.previewLabel')}</span></div><div className="rd-teaser-body"><span className="rd-pill rd-lilac"><Sparkles size={13} aria-hidden="true" />{t('redesign.report.personal')}</span><h3>{t('redesign.report.previewTitle')}</h3><div className="rd-teaser-bars">{INTERESTS.map((key, i) => <div key={key}><span>{t(`redesign.report.${key}`)}</span><div><i className={`rd-bar-${i}`} /></div></div>)}</div><div className="rd-teaser-tags"><span>{t('redesign.report.tagOne')}</span><span>{t('redesign.report.tagTwo')}</span></div><p className="rd-teaser-caption">{t('redesign.report.sample')}</p></div></div>
         </section>
-        <section className="rd-parents rd-wrap" id="parents"><div className="rd-parent-art"><img src="/mascot/redesign/book.jpg" alt="" width="800" height="900" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
+        <section className="rd-parents rd-wrap" id="parents"><div className="rd-parent-art"><img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
         <section className="rd-faq rd-wrap" id="faq"><div><p className="rd-eyebrow">{t('redesign.faq.eyebrow')}</p><h2>{t('redesign.faq.title')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4].map(i => <details key={i}><summary>{t(`redesign.faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`redesign.faq.a${i}`)}</p></details>)}</div></section>
         <section className="rd-final-cta rd-wrap"><span className="rd-final-star" aria-hidden="true">✦</span><div><p className="rd-eyebrow">{t('redesign.final.eyebrow')}</p><h2>{t('redesign.final.title')}</h2><p>{t('redesign.final.description')}</p></div><Link to="/register" className="rd-button rd-button-light rd-button-large">{t('redesign.final.cta')}<ArrowRight aria-hidden="true" /></Link></section>
       </main>
