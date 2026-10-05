@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
 import type { AsturFigureAssemblyItem } from '@/shared/types';
@@ -13,6 +14,19 @@ interface FigureAssemblyQuestionProps {
   onChange: (value: string) => void;
 }
 
+/** A stimulus PNG drawn through `.stimulus-image` (alpha mask), so its lines
+ *  follow the theme. Fills its box, keeping the picture's proportions. */
+function StimulusImage({ path, label }: { path: string; label: string }) {
+  return (
+    <div
+      role="img"
+      aria-label={label}
+      className="stimulus-image h-full w-full"
+      style={{ '--stimulus-src': `url("/${path}")` } as CSSProperties}
+    />
+  );
+}
+
 export function FigureAssemblyQuestion({ index, stimulus, value, onChange }: FigureAssemblyQuestionProps) {
   const { t } = useTranslation('assessment');
   if (!stimulus) return null;
@@ -22,20 +36,16 @@ export function FigureAssemblyQuestion({ index, stimulus, value, onChange }: Fig
       <p id={`figure-label-${index}`} className="text-body-md text-primary font-semibold">
         {t('astur.figureAssemblyPrompt')}
       </p>
-      {/* theme-day: this is a scan-derived stimulus image, not app chrome —
-          it must stay legible on its own light ground even in dark mode,
-          same reasoning as theme.css's own .theme-day surfaces.
+      {/* The stimuli used to sit on a white theme-day plate in dark mode too —
+          their lines were baked in dark. StimulusImage recolours them per
+          theme instead, so the block is an ordinary surface.
           The target and all four options stay in one vertical composition:
           this avoids the old horizontal strip where the target scrolled out
           of view before the student reached the last options. */}
-      <div className="theme-day mx-auto flex w-full max-w-[600px] flex-col gap-3 rounded-[var(--radius)] border border-default bg-white p-3 sm:p-4">
+      <div className="mx-auto flex w-full max-w-[600px] flex-col gap-3 rounded-[var(--radius)] border border-default bg-surface p-3 sm:p-4">
         <div className="flex flex-col items-center gap-2 border-b border-default pb-3">
           <div className="flex h-36 w-full items-center justify-center sm:h-44">
-            <img
-              src={`/${stimulus.target}`}
-              alt={t('astur.figureAssemblyTarget')}
-              className="max-h-full max-w-full object-contain"
-            />
+            <StimulusImage path={stimulus.target} label={t('astur.figureAssemblyTarget')} />
           </div>
           <span className="text-body-sm font-semibold text-muted">{t('astur.figureAssemblyTarget')}</span>
         </div>
@@ -58,11 +68,7 @@ export function FigureAssemblyQuestion({ index, stimulus, value, onChange }: Fig
                   className="sr-only"
                 />
                 <div className="flex h-28 w-full items-center justify-center sm:h-36">
-                  <img
-                    src={`/${path}`}
-                    alt={t('astur.figureAssemblyOption', { letter })}
-                    className="max-h-full max-w-full object-contain"
-                  />
+                  <StimulusImage path={path} label={t('astur.figureAssemblyOption', { letter })} />
                 </div>
                 <span className={cn('text-body-sm font-semibold', selected ? 'text-brand' : 'text-primary')}>
                   {letter}

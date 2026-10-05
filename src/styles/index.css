@@ -137,6 +137,16 @@
   color: var(--danger-text);
 }
 
+/* АСТУР figure stimuli are transparent line-art PNGs: used as an alpha mask,
+   their lines take --stimulus-ink from the theme instead of the colour baked
+   into the file — so they sit on the normal card in dark mode rather than on
+   a white plate. */
+.stimulus-image {
+  background-color: var(--stimulus-ink);
+  -webkit-mask: var(--stimulus-src) center / contain no-repeat;
+  mask: var(--stimulus-src) center / contain no-repeat;
+}
+
 /* In the assessment rail: same 38px height as the theme/sound/exit buttons
    beside it, and the rail's own text size — label and digits both body-sm
    like "Субтест N из M", the digits set apart by weight, not size. On phones

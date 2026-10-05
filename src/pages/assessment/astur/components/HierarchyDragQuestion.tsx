@@ -25,6 +25,8 @@ interface HierarchyDragQuestionProps {
   index: number;
   /** Текущий (перемешанный или уже переставленный пользователем) порядок. */
   value: string[];
+  /** The order the concepts were served in — their badge numbers. */
+  served: string[];
   /** The student has worked with (or explicitly accepted) this order. The
    *  served order is a shuffle, so untouched it is not an answer (PRO-427 §11). */
   confirmed: boolean;
@@ -33,12 +35,14 @@ interface HierarchyDragQuestionProps {
 
 interface SortableConceptProps {
   concept: string;
+  /** Badge number: the concept's place in the served order. */
+  number: number;
   position: number;
   total: number;
   onMove: (from: number, to: number) => void;
 }
 
-function SortableConcept({ concept, position, total, onMove }: SortableConceptProps) {
+function SortableConcept({ concept, number, position, total, onMove }: SortableConceptProps) {
   const { t } = useTranslation('assessment');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: concept });
 
@@ -48,8 +52,11 @@ function SortableConcept({ concept, position, total, onMove }: SortableConceptPr
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
       className="flex items-center gap-3 rounded-[14px] border border-default bg-page px-4 py-3"
     >
+      {/* Fixed to the concept, not its current slot — same as the motivation
+          cards (TripletRanking): renumbering every row as they move past each
+          other read as confusing. The slot is in the aria-label below. */}
       <span className="w-7 h-7 flex-shrink-0 rounded-full bg-raised text-body-sm font-semibold flex items-center justify-center text-secondary">
-        {position + 1}
+        {number}
       </span>
       <span
         {...attributes}
@@ -68,7 +75,7 @@ function SortableConcept({ concept, position, total, onMove }: SortableConceptPr
   );
 }
 
-export function HierarchyDragQuestion({ index, value, confirmed, onChange }: HierarchyDragQuestionProps) {
+export function HierarchyDragQuestion({ index, value, served, confirmed, onChange }: HierarchyDragQuestionProps) {
   const { t } = useTranslation('assessment');
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -96,7 +103,14 @@ export function HierarchyDragQuestion({ index, value, confirmed, onChange }: Hie
         <SortableContext items={value} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-1.5">
             {value.map((concept, position) => (
-              <SortableConcept key={concept} concept={concept} position={position} total={value.length} onMove={move} />
+              <SortableConcept
+                key={concept}
+                concept={concept}
+                number={served.indexOf(concept) + 1}
+                position={position}
+                total={value.length}
+                onMove={move}
+              />
             ))}
           </div>
         </SortableContext>
