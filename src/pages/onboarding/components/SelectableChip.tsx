@@ -27,7 +27,7 @@ export function SelectableChip({
       aria-pressed={selected}
       title={disabled ? disabledTitle : undefined}
       className={cn(
-        'px-3.5 py-2 rounded-pill text-caption font-semibold border transition-colors',
+        'rd-choice px-3.5 py-2 rounded-pill text-caption font-semibold border transition-colors',
         'disabled:cursor-not-allowed press-scale',
         // Подпись у своего варианта пишет человек: без max-w-full и переноса
         // длинная строка распирала группу, а .journey-shell обрезал её

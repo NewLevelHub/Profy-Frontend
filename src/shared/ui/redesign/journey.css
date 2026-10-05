@@ -1,0 +1,172 @@
+/* Phase 3: scoped to onboarding and the two assessment entry screens. */
+.rd-journey {
+  --pine: var(--rd-pine);
+  --ink: var(--rd-ink);
+  --mute: var(--rd-muted);
+  --hairline: var(--rd-line);
+  --line: var(--rd-line);
+  --border-strong: var(--rd-line);
+  --text-placeholder: var(--rd-muted);
+  padding-bottom: 56px;
+}
+.rd-journey :where(button, input, textarea, label) { font-family: inherit; }
+.rd-journey-header { width: min(1240px, calc(100% - 80px)); margin-inline: auto; min-height: 104px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--rd-line); }
+.rd-journey-header .rd-brand { font-size: 32px; }
+.rd-setup-layout { width: min(1200px, calc(100% - 80px)); margin: 54px auto 0; display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 70px; align-items: start; }
+.rd-setup-sidebar { position: sticky; top: 32px; padding-top: 12px; }
+.rd-setup-sidebar h2 { margin-top: 14px; font-size: 34px; line-height: 1.16; overflow-wrap: anywhere; }
+.rd-setup-steps { list-style: none; padding: 0; margin: 36px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.rd-setup-steps li { color: var(--rd-muted); font-size: 14px; }
+.rd-setup-steps li>div, .rd-setup-steps button { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; padding: 9px 0; background: transparent; border: 0; color: inherit; font: inherit; line-height: 1.5; }
+.rd-step-number { width: 32px; height: 32px; border: 1px solid var(--rd-line); border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-size: 12px; }
+.rd-setup-steps .is-current { color: var(--rd-pine); font-weight: 600; }
+.rd-setup-steps .is-current .rd-step-number { background: var(--rd-pine); border-color: var(--rd-pine); color: var(--text-on-brand); }
+.rd-setup-steps .is-done .rd-step-number { background: var(--rd-sage); border-color: var(--rd-sage); color: var(--rd-pine); }
+.rd-setup-steps button:hover { color: var(--rd-pine); }
+.rd-setup-companion { margin-top: 38px; display: flex; align-items: center; gap: 12px; }
+.rd-setup-companion img { width: 122px; height: 145px; object-fit: contain; flex-shrink: 0; }
+.rd-setup-companion p { font-size: 12px; line-height: 1.7; color: var(--rd-muted); max-width: 130px; }
+.rd-setup-card { min-width: 0; padding: 30px 34px; border: 1px solid var(--rd-line); border-radius: 24px; background: var(--rd-card); box-shadow: var(--rd-shadow); }
+.rd-setup-card:focus, .rd-goal-main:focus, .rd-welcome-main:focus { outline: none; }
+.rd-setup-progress { display: flex; flex-direction: column-reverse; gap: 12px; margin-bottom: 28px; }
+.rd-setup-progress p { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--rd-muted); }
+.rd-setup-progress span { height: 3px; flex: 1; background: var(--rd-line); border-radius: 4px; }
+.rd-setup-progress .is-filled { background: var(--rd-pine); }
+.rd-setup-content { display: flex; flex-direction: column; gap: 25px; }
+.rd-setup-heading { display: flex; flex-direction: column; gap: 9px; }
+.rd-setup-heading h1 { font-size: 30px; line-height: 1.2; letter-spacing: -.045em; text-wrap: pretty; }
+.rd-setup-heading p, .rd-setup-section-heading p { font-size: 13px; line-height: 1.65; color: var(--rd-muted); }
+.rd-setup-content h2 { font-size: 20px; line-height: 1.3; letter-spacing: -.035em; }
+.rd-setup-section-heading { display: flex; flex-direction: column; gap: 6px; }
+.rd-form-section { display: flex; flex-direction: column; gap: 16px; padding-top: 24px; border-top: 1px solid var(--rd-line); }
+.rd-setup-content label { color: var(--rd-text); font-size: 12px; font-weight: 500; text-transform: none; letter-spacing: 0; margin-bottom: 8px; }
+.rd-journey .rd-setup-content input, .rd-setup-content textarea { width: 100%; min-width: 0; border: 1px solid var(--rd-line); border-radius: 10px; background: var(--rd-bg); padding: 12px 14px; color: var(--rd-ink); font-size: 14px; line-height: 1.6; box-shadow: none; }
+.rd-journey .rd-setup-content input { min-height: 47px; }
+.rd-journey .rd-setup-content input::placeholder, .rd-setup-content textarea::placeholder { color: var(--rd-muted); opacity: .85; }
+.rd-journey .rd-setup-content input:focus, .rd-setup-content textarea:focus { border-color: var(--rd-pine); outline: 2px solid color-mix(in srgb, var(--rd-pine) 18%, transparent); outline-offset: 1px; }
+.rd-journey .rd-setup-content input[aria-invalid=true], .rd-setup-content textarea[aria-invalid=true] { border-color: var(--danger); }
+.rd-setup-content [id$="-hint"], .rd-setup-content [id$="-error"] { margin-top: 6px; font-size: 11px; line-height: 1.6; }
+.rd-school-fields { display: grid; grid-template-columns: .72fr 1fr 1fr; align-items: start; gap: 15px; }
+.rd-age-options { display: flex; flex-wrap: wrap; gap: 9px; }
+.rd-age-options button { min-width: 48px; min-height: 46px; border: 1px solid var(--rd-line); background: var(--rd-bg); border-radius: 10px; color: var(--rd-text); font-size: 14px; }
+.rd-age-options button[aria-pressed=true] { color: var(--text-on-brand); background: var(--rd-pine); border-color: var(--rd-pine); }
+.rd-subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.rd-choice-group, .rd-journey .rd-setup-card .panel-glass { display: flex; flex-direction: column; gap: 13px; padding: 17px; border: 1px solid var(--rd-line); background: transparent; border-radius: 13px; box-shadow: none; backdrop-filter: none; }
+.redesign.rd-journey .rd-choice, .rd-journey .rd-custom-choice { display: inline-flex; align-items: center; min-height: 39px; border: 1px solid var(--rd-line); border-radius: 9px; padding: 8px 11px; background: var(--rd-card); color: var(--rd-text); font-size: 12px; font-weight: 400; line-height: 1.5; box-shadow: none; }
+.redesign.rd-journey .rd-choice:hover:not(:disabled) { border-color: var(--rd-pine); color: var(--rd-pine); }
+.redesign.rd-journey .rd-choice[aria-pressed=true] { background: var(--rd-sage); color: var(--rd-pine); border-color: var(--rd-pine); }
+.redesign.rd-journey .rd-choice[aria-pressed=true]::before { content: ''; width: 10px; height: 6px; border: solid currentColor; border-width: 0 0 1.5px 1.5px; transform: rotate(-45deg); margin: -3px 8px 0 0; flex-shrink: 0; }
+.redesign.rd-journey .rd-choice:disabled { cursor: not-allowed; }
+.redesign.rd-journey .rd-custom-input { width: 160px; max-width: 100%; min-height: 39px; padding: 8px 11px; font-size: 12px; }
+.rd-setup-actions { display: flex; align-items: center; gap: 12px; margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--rd-line); }
+.rd-setup-next { margin-left: auto; }
+.rd-dreams-mascot { width: 160px; height: 160px; object-fit: contain; align-self: center; }
+.rd-dreams-field { display: flex; flex-direction: column; gap: 8px; }
+.rd-dreams-field textarea { resize: vertical; min-height: 156px; }
+.rd-dreams-field p { text-align: right; font-size: 11px; color: var(--rd-muted); }
+.rd-dreams-field p.text-danger { color: var(--danger); }
+.rd-journey-error { padding: 14px 18px; border-radius: 12px; border: 1px solid var(--danger); color: var(--danger); font-size: 13px; }
+.rd-sage { background: var(--rd-sage); color: var(--rd-pine); }
+.rd-goal-main { width: min(760px, calc(100% - 80px)); margin: 55px auto 0; }
+.rd-goal-heading { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; margin-bottom: 34px; }
+.rd-goal-heading h1 { font-size: 42px; line-height: 1.14; max-width: 630px; }
+.rd-goal-heading>p:last-child { max-width: 480px; font-size: 14px; color: var(--rd-muted); }
+.rd-goal-cards { display: grid; gap: 20px; }
+.rd-goal-card { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 20px; align-items: center; padding: 32px 36px; background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: 24px; box-shadow: var(--rd-shadow); }
+.rd-goal-card-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.rd-goal-card h2 { font-size: 28px; line-height: 1.2; }
+.rd-goal-card p { font-size: 14px; color: var(--rd-text); }
+.rd-goal-card .rd-button { margin-top: 10px; }
+.rd-goal-card img { width: 100%; height: 230px; object-fit: contain; }
+.rd-goal-loading, .rd-goal-later { display: flex; justify-content: center; padding: 25px 0; }
+.rd-goal-main>.rd-journey-error { margin-top: 20px; }
+.rd-goal-dialog { margin: auto; width: min(460px, calc(100% - 32px)); max-height: calc(100svh - 40px); overflow-y: auto; padding: 32px; background: var(--rd-card); color: var(--rd-text); border: 1px solid var(--rd-line); border-radius: 22px; box-shadow: var(--rd-shadow); }
+.rd-goal-dialog::backdrop { background: #102b246b; backdrop-filter: blur(4px); }
+.rd-goal-dialog h2 { font-size: 27px; line-height: 1.2; margin-top: 20px; }
+.rd-goal-dialog p { font-size: 14px; margin-top: 12px; }
+.rd-dialog-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+.rd-goal-dialog>button:last-child { display: flex; margin: 12px auto -8px; }
+.rd-welcome-main { width: min(1040px, calc(100% - 80px)); margin: 32px auto 0; }
+.rd-welcome-intro { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: center; gap: 40px; }
+.rd-welcome-copy { display: flex; flex-direction: column; gap: 20px; }
+.rd-welcome-copy h1 { font-size: clamp(36px, 3.7vw, 50px); line-height: 1.1; }
+.rd-welcome-copy>p:last-child { color: var(--rd-text); font-size: 15px; line-height: 1.8; max-width: 550px; }
+.rd-welcome-intro img { width: 100%; height: 330px; object-fit: contain; }
+.rd-welcome-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+.rd-welcome-feature { padding: 24px; border: 1px solid var(--rd-line); border-radius: 18px; background: var(--rd-card); }
+.rd-welcome-feature h2 { font-size: 17px; line-height: 1.35; letter-spacing: -.03em; margin-top: 18px; }
+.rd-welcome-feature p { font-size: 12px; color: var(--rd-muted); margin-top: 7px; }
+.rd-welcome-actions { display: flex; align-items: center; justify-content: space-between; gap: 25px; padding-top: 28px; margin-top: 30px; border-top: 1px solid var(--rd-line); }
+.rd-welcome-actions>p { max-width: 340px; font-size: 12px; color: var(--rd-muted); }
+.rd-welcome-actions>div { display: flex; gap: 12px; align-items: center; flex-shrink: 0; }
+@media (max-width: 1100px) {
+  .rd-setup-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 32px; }
+  .rd-setup-sidebar h2 { font-size: 29px; }
+  .rd-setup-card { padding: 27px; }
+  .rd-setup-companion { flex-direction: column; align-items: flex-start; gap: 5px; }
+  .rd-setup-companion p { max-width: 170px; }
+  .rd-subject-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .rd-journey { padding-bottom: 28px; }
+  .rd-journey-header { width: calc(100% - 40px); min-height: 82px; }
+  .rd-journey-header .rd-brand { font-size: 29px; }
+  .rd-setup-layout { width: calc(100% - 40px); display: block; margin-top: 25px; }
+  .rd-setup-sidebar { position: static; padding: 0; }
+  .rd-setup-sidebar>h2, .rd-setup-sidebar>.rd-eyebrow, .rd-setup-companion { display: none; }
+  .rd-setup-steps { flex-direction: row; gap: 10px; margin: 0 0 24px; }
+  .rd-setup-steps li { flex: 1; min-width: 0; font-size: 10px; line-height: 1.4; }
+  .rd-setup-steps li>div, .rd-setup-steps button { flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 0; overflow-wrap: anywhere; }
+  .rd-setup-steps--editable { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+  .rd-setup-steps--editable li { font-size: 12px; }
+  .rd-setup-steps--editable button { flex-direction: row; text-align: left; overflow-wrap: normal; }
+  .rd-step-number { width: 29px; height: 29px; }
+  .rd-setup-card { border-radius: 18px; padding: 23px; }
+  .rd-school-fields { grid-template-columns: 1fr 1fr; }
+  .rd-journey .rd-setup-content input, .rd-setup-content textarea, .redesign.rd-journey .rd-custom-input { font-size: 16px; }
+  .rd-school-fields>div:first-child { grid-column: 1 / -1; }
+  .rd-setup-heading h1 { font-size: 27px; }
+  .rd-setup-progress { margin-bottom: 23px; }
+  .rd-goal-main { width: calc(100% - 40px); margin-top: 35px; }
+  .rd-goal-heading h1 { font-size: 34px; }
+  .rd-goal-card { grid-template-columns: minmax(0, 1fr) 150px; padding: 25px; }
+  .rd-goal-card img { height: 180px; }
+  .rd-welcome-main { width: calc(100% - 40px); }
+  .rd-welcome-intro { gap: 15px; }
+  .rd-welcome-copy h1 { font-size: 34px; }
+  .rd-welcome-intro img { height: 240px; }
+  .rd-welcome-features { gap: 10px; }
+  .rd-welcome-feature { padding: 18px; }
+  .rd-welcome-actions { align-items: flex-start; flex-direction: column-reverse; }
+  .rd-welcome-actions>div { width: 100%; justify-content: space-between; }
+}
+@media (max-width: 480px) {
+  .rd-setup-layout { width: calc(100% - 24px); }
+  .rd-setup-card { padding: 21px 18px; }
+  .rd-setup-steps { padding-inline: 6px; }
+  .rd-setup-heading h1 { font-size: 25px; }
+  .rd-school-fields { grid-template-columns: 1fr; }
+  .rd-age-options { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .rd-age-options button { min-width: 0; }
+  .rd-setup-content { gap: 22px; }
+  .rd-choice-group { padding: 13px; }
+  .rd-setup-content h2 { font-size: 19px; }
+  .rd-setup-actions { gap: 8px; flex-wrap: wrap; }
+  .rd-setup-actions .rd-button { padding-inline: 15px; gap: 8px; }
+  .rd-goal-card { grid-template-columns: 1fr; gap: 18px; padding: 24px; }
+  .rd-goal-card img { grid-row: 1; width: 140px; height: 140px; justify-self: center; }
+  .rd-goal-card h2 { font-size: 26px; }
+  .rd-goal-card .rd-button { width: 100%; }
+  .rd-goal-heading h1 { font-size: 30px; }
+  .rd-welcome-intro { grid-template-columns: 1fr; }
+  .rd-welcome-copy h1 { font-size: 34px; }
+  .rd-welcome-intro img { height: 210px; }
+  .rd-welcome-features { grid-template-columns: 1fr; margin-top: 12px; }
+  .rd-welcome-feature { display: grid; grid-template-columns: 43px minmax(0, 1fr); column-gap: 14px; }
+  .rd-welcome-feature .rd-icon-tile { grid-row: 1 / 3; }
+  .rd-welcome-feature h2 { margin: 0; }
+  .rd-welcome-feature p { margin-top: 5px; }
+  .rd-welcome-actions>div { flex-direction: column-reverse; }
+  .rd-welcome-actions .rd-button { width: 100%; }
+  .rd-goal-dialog { padding: 24px; }
+}

@@ -38,7 +38,8 @@ export function AddCustomChip({ label, placeholder, onAdd }: AddCustomChipProps)
           if (e.key === 'Escape') { setValue(''); setOpen(false); }
         }}
         placeholder={placeholder}
-        className="field-tile px-3.5 py-2 rounded-pill text-caption font-semibold w-36 focus:outline-none border-[color:var(--pine)]"
+        aria-label={placeholder}
+        className="rd-custom-input field-tile px-3.5 py-2 rounded-pill text-caption font-semibold w-36 focus:outline-none border-[color:var(--pine)]"
         style={{ color: 'var(--text-heading)' }}
       />
     );
@@ -48,7 +49,7 @@ export function AddCustomChip({ label, placeholder, onAdd }: AddCustomChipProps)
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="px-3.5 py-2 rounded-pill text-caption font-semibold transition-colors press-scale"
+      className="rd-custom-choice px-3.5 py-2 rounded-pill text-caption font-semibold transition-colors press-scale"
       style={{
         background: 'transparent',
         color: 'var(--mute)',

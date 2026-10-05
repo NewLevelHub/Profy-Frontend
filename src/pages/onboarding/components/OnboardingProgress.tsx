@@ -10,7 +10,7 @@ export function OnboardingProgress({ current, total }: { current: number; total:
   const label = t('progress.step', { current, total });
   return (
     <div
-      className="journey-progress w-full flex flex-col gap-2.5"
+      className="rd-setup-progress"
       role="progressbar"
       aria-valuenow={current}
       aria-valuemin={1}
@@ -23,13 +23,12 @@ export function OnboardingProgress({ current, total }: { current: number; total:
           return (
             <span
               key={step}
-              className="flex-1 h-1.5 rounded-full transition-colors"
-              style={{ background: step <= current ? 'var(--pine)' : 'var(--hairline)' }}
+              className={step <= current ? 'is-filled' : undefined}
             />
           );
         })}
       </div>
-      <p className="journey-kicker !gap-2 text-[color:var(--mute)]">{label}</p>
+      <p>{label}</p>
     </div>
   );
 }
