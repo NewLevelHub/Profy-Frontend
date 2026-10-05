@@ -12,10 +12,9 @@ export const asturApi = {
   getState: (assessmentId: string) =>
     apiClient.get<AsturState>(API.assessment.asturState(assessmentId)).then(r => r.data),
 
-  /** Opens (or resumes) the attempt and returns it with its own content.
-   *  `retake: true` is the explicit «Пройти заново» after a completed one. */
-  openAttempt: (assessmentId: string, retake = false) =>
-    apiClient.post<AsturAttempt>(API.assessment.asturAttempt(assessmentId), { retake }).then(r => r.data),
+  /** Opens (or resumes) the attempt and returns it with its own content. */
+  openAttempt: (assessmentId: string) =>
+    apiClient.post<AsturAttempt>(API.assessment.asturAttempt(assessmentId)).then(r => r.data),
 
   startSubtest: (assessmentId: string, n: number, runId: string) =>
     apiClient

@@ -100,6 +100,7 @@
     "addCustom": "+ өзіңдікі",
     "customPlaceholder": "Өзіңдікі",
     "dreamsPlaceholder": "Мысалы: бір күні нағыз қазба жұмыстарына барғым келеді",
+    "dreamsCounter": "{{current}} / {{max}}",
     "tab": {
       "activities": "01 немен айналысасың",
       "achievements": "02 бәлкім, болған",

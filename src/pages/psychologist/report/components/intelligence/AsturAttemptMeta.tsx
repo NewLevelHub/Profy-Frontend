@@ -6,7 +6,7 @@ import { ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { IntelligenceSection } from '@/shared/types';
 
 /** Which attempt this is (date, form/formula version, age/grade at the time),
- *  plus retake and protocol-quality notices. */
+ *  plus protocol-quality notices. */
 export function AsturAttemptMeta({ section }: { section: IntelligenceSection }) {
   const { t, i18n } = useTranslation('psychReport');
   const subtestNames = t('psychReport:astur.subtests', { returnObjects: true }) as Record<string, { name: string }>;
@@ -47,13 +47,6 @@ export function AsturAttemptMeta({ section }: { section: IntelligenceSection }) 
             {history.days_since_previous !== null &&
               ` ${t('psychReport:astur.history.daysSince', { days: history.days_since_previous })}`}
           </p>
-        </div>
-      )}
-
-      {section.retake_in_progress && (
-        <div className="flex items-start gap-2.5 p-3 rounded-[14px] border border-default bg-hover">
-          <Info size={15} className="text-secondary flex-shrink-0 mt-0.5" aria-hidden="true" />
-          <p className={cn(ADMIN_TEXT, 'text-secondary m-0')}>{t('psychReport:astur.retakeInProgress')}</p>
         </div>
       )}
 

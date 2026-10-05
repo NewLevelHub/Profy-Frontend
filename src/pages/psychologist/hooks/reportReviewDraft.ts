@@ -8,6 +8,7 @@ export const EDITABLE_KEYS = [
   'thinking_style_notes',
   'motivation_highlights',
   'final_analysis',
+  'top_career_why',
 ] as const;
 
 export type EditableKey = (typeof EDITABLE_KEYS)[number];

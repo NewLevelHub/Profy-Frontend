@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { CareerMatchLadder } from '@/shared/ui/MatchLadder';
 import type { StudentCareer } from '@/shared/types';
+import { reasonsBeyondWhy } from '@/pages/results/utils/careerReasons';
 
 interface DirectionMatchListProps {
   careers: StudentCareer[];
@@ -45,6 +46,8 @@ export const DirectionMatchList = memo(function DirectionMatchList({
     <div className="flex flex-col gap-2.5">
       {careers.map((career, i) => {
         const isTop = i === 0;
+        const reasons = career.fit_reasons;
+        const extraReasons = isTop ? reasonsBeyondWhy(career) : [];
         const rowClassName = cn(
           'group panel-glass flex flex-col gap-3 text-left !p-4 sm:!p-5',
           'transition-[border-color,box-shadow,transform] duration-200',
@@ -80,6 +83,10 @@ export const DirectionMatchList = memo(function DirectionMatchList({
               </div>
             </div>
 
+            {!isTop && reasons.length > 0 && (
+              <p className="text-caption text-secondary leading-snug line-clamp-2 m-0">{reasons[0].text}</p>
+            )}
+
             {isTop && career.why && (
               <div
                 className="rounded-[14px] px-3.5 py-3"
@@ -94,6 +101,15 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                 <p className="text-body-sm leading-relaxed m-0" style={{ color: 'var(--ink)' }}>
                   {career.why}
                 </p>
+                {extraReasons.length > 0 && (
+                  <ul className="flex flex-col gap-1.5 mt-2 m-0 pl-4 list-disc">
+                    {extraReasons.map((reason) => (
+                      <li key={reason.text} className="text-body-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
+                        {reason.text}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {/* CTA — only makes sense where the row itself is clickable. */}
                 {showUniversitiesHint && !readOnly && (
                   <p
