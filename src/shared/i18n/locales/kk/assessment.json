@@ -176,7 +176,9 @@
     "dndOutside": "«{{card}}» карточкасы сұрыптау аймағынан тыс",
     "dndPlacedAt": "«{{card}}» карточкасы 3-тен {{position}}-позицияға қойылды",
     "dndCancelledMove": "Жылжыту болдырылмады",
-    "dndCancelledCard": "«{{card}}» карточкасын жылжыту болдырылмады"
+    "dndCancelledCard": "«{{card}}» карточкасын жылжыту болдырылмады",
+    "confirmOrder": "Реті дұрыс",
+    "orderConfirmed": "Реті расталды"
   },
   "exitModal": {
     "title": "Сақтап, кейін жалғастырасың ба?",

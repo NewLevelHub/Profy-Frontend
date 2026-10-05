@@ -1,5 +1,6 @@
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
+import { Check } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
@@ -26,11 +27,13 @@ export default function MotivationTripletFlow() {
     currentTriplet,
     canProceed,
     progress,
+    hasInteracted,
     exitConfirmOpen,
     autofilling,
     handleBack,
     handleStartIntro,
     handleReorder,
+    handleConfirmOrder,
     handleNext,
     handleAutofill,
     handleExit,
@@ -114,6 +117,20 @@ export default function MotivationTripletFlow() {
                     onReorder={handleReorder}
                     disabled={saving || transitioning}
                   />
+                  <button
+                    type="button"
+                    onClick={handleConfirmOrder}
+                    disabled={saving || transitioning}
+                    aria-pressed={hasInteracted}
+                    className={cn(
+                      'mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium transition-colors',
+                      'disabled:cursor-not-allowed disabled:opacity-50',
+                      hasInteracted ? 'text-brand' : 'text-secondary hover:text-primary',
+                    )}
+                  >
+                    <Check size={14} aria-hidden />
+                    {hasInteracted ? t('triplet.orderConfirmed') : t('triplet.confirmOrder')}
+                  </button>
                   <Button
                     onClick={handleNext}
                     disabled={!canProceed || saving}

@@ -25,10 +25,9 @@ export function useMotivationAssessment() {
   const [tripletIndex, setTripletIndex] = useState(0);
   // Current triplet's card order, ids top→bottom: [0] = most, [last] = least.
   const [ranking, setRanking] = useState<string[]>([]);
-  // Tracks whether the user has actually dragged/keyboard-moved a card on
-  // this triplet vs. still showing the server's default order — kept for
-  // bookkeeping, but no longer gates "Далее": if the default order already
-  // matches what they'd pick, they can move on without touching it.
+  // A sortable list has a valid-looking server order as soon as it renders.
+  // Require either a real reorder or an explicit confirmation so that order
+  // cannot be submitted by repeatedly pressing "Далее".
   const [hasInteracted, setHasInteracted] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [transitioning, setTransitioning] = useState(false);
@@ -133,6 +132,11 @@ export function useMotivationAssessment() {
   function handleReorder(newRanking: string[]) {
     if (saving || transitioning) return;
     setRanking(newRanking);
+    setHasInteracted(true);
+  }
+
+  function handleConfirmOrder() {
+    if (saving || transitioning) return;
     setHasInteracted(true);
   }
 
@@ -243,7 +247,7 @@ export function useMotivationAssessment() {
   const currentTriplet = triplets[tripletIndex];
   const totalTriplets = triplets.length;
   const progress = useAssessmentJourneyProgress();
-  const canProceed = ranking.length === 3;
+  const canProceed = hasInteracted && ranking.length === 3;
   const orderedStatements = currentTriplet
     ? ranking
         .map(id => currentTriplet.statements.find(s => s.id === id))
@@ -268,6 +272,7 @@ export function useMotivationAssessment() {
     handleBack,
     handleStartIntro,
     handleReorder,
+    handleConfirmOrder,
     handleNext,
     handleAutofill,
     handleExit,
