@@ -42,6 +42,7 @@ export const API = {
     asturState: (assessmentId: string) => `/assessment/${assessmentId}/astur/state`,
     asturAttempt: (assessmentId: string) => `/assessment/${assessmentId}/astur/attempt`,
     asturStart: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/start`,
+    asturReset: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/reset`,
     asturSubtest: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}`,
     extendedBlocks: (assessmentId: string) => `/assessment/${assessmentId}/extended-blocks`,
   },

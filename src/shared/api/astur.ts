@@ -2,6 +2,7 @@ import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import type {
   AsturAttempt,
+  ResetAsturSubtestResponse,
   AsturState,
   StartAsturSubtestResponse,
   SubmitAsturSubtestPayload,
@@ -19,6 +20,11 @@ export const asturApi = {
   startSubtest: (assessmentId: string, n: number, runId: string) =>
     apiClient
       .post<StartAsturSubtestResponse>(API.assessment.asturStart(assessmentId, n), { run_id: runId })
+      .then(r => r.data),
+
+  resetSubtest: (assessmentId: string, n: number, runId: string) =>
+    apiClient
+      .post<ResetAsturSubtestResponse>(API.assessment.asturReset(assessmentId, n), { run_id: runId })
       .then(r => r.data),
 
   submitSubtest: (assessmentId: string, n: number, payload: SubmitAsturSubtestPayload) =>

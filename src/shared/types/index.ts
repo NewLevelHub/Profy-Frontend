@@ -432,6 +432,11 @@ export interface StartAsturSubtestResponse {
   started_at: string;
 }
 
+export interface ResetAsturSubtestResponse {
+  run_id: string;
+  subtest: AsturSubtestKey;
+}
+
 /** One item's outcome: an explicit answer or an explicit skip. */
 export type AsturItemAnswer =
   | { status: 'answered'; value: unknown }
@@ -440,6 +445,9 @@ export type AsturItemAnswer =
 export interface SubmitAsturSubtestPayload {
   /** The attempt being answered — a payload for another attempt is rejected. */
   run_id: string;
+  /** Server anchor returned by /start. It also invalidates a late submit
+   *  after the student explicitly exits and resets this subtest. */
+  started_at?: string;
   /** Форма значения зависит от субтеста: строка (MC/обобщение), 2 строки
    *  (классификации), список понятий (логические схемы), 2 числа (ряды),
    *  строка-вариант для быстрых команд. */
