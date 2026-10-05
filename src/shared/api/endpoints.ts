@@ -35,6 +35,7 @@ export const API = {
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,
     pairAnswers: (assessmentId: string) => `/assessment/${assessmentId}/pair-answers`,
     psychoemotionalStart: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/start`,
+    psychoemotionalCurrent: (assessmentId: string) => `/assessment/${assessmentId}/psychoemotional/current`,
     psychoemotionalFinish: (assessmentId: string, runId: string) =>
       `/assessment/${assessmentId}/psychoemotional/${runId}/finish`,
     belbinContent: '/assessment/belbin/content',

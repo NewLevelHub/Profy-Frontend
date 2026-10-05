@@ -3,6 +3,7 @@ import { API } from '@/shared/api/endpoints';
 import type {
   FinishPsychoEmotionalPayload,
   FinishPsychoEmotionalResponse,
+  PsychoEmotionalStateResponse,
   StartPsychoEmotionalPayload,
   StartPsychoEmotionalResponse,
 } from '@/shared/types';
@@ -15,6 +16,14 @@ export const psychoEmotionalApi = {
       .post<StartPsychoEmotionalResponse>(
         API.assessment.psychoemotionalStart(assessmentId),
         payload,
+      )
+      .then((r) => r.data),
+
+  /** Authoritative state for recovering a run after an ambiguous network response. */
+  current: (assessmentId: string) =>
+    apiClient
+      .get<PsychoEmotionalStateResponse>(
+        API.assessment.psychoemotionalCurrent(assessmentId),
       )
       .then((r) => r.data),
 

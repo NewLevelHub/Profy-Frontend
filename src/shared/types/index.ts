@@ -263,6 +263,11 @@ export interface StartPsychoEmotionalResponse {
   run_id: string;
 }
 
+export interface PsychoEmotionalStateResponse {
+  run_id: string | null;
+  status: 'not_started' | 'pending' | 'completed';
+}
+
 export interface FinishPsychoEmotionalPayload {
   list2: number[];
   list2_dt_ms: number[];

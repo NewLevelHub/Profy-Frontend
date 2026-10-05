@@ -52,7 +52,10 @@ export function hasPendingColorRun(assessmentId: string): boolean {
  *  assessment, otherwise straight to report generation (the colour test is
  *  optional). The one place that decides it — every "all done" exit uses it. */
 export function afterBatteryRoute(assessmentId: string | null): string {
-  return assessmentId && hasPendingColorRun(assessmentId) ? '/assessment/psychoemotional' : '/assessment/loading';
+  // The browser may have missed /start's response and therefore have no
+  // local run ID. Always let the final screen reconcile with the server;
+  // it skips straight to loading when no pending run exists.
+  return assessmentId ? '/assessment/psychoemotional' : '/assessment/loading';
 }
 
 /**

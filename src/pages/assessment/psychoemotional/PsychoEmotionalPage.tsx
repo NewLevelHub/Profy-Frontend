@@ -24,7 +24,7 @@ export default function PsychoEmotionalPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('assessment');
   const [introSeen, setIntroSeen] = useState(false);
-  const { submitting, handleCircle2 } = usePsychoEmotional();
+  const { ready, submitting, handleCircle2 } = usePsychoEmotional();
 
   return (
     <div className="pe-block flex flex-col min-h-screen">
@@ -42,7 +42,11 @@ export default function PsychoEmotionalPage() {
       />
 
       <div className="flex-1 flex flex-col w-full">
-        {!introSeen ? (
+        {!ready ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Spinner size="lg" />
+          </div>
+        ) : !introSeen ? (
           <AssessmentIntro
             kicker={t('psychoemotional.circle2.introKicker')}
             title={t('psychoemotional.circle2.introTitle')}
