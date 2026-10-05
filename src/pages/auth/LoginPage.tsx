@@ -124,6 +124,7 @@ export default function LoginPage() {
       <p className="rd-eyebrow">{t('auth:redesign.welcome')}</p>
       <h1>{t('auth:redesign.title')}<span className="rd-orange" aria-hidden="true">.</span></h1>
       <p className="rd-login-intro">{t('auth:redesign.subtitle')}</p>
+      {location.state?.passwordReset && <p className="rd-auth-success" role="status">{t('auth:redesign.recovery.success')}</p>}
 
       <form className="rd-login-fields" onSubmit={handleSubmit} noValidate aria-busy={busy}>
         <Input

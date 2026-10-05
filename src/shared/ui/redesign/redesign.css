@@ -1,4 +1,4 @@
-/* Phase 1 tokens are scoped: existing student/staff/auth pages retain their theme. */
+/* Tokens stay scoped to integrated pages; student and staff screens retain their theme. */
 .redesign {
   --rd-pine: #164d3e;
   --rd-ink: #203a30;
