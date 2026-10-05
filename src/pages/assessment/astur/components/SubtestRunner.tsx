@@ -126,6 +126,7 @@ function renderItem(
     default:
       return (
         <HierarchyDragQuestion index={displayIndex} value={value as string[]}
+          served={(item as AsturLogicalSchemaItem).concepts}
           confirmed={state.touched.has(index)} onChange={(v) => setAnswer(index, v)} />
       );
   }
