@@ -153,6 +153,11 @@
   --pole-left:      #7A5F7D;
   --pole-right:     #6F8F6A;
 
+  /* Линии стимулов АСТУРа (фигуры). В светлой — ровно цвет, которым
+     нарисованы сами PNG, в тёмной — светлый, как текст: линии тонкие, и
+     бирюзовые на тёмной карточке читались заметно слабее. */
+  --stimulus-ink:   var(--pine);
+
   /* Nav */
   --nav-active-bg:     rgba(14, 74, 65, 0.07);
   --nav-active-text:   var(--text-heading);
@@ -317,6 +322,8 @@
 
   --pole-left:      #A98BAC;
   --pole-right:     #93B88E;
+
+  --stimulus-ink:   var(--text-heading);
 
   --nav-active-bg:     rgba(86, 172, 157, 0.14);
   --nav-active-text:   var(--text-heading);

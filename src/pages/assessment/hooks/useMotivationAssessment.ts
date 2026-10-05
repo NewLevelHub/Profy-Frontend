@@ -3,15 +3,33 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { afterBatteryRoute } from '@/shared/store/psychoemotional';
-import { journeyProgressPercent } from '@/shared/lib/journeyProgress';
+import { journeyStages } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
-import type { MotivationTriplet } from '@/shared/types';
+import type { MotivationTriplet, SavedAnswersResponse } from '@/shared/types';
 import type { RestStopState } from '../utils/restStop';
 
 export type MotivationPhase = 'loading' | 'intro' | 'question';
+
+/** Rankings back from the stored MOST / LEAST pair — the middle card is the
+ *  triplet's remaining one (it's never stored). */
+function restoreRankings(triplets: MotivationTriplet[], saved: SavedAnswersResponse): Record<number, string[]> {
+  const rankings: Record<number, string[]> = {};
+  for (const triplet of triplets) {
+    const answer = saved.motivation[triplet.triplet_index];
+    if (!answer) continue;
+    const middle = triplet.statements.find(
+      s => s.id !== answer.most_statement_id && s.id !== answer.least_statement_id,
+    );
+    if (middle) rankings[triplet.triplet_index] = [answer.most_statement_id, middle.id, answer.least_statement_id];
+  }
+  return rankings;
+}
+
+const sameRanking = (a: string[] | undefined, b: string[]) =>
+  a !== undefined && a.length === b.length && a.every((id, i) => id === b[i]);
 
 export function useMotivationAssessment() {
   useFinishedAssessmentGuard();
@@ -39,6 +57,11 @@ export function useMotivationAssessment() {
   const [autofilling, setAutofilling] = useState(false);
 
   const startIndexApplied = useRef(false);
+  // What the server holds — saved-answers on load, then every successful
+  // submit. Rankings used to live only in `answers` (memory): a rest stop or
+  // a reload wiped them, "Назад" showed the default 1-2-3 order, and
+  // "Дальше" sent that default over the student's real answer.
+  const savedRef = useRef<Record<number, string[]>>({});
   // Reset whenever the current triplet changes (see the effect below) —
   // elapsed time from here to handleNext feeds the speed-flag rest stop.
   const itemShownAtRef = useRef(Date.now());
@@ -55,12 +78,19 @@ export function useMotivationAssessment() {
       setPhase('loading');
       setError(null);
       try {
-        const [current, data] = await Promise.all([
+        const [current, data, saved] = await Promise.all([
           assessmentApi.current(),
           motivationApi.getTriplets(assessmentId!),
+          // Not fatal: without it "Назад" just can't show earlier rankings.
+          assessmentApi.getSavedAnswers(assessmentId!).catch(() => null),
         ]);
         if (cancelled) return;
         if (data.length === 0) throw new Error('empty_triplets');
+        if (saved) {
+          const restored = restoreRankings(data, saved);
+          savedRef.current = restored;
+          setAnswers(prev => ({ ...prev, ...restored }));
+        }
         setTriplets(data);
 
         if (!startIndexApplied.current) {
@@ -140,6 +170,19 @@ export function useMotivationAssessment() {
     const triplet = triplets[tripletIndex];
     if (!triplet || !canProceed || saving || transitioning) return;
 
+    // Stepping forward through a triplet already stored unchanged — nothing
+    // to send. The last one always goes out: its response leads on to Belbin.
+    if (sameRanking(savedRef.current[triplet.triplet_index], ranking) && tripletIndex < triplets.length - 1) {
+      setSaving(true);
+      setTransitioning(true);
+      setTimeout(() => {
+        setTripletIndex(i => i + 1);
+        setTransitioning(false);
+        setSaving(false);
+      }, 300);
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -154,6 +197,7 @@ export function useMotivationAssessment() {
         ],
       });
       setAnswers(prev => ({ ...prev, [triplet.triplet_index]: ranking }));
+      savedRef.current[triplet.triplet_index] = ranking;
       useAssessmentStore.getState().setMotivationProgress(response.answered_count, response.total);
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
@@ -176,7 +220,7 @@ export function useMotivationAssessment() {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/motivation',
-            progress: journeyProgressPercent(useAssessmentStore.getState()),
+            stages: journeyStages(useAssessmentStore.getState()),
             totalAnswered: restCheck.totalAnswered,
             isSpeedFlag,
           } satisfies RestStopState,

@@ -29,6 +29,7 @@ export const API = {
     current: '/assessment/current',
     questions: (assessmentId: string) => `/assessment/${assessmentId}/questions`,
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
+    savedAnswers: (assessmentId: string) => `/assessment/${assessmentId}/saved-answers`,
     motivationTriplets: (assessmentId: string) => `/assessment/${assessmentId}/motivation-triplets`,
     motivationAnswers: (assessmentId: string) => `/assessment/${assessmentId}/motivation-answers`,
     pairs: (assessmentId: string) => `/assessment/${assessmentId}/pairs`,

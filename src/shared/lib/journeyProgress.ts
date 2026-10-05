@@ -46,26 +46,44 @@ function phaseFraction(answered: number, total: number): number {
   return clamp01(answered / total);
 }
 
-export function journeyProgressPercent(input: JourneyProgressInput): number {
-  const diagnostic = phaseFraction(input.answeredCount, input.totalQuestions);
-  const motivation = phaseFraction(input.motivationAnsweredCount, input.motivationTotal);
-  const belbin =
-    input.belbinFraction !== undefined
-      ? clamp01(input.belbinFraction)
-      : input.belbinCompleted
-        ? 1
-        : 0;
-  const astur =
-    input.asturFraction !== undefined
-      ? clamp01(input.asturFraction)
-      : input.asturCompleted
-        ? 1
-        : 0;
+type JourneyStageId = keyof typeof ASSESSMENT_PHASE_MINUTES;
 
-  const doneMinutes =
-    diagnostic * ASSESSMENT_PHASE_MINUTES.diagnostic +
-    motivation * ASSESSMENT_PHASE_MINUTES.motivation +
-    belbin * ASSESSMENT_PHASE_MINUTES.belbin +
-    astur * ASSESSMENT_PHASE_MINUTES.astur;
+export interface JourneyStage {
+  id: JourneyStageId;
+  /** 0–1 within this phase. */
+  fraction: number;
+}
+
+/** The four phases in journey order, each with how far into it the student is. */
+export function journeyStages(input: JourneyProgressInput): JourneyStage[] {
+  return [
+    { id: 'diagnostic', fraction: phaseFraction(input.answeredCount, input.totalQuestions) },
+    { id: 'motivation', fraction: phaseFraction(input.motivationAnsweredCount, input.motivationTotal) },
+    {
+      id: 'belbin',
+      fraction:
+        input.belbinFraction !== undefined
+          ? clamp01(input.belbinFraction)
+          : input.belbinCompleted
+            ? 1
+            : 0,
+    },
+    {
+      id: 'astur',
+      fraction:
+        input.asturFraction !== undefined
+          ? clamp01(input.asturFraction)
+          : input.asturCompleted
+            ? 1
+            : 0,
+    },
+  ];
+}
+
+export function journeyProgressPercent(input: JourneyProgressInput): number {
+  const doneMinutes = journeyStages(input).reduce(
+    (sum, stage) => sum + stage.fraction * ASSESSMENT_PHASE_MINUTES[stage.id],
+    0,
+  );
   return Math.round((doneMinutes / TOTAL_MINUTES) * 100);
 }

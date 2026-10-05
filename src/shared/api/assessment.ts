@@ -6,6 +6,7 @@ import type {
   Question,
   SaveAnswersPayload,
   SaveAnswersResponse,
+  SavedAnswersResponse,
 } from '@/shared/types';
 
 export const assessmentApi = {
@@ -18,6 +19,11 @@ export const assessmentApi = {
   getQuestions: (assessmentId: string) =>
     apiClient
       .get<Question[]>(API.assessment.questions(assessmentId))
+      .then(r => r.data),
+
+  getSavedAnswers: (assessmentId: string) =>
+    apiClient
+      .get<SavedAnswersResponse>(API.assessment.savedAnswers(assessmentId))
       .then(r => r.data),
 
   saveAnswers: (assessmentId: string, payload: SaveAnswersPayload) =>
