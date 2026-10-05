@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { env } from '@/shared/config/env';
-import { resetUserSession } from '@/shared/lib/session';
+import { useAuthStore } from '@/shared/store/auth';
 import { readPersistedLocale } from '@/shared/store/locale';
 
 export const apiClient = axios.create({
@@ -8,7 +8,8 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Read token from zustand-persist storage to avoid circular import.
+// Read the persisted token so requests made during Zustand hydration still
+// carry the existing session.
 function getToken(): string | null {
   try {
     const raw = localStorage.getItem('profy-auth');
@@ -37,8 +38,10 @@ apiClient.interceptors.response.use(
     // Only force-logout on 401 if the user had an active session.
     // A 401 on the login endpoint itself must reach the form's catch block.
     if (error.response?.status === 401 && getToken()) {
-      resetUserSession();
-      localStorage.removeItem('profy-auth');
+      // Use the exact same logout path as every UI entry point. It clears the
+      // in-memory auth state, persisted auth, all private stores, drafts and
+      // the complete React Query cache before navigation.
+      useAuthStore.getState().logout();
       // Здесь React уже не работает — состояние навигации передать нечем,
       // поэтому адрес, на котором человека застала протухшая сессия,
       // уезжает в сам URL. Форма логина читает его тем же

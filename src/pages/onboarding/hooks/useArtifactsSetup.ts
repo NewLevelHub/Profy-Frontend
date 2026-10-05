@@ -6,7 +6,7 @@ import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
-import { useOnboardingDraftStore } from '../onboardingDraftStore';
+import { useOnboardingDraftStore } from '@/shared/store/onboardingDraft';
 import type { ArtifactItem, ArtifactType, ProfilePayload, ProfileResponse } from '@/shared/types';
 
 // 5 groups. During onboarding these render as steps 3-4 of the same linear
