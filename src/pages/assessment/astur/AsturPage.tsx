@@ -51,6 +51,8 @@ export default function AsturPage() {
     labilityItemLimitMs,
     maxMinutes,
     exitConfirmOpen,
+    exiting,
+    exitError,
     beginSubtest,
     completeSubtest,
     handleAutofill,
@@ -103,7 +105,16 @@ export default function AsturPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
-      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
+      <ExitAssessmentModal
+        open={exitConfirmOpen}
+        title={t('astur.exit.title')}
+        body={t('astur.exit.body')}
+        saveAndExitLabel={t('astur.exit.confirm')}
+        error={exitError}
+        exiting={exiting}
+        onSaveAndExit={confirmExit}
+        onContinue={cancelExit}
+      />
 
       {running && (
         <AssessmentRail

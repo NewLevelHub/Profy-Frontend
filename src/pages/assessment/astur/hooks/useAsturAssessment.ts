@@ -1,11 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { asturApi } from '@/shared/api/astur';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { asturAutofillPayload } from '@/shared/dev/autofillAssessment';
-import type { AsturContentSubtest, AsturSubtestKey, SubmitAsturSubtestPayload } from '@/shared/types';
+import type {
+  AsturAttempt,
+  AsturContentSubtest,
+  AsturRunSummary,
+  AsturState,
+  AsturSubtestKey,
+  SubmitAsturSubtestPayload,
+} from '@/shared/types';
 import { asturMaxMinutes } from '@/pages/assessment/astur/utils/asturDuration';
 
 type StepPhase = 'instruction' | 'running';
@@ -20,6 +27,26 @@ function clientTimezone(): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+function withSubmitted(run: AsturRunSummary, key: AsturSubtestKey): AsturRunSummary {
+  const started = { ...run.subtest_started_at };
+  delete started[key];
+  return {
+    ...run,
+    submitted_subtests: Array.from(new Set([...run.submitted_subtests, key])),
+    subtest_started_at: started,
+  };
+}
+
+function withReset(run: AsturRunSummary, key: AsturSubtestKey): AsturRunSummary {
+  const started = { ...run.subtest_started_at };
+  delete started[key];
+  return {
+    ...run,
+    submitted_subtests: run.submitted_subtests.filter((submittedKey) => submittedKey !== key),
+    subtest_started_at: started,
+  };
 }
 
 /**
@@ -68,10 +95,20 @@ export function useAsturAssessment(assessmentId: string) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [localStartedAt, setLocalStartedAt] = useState<Partial<Record<AsturSubtestKey, string>>>({});
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const [exitError, setExitError] = useState<string | null>(null);
+  const exitingRef = useRef(false);
+
+  // `/state` is the live progress resource. `openAttempt` also carries a run
+  // snapshot, but that query is cached forever because its shuffled content
+  // is immutable; using its old submitted_subtests after remount used to send
+  // the student back to the first subtest until a full page reload.
+  const stateRun = stateQuery.data?.active_run;
+  const progressRun = stateRun?.run_id === runId ? stateRun : attempt?.run;
 
   const submitted = useMemo(
-    () => new Set<AsturSubtestKey>([...(attempt?.run.submitted_subtests ?? []), ...justSubmitted]),
-    [attempt?.run.submitted_subtests, justSubmitted],
+    () => new Set<AsturSubtestKey>([...(progressRun?.submitted_subtests ?? []), ...justSubmitted]),
+    [progressRun?.submitted_subtests, justSubmitted],
   );
 
   const subtests = content?.subtests ?? [];
@@ -80,7 +117,7 @@ export function useAsturAssessment(assessmentId: string) {
   const subtest = !finished && subtestIndex >= 0 ? subtests[subtestIndex] : null;
   const labilityItemLimitMs = content?.lability_item_limit_ms ?? 20000;
   const subtestStartedAt = subtest
-    ? localStartedAt[subtest.key] ?? attempt?.run.subtest_started_at?.[subtest.key] ?? null
+    ? localStartedAt[subtest.key] ?? progressRun?.subtest_started_at?.[subtest.key] ?? null
     : null;
   const showCompleted = !finished && attemptStatus === 'completed';
 
@@ -98,7 +135,7 @@ export function useAsturAssessment(assessmentId: string) {
   /** The subtest opens only after the server has recorded its start — its
    *  timing is the server's, and a failed start never shows the items. */
   async function beginSubtest() {
-    if (!subtest || !runId) return;
+    if (!subtest || !runId || exitingRef.current) return;
     setStarting(true);
     setSubmitError(null);
     try {
@@ -112,15 +149,24 @@ export function useAsturAssessment(assessmentId: string) {
     }
   }
 
-  async function submitOne(target: AsturContentSubtest, payload: SubtestSubmit) {
+  async function submitOne(target: AsturContentSubtest, payload: SubtestSubmit, startedAt?: string | null) {
     if (!runId) return;
     const body: SubmitAsturSubtestPayload = {
       ...payload,
       run_id: runId,
+      ...(startedAt ? { started_at: startedAt } : {}),
       ...(target.key === 'lability' ? { client_timezone: clientTimezone() } : {}),
     };
     const response = await asturApi.submitSubtest(assessmentId, target.number, body);
     setJustSubmitted((prev) => new Set(prev).add(target.key));
+    queryClient.setQueryData<AsturAttempt>(asturAttemptQueryKey(assessmentId), (current) =>
+      current ? { ...current, run: withSubmitted(current.run, target.key) } : current,
+    );
+    queryClient.setQueryData<AsturState>(asturStateQueryKey(assessmentId), (current) =>
+      current?.active_run?.run_id === runId
+        ? { ...current, active_run: withSubmitted(current.active_run, target.key) }
+        : current,
+    );
     if (response.run_completed) {
       setFinished(true);
       await queryClient.invalidateQueries({ queryKey: asturStateQueryKey(assessmentId) });
@@ -128,11 +174,11 @@ export function useAsturAssessment(assessmentId: string) {
   }
 
   async function completeSubtest(payload: SubtestSubmit) {
-    if (!subtest || submitting) return;
+    if (!subtest || submitting || exitingRef.current) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await submitOne(subtest, payload);
+      await submitOne(subtest, payload, subtestStartedAt);
       setStepPhase('instruction');
     } catch {
       setSubmitError(t('astur.submitError'));
@@ -147,13 +193,53 @@ export function useAsturAssessment(assessmentId: string) {
     setSubmitError(null);
     try {
       for (const st of content.subtests.filter((s) => !submitted.has(s.key))) {
-        await asturApi.startSubtest(assessmentId, st.number, runId);
-        await submitOne(st, asturAutofillPayload(st));
+        const started = await asturApi.startSubtest(assessmentId, st.number, runId);
+        await submitOne(st, asturAutofillPayload(st), started.started_at);
       }
     } catch {
       setSubmitError(t('astur.submitError'));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function confirmExit() {
+    if (exitingRef.current) return;
+    if (!subtest || !runId) {
+      navigate('/results');
+      return;
+    }
+
+    exitingRef.current = true;
+    setExiting(true);
+    setExitError(null);
+    try {
+      await asturApi.resetSubtest(assessmentId, subtest.number, runId);
+      setJustSubmitted((prev) => {
+        const next = new Set(prev);
+        next.delete(subtest.key);
+        return next;
+      });
+      setLocalStartedAt((prev) => {
+        const next = { ...prev };
+        delete next[subtest.key];
+        return next;
+      });
+      queryClient.setQueryData<AsturAttempt>(asturAttemptQueryKey(assessmentId), (current) =>
+        current ? { ...current, run: withReset(current.run, subtest.key) } : current,
+      );
+      queryClient.setQueryData<AsturState>(asturStateQueryKey(assessmentId), (current) =>
+        current?.active_run?.run_id === runId
+          ? { ...current, active_run: withReset(current.active_run, subtest.key) }
+          : current,
+      );
+      await queryClient.invalidateQueries({ queryKey: asturStateQueryKey(assessmentId) });
+      setExitConfirmOpen(false);
+      navigate('/results');
+    } catch {
+      exitingRef.current = false;
+      setExiting(false);
+      setExitError(t('astur.exit.resetError'));
     }
   }
 
@@ -172,18 +258,24 @@ export function useAsturAssessment(assessmentId: string) {
     labilityItemLimitMs,
     maxMinutes: asturMaxMinutes(subtests, labilityItemLimitMs),
     exitConfirmOpen,
+    exiting,
+    exitError,
     starting,
     beginSubtest,
     completeSubtest,
     handleAutofill,
     // Every subtest is on the server the moment it's submitted — leaving
     // only loses the subtest currently on screen.
-    handleExit: () => setExitConfirmOpen(true),
-    confirmExit: () => {
-      setExitConfirmOpen(false);
-      navigate('/results');
+    handleExit: () => {
+      setExitError(null);
+      setExitConfirmOpen(true);
     },
-    cancelExit: () => setExitConfirmOpen(false),
+    confirmExit,
+    cancelExit: () => {
+      if (exitingRef.current) return;
+      setExitError(null);
+      setExitConfirmOpen(false);
+    },
     submitting,
     submitError,
   };
