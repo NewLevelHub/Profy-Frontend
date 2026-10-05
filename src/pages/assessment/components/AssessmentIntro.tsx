@@ -7,6 +7,7 @@ import { cn } from '@/shared/lib/cn';
 import { AssessmentStageShell } from './AssessmentStageShell';
 
 export interface AssessmentIntroProps {
+  illustrated?: boolean;
   /** Pill above the title (e.g. "Субтест 1 из 8" / "Диагностика"). */
   kicker: string;
   title: string;
@@ -38,6 +39,7 @@ export interface AssessmentIntroProps {
  * part of the same journey rather than as a separate badge-topped card.
  */
 export function AssessmentIntro({
+  illustrated = false,
   kicker,
   title,
   subtitle,
@@ -55,12 +57,13 @@ export function AssessmentIntro({
     <AssessmentStageShell
       centered
       animate
-      contentClassName="flex flex-col items-center gap-8 text-center !p-8 sm:!p-10"
+      contentClassName="rd-assessment-intro flex flex-col items-center gap-8 text-center !p-8 sm:!p-10"
     >
+      {illustrated && <img className="rd-assessment-intro-mascot" src="/mascot/redesign/book.png" alt="" width={152} height={152} />}
       <div className="flex flex-col items-center gap-4">
         <span className="journey-kicker">{kicker}</span>
 
-        <Heading level="display-sm" as="h2" className="text-primary text-balance">
+        <Heading level="display-sm" as="h1" className="text-primary text-balance">
           {title}
         </Heading>
 
@@ -75,7 +78,7 @@ export function AssessmentIntro({
         <div
           className={cn(
             typeClass.bodySm,
-            'flex items-center justify-center gap-[18px] font-bold text-muted',
+            'rd-assessment-intro-meta flex items-center justify-center gap-[18px] font-bold text-muted',
           )}
         >
           <span className="inline-flex items-center gap-[6px]">

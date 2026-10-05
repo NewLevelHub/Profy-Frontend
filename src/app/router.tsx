@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router';
+import { Spinner } from '@/shared/ui/Spinner';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireAdmin } from '@/shared/guards/RequireAdmin';
@@ -86,6 +87,12 @@ import PsychologistReportHistoryPage from '@/pages/psychologist/PsychologistRepo
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
+  // Local design review uses presentation components and in-memory fixtures only.
+  ...(import.meta.env.DEV ? [{
+    path: '/design/assessment',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/AssessmentDesignPreview')).default }),
+  }] : []),
   // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
     element: <RequireGuest />,

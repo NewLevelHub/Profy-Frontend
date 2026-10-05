@@ -1,3 +1,4 @@
+import { AssessmentLayout } from '../components/AssessmentLayout';
 import './psychoemotional.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -27,8 +28,9 @@ export default function PsychoEmotionalPage() {
   const { submitting, handleCircle2 } = usePsychoEmotional();
 
   return (
-    <div className="pe-block flex flex-col min-h-screen">
+    <AssessmentLayout>
       <AssessmentRail
+        redesigned
         title={introSeen ? t('psychoemotional.circle2.stepTitleCircle2') : t('psychoemotional.circle1.railTitleIntro')}
         sectionLabel={t('psychoemotional.sectionLabel')}
         progressAriaLabel={t('psychoemotional.progressAriaLabel')}
@@ -41,9 +43,10 @@ export default function PsychoEmotionalPage() {
         onExit={() => navigate('/results')}
       />
 
-      <div className="flex-1 flex flex-col w-full">
+      <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
         {!introSeen ? (
           <AssessmentIntro
+            illustrated
             kicker={t('psychoemotional.circle2.introKicker')}
             title={t('psychoemotional.circle2.introTitle')}
             subtitle={t('psychoemotional.circle2.introSubtitle')}
@@ -62,7 +65,7 @@ export default function PsychoEmotionalPage() {
             onComplete={handleCircle2}
           />
         )}
-      </div>
-    </div>
+      </main>
+    </AssessmentLayout>
   );
 }
