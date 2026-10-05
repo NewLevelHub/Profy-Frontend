@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { PageContainer } from '@/shared/ui/PageContainer';
 import { Spinner } from '@/shared/ui/Spinner';
 import { Text } from '@/shared/ui/typography/Text';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
@@ -10,6 +9,7 @@ import { useBelbinAssessment } from './hooks/useBelbinAssessment';
 import { BelbinBlock } from './components/BelbinBlock';
 import { BelbinDone } from './components/BelbinDone';
 import { AssessmentIntro } from '../components/AssessmentIntro';
+import { AssessmentLayout } from '../components/AssessmentLayout';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
 
@@ -66,17 +66,18 @@ export default function BelbinPage() {
   }, [navigate, effectiveAssessmentId]);
 
   // The start gate is a stage moment: it owns the screen and centers itself
-  // (AssessmentStageShell), so it lives outside the top-anchored PageContainer
+  // (AssessmentStageShell), so it lives outside the top-anchored workspace
   // the running test uses. Otherwise Belbin's intro sat under the rail while
   // every other test's intro sat in the middle of the screen (PRO-397).
   const showIntro = !isLoading && !loadError && phase === 'intro';
 
   return (
-    <div className="flex flex-col min-h-screen bg-page">
-      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
+    <AssessmentLayout>
+      <ExitAssessmentModal redesigned open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
 
       {phase !== 'done' && (
         <AssessmentRail
+          redesigned
           title={headerTitle}
           sectionLabel={t('rail.sectionBelbin')}
           progressAriaLabel={t('rail.progressAriaBelbin')}
@@ -86,52 +87,55 @@ export default function BelbinPage() {
         />
       )}
 
-      {showIntro && (
-        <AssessmentIntro
-          kicker={t('intro.belbin.kicker')}
-          title={t('intro.belbin.title')}
-          subtitle={instruction || t('intro.belbin.subtitle')}
-          itemCountLabel={t('intro.itemCount', { count: sectionCount })}
-          durationLabel={t('intro.durationMin', { count: ASSESSMENT_PHASE_MINUTES.belbin })}
-          ctaLabel={t('intro.belbin.cta')}
-          onStart={start}
-        />
-      )}
+      <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
+        {showIntro && (
+          <AssessmentIntro
+            illustrated
+            kicker={t('intro.belbin.kicker')}
+            title={t('intro.belbin.title')}
+            subtitle={instruction || t('intro.belbin.subtitle')}
+            itemCountLabel={t('intro.itemCount', { count: sectionCount })}
+            durationLabel={t('intro.durationMin', { count: ASSESSMENT_PHASE_MINUTES.belbin })}
+            ctaLabel={t('intro.belbin.cta')}
+            onStart={start}
+          />
+        )}
 
-      {!showIntro && (
-        <PageContainer size="content" className="py-10">
-          {isLoading && (
-            <div className="flex justify-center py-16">
-              <Spinner size="lg" />
-            </div>
-          )}
+        {!showIntro && (
+          <div className="rd-assessment-workspace">
+            {isLoading && (
+              <div className="flex justify-center py-16">
+                <Spinner size="lg" />
+              </div>
+            )}
 
-          {loadError && (
-            <Text variant="body-md" className="text-danger text-center py-16">
-              {loadError}
-            </Text>
-          )}
+            {loadError && (
+              <Text variant="body-md" className="text-danger text-center py-16">
+                {loadError}
+              </Text>
+            )}
 
-          {!isLoading && !loadError && phase === 'block' && section && (
-            <BelbinBlock
-              section={section}
-              sectionIndex={sectionIndex}
-              sectionCount={sectionCount}
-              allocation={allocation}
-              blockTotal={blockTotal}
-              isValid={isBlockValid}
-              isLastBlock={isLastBlock}
-              submitting={submitting}
-              submitError={submitError}
-              onChange={setAllocationValue}
-              onBack={goBack}
-              onNext={goNext}
-            />
-          )}
+            {!isLoading && !loadError && phase === 'block' && section && (
+              <BelbinBlock
+                section={section}
+                sectionIndex={sectionIndex}
+                sectionCount={sectionCount}
+                allocation={allocation}
+                blockTotal={blockTotal}
+                isValid={isBlockValid}
+                isLastBlock={isLastBlock}
+                submitting={submitting}
+                submitError={submitError}
+                onChange={setAllocationValue}
+                onBack={goBack}
+                onNext={goNext}
+              />
+            )}
 
-          {phase === 'done' && <BelbinDone onContinue={handleDoneContinue} />}
-        </PageContainer>
-      )}
-    </div>
+            {phase === 'done' && <BelbinDone onContinue={handleDoneContinue} />}
+          </div>
+        )}
+      </main>
+    </AssessmentLayout>
   );
 }

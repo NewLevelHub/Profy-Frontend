@@ -87,11 +87,15 @@ import PsychologistReportHistoryPage from '@/pages/psychologist/PsychologistRepo
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
-  // Local design review uses presentation components and in-memory fixtures only.
+  // Local design review uses fixtures and never calls assessment APIs.
   ...(import.meta.env.DEV ? [{
     path: '/design/assessment',
     HydrateFallback: Spinner,
     lazy: async () => ({ Component: (await import('@/pages/assessment/design/AssessmentDesignPreview')).default }),
+  }, {
+    path: '/design/special-assessments',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/SpecialAssessmentDesignPreview')).default }),
   }] : []),
   // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {

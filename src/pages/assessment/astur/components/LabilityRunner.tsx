@@ -151,8 +151,8 @@ export function LabilityRunner({
   );
 
   return (
-    <div className="assessment-stage mx-auto w-full max-w-[720px]">
-      <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
+    <div className="rd-astur rd-astur-lability">
+      <div className="rd-astur-lability-card">
         <AssessmentTimer
           remainingMs={remainingMs}
           durationMs={itemLimitMs}
@@ -161,9 +161,7 @@ export function LabilityRunner({
           urgentBelowMs={1_500}
         />
 
-        <Text variant="body-lg" className="font-semibold text-primary text-balance">
-          {item.instruction}
-        </Text>
+        <h1>{item.instruction}</h1>
 
         <div
           key={index}
@@ -185,7 +183,7 @@ export function LabilityRunner({
                   commit({ status: 'answered', value: option }, itemLimitMs - remainingMs);
                 }}
                 className={cn(
-                  'press-scale flex min-h-[132px] flex-col items-center justify-center gap-3 rounded-[18px]',
+                  'rd-astur-lability-choice press-scale flex min-h-[132px] flex-col items-center justify-center gap-3 rounded-[18px]',
                   'border-2 border-brand bg-transparent px-4 py-5 text-brand',
                   'transition-colors hover:bg-brand-subtle',
                   'focus:outline-none focus:ring-2 focus:ring-offset-1',

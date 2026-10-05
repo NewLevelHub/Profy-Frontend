@@ -1,34 +1,20 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
-import { Heading } from '@/shared/ui/typography/Heading';
-import { Text } from '@/shared/ui/typography/Text';
+import { AssessmentCompletion } from '../../components/AssessmentCompletion';
 
-interface BelbinDoneProps {
-  onContinue: () => void;
-}
-
-export function BelbinDone({ onContinue }: BelbinDoneProps) {
+export function BelbinDone({ onContinue }: { onContinue: () => void }) {
   const { t } = useTranslation('assessment');
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onContinue();
-    }, 2500);
+    const timer = setTimeout(() => { onContinue(); }, 2500);
     return () => clearTimeout(timer);
   }, [onContinue]);
 
   return (
-    <div className="flex flex-col items-center gap-5 text-center py-16">
-      <CheckCircle2 size={48} className="text-success" />
-      <Heading level="display-sm">{t('belbin.doneTitle')}</Heading>
-      <Text variant="body-md" className="text-secondary max-w-md">
-        {t('belbin.doneMessage')}
-      </Text>
-      <Button size="lg" onClick={onContinue} className="gap-2 mt-2">
-        {t('belbin.toAstur')}
-        <ArrowRight size={18} />
-      </Button>
-    </div>
+    <AssessmentCompletion
+      title={t('belbin.doneTitle')}
+      message={t('belbin.doneMessage')}
+      action={t('belbin.toAstur')}
+      onContinue={onContinue}
+    />
   );
 }

@@ -122,7 +122,7 @@ export function AssessmentRail({
               )}
             </div>
             <div className="rd-assessment-controls">
-              {statusSlotRef && <div ref={statusSlotRef} className="flex empty:hidden" />}
+              {statusSlotRef && <div ref={statusSlotRef} className="rd-assessment-status flex empty:hidden" />}
               <ThemeToggle />
               <button type="button" onClick={toggleSound} role="switch" aria-checked={soundEnabled}
                 aria-label={soundLabel} title={soundLabel} className="rd-icon-button">

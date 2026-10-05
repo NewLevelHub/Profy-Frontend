@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { PageContainer } from '@/shared/ui/PageContainer';
 import { Spinner } from '@/shared/ui/Spinner';
 import { Text } from '@/shared/ui/typography/Text';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
@@ -15,6 +14,7 @@ import { LabilityRunner } from './components/LabilityRunner';
 import { AsturDone } from './components/AsturDone';
 import { AsturCompleted } from './components/AsturCompleted';
 import { AssessmentIntro } from '../components/AssessmentIntro';
+import { AssessmentLayout } from '../components/AssessmentLayout';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 
 function blockIntroKey(scope: string) {
@@ -99,13 +99,14 @@ export default function AsturPage() {
 
   // Both start gates (block intro + per-subtest intro) are stage moments that
   // own the screen and center themselves, so they render outside the
-  // top-anchored PageContainer the running subtest uses — see BelbinPage for
+  // top-anchored workspace the running subtest uses — see BelbinPage for
   // the same split (PRO-397).
   const showIntro = !!running && stepPhase === 'instruction';
 
   return (
-    <div className="flex flex-col min-h-screen bg-page">
+    <AssessmentLayout>
       <ExitAssessmentModal
+        redesigned
         open={exitConfirmOpen}
         title={t('astur.exit.title')}
         body={t('astur.exit.body')}
@@ -118,6 +119,7 @@ export default function AsturPage() {
 
       {running && (
         <AssessmentRail
+          redesigned
           title={headerTitle}
           sectionLabel={t('rail.sectionAstur')}
           progressAriaLabel={t('rail.progressAriaAstur')}
@@ -128,81 +130,84 @@ export default function AsturPage() {
         />
       )}
 
-      {showIntro && subtestIndex === 0 && !blockIntroSeen && (
-        <AssessmentIntro
-          kicker={t('intro.astur.kicker')}
-          title={t('intro.astur.title')}
-          subtitle={t('intro.astur.subtitle')}
-          itemCountLabel={t('intro.astur.itemCount', { count: subtestCount })}
-          durationLabel={t('intro.durationUpToMin', { count: maxMinutes })}
-          ctaLabel={t('intro.astur.cta')}
-          onStart={handleStartBlockIntro}
-          secondaryCtaLabel={t('intro.astur.pause')}
-          onSecondaryAction={() => navigate('/results')}
-        />
-      )}
-
-      {showIntro && (subtestIndex > 0 || blockIntroSeen) && (
-        <>
-          <SubtestIntro
-            subtest={subtest}
-            index={subtestIndex}
-            count={subtestCount}
-            labilityItemLimitMs={labilityItemLimitMs}
-            onStart={beginSubtest}
+      <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
+        {showIntro && subtestIndex === 0 && !blockIntroSeen && (
+          <AssessmentIntro
+            illustrated
+            kicker={t('intro.astur.kicker')}
+            title={t('intro.astur.title')}
+            subtitle={t('intro.astur.subtitle')}
+            itemCountLabel={t('intro.astur.itemCount', { count: subtestCount })}
+            durationLabel={t('intro.durationUpToMin', { count: maxMinutes })}
+            ctaLabel={t('intro.astur.cta')}
+            onStart={handleStartBlockIntro}
+            secondaryCtaLabel={t('intro.astur.pause')}
+            onSecondaryAction={() => navigate('/results')}
           />
-          {submitError && (
-            <Text variant="body-sm" className="text-danger text-center pb-8">
-              {submitError}
-            </Text>
-          )}
-        </>
-      )}
+        )}
 
-      {!showIntro && (
-        <PageContainer size="content" className="py-10 flex flex-col gap-6">
-          {isLoading && (
-            <div className="flex justify-center py-16">
-              <Spinner size="lg" />
-            </div>
-          )}
-
-          {loadError && (
-            <Text variant="body-md" className="text-danger text-center py-16">
-              {loadError}
-            </Text>
-          )}
-
-          {ready && showCompleted && (
-            <AsturCompleted completedAt={completedAt} onContinue={() => navigate('/results')} />
-          )}
-
-          {running && stepPhase === 'running' && subtest.key === 'lability' && (
-            <LabilityRunner
+        {showIntro && (subtestIndex > 0 || blockIntroSeen) && (
+          <>
+            <SubtestIntro
               subtest={subtest}
-              runId={runId ?? ''}
-              startedAt={subtestStartedAt}
-              itemLimitMs={labilityItemLimitMs}
-              submitting={submitting}
-              submitError={submitError}
-              onSubmit={completeSubtest}
+              index={subtestIndex}
+              count={subtestCount}
+              labilityItemLimitMs={labilityItemLimitMs}
+              onStart={beginSubtest}
             />
-          )}
+            {submitError && (
+              <Text variant="body-sm" className="text-danger text-center pb-8">
+                {submitError}
+              </Text>
+            )}
+          </>
+        )}
 
-          {running && stepPhase === 'running' && subtest.key !== 'lability' && (
-            <SubtestRunner
-              subtest={subtest}
-              startedAt={subtestStartedAt}
-              timerSlot={railStatusSlot}
-              submitting={submitting}
-              submitError={submitError}
-              onSubmit={completeSubtest}
-            />
-          )}
+        {!showIntro && (
+          <div className="rd-assessment-workspace">
+            {isLoading && (
+              <div className="flex justify-center py-16">
+                <Spinner size="lg" />
+              </div>
+            )}
 
-          {ready && allDone && <AsturDone onContinue={handleDoneContinue} />}
-        </PageContainer>
-      )}
-    </div>
+            {loadError && (
+              <Text variant="body-md" className="text-danger text-center py-16">
+                {loadError}
+              </Text>
+            )}
+
+            {ready && showCompleted && (
+              <AsturCompleted completedAt={completedAt} onContinue={() => navigate('/results')} />
+            )}
+
+            {running && stepPhase === 'running' && subtest.key === 'lability' && (
+              <LabilityRunner
+                subtest={subtest}
+                runId={runId ?? ''}
+                startedAt={subtestStartedAt}
+                itemLimitMs={labilityItemLimitMs}
+                submitting={submitting}
+                submitError={submitError}
+                onSubmit={completeSubtest}
+              />
+            )}
+
+            {running && stepPhase === 'running' && subtest.key !== 'lability' && (
+              <SubtestRunner
+                subtest={subtest}
+                startedAt={subtestStartedAt}
+                timerSlot={railStatusSlot}
+                submitting={submitting}
+                submitError={submitError}
+                onSubmit={completeSubtest}
+              />
+            )}
+
+            {ready && allDone && <AsturDone onContinue={handleDoneContinue} />}
+          </div>
+        )}
+      </main>
+    </AssessmentLayout>
   );
 }

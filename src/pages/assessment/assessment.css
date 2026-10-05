@@ -1,5 +1,5 @@
-/* Phase 4. Applied only inside AssessmentLayout; diagnostic swatches retain
-   their reference colours and the later timed stages keep their own shell. */
+/* Assessment styles are scoped to AssessmentLayout. Diagnostic swatches
+   and answer scales retain their reference colours and sizes. */
 .rd-assessment {
   --pine: var(--rd-pine);
   --ink: var(--rd-ink);
