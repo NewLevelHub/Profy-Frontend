@@ -124,8 +124,10 @@ export const LikertScale = React.memo(function LikertScale({
     );
   }
 
+  // Leave room for scaled dots and focus outlines inside the query container:
+  // Safari clips them to its bounds during transforms. Margins preserve spacing.
   return (
-    <div className="@container w-full">
+    <div className="@container w-full -my-2 py-2">
       <div
         className={cn(
           'mx-auto flex w-full max-w-80 flex-wrap justify-between gap-y-2',
