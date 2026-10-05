@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Mail } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
 import { env } from '@/shared/config/env';
 import { homePathForUser } from '@/shared/lib/homePath';
@@ -117,123 +117,86 @@ export default function LoginPage() {
     }
   }
 
+  const busy = isLoading || googleSubmitting;
+
   return (
     <>
-      <h1 className="auth-card-title">{t('auth:login.title')}</h1>
-      {/* Дублирует мысль левой колонки — она нужна на телефоне, где колонка скрыта. */}
-      <p className="auth-card-sub">{t('auth:login.subtitle')}</p>
+      <p className="rd-eyebrow">{t('auth:redesign.welcome')}</p>
+      <h1>{t('auth:redesign.title')}<span className="rd-orange" aria-hidden="true">.</span></h1>
+      <p className="rd-login-intro">{t('auth:redesign.subtitle')}</p>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[28px]">
-          <Input
-            label={t('auth:field.email')}
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={e => { setEmail(e.target.value); setEmailError(''); }}
-            error={emailError}
-            autoCapitalize="none"
-            autoComplete="email"
-            autoFocus
-          />
-        </div>
-
-        <div className="mt-[24px]">
+      <form className="rd-login-fields" onSubmit={handleSubmit} noValidate aria-busy={busy}>
+        <Input
+          label={t('auth:field.emailLong')}
+          type="email"
+          name="email"
+          placeholder={t('auth:redesign.emailPlaceholder')}
+          value={email}
+          onChange={e => { setEmail(e.target.value); setEmailError(''); }}
+          error={emailError}
+          autoCapitalize="none"
+          autoComplete="username"
+          disabled={busy}
+          required
+        />
+        <div className="rd-login-password">
           <Input
             ref={passwordRef}
             label={t('auth:field.password')}
-            className="pr-10"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
+            name="password"
+            placeholder={t('auth:redesign.passwordPlaceholder')}
             value={password}
             onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
             error={passwordError}
             autoComplete="current-password"
+            disabled={busy}
+            required
             rightSlot={
               <button
                 type="button"
-                tabIndex={-1}
                 onClick={() => setShowPassword(v => !v)}
-                className="text-muted hover:text-secondary transition-colors"
+                className="rd-password-toggle"
                 aria-label={t(showPassword ? 'auth:field.hidePassword' : 'auth:field.showPassword')}
+                aria-pressed={showPassword}
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
               </button>
             }
           />
         </div>
+        <div className="rd-login-help"><Link to="/forgot-password" className="rd-text-link">{t('auth:login.forgotPassword')}</Link></div>
 
-        {formError && (
-          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
-        )}
-
+        {formError && <p className="rd-form-error" role="alert">{formError}</p>}
         {needsVerification && (
-          <div className="rounded-[var(--radius)] border border-default bg-raised p-4 flex flex-col gap-3 mt-[16px]">
-            <div className="flex items-start gap-3">
-              <Mail size={18} className="text-brand flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-caption font-semibold text-primary">{t('auth:verifyBanner.title')}</p>
-                <p className="text-small text-secondary mt-0.5">
-                  <Trans
-                    i18nKey="auth:verifyBanner.body"
-                    values={{ email }}
-                    components={{ b: <span className="font-semibold text-primary" /> }}
-                  />
-                </p>
-              </div>
+          <div className="rd-verification" role="status">
+            <Mail size={21} aria-hidden="true" />
+            <div>
+              <strong>{t('auth:verifyBanner.title')}</strong>
+              <p><Trans i18nKey="auth:verifyBanner.body" values={{ email }} components={{ b: <strong /> }} /></p>
+              {resendDone ? (
+                <p className="rd-form-error" role="alert">{t('auth:verifyBanner.failed')}</p>
+              ) : (
+                <Button type="button" onClick={handleResendVerification} isLoading={resendLoading} size="sm" className="rd-button">
+                  {resendLoading ? t('auth:verifyBanner.resending') : t('auth:verifyBanner.resend')}
+                </Button>
+              )}
             </div>
-            {resendDone ? (
-              <p className="text-small text-danger text-center">{t('auth:verifyBanner.failed')}</p>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleResendVerification}
-                isLoading={resendLoading}
-                className="w-full"
-                size="sm"
-              >
-                {resendLoading ? t('auth:verifyBanner.resending') : t('auth:verifyBanner.resend')}
-              </Button>
-            )}
           </div>
         )}
 
-        <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[34px]">
-          {isLoading ? t('auth:login.submitting') : t('auth:login.submit')}
+        <Button type="submit" isLoading={isLoading} disabled={googleSubmitting} size="lg" className="rd-button rd-login-submit">
+          {isLoading ? t('auth:login.submitting') : t('auth:redesign.submit')}
+          {!isLoading && <ArrowRight size={20} aria-hidden="true" />}
         </Button>
 
         {env.GOOGLE_CLIENT_ID && (
           <>
-            <div className="flex items-center gap-3 mt-[24px]">
-              <div className="h-px flex-1 bg-[var(--hairline)]" />
-              <span className="text-body-sm text-muted">{t('auth:divider')}</span>
-              <div className="h-px flex-1 bg-[var(--hairline)]" />
-            </div>
-
-            <div className="mt-[16px]">
-              <GoogleSignInButton
-                text="signin_with"
-                disabled={isLoading || googleSubmitting}
-                onCredential={handleGoogleCredential}
-              />
-            </div>
+            <div className="rd-login-divider"><span>{t('auth:divider')}</span></div>
+            <GoogleSignInButton text="signin_with" disabled={busy} onCredential={handleGoogleCredential} />
           </>
         )}
-
-        <div className="flex items-center justify-between mt-[20px] text-body-sm">
-          <Link
-            to="/forgot-password"
-            className="text-muted underline underline-offset-2 hover:opacity-70 transition-opacity"
-          >
-            {t('auth:login.forgotPassword')}
-          </Link>
-          <Link
-            to="/register"
-            className="text-brand underline underline-offset-2 hover:opacity-70 transition-opacity"
-          >
-            {t('auth:login.createAccount')}
-          </Link>
-        </div>
+        <p className="rd-login-switch">{t('auth:redesign.newHere')} <Link to="/register">{t('auth:login.createAccount')}</Link></p>
       </form>
     </>
   );

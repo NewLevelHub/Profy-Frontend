@@ -5,6 +5,7 @@ import { Compass, Landmark, Layers, ListChecks } from 'lucide-react';
 import { env } from '@/shared/config/env';
 import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
+import { LoginLayout } from '@/shared/ui/redesign/LoginLayout';
 
 /**
  * Копия левой колонки — своя у каждого экрана авторизации. Колонка есть везде:
@@ -94,6 +95,8 @@ function AuthAside({ copy }: { copy: AsideCopy }) {
 export function AuthLayout() {
   const location = useLocation();
   const { t } = useTranslation('auth');
+  // Phase 1 only changes login; other auth routes keep their current layout.
+  if (location.pathname === '/login') return <LoginLayout><Outlet /></LoginLayout>;
   const asideKey = ROUTE_ASIDE_KEY[location.pathname];
   const aside: AsideCopy | undefined = asideKey
     ? {

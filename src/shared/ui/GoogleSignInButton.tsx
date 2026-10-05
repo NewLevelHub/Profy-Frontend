@@ -52,17 +52,28 @@ export function GoogleSignInButton({ onCredential, onLoadError, disabled, text =
 
   useEffect(() => {
     if (!ready || gisLocale !== locale || !containerRef.current || !window.google) return;
-    containerRef.current.innerHTML = '';
-    const width = Math.min(containerRef.current.offsetWidth || MAX_WIDTH, MAX_WIDTH);
-    window.google.accounts.id.renderButton(containerRef.current, {
-      type: 'standard',
-      theme: theme === 'dark' ? 'filled_black' : 'outline',
-      size: 'large',
-      shape: 'rectangular',
-      locale,
-      text,
-      width,
-    });
+    const container = containerRef.current;
+    let renderedWidth = 0;
+    const render = () => {
+      const width = Math.min(container.offsetWidth || MAX_WIDTH, MAX_WIDTH);
+      if (width === renderedWidth || !window.google) return;
+      renderedWidth = width;
+      container.innerHTML = '';
+      window.google.accounts.id.renderButton(container, {
+        type: 'standard',
+        theme: theme === 'dark' ? 'filled_black' : 'outline',
+        size: 'large',
+        shape: 'rectangular',
+        locale,
+        text,
+        width,
+      });
+    };
+    render();
+    // GIS embeds a fixed-width iframe; redraw when the form changes width.
+    const observer = new ResizeObserver(render);
+    observer.observe(container);
+    return () => observer.disconnect();
   }, [ready, gisLocale, locale, text, theme]);
 
   if (!env.GOOGLE_CLIENT_ID) return null;
