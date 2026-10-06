@@ -36,9 +36,10 @@ export type AdminColumnAlign = 'left' | 'right';
  * - `subtitle` — dimmer line right under the title (email, slug)
  * - `badge`    — sits in the card's status row (status, override marker)
  * - `field`    — label/value pair in the card's bottom grid
+ * - `action`   — visible link or button in the card's footer
  * - `hidden`   — dropped on narrow screens (raw ids, redundant columns)
  */
-export type AdminColumnMobileRole = 'title' | 'subtitle' | 'badge' | 'field' | 'hidden';
+export type AdminColumnMobileRole = 'title' | 'subtitle' | 'badge' | 'field' | 'action' | 'hidden';
 
 export interface AdminColumn<T> {
   key: string;
@@ -122,6 +123,7 @@ export function AdminDataTable<T>({
   const subtitleColumns = columns.filter((c) => c.mobile === 'subtitle');
   const badgeColumns = columns.filter((c) => c.mobile === 'badge');
   const fieldColumns = columns.filter((c) => c.mobile === 'field');
+  const actionColumns = columns.filter((c) => c.mobile === 'action');
 
   /**
    * Fixed table layout: every column but one gets an explicit width, declared
@@ -279,6 +281,13 @@ export function AdminDataTable<T>({
                     </div>
                   ))}
                 </dl>
+              )}
+              {actionColumns.length > 0 && (
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+                  {actionColumns.map((column) => (
+                    <div key={column.key}>{column.cell(row)}</div>
+                  ))}
+                </div>
               )}
             </div>
           );

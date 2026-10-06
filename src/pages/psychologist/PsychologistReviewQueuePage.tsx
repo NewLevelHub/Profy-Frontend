@@ -164,7 +164,7 @@ export default function PsychologistReviewQueuePage() {
       {
         key: 'action',
         header: '',
-        mobile: 'field',
+        mobile: 'action',
         align: 'right',
         width: '176px',
         cell: (row) => (
@@ -239,8 +239,7 @@ export default function PsychologistReviewQueuePage() {
       {
         key: 'action',
         header: '',
-        // The mobile card is itself the link to the report.
-        mobile: 'hidden',
+        mobile: 'action',
         align: 'right',
         width: '176px',
         cell: (row) => (

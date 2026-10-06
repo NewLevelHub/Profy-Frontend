@@ -89,15 +89,16 @@ export default function PsychologistStudentsPage() {
     {
       key: 'open',
       header: '',
-      mobile: 'hidden',
+      mobile: 'action',
       align: 'right',
       width: '88px',
       cell: (row) => (
         <Link
           to={studentPath(row)}
           aria-label={t('students.openCard', { name: studentName(row.profile_name, row.email) })}
-          className="inline-flex items-center justify-center min-w-10 min-h-10 [@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:min-h-11 rounded-[8px] text-brand hover:bg-hover"
+          className="inline-flex items-center justify-center gap-2 min-w-10 min-h-10 [@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:min-h-11 rounded-[8px] px-3 lg:px-0 text-brand hover:bg-hover"
         >
+          <span className="lg:hidden">{t('students.open')}</span>
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
       ),
