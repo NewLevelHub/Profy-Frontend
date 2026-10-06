@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { usePsychoColorRunStore, usePsychoStartStore, hasPendingColorRun } from '@/shared/store/psychoemotional';
@@ -23,15 +23,15 @@ export function usePsychoColorStart() {
 
   const [submitting, setSubmitting] = useState(false);
   const [ready, setReady] = useState(false);
-  const checkedRef = useRef(false);
 
+  // Do not guard this reconciliation with a one-shot ref. React StrictMode
+  // cancels the first effect during its development remount; suppressing the
+  // second run would leave the page on its loading spinner forever.
   useEffect(() => {
     if (!assessmentId) {
       navigate('/assessment/goal', { replace: true });
       return;
     }
-    if (checkedRef.current) return;
-    checkedRef.current = true;
 
     if (hasPendingColorRun(assessmentId)) {
       // Это прохождение уже начинало круг 1 (resume) — не повторяем его,

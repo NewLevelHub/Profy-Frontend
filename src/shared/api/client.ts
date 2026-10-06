@@ -10,7 +10,7 @@ export const apiClient = axios.create({
 
 // Read the persisted token so requests made during Zustand hydration still
 // carry the existing session.
-function getToken(): string | null {
+export function readAccessToken(): string | null {
   try {
     const raw = localStorage.getItem('profy-auth');
     if (!raw) return null;
@@ -22,7 +22,7 @@ function getToken(): string | null {
 }
 
 apiClient.interceptors.request.use((config) => {
-  const token = getToken();
+  const token = readAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -37,7 +37,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Only force-logout on 401 if the user had an active session.
     // A 401 on the login endpoint itself must reach the form's catch block.
-    if (error.response?.status === 401 && getToken()) {
+    if (error.response?.status === 401 && readAccessToken()) {
       // Use the exact same logout path as every UI entry point. It clears the
       // in-memory auth state, persisted auth, all private stores, drafts and
       // the complete React Query cache before navigation.

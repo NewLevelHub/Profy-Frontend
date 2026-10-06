@@ -14,20 +14,34 @@ const PRIVATE_SESSION_STORAGE_PREFIXES = [
   'profy-astur-',
 ] as const;
 
-function clearPrivateSessionStorage() {
-  if (typeof sessionStorage === 'undefined') return;
+const PRIVATE_LOCAL_STORAGE_PREFIXES = [
+  // Durable fallback written by ASTUR pagehide recovery. It contains the
+  // previous user's assessment/run IDs and must not cross a logout/login.
+  'profy-astur-abandoned:',
+] as const;
+
+function clearStorageByPrefixes(storage: Storage, prefixes: readonly string[]) {
   try {
     const keysToRemove: string[] = [];
-    for (let index = 0; index < sessionStorage.length; index += 1) {
-      const key = sessionStorage.key(index);
-      if (key && PRIVATE_SESSION_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key && prefixes.some((prefix) => key.startsWith(prefix))) {
         keysToRemove.push(key);
       }
     }
-    for (const key of keysToRemove) sessionStorage.removeItem(key);
+    for (const key of keysToRemove) storage.removeItem(key);
   } catch {
     // Storage may be unavailable in hardened/private browser modes. The
     // in-memory stores and React Query cache are still cleared below.
+  }
+}
+
+function clearPrivateBrowserStorage() {
+  if (typeof sessionStorage !== 'undefined') {
+    clearStorageByPrefixes(sessionStorage, PRIVATE_SESSION_STORAGE_PREFIXES);
+  }
+  if (typeof localStorage !== 'undefined') {
+    clearStorageByPrefixes(localStorage, PRIVATE_LOCAL_STORAGE_PREFIXES);
   }
 }
 
@@ -43,5 +57,5 @@ export function resetUserSession() {
   usePsychoColorRunStore.getState().reset();
   usePsychoStartStore.getState().reset();
   useOnboardingDraftStore.getState().clearDrafts();
-  clearPrivateSessionStorage();
+  clearPrivateBrowserStorage();
 }

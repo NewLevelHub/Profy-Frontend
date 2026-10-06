@@ -44,6 +44,7 @@ export default function AsturPage() {
     showCompleted,
     subtest,
     subtestStartedAt,
+    subtestServerClock,
     subtestIndex,
     subtestCount,
     stepPhase,
@@ -185,6 +186,7 @@ export default function AsturPage() {
               subtest={subtest}
               runId={runId ?? ''}
               startedAt={subtestStartedAt}
+              serverClock={subtestServerClock}
               itemLimitMs={labilityItemLimitMs}
               submitting={submitting}
               submitError={submitError}
@@ -196,6 +198,7 @@ export default function AsturPage() {
             <SubtestRunner
               subtest={subtest}
               startedAt={subtestStartedAt}
+              serverClock={subtestServerClock}
               timerSlot={railStatusSlot}
               submitting={submitting}
               submitError={submitError}

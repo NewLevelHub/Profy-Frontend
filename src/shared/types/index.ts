@@ -432,6 +432,8 @@ export interface AsturRunSummary {
  *  attempt is finished and can't be reopened. */
 export interface AsturState {
   status: 'not_started' | 'in_progress' | 'completed';
+  /** Server clock sample paired with this state snapshot. */
+  server_now: string;
   active_run: AsturRunSummary | null;
   latest_completed_run: AsturRunSummary | null;
 }
@@ -447,6 +449,8 @@ export interface StartAsturSubtestResponse {
   run_id: string;
   subtest: string;
   started_at: string;
+  /** Server clock sample used to calibrate the client countdown. */
+  server_now: string;
   state_version: number;
 }
 
