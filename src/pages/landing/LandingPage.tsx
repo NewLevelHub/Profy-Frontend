@@ -7,10 +7,11 @@ import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import '@/shared/ui/redesign/redesign.css';
 import './redesign.css';
+import { LANDING_DURATION, LandingDemo, LandingFeatures, LandingInside, LandingReportContents, LandingSectionHeading, LandingStats, LandingTry } from './components/LandingContent';
+import { useLandingReveal } from './useLandingReveal';
 
-const NAV = ['how', 'outcome', 'parents'] as const;
+const NAV = ['how', 'features', 'inside', 'try', 'faq'] as const;
 const STEPS = ['discover', 'understand', 'explore'] as const;
-const INTERESTS = ['creative', 'research', 'social'] as const;
 
 function ReportExample({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation('landing');
@@ -63,46 +64,46 @@ function JourneyArt({ step }: { step: typeof STEPS[number] }) {
 
 export default function LandingPage() {
   const { t } = useTranslation('landing');
+  const revealRoot = useLandingReveal();
   const [menuOpen, setMenuOpen] = useState(false);
   const [exampleOpen, setExampleOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const showExample = () => setExampleOpen(true);
   return (
-    <div className="redesign rd-landing">
+    <div ref={revealRoot} className="redesign rd-landing">
       <a className="rd-skip" href="#landing-content">{t('redesign.skip')}</a>
       <header className="rd-site-header rd-wrap">
         <Brand />
-        <nav className="rd-desktop-nav" aria-label={t('redesign.navigation')}>{NAV.map(id => <a key={id} href={`#${id}`}>{t(`redesign.nav.${id}`)}</a>)}</nav>
+        <nav className="rd-desktop-nav" aria-label={t('redesign.navigation')}>{NAV.map(id => <a key={id} href={`#${id}`}>{t(`nav.${id}`)}</a>)}</nav>
         <div className="rd-header-actions"><LanguageSwitcher /><ThemeToggle className="rd-desktop-theme" /><Link to="/login" className="rd-button rd-button-outline rd-button-small">{t('cta.login')}<ArrowUpRight size={16} aria-hidden="true" /></Link><button ref={menuButton} type="button" className="rd-icon-button rd-menu-toggle" aria-expanded={menuOpen} aria-controls="landing-mobile-nav" aria-label={t(menuOpen ? 'cta.closeMenu' : 'cta.openMenu')} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}</button></div>
-        {menuOpen && <nav id="landing-mobile-nav" className="rd-mobile-nav" aria-label={t('redesign.navigation')} onKeyDown={e => { if (e.key === 'Escape') { setMenuOpen(false); menuButton.current?.focus(); } }}>{NAV.map(id => <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{t(`redesign.nav.${id}`)}<ArrowUpRight size={17} aria-hidden="true" /></a>)}<div className="rd-mobile-preferences"><span>{t('cta.theme')}</span><ThemeToggle /></div></nav>}
+        {menuOpen && <nav id="landing-mobile-nav" className="rd-mobile-nav" aria-label={t('redesign.navigation')} onKeyDown={e => { if (e.key === 'Escape') { setMenuOpen(false); menuButton.current?.focus(); } }}>{NAV.map(id => <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{t(`nav.${id}`)}<ArrowUpRight size={17} aria-hidden="true" /></a>)}<div className="rd-mobile-preferences"><span>{t('cta.theme')}</span><ThemeToggle /></div></nav>}
       </header>
       <main id="landing-content" tabIndex={-1}>
         <section className="rd-hero rd-wrap">
           <div className="rd-hero-copy">
             <p className="rd-eyebrow"><span className="rd-green-dot" aria-hidden="true" />{t('redesign.hero.eyebrow')}</p>
             <h1>{t('redesign.hero.lineOne')}<br />{t('redesign.hero.lineTwo')}<br /><span>{t('redesign.hero.accent')}</span><span className="rd-heading-star" aria-hidden="true">✦</span></h1>
-            <p className="rd-hero-description">{t('redesign.hero.description')}</p>
+            <p className="rd-hero-description">{t('hero.lead')}</p>
             <div className="rd-hero-cta"><Link to="/register" className="rd-button rd-button-large">{t('redesign.cta.start')}<ArrowRight aria-hidden="true" /></Link><button type="button" className="rd-text-link" onClick={showExample}>{t('redesign.cta.example')}<ArrowUpRight size={17} aria-hidden="true" /></button></div>
             <div className="rd-hero-reassurance"><span><Leaf size={16} aria-hidden="true" />{t('redesign.hero.pace')}</span><span><ShieldCheck size={16} aria-hidden="true" />{t('redesign.hero.review')}</span></div>
           </div>
           <HeroArt />
         </section>
-        <section className="rd-value-strip rd-wrap" aria-label={t('redesign.value.label')}>
-          {STEPS.map((step, i) => <div key={step}><span className="rd-strip-number">0{i+1}</span><p>{t(`redesign.value.${step}.label`)}<strong>{t(`redesign.value.${step}.text`)}</strong></p></div>)}<span className="rd-strip-flower" aria-hidden="true">✳</span>
-        </section>
+        <LandingStats />
         <section className="rd-home-section rd-wrap" id="how">
-          <div className="rd-section-heading"><div><p className="rd-eyebrow">{t('redesign.how.eyebrow')}</p><h2>{t('redesign.how.title')}</h2></div><p>{t('redesign.how.description')}</p></div>
-          <div className="rd-journey-grid">{STEPS.map((step, i) => <article className="rd-journey-card" key={step}><span className="rd-step-chip">{t('redesign.how.step', { number: `0${i+1}` })}</span><JourneyArt step={step} /><h3>{t(`redesign.how.${step}.title`)}</h3><p>{t(`redesign.how.${step}.text`)}</p></article>)}</div>
+          <LandingSectionHeading section="how" />
+          <div className="rd-journey-grid">{STEPS.map((step, i) => <article className="rd-journey-card" key={step} data-landing-reveal data-reveal-order={i}><span className="rd-step-chip">{t('redesign.how.step', { number: `0${i+1}` })}</span><JourneyArt step={step} /><h3>{t(`how.step${i+1}Title`)}</h3><p>{t(`how.step${i+1}Desc`)}</p></article>)}</div>
         </section>
-        <section className="rd-report-teaser rd-wrap" id="outcome">
-          <div className="rd-teaser-copy"><p className="rd-eyebrow">{t('redesign.report.eyebrow')}</p><h2>{t('redesign.report.title')}</h2><p>{t('redesign.report.description')}</p><button type="button" className="rd-button" onClick={showExample}>{t('redesign.cta.openExample')}<ArrowRight size={20} aria-hidden="true" /></button></div>
-          <div className="rd-teaser-preview"><div className="rd-teaser-window"><i /><i /><i /><span>{t('redesign.report.previewLabel')}</span></div><div className="rd-teaser-body"><span className="rd-pill rd-lilac"><Sparkles size={13} aria-hidden="true" />{t('redesign.report.personal')}</span><h3>{t('redesign.report.previewTitle')}</h3><div className="rd-teaser-bars">{INTERESTS.map((key, i) => <div key={key}><span>{t(`redesign.report.${key}`)}</span><div><i className={`rd-bar-${i}`} /></div></div>)}</div><div className="rd-teaser-tags"><span>{t('redesign.report.tagOne')}</span><span>{t('redesign.report.tagTwo')}</span></div><p className="rd-teaser-caption">{t('redesign.report.sample')}</p></div></div>
-        </section>
-        <section className="rd-parents rd-wrap" id="parents"><div className="rd-parent-art"><img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
-        <section className="rd-faq rd-wrap" id="faq"><div><p className="rd-eyebrow">{t('redesign.faq.eyebrow')}</p><h2>{t('redesign.faq.title')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4].map(i => <details key={i}><summary>{t(`redesign.faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`redesign.faq.a${i}`)}</p></details>)}</div></section>
-        <section className="rd-final-cta rd-wrap"><span className="rd-final-star" aria-hidden="true">✦</span><div><p className="rd-eyebrow">{t('redesign.final.eyebrow')}</p><h2>{t('redesign.final.title')}</h2><p>{t('redesign.final.description')}</p></div><Link to="/register" className="rd-button rd-button-light rd-button-large">{t('redesign.final.cta')}<ArrowRight aria-hidden="true" /></Link></section>
+        <LandingDemo onOpenExample={showExample} />
+        <LandingFeatures />
+        <LandingInside />
+        <LandingTry />
+        <LandingReportContents />
+        <section className="rd-parents rd-wrap" id="parents" data-landing-reveal><div className="rd-parent-art"><img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
+        <section className="rd-faq rd-wrap" id="faq" data-landing-reveal><div><p className="rd-eyebrow">{t('faq.eyebrow')}</p><h2>{t('faq.titlePre')}{t('faq.titleAccent')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4,5].map(i => <details key={i}><summary>{t(`faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`faq.a${i}`, { minutes: LANDING_DURATION })}</p></details>)}</div></section>
+        <section className="rd-final-cta rd-wrap" data-landing-reveal><span className="rd-final-star" aria-hidden="true">✦</span><div><p className="rd-eyebrow">{t('redesign.final.eyebrow')}</p><h2>{t('redesign.final.title')}</h2><p>{t('redesign.final.description')}</p></div><Link to="/register" className="rd-button rd-button-light rd-button-large">{t('redesign.final.cta')}<ArrowRight aria-hidden="true" /></Link></section>
       </main>
-      <footer className="rd-footer rd-wrap"><Brand /><p>{t('redesign.footer.path')}</p><span>{t('redesign.footer.care')}</span></footer>
+      <footer className="rd-landing-footer rd-wrap"><div><Brand /><p>{t('footer.about')}</p></div><nav aria-label={t('footer.colProduct')}>{NAV.map(id => <a key={id} href={`#${id}`}>{t(`nav.${id}`)}</a>)}</nav><div className="rd-landing-footer-bottom"><span>{t('footer.copyright', { app: 'Profile' })}</span><span>{t('footer.city')}</span></div></footer>
       {exampleOpen && <ReportExample onClose={() => setExampleOpen(false)} />}
     </div>
   );
