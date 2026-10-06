@@ -60,9 +60,8 @@ export const MOTIVATION_CATEGORY_LABELS: Record<MotivationCategory, string> = {
 
 /**
  * Full/compact labels for a bank-seeded content row's language, used by
- * `LocaleTabs` (the ru/kk view switcher on a content detail screen — one row
- * per question/pair/statement/direction holds both languages now, so which
- * one you're looking at is a view choice, not a row property).
+ * localized content labels. Each question/pair/statement/direction holds
+ * both languages in one row.
  */
 export const CONTENT_LOCALE_LABELS: Record<Locale, string> = {
   ru: 'admin:locale.ru',

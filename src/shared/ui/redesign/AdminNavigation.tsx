@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { BookOpen, Building2, ClipboardList, Compass, Heart, Layers3, LogOut, Menu, MessageSquare, ShieldCheck, Users, UsersRound, X } from 'lucide-react';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { ThemeToggle } from '../ThemeToggle';
+import { useAdminLocaleGuardState } from '@/shared/lib/useAdminLocaleGuard';
 
 const groups = [
   { label: 'nav.title', items: [
@@ -29,6 +30,8 @@ interface AdminNavigationProps {
 
 export function AdminNavigation({ activePath, email, onLogout }: AdminNavigationProps) {
   const { t } = useTranslation(['admin', 'common']);
+  const localeBlocked = useAdminLocaleGuardState(s => s.blocked);
+  const localeDisabledReason = localeBlocked ? t('common.switchLocaleDisabled') : undefined;
   const [open, setOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -77,14 +80,14 @@ export function AdminNavigation({ activePath, email, onLogout }: AdminNavigation
     <header className="rd-admin-topbar" ref={headerRef}>
       <Link to="/admin/users" className="rd-brand rd-admin-mobile-brand" aria-label="Profile">profile<span>.</span></Link>
       <div className="rd-admin-location"><ShieldCheck size={17} aria-hidden="true" /><span>{t('nav.kicker')}</span><span aria-hidden="true">/</span><strong>{t(current?.label ?? 'nav.title')}</strong></div>
-      <div className="rd-admin-preferences"><LanguageSwitcher /><ThemeToggle /></div>
+      <div className="rd-admin-preferences"><LanguageSwitcher disabledReason={localeDisabledReason} /><ThemeToggle /></div>
       <button ref={toggleRef} type="button" className="rd-icon-button rd-admin-menu-toggle" aria-expanded={open} aria-controls="admin-menu"
         aria-label={t(open ? 'common:redesign.closeMenu' : 'common:redesign.openMenu')} onClick={() => setOpen(value => !value)}>
         {open ? <X size={22} /> : <Menu size={22} />}
       </button>
       {open && <div className="rd-admin-mobile-menu" id="admin-menu">
         {navigation}
-        <div className="rd-admin-mobile-preferences"><LanguageSwitcher /><ThemeToggle /></div>
+        <div className="rd-admin-mobile-preferences"><LanguageSwitcher disabledReason={localeDisabledReason} /><ThemeToggle /></div>
         {account}
       </div>}
     </header>

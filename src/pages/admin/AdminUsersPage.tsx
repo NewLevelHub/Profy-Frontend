@@ -381,7 +381,7 @@ export default function AdminUsersPage() {
     align: 'right',
     mobile: 'field',
     cell: (item) => (
-      <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at, t)}</span>
+      <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatIntlDate(item.created_at, { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
     ),
   };
 
@@ -395,7 +395,7 @@ export default function AdminUsersPage() {
     headerTitle: t('users.col.activeHint'),
     cell: (item) =>
       item.last_active_at ? (
-        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>
+        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')} title={formatIntlDate(item.last_active_at, { dateStyle: 'long', timeStyle: 'short' })}>
           {formatRelative(item.last_active_at, t)}
         </span>
       ) : (
@@ -568,14 +568,14 @@ export default function AdminUsersPage() {
         onClearAll={clearListFilters}
       />
 
-      {/* The status/goal filters mean "has at least one matching assessment",
-          while the goal column always shows the latest one. Said once, in
-          place, instead of hidden in a header tooltip. */}
+      {/* The API predicates and the visible cells refer to the same latest test. */}
       {isStudentRole && (status || goal) && (
         <p className={cn(ADMIN_META, '-mt-1')}>
           {t('users.filterNote')}
         </p>
       )}
+
+      {inactiveDays && <p className={cn(ADMIN_META, '-mt-1')}>{t('users.activityFilterHint')}</p>}
 
       {error && <AdminError message={error} onRetry={() => setReloadToken((token) => token + 1)} />}
       {exportError && <AdminError message={exportError} />}
@@ -590,7 +590,7 @@ export default function AdminUsersPage() {
         onSortChange={setSort}
         loading={loading}
         emptyTitle={isStudentRole ? t('users.empty') : t('users.emptyStaff')}
-        emptyHint={isStudentRole ? t('users.emptyHint') : t('users.emptyStaffHint')}
+        emptyHint={isStudentRole || search || inactiveDays ? t('users.emptyHint') : t('users.emptyStaffHint')}
       />
 
       <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="users" />

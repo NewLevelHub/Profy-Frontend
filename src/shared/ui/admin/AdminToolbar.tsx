@@ -70,6 +70,7 @@ export function AdminToolbar({
   actions,
 }: AdminToolbarProps) {
   const { t } = useTranslation('admin');
+  const [searchResetKey, setSearchResetKey] = useState(0);
   const activeSelects = selects.filter((s) => s.value);
   const hasActive = activeSelects.length > 0 || Boolean(search?.value);
 
@@ -78,6 +79,7 @@ export function AdminToolbar({
       <div className="admin-toolbar-controls flex items-center gap-2 flex-wrap">
         {search && (
           <DebouncedSearchInput
+            key={searchResetKey}
             value={search.value}
             onChange={search.onChange}
             placeholder={search.placeholder}
@@ -97,7 +99,11 @@ export function AdminToolbar({
         {hasActive && onClearAll && (
           <button
             type="button"
-            onClick={onClearAll}
+            onClick={() => {
+              // Cancel an uncommitted debounced search as well as URL filters.
+              setSearchResetKey(key => key + 1);
+              onClearAll?.();
+            }}
             className={cn(
               ADMIN_TEXT,
               'text-muted hover:text-primary underline underline-offset-2 transition-colors',
