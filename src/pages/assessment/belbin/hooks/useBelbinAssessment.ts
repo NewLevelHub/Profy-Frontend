@@ -31,6 +31,8 @@ export function useBelbinAssessment(assessmentId: string) {
   const progressQuery = useQuery({
     queryKey: progressKey,
     queryFn: () => belbinApi.getProgress(assessmentId),
+    staleTime: 0,
+    refetchOnMount: 'always',
     enabled: Boolean(assessmentId),
     retry: false,
   });
@@ -70,7 +72,9 @@ export function useBelbinAssessment(assessmentId: string) {
     for (const block of serverProgress.blocks) {
       if (block.block_index >= 0 && block.block_index < restored.length) {
         restored[block.block_index] = block.allocation;
-        completedIndexes.add(block.block_index);
+        if (Object.values(block.allocation).reduce((sum, points) => sum + points, 0) === content.block_total) {
+          completedIndexes.add(block.block_index);
+        }
       }
     }
     const firstIncomplete = restored.findIndex((_, index) => !completedIndexes.has(index));
@@ -133,7 +137,7 @@ export function useBelbinAssessment(assessmentId: string) {
   }
 
   async function saveCurrentBlock(): Promise<boolean> {
-    if (!isBlockValid) return true;
+    if (!section || initializedAssessmentId !== assessmentId) return true;
     setProgressSaveError(false);
     try {
       await saveProgressMutation.mutateAsync({ index: blockIndex, value: allocation });

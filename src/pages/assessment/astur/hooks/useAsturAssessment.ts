@@ -186,6 +186,7 @@ export function useAsturAssessment(assessmentId: string) {
     ?? null;
   const content = attempt?.content;
 
+  const [localStateVersion, setLocalStateVersion] = useState<number | null>(null);
   const [justSubmitted, setJustSubmitted] = useState<Set<AsturSubtestKey>>(new Set());
   const [finished, setFinished] = useState(false);
   const [stepPhase, setStepPhase] = useState<StepPhase>('instruction');
@@ -215,10 +216,25 @@ export function useAsturAssessment(assessmentId: string) {
   const stateRun = stateQuery.data?.active_run;
   const progressRun = stateRun?.run_id === runId ? stateRun : attempt?.run;
 
+  const runStateVersion = progressRun?.state_version ?? 0;
+  const localStateIsCurrent = localStateVersion === runStateVersion;
   const submitted = useMemo(
-    () => new Set<AsturSubtestKey>([...(progressRun?.submitted_subtests ?? []), ...justSubmitted]),
-    [progressRun?.submitted_subtests, justSubmitted],
+    () => new Set<AsturSubtestKey>([
+      ...(progressRun?.submitted_subtests ?? []),
+      ...(localStateIsCurrent ? justSubmitted : []),
+    ]),
+    [progressRun?.submitted_subtests, justSubmitted, localStateIsCurrent],
   );
+
+  // A reset in another tab invalidates this document's answers and timer too.
+  // Ignore the old generation during render, before effects clear its drafts.
+  useEffect(() => {
+    setLocalStateVersion(runStateVersion);
+    setJustSubmitted(new Set());
+    setLocalStartedAt({});
+    setLocalClockSync({});
+    setSubmitError(null);
+  }, [runId, runStateVersion]);
 
   const subtests = content?.subtests ?? [];
   const subtestIndex = subtests.findIndex((s) => !submitted.has(s.key));
@@ -226,12 +242,11 @@ export function useAsturAssessment(assessmentId: string) {
   const subtest = !finished && subtestIndex >= 0 ? subtests[subtestIndex] : null;
   const labilityItemLimitMs = content?.lability_item_limit_ms ?? 20000;
   const subtestStartedAt = subtest
-    ? localStartedAt[subtest.key] ?? progressRun?.subtest_started_at?.[subtest.key] ?? null
+    ? (localStateIsCurrent ? localStartedAt[subtest.key] : null) ?? progressRun?.subtest_started_at?.[subtest.key] ?? null
     : null;
-  const runStateVersion = progressRun?.state_version ?? 0;
   const showCompleted = !finished && attemptStatus === 'completed';
-  const locallyStartedAt = subtest ? localStartedAt[subtest.key] ?? null : null;
-  const locallyCapturedClock = subtest ? localClockSync[subtest.key] ?? null : null;
+  const locallyStartedAt = subtest && localStateIsCurrent ? localStartedAt[subtest.key] ?? null : null;
+  const locallyCapturedClock = subtest && localStateIsCurrent ? localClockSync[subtest.key] ?? null : null;
   const subtestServerClock = locallyCapturedClock
     && (!stateClockSync || locallyCapturedClock.monotonicAtMs >= stateClockSync.monotonicAtMs)
     ? locallyCapturedClock
@@ -345,7 +360,7 @@ export function useAsturAssessment(assessmentId: string) {
   async function runRecoverableMutation<T>(
     request: () => Promise<T>,
     wasApplied: (state: AsturState) => boolean,
-    reconcileConflict = false,
+    reconcileConflict = true,
   ): Promise<RecoveredMutation<T>> {
     try {
       return { response: await request(), state: null };
@@ -509,6 +524,11 @@ export function useAsturAssessment(assessmentId: string) {
         },
       );
       const reconciledRun = outcome.state ? matchingRun(outcome.state, runId) : null;
+      const latestState = queryClient.getQueryData<AsturState>(asturStateQueryKey(assessmentId));
+      const latestVersion = latestState ? matchingRun(latestState, runId)?.state_version : undefined;
+      const startedVersion = outcome.response?.state_version ?? reconciledRun?.state_version;
+      // An earlier /start response can arrive after a newer reset was observed.
+      if (startedVersion !== undefined && latestVersion !== undefined && latestVersion > startedVersion) return;
       if (reconciledRun?.submitted_subtests.includes(target.key)) {
         const runCompleted = outcome.state?.status === 'completed';
         applySubmitted(target.key, runCompleted);

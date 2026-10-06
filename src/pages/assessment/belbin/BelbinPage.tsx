@@ -73,7 +73,7 @@ export default function BelbinPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
-      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
+      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} exiting={submitting} />
 
       {phase !== 'done' && (
         <AssessmentRail
@@ -82,6 +82,7 @@ export default function BelbinPage() {
           progressAriaLabel={t('rail.progressAriaBelbin')}
           progress={progress}
           onExit={handleExit}
+          exitDisabled={submitting}
           devAutofill={{ onClick: handleAutofill, loading: submitting }}
         />
       )}

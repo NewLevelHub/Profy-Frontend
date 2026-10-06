@@ -183,6 +183,7 @@ export default function AsturPage() {
 
           {running && stepPhase === 'running' && subtest.key === 'lability' && (
             <LabilityRunner
+              key={`${runId}:${subtest.key}:${subtestStartedAt}`}
               subtest={subtest}
               runId={runId ?? ''}
               startedAt={subtestStartedAt}
@@ -196,6 +197,7 @@ export default function AsturPage() {
 
           {running && stepPhase === 'running' && subtest.key !== 'lability' && (
             <SubtestRunner
+              key={`${runId}:${subtest.key}:${subtestStartedAt}`}
               subtest={subtest}
               startedAt={subtestStartedAt}
               serverClock={subtestServerClock}
