@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { Download, FileText, UserPlus } from 'lucide-react';
+import { Download, FileText, UserPlus, Users, ClipboardCheck, Clock3 } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
@@ -414,16 +414,17 @@ export default function AdminUsersPage() {
         userColumn,
         {
           key: 'age',
-          header: t('users.tier'),
-          width: '146px',
+          header: t('common.col.age'),
+          width: '104px',
           mobile: 'field',
           cell: (item) => <AgeBadge age={item.age} />,
         },
         {
           key: 'diagnostics',
           header: t('users.col.assessment'),
-          width: '146px',
+          width: '158px',
           mobile: 'badge',
+          wrap: true,
           cell: (item) => <DiagnosticsCell status={item.latest_assessment_status} />,
         },
         {
@@ -476,7 +477,7 @@ export default function AdminUsersPage() {
               {t('users.exportCsv')}
             </Button>
             <Button
-              variant="ghost"
+              variant="primary"
               size="sm"
               muteSound
               onClick={() => {
@@ -510,7 +511,7 @@ export default function AdminUsersPage() {
       <div
         role="group"
         aria-label={t('users.roleTabs.aria')}
-        className="inline-flex rounded-[14px] border border-default overflow-hidden self-start"
+        className="admin-role-tabs inline-flex rounded-[14px] border border-default overflow-hidden self-start"
       >
         {ROLE_TABS.map((tab) => (
           <button
@@ -646,17 +647,17 @@ function UserStatsTiles({ stats }: { stats: AdminUserStats }) {
   ];
 
   return (
-    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-      {tiles.map((tile) => (
+    <div className="rd-admin-stats">
+      {tiles.map((tile, index) => (
         <div
           key={tile.label}
-          className="bg-surface border border-default rounded-[3px] px-3 py-2.5"
+          className="rd-admin-stat"
           title={tile.hint}
         >
-          <p className="font-mono text-display-sm font-medium text-primary tabular-nums m-0 leading-none">
-            {tile.value}
-          </p>
-          <p className={cn(ADMIN_META, 'mt-1.5')}>{tile.label}</p>
+          <span className="rd-admin-stat-icon" data-tone={index === 1 ? 'purple' : index === 3 ? 'orange' : 'green'} aria-hidden="true">
+            {index === 0 ? <Users size={20} /> : index === 1 ? <UserPlus size={20} /> : index === 2 ? <ClipboardCheck size={20} /> : <Clock3 size={20} />}
+          </span>
+          <div><strong>{tile.value}</strong><p>{tile.label}</p></div>
         </div>
       ))}
     </div>

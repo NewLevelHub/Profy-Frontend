@@ -1,6 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { ArrowUp } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_CARD, ADMIN_CELL, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
@@ -104,7 +104,7 @@ export function AdminDataTable<T>({
 
   if (loading) {
     return (
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
+      <div className={cn(ADMIN_CARD, 'admin-data-table p-0 overflow-hidden')}>
         <AdminTableSkeleton columns={Math.min(columns.length, 5)} />
       </div>
     );
@@ -112,7 +112,7 @@ export function AdminDataTable<T>({
 
   if (rows.length === 0) {
     return (
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
+      <div className={cn(ADMIN_CARD, 'admin-data-table p-0 overflow-hidden')}>
         <AdminEmpty title={emptyTitle ?? t('table.empty')} hint={emptyHint} action={emptyAction} />
       </div>
     );
@@ -156,9 +156,9 @@ export function AdminDataTable<T>({
     GROW_COLUMN_MIN;
 
   return (
-    <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
+    <div className={cn(ADMIN_CARD, 'admin-data-table p-0 overflow-hidden')}>
       {/* Desktop: full table */}
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="admin-desktop-table hidden lg:block overflow-x-auto">
         <table
           className={cn('w-full table-fixed', ADMIN_TEXT)}
           style={{ minWidth: `${minTableWidth}px` }}
@@ -247,7 +247,7 @@ export function AdminDataTable<T>({
       </div>
 
       {/* Below lg: one card per row */}
-      <ul className="lg:hidden divide-y divide-[var(--border)]">
+      <ul className="admin-mobile-table lg:hidden divide-y divide-[var(--border)]">
         {rows.map((row) => {
           const href = rowHref?.(row);
           const card = (
@@ -286,9 +286,9 @@ export function AdminDataTable<T>({
           return (
             <li key={rowKey(row)}>
               {href ? (
-                <Link to={href} className="block hover:bg-hover transition-colors">
+                <div onClick={(event) => handleRowClick(event, href, navigate)} className="cursor-pointer hover:bg-hover transition-colors">
                   {card}
-                </Link>
+                </div>
               ) : (
                 card
               )}
@@ -306,7 +306,7 @@ export function AdminDataTable<T>({
  * and text selection all keep their normal behaviour.
  */
 function handleRowClick(
-  event: MouseEvent<HTMLTableRowElement>,
+  event: MouseEvent<HTMLElement>,
   href: string,
   navigate: ReturnType<typeof useNavigate>,
 ) {

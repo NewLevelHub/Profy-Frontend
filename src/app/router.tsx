@@ -167,10 +167,8 @@ export const router = createBrowserRouter([
         element: <RequireAdmin />,
         children: [
           {
-            // Same AppLayout shell as psychologist (TopRail: brand · nav ·
-            // language · theme · logout). Admin section destinations stay in
-            // AdminLayout's side rail — PRO-421 / PRO-391.
-            element: <AppLayout />,
+            // Dedicated admin navigation; keeps the shared scroll restoration.
+            element: <AppLayout admin />,
             children: [
               { path: '/admin', element: <Navigate to="/admin/users" replace /> },
               {

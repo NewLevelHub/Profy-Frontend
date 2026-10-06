@@ -74,8 +74,8 @@ export function AdminToolbar({
   const hasActive = activeSelects.length > 0 || Boolean(search?.value);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2 flex-wrap">
+    <div className="admin-toolbar flex flex-col gap-2">
+      <div className="admin-toolbar-controls flex items-center gap-2 flex-wrap">
         {search && (
           <DebouncedSearchInput
             value={search.value}
@@ -139,7 +139,7 @@ function FilterSelect({
     <span
       className={cn(
         ADMIN_CONTROL,
-        'inline-flex items-center gap-1.5 h-8 py-0 pr-1.5',
+        'admin-filter inline-flex items-center gap-1.5 h-8 py-0 pr-1.5',
         'focus-within:border-brand focus-within:ring-2 focus-within:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)]',
         active && 'border-brand',
       )}
@@ -216,7 +216,7 @@ function DebouncedSearchInput({
   }, [draft, onChange]);
 
   return (
-    <div className="relative">
+    <div className="admin-search relative">
       <Search
         size={13}
         className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none"

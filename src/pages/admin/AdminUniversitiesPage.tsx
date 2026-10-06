@@ -183,6 +183,7 @@ export default function AdminUniversitiesPage() {
       header: country ? t('universities.col.city') : t('universities.col.cityCountry'),
       width: country ? '160px' : '220px',
       mobile: 'subtitle',
+      wrap: true,
       cell: (item) => {
         const text = (country ? [item.city] : [item.city, item.country]).filter(Boolean).join(', ');
         return text ? (

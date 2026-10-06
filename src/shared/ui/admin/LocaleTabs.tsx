@@ -27,7 +27,7 @@ interface LocaleTabsProps {
 export function LocaleTabs({ value, onChange, translated, dirty }: LocaleTabsProps) {
   const { t } = useTranslation('admin');
   return (
-    <div role="tablist" aria-label={t('locale.ru') + ' / ' + t('locale.kk')} className="inline-flex gap-1">
+    <div role="tablist" aria-label={t('locale.ru') + ' / ' + t('locale.kk')} className="admin-locale-tabs inline-flex gap-1">
       {KNOWN_LOCALES.map((locale) => {
         const active = locale === value;
         const disabled = dirty && !active;

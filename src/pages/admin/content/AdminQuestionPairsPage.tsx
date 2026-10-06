@@ -91,6 +91,7 @@ export default function AdminQuestionPairsPage() {
       key: 'options',
       header: t('questionPairs.col.options'),
       mobile: 'title',
+      wrap: true,
       cell: (item) => (
         <Link
           to={`/admin/content/question-pairs/${item.id}`}
@@ -107,7 +108,8 @@ export default function AdminQuestionPairsPage() {
       key: 'instrument',
       header: t('questions.col.instrument'),
       sortKey: 'instrument',
-      width: '112px',
+      width: '180px',
+      wrap: true,
       mobile: 'field',
       cell: (item) => <span className="text-secondary">{t(INSTRUMENT_LABELS[item.instrument])}</span>,
     },

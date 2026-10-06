@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AdminOverlay } from '@/shared/ui/admin/AdminOverlay';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import axios from 'axios';
@@ -119,8 +120,8 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+    <AdminOverlay><div
+      className="rd-admin-dialog fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-staff-title"
@@ -216,6 +217,6 @@ export function CreateStaffModal({ open, onClose, onCreated }: CreateStaffModalP
           </Button>
         </div>
       </form>
-    </div>
+    </div></AdminOverlay>
   );
 }

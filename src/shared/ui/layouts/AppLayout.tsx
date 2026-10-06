@@ -10,6 +10,7 @@ import '../redesign/student.css';
 import '../redesign/catalog.css';
 import '../redesign/psychologist.css';
 import '../redesign/psychologist-report.css';
+import '../redesign/admin.css';
 
 // Keyed by location.key so each history entry keeps its own scroll position.
 const scrollPositions = new Map<string, number>();
@@ -27,7 +28,7 @@ function pageEnterKey(pathname: string): string {
   return pathname;
 }
 
-export function AppLayout({ redesigned = false, psychologist = false }: { redesigned?: boolean; psychologist?: boolean }) {
+export function AppLayout({ redesigned = false, psychologist = false, admin = false }: { redesigned?: boolean; psychologist?: boolean; admin?: boolean }) {
   const { t } = useTranslation('common');
   useAssessmentSync();
   const syncDone = useAssessmentStore(s => s.syncDone);
@@ -93,10 +94,10 @@ export function AppLayout({ redesigned = false, psychologist = false }: { redesi
   }, [location.key]);
 
   return (
-    <div className={psychologist ? "redesign rd-psych" : redesigned ? "redesign rd-student h-screen flex flex-col overflow-hidden" : "journey-page h-screen text-primary flex flex-col overflow-hidden"}>
-      {(redesigned || psychologist) && <a href={psychologist ? '#psychologist-content' : '#student-content'} className="rd-skip">{t('redesign.skip')}</a>}
-      <TopRail redesigned={redesigned} psychologist={psychologist} />
-      <main id={psychologist ? 'psychologist-content' : redesigned ? 'student-content' : undefined} tabIndex={redesigned || psychologist ? -1 : undefined} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
+    <div className={admin ? "redesign rd-admin" : psychologist ? "redesign rd-psych" : redesigned ? "redesign rd-student h-screen flex flex-col overflow-hidden" : "journey-page h-screen text-primary flex flex-col overflow-hidden"}>
+      {(redesigned || psychologist || admin) && <a href={admin ? '#admin-content' : psychologist ? '#psychologist-content' : '#student-content'} className="rd-skip">{t('redesign.skip')}</a>}
+      <TopRail redesigned={redesigned} psychologist={psychologist} admin={admin} />
+      <main id={admin ? 'admin-content' : psychologist ? 'psychologist-content' : redesigned ? 'student-content' : undefined} tabIndex={redesigned || psychologist || admin ? -1 : undefined} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
         {syncDone ? (
           // key=pageEnterKey: анимация только при смене вкладки шапки.
           // Внутри /admin/* ключ стабилен — сайдбар без fade, контент сразу.
@@ -110,6 +111,7 @@ export function AppLayout({ redesigned = false, psychologist = false }: { redesi
         )}
       </main>
       {psychologist && <div id="psychologist-overlays" className="contents" />}
+      {admin && <div id="admin-overlays" className="contents" />}
     </div>
   );
 }
