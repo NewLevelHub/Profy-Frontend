@@ -251,8 +251,8 @@ export function AdminDataTable<T>({
         {rows.map((row) => {
           const href = rowHref?.(row);
           const card = (
-            <div className={cn(ADMIN_TEXT, 'p-3 flex flex-col gap-2.5')}>
-              <div className="flex items-start justify-between gap-3">
+            <div className={cn(ADMIN_TEXT, 'admin-mobile-card p-3 flex flex-col gap-2.5')}>
+              <div className="admin-mobile-card-header flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-semibold text-primary truncate">{titleColumn.cell(row)}</div>
                   {subtitleColumns.map((column) => (

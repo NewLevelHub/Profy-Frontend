@@ -137,7 +137,7 @@ export const router = createBrowserRouter([
         element: <RequirePsychologist />,
         children: [
           {
-            element: <AppLayout />,
+            element: <AppLayout psychologist />,
             children: [
               // The review queue is the cabinet's front page (it's where work starts).
               { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
