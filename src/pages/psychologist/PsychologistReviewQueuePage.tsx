@@ -261,7 +261,7 @@ export default function PsychologistReviewQueuePage() {
         level="display-md"
         kicker={t('queue.kicker')}
         title={t('queue.title')}
-        subtitle={t('queue.lead')}
+        subtitle={t(tab === 'mine' ? 'queue.mineLead' : 'queue.lead')}
         className="rd-psych-heading"
       />
 
