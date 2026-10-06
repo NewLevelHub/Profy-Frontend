@@ -1,10 +1,13 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { type as typeClass } from '@/shared/ui/typography/tokens';
 
 export interface ConfirmDialogProps {
   className?: string;
+  /** Mount above a workspace scroll container without losing its theme. */
+  portalTarget?: Element | null;
   open: boolean;
   title: string;
   body?: string;
@@ -30,6 +33,7 @@ export interface ConfirmDialogProps {
  */
 export function ConfirmDialog({
   className,
+  portalTarget,
   open,
   title,
   body,
@@ -68,7 +72,7 @@ export function ConfirmDialog({
 
   if (!open) return null;
 
-  return (
+  const dialog = (
     <div
       className={cn('fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm', className)}
       role="alertdialog"
@@ -119,4 +123,6 @@ export function ConfirmDialog({
       </div>
     </div>
   );
+
+  return portalTarget ? createPortal(dialog, portalTarget) : dialog;
 }

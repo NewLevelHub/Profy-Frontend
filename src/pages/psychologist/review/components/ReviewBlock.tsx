@@ -23,19 +23,22 @@ export function ReviewBlock({ number, title, hint, edited, aside, children }: Re
   const { t } = useTranslation('psychologist');
   return (
     <section
-      className={cn('bg-surface border border-strong rounded-[10px] px-5 py-5 sm:px-6', edited && 'border-l-[3px]')}
+      id={`review-block-${number}`}
+      tabIndex={-1}
+      aria-labelledby={`review-heading-${number}`}
+      className={cn('rd-review-block bg-surface border border-strong rounded-[10px] px-5 py-5 sm:px-6', edited && 'border-l-[3px]')}
       // Inline: `.border-strong` (theme.css) comes later in the cascade than
       // Tailwind's side-colour utilities and would repaint the edge grey.
       style={edited ? { borderLeftColor: 'var(--dawn)' } : undefined}
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <div className="flex items-baseline gap-3.5 min-w-0">
-          <Mono variant="sm" className="text-muted">
+          <Mono variant="sm" className="rd-review-number text-muted">
             {String(number).padStart(2, '0')}
           </Mono>
-          <Text as="h3" variant="body-lg" className="font-semibold text-heading m-0">
+          <h3 id={`review-heading-${number}`} className="font-semibold text-heading m-0">
             {title}
-          </Text>
+          </h3>
         </div>
         <div className="flex items-center gap-3">
           {aside}

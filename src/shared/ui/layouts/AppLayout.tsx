@@ -9,6 +9,7 @@ import '../redesign/redesign.css';
 import '../redesign/student.css';
 import '../redesign/catalog.css';
 import '../redesign/psychologist.css';
+import '../redesign/psychologist-report.css';
 
 // Keyed by location.key so each history entry keeps its own scroll position.
 const scrollPositions = new Map<string, number>();
@@ -108,6 +109,7 @@ export function AppLayout({ redesigned = false, psychologist = false }: { redesi
           </div>
         )}
       </main>
+      {psychologist && <div id="psychologist-overlays" className="contents" />}
     </div>
   );
 }

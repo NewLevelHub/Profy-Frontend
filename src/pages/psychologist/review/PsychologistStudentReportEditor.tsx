@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { History, LockKeyhole, PencilLine } from 'lucide-react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
@@ -35,10 +36,31 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
     draft.top_career_why !== null && !!topCareer && topCareer.slug === detail.top_career_why_slug;
 
   return (
-    <div className="flex flex-col gap-3">
-      <Text variant="body-sm" className="text-muted mt-0 mb-3 max-w-[72ch]">
-        {review.isPublished ? t('review.introPublished') : t('review.intro')}
-      </Text>
+    <div className="rd-psych-report-editor">
+      <div className="rd-review-intro">
+        <div className="rd-psych-report-notice">
+          {review.isPublished ? <LockKeyhole size={19} aria-hidden="true" /> : <PencilLine size={19} aria-hidden="true" />}
+          <Text variant="body-sm">{review.isPublished ? t('review.introPublished') : t('review.intro')}</Text>
+        </div>
+        <Link to={historyPath} className="rd-psych-report-history-link">
+          <History size={17} aria-hidden="true" />
+          {review.editsLoading || review.editsError
+            ? t('history.title')
+            : t('review.historyLink', { count: review.edits.length })}
+        </Link>
+      </div>
+      <nav className="rd-review-contents" aria-label={t('review.contents')}>
+        {(['summary', 'careers', 'strengths', 'motivation', 'final'] as const).map((block, index) => (
+          <button key={block} type="button" onClick={() => {
+            const section = document.getElementById(`review-block-${index + 1}`);
+            section?.focus({ preventScroll: true });
+            section?.scrollIntoView({ block: 'start' });
+          }}>
+            <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            {t(`review.blocks.${block}.title`)}
+          </button>
+        ))}
+      </nav>
 
       <ReviewBlock number={1} title={t('review.blocks.summary.title')} edited={edited('summary')}>
         <ReviewTextField
@@ -98,7 +120,7 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         {detail.strengths_stale && !review.isPublished && (
           <div
             role="status"
-            className="mb-5 rounded-[8px] border border-default border-l-[3px] px-4 py-3"
+            className="rd-review-rebuild mb-5 rounded-[8px] border border-default border-l-[3px] px-4 py-3"
             style={{ borderLeftColor: 'var(--dawn)' }}
           >
             <Text variant="body-sm" className="font-semibold text-heading m-0">
@@ -149,16 +171,9 @@ export function PsychologistStudentReportEditor({ review, historyPath }: Psychol
         />
       </ReviewBlock>
 
-      <Link
-        to={historyPath}
-        className="self-start mt-2 py-2 font-sans text-body-sm text-brand underline underline-offset-4 hover:opacity-70"
-      >
-        {review.editsLoading || review.editsError
-          ? t('history.title')
-          : t('review.historyLink', { count: review.edits.length })}
-      </Link>
-
       <ConfirmDialog
+        className="rd-psych-report-dialog"
+        portalTarget={document.getElementById('psychologist-overlays')}
         open={rebuildOpen}
         title={t('review.strengthsRebuild.confirm.title')}
         body={t('review.strengthsRebuild.confirm.body')}
