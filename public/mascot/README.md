@@ -9,7 +9,8 @@
 | transition | `redesign/notepad.png` |
 | rest / pause | `redesign/rest.png` |
 | completion | `redesign/celebrate.png` |
-| waiting / graduate | `redesign/book.png` |
+| waiting | `redesign/book.png` |
+| graduate | `redesign/graduate.png` |
 
 Источник соответствия — `src/shared/ui/mascot/sprites.ts`. Новые композиции
 также используют файлы напрямую с `object-fit: contain` и пустым `alt`,

@@ -34,7 +34,7 @@ export const SPRITES: Record<MascotFunctionalState, MascotSpriteEntry> = {
   completion: { file: 'redesign/celebrate.png', alt: 'common:mascot.completion', eyes: null, head: [50, 25] },
   waiting: { file: 'redesign/book.png', alt: 'common:mascot.waiting', eyes: null, head: [50, 25] },
   pause: { file: 'redesign/rest.png', alt: 'common:mascot.pause', eyes: null, head: [50, 25] },
-  graduate: { file: 'redesign/book.png', alt: 'common:mascot.graduate', eyes: null, head: [50, 25] },
+  graduate: { file: 'redesign/graduate.png', alt: 'common:mascot.graduate', eyes: null, head: [50, 25] },
 };
 
 /**

@@ -40,7 +40,7 @@ export function UniversitiesView({ model }: { model: Omit<ReturnType<typeof useU
     <PageContainer className="rd-catalog">
       <div className="rd-catalog-heading">
         <StudentPageHeading kicker={t('catalog.kicker')} title={t('catalog.title')} subtitle={t('catalogDesign.subtitle')} />
-        <img src="/mascot/redesign/book.png" alt="" width={128} height={142} />
+        <img src="/mascot/redesign/graduate.png" alt="" width={128} height={142} />
       </div>
       <div className="rd-catalog-filters">
         <UniversityFilters
