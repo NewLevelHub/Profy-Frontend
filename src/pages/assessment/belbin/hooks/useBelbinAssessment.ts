@@ -1,58 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import { belbinApi } from '@/shared/api/belbin';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import type { BelbinProgressResponse } from '@/shared/types';
 import { useAssessmentJourneyProgress } from '../../hooks/useAssessmentJourneyProgress';
 
 type Phase = 'intro' | 'block' | 'done';
 
-interface StoredProgress {
-  blockIndex: number;
-  allocations: Record<string, number>[];
-}
-
 function zeroAllocation(items: { id: string }[]): Record<string, number> {
   return Object.fromEntries(items.map((item) => [item.id, 0]));
-}
-
-function progressKey(assessmentId: string) {
-  return `profy-belbin-progress:${assessmentId}`;
-}
-
-// Belbin has no partial-submit endpoint on the server (unlike АСТУР's
-// per-subtest submit) — everything reaches the backend in one call at the
-// very end (goNext -> submitMutation). So "exit and keep progress" can only
-// mean surviving in this tab's session: persist blockIndex/allocations to
-// sessionStorage on every change and restore them on mount, the same way
-// АСТУР's `persistCompleted`/`restoreCompleted` keep its subtest progress.
-function restoreProgress(assessmentId: string): StoredProgress | null {
-  try {
-    const raw = sessionStorage.getItem(progressKey(assessmentId));
-    if (!raw) return null;
-    return JSON.parse(raw) as StoredProgress;
-  } catch {
-    return null;
-  }
-}
-
-function persistProgress(assessmentId: string, progress: StoredProgress) {
-  try {
-    sessionStorage.setItem(progressKey(assessmentId), JSON.stringify(progress));
-  } catch {
-    // sessionStorage unavailable (private mode etc.) — progress just won't
-    // survive a reload; the current tab session still works fine.
-  }
-}
-
-function clearProgress(assessmentId: string) {
-  try {
-    sessionStorage.removeItem(progressKey(assessmentId));
-  } catch {
-    // ignore
-  }
 }
 
 /**
@@ -62,35 +21,67 @@ function clearProgress(assessmentId: string) {
 export function useBelbinAssessment(assessmentId: string) {
   const { t } = useTranslation('assessment');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const belbinCompleted = useAssessmentStore(s => s.belbinCompleted);
-  const { data: content, isLoading, isError } = useQuery({
+  const contentQuery = useQuery({
     queryKey: ['belbinContent'] as const,
     queryFn: belbinApi.getContent,
   });
+  const progressKey = ['belbinProgress', assessmentId] as const;
+  const progressQuery = useQuery({
+    queryKey: progressKey,
+    queryFn: () => belbinApi.getProgress(assessmentId),
+    enabled: Boolean(assessmentId),
+    retry: false,
+  });
 
-  const [restored] = useState(() => restoreProgress(assessmentId));
-  const [phase, setPhase] = useState<Phase>(restored ? 'block' : 'intro');
-  const [blockIndex, setBlockIndex] = useState(restored?.blockIndex ?? 0);
-  const [allocations, setAllocations] = useState<Record<string, number>[]>(restored?.allocations ?? []);
+  const content = contentQuery.data;
+  const [phase, setPhase] = useState<Phase>('intro');
+  const [blockIndex, setBlockIndex] = useState(0);
+  const [allocations, setAllocations] = useState<Record<string, number>[]>([]);
+  const [initializedAssessmentId, setInitializedAssessmentId] = useState<string | null>(null);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  const [progressSaveError, setProgressSaveError] = useState(false);
 
-  // Zero-filled once, the moment content arrives — every block starts at 0
-  // across all 8 items, matching PointAllocator's own value/onChange
-  // contract (Ф0.7: it never invents its own "nothing chosen" state). Skips
-  // if a restored session already had allocations for this content.
+  // Initialize only after a fresh server read. React Query may have cached
+  // progress from an earlier mount; waiting for isFetching=false prevents a
+  // stale empty cache from briefly winning over a newer block saved elsewhere.
   useEffect(() => {
-    if (content && allocations.length === 0) {
-      setAllocations(content.sections.map((section) => zeroAllocation(section.items)));
+    const serverProgress = progressQuery.data;
+    if (
+      !assessmentId
+      || !content
+      || !serverProgress
+      || progressQuery.isFetching
+      || initializedAssessmentId === assessmentId
+    ) {
+      return;
     }
-  }, [content, allocations.length]);
 
-  useEffect(() => {
-    if (!assessmentId || allocations.length === 0) return;
-    persistProgress(assessmentId, { blockIndex, allocations });
-  }, [assessmentId, blockIndex, allocations]);
+    if (serverProgress.completed) {
+      useAssessmentStore.getState().setBelbinCompleted(true);
+      setPhase('done');
+      setInitializedAssessmentId(assessmentId);
+      return;
+    }
+
+    const restored = content.sections.map((section) => zeroAllocation(section.items));
+    const completedIndexes = new Set<number>();
+    for (const block of serverProgress.blocks) {
+      if (block.block_index >= 0 && block.block_index < restored.length) {
+        restored[block.block_index] = block.allocation;
+        completedIndexes.add(block.block_index);
+      }
+    }
+    const firstIncomplete = restored.findIndex((_, index) => !completedIndexes.has(index));
+    setAllocations(restored);
+    setBlockIndex(firstIncomplete === -1 ? Math.max(restored.length - 1, 0) : firstIncomplete);
+    setPhase(serverProgress.blocks.length > 0 ? 'block' : 'intro');
+    setInitializedAssessmentId(assessmentId);
+  }, [assessmentId, content, initializedAssessmentId, progressQuery.data, progressQuery.isFetching]);
 
   function finish() {
-    clearProgress(assessmentId);
+    queryClient.setQueryData<BelbinProgressResponse>(progressKey, { completed: true, blocks: [] });
     useAssessmentStore.getState().setBelbinCompleted(true);
     setPhase('done');
   }
@@ -107,6 +98,12 @@ export function useBelbinAssessment(assessmentId: string) {
     onError: (err) => {
       if (isAlreadyCompleted(err)) finish();
     },
+  });
+
+  const saveProgressMutation = useMutation({
+    mutationFn: ({ index, value }: { index: number; value: Record<string, number> }) =>
+      belbinApi.saveProgressBlock(assessmentId, index, value),
+    onSuccess: (saved) => queryClient.setQueryData(progressKey, saved),
   });
 
   const section = content?.sections[blockIndex] ?? null;
@@ -127,6 +124,7 @@ export function useBelbinAssessment(assessmentId: string) {
   const progress = useAssessmentJourneyProgress({ belbinFraction });
 
   function setAllocationValue(next: Record<string, number>) {
+    setProgressSaveError(false);
     setAllocations((prev) => prev.map((block, i) => (i === blockIndex ? next : block)));
   }
 
@@ -134,13 +132,28 @@ export function useBelbinAssessment(assessmentId: string) {
     setPhase('block');
   }
 
-  function goBack() {
+  async function saveCurrentBlock(): Promise<boolean> {
+    if (!isBlockValid) return true;
+    setProgressSaveError(false);
+    try {
+      await saveProgressMutation.mutateAsync({ index: blockIndex, value: allocation });
+      return true;
+    } catch (err) {
+      if (isAlreadyCompleted(err)) finish();
+      else setProgressSaveError(true);
+      return false;
+    }
+  }
+
+  async function goBack() {
+    if (!(await saveCurrentBlock())) return;
     if (blockIndex > 0) setBlockIndex((i) => i - 1);
     else setPhase('intro');
   }
 
-  function goNext() {
-    if (!isBlockValid) return;
+  async function goNext() {
+    if (!isBlockValid || saveProgressMutation.isPending || submitMutation.isPending) return;
+    if (!(await saveCurrentBlock())) return;
     if (isLastBlock) {
       submitMutation.mutate();
     } else {
@@ -166,13 +179,15 @@ export function useBelbinAssessment(assessmentId: string) {
     }
   }
 
-  // Progress (blockIndex/allocations) is already flushed to sessionStorage
-  // on every change above, so exiting needs no extra save step — just leave.
   function handleExit() {
     setExitConfirmOpen(true);
   }
 
-  function confirmExit() {
+  async function confirmExit() {
+    if (!(await saveCurrentBlock())) {
+      setExitConfirmOpen(false);
+      return;
+    }
     setExitConfirmOpen(false);
     navigate('/results');
   }
@@ -182,8 +197,16 @@ export function useBelbinAssessment(assessmentId: string) {
   }
 
   return {
-    isLoading,
-    loadError: isError ? t('belbin.loadError') : null,
+    isLoading:
+      !contentQuery.isError
+      && !progressQuery.isError
+      && (
+        contentQuery.isLoading
+        || progressQuery.isLoading
+        || progressQuery.isFetching
+        || initializedAssessmentId !== assessmentId
+      ),
+    loadError: contentQuery.isError || progressQuery.isError ? t('belbin.loadError') : null,
     instruction: content?.instruction ?? '',
     phase,
     section,
@@ -204,8 +227,12 @@ export function useBelbinAssessment(assessmentId: string) {
     handleExit,
     confirmExit,
     cancelExit,
-    submitting: submitMutation.isPending,
+    submitting: submitMutation.isPending || saveProgressMutation.isPending,
     submitError:
-      submitMutation.isError && !isAlreadyCompleted(submitMutation.error) ? t('belbin.submitError') : null,
+      progressSaveError
+        ? t('belbin.progressSaveError')
+        : submitMutation.isError && !isAlreadyCompleted(submitMutation.error)
+          ? t('belbin.submitError')
+          : null,
   };
 }

@@ -66,7 +66,7 @@ export function BelbinBlock({
           <Button variant="ghost" onClick={onBack} disabled={submitting}>
             {t('common:back')}
           </Button>
-          <Button onClick={onNext} disabled={!isValid} isLoading={isLastBlock && submitting}>
+          <Button onClick={onNext} disabled={!isValid || submitting} isLoading={submitting}>
             {isLastBlock ? t('belbin.finish') : t('common:next')}
           </Button>
         </div>

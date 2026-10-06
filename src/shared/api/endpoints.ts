@@ -40,6 +40,9 @@ export const API = {
       `/assessment/${assessmentId}/psychoemotional/${runId}/finish`,
     belbinContent: '/assessment/belbin/content',
     belbin: (assessmentId: string) => `/assessment/${assessmentId}/belbin`,
+    belbinProgress: (assessmentId: string) => `/assessment/${assessmentId}/belbin/progress`,
+    belbinProgressBlock: (assessmentId: string, blockIndex: number) =>
+      `/assessment/${assessmentId}/belbin/progress/${blockIndex}`,
     asturState: (assessmentId: string) => `/assessment/${assessmentId}/astur/state`,
     asturAttempt: (assessmentId: string) => `/assessment/${assessmentId}/astur/attempt`,
     asturStart: (assessmentId: string, n: number) => `/assessment/${assessmentId}/astur/subtest/${n}/start`,

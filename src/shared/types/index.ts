@@ -307,6 +307,16 @@ export interface SubmitBelbinResponse {
   role_totals: Record<string, number>;
 }
 
+export interface BelbinProgressBlock {
+  block_index: number;
+  allocation: Record<string, number>;
+}
+
+export interface BelbinProgressResponse {
+  completed: boolean;
+  blocks: BelbinProgressBlock[];
+}
+
 // ─── АСТУР (ипсативный/таймированный блок, вне обычного /assessment потока) ─────
 
 export type AsturSubtestKey =
