@@ -17,14 +17,20 @@ export const asturApi = {
   openAttempt: (assessmentId: string) =>
     apiClient.post<AsturAttempt>(API.assessment.asturAttempt(assessmentId)).then(r => r.data),
 
-  startSubtest: (assessmentId: string, n: number, runId: string) =>
+  startSubtest: (assessmentId: string, n: number, runId: string, stateVersion: number) =>
     apiClient
-      .post<StartAsturSubtestResponse>(API.assessment.asturStart(assessmentId, n), { run_id: runId })
+      .post<StartAsturSubtestResponse>(API.assessment.asturStart(assessmentId, n), {
+        run_id: runId,
+        state_version: stateVersion,
+      })
       .then(r => r.data),
 
-  resetSubtest: (assessmentId: string, n: number, runId: string) =>
+  resetSubtest: (assessmentId: string, n: number, runId: string, stateVersion: number) =>
     apiClient
-      .post<ResetAsturSubtestResponse>(API.assessment.asturReset(assessmentId, n), { run_id: runId })
+      .post<ResetAsturSubtestResponse>(API.assessment.asturReset(assessmentId, n), {
+        run_id: runId,
+        state_version: stateVersion,
+      })
       .then(r => r.data),
 
   submitSubtest: (assessmentId: string, n: number, payload: SubmitAsturSubtestPayload) =>

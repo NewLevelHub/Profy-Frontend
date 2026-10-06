@@ -53,6 +53,7 @@ export default function AsturPage() {
     exitConfirmOpen,
     exiting,
     exitError,
+    starting,
     beginSubtest,
     completeSubtest,
     handleAutofill,
@@ -123,6 +124,7 @@ export default function AsturPage() {
           progressAriaLabel={t('rail.progressAriaAstur')}
           progress={progress}
           onExit={handleExit}
+          exitDisabled={starting || submitting}
           devAutofill={{ onClick: handleAutofill, loading: submitting }}
           statusSlotRef={setRailStatusSlot}
         />
@@ -149,6 +151,7 @@ export default function AsturPage() {
             index={subtestIndex}
             count={subtestCount}
             labilityItemLimitMs={labilityItemLimitMs}
+            starting={starting}
             onStart={beginSubtest}
           />
           {submitError && (

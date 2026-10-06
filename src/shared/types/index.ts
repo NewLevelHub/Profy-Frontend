@@ -424,6 +424,8 @@ export interface AsturRunSummary {
   submitted_subtests: AsturSubtestKey[];
   /** First server start of every currently unfinished subtest. */
   subtest_started_at: Partial<Record<AsturSubtestKey, string>>;
+  /** Monotonic generation used to serialize start/reset operations. */
+  state_version: number;
 }
 
 /** `in_progress` = an attempt is open (resume it); `completed` = the
@@ -445,11 +447,13 @@ export interface StartAsturSubtestResponse {
   run_id: string;
   subtest: string;
   started_at: string;
+  state_version: number;
 }
 
 export interface ResetAsturSubtestResponse {
   run_id: string;
   subtest: AsturSubtestKey;
+  state_version: number;
 }
 
 /** One item's outcome: an explicit answer or an explicit skip. */
