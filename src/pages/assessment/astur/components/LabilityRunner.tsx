@@ -6,13 +6,18 @@ import { playClick } from '@/shared/lib/sounds';
 import { cn } from '@/shared/lib/cn';
 import type { AsturContentSubtest, AsturItemAnswer, AsturLabilityItem } from '@/shared/types';
 import { AssessmentTimer } from '../../components/AssessmentTimer';
-import { useCountdown } from '../hooks/useCountdown';
+import {
+  estimatedServerNowIso,
+  useCountdown,
+  type CountdownClockSync,
+} from '../hooks/useCountdown';
 import { LabilityChoiceGlyph, resolveLabilityGlyph } from './LabilityChoiceGlyph';
 
 interface LabilityRunnerProps {
   subtest: AsturContentSubtest;
   runId: string;
   startedAt: string | null;
+  serverClock: CountdownClockSync | null;
   itemLimitMs: number;
   submitting: boolean;
   submitError: string | null;
@@ -20,11 +25,12 @@ interface LabilityRunnerProps {
 }
 
 interface LabilityDraft {
+  timerVersion: 2;
   startedAt: string | null;
   itemIndex: number;
   answers: Record<string, AsturItemAnswer>;
   elapsedMs: Record<string, number>;
-  itemStartedAt: string;
+  itemStartedAt: string | null;
 }
 
 function draftKey(runId: string) {
@@ -33,11 +39,15 @@ function draftKey(runId: string) {
 
 function readDraft(runId: string, startedAt: string | null, itemCount: number): LabilityDraft {
   const fresh = (): LabilityDraft => ({
+    timerVersion: 2,
     startedAt,
     itemIndex: 0,
     answers: {},
     elapsedMs: {},
-    itemStartedAt: new Date().toISOString(),
+    // The first command starts with the server-owned subtest anchor. This
+    // also prevents a second tab or a crash recovery without an unload marker
+    // from granting a fresh per-command budget.
+    itemStartedAt: startedAt,
   });
   if (!runId) return fresh();
   try {
@@ -45,13 +55,14 @@ function readDraft(runId: string, startedAt: string | null, itemCount: number): 
     if (!raw) return fresh();
     const saved = JSON.parse(raw) as LabilityDraft;
     if (
-      saved.startedAt !== startedAt
+      saved.timerVersion !== 2
+      || saved.startedAt !== startedAt
       || !Number.isInteger(saved.itemIndex)
       || saved.itemIndex < 0
       || saved.itemIndex >= itemCount
       || !saved.answers
       || !saved.elapsedMs
-      || !Number.isFinite(Date.parse(saved.itemStartedAt))
+      || (saved.itemStartedAt !== null && !Number.isFinite(Date.parse(saved.itemStartedAt)))
     ) return fresh();
     return saved;
   } catch {
@@ -91,6 +102,7 @@ export function LabilityRunner({
   subtest,
   runId,
   startedAt,
+  serverClock,
   itemLimitMs,
   submitting,
   submitError,
@@ -121,11 +133,14 @@ export function LabilityRunner({
     setLockedIndex(index);
     const nextAnswers = { ...answers, [index]: answer };
     const nextElapsed = { ...elapsedMs, [index]: Math.max(0, Math.round(elapsed)) };
-    const nextItemStartedAt = new Date().toISOString();
+    // Persist an estimated server timestamp, not the user's mutable wall
+    // clock. A future mount can recalibrate it with a fresh /state sample.
+    const nextItemStartedAt = estimatedServerNowIso(serverClock);
     setAnswers(nextAnswers);
     setElapsedMs(nextElapsed);
     try {
       sessionStorage.setItem(draftKey(runId), JSON.stringify({
+        timerVersion: 2,
         startedAt,
         itemIndex: isLast ? itemIndex : itemIndex + 1,
         answers: nextAnswers,
@@ -148,6 +163,7 @@ export function LabilityRunner({
     `${subtest.key}-${itemIndex}`,
     () => commit({ status: 'skipped', value: null }, itemLimitMs),
     itemStartedAt,
+    serverClock,
   );
 
   return (

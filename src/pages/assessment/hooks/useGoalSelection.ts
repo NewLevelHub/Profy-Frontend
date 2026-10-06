@@ -38,6 +38,7 @@ export function useGoalSelection() {
   const resetAssessment = useAssessmentStore(s => s.resetAssessment);
   const resetPsychoColorRun = usePsychoColorRunStore(s => s.reset);
   const clearReport = useResultStore(s => s.clearReport);
+  const userId = useAuthStore(s => s.user?.id);
   // Экран вне RequireProfile: без запроса профиля восьмилетний после F5
   // читал бы формулировки для средней школы.
   const { profile } = useEnsureProfile();
@@ -47,7 +48,9 @@ export function useGoalSelection() {
   const [restartOpen, setRestartOpen] = useState(false);
 
   const { data: current, isLoading: isCheckingCurrent } = useQuery({
-    queryKey: ['assessment', 'current'],
+    // `current` is private and intentionally scoped to the authenticated
+    // identity. It must never reuse user A's Infinity-stale result for user B.
+    queryKey: ['assessment', userId, 'current'],
     queryFn: () =>
       assessmentApi.current().catch((err: AxiosError) => {
         if (err.response?.status === 404) return null;
@@ -55,6 +58,7 @@ export function useGoalSelection() {
       }),
     retry: false,
     staleTime: Infinity,
+    enabled: Boolean(userId),
   });
 
   useEffect(() => {
@@ -109,7 +113,6 @@ export function useGoalSelection() {
   function handleResume() {
     if (current) {
       // Sync full assessment data into the store before entering the assessment flow.
-      const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
       setAssessment(
         current.id,
@@ -133,7 +136,6 @@ export function useGoalSelection() {
     // Sync store before navigating so ResultsPage (inside AppLayout) has the correct
     // hasCompletedAssessment flag even before useAssessmentSync's async call completes.
     if (current) {
-      const userId = useAuthStore.getState().user?.id;
       if (userId) useAssessmentStore.getState().syncFromServer(current, userId);
     }
     navigate('/results');

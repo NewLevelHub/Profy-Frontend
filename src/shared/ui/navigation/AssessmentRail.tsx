@@ -18,6 +18,7 @@ export interface AssessmentRailProps {
   showBack?: boolean;
   onBack?: () => void;
   onExit: () => void;
+  exitDisabled?: boolean;
   /** Dev-only "autofill" affordance already present on these flows; kept as
    *  a 4th, dev-gated slot rather than folded into the 3 production slots. */
   devAutofill?: { onClick: () => void; loading: boolean };
@@ -57,6 +58,7 @@ export function AssessmentRail({
   showBack = false,
   onBack,
   onExit,
+  exitDisabled = false,
   devAutofill,
   devAutofillToMotivation,
   devAutofillToAstur,
@@ -147,8 +149,9 @@ export function AssessmentRail({
               <button
                 type="button"
                 onClick={onExit}
+                disabled={exitDisabled}
                 aria-label={t('assessment:rail.exit')}
-                className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger flex-shrink-0"
+                className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-surface text-muted text-body-md leading-none transition-colors hover:bg-danger-subtle hover:text-danger disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface disabled:hover:text-muted flex-shrink-0"
                 style={{ boxShadow: 'var(--shadow-pop)' }}
               >
                 ✕
