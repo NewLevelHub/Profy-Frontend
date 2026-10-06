@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom';
+import { PrintMasthead } from '@/shared/ui';
 import { useTranslation } from 'react-i18next';
 import { ASSESSMENT_GOAL_LABELS } from '@/shared/lib/assessmentLabels';
 import { formatDate as formatIntlDate } from '@/shared/i18n/format';
@@ -81,13 +82,13 @@ const CONSISTENCY_LABELS: Record<string, string> = {
  * `var(--text-primary)` в тёмной теме светлый. Бумага белая всегда: у админа с
  * включённой тёмной темой отчёт ушёл бы на печать почти невидимым. Печатный
  * лист живёт в одной, светлой теме, поэтому берёт светлые значения токенов
- * напрямую. Значения — из src/styles/theme.css, светлый блок.
+ * напрямую. Значения соответствуют светлой палитре редизайна.
  */
-const INK = '#26332F';
-const MUTE = '#6B7671';
-const LINE = '#D2CCBE';
-const PINE = '#0E4A41';
-const LAKE = '#2C6A8C';
+const INK = '#203A30';
+const MUTE = '#65735F';
+const LINE = '#DCE3D7';
+const PINE = '#164D3E';
+const PURPLE = '#8063AD';
 
 function formatDate(value: string | null): string {
   if (!value) return '—';
@@ -107,7 +108,7 @@ function Bar({ value, color }: { value: number; color: string }) {
         display: 'inline-block',
         width: '58mm',
         height: '2.4mm',
-        background: '#E7E2D5',
+        background: '#EAF1E8',
         borderRadius: '1px',
         overflow: 'hidden',
         verticalAlign: 'middle',
@@ -168,10 +169,10 @@ function ScaleRows({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginTop: '7mm', breakInside: 'avoid' }}>
-      <h2
+    <section className="print-section" style={{ marginTop: '6mm' }}>
+      <h2 className="print-section-title"
         style={{
-          fontSize: '11pt',
+          fontSize: '12pt',
           fontWeight: 600,
           margin: '0 0 2.5mm',
           paddingBottom: '1.2mm',
@@ -186,13 +187,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 interface AssessmentPrintReportProps {
+  /** Render the same document inline in the DEV design gallery. */
+  preview?: boolean;
   user: AdminUserDetail;
   assessment: AdminAssessmentDetail;
   /** Порядковый номер прохождения в карточке пользователя. */
   index: number;
 }
 
-export function AssessmentPrintReport({ user, assessment, index }: AssessmentPrintReportProps) {
+export function AssessmentPrintReport({ user, assessment, index, preview = false }: AssessmentPrintReportProps) {
   const { t } = useTranslation('admin');
   const analysis = assessment.analysis_result;
   const profile = user.profile;
@@ -209,7 +212,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
     analysis != null && RIASEC_ORDER.some((letter) => letter in (analysis.profile ?? {}));
 
   const body = (
-    <div
+    <div className="print-report"
       style={{
         fontFamily: 'var(--font-sans)',
         fontSize: '9.5pt',
@@ -219,27 +222,14 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
         padding: '0',
       }}
     >
-      <header style={{ borderBottom: `0.5mm solid ${INK}`, paddingBottom: '3mm' }}>
-        <p
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-mono)',
-            fontSize: '7.5pt',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: MUTE,
-          }}
-        >
-          {t('print.assessmentBrand')}
-        </p>
-        <h1 style={{ fontSize: '17pt', fontWeight: 600, margin: '1.5mm 0 0' }}>{name}</h1>
+      <PrintMasthead label={t('print.assessmentBrand')} title={name}>
         <p style={{ margin: '1mm 0 0', color: MUTE }}>
           {user.email}
           {profile?.age != null ? ` · ${t('common:ageYears', { count: profile.age })}` : ''}
           {' · '}
           {t(ASSESSMENT_GOAL_LABELS[assessment.goal])} · {t('print.attemptNo', { index })}
         </p>
-      </header>
+      </PrintMasthead>
 
       <Section title={t('print.section.profile')}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -261,7 +251,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
         </table>
       </Section>
 
-      <Section title={t('print.section.composition')}>
+      {(blockCounts.size > 0 || assessment.motivation_responses.length > 0) && <Section title={t('print.section.composition')}>
         <p style={{ margin: 0 }}>
           {[...blockCounts.entries()]
             .map(([instrument, count]) => `${instrument.toUpperCase()} — ${count}`)
@@ -270,7 +260,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
             ? ` · ${t('print.motivationTriplets', { count: assessment.motivation_responses.length })}`
             : ''}
         </p>
-      </Section>
+      </Section>}
 
       {analysis && isRiasecProfile && (
         <Section title={t('print.section.riasec')}>
@@ -306,7 +296,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
       {analysis && Object.keys(analysis.big_five).length > 0 && (
         <Section title={t('print.section.bigfive')}>
           <ScaleRows
-            color={LAKE}
+            color={PURPLE}
             rows={BIG_FIVE_ORDER.filter((key) => key in analysis.big_five).map((key) => ({
               key,
               label: t(BIG_FIVE_LABELS[key]),
@@ -316,10 +306,10 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
         </Section>
       )}
 
-      {analysis && Object.keys(analysis.big_five).length > 0 && (
+      {analysis && Object.keys(analysis.thinking_style).length > 0 && (
         <Section title={t('print.section.thinking')}>
           <ScaleRows
-            color={LAKE}
+            color={PURPLE}
             rows={Object.entries(analysis.thinking_style).map(([key, value]) => ({
               key: '',
               label: THINKING_LABELS[key] ? t(THINKING_LABELS[key]) : key,
@@ -431,6 +421,7 @@ export function AssessmentPrintReport({ user, assessment, index }: AssessmentPri
     </div>
   );
 
+  if (preview) return body;
   return createPortal(
     <div id="print-root" data-print-root>
       {body}

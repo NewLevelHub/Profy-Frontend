@@ -1,5 +1,4 @@
 import type { BigFiveDomain, HollandType, Instrument, MotivationCategory, QuestionKeyed, UserRole } from '@/shared/types';
-import type { Locale } from '@/shared/store/locale';
 
 /** Code → i18n key (see HOLLAND_TYPE_LABELS below): `t(INSTRUMENT_LABELS[x])`. */
 export const INSTRUMENT_LABELS: Record<Instrument, string> = {
@@ -56,20 +55,4 @@ export const MOTIVATION_CATEGORY_LABELS: Record<MotivationCategory, string> = {
   stability: 'admin:motivation.stability',
   creation: 'admin:motivation.creation',
   teamwork: 'admin:motivation.teamwork',
-};
-
-/**
- * Full/compact labels for a bank-seeded content row's language, used by
- * localized content labels. Each question/pair/statement/direction holds
- * both languages in one row.
- */
-export const CONTENT_LOCALE_LABELS: Record<Locale, string> = {
-  ru: 'admin:locale.ru',
-  kk: 'admin:locale.kk',
-};
-
-/** Compact form for the tab button, where the full name does not fit. */
-export const CONTENT_LOCALE_SHORT: Record<Locale, string> = {
-  ru: 'RU',
-  kk: 'KK',
 };

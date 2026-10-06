@@ -6,7 +6,7 @@ import './redesign.css';
 import './journey.css';
 
 export function JourneyShell({ children }: { children: ReactNode }) {
-  const { t } = useTranslation('onboarding');
+  const { t } = useTranslation('common');
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, []);
   return (
     <div className="redesign rd-journey">

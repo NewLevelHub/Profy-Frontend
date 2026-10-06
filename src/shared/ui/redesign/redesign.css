@@ -1,4 +1,4 @@
-/* Tokens stay scoped to integrated pages; student and staff screens retain their theme. */
+/* Approved redesign tokens, scoped across public, student, and staff screens. */
 .redesign {
   --rd-pine: #164d3e;
   --rd-ink: #203a30;

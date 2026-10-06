@@ -89,6 +89,10 @@ import NotFoundPage from '@/pages/errors/NotFoundPage';
 export const router = createBrowserRouter([
   // Local design review uses fixtures and never calls assessment APIs.
   ...(import.meta.env.DEV ? [{
+    path: '/design/finishing',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/FinishingDesignPreview')).default }),
+  }, {
     path: '/design/assessment',
     HydrateFallback: Spinner,
     lazy: async () => ({ Component: (await import('@/pages/assessment/design/AssessmentDesignPreview')).default }),

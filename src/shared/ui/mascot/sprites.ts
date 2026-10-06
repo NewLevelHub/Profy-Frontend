@@ -1,14 +1,5 @@
-/**
- * Mascot sprite geometry — ported verbatim from the design team's reference
- * prototype ("Profy Mascot.dc.html", DCLogic). Do not hand-tune these numbers;
- * they're calibrated against the source PNGs (eye bounding boxes + head
- * centers, both in % of the full sprite image).
- *
- * `eyes: null` means the sprite's eyes are already closed/obscured by the
- * pose itself (e.g. looking down at a page, medal ceremony) — blinking is
- * intentionally disabled for those states, not a missing-data bug.
- */
-
+/** Functional poses use the new transparent snow leopard. Profession-only
+ * geometry below belongs to the legacy asset pool and is not used by pages. */
 /** Eye bounding box as [x%, y%, width%, height%] of the sprite image. */
 export type MascotEyeBox = [number, number, number, number];
 
@@ -22,7 +13,7 @@ export interface MascotSpriteEntry {
 }
 
 /**
- * The 6 functional states actually used by the product (ТЗ 14.3). These are
+ * The functional states used by the product (ТЗ 14.3). These are
  * the only states wired into any screen.
  */
 export type MascotFunctionalState =
@@ -34,67 +25,16 @@ export type MascotFunctionalState =
   | 'pause'
   | 'graduate';
 
+// New transparent artwork. No eyelid overlays: their old coordinates belong to
+// the previous mascot. Profession sprites below remain an unused asset pool.
 export const SPRITES: Record<MascotFunctionalState, MascotSpriteEntry> = {
-  welcome: {
-    file: 'mascot-v2-greeting.png',
-    alt: 'common:mascot.welcome',
-    eyes: [
-      [32.5, 28.9, 5.8, 7.8],
-      [50.6, 31.5, 6.3, 8.2],
-    ],
-    head: [47.5, 22.3],
-  },
-  transition: {
-    file: 'mascot-v2-notepad.png',
-    alt: 'common:mascot.transition',
-    eyes: [
-      [25.8, 31.5, 6.5, 7.8],
-      [48.1, 33.7, 7.3, 8.0],
-    ],
-    head: [48.2, 20.9],
-  },
-  rest: {
-    file: 'mascot-v2-glass.png',
-    alt: 'common:mascot.rest',
-    eyes: [
-      [30.5, 29.6, 5.9, 8.3],
-      [51.1, 31.2, 6.7, 8.7],
-    ],
-    head: [46.5, 21.2],
-  },
-  completion: {
-    file: 'mascot-v2-medal.png',
-    alt: 'common:mascot.completion',
-    // Eyes closed on the sprite itself — blink disabled for this state.
-    eyes: null,
-    head: [54.0, 21.0],
-  },
-  waiting: {
-    file: 'mascot-v2-book.png',
-    alt: 'common:mascot.waiting',
-    // Eyes looking down at the page on the sprite — blink disabled.
-    eyes: null,
-    head: [52.7, 20.9],
-  },
-  pause: {
-    file: 'mascot-v2-pause.png',
-    alt: 'common:mascot.pause',
-    eyes: [
-      [28.55, 33.58, 6.36, 8.88],
-      [49.31, 33.73, 6.5, 9.03],
-    ],
-    head: [42.14, 24.45],
-  },
-  // Not part of the original ТЗ 14.3 six — added for university/program
-  // pages (mortarboard + gown + backpack reads as "off to study"). Eyes
-  // already drawn open on the sprite with no distinct closed-lid art, so
-  // blink stays disabled like `completion`/`waiting`.
-  graduate: {
-    file: 'univer.png',
-    alt: 'common:mascot.graduate',
-    eyes: null,
-    head: [50, 22],
-  },
+  welcome: { file: 'redesign/greeting.png', alt: 'common:mascot.welcome', eyes: null, head: [50, 25] },
+  transition: { file: 'redesign/notepad.png', alt: 'common:mascot.transition', eyes: null, head: [50, 25] },
+  rest: { file: 'redesign/rest.png', alt: 'common:mascot.rest', eyes: null, head: [50, 25] },
+  completion: { file: 'redesign/celebrate.png', alt: 'common:mascot.completion', eyes: null, head: [50, 25] },
+  waiting: { file: 'redesign/book.png', alt: 'common:mascot.waiting', eyes: null, head: [50, 25] },
+  pause: { file: 'redesign/rest.png', alt: 'common:mascot.pause', eyes: null, head: [50, 25] },
+  graduate: { file: 'redesign/book.png', alt: 'common:mascot.graduate', eyes: null, head: [50, 25] },
 };
 
 /**
