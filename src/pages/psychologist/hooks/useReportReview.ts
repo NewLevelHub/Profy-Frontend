@@ -27,6 +27,15 @@ function validateDraft(t: TFunction, draft: ReviewDraft): string | null {
   return null;
 }
 
+function validatePublication(t: TFunction, draft: ReviewDraft): string | null {
+  const invalidDraft = validateDraft(t, draft);
+  if (invalidDraft) return invalidDraft;
+  if (draft.careers.length === 0) return t('psychologist:review.validation.careersRequired');
+  if (draft.strength_cards.length === 0) return t('psychologist:review.validation.strengthCardsRequired');
+  if (draft.motivation_highlights.length === 0) return t('psychologist:review.validation.motivationRequired');
+  return null;
+}
+
 function errorMessage(t: TFunction, err: unknown, fallbackKey: string): string {
   if (axios.isAxiosError(err)) {
     const status = err.response?.status;
@@ -152,14 +161,17 @@ export function useReportReview(studentId: string, assessmentId: string) {
   /** Returns false when the draft is invalid (the message is in `actionError`). */
   function validate(): boolean {
     if (!draft) return false;
-    const invalid = validateDraft(t, draft);
+    const invalid = validatePublication(t, draft);
     setActionError(invalid);
     return invalid === null;
   }
 
   async function saveDraft(): Promise<void> {
     const patch = buildPatch();
-    if (writing.current || !patch || !draft || !isDirty || isPublished || !validate()) return;
+    if (writing.current || !patch || !draft || !isDirty || isPublished) return;
+    const invalid = validateDraft(t, draft);
+    setActionError(invalid);
+    if (invalid) return;
     writing.current = true;
     try {
       await save.mutateAsync({ patch, submitted: draft });

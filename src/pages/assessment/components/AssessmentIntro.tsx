@@ -22,6 +22,7 @@ export interface AssessmentIntroProps {
   notice?: string;
   ctaLabel: string;
   onStart: () => void;
+  isStarting?: boolean;
   secondaryCtaLabel?: string;
   onSecondaryAction?: () => void;
 }
@@ -48,6 +49,7 @@ export function AssessmentIntro({
   notice,
   ctaLabel,
   onStart,
+  isStarting = false,
   secondaryCtaLabel,
   onSecondaryAction,
 }: AssessmentIntroProps) {
@@ -112,6 +114,7 @@ export function AssessmentIntro({
         <div className="flex w-full flex-col items-center gap-2">
           <Button
             onClick={onStart}
+            isLoading={isStarting}
             size="lg"
             className="w-full max-w-[320px] rounded-pill text-body-lg font-extrabold"
             style={{ height: 56 }}
@@ -122,6 +125,7 @@ export function AssessmentIntro({
             <Button
               variant="ghost"
               onClick={onSecondaryAction}
+              disabled={isStarting}
               size="lg"
               className="w-full max-w-[320px] rounded-pill"
             >

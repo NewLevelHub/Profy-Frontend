@@ -77,13 +77,30 @@ function loadStoredAnswers<T>(key: string | null): T | null {
   }
 }
 
+/**
+ * The number of stored rows is not a cursor: out-of-order writes can leave a
+ * hole before a later answer. Resume from the first page that is not fully
+ * represented in the server snapshot instead (PROFY-013).
+ */
+function firstUnansweredPageIndex(
+  pages: Page[],
+  saved: Pick<SavedAnswersResponse, 'question_values' | 'pair_picks'>,
+): number | null {
+  const index = pages.findIndex(page => {
+    if (page.kind === 'likert') {
+      return page.questions.some(question => saved.question_values[question.id] === undefined);
+    }
+    return page.pairs.some(pair => saved.pair_picks[pair.pair_index] === undefined);
+  });
+  return index === -1 ? null : index;
+}
+
 export function useAssessment() {
   useFinishedAssessmentGuard();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const assessmentId = useAssessmentStore(s => s.assessmentId);
-  const answeredCountFromStore = useAssessmentStore(s => s.answeredCount);
   const setProgress = useAssessmentStore(s => s.setProgress);
 
   const [phase, setPhase] = useState<AssessmentPhase>('loading');
@@ -136,8 +153,8 @@ export function useAssessment() {
         const [questions, pairs, saved] = await Promise.all([
           assessmentApi.getQuestions(assessmentId!),
           pairsApi.getPairs(assessmentId!),
-          // Not fatal: without it "Назад" just can't show answers this tab never saw.
-          assessmentApi.getSavedAnswers(assessmentId!).catch(() => null),
+          // Required for a safe resume: a total count cannot identify holes.
+          assessmentApi.getSavedAnswers(assessmentId!),
         ]);
         if (cancelled) return;
         if (questions.length === 0) throw new Error('empty_questions');
@@ -150,22 +167,19 @@ export function useAssessment() {
 
         if (!startIndexApplied.current) {
           startIndexApplied.current = true;
-          // Each page consumes 1-5 (Likert) or 2 per pair raw UserResponse
-          // rows — walk until we've accounted for everything the store
-          // says is already answered, landing on the first not-yet-fully-
-          // answered page.
-          let cumulative = 0;
-          let startIndex = built.length > 0 ? built.length - 1 : 0;
-          for (let i = 0; i < built.length; i++) {
-            const page = built[i];
-            const weight = page.kind === 'pair' ? page.pairs.length * 2 : page.questions.length;
-            if (cumulative + weight > answeredCountFromStore) {
-              startIndex = i;
-              break;
-            }
-            cumulative += weight;
-            startIndex = i;
+          // Prefer the concrete server snapshot. A count of N only means N
+          // rows exist; it does not prove that the first N display items are
+          // the ones answered (two tabs / an old client can leave holes).
+          const firstUnanswered = firstUnansweredPageIndex(built, saved);
+          if (firstUnanswered === null) {
+            // Likert+pairs phase already fully answered — motivation may
+            // still be pending, so continue there rather than assuming the
+            // whole test is done.
+            navigate('/assessment/motivation', { replace: true });
+            return;
           }
+
+          const startIndex = firstUnanswered;
           setPageIndex(startIndex);
           // The instrument the student is about to land on skips its own
           // test-intro card when it's the very first one (covered by the
@@ -189,23 +203,17 @@ export function useAssessment() {
           if (passedInstruments.length > 0) {
             setSeenInstruments(prev => new Set([...prev, ...passedInstruments]));
           }
-          const sequenceAnswerCount = questions.length + pairs.length * 2;
-          if (answeredCountFromStore >= sequenceAnswerCount) {
-            // Likert+pairs phase already fully answered — motivation may
-            // still be pending, so continue there rather than assuming the
-            // whole test is done.
-            navigate('/assessment/motivation', { replace: true });
-            return;
-          }
         }
 
         // Intro is a one-time "let's begin" moment — only on a genuinely
-        // fresh start. Reload / resume always has answeredCount > 0 (or the
-        // intro already dismissed this session), so skip straight to questions.
+        // fresh start. A saved answer or a dismissed intro resumes directly
+        // at the question selected above.
         const introKey = `profy-assessment-intro-seen:${assessmentId}`;
         const introAlreadySeen =
           typeof sessionStorage !== 'undefined' && sessionStorage.getItem(introKey) === '1';
-        const testAlreadyStarted = answeredCountFromStore > 0 || introAlreadySeen;
+        const hasSavedMainAnswers =
+          Object.keys(saved.question_values).length > 0 || Object.keys(saved.pair_picks).length > 0;
+        const testAlreadyStarted = hasSavedMainAnswers || introAlreadySeen;
 
         if (testAlreadyStarted) {
           setPhase('question');
@@ -334,17 +342,16 @@ export function useAssessment() {
       // advance() is only reached after the caller already checked
       // response.completed === false, so the server is telling us this
       // phase genuinely isn't done — yet we're out of pages to show. That
-      // means some raw question/pair is unanswered somewhere OTHER than
-      // where we currently are (e.g. a resume computed against a display
-      // order that changed since some answers were recorded, so its
-      // "first N are answered" assumption no longer holds). We have no way
-      // to know which item that is — there's no per-item answered flag in
-      // the API — so the only safe recovery is to walk the whole sequence
-      // again from the top: re-submitting already-answered items is a
-      // harmless no-op, and whatever was actually skipped will surface
-      // this pass.
+      // means an earlier item is still missing. Use the exact saved IDs we
+      // loaded and updated during this run to return directly to its page.
+      const firstUnanswered = firstUnansweredPageIndex(pages, {
+        question_values: savedLikertRef.current,
+        pair_picks: savedPairsRef.current,
+      });
       setError(t('assessment:error.answersLost'));
-      setPageIndex(0);
+      // If local refs and the server disagree, page zero is the conservative
+      // fallback and lets the student walk the sequence without skipping.
+      setPageIndex(firstUnanswered ?? 0);
       setSaving(false);
       return;
     }

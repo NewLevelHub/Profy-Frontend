@@ -25,7 +25,7 @@ export default function PsychoEmotionalPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('assessment');
   const [introSeen, setIntroSeen] = useState(false);
-  const { submitting, handleCircle2 } = usePsychoEmotional();
+  const { ready, submitting, handleCircle2 } = usePsychoEmotional();
 
   return (
     <AssessmentLayout>
@@ -44,7 +44,11 @@ export default function PsychoEmotionalPage() {
       />
 
       <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
-        {!introSeen ? (
+        {!ready ? (
+          <div className="flex-1 flex items-center justify-center py-16">
+            <Spinner size="lg" />
+          </div>
+        ) : !introSeen ? (
           <AssessmentIntro
             illustrated
             kicker={t('psychoemotional.circle2.introKicker')}

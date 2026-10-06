@@ -184,8 +184,12 @@ export async function autofillAssessment(assessmentId: string): Promise<void> {
 
   const { run, content } = await asturApi.openAttempt(assessmentId);
   for (const st of content.subtests.filter((s) => !run.submitted_subtests.includes(s.key))) {
-    await asturApi.startSubtest(assessmentId, st.number, run.run_id);
-    await asturApi.submitSubtest(assessmentId, st.number, { ...asturAutofillPayload(st), run_id: run.run_id });
+    const started = await asturApi.startSubtest(assessmentId, st.number, run.run_id, run.state_version);
+    await asturApi.submitSubtest(assessmentId, st.number, {
+      ...asturAutofillPayload(st),
+      run_id: run.run_id,
+      started_at: started.started_at,
+    });
   }
   useAssessmentStore.getState().setAsturCompleted(true);
 }

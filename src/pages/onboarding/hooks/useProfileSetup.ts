@@ -5,7 +5,7 @@ import { useProfileStore } from '@/shared/store/profile';
 import { CERTIFICATE_TYPES, validateCertificateScore } from '@/shared/config/certificates';
 import { translateErrors } from '@/shared/lib/validationMessage';
 import type { CertificateItem, CertificateType, ValidationMessage } from '@/shared/types';
-import { useOnboardingDraftStore } from '../onboardingDraftStore';
+import { useOnboardingDraftStore } from '@/shared/store/onboardingDraft';
 import { gradesForAge, isAgeGradeCompatible } from '@/shared/lib/ageGrade';
 
 // Exam score fields are keyed by exam ('ielts' | 'unt' | ...), so they share

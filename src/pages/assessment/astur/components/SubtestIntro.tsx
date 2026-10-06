@@ -8,11 +8,12 @@ interface SubtestIntroProps {
   count: number;
   /** Lability has no subtest limit, only a cap per command. */
   labilityItemLimitMs: number;
+  starting: boolean;
   onStart: () => void;
 }
 
 /** АСТУР per-subtest gate — thin wrapper around the shared AssessmentIntro card (PRO-396). */
-export function SubtestIntro({ subtest, index, count, labilityItemLimitMs, onStart }: SubtestIntroProps) {
+export function SubtestIntro({ subtest, index, count, labilityItemLimitMs, starting, onStart }: SubtestIntroProps) {
   const { t } = useTranslation('assessment');
 
   const limitMinutes = subtest.time_limit_sec !== null ? Math.max(1, Math.round(subtest.time_limit_sec / 60)) : null;
@@ -36,6 +37,7 @@ export function SubtestIntro({ subtest, index, count, labilityItemLimitMs, onSta
       notice={notice}
       ctaLabel={t('intro.astur.cta')}
       onStart={onStart}
+      isStarting={starting}
     />
   );
 }

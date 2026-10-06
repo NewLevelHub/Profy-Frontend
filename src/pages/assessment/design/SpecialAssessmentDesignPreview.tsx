@@ -72,15 +72,15 @@ export default function SpecialAssessmentDesignPreview() {
         itemCountLabel={t('intro.astur.itemCount', { count: 8 })} durationLabel={t('intro.durationUpToMin', { count: 40 })}
         ctaLabel={t('intro.astur.cta')} onStart={next} secondaryCtaLabel={t('intro.astur.pause')}
         onSecondaryAction={() => setExitOpen(true)} />}
-      {view === 'asturInstruction' && <SubtestIntro subtest={subtest} index={subtest.number - 1} count={8} labilityItemLimitMs={15000} onStart={next} />}
+      {view === 'asturInstruction' && <SubtestIntro subtest={subtest} index={subtest.number - 1} count={8} labilityItemLimitMs={15000} starting={false} onStart={next} />}
       {view === 'belbin' && <div className="rd-assessment-workspace"><BelbinBlock section={belbin} sectionIndex={0} sectionCount={7}
         allocation={allocation} blockTotal={10} isValid={Object.values(allocation).reduce((a, b) => a + b, 0) === 10}
         isLastBlock={false} submitting={false} submitError={null} onChange={setAllocation}
         onBack={() => selectView('belbinIntro')} onNext={next} /></div>}
       {view === 'astur' && <div className="rd-assessment-workspace" key={`${kind}-${revision}`}>
-        {kind === 'lability' ? <LabilityRunner subtest={subtest} runId={PREVIEW_RUN_ID} startedAt={startedAt}
+        {kind === 'lability' ? <LabilityRunner subtest={subtest} runId={PREVIEW_RUN_ID} startedAt={startedAt} serverClock={null}
           itemLimitMs={15000} submitting={false} submitError={null} onSubmit={next} />
-          : <SubtestRunner subtest={subtest} startedAt={startedAt} timerSlot={timerSlot} submitting={false} submitError={null} onSubmit={next} />}
+          : <SubtestRunner subtest={subtest} startedAt={startedAt} serverClock={null} timerSlot={timerSlot} submitting={false} submitError={null} onSubmit={next} />}
       </div>}
       {(view === 'belbinDone' || view === 'asturDone') && <div className="rd-assessment-workspace"><AssessmentCompletion
         title={t(isBelbin ? 'belbin.doneTitle' : 'astur.doneTitle')}

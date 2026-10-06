@@ -19,7 +19,7 @@ import type {
   AsturNumericSeriesItem,
 } from '@/shared/types';
 import { AssessmentTimer, formatCountdownMmSs } from '../../components/AssessmentTimer';
-import { useCountdown } from '../hooks/useCountdown';
+import { useCountdown, type CountdownClockSync } from '../hooks/useCountdown';
 import {
   type AsturAnswerState,
   areAllAsturItemsDone,
@@ -48,6 +48,7 @@ function pageSizeFor(subtest: AsturContentSubtest): number {
 interface SubtestRunnerProps {
   subtest: AsturContentSubtest;
   startedAt: string | null;
+  serverClock: CountdownClockSync | null;
   /** AssessmentRail's status slot — the countdown renders up there. */
   timerSlot: HTMLElement | null;
   submitting: boolean;
@@ -142,7 +143,15 @@ function renderItem(
  * for confirmation first. On expiry the subtest is sent automatically: what
  * is still open goes as skipped.
  */
-export function SubtestRunner({ subtest, startedAt, timerSlot, submitting, submitError, onSubmit }: SubtestRunnerProps) {
+export function SubtestRunner({
+  subtest,
+  startedAt,
+  serverClock,
+  timerSlot,
+  submitting,
+  submitError,
+  onSubmit,
+}: SubtestRunnerProps) {
   const { t } = useTranslation('assessment');
   const { t: tCommon } = useTranslation('common');
   const [state, setState] = useState<AsturAnswerState>(() => initialState(subtest));
@@ -184,7 +193,7 @@ export function SubtestRunner({ subtest, startedAt, timerSlot, submitting, submi
   const { remainingMs } = useCountdown(durationMs, subtest.key, () => {
     setTimeUp(true);
     send();
-  }, startedAt);
+  }, startedAt, serverClock);
 
   const pageStart = pageIndex * pageSize;
   const pageItems = subtest.items.slice(pageStart, pageStart + pageSize);

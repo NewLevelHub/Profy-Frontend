@@ -263,6 +263,11 @@ export interface StartPsychoEmotionalResponse {
   run_id: string;
 }
 
+export interface PsychoEmotionalStateResponse {
+  run_id: string | null;
+  status: 'not_started' | 'pending' | 'completed';
+}
+
 export interface FinishPsychoEmotionalPayload {
   list2: number[];
   list2_dt_ms: number[];
@@ -300,6 +305,16 @@ export interface SubmitBelbinPayload {
 export interface SubmitBelbinResponse {
   run_id: string;
   role_totals: Record<string, number>;
+}
+
+export interface BelbinProgressBlock {
+  block_index: number;
+  allocation: Record<string, number>;
+}
+
+export interface BelbinProgressResponse {
+  completed: boolean;
+  blocks: BelbinProgressBlock[];
 }
 
 // ─── АСТУР (ипсативный/таймированный блок, вне обычного /assessment потока) ─────
@@ -409,12 +424,16 @@ export interface AsturRunSummary {
   submitted_subtests: AsturSubtestKey[];
   /** First server start of every currently unfinished subtest. */
   subtest_started_at: Partial<Record<AsturSubtestKey, string>>;
+  /** Monotonic generation used to serialize start/reset operations. */
+  state_version: number;
 }
 
 /** `in_progress` = an attempt is open (resume it); `completed` = the
  *  attempt is finished and can't be reopened. */
 export interface AsturState {
   status: 'not_started' | 'in_progress' | 'completed';
+  /** Server clock sample paired with this state snapshot. */
+  server_now: string;
   active_run: AsturRunSummary | null;
   latest_completed_run: AsturRunSummary | null;
 }
@@ -430,11 +449,15 @@ export interface StartAsturSubtestResponse {
   run_id: string;
   subtest: string;
   started_at: string;
+  /** Server clock sample used to calibrate the client countdown. */
+  server_now: string;
+  state_version: number;
 }
 
 export interface ResetAsturSubtestResponse {
   run_id: string;
   subtest: AsturSubtestKey;
+  state_version: number;
 }
 
 /** One item's outcome: an explicit answer or an explicit skip. */

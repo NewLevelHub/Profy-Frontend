@@ -44,6 +44,7 @@ export default function AsturPage() {
     showCompleted,
     subtest,
     subtestStartedAt,
+    subtestServerClock,
     subtestIndex,
     subtestCount,
     stepPhase,
@@ -53,6 +54,7 @@ export default function AsturPage() {
     exitConfirmOpen,
     exiting,
     exitError,
+    starting,
     beginSubtest,
     completeSubtest,
     handleAutofill,
@@ -125,6 +127,7 @@ export default function AsturPage() {
           progressAriaLabel={t('rail.progressAriaAstur')}
           progress={progress}
           onExit={handleExit}
+          exitDisabled={starting || submitting}
           devAutofill={{ onClick: handleAutofill, loading: submitting }}
           statusSlotRef={setRailStatusSlot}
         />
@@ -153,6 +156,7 @@ export default function AsturPage() {
               index={subtestIndex}
               count={subtestCount}
               labilityItemLimitMs={labilityItemLimitMs}
+              starting={starting}
               onStart={beginSubtest}
             />
             {submitError && (
@@ -183,9 +187,11 @@ export default function AsturPage() {
 
             {running && stepPhase === 'running' && subtest.key === 'lability' && (
               <LabilityRunner
+                key={`${runId}:${subtest.key}:${subtestStartedAt}`}
                 subtest={subtest}
                 runId={runId ?? ''}
                 startedAt={subtestStartedAt}
+                serverClock={subtestServerClock}
                 itemLimitMs={labilityItemLimitMs}
                 submitting={submitting}
                 submitError={submitError}
@@ -195,8 +201,10 @@ export default function AsturPage() {
 
             {running && stepPhase === 'running' && subtest.key !== 'lability' && (
               <SubtestRunner
+                key={`${runId}:${subtest.key}:${subtestStartedAt}`}
                 subtest={subtest}
                 startedAt={subtestStartedAt}
+                serverClock={subtestServerClock}
                 timerSlot={railStatusSlot}
                 submitting={submitting}
                 submitError={submitError}

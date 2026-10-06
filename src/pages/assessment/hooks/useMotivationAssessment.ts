@@ -31,6 +31,15 @@ function restoreRankings(triplets: MotivationTriplet[], saved: SavedAnswersRespo
 const sameRanking = (a: string[] | undefined, b: string[]) =>
   a !== undefined && a.length === b.length && a.every((id, i) => id === b[i]);
 
+/** A response count cannot identify a hole left before a later triplet. */
+function firstUnansweredTripletIndex(
+  triplets: MotivationTriplet[],
+  savedRankings: Record<number, string[]>,
+): number | null {
+  const index = triplets.findIndex(triplet => savedRankings[triplet.triplet_index] === undefined);
+  return index === -1 ? null : index;
+}
+
 export function useMotivationAssessment() {
   useFinishedAssessmentGuard();
   const { t } = useTranslation();
@@ -77,26 +86,24 @@ export function useMotivationAssessment() {
       setPhase('loading');
       setError(null);
       try {
-        const [current, data, saved] = await Promise.all([
-          assessmentApi.current(),
+        const [data, saved] = await Promise.all([
           motivationApi.getTriplets(assessmentId!),
-          // Not fatal: without it "Назад" just can't show earlier rankings.
-          assessmentApi.getSavedAnswers(assessmentId!).catch(() => null),
+          // Required for a safe resume: a total count cannot identify holes.
+          assessmentApi.getSavedAnswers(assessmentId!),
         ]);
         if (cancelled) return;
         if (data.length === 0) throw new Error('empty_triplets');
-        if (saved) {
-          const restored = restoreRankings(data, saved);
-          savedRef.current = restored;
-          setAnswers(prev => ({ ...prev, ...restored }));
-        }
+        const restored = restoreRankings(data, saved);
+        savedRef.current = restored;
+        setAnswers(prev => ({ ...prev, ...restored }));
         setTriplets(data);
 
         if (!startIndexApplied.current) {
           startIndexApplied.current = true;
-          const startIndex = Math.min(current.motivation_answered_count, data.length - 1);
-          setTripletIndex(startIndex);
-          if (startIndex >= data.length - 1 && current.motivation_answered_count >= data.length) {
+          // Prefer exact triplet indexes from saved-answers. Two stored
+          // responses do not imply triplets 0 and 1 were the ones answered.
+          const firstUnanswered = firstUnansweredTripletIndex(data, restored);
+          if (firstUnanswered === null) {
             const state = useAssessmentStore.getState();
             const nextRoute = !state.belbinCompleted
               ? `/assessment/belbin/${assessmentId}`
@@ -106,13 +113,14 @@ export function useMotivationAssessment() {
             navigate(nextRoute, { replace: true });
             return;
           }
+
+          setTripletIndex(firstUnanswered);
         }
 
         // Intro screen is a one-time "let's begin" moment — only show it on
-        // a genuinely fresh start (nothing answered yet). Resuming later
-        // (rest stop, closed tab, etc.) always has motivation_answered_count
-        // > 0 by then, so it goes straight to the question.
-        if (current.motivation_answered_count === 0) {
+        // a genuinely fresh start (nothing answered yet).
+        const hasSavedMotivationAnswers = Object.keys(restored).length > 0;
+        if (!hasSavedMotivationAnswers) {
           setPhase('intro');
         } else {
           setPhase('question');
@@ -212,7 +220,13 @@ export function useMotivationAssessment() {
 
       const isLast = tripletIndex >= triplets.length - 1;
       if (isLast) {
-        navigate(`/assessment/belbin/${assessmentId}`);
+        // Never leave motivation while the server says it is incomplete.
+        // Return to the exact missing triplet; falling back to the start is
+        // safer than silently carrying an incomplete stage into Belbin.
+        const firstUnanswered = firstUnansweredTripletIndex(triplets, savedRef.current);
+        setError(t('assessment:error.answersLost'));
+        setTripletIndex(firstUnanswered ?? 0);
+        setSaving(false);
         return;
       }
 

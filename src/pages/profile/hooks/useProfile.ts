@@ -5,7 +5,7 @@ import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useResultStore } from '@/shared/store/result';
-import { useOnboardingDraftStore } from '@/pages/onboarding/onboardingDraftStore';
+import { useOnboardingDraftStore } from '@/shared/store/onboardingDraft';
 import type { IdentityRailSection } from '../sections/IdentityRail';
 
 export function useProfile() {
