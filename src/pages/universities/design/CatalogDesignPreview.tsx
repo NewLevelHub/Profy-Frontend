@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
+import { ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { StudentNavigation } from '@/shared/ui/redesign/StudentNavigation';
 import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
@@ -7,6 +8,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { BackLink } from '@/shared/ui/BackLink';
 import { UniversitiesView } from '../UniversitiesPage';
 import { UniversityDetailView } from '../UniversityDetailPage';
+import { UNIVERSITY_PAGE_SIZE } from '../hooks/useUniversities';
 import { DirectionDetailView } from '@/pages/results/DirectionDetailPage';
 import { ProgramDetailView } from '@/pages/results/ProgramDetailPage';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
@@ -52,7 +54,11 @@ export default function CatalogDesignPreview() {
     detailPathFor={id => `/results/directions/design/universities/${id}`} onToggleFavorite={toggleFavorite}
     sortDirection={sortDirection} onToggleSort={() => setSortDirection(value => value === 'asc' ? 'desc' : 'asc')} />;
   return <div className="redesign rd-student flex flex-col overflow-hidden">
-    <aside className="rd-student-preview"><p>{t('catalogDesign.preview.title')}</p>
+    <aside className="rd-student-preview">
+      <div className="rd-catalog-preview-heading">
+        <p>{t('catalogDesign.preview.title')}</p>
+        <Link to="/universities">{t('catalogDesign.preview.liveCatalog')}<ArrowUpRight size={15} aria-hidden="true" /></Link>
+      </div>
       <nav aria-label={t('catalogDesign.preview.viewsLabel')}>{VIEWS.map(value => <button type="button" key={value} aria-pressed={view === value} onClick={() => { if (value === 'program') setSelectedProgram('preview-program-0'); select(value); }}>{t(`catalogDesign.preview.views.${value}`)}</button>)}</nav>
       {notice && <p role="status">{t('redesign.preview.notice')}</p>}
     </aside>
@@ -66,8 +72,8 @@ export default function CatalogDesignPreview() {
         event.preventDefault(); setSelectedProgram(href.split('/').pop() ?? 'preview-program-0'); select('program');
       }
     }}>
-      {(view === 'catalog' || view === 'loading' || view === 'error') && <UniversitiesView model={{ universities: filtered.slice((page - 1) * 3, page * 3), total: filtered.length,
-        page, totalPages: Math.max(1, Math.ceil(filtered.length / 3)), setPage: value => { setPage(value); mainRef.current?.scrollTo({ top: 0 }); },
+      {(view === 'catalog' || view === 'loading' || view === 'error') && <UniversitiesView model={{ universities: filtered.slice((page - 1) * UNIVERSITY_PAGE_SIZE, page * UNIVERSITY_PAGE_SIZE), total: filtered.length,
+        page, totalPages: Math.max(1, Math.ceil(filtered.length / UNIVERSITY_PAGE_SIZE)), setPage: value => { setPage(value); mainRef.current?.scrollTo({ top: 0 }); },
         isLoading: view === 'loading', isFetching: view === 'loading', error: view === 'error' ? true : null, refetch: () => select('catalog'),
         searchInput: search, setSearchInput: value => { setSearch(value); setPage(1); }, countries, activeCountry: country,
         setActiveCountry: value => { setCountry(value); setPage(1); }, onlyFavorites, toggleOnlyFavorites: () => { setOnlyFavorites(value => !value); setPage(1); }, toggleFavorite,

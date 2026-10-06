@@ -6,7 +6,12 @@ import { cardImageUrl } from '@/shared/lib/universityDisplay';
 export function UniversityMedia({ name, shortName, src, fullSize = false }: {
   name: string; shortName?: string | null; src: string | null; fullSize?: boolean;
 }) {
-  const initials = shortName?.trim().slice(0, 6) || name.trim().split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase();
+  const label = shortName?.trim() || name.trim();
+  const words = label.split(/\s+/);
+  const abbreviation = words[0];
+  const initials = /^[\p{Lu}\d]{2,6}$/u.test(abbreviation)
+    ? abbreviation
+    : words.slice(0, 2).map(word => word[0]).join('').toUpperCase();
   const tone = Array.from(name).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % 3;
   const placeholder = <div className="rd-university-placeholder" data-tone={tone} aria-hidden="true">
     <span className="rd-university-monogram">{initials}</span><GraduationCap size={25} />

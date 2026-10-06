@@ -87,8 +87,19 @@
 .rd-program-facts>div { padding: 22px 28px; }
 .rd-program-facts>div+div { border-left: 1px solid var(--rd-line); }
 .rd-program-facts dd { font-size: 17px; }
-.rd-catalog .rd-program-who { background: var(--rd-lilac); }
+.rd-program-overview { display: grid; align-items: start; gap: 18px; }
+.rd-program-description { display: grid; grid-template-columns: minmax(0, 1fr) 72px; align-items: start; gap: 20px; padding: 24px; border: 1px solid var(--rd-line); border-radius: 20px; background: var(--rd-card); }
+.rd-program-description-copy { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.rd-program-description .journey-kicker { margin: 0; }
+.rd-program-description-mascot { width: 72px; height: 82px; object-fit: contain; }
+.rd-catalog .rd-program-who { padding: 24px; border-color: var(--rd-line); border-radius: 20px; background: var(--rd-lilac); }
+.rd-program-who h3 { font-size: 18px; line-height: 1.4; }
+.rd-catalog-preview-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
+.rd-catalog-preview-heading a { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .rd-program-visit { align-self: flex-start; min-width: 250px; }
+@media (min-width: 1024px) {
+  .rd-program-overview-pair { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+}
 @media (max-width: 1000px) {
   .rd-university-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
   .rd-university-hero-content { padding: 28px; }
@@ -123,5 +134,11 @@
   .rd-program-facts>div { padding: 18px 22px; }
   .rd-program-facts>div+div { border-left: 0; border-top: 1px solid var(--rd-line); }
   .rd-program-facts dd { font-size: 16px; }
+  .rd-program-description { grid-template-columns: minmax(0, 1fr) 48px; padding: 20px; gap: 12px; }
+  .rd-program-description-copy { display: contents; }
+  .rd-program-description-copy>p { grid-column: 1 / -1; }
+  .rd-program-description-copy>.journey-kicker { grid-column: 1; grid-row: 1; align-self: center; }
+  .rd-program-description-mascot { grid-column: 2; grid-row: 1; width: 48px; height: 54px; }
+  .rd-catalog .rd-program-who { padding: 20px; }
   .rd-program-visit { width: 100%; min-width: 0; }
 }

@@ -281,34 +281,24 @@ export function ProgramDetailView({ model, goBack }: {
             const hasWhoFor = Boolean(program.who_its_for && program.who_its_for.length > 0);
             if (!desc && !hasWhoFor) return null;
 
-            // Two-column grid only makes sense once both cards exist — with
-            // only one of them present, a fixed lg:grid-cols-2 leaves the
-            // other half of the row empty (seen on programs with no
-            // who_its_for data, e.g. Imperial College's Инженер-механик).
             return (
-              <div className={desc && hasWhoFor ? 'grid grid-cols-1 lg:grid-cols-2 gap-4' : 'grid grid-cols-1'}>
+              <div className={cn('rd-program-overview', desc && hasWhoFor && 'rd-program-overview-pair')}>
                 {desc && (
-                  <DomainCardFrame ariaLabel={t('program.descriptionKicker')}>
-                    {/* Kicker + rating on the left, mascot on the right —
-                        same layout/typography DirectionDetailPage's "Навыки
-                        и предметы для развития" uses for its heading row. */}
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                      <div className="min-w-0 flex flex-col gap-2">
-                        <DomainKicker>{t('program.descriptionKicker')}</DomainKicker>
-                        {(() => {
-                          const rankLabels = getUniversityRankingLabels(program.university, t);
-                          if (rankLabels.length === 0) return null;
-                          return (
-                            <p className="text-body text-primary leading-relaxed">
-                              {t('program.rankingLine', { labels: rankLabels.join(' · ') })}
-                            </p>
-                          );
-                        })()}
-                      </div>
-                      <img className="rd-direction-mascot" src="/mascot/redesign/book.png" alt="" width={90} height={100} />
+                  <section className="rd-program-description" aria-label={t('program.descriptionKicker')}>
+                    <div className="rd-program-description-copy">
+                      <DomainKicker>{t('program.descriptionKicker')}</DomainKicker>
+                      {(() => {
+                        const rankLabels = getUniversityRankingLabels(program.university, t);
+                        return rankLabels.length > 0 && (
+                          <p className="text-body text-primary">
+                            {t('program.rankingLine', { labels: rankLabels.join(' · ') })}
+                          </p>
+                        );
+                      })()}
+                      <p className="text-body text-primary m-0">{desc}</p>
                     </div>
-                    <p className="text-body text-primary leading-relaxed m-0">{desc}</p>
-                  </DomainCardFrame>
+                    <img className="rd-program-description-mascot" src="/mascot/redesign/book.png" alt="" width={72} height={82} />
+                  </section>
                 )}
 
                 {hasWhoFor && (
