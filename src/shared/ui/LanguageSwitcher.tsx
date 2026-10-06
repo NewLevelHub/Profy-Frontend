@@ -24,6 +24,7 @@ const OPTIONS = KNOWN_LOCALES.filter((l) => (SUPPORTED_LOCALES as readonly strin
 
 export interface LanguageSwitcherProps {
   className?: string;
+  persistToAccount?: boolean;
 }
 
 /**
@@ -34,7 +35,7 @@ export interface LanguageSwitcherProps {
  * account preference sticks — but a missing/older backend without `locale`
  * must not block the switch or flash a cryptic "!" (that was the bug).
  */
-export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ className, persistToAccount = true }: LanguageSwitcherProps) {
   const { t } = useTranslation('common');
   const locale = useLocaleStore((s) => s.locale);
   const setLocale = useLocaleStore((s) => s.setLocale);
@@ -74,7 +75,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     setLocale(next);
     setOpen(false);
 
-    if (!isAuthenticated) return;
+    if (!persistToAccount || !isAuthenticated) return;
 
     // Persist on the account when the API supports it. Failure is non-fatal:
     // the session keeps the new UI language in localStorage.

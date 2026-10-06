@@ -112,5 +112,11 @@
     "unt": "ҰБТ",
     "sat": "SAT",
     "toefl": "TOEFL"
+  },
+  "redesign": {
+    "studentNav": "Оқушы кабинеті",
+    "openMenu": "Мәзірді ашу",
+    "closeMenu": "Мәзірді жабу",
+    "skip": "Мазмұнға өту"
   }
 }

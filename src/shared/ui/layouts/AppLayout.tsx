@@ -4,6 +4,9 @@ import { TopRail } from '@/shared/ui/navigation/TopRail';
 import { Spinner } from '@/shared/ui';
 import { useAssessmentSync } from '@/shared/hooks/useAssessmentSync';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { useTranslation } from 'react-i18next';
+import '../redesign/redesign.css';
+import '../redesign/student.css';
 
 // Keyed by location.key so each history entry keeps its own scroll position.
 const scrollPositions = new Map<string, number>();
@@ -21,7 +24,8 @@ function pageEnterKey(pathname: string): string {
   return pathname;
 }
 
-export function AppLayout() {
+export function AppLayout({ redesigned = false }: { redesigned?: boolean }) {
+  const { t } = useTranslation('common');
   useAssessmentSync();
   const syncDone = useAssessmentStore(s => s.syncDone);
   const mainRef = useRef<HTMLElement>(null);
@@ -86,9 +90,10 @@ export function AppLayout() {
   }, [location.key]);
 
   return (
-    <div className="journey-page h-screen text-primary flex flex-col overflow-hidden">
-      <TopRail />
-      <main ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
+    <div className={redesigned ? "redesign rd-student h-screen flex flex-col overflow-hidden" : "journey-page h-screen text-primary flex flex-col overflow-hidden"}>
+      {redesigned && <a href="#student-content" className="rd-skip">{t('redesign.skip')}</a>}
+      <TopRail redesigned={redesigned} />
+      <main id={redesigned ? "student-content" : undefined} tabIndex={redesigned ? -1 : undefined} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
         {syncDone ? (
           // key=pageEnterKey: анимация только при смене вкладки шапки.
           // Внутри /admin/* ключ стабилен — сайдбар без fade, контент сразу.

@@ -116,5 +116,11 @@
     "unt": "ЕНТ",
     "sat": "SAT",
     "toefl": "TOEFL"
+  },
+  "redesign": {
+    "studentNav": "Кабинет ученика",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню",
+    "skip": "Перейти к содержанию"
   }
 }

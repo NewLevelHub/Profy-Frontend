@@ -170,3 +170,15 @@
   .rd-welcome-actions .rd-button { width: 100%; }
   .rd-goal-dialog { padding: 24px; }
 }
+
+/* Profile's certificate editor uses the same form language as onboarding. */
+.rd-certificate-edit { width: min(720px, calc(100% - 40px)); margin: 48px auto 0; }
+.rd-certificate-edit:focus { outline: none; }
+.rd-certificate-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.rd-certificate-heading img { width: 120px; height: 140px; object-fit: contain; flex-shrink: 0; }
+@media (max-width: 480px) {
+  .rd-certificate-edit { width: calc(100% - 24px); margin-top: 28px; }
+  .rd-certificate-heading { align-items: flex-start; gap: 12px; }
+  .rd-certificate-heading img { width: 68px; height: 88px; }
+  .rd-certificate-edit .rd-subject-grid { grid-template-columns: 1fr; }
+}

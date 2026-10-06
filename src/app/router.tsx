@@ -96,6 +96,10 @@ export const router = createBrowserRouter([
     path: '/design/special-assessments',
     HydrateFallback: Spinner,
     lazy: async () => ({ Component: (await import('@/pages/assessment/design/SpecialAssessmentDesignPreview')).default }),
+  }, {
+    path: '/design/student',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/results/design/StudentDesignPreview')).default }),
   }] : []),
   // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
@@ -246,7 +250,7 @@ export const router = createBrowserRouter([
               // rail never lands in the exported PDF.
               { path: '/results/print', element: <ResultPrintPage /> },
               {
-                element: <AppLayout />,
+                element: <AppLayout redesigned />,
                 children: [
                   { path: '/results', element: <ResultsPage /> },
                   { path: '/profile', element: <ProfilePage /> },
