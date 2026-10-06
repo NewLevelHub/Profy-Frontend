@@ -6,15 +6,14 @@ import {
   Briefcase,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
+import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { BackLink } from '@/shared/ui/BackLink';
 import { Card } from '@/shared/ui/Card';
-import { Mascot } from '@/shared/ui/Mascot';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
+import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { toDisplayString, splitRequirementNotes } from '@/pages/results/utils/programUtils';
-import { getUniversityRankingLabels } from '@/shared/lib/universityDisplay';
+import { formatCost, getUniversityRankingLabels } from '@/shared/lib/universityDisplay';
 import { useBackTo } from '@/shared/lib/useBackTo';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { DomainCardFrame, DomainKicker, DomainListCard } from '@/pages/results/components/DomainCardParts';
@@ -244,28 +243,33 @@ function ProgramRequirementsCard({ program }: { program: ProgramDetail }) {
 export default function ProgramDetailPage() {
   const { slug = '' } = useParams<{ slug: string }>();
   const goBack = useBackTo(`/results/directions/${encodeURIComponent(slug)}/universities`);
+  return <ProgramDetailView model={useProgramDetail()} goBack={goBack} />;
+}
+
+export function ProgramDetailView({ model, goBack }: {
+  model: ReturnType<typeof useProgramDetail>; goBack: () => void;
+}) {
   const { t } = useTranslation('results');
-  const { program, isLoading, error } = useProgramDetail();
+  const { program, isLoading, error } = model;
 
   return (
-    <PageContainer className="space-y-6">
-      <BackLink onClick={goBack} className="animate-fade-in">
+    <PageContainer className="rd-catalog rd-detail rd-program-detail">
+      <BackLink onClick={goBack} className="rd-detail-back">
         {t('common:back')}
       </BackLink>
 
       {isLoading ? (
         <ProgramDetailSkeleton />
       ) : error !== null || !program ? (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <p className="text-body text-danger">{error ?? t('program.notFound')}</p>
-          <Button variant="ghost" onClick={goBack}>{t('common:back')}</Button>
-        </div>
+        <JourneyEmptyState illustration="/mascot/redesign/rest.png" title={error ?? t('program.notFound')}
+          body="" actionLabel={t('common:back')} onAction={goBack} />
       ) : (
         <div className="flex flex-col gap-6 animate-fade-in">
-          <PageHeader
-            title={program.name}
-            subtitle={program.university.name}
-          />
+          <StudentPageHeading kicker={t('catalogDesign.programKicker')} title={program.name} subtitle={program.university.name} />
+          <dl className="rd-program-facts">
+            <div><dt>{t('catalogDesign.language')}</dt><dd>{program.language}</dd></div>
+            <div><dt>{t('catalogDesign.cost')}</dt><dd>{program.cost_per_year !== null ? formatCost(Number(program.cost_per_year), t) : (program.cost_label ?? t('cost.notSpecified'))}</dd></div>
+          </dl>
 
           {(() => {
             // program.description is intentionally null for programs whose
@@ -301,14 +305,14 @@ export default function ProgramDetailPage() {
                           );
                         })()}
                       </div>
-                      <Mascot state="graduate" size={68} className="flex-shrink-0" />
+                      <img className="rd-direction-mascot" src="/mascot/redesign/book.png" alt="" width={90} height={100} />
                     </div>
                     <p className="text-body text-primary leading-relaxed m-0">{desc}</p>
                   </DomainCardFrame>
                 )}
 
                 {hasWhoFor && (
-                  <Card className="bg-brand-subtle">
+                  <Card className="rd-program-who bg-brand-subtle">
                     <SectionHeadingLocal icon={Target} className="mb-2.5">{t('program.forWhom')}</SectionHeadingLocal>
                     <p className="text-body text-primary leading-relaxed m-0">{program.who_its_for}</p>
                   </Card>
@@ -350,7 +354,7 @@ export default function ProgramDetailPage() {
                   href={websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 min-h-12 px-6 py-3.5 text-body-md font-medium font-sans rounded-[var(--radius)] bg-brand text-on-brand hover:bg-brand-hover transition-colors press-scale focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[color-mix(in_srgb,var(--brand)_40%,transparent)]"
+                  className="rd-button rd-program-visit"
                 >
                   {t('program.visitSite')}
                 </a>

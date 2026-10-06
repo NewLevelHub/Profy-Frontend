@@ -1,11 +1,12 @@
+import type { ReactNode } from 'react';
+import type { RiasecResultResponse } from '@/shared/types';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/ui/Button';
+import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
+import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { Skeleton } from '@/shared/ui/Skeleton';
-import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
@@ -87,10 +88,6 @@ export default function DirectionDetailPage() {
     ? report.careers.find(d => d.slug === slug)
     : undefined;
 
-  const skills = direction?.skills_needed ?? [];
-  const subjects = direction?.subjects_to_develop ?? [];
-  const fitReasons = direction ? reasonsBeyondWhy(direction) : [];
-
   if (isLoading) {
     return <DirectionDetailSkeleton />;
   }
@@ -105,30 +102,52 @@ export default function DirectionDetailPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <h2 className="text-h1 font-extrabold text-primary">{t('direction.errorTitle')}</h2>
-        <p className="text-body text-secondary">{error}</p>
-        <Button onClick={() => refetch()}>{t('common:retry')}</Button>
-      </div>
+      <PageContainer className="rd-catalog"><JourneyEmptyState illustration="/mascot/redesign/rest.png"
+        title={t('direction.errorTitle')} body={error} actionLabel={t('common:retry')} onAction={() => refetch()} /></PageContainer>
     );
   }
 
   if (!direction) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <h2 className="text-h1 font-extrabold text-primary">{t('direction.notFoundTitle')}</h2>
-        <Button onClick={() => navigate('/results')}>{t('common:backToResults')}</Button>
-      </div>
+      <PageContainer className="rd-catalog"><JourneyEmptyState illustration="/mascot/redesign/book.png"
+        title={t('direction.notFoundTitle')} body="" actionLabel={t('common:backToResults')} onAction={() => navigate('/results')} /></PageContainer>
     );
   }
 
+  return <DirectionDetailView direction={direction} goBack={() => navigate('/results')}>
+      {showUniversities && (
+        <div className="flex flex-col gap-3">
+          <DomainKicker>{t('direction.universitiesKicker')}</DomainKicker>
+          <ProgramListSection
+            programs={programs}
+            isLoading={programsLoading}
+            error={programsError}
+            activeCountry={activeCountry}
+            onCountryChange={setActiveCountry}
+            countryFilters={countryFilters}
+            refetch={refetchPrograms}
+            detailPathFor={(id) => `/results/directions/${encodeURIComponent(slug!)}/universities/${id}`}
+            onToggleFavorite={toggleFavorite}
+          />
+        </div>
+      )}
+  </DirectionDetailView>;
+}
+
+export function DirectionDetailView({ direction, goBack, children }: {
+  direction: RiasecResultResponse['careers'][number]; goBack: () => void; children?: ReactNode;
+}) {
+  const { t } = useTranslation('results');
+  const skills = direction.skills_needed ?? [];
+  const subjects = direction.subjects_to_develop ?? [];
+  const fitReasons = reasonsBeyondWhy(direction);
   return (
-    <PageContainer className="flex flex-col gap-6">
-      <BackLink onClick={() => navigate('/results')}>
+    <PageContainer className="rd-catalog rd-detail rd-direction">
+      <BackLink onClick={goBack} className="rd-detail-back">
         {t('common:backToResults')}
       </BackLink>
 
-      <PageHeader
+      <StudentPageHeading
         kicker={t('direction.pageKicker')}
         title={direction.name}
       />
@@ -136,7 +155,7 @@ export default function DirectionDetailPage() {
       {direction.description && direction.description.length > 0 && (
         <section
           aria-label={t('direction.descriptionAria')}
-          className="panel-glass !p-5 sm:!p-7 bg-[color-mix(in_srgb,var(--pine)_5%,var(--paper))]"
+          className="rd-direction-intro"
         >
           <Text variant="body-md" className="text-primary leading-relaxed">
             {direction.description}
@@ -156,9 +175,7 @@ export default function DirectionDetailPage() {
                 {t('direction.skillsSubjectsBody')}
               </Text>
             </div>
-            <div className="journey-mascot-well shrink-0">
-              <Mascot state="transition" size={72} blink={false} />
-            </div>
+            <img className="rd-direction-mascot" src="/mascot/redesign/notepad.png" width={100} height={110} alt="" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
@@ -212,22 +229,7 @@ export default function DirectionDetailPage() {
         </div>
       </DomainCardFrame>
 
-      {showUniversities && (
-        <div className="flex flex-col gap-3">
-          <DomainKicker>{t('direction.universitiesKicker')}</DomainKicker>
-          <ProgramListSection
-            programs={programs}
-            isLoading={programsLoading}
-            error={programsError}
-            activeCountry={activeCountry}
-            onCountryChange={setActiveCountry}
-            countryFilters={countryFilters}
-            refetch={refetchPrograms}
-            detailPathFor={(id) => `/results/directions/${encodeURIComponent(slug!)}/universities/${id}`}
-            onToggleFavorite={toggleFavorite}
-          />
-        </div>
-      )}
+      {children}
     </PageContainer>
   );
 }

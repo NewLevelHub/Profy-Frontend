@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/ui/Button';
+import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { BackLink } from '@/shared/ui/BackLink';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
+import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
@@ -30,24 +30,19 @@ export default function UniversityListPage() {
 
   if (!isAllowed) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 text-center">
-        <span className="text-5xl select-none" aria-hidden="true">🔒</span>
-        <h2 className="text-h1 font-extrabold text-primary">{t('universityList.lockedTitle')}</h2>
-        <p className="text-body text-secondary max-w-md">
-          {t('universityList.lockedBody')}
-        </p>
-        <Button onClick={() => navigate('/results')}>{t('common:backToResults')}</Button>
-      </div>
+      <PageContainer className="rd-catalog"><JourneyEmptyState illustration="/mascot/redesign/book.png"
+        title={t('universityList.lockedTitle')} body={t('universityList.lockedBody')}
+        actionLabel={t('common:backToResults')} onAction={() => navigate('/results')} /></PageContainer>
     );
   }
 
   return (
-    <PageContainer className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-        <BackLink onClick={goBack} className="shrink-0 font-extrabold">
+    <PageContainer className="rd-catalog rd-detail">
+      <div className="rd-program-list-heading">
+        <BackLink onClick={goBack} className="rd-detail-back">
           {t('common:back')}
         </BackLink>
-        <PageHeader title={t('universityList.title')} className="flex-1 min-w-0" />
+        <StudentPageHeading kicker={t('direction.universitiesKicker')} title={t('universityList.title')} />
       </div>
 
       <ProgramListSection

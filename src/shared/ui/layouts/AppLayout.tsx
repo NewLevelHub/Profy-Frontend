@@ -7,6 +7,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { useTranslation } from 'react-i18next';
 import '../redesign/redesign.css';
 import '../redesign/student.css';
+import '../redesign/catalog.css';
 
 // Keyed by location.key so each history entry keeps its own scroll position.
 const scrollPositions = new Map<string, number>();

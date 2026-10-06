@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { StudentNavigation } from '@/shared/ui/redesign/StudentNavigation';
 import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
@@ -24,7 +25,9 @@ type View = typeof VIEWS[number];
 
 export default function StudentDesignPreview() {
   const { t } = useTranslation();
-  const [view, setView] = useState<View>('report');
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const [view, setView] = useState<View>(() => VIEWS.find(value => value === params.get('view')) ?? 'report');
   const [notice, setNotice] = useState(false);
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -54,16 +57,16 @@ export default function StudentDesignPreview() {
       {notice && <p role="status">{t('results:redesign.preview.notice')}</p>}
     </aside>
     <StudentNavigation persistLocale={false} activePath={view === 'profile' || view === 'scores' ? '/profile' : '/results'} identity={profile.name} onLogout={showNotice}
-      onNavigate={path => path === '/profile' ? select('profile') : path === '/results' ? select('report') : showNotice()} />
+      onNavigate={path => path === '/profile' ? select('profile') : path === '/results' ? select('report') : navigate('/design/universities')} />
     <main id="student-content" ref={mainRef} onClickCapture={event => {
       const link = (event.target as Element).closest('a');
-      if (link?.getAttribute('href')?.startsWith('/results/directions/')) { event.preventDefault(); showNotice(); }
+      if (link?.getAttribute('href')?.startsWith('/results/directions/')) { event.preventDefault(); navigate('/design/universities?view=direction'); }
     }} className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
       <PageContainer>
         {(view === 'report' || view === 'explore') && <StudentReport report={report} ageGroup="senior" goal={view === 'explore' ? 'explore' : 'university'} onDownload={showNotice}><FeedbackSection assessmentId={null} /></StudentReport>}
         {view === 'notStarted' && <AssessmentNotStartedCard onStart={() => select('inProgress')} />}
         {view === 'inProgress' && <AssessmentInProgressCard completedPhaseCount={2} totalPhaseCount={4} progress={64} currentPhase="belbin" onContinue={() => select('completed')} />}
-        {view === 'completed' && <AssessmentCompletedCard onOpenProfile={() => select('profile')} onOpenUniversities={showNotice} />}
+        {view === 'completed' && <AssessmentCompletedCard onOpenProfile={() => select('profile')} onOpenUniversities={() => navigate('/design/universities')} />}
         {view === 'error' && <JourneyEmptyState illustration="/mascot/redesign/rest.png" title={t('results:error.somethingWrong')} body={t('results:error.loadResults')} actionLabel={t('common:retry')} onAction={() => select('report')} />}
         {view === 'profile' && <div className="rd-profile"><StudentPageHeading kicker={t('profile:redesign.kicker')} title={t('profile:redesign.title')} subtitle={t('profile:redesign.subtitle')} />
           <ProfileLedgerView persistLocale={false} model={model} sound={{ soundEnabled, toggleSound: () => setSoundEnabled(value => !value), prefersReducedMotion: false }} />

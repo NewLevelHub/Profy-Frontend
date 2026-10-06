@@ -100,6 +100,10 @@ export const router = createBrowserRouter([
     path: '/design/student',
     HydrateFallback: Spinner,
     lazy: async () => ({ Component: (await import('@/pages/results/design/StudentDesignPreview')).default }),
+  }, {
+    path: '/design/universities',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/universities/design/CatalogDesignPreview')).default }),
   }] : []),
   // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
