@@ -1068,17 +1068,54 @@ export interface AdminUserDetail {
   assessments: AdminAssessmentSummary[];
 }
 
-/** `role: 'student'` is rejected by the endpoint (422) — self-registration
- *  creates students, this only creates staff accounts. */
+/** Staff are only ever invited (PRO-457) — students register themselves. */
 export type AdminStaffRole = Exclude<UserRole, 'student'>;
 
-export interface AdminUserCreateRequest {
+// ─── Admin: staff invitations ── docs/frontend-admin-invitations-api-contract.md (backend repo)
+
+/** Derived server-side from the invitation's dates, never stored. */
+export type AdminInvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
+
+export interface AdminInvitation {
+  id: string;
   email: string;
-  password: string;
   role: AdminStaffRole;
-  /** Defaults to `true` server-side — no verification email is sent, unlike
-   *  self-registration. */
-  is_verified?: boolean;
+  /** Language of the email; becomes the account's locale on accept. */
+  locale: 'ru' | 'kk';
+  status: AdminInvitationStatus;
+  /** null once the inviting admin's account is deleted. */
+  invited_by: { id: string; email: string } | null;
+  created_at: string;
+  expires_at: string;
+  accepted_at: string | null;
+  revoked_at: string | null;
+}
+
+/** create / resend only — the raw link is never returned again. */
+export interface AdminInvitationSent extends AdminInvitation {
+  invite_url: string;
+  /** false: the provider failed, the link still works — hand it over manually. */
+  email_sent: boolean;
+}
+
+export interface AdminInvitationCreateRequest {
+  email: string;
+  role: AdminStaffRole;
+  locale: 'ru' | 'kk';
+}
+
+export interface AdminInvitationListParams {
+  page?: number;
+  limit?: number;
+  status?: AdminInvitationStatus;
+  search?: string;
+}
+
+export interface AdminInvitationListResponse {
+  items: AdminInvitation[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface AdminResponseItem {

@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Building2, MessageSquare, Users } from 'lucide-react';
+import { BookOpen, Building2, MailPlus, MessageSquare, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Mono } from '@/shared/ui/typography/Mono';
@@ -39,6 +39,7 @@ const ADMIN_NAV: readonly AdminNavGroup[] = [
   {
     items: [
       { to: '/admin/users', labelKey: 'nav.users', icon: Users },
+      { to: '/admin/invitations', labelKey: 'nav.invitations', icon: MailPlus },
       { to: '/admin/universities', labelKey: 'nav.universities', icon: Building2 },
       { to: '/admin/feedback', labelKey: 'nav.feedback', icon: MessageSquare },
     ],

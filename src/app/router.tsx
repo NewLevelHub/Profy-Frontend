@@ -59,6 +59,7 @@ import UniversityDetailPage from '@/pages/universities/UniversityDetailPage';
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
+import AdminInvitationsPage from '@/pages/admin/invitations/AdminInvitationsPage';
 import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
 import AdminUniversitiesPage from '@/pages/admin/AdminUniversitiesPage';
 import AdminUniversityDetailPage from '@/pages/admin/AdminUniversityDetailPage';
@@ -170,6 +171,7 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/admin/users', element: <AdminUsersPage /> },
                   { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                  { path: '/admin/invitations', element: <AdminInvitationsPage /> },
                   { path: '/admin/feedback', element: <AdminFeedbackPage /> },
                   { path: '/admin/universities', element: <AdminUniversitiesPage /> },
                   { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },

@@ -10,7 +10,6 @@ import { printWithTitle } from '@/shared/lib/printDocument';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
@@ -19,10 +18,9 @@ import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { UsersPrintReport } from './components/UsersPrintReport';
-import { CreateStaffModal } from './components/CreateStaffModal';
+import { InviteStaffModal } from '@/pages/admin/invitations/components/InviteStaffModal';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type {
-  AdminUserDetail,
   AdminUserListItem,
   AdminUserStats,
   AssessmentGoal,
@@ -165,8 +163,7 @@ export default function AdminUsersPage() {
   } | null>(null);
   const [exportError, setExportError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createdUser, setCreatedUser] = useState<AdminUserDetail | null>(null);
+  const [isInviteOpen, setInviteOpen] = useState(false);
   const [stats, setStats] = useState<AdminUserStats | null>(null);
 
   const {
@@ -475,37 +472,15 @@ export default function AdminUsersPage() {
               <Download size={14} />
               {t('users.exportCsv')}
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              muteSound
-              onClick={() => {
-                setCreatedUser(null);
-                setCreateOpen(true);
-              }}
-            >
+            <Button variant="ghost" size="sm" muteSound onClick={() => setInviteOpen(true)}>
               <UserPlus size={14} />
-              {t('users.createStaff')}
+              {t('users.inviteStaff')}
             </Button>
           </>
         }
       />
 
       {stats && <UserStatsTiles stats={stats} />}
-
-      {createdUser && (
-        <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-[3px] border border-brand bg-brand-subtle">
-          <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>
-            {t('users.createdStaff', {
-              email: createdUser.email,
-              role: t(USER_ROLE_LABELS[createdUser.role]),
-            })}
-          </p>
-          <Link to={`/admin/users/${createdUser.id}`} className={cn(ADMIN_TEXT, 'text-brand font-semibold underline whitespace-nowrap')}>
-            {t('users.createdStaffOpen')}
-          </Link>
-        </div>
-      )}
 
       <div
         role="group"
@@ -603,19 +578,8 @@ export default function AdminUsersPage() {
         />
       )}
 
-      <CreateStaffModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreated={(user) => {
-          setCreatedUser(user);
-          // Jump to the new staff member's role tab so they show up immediately.
-          setFilters({
-            role: user.role === 'student' ? '' : user.role,
-            status: '',
-            goal: '',
-          });
-        }}
-      />
+      {/* Staff accounts are created only by accepting an invitation (PRO-457). */}
+      <InviteStaffModal isOpen={isInviteOpen} onClose={() => setInviteOpen(false)} showListLink />
     </>
   );
 }
