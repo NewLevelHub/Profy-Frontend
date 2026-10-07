@@ -157,6 +157,21 @@ jobs:
               sleep 1
             done
 
+            # Free disk: drop older dev frontend images now that the new one is
+            # live. Only this repository's `dev-sha-*` tags are candidates —
+            # production images are `sha-*` and never match. The image just
+            # deployed and the newest previous one (rollback) are kept. No `-f`:
+            # Docker refuses to remove an image any container still uses.
+            # Never fails the deploy.
+            KEEP_PREVIOUS_IMAGES=1
+            docker image ls --format '{{.CreatedAt}}|{{.Repository}}|{{.Tag}}' \
+              | awk -F'|' -v repo="$IMAGE_PATH" -v registry="$DOCKER_REGISTRY" -v current="dev-sha-${SHORT_SHA}" \
+                  '($2 == repo || $2 == registry "/" repo) && $3 ~ /^dev-sha-[0-9a-f]+$/ && $3 != current' \
+              | sort -r | tail -n +$((KEEP_PREVIOUS_IMAGES + 1)) \
+              | while IFS='|' read -r _ repo tag; do
+                  docker rmi "${repo}:${tag}" || echo "WARN: kept ${repo}:${tag} (still in use)"
+                done || true
+
             echo "=== Development deploy complete ==="
             echo "Image: $FRONTEND_IMAGE"
             docker compose --env-file .env.development -f docker-compose.dev.yml -p profy-frontend-dev ps
