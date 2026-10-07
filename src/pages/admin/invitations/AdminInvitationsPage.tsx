@@ -83,7 +83,11 @@ export default function AdminInvitationsPage() {
       <InviteStaffModal isOpen={invitations.isInviteOpen} onClose={invitations.closeInvite} />
 
       {linkDialog && (
-        <InvitationDialog titleId={linkTitleId} onClose={invitations.closeLinkDialog}>
+        <InvitationDialog
+          titleId={linkTitleId}
+          returnFocusTo={invitations.linkDialogOpener}
+          onClose={invitations.closeLinkDialog}
+        >
           <InvitationLinkPanel
             titleId={linkTitleId}
             kind={linkDialog.kind}

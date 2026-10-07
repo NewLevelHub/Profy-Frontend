@@ -50,19 +50,22 @@ function Segmented<T extends string>({ labelId, options, value, label, disabled,
 }
 
 /** "Пригласить сотрудника" (PRO-464). The account itself is created only
- *  when the invitee accepts — students never come through here. */
-export function InviteStaffModal({ isOpen, onClose, showListLink = false }: InviteStaffModalProps) {
+ *  when the invitee accepts — students never come through here. Mounted only
+ *  while open, so its state (and the last invite's link) dies on close. */
+export function InviteStaffModal({ isOpen, ...props }: InviteStaffModalProps) {
+  return isOpen ? <InviteStaffDialog {...props} /> : null;
+}
+
+function InviteStaffDialog({ onClose, showListLink = false }: Omit<InviteStaffModalProps, 'isOpen'>) {
   const { t } = useTranslation('admin');
   const titleId = useId();
   const roleLabelId = useId();
   const localeLabelId = useId();
-  const form = useInviteStaff(isOpen);
+  const form = useInviteStaff();
   const { isSubmitting } = form;
 
-  if (!isOpen) return null;
-
   return (
-    <InvitationDialog titleId={titleId} locked={isSubmitting} onClose={onClose}>
+    <InvitationDialog titleId={titleId} locked={isSubmitting} contentKey={form.sent ? 'sent' : 'form'} onClose={onClose}>
       {form.sent ? (
         <>
           <InvitationLinkPanel
@@ -108,7 +111,7 @@ export function InviteStaffModal({ isOpen, onClose, showListLink = false }: Invi
                 aria-invalid={invalid}
                 aria-describedby={describedBy}
                 autoComplete="off"
-                autoFocus
+                data-autofocus
                 disabled={isSubmitting}
               />
             )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/admin';
@@ -13,11 +13,14 @@ export type EmailLocale = 'ru' | 'kk';
 /** Server errors about the address itself — shown under the email field. */
 const EMAIL_ERROR_CODES = ['invitation_email_undeliverable', 'user_exists', 'invitation_pending'];
 
-/** "Пригласить сотрудника" form: fresh on every open, shows the sent
- *  invitation and its link once created. */
-export function useInviteStaff(isOpen: boolean) {
+/** "Пригласить сотрудника" form; shows the sent invitation and its link
+ *  once created. Lives only while the dialog is open (see InviteStaffModal),
+ *  so every open starts blank — never with the previous invite's link. */
+export function useInviteStaff() {
   const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
+  // The UI language at open; switching it while the form is up doesn't
+  // change a choice the admin may already have made.
   const uiLocale = useLocaleStore((s) => s.locale);
 
   const [email, setEmailValue] = useState('');
@@ -27,24 +30,13 @@ export function useInviteStaff(isOpen: boolean) {
 
   const create = useMutation({
     mutationFn: adminApi.createInvitation,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ADMIN_INVITATIONS_KEY }),
+    // Also on error: `invitation_superseded` comes after the row was created.
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ADMIN_INVITATIONS_KEY }),
     onError: (error) => {
       if (EMAIL_ERROR_CODES.includes(apiErrorCode(error) ?? '')) setEmailError(invitationErrorMessage(error, t));
     },
   });
   const isEmailError = EMAIL_ERROR_CODES.includes(apiErrorCode(create.error) ?? '');
-  const { reset } = create;
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setEmailValue('');
-    setRole('psychologist');
-    setLocale(uiLocale);
-    setEmailError('');
-    reset();
-    // Only on open — the admin may switch the UI language while the form is up.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, reset]);
 
   function setEmail(value: string) {
     setEmailValue(value);

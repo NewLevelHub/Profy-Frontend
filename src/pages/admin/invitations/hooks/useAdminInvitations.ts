@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/admin';
@@ -42,6 +42,13 @@ export function useAdminInvitations() {
   /** Row whose link was just copied — its button reads "Скопировано". */
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
+  /** The row button that started the action shown in `linkDialog` — it is
+   *  disabled while the request runs, so the dialog can't read it on open. */
+  const actionButtonRef = useRef<HTMLElement | null>(null);
+
+  function rememberActionButton() {
+    actionButtonRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  }
 
   useEffect(() => {
     if (!copiedId) return;
@@ -135,12 +142,19 @@ export function useAdminInvitations() {
     openInvite: () => setInviteOpen(true),
     closeInvite: () => setInviteOpen(false),
     linkDialog,
+    linkDialogOpener: actionButtonRef.current,
     closeLinkDialog: () => setLinkDialog(null),
     actionError,
     busyId: pending?.variables?.id ?? null,
     copiedId,
-    handleCopyLink: (invitation: AdminInvitation) => copyLink.mutate(invitation),
-    handleResend: (invitation: AdminInvitation) => resend.mutate(invitation),
+    handleCopyLink: (invitation: AdminInvitation) => {
+      rememberActionButton();
+      copyLink.mutate(invitation);
+    },
+    handleResend: (invitation: AdminInvitation) => {
+      rememberActionButton();
+      resend.mutate(invitation);
+    },
     handleRevoke,
   };
 }

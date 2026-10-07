@@ -223,6 +223,7 @@
 
 /* Staff invitations: one dialog for the invite form, its result and a row's link; row actions. */
 .rd-admin .rd-admin-dialog>.rd-invite-dialog { position: relative; display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 520px; padding: 28px; }
+.rd-invite-dialog:focus { outline: none; }
 .rd-invite-close { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; color: var(--rd-muted); }
 .rd-invite-close:hover:not(:disabled) { background: var(--rd-sage); color: var(--rd-pine); }
 .rd-invite-head { display: flex; align-items: flex-start; gap: 14px; padding-right: 36px; }

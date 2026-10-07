@@ -1075,8 +1075,16 @@ export type AdminStaffRole = Exclude<UserRole, 'student'>;
 export type AdminInvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
 
 /** Fate of the latest invitation email: `sent` = queued at Resend; the rest
- *  come from the Resend webhook; `failed` = never went out. */
-export type AdminInvitationEmailStatus = 'sent' | 'delayed' | 'delivered' | 'bounced' | 'complained' | 'failed';
+ *  come from the Resend webhook; `failed` = never went out; `suppressed` =
+ *  Resend refused the address after an earlier bounce or complaint. */
+export type AdminInvitationEmailStatus =
+  | 'sent'
+  | 'delayed'
+  | 'delivered'
+  | 'bounced'
+  | 'complained'
+  | 'failed'
+  | 'suppressed';
 
 export interface AdminInvitation {
   id: string;

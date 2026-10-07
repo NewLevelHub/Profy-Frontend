@@ -23,6 +23,7 @@ const DELIVERY_TONES: Record<AdminInvitationEmailStatus, 'muted' | 'ok' | 'dange
   bounced: 'danger',
   complained: 'danger',
   failed: 'danger',
+  suppressed: 'danger',
 };
 
 const DATE_FORMAT: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
