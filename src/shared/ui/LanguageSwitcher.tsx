@@ -127,7 +127,7 @@ export function LanguageSwitcher({ className, persistToAccount = true, disabledR
           className={cn(
             'absolute right-0 top-[calc(100%+6px)] z-50 min-w-[7.5rem]',
             'flex flex-col gap-0.5 p-1.5 rounded-[14px]',
-            'bg-[color-mix(in_srgb,var(--paper)_94%,transparent)] backdrop-blur-md',
+            'bg-surface',
             'border border-[color:color-mix(in_srgb,#fff_55%,var(--border))]',
             'shadow-[0_16px_36px_color-mix(in_srgb,var(--midnight)_10%,transparent)]',
           )}

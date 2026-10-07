@@ -1,7 +1,6 @@
-// Single source of truth for the app-shell nav items — previously duplicated
-// between Sidebar.tsx (desktop) and Header.tsx (mobile). Both are now merged
-// into TopRail.tsx, which is the only consumer of this list. `label` holds an
-// i18n key (common namespace) — TopRail resolves it with `t()`.
+// Single source of truth for the app-shell nav items, read by the student
+// and psychologist navigations. `label` holds an i18n key — the navigation
+// resolves it with `t()`.
 export const NAV_ITEMS = [
   { label: 'common:nav.results', path: '/results' },
   // matchPrefix keeps the tab lit on /universities/:id, which NavLink's own
@@ -10,12 +9,6 @@ export const NAV_ITEMS = [
   { label: 'common:nav.universities', path: '/universities', matchPrefix: '/universities' },
   { label: 'common:nav.profile', path: '/profile' },
 ] as const;
-
-export const ADMIN_NAV_ITEM = {
-  label: 'common:nav.admin',
-  path: '/admin/users',
-  matchPrefix: '/admin',
-} as const;
 
 /** Staff cabinet nav — no student tabs (results / start test). The review
  *  queue comes first: it is where the psychologist's work starts. */
@@ -32,11 +25,6 @@ export const PSYCHOLOGIST_NAV_ITEMS = [
     matchPrefix: '/psychologist/students',
   },
 ] as const;
-
-export type NavItem =
-  | (typeof NAV_ITEMS)[number]
-  | typeof ADMIN_NAV_ITEM
-  | (typeof PSYCHOLOGIST_NAV_ITEMS)[number];
 
 export function isNavActive(
   matchPrefix: string | undefined,

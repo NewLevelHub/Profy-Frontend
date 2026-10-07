@@ -43,7 +43,7 @@
 .rd-report-summary-text { font-size: var(--text-rd-lead); line-height: 1.75; margin-top: 17px; }
 .rd-report-disclaimer { margin-top: 20px; padding-top: 17px; border-top: 1px solid color-mix(in srgb, var(--rd-pine) 18%, transparent); font-size: var(--text-rd-label); line-height: 1.75; color: var(--rd-text); }
 .rd-report-summary img { width: 100%; height: 220px; object-fit: contain; }
-.rd-report .panel-glass { background: var(--rd-card); border: 1px solid var(--rd-line); box-shadow: none; backdrop-filter: none; border-radius: var(--rd-radius-lg); }
+.rd-report :is(.rd-domain-card, .rd-feedback, .rd-direction-row, .rd-scenario-bridge) { background: var(--rd-card); border: 1px solid var(--rd-line); box-shadow: none; border-radius: var(--rd-radius-lg); }
 .rd-report .rd-domain-card { padding: 30px; gap: 24px; }
 .rd-report :where(.text-caption, .text-mono-xs) { font-size: var(--text-rd-label); line-height: 1.75; }
 .rd-report :where(.text-body-sm, .text-body, .text-body-md) { font-size: var(--text-rd-body); line-height: 1.75; }

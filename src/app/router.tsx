@@ -256,7 +256,7 @@ export const router = createBrowserRouter([
               // rail never lands in the exported PDF.
               { path: '/results/print', element: <ResultPrintPage /> },
               {
-                element: <AppLayout redesigned />,
+                element: <AppLayout />,
                 children: [
                   { path: '/results', element: <ResultsPage /> },
                   { path: '/profile', element: <ProfilePage /> },

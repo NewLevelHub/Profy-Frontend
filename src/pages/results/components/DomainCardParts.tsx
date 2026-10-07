@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { Card } from '@/shared/ui/Card';
 import type { InterestLevel } from '@/shared/types';
 
 /**
@@ -29,12 +30,13 @@ export function DomainCardFrame({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className="rd-domain-card panel-glass p-5 sm:p-7 flex flex-col gap-6"
+    <Card
+      role="region"
+      className="rd-domain-card p-5 sm:p-7 flex flex-col gap-6"
       aria-label={ariaLabel}
     >
       {children}
-    </section>
+    </Card>
   );
 }
 

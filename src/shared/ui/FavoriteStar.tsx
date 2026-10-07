@@ -66,7 +66,7 @@ export const FavoriteStar = memo(function FavoriteStar({
         box,
         'relative inline-flex items-center justify-center rounded-full cursor-pointer transition-colors press-scale',
         'border border-[color:color-mix(in_srgb,#fff_55%,var(--border))]',
-        'bg-[color-mix(in_srgb,var(--paper)_88%,transparent)] backdrop-blur-sm',
+        'bg-surface',
         'shadow-[0_6px_14px_color-mix(in_srgb,var(--midnight)_6%,transparent)]',
         isFavorite
           ? 'text-[color:var(--pine)]'

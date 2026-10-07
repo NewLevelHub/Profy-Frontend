@@ -38,7 +38,7 @@
 .rd-assessment-workspace { width: min(840px, calc(100% - 48px)); margin: 44px auto; }
 .rd-assessment .assessment-stage--centered { min-height: calc(100dvh - var(--assessment-rail-h, 108px)); transform: none; padding: 40px 24px; }
 .rd-assessment .assessment-stage { max-width: 680px; }
-.rd-assessment .assessment-stage__shell { min-height: 0; border-radius: 24px; border: 1px solid var(--rd-line); background: var(--rd-card); box-shadow: var(--rd-shadow); backdrop-filter: none; padding: 40px !important; }
+.rd-assessment .assessment-stage__shell { min-height: 0; border-radius: 24px; border: 1px solid var(--rd-line); background: var(--rd-card); box-shadow: var(--rd-shadow); padding: 40px !important; }
 .rd-assessment .assessment-stage__shell::before, .rd-assessment .assessment-stage__shell::after { display: none; }
 .rd-assessment .assessment-stage__shell h1 { font-size: clamp(28px, 3vw, 38px); line-height: 1.2; letter-spacing: -.02em; }
 .rd-assessment .assessment-stage__shell p { font-size: 15px; line-height: 1.7; }

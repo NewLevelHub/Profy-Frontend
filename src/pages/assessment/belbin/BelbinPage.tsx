@@ -77,7 +77,6 @@ export default function BelbinPage() {
 
       {phase !== 'done' && (
         <AssessmentRail
-          redesigned
           title={headerTitle}
           sectionLabel={t('rail.sectionBelbin')}
           progressAriaLabel={t('rail.progressAriaBelbin')}

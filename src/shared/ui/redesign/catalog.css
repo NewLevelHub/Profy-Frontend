@@ -4,7 +4,7 @@
 .rd-catalog-heading .rd-student-page-heading { margin-bottom: 0; }
 .rd-catalog-heading>img { width: 122px; height: 142px; object-fit: contain; flex-shrink: 0; }
 .rd-catalog-filters { padding: 22px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); margin-bottom: 28px; }
-.rd-university-filters input { border-radius: var(--rd-radius-md); min-height: 48px; background: var(--rd-bg); border: 1px solid var(--rd-line); backdrop-filter: none; font-size: var(--text-rd-body); font-weight: 400; }
+.rd-university-filters input { border-radius: var(--rd-radius-md); min-height: 48px; background: var(--rd-bg); border: 1px solid var(--rd-line); font-size: var(--text-rd-body); font-weight: 400; }
 .rd-university-filters button { font-weight: 500; font-size: var(--text-rd-ui); border-color: var(--rd-line); box-shadow: none; }
 .rd-university-filters button[aria-pressed] { border-radius: var(--rd-radius-md); min-height: 40px; padding-inline: 15px; background: var(--rd-bg); color: var(--rd-text); }
 .rd-university-filters button[aria-pressed=true] { background: var(--rd-pine); border-color: var(--rd-pine); color: var(--text-on-brand); }
@@ -75,7 +75,7 @@
 .rd-program-list-heading { display: flex; flex-direction: column; gap: 24px; }
 .rd-direction-intro { border: 1px solid var(--rd-line); background: var(--rd-sage); padding: 30px; border-radius: var(--rd-radius-lg); }
 .rd-direction-mascot { width: 95px; height: 108px; object-fit: contain; flex-shrink: 0; }
-.rd-catalog .panel-glass { background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); box-shadow: none; backdrop-filter: none; }
+.rd-catalog :is(.rd-domain-card, .rd-direction-row, .rd-scenario-bridge) { background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); box-shadow: none; }
 .rd-catalog .rd-domain-card { padding: 30px; gap: 25px; }
 .rd-catalog .rd-domain-card h2 { font-size: var(--text-rd-display); line-height: 1.3; }
 .rd-catalog .rd-domain-card h3 { font-size: var(--text-rd-title); line-height: 1.4; }

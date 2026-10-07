@@ -60,7 +60,7 @@ export default function SpecialAssessmentDesignPreview() {
         </button>)}
       </nav>}
     </aside>
-    <AssessmentRail redesigned title={title} sectionLabel={title} progressAriaLabel={t('rail.progressAriaTest')}
+    <AssessmentRail title={title} sectionLabel={title} progressAriaLabel={t('rail.progressAriaTest')}
       progress={isBelbin ? 60 : 80} onExit={() => setExitOpen(true)} statusSlotRef={setTimerSlot} />
     <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
       {view === 'belbinIntro' && <AssessmentIntro illustrated kicker={t('intro.belbin.kicker')}

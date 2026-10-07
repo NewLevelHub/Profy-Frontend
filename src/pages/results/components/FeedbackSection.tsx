@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
@@ -60,19 +61,19 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
 
   if (state === 'sent') {
     return (
-      <section className="rd-feedback panel-glass flex flex-col gap-2 !p-6 sm:!p-7">
+      <Card className="rd-feedback flex flex-col gap-2 !p-6 sm:!p-7">
         <span className="journey-kicker" style={{ color: 'var(--pine)' }}>
           {t('feedback.sentKicker')}
         </span>
         <Text variant="body-md" className="text-secondary leading-relaxed">
           {t('feedback.sentBody')}
         </Text>
-      </section>
+      </Card>
     );
   }
 
   return (
-    <section className="rd-feedback panel-glass flex flex-col gap-6 !p-6 sm:!p-7">
+    <Card className="rd-feedback flex flex-col gap-6 !p-6 sm:!p-7">
       <div className="flex flex-col gap-2">
         <span className="journey-kicker">{t('feedback.kicker')}</span>
         <Heading level="display-sm" as="h2" className="text-[color:var(--text-heading)] m-0">
@@ -173,6 +174,6 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
           {t('feedback.submit')}
         </Button>
       </div>
-    </section>
+    </Card>
   );
 }

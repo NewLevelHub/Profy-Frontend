@@ -52,7 +52,7 @@
 .rd-admin .admin-detail-heading nav :is(a,span) { font-size: var(--text-rd-label); }
 .rd-admin .admin-detail-heading nav a:hover { color: var(--rd-pine); }
 .rd-admin :is(.admin-list-heading,.admin-detail-heading) button { min-height: 40px; font-size: var(--text-rd-ui); border-radius: var(--rd-radius-md); padding: 9px 13px; }
-.rd-admin .field-tile { background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); box-shadow: none; backdrop-filter: none; }
+.rd-admin .field-tile { background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); box-shadow: none; }
 .rd-admin .field-tile::before,.rd-admin .field-tile::after { display: none; }
 .rd-admin section.admin-card { padding: 24px; gap: 22px; }
 .rd-admin .admin-section-heading h2 { font-size: var(--text-rd-title); line-height: 1.4; font-weight: 600; letter-spacing: -.02em; }
