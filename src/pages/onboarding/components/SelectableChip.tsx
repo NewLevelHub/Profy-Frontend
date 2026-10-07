@@ -28,7 +28,7 @@ export function SelectableChip({
       title={disabled ? disabledTitle : undefined}
       className={cn(
         'rd-choice px-3.5 py-2 rounded-pill text-caption font-semibold border transition-colors',
-        'disabled:cursor-not-allowed press-scale',
+        'disabled:cursor-not-allowed',
         // Подпись у своего варианта пишет человек: без max-w-full и переноса
         // длинная строка распирала группу, а .journey-shell обрезал её
         // overflow: hidden — чип молча терял хвост.
@@ -39,7 +39,7 @@ export function SelectableChip({
         disabled && !selected && 'opacity-45',
       )}
     >
-      {label}
+      <span className="min-w-0">{label}</span>
     </button>
   );
 }
