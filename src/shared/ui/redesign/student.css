@@ -36,9 +36,6 @@
 .rd-report-sidebar nav a { display: flex; align-items: center; gap: 13px; min-height: 44px; padding: 10px 12px; border-radius: 10px; font-size: 12px; color: var(--rd-text); }
 .rd-report-sidebar nav a>span { color: var(--rd-purple); font-size: 10px; }
 .rd-report-sidebar nav a:hover { background: var(--rd-sage); color: var(--rd-pine); }
-.rd-report-note { padding: 23px; border-radius: 18px; background: var(--rd-lilac); color: var(--rd-purple); }
-.rd-report-note p { margin-top: 14px; font-size: 13px; line-height: 1.75; }
-.rd-report-note a { display: flex; align-items: center; gap: 8px; margin-top: 20px; font-size: 12px; font-weight: 500; }
 .rd-report-summary { display: grid; grid-template-columns: minmax(0, 1fr) 165px; gap: 16px; align-items: center; padding: 30px; border-radius: 24px; background: var(--rd-sage); border: 1px solid var(--rd-line); }
 .rd-report-summary .rd-eyebrow { color: var(--rd-pine); letter-spacing: .08em; }
 .rd-report-summary-text { font-size: 17px; line-height: 1.75; margin-top: 17px !important; }
@@ -114,7 +111,6 @@
   .rd-report-sidebar nav { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; }
   .rd-report-sidebar nav>p { width: 100%; margin-left: 0; margin-bottom: 4px; }
   .rd-report-sidebar nav a { padding: 8px 11px; min-height: 36px; background: var(--rd-card); border: 1px solid var(--rd-line); gap: 7px; }
-  .rd-report-note { display: none; }
   .rd-profile-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 22px; }
   .rd-profile-section { padding: 24px; }
   .rd-profile #personal .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
