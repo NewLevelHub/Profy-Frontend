@@ -717,6 +717,13 @@ export interface PsychoEmotionalCompensation {
   purple_position: number;
 }
 
+export interface PsychoEmotionalChoiceAnalysis {
+  round: 1 | 2;
+  colors: number[];
+  anxiety: PsychoEmotionalAnxiety;
+  compensation: PsychoEmotionalCompensation;
+}
+
 export interface PsychoEmotionalStructural {
   performance: number;
   concentricity: number;
@@ -743,6 +750,7 @@ export interface PsychoEmotionalSection {
   validity_reasons: string[];
   choice_1: number[];
   choice_2: number[];
+  choice_analyses: PsychoEmotionalChoiceAnalysis[];
   d_value: number;
   d_memory: boolean;
   d_situationally_unstable: boolean;
@@ -782,9 +790,27 @@ export interface PsychoEmotionalIndexNote {
 /** `plus_minus` — descriptive contrast: [first, last] colour of choice 2. */
 export type PsychoPositionSign = PsychoFunctionalSign | 'plus_minus';
 
+export interface PsychoEmotionalColorNote {
+  color: number;
+  text: string;
+}
+
 export interface PsychoEmotionalPositionNote {
   sign: PsychoPositionSign;
   colors: number[];
+  text: string;
+  details?: PsychoEmotionalColorNote[];
+}
+
+export interface PsychoEmotionalMcvGroup {
+  sign: PsychoFunctionalSign;
+  colors: number[];
+  stable: boolean;
+  text: string;
+}
+
+export interface PsychoEmotionalConversationPrompt {
+  key: string;
   text: string;
 }
 
@@ -793,6 +819,8 @@ export interface PsychoEmotionalInterpretation {
   highlights: PsychoEmotionalHighlight[];
   indices: PsychoEmotionalIndexNote[];
   positions: PsychoEmotionalPositionNote[];
+  mcv_groups?: PsychoEmotionalMcvGroup[];
+  conversation_prompts?: PsychoEmotionalConversationPrompt[];
 }
 
 interface ResultResponseBase {
