@@ -2,49 +2,62 @@ import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
-import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { useAssessment } from './hooks/useAssessment';
 import { LikertPage } from './components/LikertPage';
-import { PairChoice } from './components/PairChoice';
+import { PairPage } from './components/PairPage';
 import { ExitAssessmentModal } from './components/ExitAssessmentModal';
 import { AssessmentIntro } from './components/AssessmentIntro';
+import { ASSESSMENT_PHASE_MINUTES, SECONDS_PER_LIKERT_ITEM } from '@/shared/config/constants';
 
 export default function AssessmentPage() {
   const { t } = useTranslation('assessment');
   const {
     phase,
     pageIndex,
-    totalPages,
     totalItems,
     likertAnswers,
-    selectedPairOptionId,
+    pairAnswers,
     transitioning,
     saving,
     savingVisible,
     error,
     currentLikertQuestions,
-    currentPair,
+    currentPairs,
+    isAdditionalTestsSection,
+    testIntroInstrument,
+    testIntroItemCount,
     progress,
     exitConfirmOpen,
     exiting,
     autofilling,
     handleBack,
     handleStartIntro,
+    handleStartTestIntro,
     handleLikertSelect,
     handleSubmitLikertPage,
-    handlePairAnswer,
+    handlePairSelect,
+    handleSubmitPairPage,
     handleAutofill,
+    handleAutofillToMotivation,
+    handleAutofillToAstur,
     handleExit,
     confirmExit,
     cancelExit,
     retry,
   } = useAssessment();
 
+  // PRO-338 Ф0.8: professional_types_abilities/eysenck/elers render as one
+  // contiguous, non-interleaved sub-section right after MI — the rail's
+  // section label switches for exactly that run of pages (see
+  // useAssessment's isAdditionalTestsSection).
+  const sectionLabel = isAdditionalTestsSection
+    ? t('rail.sectionAdditionalTests')
+    : t('rail.sectionDiagnostic');
+  // No "Страница N из M" while answering: 88 pages read as an endless test.
+  // The section label + percentage under the bar carry the progress instead.
   const headerTitle =
-    phase === 'question' && totalPages > 0
-      ? t('rail.pageOf', { current: pageIndex + 1, total: totalPages })
-      : t('rail.sectionDiagnostic');
+    phase === 'question' && !testIntroInstrument ? undefined : sectionLabel;
 
   return (
     <div className="flex flex-col min-h-screen bg-page">
@@ -60,13 +73,15 @@ export default function AssessmentPage() {
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
         title={headerTitle}
-        sectionLabel={t('rail.sectionDiagnostic')}
+        sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}
         progress={progress}
         showBack={phase === 'question' && pageIndex > 0}
         onBack={handleBack}
         onExit={handleExit}
         devAutofill={{ onClick: handleAutofill, loading: autofilling }}
+        devAutofillToMotivation={{ onClick: handleAutofillToMotivation, loading: autofilling }}
+        devAutofillToAstur={{ onClick: handleAutofillToAstur, loading: autofilling }}
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}
@@ -83,13 +98,27 @@ export default function AssessmentPage() {
             title={t('intro.diagnostic.title')}
             subtitle={t('intro.diagnostic.subtitle')}
             itemCountLabel={t('intro.itemCount', { count: totalItems })}
-            durationLabel={t('intro.durationMin', { count: Math.max(1, Math.ceil(totalItems / 20)) })}
+            durationLabel={t('intro.durationMin', { count: ASSESSMENT_PHASE_MINUTES.diagnostic })}
             ctaLabel={t('intro.diagnostic.cta')}
             onStart={handleStartIntro}
           />
         )}
 
-        {phase === 'question' && (
+        {phase === 'question' && testIntroInstrument && (
+          <AssessmentIntro
+            kicker={t(`intro.tests.${testIntroInstrument}.kicker`)}
+            title={t(`intro.tests.${testIntroInstrument}.title`)}
+            subtitle={t(`intro.tests.${testIntroInstrument}.subtitle`)}
+            itemCountLabel={t('intro.itemCount', { count: testIntroItemCount })}
+            durationLabel={t('intro.durationMin', {
+              count: Math.max(1, Math.ceil((testIntroItemCount * SECONDS_PER_LIKERT_ITEM) / 60)),
+            })}
+            ctaLabel={t('intro.diagnostic.cta')}
+            onStart={() => handleStartTestIntro(testIntroInstrument)}
+          />
+        )}
+
+        {phase === 'question' && !testIntroInstrument && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6">
 
@@ -120,28 +149,26 @@ export default function AssessmentPage() {
                 </div>
               )}
 
-              {currentPair !== undefined && (
+              {currentPairs !== undefined && (
                 <div
                   className={cn(
                     'transition-opacity duration-300',
                     transitioning ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  <Heading level="display-md" as="h2" className="text-primary mb-8 text-center">
-                    {t('format.pickCloser')}
-                  </Heading>
-                  <PairChoice
-                    frame={currentPair.frame}
-                    optionA={currentPair.option_a}
-                    optionB={currentPair.option_b}
-                    onSelect={handlePairAnswer}
-                    selected={selectedPairOptionId}
+                  <PairPage
+                    pairs={currentPairs}
+                    answers={pairAnswers}
+                    onSelect={handlePairSelect}
+                    onSubmit={handleSubmitPairPage}
+                    saving={saving}
+                    savingVisible={savingVisible}
                   />
                 </div>
               )}
             </div>
 
-            {currentLikertQuestions !== undefined && (
+            {(currentLikertQuestions !== undefined || currentPairs !== undefined) && (
               <div className="px-3 py-5 sm:px-4 lg:px-6" style={{ borderTop: '1px solid var(--line)' }}>
                 <Text variant="body-sm" className="text-muted">
                   {t('format.noWrongAnswers')}

@@ -9,12 +9,12 @@ import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
-import { useDirectionRoadmapStore } from '@/shared/store/directionRoadmap';
 import { useResults } from '@/pages/results/hooks/useResults';
 import { ResultLoadingView } from '@/pages/assessment/components/ResultLoadingView';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 import { DomainCardFrame, DomainKicker } from '@/pages/results/components/DomainCardParts';
+import { reasonsBeyondWhy } from '@/pages/results/utils/careerReasons';
 
 function capitalizeFirst(text: string): string {
   return text.length > 0 ? text[0].toUpperCase() + text.slice(1) : text;
@@ -70,7 +70,6 @@ export default function DirectionDetailPage() {
   const { t } = useTranslation('results');
 
   const { report, isLoading, isTranslating, error, refetch } = useResults();
-  const selectedDirectionSlug = useDirectionRoadmapStore(s => s.selectedDirectionSlug);
 
   const {
     programs,
@@ -87,10 +86,10 @@ export default function DirectionDetailPage() {
   const direction = report && report.interest_instrument === 'riasec'
     ? report.careers.find(d => d.slug === slug)
     : undefined;
-  const hasRoadmap = selectedDirectionSlug === slug;
 
   const skills = direction?.skills_needed ?? [];
   const subjects = direction?.subjects_to_develop ?? [];
+  const fitReasons = direction ? reasonsBeyondWhy(direction) : [];
 
   if (isLoading) {
     return <DirectionDetailSkeleton />;
@@ -189,14 +188,21 @@ export default function DirectionDetailPage() {
       )}
 
       <DomainCardFrame ariaLabel={t('direction.whyFitAria')}>
-        {direction.matched_strengths.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <DomainKicker>{t('direction.whyFitKicker')}</DomainKicker>
-            <p className="text-body-md font-semibold text-[color:var(--text-heading)] leading-relaxed m-0">
-              {direction.matched_strengths.join(', ')}
-            </p>
-          </div>
-        )}
+        <div className="flex flex-col gap-3">
+          <DomainKicker>{t('direction.whyFitKicker')}</DomainKicker>
+          <p className="text-body-md font-semibold text-[color:var(--text-heading)] leading-relaxed m-0">
+            {direction.why}
+          </p>
+          {fitReasons.length > 0 && (
+            <ul className="flex flex-col gap-2 m-0 pl-5 list-disc">
+              {fitReasons.map((reason) => (
+                <li key={reason.text} className="text-body-md text-primary leading-relaxed">
+                  {reason.text}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="flex flex-col gap-3">
           <DomainKicker>{t('direction.tryNowKicker')}</DomainKicker>
@@ -221,17 +227,6 @@ export default function DirectionDetailPage() {
             onToggleFavorite={toggleFavorite}
           />
         </div>
-      )}
-
-      {hasRoadmap && (
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-fit rounded-pill"
-          onClick={() => navigate(`/results/directions/${encodeURIComponent(slug!)}/roadmap`)}
-        >
-          {t('direction.myPlan')}
-        </Button>
       )}
     </PageContainer>
   );

@@ -13,19 +13,11 @@ export const KNOWN_LOCALES: readonly Locale[] = ['ru', 'kk'];
 /**
  * Locales actually offered to the user right now.
  *
- * KZ-603 (2026-09-08) added 'kk'. Временно свёрнуто обратно к ['ru'] на
- * время PRO-278: казахский перевод неполон, правится в PRO-254. Ничего не
- * удалено — переключатель, каталог kk и persist-логика на месте; чтобы
- * вернуть выбор языка, допиши сюда 'kk' обратно:
- *
- *   export const SUPPORTED_LOCALES: readonly Locale[] = ['ru', 'kk'];
- *
- * Одна эта строка гасит LanguageSwitcher во всех хостах (он сам рендерит
- * null при одной опции), скрывает строку «Язык» в настройках и в мобильных
- * меню через LOCALE_SWITCH_ENABLED, а уже сохранённый в localStorage 'kk'
- * зажимается resolveLocale обратно в 'ru'.
+ * KZ-603 (2026-09-08) added 'kk'; PRO-278 briefly collapsed it back to
+ * ['ru'] while the kk translation was incomplete. PRO-254 finished localizing
+ * the admin panel, so the choice is back on for everyone.
  */
-export const SUPPORTED_LOCALES: readonly Locale[] = ['ru'];
+export const SUPPORTED_LOCALES: readonly Locale[] = ['ru', 'kk'];
 
 export const DEFAULT_LOCALE: Locale = 'ru';
 

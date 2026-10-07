@@ -1,14 +1,16 @@
+import type { JourneyStage } from '@/shared/lib/journeyProgress';
+
 /**
  * Shared shape for the `navigate('/assessment/rest', { state })` call made
- * by all 4 assessment flows (useAssessment, usePairAssessment,
- * useMotivationAssessment, useMotivationHarter) when
+ * by both assessment flows (useAssessment, useMotivationAssessment) when
  * useAssessmentStore.recordQuestionAnswered() reports a rest stop is due.
  * See RestStopPage.tsx for the full doc on why `microInsight` is always
  * left undefined today.
  */
 export interface RestStopState {
   returnTo: string;
-  progress: number;
+  /** Snapshot of journeyStages() at the moment of the stop — feeds the stage map. */
+  stages: JourneyStage[];
   totalAnswered: number;
   microInsight?: string;
   /** True when this stop was triggered by useAssessmentStore.recordAnswerTiming

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
-import { Button, Mascot } from '@/shared/ui';
+import { Button, FullScreenPreferences, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
@@ -32,6 +32,11 @@ export default function GoalCheckPage() {
 
   return (
     <div className="journey-page min-h-screen flex flex-col">
+      <div className="relative z-10 px-4 pt-4 sm:px-5 sm:pt-5">
+        <div className="max-w-[720px] mx-auto">
+          <FullScreenPreferences />
+        </div>
+      </div>
       <div className="relative z-[1] flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
         <div className="w-full max-w-[720px] mx-auto">
           <div className="journey-shell flex flex-col gap-7 px-6 py-8 sm:px-9 sm:py-10">

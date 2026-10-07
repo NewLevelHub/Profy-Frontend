@@ -6,8 +6,7 @@
   "page": {
     "defaultName": "Пользователь",
     "notFilledTitle": "Профиль не заполнен",
-    "notFilledBody": "Данные появятся после прохождения настройки профиля",
-    "juniorFooter": "Настройки и почта — у мамы. Если что-то нужно поменять, скажи ей."
+    "notFilledBody": "Данные появятся после прохождения настройки профиля"
   },
   "rail": {
     "personal": "Личные данные",
@@ -28,9 +27,6 @@
     "gradeUpper_few": "{{count}} КЛАССА",
     "gradeUpper_many": "{{count}} КЛАССОВ",
     "gradeUpper_other": "{{count}} КЛАССА"
-  },
-  "hero": {
-    "juniorKicker": "«МОИ ШТУКИ»"
   },
   "personal": {
     "title": "ЛИЧНЫЕ",
@@ -68,27 +64,8 @@
       "university": "Страны и университеты"
     }
   },
-  "artifactType": {
-    "hobby": "Хобби",
-    "club": "Кружки",
-    "sport": "Спорт",
-    "achievement": "Достижения",
-    "goal": "Мечты",
-    "book": "Книги",
-    "game": "Игры",
-    "topic": "Темы",
-    "profession": "Профессии",
-    "university": "Вузы",
-    "dream": "Мечты"
-  },
-  "selfDescription": {
-    "kicker": "ТЫ РАССКАЗАЛ О СЕБЕ",
-    "change": "Поменять",
-    "empty": "Пока пусто — расскажи о себе, чтобы это появилось здесь."
-  },
   "strengths": {
-    "kicker": "ТВОИ СИЛЬНЫЕ СТОРОНЫ",
-    "empty": "Пройди тест — тогда здесь появятся твои сильные стороны."
+    "kicker": "ТВОИ СИЛЬНЫЕ СТОРОНЫ"
   },
   "certificates": {
     "title": "БАЛЛЫ",

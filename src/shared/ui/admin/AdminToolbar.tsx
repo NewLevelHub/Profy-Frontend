@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, Search, X } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_CONTROL, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
@@ -68,6 +69,7 @@ export function AdminToolbar({
   summary,
   actions,
 }: AdminToolbarProps) {
+  const { t } = useTranslation('admin');
   const activeSelects = selects.filter((s) => s.value);
   const hasActive = activeSelects.length > 0 || Boolean(search?.value);
 
@@ -101,7 +103,7 @@ export function AdminToolbar({
               'text-muted hover:text-primary underline underline-offset-2 transition-colors',
             )}
           >
-            Сбросить
+            {t('toolbar.reset')}
           </button>
         )}
 
@@ -130,6 +132,7 @@ function FilterSelect({
   filter: AdminSelectFilter;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation('admin');
   const active = Boolean(filter.value);
 
   return (
@@ -160,7 +163,7 @@ function FilterSelect({
             active ? 'text-brand font-medium' : 'text-secondary',
           )}
         >
-          <option value="">любой</option>
+          <option value="">{t('toolbar.any')}</option>
           {filter.options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -192,6 +195,7 @@ function DebouncedSearchInput({
   onChange: (value: string) => void;
   placeholder: string;
 }) {
+  const { t } = useTranslation('admin');
   const [draft, setDraft] = useState(value);
   const committed = useRef(value);
 
@@ -235,7 +239,7 @@ function DebouncedSearchInput({
         <button
           type="button"
           onClick={() => setDraft('')}
-          aria-label="Очистить поиск"
+          aria-label={t('toolbar.clearSearch')}
           className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
         >
           <X size={13} />

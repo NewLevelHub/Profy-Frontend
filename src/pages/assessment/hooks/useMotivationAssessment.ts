@@ -2,13 +2,43 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
+import { afterBatteryRoute } from '@/shared/store/psychoemotional';
+import { journeyStages } from '@/shared/lib/journeyProgress';
+import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
-import type { MotivationTriplet } from '@/shared/types';
+import type { MotivationTriplet, SavedAnswersResponse } from '@/shared/types';
 import type { RestStopState } from '../utils/restStop';
 
 export type MotivationPhase = 'loading' | 'intro' | 'question';
+
+/** Rankings back from the stored MOST / LEAST pair — the middle card is the
+ *  triplet's remaining one (it's never stored). */
+function restoreRankings(triplets: MotivationTriplet[], saved: SavedAnswersResponse): Record<number, string[]> {
+  const rankings: Record<number, string[]> = {};
+  for (const triplet of triplets) {
+    const answer = saved.motivation[triplet.triplet_index];
+    if (!answer) continue;
+    const middle = triplet.statements.find(
+      s => s.id !== answer.most_statement_id && s.id !== answer.least_statement_id,
+    );
+    if (middle) rankings[triplet.triplet_index] = [answer.most_statement_id, middle.id, answer.least_statement_id];
+  }
+  return rankings;
+}
+
+const sameRanking = (a: string[] | undefined, b: string[]) =>
+  a !== undefined && a.length === b.length && a.every((id, i) => id === b[i]);
+
+/** A response count cannot identify a hole left before a later triplet. */
+function firstUnansweredTripletIndex(
+  triplets: MotivationTriplet[],
+  savedRankings: Record<number, string[]>,
+): number | null {
+  const index = triplets.findIndex(triplet => savedRankings[triplet.triplet_index] === undefined);
+  return index === -1 ? null : index;
+}
 
 export function useMotivationAssessment() {
   useFinishedAssessmentGuard();
@@ -22,10 +52,9 @@ export function useMotivationAssessment() {
   const [tripletIndex, setTripletIndex] = useState(0);
   // Current triplet's card order, ids top→bottom: [0] = most, [last] = least.
   const [ranking, setRanking] = useState<string[]>([]);
-  // Tracks whether the user has actually dragged/keyboard-moved a card on
-  // this triplet vs. still showing the server's default order — kept for
-  // bookkeeping, but no longer gates "Далее": if the default order already
-  // matches what they'd pick, they can move on without touching it.
+  // A sortable list has a valid-looking server order as soon as it renders.
+  // Require either a real reorder or an explicit confirmation so that order
+  // cannot be submitted by repeatedly pressing "Далее".
   const [hasInteracted, setHasInteracted] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [transitioning, setTransitioning] = useState(false);
@@ -35,8 +64,12 @@ export function useMotivationAssessment() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
 
-  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startIndexApplied = useRef(false);
+  // What the server holds — saved-answers on load, then every successful
+  // submit. Rankings used to live only in `answers` (memory): a rest stop or
+  // a reload wiped them, "Назад" showed the default 1-2-3 order, and
+  // "Дальше" sent that default over the student's real answer.
+  const savedRef = useRef<Record<number, string[]>>({});
   // Reset whenever the current triplet changes (see the effect below) —
   // elapsed time from here to handleNext feeds the speed-flag rest stop.
   const itemShownAtRef = useRef(Date.now());
@@ -53,33 +86,42 @@ export function useMotivationAssessment() {
       setPhase('loading');
       setError(null);
       try {
-        const [current, data] = await Promise.all([
-          assessmentApi.current(),
+        const [data, saved] = await Promise.all([
           motivationApi.getTriplets(assessmentId!),
+          // Required for a safe resume: a total count cannot identify holes.
+          assessmentApi.getSavedAnswers(assessmentId!),
         ]);
         if (cancelled) return;
         if (data.length === 0) throw new Error('empty_triplets');
+        const restored = restoreRankings(data, saved);
+        savedRef.current = restored;
+        setAnswers(prev => ({ ...prev, ...restored }));
         setTriplets(data);
 
         if (!startIndexApplied.current) {
           startIndexApplied.current = true;
-          const startIndex = Math.min(current.motivation_answered_count, data.length - 1);
-          setTripletIndex(startIndex);
-          if (startIndex >= data.length - 1 && current.motivation_answered_count >= data.length) {
-            navigate('/assessment/loading', { replace: true });
+          // Prefer exact triplet indexes from saved-answers. Two stored
+          // responses do not imply triplets 0 and 1 were the ones answered.
+          const firstUnanswered = firstUnansweredTripletIndex(data, restored);
+          if (firstUnanswered === null) {
+            const state = useAssessmentStore.getState();
+            const nextRoute = !state.belbinCompleted
+              ? `/assessment/belbin/${assessmentId}`
+              : !state.asturCompleted
+              ? `/assessment/astur/${assessmentId}`
+              : afterBatteryRoute(assessmentId);
+            navigate(nextRoute, { replace: true });
             return;
           }
+
+          setTripletIndex(firstUnanswered);
         }
 
         // Intro screen is a one-time "let's begin" moment — only show it on
-        // a genuinely fresh start (nothing answered yet). Resuming later
-        // (rest stop, closed tab, etc.) always has motivation_answered_count
-        // > 0 by then, so it goes straight to the question.
-        if (current.motivation_answered_count === 0) {
+        // a genuinely fresh start (nothing answered yet).
+        const hasSavedMotivationAnswers = Object.keys(restored).length > 0;
+        if (!hasSavedMotivationAnswers) {
           setPhase('intro');
-          introTimerRef.current = setTimeout(() => {
-            if (!cancelled) setPhase('question');
-          }, 2000);
         } else {
           setPhase('question');
         }
@@ -95,10 +137,6 @@ export function useMotivationAssessment() {
 
     return () => {
       cancelled = true;
-      if (introTimerRef.current !== null) {
-        clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
@@ -121,10 +159,6 @@ export function useMotivationAssessment() {
   }, [tripletIndex, triplets]);
 
   function handleStartIntro() {
-    if (introTimerRef.current !== null) {
-      clearTimeout(introTimerRef.current);
-      introTimerRef.current = null;
-    }
     setPhase('question');
   }
 
@@ -139,9 +173,27 @@ export function useMotivationAssessment() {
     setHasInteracted(true);
   }
 
+  function handleConfirmOrder() {
+    if (saving || transitioning) return;
+    setHasInteracted(true);
+  }
+
   async function handleNext() {
     const triplet = triplets[tripletIndex];
     if (!triplet || !canProceed || saving || transitioning) return;
+
+    // Stepping forward through a triplet already stored unchanged — nothing
+    // to send. The last one always goes out: its response leads on to Belbin.
+    if (sameRanking(savedRef.current[triplet.triplet_index], ranking) && tripletIndex < triplets.length - 1) {
+      setSaving(true);
+      setTransitioning(true);
+      setTimeout(() => {
+        setTripletIndex(i => i + 1);
+        setTransitioning(false);
+        setSaving(false);
+      }, 300);
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -157,24 +209,24 @@ export function useMotivationAssessment() {
         ],
       });
       setAnswers(prev => ({ ...prev, [triplet.triplet_index]: ranking }));
+      savedRef.current[triplet.triplet_index] = ranking;
       useAssessmentStore.getState().setMotivationProgress(response.answered_count, response.total);
       const isSpeedFlag = useAssessmentStore.getState().recordAnswerTiming(Date.now() - itemShownAtRef.current);
 
       if (response.completed) {
-        // Don't call completeAssessment() here — that flag means "report
-        // generated", not "questions answered". Setting it early makes
-        // ResultLoadingPage take its "already have a report" shortcut
-        // (straight to /results, skipping the loading animation and
-        // goal-check) before a report exists. ResultLoadingPage sets it
-        // itself once resultApi.generate() actually succeeds.
-        navigate('/assessment/loading');
+        navigate(`/assessment/belbin/${assessmentId}`);
         return;
       }
 
       const isLast = tripletIndex >= triplets.length - 1;
       if (isLast) {
-        // Shouldn't normally happen (completed should be true), but guard anyway.
-        navigate('/assessment/loading');
+        // Never leave motivation while the server says it is incomplete.
+        // Return to the exact missing triplet; falling back to the start is
+        // safer than silently carrying an incomplete stage into Belbin.
+        const firstUnanswered = firstUnansweredTripletIndex(triplets, savedRef.current);
+        setError(t('assessment:error.answersLost'));
+        setTripletIndex(firstUnanswered ?? 0);
+        setSaving(false);
         return;
       }
 
@@ -186,7 +238,7 @@ export function useMotivationAssessment() {
         navigate('/assessment/rest', {
           state: {
             returnTo: '/assessment/motivation',
-            progress,
+            stages: journeyStages(useAssessmentStore.getState()),
             totalAnswered: restCheck.totalAnswered,
             isSpeedFlag,
           } satisfies RestStopState,
@@ -227,7 +279,9 @@ export function useMotivationAssessment() {
           };
         }),
       });
-      navigate('/assessment/loading');
+      // Same store update as a hand-given answer — the rail reads it (PRO-439).
+      useAssessmentStore.getState().setMotivationProgress(response.answered_count, response.total);
+      navigate(`/assessment/belbin/${assessmentId}`);
     } catch {
       setError(t('assessment:error.autofill'));
     } finally {
@@ -250,8 +304,8 @@ export function useMotivationAssessment() {
 
   const currentTriplet = triplets[tripletIndex];
   const totalTriplets = triplets.length;
-  const progress = totalTriplets > 0 ? ((tripletIndex + 1) / totalTriplets) * 100 : 0;
-  const canProceed = ranking.length === 3;
+  const progress = useAssessmentJourneyProgress();
+  const canProceed = hasInteracted && ranking.length === 3;
   const orderedStatements = currentTriplet
     ? ranking
         .map(id => currentTriplet.statements.find(s => s.id === id))
@@ -276,6 +330,7 @@ export function useMotivationAssessment() {
     handleBack,
     handleStartIntro,
     handleReorder,
+    handleConfirmOrder,
     handleNext,
     handleAutofill,
     handleExit,

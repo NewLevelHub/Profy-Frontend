@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_CARD, ADMIN_TEXT } from '@/shared/ui/admin/density';
 
@@ -23,12 +23,24 @@ export function AdminSectionHeading({ title, description, aside, className }: Ad
   return (
     <div className={cn('flex items-start justify-between gap-3 flex-wrap', className)}>
       <div className="min-w-0">
-        <h2 className={cn(ADMIN_TEXT, 'font-semibold text-primary m-0')}>{title}</h2>
-        {description && <p className={cn(ADMIN_TEXT, 'text-muted mt-1 max-w-[64ch]')}>{description}</p>}
+        <h2 className="font-sans text-body-lg sm:text-display-sm font-bold text-primary m-0 tracking-tight">{title}</h2>
+        {description && <p className="font-sans text-body-md text-muted mt-1.5 max-w-[68ch] leading-relaxed">{description}</p>}
       </div>
       {aside && <div className="flex-shrink-0">{aside}</div>}
     </div>
   );
+}
+
+/**
+ * Inside an `AdminCardEmbed` an `AdminCard` drops its own shell and heading
+ * and renders just its content — for a container that already shows the
+ * title (the psychologist report's accordion rows), so a section component
+ * doesn't need a second, chrome-less copy of itself.
+ */
+const AdminCardEmbedContext = createContext(false);
+
+export function AdminCardEmbed({ children }: { children: ReactNode }) {
+  return <AdminCardEmbedContext.Provider value>{children}</AdminCardEmbedContext.Provider>;
 }
 
 /** Card shell for admin forms — heading, hairline edge, consistent padding. */
@@ -39,6 +51,15 @@ export function AdminCard({
   children,
   className,
 }: AdminSectionHeadingProps & { children: ReactNode }) {
+  const embedded = useContext(AdminCardEmbedContext);
+  if (embedded) {
+    return (
+      <div className={cn('flex flex-col gap-3.5', className)}>
+        {aside && <div className="flex justify-end">{aside}</div>}
+        {children}
+      </div>
+    );
+  }
   return (
     <section className={cn(ADMIN_CARD, 'flex flex-col gap-3.5', className)}>
       <AdminSectionHeading title={title} description={description} aside={aside} />

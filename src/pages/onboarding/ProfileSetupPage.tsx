@@ -1,12 +1,13 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
-import { Button, Input, Mascot } from '@/shared/ui';
+import { Button, FullScreenPreferences, Input, Mascot } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
+import { gradesForAge } from '@/shared/lib/ageGrade';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { SelectableChip } from './components/SelectableChip';
+import { AddCustomChip } from './components/AddCustomChip';
 import { ExamScoresBlock } from './components/ExamScoresBlock';
 import { TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
 
@@ -42,52 +43,6 @@ const AGES = Array.from({ length: 5 }, (_, i) => 14 + i); // 14–18
 const MASCOT_WELCOME_SIZE = 96;
 const MASCOT_WAITING_SIZE = 84;
 
-function AddCustomChip({ onAdd }: { onAdd: (value: string) => void }) {
-  const { t } = useTranslation('onboarding');
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
-
-  function commit() {
-    const trimmed = value.trim();
-    if (trimmed) onAdd(trimmed);
-    setValue('');
-    setOpen(false);
-  }
-
-  if (open) {
-    return (
-      <input
-        autoFocus
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        onBlur={commit}
-        onKeyDown={e => {
-          if (e.key === 'Enter') { e.preventDefault(); commit(); }
-          if (e.key === 'Escape') { setValue(''); setOpen(false); }
-        }}
-        placeholder={t('profile.customSubjectPlaceholder')}
-        className="field-tile px-3.5 py-2 rounded-pill text-caption font-semibold w-36 focus:outline-none border-[color:var(--pine)]"
-        style={{ color: 'var(--text-heading)' }}
-      />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      className="px-3.5 py-2 rounded-pill text-caption font-semibold transition-colors press-scale"
-      style={{
-        background: 'transparent',
-        color: 'var(--mute)',
-        border: '1.5px dashed color-mix(in srgb, var(--pine) 28%, var(--hairline))',
-      }}
-    >
-      {t('profile.addCustom')}
-    </button>
-  );
-}
-
 function SubjectGroup({
   title, note, selected, onToggle, onAddCustom, otherSelected,
 }: {
@@ -118,7 +73,13 @@ function SubjectGroup({
         {custom.map(s => (
           <SelectableChip key={s} label={s} selected onClick={() => onToggle(s)} />
         ))}
-        {onAddCustom && <AddCustomChip onAdd={onAddCustom} />}
+        {onAddCustom && (
+          <AddCustomChip
+            label={t('profile.addCustom')}
+            placeholder={t('profile.customSubjectPlaceholder')}
+            onAdd={onAddCustom}
+          />
+        )}
       </div>
     </div>
   );
@@ -148,6 +109,15 @@ export default function ProfileSetupPage() {
     ? { state: 'welcome' as const, size: MASCOT_WELCOME_SIZE }
     : { state: 'waiting' as const, size: MASCOT_WAITING_SIZE };
 
+  const ageNum = Number(age);
+  const allowedGrades = !age || Number.isNaN(ageNum) ? [] : gradesForAge(ageNum);
+  const gradeMin = allowedGrades[0];
+  const gradeMax = allowedGrades[allowedGrades.length - 1];
+  const gradeHint =
+    !errors.grade && allowedGrades.length > 0
+      ? t('validation.gradeForAge', { age: ageNum, min: gradeMin, max: gradeMax })
+      : undefined;
+
   return (
     <div className="journey-page journey-page--lit min-h-screen flex flex-col">
       {/* Ни заливки, ни блюра: полоса шагов — flex-сосед НАД областью прокрутки,
@@ -155,7 +125,8 @@ export default function ProfileSetupPage() {
           ничего не скрывала, зато клала плоский фог поверх градиента холста и
           давала видимый горизонтальный шов. */}
       <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto flex flex-col gap-3">
+          <FullScreenPreferences />
           <OnboardingProgress current={step} total={TOTAL_ONBOARDING_STEPS} />
         </div>
       </div>
@@ -219,7 +190,7 @@ export default function ProfileSetupPage() {
                         <button
                           key={a}
                           type="button"
-                          onClick={() => { setAge(String(a)); clearError('age'); }}
+                          onClick={() => setAge(String(a))}
                           className={cn(
                             'w-11 h-11 rounded-[12px] text-body-sm font-bold border transition-colors press-scale',
                             selected
@@ -255,10 +226,15 @@ export default function ProfileSetupPage() {
                       inputMode="numeric"
                       value={grade}
                       onChange={e => { setGrade(e.target.value); clearError('grade'); }}
-                      placeholder={t('profile.gradePlaceholder')}
+                      placeholder={
+                        allowedGrades.length
+                          ? t('profile.gradePlaceholderRange', { min: gradeMin, max: gradeMax })
+                          : t('profile.gradePlaceholder')
+                      }
                       error={errors.grade}
-                      min={1}
-                      max={12}
+                      hint={gradeHint}
+                      min={gradeMin ?? 1}
+                      max={gradeMax ?? 12}
                     />
 
                     <Input

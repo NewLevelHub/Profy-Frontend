@@ -15,6 +15,7 @@ Three roles. Pick by **authorship**, not taste.
 | Mono | `<Mono variant="label\|sm\|md">` or `type.mono*` | Ids, dates, statuses, codes, admin column headers. Machine/system content only. |
 
 - Do not set `font-size`, `line-height`, or `letter-spacing` inline or as `text-[Npx]`. Add a named token in `src/styles/tailwind.css` `@theme` if a new size is needed.
+- Enforced by `local/no-arbitrary-text-size` (`npm run lint`) and `npm run lint:typography`.
 - Do not use `font-display` outside `Heading`, `AuthLayout` wordmark, or `AdminLayout` wordmark.
 - One scale for all ages. Age differences live in copy, not type size/weight.
 - Exceptions (do not "fix"): Spine step numerals, OTP cell digits, emoji/icon sizes, Likert pole-label clamp. See `src/shared/ui/typography/tokens.ts`.

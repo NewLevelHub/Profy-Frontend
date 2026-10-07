@@ -1,0 +1,44 @@
+/* The page chrome follows the application theme. The diagnostic swatches
+   keep their acceptance-test HEX values inline (ColorSwatch.tsx), so changing
+   the surrounding surface does not alter their colour rendering. */
+.pe-block {
+  min-height: 100dvh;
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+/* Плашка цвета: HEX задаётся инлайном из таблицы §4. Запрещены hover-эффекты,
+   изменение яркости/насыщенности/прозрачности, цветные тени, CSS-фильтры. */
+.pe-swatch {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none;
+}
+.pe-swatch:hover,
+.pe-swatch:focus,
+.pe-swatch:active,
+.pe-swatch:focus-visible {
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+/* Клавиатурная доступность без цветового искажения — тонкая нейтральная рамка. */
+.pe-swatch:focus-visible {
+  outline: 2px solid #52525b;
+  outline-offset: 3px;
+}

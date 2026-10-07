@@ -19,3 +19,23 @@ export function buildPatchBody<T extends object>(
   }
   return patch;
 }
+
+/**
+ * Whether `field` is admin-overridden for `locale` specifically, on a
+ * question-bank content row (question/pair/statement/direction — the
+ * single-row-per-item design, not `AdminUniversityDetail`'s flat
+ * `admin_locked_fields: string[]`, which never needs this).
+ *
+ * A localized field's override entry is itself a `{locale: value}` map (only
+ * the edited locale's key is present — editing kk never touches ru's entry),
+ * unlike a structural field's override, which is the bare value. See
+ * `app.services.admin_lock.apply_overrides` on the backend.
+ */
+export function isLocalizedFieldLocked(
+  overrides: Record<string, unknown>,
+  field: string,
+  locale: string,
+): boolean {
+  const entry = overrides[field];
+  return typeof entry === 'object' && entry !== null && locale in (entry as Record<string, unknown>);
+}

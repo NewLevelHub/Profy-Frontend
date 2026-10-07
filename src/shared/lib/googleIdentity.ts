@@ -35,27 +35,40 @@ declare global {
 }
 
 const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
-let scriptPromise: Promise<void> | null = null;
+const SCRIPT_ID = 'google-identity-services';
 
-export function loadGoogleIdentityScript(): Promise<void> {
-  if (window.google?.accounts?.id) return Promise.resolve();
-  if (scriptPromise) return scriptPromise;
+let loadedLocale: string | null = null;
+let loadGeneration = 0;
 
-  scriptPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`);
-    if (existing) {
-      existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', () => reject(new Error('Failed to load Google Identity script')));
-      return;
-    }
+/**
+ * GIS localizes the rendered button only when the client library is loaded
+ * with a matching `hl` (see Google JS reference for `renderButton.locale`).
+ * A language switch therefore drops the previous script and `window.google`
+ * before loading the bundle for the new locale.
+ */
+export function loadGoogleIdentityScript(locale: string): Promise<void> {
+  if (window.google?.accounts?.id && loadedLocale === locale) return Promise.resolve();
+
+  const generation = ++loadGeneration;
+  document.getElementById(SCRIPT_ID)?.remove();
+  delete window.google;
+  loadedLocale = null;
+
+  return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = SCRIPT_SRC;
+    script.id = SCRIPT_ID;
+    script.src = `${SCRIPT_SRC}?hl=${encodeURIComponent(locale)}`;
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Google Identity script'));
+    script.onload = () => {
+      if (generation !== loadGeneration) return;
+      loadedLocale = locale;
+      resolve();
+    };
+    script.onerror = () => {
+      if (generation !== loadGeneration) return;
+      reject(new Error('Failed to load Google Identity script'));
+    };
     document.head.appendChild(script);
   });
-
-  return scriptPromise;
 }

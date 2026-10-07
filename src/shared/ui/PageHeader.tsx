@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
-import { Heading } from './typography/Heading';
+import { Heading, type HeadingLevel } from './typography/Heading';
 import { Text } from './typography/Text';
 
 interface PageHeaderProps {
@@ -15,6 +15,11 @@ interface PageHeaderProps {
   /** Actions aligned with the title row (PDF, primary CTA). */
   actions?: ReactNode;
   align?: 'left' | 'center';
+  /** Title size — `display-lg` for a cabinet's front screens. */
+  level?: HeadingLevel;
+  /** Let `aside`/`actions` drop under the title when the row gets narrow
+   *  (phones) instead of squeezing the title into a thin column. */
+  wrap?: boolean;
   className?: string;
   titleClassName?: string;
 }
@@ -32,6 +37,8 @@ export function PageHeader({
   aside,
   actions,
   align = 'left',
+  level = 'display-md',
+  wrap = false,
   className,
   titleClassName,
 }: PageHeaderProps) {
@@ -42,6 +49,7 @@ export function PageHeader({
       className={cn(
         'flex gap-4 sm:gap-5',
         centered ? 'flex-col items-center text-center' : 'items-start justify-between',
+        wrap && !centered && 'flex-wrap items-end',
         className,
       )}
     >
@@ -49,6 +57,7 @@ export function PageHeader({
         className={cn(
           'flex gap-4 min-w-0',
           centered ? 'flex-col items-center' : 'items-start flex-1',
+          wrap && !centered && 'basis-md',
         )}
       >
         {leading}
@@ -57,7 +66,7 @@ export function PageHeader({
             <span className="journey-kicker mb-2.5 block">{kicker}</span>
           )}
           <Heading
-            level="display-md"
+            level={level}
             className={cn('text-[color:var(--text-heading)] text-balance', titleClassName)}
           >
             {title}

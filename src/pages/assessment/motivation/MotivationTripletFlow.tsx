@@ -1,5 +1,6 @@
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
+import { Check } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
@@ -9,10 +10,10 @@ import { useMotivationAssessment } from '../hooks/useMotivationAssessment';
 import { TripletRanking } from '../components/TripletRanking';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 import { AssessmentIntro } from '../components/AssessmentIntro';
+import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
 
-// Senior's motivation format — 12 triplets, MOST/LEAST forced choice via
-// drag-and-drop ranking. Junior and middle use MotivationHarterFlow.tsx
-// instead (see MotivationAssessmentPage.tsx).
+// Motivation block — 12 triplets, MOST/LEAST forced choice via
+// drag-and-drop ranking.
 export default function MotivationTripletFlow() {
   const { t } = useTranslation('assessment');
   const {
@@ -26,11 +27,13 @@ export default function MotivationTripletFlow() {
     currentTriplet,
     canProceed,
     progress,
+    hasInteracted,
     exitConfirmOpen,
     autofilling,
     handleBack,
     handleStartIntro,
     handleReorder,
+    handleConfirmOrder,
     handleNext,
     handleAutofill,
     handleExit,
@@ -77,7 +80,7 @@ export default function MotivationTripletFlow() {
             title={t('intro.motivationTriplet.title')}
             subtitle={t('intro.motivationTriplet.subtitle')}
             itemCountLabel={t('intro.itemCount', { count: totalTriplets })}
-            durationLabel={t('intro.duration2min')}
+            durationLabel={t('intro.durationMin', { count: ASSESSMENT_PHASE_MINUTES.motivation })}
             ctaLabel={t('intro.motivationTriplet.cta')}
             onStart={handleStartIntro}
           />
@@ -114,6 +117,20 @@ export default function MotivationTripletFlow() {
                     onReorder={handleReorder}
                     disabled={saving || transitioning}
                   />
+                  <button
+                    type="button"
+                    onClick={handleConfirmOrder}
+                    disabled={saving || transitioning}
+                    aria-pressed={hasInteracted}
+                    className={cn(
+                      'mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium transition-colors',
+                      'disabled:cursor-not-allowed disabled:opacity-50',
+                      hasInteracted ? 'text-brand' : 'text-secondary hover:text-primary',
+                    )}
+                  >
+                    <Check size={14} aria-hidden />
+                    {hasInteracted ? t('triplet.orderConfirmed') : t('triplet.confirmOrder')}
+                  </button>
                   <Button
                     onClick={handleNext}
                     disabled={!canProceed || saving}

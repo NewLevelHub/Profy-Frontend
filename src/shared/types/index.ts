@@ -1,3 +1,5 @@
+import type { Locale } from '@/shared/store/locale';
+
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
 /** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
@@ -103,13 +105,23 @@ export type AssessmentGoal = 'explore' | 'profession' | 'university' | 'unsure';
 export type AssessmentStatus = 'in_progress' | 'completed';
 
 export type HollandType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
-export type Instrument = 'riasec' | 'big_five' | 'mi';
+// PRO-338 Ф0.2: professional_types (ДДО pairs, QuestionPair-based) /
+// professional_types_abilities (ДДО abilities, Likert-based) / eysenck /
+// elers (both Likert-based, binary Да/Нет scale — Ф0.5) mirror
+// app/models/question.py::QuestionInstrument 1:1. `validity` is
+// deliberately NOT here — PRO-282's protocol-validity items are masked as
+// `riasec` on the wire (PRO-298) and never reach the frontend as their own
+// instrument value.
+export type Instrument =
+  | 'riasec'
+  | 'big_five'
+  | 'professional_types'
+  | 'professional_types_abilities'
+  | 'eysenck'
+  | 'elers'
+  | 'boyko_empathy'
+  | 'kondash_anxiety';
 export type BigFiveDomain = 'N' | 'E' | 'O' | 'A' | 'C';
-// Junior's (6-9) interest instrument, replacing RIASEC — TZ_Profi.md §4.1
-// excludes career orientation for that age group. See MI_LABELS/MI_ICONS.
-export type MIType =
-  | 'verbal' | 'logical' | 'musical' | 'visual' | 'bodily'
-  | 'interpersonal' | 'intrapersonal' | 'naturalistic';
 
 export interface AssessmentResponse {
   id: string;
@@ -119,6 +131,8 @@ export interface AssessmentResponse {
   total_questions: number;
   motivation_answered_count: number;
   motivation_total: number;
+  belbin_completed?: boolean;
+  astur_completed?: boolean;
   created_at: string;
 }
 
@@ -129,6 +143,11 @@ export interface Question {
   bigfive_domain: BigFiveDomain | null;
   text: string;
   order: number;
+  // Which Likert scale to render, decided by the server independently of
+  // `instrument` (protocol-validity items are wire-tagged `riasec` but keep
+  // the agree/disagree Big Five scale — see profi-backend
+  // app/services/question_service.py::_bigfive_scale).
+  bigfive_scale: boolean;
 }
 
 export interface AnswerPayload {
@@ -180,34 +199,7 @@ export interface SubmitMotivationResponse {
   completed: boolean;
 }
 
-// ─── Motivation pairs (Harter format, junior + middle) ──────────────────────────
-
-export interface MotivationPairItem {
-  pair_index: number;
-  text_a: string;
-  text_b: string;
-}
-
-export type MotivationPairSide = 'a' | 'b';
-export type MotivationIntensity = 'high' | 'medium';
-
-export interface MotivationPairAnswerPayload {
-  pair_index: number;
-  chosen_side: MotivationPairSide;
-  intensity: MotivationIntensity;
-}
-
-export interface SubmitMotivationPairPayload {
-  answers: MotivationPairAnswerPayload[];
-}
-
-export interface SubmitMotivationPairResponse {
-  answered_count: number;
-  total: number;
-  completed: boolean;
-}
-
-// ─── Question pairs (junior forced-choice format) ───────────────────────────────
+// ─── Question pairs (forced-choice, ДДО) ───────────────────────────────
 
 export interface QuestionPairOption {
   id: string;
@@ -215,7 +207,6 @@ export interface QuestionPairOption {
   icon: string | null;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
 }
 
 export interface QuestionPair {
@@ -245,6 +236,260 @@ export interface SubmitPairAnswersResponse {
   completed: boolean;
 }
 
+/** GET /assessment/{id}/saved-answers — what the server already stored, so
+ *  "Назад" can show earlier answers again; the question / pair / triplet
+ *  endpoints never echo them back. */
+export interface SavedAnswersResponse {
+  /** Stored scale answers by question id (a picked pair's two rows excluded — see pair_picks). */
+  question_values: Record<string, number>;
+  /** pair_index → picked option's question id. */
+  pair_picks: Record<string, string>;
+  /** triplet_index → MOST / LEAST statement ids. */
+  motivation: Record<string, { most_statement_id: string; least_statement_id: string }>;
+}
+
+// ─── Psychoemotional (МЦВ Собчик) — PRO-306 ────────────────────────────────────
+// Сырое прохождение, двухфазно: check-in + круг 1 — перед основной батареей
+// тестов (start, §B4 п.1-2 — check-in идёт первым), круг 2 — в конце всего
+// прохождения (finish), на той же строке. Метрики/интерпретацию бэкенд не
+// возвращает (§5.6).
+export interface StartPsychoEmotionalPayload {
+  list1: number[];
+  list1_dt_ms: number[];
+  checkin: Record<string, string>;
+}
+
+export interface StartPsychoEmotionalResponse {
+  run_id: string;
+}
+
+export interface PsychoEmotionalStateResponse {
+  run_id: string | null;
+  status: 'not_started' | 'pending' | 'completed';
+}
+
+export interface FinishPsychoEmotionalPayload {
+  list2: number[];
+  list2_dt_ms: number[];
+}
+
+export interface FinishPsychoEmotionalResponse {
+  run_id: string;
+  tech_invalid: boolean;
+}
+
+// ─── Belbin BTRSPI (ипсативный блок, вне обычного /assessment потока) ───────────
+
+export interface BelbinContentItem {
+  id: string;
+  text: string;
+}
+
+export interface BelbinContentSection {
+  section: string;
+  title: string;
+  items: BelbinContentItem[];
+}
+
+export interface BelbinContent {
+  instruction: string;
+  block_total: number;
+  sections: BelbinContentSection[];
+}
+
+export interface SubmitBelbinPayload {
+  /** Ровно 7 блоков, в порядке разделов I..VII — каждый `{item_id: баллы}`. */
+  allocations: Record<string, number>[];
+}
+
+export interface SubmitBelbinResponse {
+  run_id: string;
+  role_totals: Record<string, number>;
+}
+
+export interface BelbinProgressBlock {
+  block_index: number;
+  allocation: Record<string, number>;
+}
+
+export interface BelbinProgressResponse {
+  completed: boolean;
+  blocks: BelbinProgressBlock[];
+}
+
+// ─── АСТУР (ипсативный/таймированный блок, вне обычного /assessment потока) ─────
+
+export type AsturSubtestKey =
+  | 'awareness'
+  | 'analogies'
+  | 'lability'
+  | 'classification'
+  | 'generalization'
+  | 'logical_schemas'
+  | 'numeric_series'
+  | 'geometric_figures';
+
+export interface AsturAwarenessItem {
+  text: string;
+  options: string[];
+}
+
+export interface AsturAnalogyItem {
+  pair: [string, string];
+  third: string;
+  options: string[];
+}
+
+export type AsturLabilityAnswerFormat = 'digit' | 'shape' | 'symbol' | 'word';
+
+export interface AsturLabilityItem {
+  instruction: string;
+  answer_format: AsturLabilityAnswerFormat;
+  // Always exactly 2 values — every lability command is a 2-way choice,
+  // rendered as buttons (2026-09-18: was free-text input for every format
+  // except 'shape', which live in-office testing found too hard to use
+  // under the per-item timer — reading, deciding, AND typing correctly).
+  options: [string, string];
+}
+
+export interface AsturClassificationItem {
+  words: string[];
+}
+
+export interface AsturGeneralizationItem {
+  pair: [string, string];
+}
+
+export interface AsturLogicalSchemaItem {
+  /** Уже перемешано бэкендом — не порядок ответа. */
+  concepts: string[];
+}
+
+export interface AsturNumericSeriesItem {
+  sequence: number[];
+}
+
+/** No content fields — the stimulus is a static image asset
+ *  (`/astur-figures/{itemNumber}-{target|a|b|v|g}.png`), addressed by the
+ *  item's 1-based position within the subtest, not by any server-sent
+ *  field. The server only ever holds this item's `answer` letter. */
+export interface AsturFigureAssemblyItem {
+  /** Image paths (relative to the site root) from the bank version's
+   *  stimulus manifest, addressed by the item's stable id — never by its
+   *  position in the subtest. */
+  stimulus: { target: string; options: Record<string, string> } | null;
+}
+
+export type AsturContentItem =
+  | AsturAwarenessItem
+  | AsturAnalogyItem
+  | AsturLabilityItem
+  | AsturClassificationItem
+  | AsturGeneralizationItem
+  | AsturLogicalSchemaItem
+  | AsturNumericSeriesItem
+  | AsturFigureAssemblyItem;
+
+export interface AsturContentSubtest {
+  number: number;
+  key: AsturSubtestKey;
+  name: string;
+  instruction: string;
+  item_count: number;
+  /** `null` только у `lability` — у неё свой лимит на команду, не на весь субтест. */
+  time_limit_sec: number | null;
+  /** Every item carries its stable `item_id`. */
+  items: (AsturContentItem & { item_id: string })[];
+}
+
+/** Content of the bank version AND locale the attempt is pinned to (PRO-427). */
+export interface AsturContent {
+  run_id: string;
+  bank_version: number;
+  locale: string;
+  subtests: AsturContentSubtest[];
+  lability_item_limit_ms: number;
+}
+
+export type AsturRunStatus = 'in_progress' | 'completed' | 'invalidated';
+
+export interface AsturRunSummary {
+  run_id: string;
+  status: AsturRunStatus;
+  bank_version: number;
+  /** Language the attempt's items and keys are pinned to. */
+  locale: string;
+  created_at: string;
+  completed_at: string | null;
+  submitted_subtests: AsturSubtestKey[];
+  /** First server start of every currently unfinished subtest. */
+  subtest_started_at: Partial<Record<AsturSubtestKey, string>>;
+  /** Monotonic generation used to serialize start/reset operations. */
+  state_version: number;
+}
+
+/** `in_progress` = an attempt is open (resume it); `completed` = the
+ *  attempt is finished and can't be reopened. */
+export interface AsturState {
+  status: 'not_started' | 'in_progress' | 'completed';
+  /** Server clock sample paired with this state snapshot. */
+  server_now: string;
+  active_run: AsturRunSummary | null;
+  latest_completed_run: AsturRunSummary | null;
+}
+
+/** The opened (or resumed) attempt with its own content — items are never
+ *  shown before the attempt that scores them exists. */
+export interface AsturAttempt {
+  run: AsturRunSummary;
+  content: AsturContent;
+}
+
+export interface StartAsturSubtestResponse {
+  run_id: string;
+  subtest: string;
+  started_at: string;
+  /** Server clock sample used to calibrate the client countdown. */
+  server_now: string;
+  state_version: number;
+}
+
+export interface ResetAsturSubtestResponse {
+  run_id: string;
+  subtest: AsturSubtestKey;
+  state_version: number;
+}
+
+/** One item's outcome: an explicit answer or an explicit skip. */
+export type AsturItemAnswer =
+  | { status: 'answered'; value: unknown }
+  | { status: 'skipped'; value: null };
+
+export interface SubmitAsturSubtestPayload {
+  /** The attempt being answered — a payload for another attempt is rejected. */
+  run_id: string;
+  /** Server anchor returned by /start. It also invalidates a late submit
+   *  after the student explicitly exits and resets this subtest. */
+  started_at?: string;
+  /** Форма значения зависит от субтеста: строка (MC/обобщение), 2 строки
+   *  (классификации), список понятий (логические схемы), 2 числа (ряды),
+   *  строка-вариант для быстрых команд. */
+  answers: Record<string, AsturItemAnswer>;
+  /** Только для быстрых команд — время на каждую команду. */
+  elapsed_ms?: Record<string, number>;
+  /** Только для быстрых команд — IANA-таймзона, чтобы команда про день
+   *  недели проверялась по местному календарю. */
+  client_timezone?: string;
+}
+
+export interface SubmitAsturSubtestResponse {
+  run_id: string;
+  subtest: string;
+  actual_ms: number | null;
+  over_limit_items: string[];
+  /** true — этот сабмит завершил попытку, результат зафиксирован. */
+  run_completed: boolean;
+}
 // ─── Results ───────────────────────────────────────────────────────────────────
 
 export interface CareerMatch {
@@ -290,9 +535,7 @@ export type PersonalityTrait =
 export interface AnalysisResultResponse {
   id: string;
   assessment_id: string;
-  // RIASEC letters (HollandType) for middle/senior; MI categories (MIType)
-  // for junior — see MI_LABELS/MI_ICONS in shared/config/constants.ts and
-  // useResults.ts's ageGroup branching. `careers` is always [] for junior.
+  // RIASEC letters (HollandType).
   profile: Record<string, number>;
   code: string[];
   meta: RiasecMeta;
@@ -300,11 +543,11 @@ export interface AnalysisResultResponse {
   strengths: string[];
   weaknesses: string[];
   development_plan: DevelopmentPlan;
-  big_five: Record<BigFiveDomain, number>;
+  big_five: Partial<Record<BigFiveDomain, number>>;
   thinking_style: ThinkingStyle;
   personality_highlights: string[];
-  personality_profile: Record<PersonalityTrait, number>;
-  personality_notes: Record<PersonalityTrait, string>;
+  personality_profile: Partial<Record<PersonalityTrait, number>>;
+  personality_notes: Partial<Record<PersonalityTrait, string>>;
   motivation: Record<MotivationCategory, number>;
   motivation_top: MotivationCategory[];
   motivation_highlights: string[];
@@ -328,9 +571,16 @@ export interface AnalysisResultResponse {
 // decide which branch of the union applies — never infer it from age group,
 // array lengths, or any other field (contract §3).
 
+/** How a strength card is grounded (PRO-432): observed in the АСТУР tasks,
+ *  the student's own self-description, confirmed by several tests, or an
+ *  interest still to be checked — never a proven ability. */
+export type StrengthBasis = 'task_result' | 'self_report' | 'cross_signal' | 'interest';
+
 export interface StrengthCard {
   title: string;
   description: string;
+  /** True when the explanation was derived from selected test evidence. */
+  is_test_grounded: boolean;
 }
 
 export interface ThinkingStyleNote {
@@ -340,10 +590,9 @@ export interface ThinkingStyleNote {
 
 export type InterestLevel = 'low' | 'medium' | 'high';
 
-// One card per Big Five domain, always exactly 5, same order, for every
-// age group/instrument (Big Five is answered identically by all three —
-// only the wording differs: junior gets simplified phrasing). Deterministic
-// server text, not LLM-generated — see frontend-result-api-contract.md §4.3a.
+// Historical reports with a complete Big Five response contain one card per
+// domain (exactly five, stable order). New reports return [] because Big Five
+// is retired from the active test pool. Deterministic server text, not LLM.
 // `level` was added alongside interest_map's field of the same name — how
 // pronounced this trait is, same opaque low/medium/high enum, no raw score.
 export interface StudentPersonalityNote {
@@ -353,25 +602,197 @@ export interface StudentPersonalityNote {
   level: InterestLevel;
 }
 
+export interface InterestQuote {
+  text: string;
+  answer: 'like' | 'dislike';
+}
+
+// "Why this level" breakdown for one RIASEC type (PRO-336). `distribution`
+// is answer counts strongest-liking first: [очень нравится, нравится,
+// не уверен, не нравится, совсем не нравится]. `score` (0-100) only
+// positions the level meter — never print it as a percentage.
+export interface InterestMapItemDetails {
+  answered: number;
+  distribution: number[];
+  likes: number;
+  dislikes: number;
+  score: number;
+  means: string;
+  follows: string;
+  quotes: InterestQuote[];
+}
+
 export interface InterestMapItem {
   code: string;
   sphere: string;
   level: InterestLevel;
+  // RIASEC only; null for MI and for reports cached before PRO-336.
+  details?: InterestMapItemDetails | null;
+}
+
+/** How the two most pronounced RIASEC types sit on Holland's hexagon. */
+export interface InterestCombination {
+  codes: string[];
+  relation: 'adjacent' | 'alternate' | 'opposite';
+  text: string;
 }
 
 export type CareerTier = 'strong' | 'good' | 'worth_trying';
+
+/** One «Почему тебе подходит» reason: a vetted fact about the student tied
+ *  to something this profession needs. `fact` is the student half alone. */
+export interface StudentFitReason {
+  kind: 'fact' | 'subject';
+  fact: string;
+  text: string;
+}
 
 export interface StudentCareer {
   slug: string;
   name: string;
   rank: number;
   tier: CareerTier;
+  /** «Почему тебе подходит»: one connected text over every reason below
+   *  (or the shared interests / a profession skill) — never empty. */
   why: string;
-  matched_strengths: string[];
   try_now: string;
   description: string | null;
   skills_needed: string[];
   subjects_to_develop: string[];
+  /** The reasons `why` is written from, one by one — for compact views, not
+   *  to list under `why` again. Empty for a career added by hand. */
+  fit_reasons: StudentFitReason[];
+  /** Locale-free keys the fit rests on, for comparing careers; never shown. */
+  fit_keys: string[];
+  /** `why` is the AI analysis's text for the best match — it already covers
+   *  the reasons, so nothing is listed under it. */
+  why_by_ai: boolean;
+}
+
+// ─── PRO-282 psych-block sections — «Достоверность протокола» + «Психоэмоц.
+// тест» (МЦВ Собчик). `null` on a student's own /result (never shown to
+// them); attached only for a psychologist/admin viewer
+// (report_service.psych_sections_for — the ONLY place that decides
+// visibility, never re-implemented here). МАК is out of scope (PRO-282 §4)
+// — mirrors app/schemas/result_v2.py field-for-field. Wired into
+// ReportSectionsBlock at Ф4.1 (PRO-338).
+
+
+
+export type PsychoEmotionalValidityFlag = 'ok' | 'caution' | 'low';
+export type PsychoAnxietyLevel = 'low' | 'moderate' | 'high' | 'very_high';
+export type PsychoCompensationLevel = 'low' | 'moderate' | 'high';
+export type PsychoSoLevel = 'norm' | 'elevated' | 'high';
+export type PsychoVkLevel = 'low_tone' | 'reduced' | 'balance' | 'overexcited';
+export type PsychoFunctionalSign = 'plus' | 'cross' | 'equal' | 'minus';
+export type PsychoPairSign = PsychoFunctionalSign;
+
+export interface PsychoEmotionalPositionalPair {
+  sign: PsychoFunctionalSign;
+  colors: [number, number];
+}
+
+export interface PsychoEmotionalSplitPair {
+  colors: [number, number];
+  stable: boolean;
+}
+
+export interface PsychoEmotionalIndex {
+  score: number;
+  level: PsychoAnxietyLevel | PsychoCompensationLevel;
+  breakdown: Record<string, number>;
+}
+
+export interface PsychoEmotionalAnxiety {
+  score: number;
+  level: PsychoAnxietyLevel;
+  breakdown: Record<string, number>;
+}
+
+export interface PsychoEmotionalCompensation {
+  score: number;
+  level: PsychoCompensationLevel;
+  breakdown: Record<string, number>;
+  purple_forward: boolean;
+  purple_position: number;
+}
+
+export interface PsychoEmotionalStructural {
+  performance: number;
+  concentricity: number;
+  heteronomy: number;
+  kkp: number;
+}
+
+export interface PsychoEmotionalHistoryItem {
+  run_number: number;
+  completed_at: string;
+  so: number | null;
+  anxiety_score: number | null;
+  validity_flag: PsychoEmotionalValidityFlag | null;
+}
+
+export interface PsychoEmotionalSection {
+  consent_ok: boolean;
+  thresholds_version: number | null;
+  run_number: number;
+  completed_at: string;
+  history: PsychoEmotionalHistoryItem[];
+  checkin: Record<string, string>;
+  validity_flag: PsychoEmotionalValidityFlag | null;
+  validity_reasons: string[];
+  choice_1: number[];
+  choice_2: number[];
+  d_value: number;
+  d_memory: boolean;
+  d_situationally_unstable: boolean;
+  positional_pairs: PsychoEmotionalPositionalPair[];
+  root_conflict: [number, number];
+  split_pairs: PsychoEmotionalSplitPair[];
+  split_count: number;
+  instability: boolean;
+  anxiety: PsychoEmotionalAnxiety;
+  compensation: PsychoEmotionalCompensation;
+  so_value: number;
+  so_level: PsychoSoLevel;
+  vk_value: number;
+  vk_level: PsychoVkLevel;
+  structural?: PsychoEmotionalStructural;
+  black_first: boolean;
+  interpretation: PsychoEmotionalInterpretation;
+}
+
+export type PsychEmotionalSection = PsychoEmotionalSection;
+
+/** PRO-448 — specialist-facing text interpretation, already in the viewer's
+ *  locale (texts come from the backend catalog, not from i18n here). */
+export interface PsychoEmotionalHighlight {
+  key: string;
+  text: string;
+  /** Position depth controls ordering only; it is not a risk or probability score. */
+  position_depth: 1 | 2 | 3;
+}
+
+export interface PsychoEmotionalIndexNote {
+  metric: 'anxiety' | 'so' | 'vk';
+  level: string;
+  text: string;
+}
+
+/** `plus_minus` — descriptive contrast: [first, last] colour of choice 2. */
+export type PsychoPositionSign = PsychoFunctionalSign | 'plus_minus';
+
+export interface PsychoEmotionalPositionNote {
+  sign: PsychoPositionSign;
+  colors: number[];
+  text: string;
+}
+
+export interface PsychoEmotionalInterpretation {
+  reading: string[];
+  highlights: PsychoEmotionalHighlight[];
+  indices: PsychoEmotionalIndexNote[];
+  positions: PsychoEmotionalPositionNote[];
 }
 
 interface ResultResponseBase {
@@ -390,6 +811,9 @@ interface ResultResponseBase {
   exploration_note: string;
   final_analysis: string;
   created_at: string;
+
+  /** `null` unless the viewer is a psychologist/admin AND a run exists. */
+  psychoemotional?: PsychoEmotionalSection | null;
 }
 
 export interface MiResultResponse extends ResultResponseBase {
@@ -400,160 +824,14 @@ export interface MiResultResponse extends ResultResponseBase {
 
 export interface RiasecResultResponse extends ResultResponseBase {
   interest_instrument: 'riasec';
+  interest_combination?: InterestCombination | null;
   careers: StudentCareer[];
   exploration_activities: [];
 }
 
 export type ResultResponse = MiResultResponse | RiasecResultResponse;
 
-// ─── Direction-fit inquiry ──────────────────────────────────────────────────────
-
-export interface DirectionQuestion {
-  text: string;
-  kind: 'interest' | 'readiness';
-}
-
-export interface DirectionQuestionsResponse {
-  direction_slug: string;
-  direction_name: string;
-  scale: string[];
-  questions: DirectionQuestion[];
-}
-
-export interface DirectionVerdict {
-  direction_slug: string;
-  readiness: string;
-  fit_summary: string;
-  note: string;
-}
-
-// ─── Roadmap ───────────────────────────────────────────────────────────────────
-
-export type RoadmapHorizonKey =
-  | 'month_1'
-  | 'months_3'
-  | 'months_6'
-  | 'year_1'
-  | 'until_goal';
-
-export type RoadmapTaskCategory =
-  | 'study'
-  | 'language'
-  | 'project'
-  | 'exam'
-  | 'explore'
-  | 'achievement'
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'portfolio'
-  | 'career'
-  | 'education'
-  | 'planning'
-  | 'documents'
-  | 'requirement'
-  | 'finance'
-  | 'admission'
-  | 'application';
-
-export interface RoadmapTask {
-  text: string;
-  description: string | null;
-  category: RoadmapTaskCategory;
-  priority: number;
-}
-
-export interface RoadmapMilestone {
-  horizon: RoadmapHorizonKey;
-  title: string;
-  tasks: RoadmapTask[];
-}
-
-export interface RoadmapResponse {
-  id: string;
-  assessment_id: string;
-  goal: string;
-  milestones: RoadmapMilestone[];
-}
-
-// ─── Direction roadmap ─────────────────────────────────────────────────────────
-
-export type DirectionHorizonKey = 'months_3' | 'months_6' | 'months_9' | 'months_12';
-
-export type DirectionTaskCategory =
-  | 'knowledge'
-  | 'skill'
-  | 'practice'
-  | 'project'
-  | 'portfolio'
-  | 'soft_skill'
-  | 'subject'
-  | 'community'
-  | 'exam'
-  | 'university';
-
-/** Item from the content catalogue. Always empty until the catalogue ships. */
-export interface RoadmapResource {
-  title: string;
-  kind: string;
-  url: string | null;
-}
-
-/** What a step works on. Steps are tagged, not grouped into fixed columns. */
-export type StepTrack = 'profile' | 'growth' | 'integration';
-
-export interface RoadmapStep {
-  text: string;
-  /** What to do, where to start, and how to know it's done — no googling required. */
-  description: string;
-  track: StepTrack;
-  category: DirectionTaskCategory;
-  priority: number;
-  resources: RoadmapResource[];
-}
-
-export interface DirectionStage {
-  horizon: DirectionHorizonKey;
-  title: string;
-  /** What the student will have by the end of the stage, and why it matters. */
-  outcome: string;
-  steps: RoadmapStep[];
-  /** Set from months_9 on, where profile and growth work converge. */
-  integration_project: string | null;
-}
-
-export interface RoadmapTarget {
-  role: string;
-  why: string;
-  horizon_years: number;
-}
-
-export interface GrowthFocus {
-  weakness: string;
-  why_it_matters: string;
-  /** The signal in the student's own answers this was derived from. */
-  evidence: string;
-}
-
-export interface UniversityTrack {
-  specialties: string[];
-  prepare: string[];
-}
-
-export interface DirectionRoadmapResponse {
-  id: string;
-  assessment_id: string;
-  direction_slug: string;
-  direction_name: string;
-  target: RoadmapTarget;
-  growth_focus: GrowthFocus;
-  stages: DirectionStage[];
-  skills_to_build: string[];
-  subjects_to_focus: string[];
-  university_track: UniversityTrack;
-}
-
-// ─── University / Gap-analysis ─────────────────────────────────────────────────
+// ─── University ─────────────────────────────────────────────────
 
 export interface AdmissionScoreItem {
   ovpo: string;
@@ -705,11 +983,21 @@ export interface AdminUserListItem {
   role: UserRole;
   is_admin: boolean;
   created_at: string;
+  /** Last time the user was actually seen — refreshed by any authenticated
+   *  request, at most once every 5 minutes. This is what the "Активность"
+   *  column means; `created_at` is registration and nothing else. null = not
+   *  seen since this started being recorded (and, for older accounts, no
+   *  assessment either — the backfill used their newest assessment). */
+  last_active_at: string | null;
   has_profile: boolean;
   profile_name: string | null;
+  /** From the profile — a regional cut is an obvious question of any export
+   *  for a Kazakhstan product. */
+  city: string | null;
+  grade: number | null;
   assessments_count: number;
   /** null if the profile isn't filled in yet. */
-  age_group: AgeGroup | null;
+  age: number | null;
   latest_assessment_status: AssessmentStatus | null;
   /** Always the user's actual latest assessment — independent of which assessment
    *  (if any) actually matched the `status`/`goal` list filters (see
@@ -720,7 +1008,25 @@ export interface AdminUserListItem {
    *  (TZ_Profi.md §18.3). `riasec` is null for junior (MI instrument, not
    *  RIASEC) and for users with no completed assessment yet. */
   riasec: Record<string, number> | null;
+  /** Junior's interest instrument is MI, not RIASEC, so exactly one of
+   *  `riasec`/`mi` is ever populated — an empty `riasec` on a junior means
+   *  "different instrument", not "no data". */
+  mi: Record<string, number> | null;
   big_five: Record<string, number> | null;
+}
+
+/** Whole-table counts, none of which can be derived from one page of the
+ *  users list. `completed_diagnostics`/`abandoned_diagnostics` count
+ *  ASSESSMENTS (one user can start several); `total`/`signups_last_7d` count
+ *  users. */
+export interface AdminUserStats {
+  total: number;
+  signups_last_7d: number;
+  completed_diagnostics: number;
+  abandoned_diagnostics: number;
+  /** Echoed back from the request: "abandoned" is a judgement about a
+   *  threshold, so the number on screen has to say which one produced it. */
+  inactive_days_threshold: number;
 }
 
 export interface AdminUserListResponse {
@@ -739,7 +1045,6 @@ export interface AdminAssessmentSummary {
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
-  has_roadmap: boolean;
 }
 
 export interface AdminUserDetail {
@@ -779,14 +1084,54 @@ export interface AdminResponseItem {
   created_at: string;
 }
 
+/** Один отвеченный триплет блока мотивации.
+ *
+ *  Ученику показывают три утверждения, он отмечает одно как САМОЕ важное и
+ *  одно как НАИМЕНЕЕ важное. Третье он не трогает — оно выводится как
+ *  оставшееся и никогда не хранится как отдельный выбор, поэтому у него нет
+ *  своего «picked».
+ *
+ *  Имена полей повторяют ответ API дословно. Раньше тут стояли выдуманные
+ *  `most_text` / `least_text` / `neutral_text`, которых сервер не присылает:
+ *  тип описывал API неверно, TypeScript поэтому ничего не заметил, а на
+ *  экране рендерились подписи без единого утверждения рядом. */
 export interface AdminMotivationResponseItem {
   triplet_index: number;
-  most_text: string;
-  most_category: string;
-  least_text: string;
-  least_category: string;
-  neutral_text: string;
-  neutral_category: string;
+  picked_most_text: string;
+  picked_most_category: string;
+  picked_least_text: string;
+  picked_least_category: string;
+  /** Третье утверждение триплета — то, которое ученик НЕ выбрал ни одним из
+   *  двух способов. Это вывод, а не его действие. */
+  not_picked_text: string;
+  not_picked_category: string;
+  created_at: string;
+}
+
+export interface AdminAsturRunResponse {
+  id: string;
+  status: AsturRunStatus;
+  bank_version_id: string;
+  scoring_version: string | null;
+  answers: Record<string, any>;
+  lability_answers: Record<string, any>;
+  /** Frozen result; `null` until the attempt is completed. */
+  result_snapshot: AsturResultSnapshot | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface AdminBelbinRunResponse {
+  id: string;
+  allocations: Record<string, number>[];
+  role_totals: Record<string, number>;
+  created_at: string;
+}
+
+export interface AdminPsychoemotionalRunResponse {
+  id: string;
+  checkin: Record<string, any>;
+  metrics: Record<string, any>;
   created_at: string;
 }
 
@@ -803,8 +1148,10 @@ export interface AdminAssessmentDetail {
   completed_at: string | null;
   responses: AdminResponseItem[];
   motivation_responses: AdminMotivationResponseItem[];
+  astur_runs: AdminAsturRunResponse[];
+  belbin_runs: AdminBelbinRunResponse[];
+  psychoemotional_runs: AdminPsychoemotionalRunResponse[];
   analysis_result: AnalysisResultResponse | null;
-  roadmap: RoadmapResponse | null;
 }
 
 // ─── Admin feedback (TZ_Profi.md §28.4) ──────────────────────────────────────────
@@ -815,7 +1162,6 @@ export interface AdminFeedbackListItem {
   user_email: string;
   profile_name: string | null;
   assessment_id: string | null;
-  age_group: string | null;
   /** Effective scenario A/B/C, see goal_overlay_service — null if the
    *  assessment or its profile no longer exists. */
   scenario: string | null;
@@ -839,13 +1185,22 @@ export interface FeedbackBreakdownItem {
   avg_relevance_score: number;
 }
 
+/** Aggregates over whatever the same filters as `listFeedback` left — so the
+ *  summary above the table describes the rows in it, not the all-time totals. */
 export interface AdminFeedbackStatsResponse {
   total: number;
   avg_relevance_score: number | null;
-  by_age_group: FeedbackBreakdownItem[];
+  /** Count per 1–5 score, keyed by the score as a string. An average alone
+   *  cannot reconstruct this: 4.0 looks the same whether everyone said 4 or
+   *  the room split between 5s and 3s. */
+  score_counts: Record<string, number>;
   by_scenario: FeedbackBreakdownItem[];
   by_top_direction: FeedbackBreakdownItem[];
   helpful_section_counts: Record<string, number>;
+  /** Reviews that named no useful section. Not derivable from the counts
+   *  above — a review can name several, so they do not sum to a review
+   *  count. */
+  no_sections_count: number;
 }
 
 // ─── Admin: university/program editing (docs/admin-university-editing-api.md) ────
@@ -856,11 +1211,37 @@ export interface AdminUniversityListItem {
   city: string | null;
   country: string | null;
   ranking: number | null;
+  /** The scale the number came from ("#28 (QS World)", "Top-20 (Нац.
+   *  рейтинг)"). `ranking` alone mixes a QS world position, a national tier
+   *  and a field rank in one column, so the bare number is not comparable
+   *  between rows. */
+  ranking_label: string | null;
   uniranks_kz_rank: number | null;
   /** "Н/Р" if checked and not found in the ranking; null = not checked yet. */
   uniranks_note: string | null;
   updated_at: string | null;
   programs_count: number;
+}
+
+/** One entry of `AdminProgramDetail.grants`.
+ *
+ *  `name` is the only field every live row has; the other two are optional and
+ *  the index signature keeps any key an importer added that this type has not
+ *  learned about yet — a read-edit-write pass through the admin must not
+ *  silently drop one. */
+export interface AdminProgramGrant {
+  name: string;
+  amount?: string | null;
+  conditions?: string | null;
+  [key: string]: unknown;
+}
+
+/** One option of the country filter, with how many universities it covers.
+ *  A page of 20 rows cannot supply the full set of values, so the server
+ *  computes it — the screen used to download the whole catalog to count. */
+export interface AdminUniversityCountry {
+  country: string;
+  universities_count: number;
 }
 
 export interface AdminUniversityListResponse {
@@ -932,7 +1313,7 @@ export type AdminProgramUpdateRequest = Partial<{
   requirements: Record<string, unknown>;
   /** Whole-object replace, not a merge — see §6 of the API contract. */
   deadlines: Record<string, unknown>;
-  grants: unknown[];
+  grants: AdminProgramGrant[];
   source_url: string | null;
 }>;
 
@@ -947,7 +1328,7 @@ export interface AdminProgramDetail {
   who_its_for: string | null;
   requirements: Record<string, unknown>;
   deadlines: Record<string, unknown>;
-  grants: unknown[];
+  grants: AdminProgramGrant[];
   created_at: string;
   updated_at: string | null;
   source_url: string | null;
@@ -966,8 +1347,29 @@ export interface PsychologistStudentListItem {
   id: string;
   email: string;
   profile_name: string | null;
-  age_group: AgeGroup | null;
-  assigned_at: string;
+  age: number | null;
+  grade?: number | null;
+  assigned_at?: string;
+  /** Review status of the student's latest report; `null` — no report yet. */
+  report_status?: ReviewStatus | null;
+  /** Student's registration date — a psychologist sees every student, there
+   *  is no assignment step. */
+  registered_at?: string;
+}
+
+/** Students the psychologist can claim (PRO-337 — no admin in this flow). */
+export interface PsychologistAvailableStudentItem {
+  id: string;
+  email: string;
+  profile_name: string | null;
+  age: number | null;
+  grade?: number | null;
+  has_pending_review: boolean;
+  /** At least one completed assessment — claim CTA only when true (PRO-402). */
+  has_completed_assessment: boolean;
+  /** Goal / completion time of the latest completed assessment. */
+  goal?: AssessmentGoal | null;
+  completed_at?: string | null;
 }
 
 export interface PsychologistAssessmentSummary {
@@ -979,7 +1381,8 @@ export interface PsychologistAssessmentSummary {
   created_at: string;
   completed_at: string | null;
   has_result: boolean;
-  has_roadmap: boolean;
+  /** `null` while there is no result yet. */
+  review_status?: ReviewStatus | null;
 }
 
 /** Separate from `AdminUserDetail` — no `role` / `is_admin` in the payload. */
@@ -992,6 +1395,8 @@ export interface PsychologistStudentDetail {
   profile: ProfileResponse | null;
   artifacts: ArtifactItem[];
   assessments: PsychologistAssessmentSummary[];
+  /** When this psychologist claimed the student. */
+  assigned_at?: string | null;
 }
 
 export interface PsychologistNote {
@@ -1005,6 +1410,423 @@ export interface PsychologistNote {
 export interface PsychologistNoteWrite {
   content: string;
 }
+
+// ─── PRO-338 — specialist report: 6 new tests, never shown on student /result ────
+// Mirrors app/schemas/new_tests.py exactly (field-for-field) — every field is
+// optional because Ф0.2/Ф0.3 only laid the container/endpoint groundwork; the
+// scoring services that populate these land per-test in Фазы 1-3.
+
+// "Почему такой результат" evidence — mirrors app/schemas/new_tests.py's own
+// evidence classes, added so the psychologist card can show the student's
+// real answers (same idea as InterestMapItemDetails on /result) instead of
+// just restating the raw score in a sentence. One shape per answer format.
+
+export interface BinaryAnswerItem {
+  text: string;
+  answer: 'yes' | 'no';
+}
+
+export interface BinaryScaleEvidence {
+  answered: number;
+  yes: number;
+  no: number;
+  items: BinaryAnswerItem[];
+}
+
+export interface RatedAnswerItem {
+  text: string;
+  value: number;
+}
+
+export interface RatedScaleEvidence {
+  answered: number;
+  distribution: number[];
+  items: RatedAnswerItem[];
+}
+
+export interface PairAnswerItem {
+  text: string;
+  picked: boolean;
+}
+
+export interface PairScaleEvidence {
+  picked: number;
+  total: number;
+  items: PairAnswerItem[];
+}
+
+export interface SingleItemEvidence {
+  text: string;
+  value: number;
+}
+
+export interface RoleEvidenceItem {
+  block: string;
+  text: string;
+  points: number;
+}
+
+export interface RoleEvidence {
+  points_by_block: number[];
+  items: RoleEvidenceItem[];
+}
+
+export interface ProfessionalTypesSection {
+  interest_scores: Record<string, number> | null;
+  hybrid_profile: string[] | null;
+  abilities_scores: Record<string, number> | null;
+  interest_evidence: Record<string, PairScaleEvidence> | null;
+  abilities_evidence: Record<string, SingleItemEvidence> | null;
+}
+
+export interface TeamRoleSection {
+  scores: Record<string, number> | null;
+  // All 8 role codes sorted by score descending (ties broken server-side by
+  // a fixed canonical order) — the Bar Chart (Ф2.7) renders bars in exactly
+  // this order, not `scores`' own (unordered) key order.
+  ranked_roles: string[] | null;
+  dominant_role: string | null;
+  supporting_roles: string[] | null;
+  avoidance_roles: string[] | null;
+  methodological_note: string | null;
+  role_evidence: Record<string, RoleEvidence> | null;
+}
+
+export interface TemperamentSection {
+  extraversion_raw: number | null;
+  neuroticism_raw: number | null;
+  lie_scale_raw: number | null;
+  extraversion_level: string | null;
+  neuroticism_level: string | null;
+  protocol_flagged: boolean | null;
+  // One of choleric/sanguine/phlegmatic/melancholic (Ф1.6) — rendered as
+  // the Scatter Plot's 4 quadrants.
+  quadrant: string | null;
+  extraversion_evidence: BinaryScaleEvidence | null;
+  neuroticism_evidence: BinaryScaleEvidence | null;
+  lie_scale_evidence: BinaryScaleEvidence | null;
+}
+
+// ─── АСТУР result snapshot (PRO-427) — frozen once per completed attempt ─────
+
+export interface AsturSubtestResult {
+  key: AsturSubtestKey;
+  score: number;
+  max_score: number;
+  percent: number;
+  item_count: number;
+  answered: number;
+  skipped: number;
+  unanswered: number;
+  /** Counted in `overall_percent` under this snapshot's scoring version. */
+  in_overall: boolean;
+}
+
+export interface AsturSubjectAreaResult {
+  key: string;
+  earned: number;
+  item_count: number;
+  answered: number;
+  percent: number;
+}
+
+export type AsturProfileStatus = 'leading' | 'mixed' | 'insufficient_data';
+
+/** Knowledge of subject-area terms, not ability. */
+export interface AsturSubjectProfile {
+  status: AsturProfileStatus;
+  leading: string | null;
+  runner_up: string | null;
+  gap_pp: number | null;
+  threshold_pp: number | null;
+  areas: AsturSubjectAreaResult[];
+}
+
+export interface AsturMathReasoning {
+  numeric_series_percent: number;
+  physics_math_knowledge_percent: number | null;
+  gap_pp: number | null;
+  divergence: 'none' | 'knowledge_higher' | 'reasoning_higher' | null;
+  threshold_pp: number;
+}
+
+export interface AsturQuickInstructions {
+  status: 'ok' | 'insufficient_on_time';
+  total: number;
+  on_time: number;
+  skipped: number;
+  first_half_correct: number;
+  first_half_total: number;
+  second_half_correct: number;
+  second_half_total: number;
+  first_half_percent: number | null;
+  second_half_percent: number | null;
+  accuracy_change_pp: number | null;
+  mean_ms: number | null;
+  median_ms: number | null;
+  server_block_ms: number | null;
+  client_total_ms: number | null;
+}
+
+export type AsturProtocolFlagCode =
+  | 'many_blank_answers'
+  | 'subtest_timing_missing'
+  | 'subtest_over_time'
+  | 'quick_over_limit'
+  | 'quick_insufficient_on_time'
+  | 'quick_timing_mismatch'
+  | 'repeat_exposure'
+  | 'legacy_protocol'
+  | 'legacy_day_of_week_estimated';
+
+export interface AsturProtocolFlag {
+  code: AsturProtocolFlagCode;
+  subtest: string | null;
+  count: number | null;
+}
+
+export interface AsturProtocolQuality {
+  ok: boolean;
+  flags: AsturProtocolFlag[];
+}
+
+/** Where an attempt sits among the student's attempts: a repeat exposure
+ *  to the same form means a changed score may reflect familiarity with the
+ *  items rather than a changed skill. */
+export interface AsturAttemptHistory {
+  attempt_number: number;
+  repeat_exposure: boolean;
+  days_since_previous: number | null;
+}
+
+/** The frozen result of one completed АСТУР attempt (admin view carries
+ *  per-item scores too). */
+export type AsturResultSnapshot = Omit<IntelligenceSection, 'run_id'> & {
+  item_scores: Record<string, number>;
+  item_status: Record<string, 'correct' | 'partial' | 'wrong' | 'skipped' | 'unanswered'>;
+};
+
+/** «Когнитивные навыки (учебные задания)» — the latest COMPLETED attempt's
+ *  frozen result. Percent of tasks done, not an IQ or a norm. */
+export interface IntelligenceSection {
+  run_id: string;
+  scoring_version: string;
+  bank_version: number;
+  legacy: boolean;
+  completed_at: string;
+  age_at_completion: number | null;
+  grade_at_completion: number | null;
+  history: AsturAttemptHistory;
+  subtests: AsturSubtestResult[];
+  overall_percent: number | null;
+  subject_profile: AsturSubjectProfile;
+  math_reasoning: AsturMathReasoning | null;
+  quick_instructions: AsturQuickInstructions | null;
+  protocol_quality: AsturProtocolQuality;
+}
+export interface AspirationLevelSection {
+  score: number | null;
+  level: string | null;
+  evidence: BinaryScaleEvidence | null;
+}
+
+export interface EmpathyConfidenceSection {
+  empathy_channels: Record<string, number> | null;
+  empathy_total: number | null;
+  empathy_level: string | null;
+  confidence_stens: number | null;
+  confidence_level: string | null;
+  empathy_evidence: Record<string, BinaryScaleEvidence> | null;
+  confidence_evidence: RatedScaleEvidence | null;
+}
+
+export interface NewTestsSections {
+  professional_types: ProfessionalTypesSection | null;
+  team_role: TeamRoleSection | null;
+  temperament: TemperamentSection | null;
+  intelligence: IntelligenceSection | null;
+  aspiration_level: AspirationLevelSection | null;
+  empathy_confidence: EmpathyConfidenceSection | null;
+}
+
+// ─── Psychologist-view AI analysis ──────────────────────────────────────────
+
+export interface PsychBlockAnalysisItem {
+  block: string;
+  text: string;
+}
+
+export interface PsychProfessionRecommendation {
+  slug: string;
+  name: string;
+  reasoning: string;
+  /** `reasoning` translated to Kazakh word for word — what a kk student reads
+   *  as their best match's «Почему тебе подходит». */
+  reasoning_kk: string;
+}
+
+/** Per-block AI commentary + a final synthesis + one profession picked from
+ * `report.careers` (never invented — enforced server-side, see
+ * app/services/psych_ai_analysis_validator.py). Lazily generated on first
+ * report view and cached; `null` when the LLM is disabled, generation
+ * failed, or there's no data yet to analyze. */
+export interface PsychAiAnalysis {
+  block_analyses: PsychBlockAnalysisItem[];
+  final_summary: string;
+  recommended_profession: PsychProfessionRecommendation | null;
+}
+
+/** GET /psychologist/students/{studentId}/assessments/{assessmentId}/report —
+ * `report` is the exact same shape the student's own /result returns
+ * (reused, not duplicated), `new_tests` is specialist-only. */
+export interface PsychologistReportResponse {
+  report: ResultResponse;
+  new_tests: NewTestsSections;
+  ai_analysis: PsychAiAnalysis | null;
+}
+
+/** GET /psychologist/students/{studentId}/assessments/{assessmentId}/test-results —
+ * the same 7 instruments as `PsychologistReportResponse.new_tests` +
+ * `.report.psychoemotional`, flattened into one narrative-free payload (no
+ * summary/careers/strength_cards/personality_notes). */
+export interface PsychologistTestResultsResponse {
+  professional_types: ProfessionalTypesSection | null;
+  team_role: TeamRoleSection | null;
+  temperament: TemperamentSection | null;
+  intelligence: IntelligenceSection | null;
+  aspiration_level: AspirationLevelSection | null;
+  empathy_confidence: EmpathyConfidenceSection | null;
+  psychoemotional: PsychoEmotionalSection | null;
+}
+
+// ─── Extended block assignments (Belbin/АСТУР — post-Ф4.1 follow-up) ────────────
+// A psychologist's decision to make Belbin/АСТУР available to a student for
+// one assessment; the student's own UI (not the psychologist's) uses this to
+// discover and launch the block, instead of a hand-delivered link.
+
+export type ExtendedBlock = 'belbin' | 'astur';
+
+export interface ExtendedBlockAssignment {
+  block: ExtendedBlock;
+  assigned_at: string;
+  /** Derived from whether a belbin_runs/astur_runs row exists (and, for
+   *  АСТУР, is fully answered) — never a separate stored flag. */
+  completed: boolean;
+}
+
+export interface ExtendedBlocksResponse {
+  assignments: ExtendedBlockAssignment[];
+}
+
+export interface AssignExtendedBlockPayload {
+  block: ExtendedBlock;
+}
+
+// ─── Psychologist report review (PRO-337) ───────────────────────────────────────
+//
+// docs/psychologist-review-frontend-plan.md. A fresh report is hidden from the
+// student until the assigned psychologist publishes it. `ResultPendingReview`
+// must match the backend's `ResultPendingReviewResponse` field for field.
+
+export type ReviewStatus = 'pending_review' | 'published';
+
+/** What `GET`/`POST /result` return while the report still waits for review. */
+export interface ResultPendingReview {
+  status: 'pending_review';
+  assessment_id: string;
+}
+
+export interface PsychologistReviewQueueItem {
+  assessment_id: string;
+  student_id: string;
+  student_name: string | null;
+  student_email: string;
+  age: number | null;
+  grade?: number | null;
+  goal: AssessmentGoal;
+  generated_at: string;
+  reviewed_at: string | null;
+}
+
+/** One saved edit of a report under review (GET .../results/{id}/edits). */
+export interface PsychologistReviewEdit {
+  id: string;
+  edited_at: string;
+  editor_id: string | null;
+  editor_email: string | null;
+  /** `ai_recommendation` — the system put the AI analysis's recommended
+   *  profession first in `careers`; such an edit has no editor. */
+  source: 'psychologist' | 'ai_recommendation';
+  changed_fields: Record<string, { old: unknown; new: unknown }>;
+}
+
+export interface PsychologistReviewCard {
+  title: string;
+  description: string;
+  /** Strength cards only (PRO-432) — kept as-is when the card is edited. */
+  basis?: StrengthBasis | null;
+}
+
+/** Stored career match — the backend validates this exact shape on PATCH. */
+export interface PsychologistReviewCareer {
+  slug: string;
+  name: string;
+  holland_code: string;
+  match_score: number;
+  description: string;
+  professions: string[];
+  skills_needed: string[];
+  subjects_to_develop: string[];
+  first_steps: string[];
+}
+
+export interface PsychologistResultDetail {
+  assessment_id: string;
+  review_status: ReviewStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  published_by: string | null;
+  published_at: string | null;
+  summary: string;
+  careers: PsychologistReviewCareer[];
+  strengths: string[];
+  weaknesses: string[];
+  development_plan: { reinforce: string[]; compensate: string[] };
+  big_five: Record<string, number>;
+  thinking_style: Record<string, number>;
+  strength_cards: PsychologistReviewCard[];
+  thinking_style_notes: PsychologistReviewCard[];
+  final_analysis: string;
+  personality_notes: Record<string, string>;
+  motivation_highlights: string[];
+  created_at: string;
+  /** The strength cards were built from Belbin/АСТУР results the student has
+   *  since retaken — rebuild them or publish as they are (PRO-432). */
+  strengths_stale: boolean;
+  /** The AI analysis's recommended profession — first in `careers` by
+   *  default; null until the analysis exists. */
+  ai_recommended_slug: string | null;
+  /** «Почему тебе подходит» the student reads under their best match while
+   *  `top_career_why_slug` is first in `careers`; null until the AI analysis exists. */
+  top_career_why: string | null;
+  top_career_why_slug: string | null;
+}
+
+export type PsychologistResultPatch = Partial<
+  Pick<
+    PsychologistResultDetail,
+    | 'summary'
+    | 'careers'
+    | 'strengths'
+    | 'weaknesses'
+    | 'strength_cards'
+    | 'thinking_style_notes'
+    | 'final_analysis'
+    | 'personality_notes'
+    | 'motivation_highlights'
+    | 'top_career_why'
+  >
+>;
 
 // ─── Profile — parent access & attempt history ──────────────────────────────────
 //
@@ -1049,17 +1871,216 @@ export interface AttemptHistoryEntry {
 
 // ─── Admin: question-bank content editing (docs/admin-questions-content-overrides-plan.md) ─
 
+/** One admin edit to a bank-seeded field, alongside what it replaced.
+ *
+ *  `bank_value` is what the content bank held when the field was first
+ *  edited, so the UI can show "было / стало" and offer a revert. Read
+ *  `bank_value_known` before showing it: JSON cannot distinguish an absent
+ *  key from a null one, and several overridable columns (`icon`,
+ *  `short_text`, `frame`) are themselves nullable — so a `null` bank_value
+ *  with the flag set means "the bank really had nothing here", while the
+ *  flag being false means the original was never recorded (every override
+ *  written before PRO-262). */
+export interface AdminFieldOverride {
+  value: unknown;
+  bank_value: unknown;
+  bank_value_known: boolean;
+}
+
+export type AdminOverrides = Record<string, AdminFieldOverride>;
+
+export interface AdminContentOverrideRequest {
+  content_ru: unknown | null;
+  content_kk: unknown | null;
+}
+
+export interface AdminContentOverrideResponse {
+  id: string;
+  instrument: string;
+  content_ru: unknown | null;
+  content_kk: unknown | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+/** Bank shape behind `GET /admin/belbin-schema` and the `sections` half of a
+ *  `belbin` content override — the visual editor round-trips this same
+ *  bilingual shape back through `AdminContentOverrideRequest.content_{ru,kk}`.
+ *  Distinct from `BelbinContentItem`/`BelbinContentSection` above, which are
+ *  the already locale-resolved public `/belbin/content` response. */
+export interface BelbinBankItem {
+  id: string;
+  role: string;
+  text: { ru: string; kk: string };
+}
+
+export interface BelbinBankSection {
+  section: number;
+  title: { ru: string; kk: string };
+  items: BelbinBankItem[];
+}
+
+export interface BelbinSchemaResponse {
+  sections: BelbinBankSection[];
+}
+
+// ─── АСТУР bank versions (admin, PRO-427) ────────────────────────────────────
+
+export interface AsturBankLocalizedText {
+  ru: string;
+  kk: string;
+}
+
+export interface AsturBankLocalizedList {
+  ru: string[];
+  kk: string[];
+}
+
+export type AsturScoringMethod =
+  | 'single_choice'
+  | 'pick_pair'
+  | 'open_text_tiers'
+  | 'chain_links'
+  | 'number_pair'
+  | 'quick_instruction';
+
+export type AsturItemDifficulty = 'easy' | 'medium' | 'hard';
+export type AsturItemReviewStatus = 'unreviewed' | 'reviewed';
+
+/** One item of a bank version — text AND key together. Which fields are
+ *  present depends on the subtest's `scoring_method`: single_choice →
+ *  options + answer (option text); pick_pair → words + answer (2 words);
+ *  open_text_tiers → pair + score_2/score_1 synonym lists; chain_links →
+ *  concepts in the correct order; number_pair → sequence + answer (2
+ *  numbers); quick_instruction → instruction + options + answer, or
+ *  `dynamic` for context-dependent commands. */
+export interface AsturBankItem {
+  item_id: string;
+  skill: string;
+  subject?: string | null;
+  difficulty?: AsturItemDifficulty | null;
+  key_explanation?: { ru?: string; kk?: string } | null;
+  review_status?: AsturItemReviewStatus;
+  text?: AsturBankLocalizedText;
+  instruction?: AsturBankLocalizedText;
+  third?: AsturBankLocalizedText;
+  options?: AsturBankLocalizedList;
+  pair?: AsturBankLocalizedList;
+  words?: AsturBankLocalizedList;
+  concepts?: AsturBankLocalizedList;
+  sequence?: number[];
+  answer?: AsturBankLocalizedText | AsturBankLocalizedList | number[];
+  score_2?: AsturBankLocalizedList;
+  score_1?: AsturBankLocalizedList;
+  answer_format?: string;
+  dynamic?: 'day_of_week' | 'own_name';
+}
+
+export interface AsturBankSubtest {
+  number: number;
+  key: AsturSubtestKey;
+  name: AsturBankLocalizedText;
+  instruction: AsturBankLocalizedText;
+  scoring_method: AsturScoringMethod;
+  time_limit_sec: number | null;
+  items: AsturBankItem[];
+}
+
+export interface AsturBankDocument {
+  schema_version: number;
+  subjects: Record<string, AsturBankLocalizedText>;
+  lability_item_limit_ms: number;
+  subtests: AsturBankSubtest[];
+}
+
+export interface AsturBankIssue {
+  code: string;
+  message: string;
+  subtest: string | null;
+  item_id: string | null;
+  field: string | null;
+}
+
+export interface AsturBankVersionSummary {
+  id: string;
+  version: number | null;
+  status: 'draft' | 'published';
+  content_hash: string | null;
+  based_on_id: string | null;
+  notes: string | null;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
+  attempt_count: number;
+}
+
+export interface AsturBankVersionDetail extends AsturBankVersionSummary {
+  document: AsturBankDocument;
+  issues: AsturBankIssue[];
+  key_changed_item_ids: string[];
+  /** Draft only: false while the draft equals its base — nothing to publish. */
+  has_changes: boolean;
+}
+
+export interface AsturBankDiffEntry {
+  kind: 'added' | 'removed' | 'changed' | 'subtest_changed' | 'bank_changed';
+  subtest: string | null;
+  item_id: string | null;
+  fields: string[];
+}
+
+export interface AsturBankDiff {
+  from_version: number | null;
+  to_version: number | null;
+  changes: AsturBankDiffEntry[];
+}
+
+export type AsturAgeBand = 'under_14' | '14_15' | '16_17' | '18_plus' | 'unknown';
+
+export interface AsturItemAnalytics {
+  item_id: string;
+  position: number;
+  attempts: number;
+  answered: number;
+  skipped: number;
+  unanswered: number;
+  mean_score_share: number | null;
+  on_time_share?: number | null;
+  option_counts: { index: number; label: string; count: number }[];
+  /** Only phrasings seen at least 3 times, masked and trimmed. */
+  unrecognized_answers: { text: string; locale: 'ru' | 'kk'; count: number }[];
+  median_ms: number | null;
+}
+
+export interface AsturBankAnalytics {
+  bank_version: number | null;
+  attempts: number;
+  filters: { age_band?: AsturAgeBand | null; grade?: number | null };
+  age_bands: Partial<Record<AsturAgeBand, number>>;
+  grades: Record<string, number>;
+  subtests: { key: AsturSubtestKey; median_ms: number | null; items: AsturItemAnalytics[] }[];
+}
+
+/** `?sort=&order=` accepted by every admin list. The set of valid `sort`
+ *  values is per endpoint — an unknown one is a 422 naming the allowed set,
+ *  never a silently ignored request. */
+export interface AdminSortParams {
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
 export type QuestionKeyed = 'plus' | 'minus';
 
 export interface AdminQuestionListItem {
   id: string;
   instrument: Instrument;
+  /** Resolved to `ru` by the backend — the admin panel itself stays ru-only
+   *  (i18n-contract §2); edit both languages from the detail screen. */
   text: string;
   order: number;
-  age_tier: AgeGroup;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
   has_overrides: boolean;
 }
 
@@ -1075,30 +2096,35 @@ export interface AdminQuestionDetail {
   instrument: Instrument;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
-  text: string;
-  short_text: string | null;
+  /** One row per question now — both languages live on this one row as a
+   *  `{"ru": ..., "kk": ...}` map. A missing key means untranslated, not "". */
+  text: Partial<Record<Locale, string>>;
+  short_text: Partial<Record<Locale, string>> | null;
   icon: string | null;
   /** Read-only — structural, not part of `AdminQuestionUpdateRequest`. */
   order: number;
-  age_tier: AgeGroup;
-  /** Field name → overridden value. Presence of a key both locks the field
-   *  and protects the whole row from bank-reorg deletion (see the content
-   *  contract's §3 — unlike university's `admin_locked_fields: string[]`,
-   *  this dict is self-contained and IS the edited value). */
-  overrides: Record<string, unknown>;
+  /** Field name → overridden value; for a localized field (`text`/
+   *  `short_text`) the value is itself a `{locale: value}` map — only the
+   *  edited locale's key is present, so overriding kk never locks ru.
+   *  Presence of a key both locks the field and protects the whole row from
+   *  bank-reorg deletion (see the content contract's §3 — unlike university's
+   *  `admin_locked_fields: string[]`, this dict is self-contained and IS the
+   *  edited value). */
+  overrides: AdminOverrides;
 }
 
 export type AdminQuestionUpdateRequest = Partial<{
+  /** Required whenever `text`/`short_text` is present — which language is
+   *  being edited. Ignored for a patch that only touches structural fields. */
+  locale: Locale;
   riasec_type: HollandType | null;
   bigfive_domain: BigFiveDomain | null;
-  mi_category: MIType | null;
   facet: string | null;
   keyed: QuestionKeyed | null;
+  /** The value for `locale` only — the other language's text is untouched. */
   text: string;
-  age_tier: AgeGroup;
   short_text: string | null;
   icon: string | null;
 }>;
@@ -1106,8 +2132,16 @@ export type AdminQuestionUpdateRequest = Partial<{
 export interface AdminQuestionPairListItem {
   id: string;
   instrument: Instrument;
-  age_tier: AgeGroup;
   pair_index: number;
+  /** Short scenario intro shown above the pair; null for junior. */
+  frame: string | null;
+  /** The **effective** option texts — what the student actually sees, with
+   *  the pair's override resolved against the linked question's
+   *  short_text/text. Never null, unlike the raw override columns of the same
+   *  name on `AdminQuestionPairDetail`. Never prefill an editing form from
+   *  these: saving a displayed fallback would turn it into a real override. */
+  option_a_text: string;
+  option_b_text: string;
   has_overrides: boolean;
 }
 
@@ -1121,23 +2155,38 @@ export interface AdminQuestionPairListResponse {
 export interface AdminQuestionPairDetail {
   id: string;
   instrument: Instrument;
-  age_tier: AgeGroup;
   pair_index: number;
   /** Read-only — which two Question rows form the pair is a structural edit,
    *  out of scope for this API. */
   question_a_id: string;
   question_b_id: string;
-  frame: string | null;
-  /** null = fall back to the linked Question's short_text/text on read —
-   *  this endpoint does not resolve that fallback itself. */
-  option_a_text: string | null;
-  option_b_text: string | null;
+  /** One row per pair now — see `AdminQuestionDetail.text`. A missing key
+   *  (or a `null` map) means "no override for this language" — falls back to
+   *  the linked Question's short_text/text on read. The fallback is also
+   *  inlined below as `question_a`/`question_b`, so the form can show it
+   *  without a second request per option. */
+  frame: Partial<Record<Locale, string>> | null;
+  option_a_text: Partial<Record<Locale, string>> | null;
+  option_b_text: Partial<Record<Locale, string>> | null;
   option_a_icon: string | null;
   option_b_icon: string | null;
-  overrides: Record<string, unknown>;
+  question_a: AdminLinkedQuestion | null;
+  question_b: AdminLinkedQuestion | null;
+  overrides: AdminOverrides;
+}
+
+/** The Question one side of a pair points at — the fallback an empty
+ *  override resolves to. */
+export interface AdminLinkedQuestion {
+  id: string;
+  text: string;
+  short_text: string | null;
+  icon: string | null;
 }
 
 export type AdminQuestionPairUpdateRequest = Partial<{
+  /** Required whenever `frame`/`option_a_text`/`option_b_text` is present. */
+  locale: Locale;
   frame: string | null;
   option_a_text: string | null;
   option_b_text: string | null;
@@ -1150,6 +2199,7 @@ export interface AdminMotivationStatementListItem {
   triplet_index: number;
   order: number;
   category: MotivationCategory;
+  /** Resolved to `ru` by the backend — see `AdminQuestionListItem.text`. */
   text: string;
   has_overrides: boolean;
 }
@@ -1166,57 +2216,32 @@ export interface AdminMotivationStatementDetail {
   triplet_index: number;
   order: number;
   category: MotivationCategory;
-  text: string;
-  /** null = the senior `text` is reused for junior too. */
-  text_junior: string | null;
-  overrides: Record<string, unknown>;
+  text: Partial<Record<Locale, string>>;
+  /** null = the senior `text` is reused for junior too, in every language. */
+  overrides: AdminOverrides;
 }
 
 export type AdminMotivationStatementUpdateRequest = Partial<{
+  /** Required whenever `text` is present. */
+  locale: Locale;
   category: MotivationCategory;
   text: string;
-  text_junior: string | null;
-}>;
-
-export interface AdminMotivationPairListItem {
-  id: string;
-  pair_index: number;
-  category_a: MotivationCategory;
-  category_b: MotivationCategory;
-  has_overrides: boolean;
-}
-
-export interface AdminMotivationPairListResponse {
-  items: AdminMotivationPairListItem[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface AdminMotivationPairDetail {
-  id: string;
-  pair_index: number;
-  /** Always equal — both sides are the SAME category, `text_a` its positive
-   *  pole and `text_b` its negative pole (not two different categories). */
-  category_a: MotivationCategory;
-  category_b: MotivationCategory;
-  text_a: string;
-  text_b: string;
-  overrides: Record<string, unknown>;
-}
-
-export type AdminMotivationPairUpdateRequest = Partial<{
-  category_a: MotivationCategory;
-  category_b: MotivationCategory;
-  text_a: string;
-  text_b: string;
 }>;
 
 export interface AdminDirectionListItem {
   id: string;
+  /** Resolved to `ru` by the backend — see `AdminQuestionListItem.text`. */
   name: string;
   slug: string;
   holland_code: string;
+  programs_count: number;
+  /** True only when every descriptive field is filled. */
+  catalog_filled: boolean;
+  /** Which of description/professions/skills_needed/subjects_to_develop/
+   *  first_steps are still empty on this row — a list rather than a flag
+   *  because `professions` is empty on every direction, so a bare
+   *  `catalog_filled` would read false everywhere and say nothing. */
+  empty_catalog_fields: string[];
   has_overrides: boolean;
 }
 
@@ -1227,27 +2252,43 @@ export interface AdminDirectionListResponse {
   limit: number;
 }
 
-export interface AdminDirectionDetail {
+/** A program mapped to a direction through `program_directions` — the
+ *  mapping that drives career matching, invisible from the admin until now. */
+export interface AdminDirectionProgram {
   id: string;
   name: string;
-  /** Read-only — generated once from `name` by the seed script, does not
+  university_id: string;
+  university_name: string;
+}
+
+export interface AdminDirectionDetail {
+  id: string;
+  name: Partial<Record<Locale, string>>;
+  /** Read-only — generated once from `name.ru` by the seed script, does not
    *  re-derive if `name` is edited afterward (expected drift, not a bug). */
   slug: string;
   holland_code: string;
-  description: string;
+  description: Partial<Record<Locale, string>>;
   /** Empty on **all 92** directions as of 2026-09 — measured, not estimated.
    *  Every other catalog field (description, skills, subjects, first steps) is
-   *  filled everywhere. `Direction.professions` feeds the student's report and
-   *  the LLM context for the direction inquiry and roadmap, so all three get an
-   *  empty list today — see docs/admin-backend-requests-pro-242.md §13. */
-  professions: string[];
-  skills_needed: string[];
-  subjects_to_develop: string[];
-  first_steps: string[];
-  overrides: Record<string, unknown>;
+   *  filled everywhere. `Direction.professions` feeds the student's report, so
+   *  it gets an empty list today — see docs/admin-backend-requests-pro-242.md §13. */
+  professions: Partial<Record<Locale, string[]>>;
+  skills_needed: Partial<Record<Locale, string[]>>;
+  subjects_to_develop: Partial<Record<Locale, string[]>>;
+  first_steps: Partial<Record<Locale, string[]>>;
+  /** Программы вузов, привязанные к направлению через program_directions.
+   *  Именно эта связь решает, попадёт ли направление в подбор ученику, а из
+   *  админки её раньше не было видно вообще. */
+  programs: AdminDirectionProgram[];
+  overrides: AdminOverrides;
 }
 
 export type AdminDirectionUpdateRequest = Partial<{
+  /** Required whenever `name`/`description`/`professions`/`skills_needed`/
+   *  `subjects_to_develop`/`first_steps` is present. `holland_code` is the
+   *  only structural (non-localized) field here — needs no `locale`. */
+  locale: Locale;
   name: string;
   holland_code: string;
   description: string;
@@ -1256,3 +2297,11 @@ export type AdminDirectionUpdateRequest = Partial<{
   subjects_to_develop: string[];
   first_steps: string[];
 }>;
+
+/** A form validation error kept as a fully-qualified i18n key + params and
+ *  translated at render. Stored as text, an error stayed in the language it
+ *  was raised in after a language switch (PRO-450). */
+export interface ValidationMessage {
+  key: string;
+  params?: Record<string, string | number>;
+}

@@ -26,6 +26,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/shared/lib/cn';
 import { playClick } from '@/shared/lib/sounds';
 import type { MotivationStatement } from '@/shared/types';
+import { ReorderArrows } from './ReorderArrows';
 
 interface TripletRankingProps {
   /** Exactly 3 statements, already in the current ranking order:
@@ -54,10 +55,15 @@ function positionOf(statements: MotivationStatement[], id: string | number) {
 interface SortableCardProps {
   statement: MotivationStatement;
   index: number;
+  total: number;
+  onMove: (from: number, to: number) => void;
   disabled?: boolean;
 }
 
-function SortableCard({ statement, index, disabled }: SortableCardProps) {
+/* Only the badge · text · grip part drags (and takes the keyboard pick-up):
+   the ↑/↓ buttons beside it are their own controls, not nested inside a
+   draggable role="button". */
+function SortableCard({ statement, index, total, onMove, disabled }: SortableCardProps) {
   const { t } = useTranslation('assessment');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: statement.id,
@@ -67,46 +73,53 @@ function SortableCard({ statement, index, disabled }: SortableCardProps) {
   return (
     <div
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        touchAction: 'none',
         opacity: isDragging ? 0.4 : 1,
         borderRadius: 18,
       }}
       className={cn(
-        'w-full flex items-center gap-3 border-2 px-5 py-[18px] cursor-grab active:cursor-grabbing transition-colors duration-150',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+        'w-full flex items-center gap-2 border-2 py-[18px] pl-5 pr-3 transition-colors duration-150',
         CARD_STYLE.border,
         CARD_STYLE.bg,
       )}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-      aria-roledescription={t('triplet.cardRoleDesc')}
-      aria-label={t('triplet.cardAria', { text: statement.text, index: index + 1 })}
     >
       <span
-        className="w-[34px] h-[34px] flex-none flex items-center justify-center font-black"
-        style={{
-          borderRadius: '50%',
-          fontSize: 15,
-          background: CARD_STYLE.badgeBg,
-          color: CARD_STYLE.badgeColor,
-          border: '1.5px solid var(--hairline)',
-        }}
+        {...attributes}
+        {...listeners}
+        style={{ touchAction: 'none' }}
+        className={cn(
+          'flex-1 min-w-0 flex items-center gap-3 rounded-[12px] cursor-grab active:cursor-grabbing',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4',
+        )}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-roledescription={t('triplet.cardRoleDesc')}
+        aria-label={t('triplet.cardAria', { text: statement.text, index: index + 1 })}
       >
-        {/* Fixed to the card's own original order, not its current slot —
-            renumbering every card as they shuffle past each other mid-drag
-            read as confusing. Actual rank is communicated by position
-            (top → bottom) and the aria-label below, not this badge. */}
-        {statement.order + 1}
+        <span
+          className="w-[34px] h-[34px] flex-none flex items-center justify-center font-black"
+          style={{
+            borderRadius: '50%',
+            fontSize: 15,
+            background: CARD_STYLE.badgeBg,
+            color: CARD_STYLE.badgeColor,
+            border: '1.5px solid var(--hairline)',
+          }}
+        >
+          {/* Fixed to the card's own original order, not its current slot —
+              renumbering every card as they shuffle past each other mid-drag
+              read as confusing. Actual rank is communicated by position
+              (top → bottom) and the aria-label below, not this badge. */}
+          {statement.order + 1}
+        </span>
+        <span className="flex-1 font-bold text-primary leading-snug text-body-md">
+          {statement.text}
+        </span>
+        <GripVertical className="w-5 h-5 flex-none" style={{ color: 'var(--text-subtle)' }} aria-hidden />
       </span>
-      <span className="flex-1 font-bold text-primary leading-snug text-body-md">
-        {statement.text}
-      </span>
-      <GripVertical className="w-5 h-5 flex-none" style={{ color: 'var(--text-subtle)' }} aria-hidden />
+      <ReorderArrows label={statement.text} position={index} total={total} onMove={onMove} disabled={disabled} />
     </div>
   );
 }
@@ -154,6 +167,13 @@ export const TripletRanking = React.memo(function TripletRanking({
     onReorder(arrayMove(ids, oldIndex, newIndex));
   }
 
+  // The ↑/↓ buttons commit a move in one step — same contract as a drop.
+  function handleMove(from: number, to: number) {
+    if (to < 0 || to >= statements.length) return;
+    playClick('soft');
+    onReorder(arrayMove(statements.map(s => s.id), from, to));
+  }
+
   const activeStatement = activeId ? statements.find(s => s.id === activeId) : undefined;
   const activeIndex = activeStatement ? statements.indexOf(activeStatement) : -1;
 
@@ -169,7 +189,14 @@ export const TripletRanking = React.memo(function TripletRanking({
       <SortableContext items={statements.map(s => s.id)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-[10px]">
           {statements.map((statement, index) => (
-            <SortableCard key={statement.id} statement={statement} index={index} disabled={disabled} />
+            <SortableCard
+              key={statement.id}
+              statement={statement}
+              index={index}
+              total={statements.length}
+              onMove={handleMove}
+              disabled={disabled}
+            />
           ))}
         </div>
       </SortableContext>
@@ -178,28 +205,34 @@ export const TripletRanking = React.memo(function TripletRanking({
         {activeStatement && activeIndex !== -1 ? (
           <div
             className={cn(
-              'w-full flex items-center gap-3 border-2 px-5 py-[18px]',
+              'w-full flex items-center gap-2 border-2 py-[18px] pl-5 pr-3',
               CARD_STYLE.border,
               CARD_STYLE.bg,
               'triplet-drag-lift',
             )}
             style={{ borderRadius: 18 }}
           >
-            <span
-              className="w-[34px] h-[34px] flex-none flex items-center justify-center font-black"
-              style={{
-                borderRadius: '50%',
-                fontSize: 15,
-                background: CARD_STYLE.badgeBg,
-                color: CARD_STYLE.badgeColor,
-              }}
-            >
-              {activeStatement.order + 1}
+            <span className="flex-1 min-w-0 flex items-center gap-3">
+              <span
+                className="w-[34px] h-[34px] flex-none flex items-center justify-center font-black"
+                style={{
+                  borderRadius: '50%',
+                  fontSize: 15,
+                  background: CARD_STYLE.badgeBg,
+                  color: CARD_STYLE.badgeColor,
+                }}
+              >
+                {activeStatement.order + 1}
+              </span>
+              <span className="flex-1 font-bold text-primary leading-snug text-body-md">
+                {activeStatement.text}
+              </span>
+              <GripVertical className="w-5 h-5 flex-none" style={{ color: 'var(--text-subtle)' }} aria-hidden />
             </span>
-            <span className="flex-1 font-bold text-primary leading-snug text-body-md">
-              {activeStatement.text}
+            {/* Same row shape as the card it lifts off — the arrows are inert here. */}
+            <span aria-hidden="true" className="flex items-center gap-2">
+              <ReorderArrows label={activeStatement.text} position={activeIndex} total={statements.length} onMove={() => {}} disabled />
             </span>
-            <GripVertical className="w-5 h-5 flex-none" style={{ color: 'var(--text-subtle)' }} aria-hidden />
           </div>
         ) : null}
       </DragOverlay>

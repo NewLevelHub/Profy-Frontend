@@ -39,12 +39,29 @@ GET /api/v1/result/{assessment_id}
 result (проценты, баллы, `match_score`, коды) доступен только через admin
 API — см. §9.
 
-## 2. Возрастные ветки assessment
+**Исключение — отчёт на проверке у психолога (PRO-337).** Пока психолог не
+опубликовал отчёт, оба эндпоинта отвечают `200` с
+`{"status": "pending_review", "assessment_id": "uuid"}` (`ResultPendingReview`
+в `src/shared/types/index.ts`). `resultApi` пропускает этот конверт мимо
+`legacy_result_shape`-проверки (`isPendingReview` в
+`src/shared/api/result.ts`), `useResults` не кладёт его в стор, опрашивает
+эндпоинт раз в минуту и возвращает `isPendingReview`. `ResultsPage` больше
+не показывает экран ожидания (PRO-401) — вместо него карточка «тест пройден»
+(`results:completedPending`); после генерации с `pending_review` ученик
+уходит на `/profile`. Дизайн — `docs/psychologist-review-frontend-plan.md`.
 
-- **junior (6–9)**: MI + Big Five + Harter motivation pairs.
-  RIASEC и career matching не используются вообще.
-- **middle (10–13)**: RIASEC + Big Five + Harter motivation pairs.
-- **senior (14–18)**: RIASEC + Big Five + MOST/LEAST motivation triplets.
+## 2. Активный assessment flow
+
+- Для новых прохождений используется единый flow для учеников 14–18 лет:
+  RIASEC + MOST/LEAST motivation triplets.
+- Формы junior/middle, MI и Harter могут встречаться в legacy API-типах и
+  исторических данных, но больше не являются точками входа нового frontend flow.
+
+Big Five исключён из активного пула для новых прохождений. Исторические
+результаты с полностью пройденным Big Five продолжают отображаться. Поэтому
+`personality_notes` содержит либо ровно 5 элементов для legacy-результата,
+либо `[]`; `personality_note` в новом результате равен `""`, а
+`thinking_style_notes` — `[]`. Пустые retired-секции frontend не отображает.
 
 Age group сам по себе **не часть ответа** и не должен использоваться
 фронтом для ветвления — см. §3 про `interest_instrument`.
@@ -81,7 +98,8 @@ report.interest_instrument === 'mi'`, не `profile.age_group`.
   "strength_cards": [
     {
       "title": "Любишь находить закономерности",
-      "description": "Короткое наблюдение, подтверждённое ответами."
+      "description": "Короткое наблюдение, подтверждённое ответами.",
+      "is_test_grounded": true
     }
   ],
   "interest_map": [ /* см. §5 — длина и семантика зависят от instrument */ ],
@@ -134,13 +152,19 @@ mi/riasec (для этого — `interest_instrument`, §3) — только ч
 
 ### 4.3 `strength_cards` / `thinking_style_notes` — evidence-derived, переменная длина
 
-Оба — списки `{title, description}` (обе строки непустые). Это **не**
-фиксированный набор: количество карточек — сколько реальных наблюдений
-нашлось у конкретного ученика (typically 5–7 для `strength_cards`, 0–2 для
-`thinking_style_notes`), а не константа. Фронт не должен полагаться на
-конкретную длину этих списков и обязан корректно рендерить как 0, так и N
-карточек (пустой `thinking_style_notes` — легитимный, не ошибка). Не путать
-с `interest_map` (§5), которая всегда полного, фиксированного размера.
+`strength_cards` — список `{title, description, is_test_grounded}`; у
+`thinking_style_notes` остаётся форма `{title, description}`. Строки
+непустые. `is_test_grounded=true` означает, что `description` можно показать
+после подписи «Почему так?»: этот текст детерминированно собран из результата
+теста. Для добавленной психологом карточки без тестового основания значение
+`false`, поэтому описание показывается без такой подписи.
+
+Для завершённого текущего теста backend формирует ровно пять
+`strength_cards`: сначала наиболее надёжные наблюдения, затем недостающие
+места заполняются осторожно сформулированными интересами. До формирования
+отчёта список может быть пустым. `thinking_style_notes` по-прежнему имеет
+переменную длину и может быть пустым. Не путать эти поля с `interest_map`
+(§5), у которой собственный фиксированный размер.
 
 ### 4.4 `motivation_highlights` — единая форма независимо от источника
 
@@ -186,7 +210,7 @@ assessment, но не запрещено схемой).
   часть контракта** и могут измениться без объявления breaking change;
   фронт обязан относиться к `level` как к непрозрачному enum, а не
   пытаться воспроизвести пороги локально или показывать сам балл.
-  (`InterestMapSection.tsx` рисует его 3-точечным индикатором, не баром.)
+  (`InterestDomainSection.tsx` рисует его 3-точечным индикатором, не баром.)
 
 **Важное отличие от `strength_cards`**: `interest_map` — это *score-derived*
 (из сырых нормализованных баллов, по всем категориям без исключения, в том
@@ -287,6 +311,7 @@ career-oriented (methodology), профессии ему не подбирают
 | `403` | `assessment_id` принадлежит другому пользователю |
 | `404` | `assessment_id` не существует (`POST`), либо отчёт ещё не сгенерирован (`GET`) |
 | `409` | обязательные ответы для этого возраста ещё не завершены |
+| `200` + `status: "pending_review"` | отчёт готов, но ещё не опубликован психологом — не ошибка (см. §1) |
 
 Ошибка LLM или недоступность Redis **никогда** не превращаются в `5xx`:
 backend всегда возвращает валидный `200` той же v2-формы — либо
@@ -355,9 +380,8 @@ LLM-персонализированные `summary`/`strength_cards`/`thinking_
 | Запросы (§1) | `src/shared/api/result.ts` |
 | `interest_instrument`-ветвление (§3) | `src/pages/results/hooks/useResults.ts` |
 | `summary`/`disclaimer` (§4.2) | `src/pages/results/components/SummaryCard.tsx` |
-| `strength_cards` (§4.3) | `src/pages/results/components/StrengthCardsSection.tsx` |
-| `interest_map` (§5) | `src/pages/results/components/InterestMapSection.tsx` |
-| `careers` (§6) | `src/pages/results/components/CareerCard.tsx`, `DirectionDetailPage.tsx` |
+| `strength_cards` (§4.3) | `src/pages/results/components/StrengthsDomainSection.tsx` |
+| `interest_map` (§5) | `src/pages/results/components/InterestDomainSection.tsx` |
+| `careers` (§6) | `src/pages/results/DirectionDetailPage.tsx`, `components/scenarios/` |
 | `exploration_activities` (§7) | `src/pages/results/components/ExplorationActivitiesSection.tsx` |
-| `thinking_style_notes` | `src/pages/results/components/ThinkingStyleSection.tsx` |
-| `motivation_highlights` | `src/pages/results/components/MotivationSection.tsx` |
+| `thinking_style_notes` / `motivation_highlights` | `src/pages/results/components/ThinkingStyleMotivationSection.tsx` |

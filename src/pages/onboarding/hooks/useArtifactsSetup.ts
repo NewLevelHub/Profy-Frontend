@@ -6,8 +6,8 @@ import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
 import { useEnsureProfile } from '@/shared/hooks/useEnsureProfile';
-import { useOnboardingDraftStore } from '../onboardingDraftStore';
-import type { ArtifactItem, ArtifactType } from '@/shared/types';
+import { useOnboardingDraftStore } from '@/shared/store/onboardingDraft';
+import type { ArtifactItem, ArtifactType, ProfilePayload, ProfileResponse } from '@/shared/types';
 
 // 5 groups. During onboarding these render as steps 3-4 of the same linear
 // flow ProfileSetupPage starts (see ArtifactsSetupPage): the first four
@@ -19,12 +19,37 @@ import type { ArtifactItem, ArtifactType } from '@/shared/types';
 export const ARTIFACT_SECTIONS = ['activities', 'achievements', 'professions', 'targets', 'dreams'] as const;
 export type ArtifactSection = (typeof ARTIFACT_SECTIONS)[number];
 
+// Mirrors the backend's ARTIFACT_FREE_TEXT_MAX_LENGTH for the free-text
+// "мечты" answer (artifact type `goal`).
+export const DREAMS_MAX_LENGTH = 500;
+
 function toggle(list: string[], item: string): string[] {
   return list.includes(item) ? list.filter(s => s !== item) : [...list, item];
 }
 
 function valuesOf(items: ArtifactItem[], type: ArtifactType): string[] {
   return items.filter(i => i.type === type).map(i => i.value);
+}
+
+const PERSONAL_FIELDS = [
+  'name', 'age', 'grade', 'city', 'country', 'language',
+  'subjects_liked', 'subjects_disliked', 'subjects_easy', 'subjects_hard',
+] as const satisfies readonly (keyof ProfilePayload & keyof ProfileResponse)[];
+
+// Updating an existing profile sends only the personal fields that actually
+// changed. Re-sending untouched ones made the backend re-validate them against
+// today's rules, so a profile saved before a rule tightened (age 12, a
+// two-letter name, 17 + grade 3) could not save a single hobby — 422
+// (PRO-430). Artifacts and certificates always go: both are replaced wholesale.
+function changedFieldsOnly(payload: ProfilePayload, saved: ProfileResponse): Partial<ProfilePayload> {
+  const changed = PERSONAL_FIELDS
+    .filter(key => JSON.stringify(payload[key]) !== JSON.stringify(saved[key]))
+    .map(key => [key, payload[key]]);
+  return {
+    ...(Object.fromEntries(changed) as Partial<ProfilePayload>),
+    artifacts: payload.artifacts,
+    certificates: payload.certificates,
+  };
 }
 
 export function useArtifactsSetup() {
@@ -34,7 +59,9 @@ export function useArtifactsSetup() {
   const profile = useProfileStore(s => s.profile);
   const setProfile = useProfileStore(s => s.setProfile);
   const profileDraft = useOnboardingDraftStore(s => s.profileDraft);
-  const clearProfileDraft = useOnboardingDraftStore(s => s.clearProfileDraft);
+  const artifactsDraft = useOnboardingDraftStore(s => s.artifactsDraft);
+  const setArtifactsDraft = useOnboardingDraftStore(s => s.setArtifactsDraft);
+  const clearDrafts = useOnboardingDraftStore(s => s.clearDrafts);
 
   // Reliable without an extra fetch: /onboarding/* sits outside RequireProfile,
   // but the "Изменить" buttons that land here from /profile are always
@@ -54,15 +81,19 @@ export function useArtifactsSetup() {
   // artifacts after onboarding is done — pre-fill from whatever's already
   // saved on the profile.
   const existing = ensuredProfile?.artifacts;
+  // Picks parked by "Назад" on a previous pass through this screen (see
+  // handleBack) win over the saved profile: they are newer, just not saved yet.
+  const parked = profileDraft !== null ? artifactsDraft : null;
+  const initial = parked ?? existing;
 
   const [activeSection, setActiveSection] = useState<ArtifactSection>('activities');
 
-  const [hobbies, setHobbies] = useState<string[]>(() => valuesOf(existing ?? [], 'hobby'));
-  const [clubs, setClubs] = useState<string[]>(() => valuesOf(existing ?? [], 'club'));
-  const [achievements, setAchievements] = useState<string[]>(() => valuesOf(existing ?? [], 'achievement'));
-  const [professions, setProfessions] = useState<string[]>(() => valuesOf(existing ?? [], 'profession'));
-  const [targets, setTargets] = useState<string[]>(() => valuesOf(existing ?? [], 'university'));
-  const [dreams, setDreams] = useState(() => existing?.find(i => i.type === 'goal')?.value ?? '');
+  const [hobbies, setHobbies] = useState<string[]>(() => valuesOf(initial ?? [], 'hobby'));
+  const [clubs, setClubs] = useState<string[]>(() => valuesOf(initial ?? [], 'club'));
+  const [achievements, setAchievements] = useState<string[]>(() => valuesOf(initial ?? [], 'achievement'));
+  const [professions, setProfessions] = useState<string[]>(() => valuesOf(initial ?? [], 'profession'));
+  const [targets, setTargets] = useState<string[]>(() => valuesOf(initial ?? [], 'university'));
+  const [dreams, setDreams] = useState(() => initial?.find(i => i.type === 'goal')?.value ?? '');
 
   // Поля выше инициализируются один раз. Если экран открыт по прямой ссылке
   // или после F5, профиль к этому моменту ещё не пришёл — редактор открылся
@@ -70,7 +101,7 @@ export function useArtifactsSetup() {
   // Досинхронизируем ровно один раз и только в этом случае: когда профиль был
   // на месте с самого начала, начальные значения уже верные, и перезапись затёрла
   // бы то, что человек успел напечатать.
-  const needsHydration = useRef(existing === undefined);
+  const needsHydration = useRef(initial === undefined);
   useEffect(() => {
     if (!needsHydration.current || !existing) return;
     needsHydration.current = false;
@@ -125,7 +156,8 @@ export function useArtifactsSetup() {
         // handleEditArtifacts.
         certificates: profileDraft.certificates,
       };
-      return hasExistingProfile ? profileApi.update(payload) : profileApi.create(payload);
+      if (!ensuredProfile) return profileApi.create(payload);
+      return profileApi.update(changedFieldsOnly(payload, ensuredProfile));
     },
     onSuccess: (profile) => {
       setProfile(profile);
@@ -135,12 +167,13 @@ export function useArtifactsSetup() {
       // outlive the mutation and later clobber the store, bouncing the user
       // back to onboarding (see RequireProfile.tsx).
       if (userId) queryClient.setQueryData(['profile', userId], profile);
-      clearProfileDraft();
-      // Fresh onboarding lands on /results, not straight into the test —
-      // hasCompletedAssessment is false there, so it shows
-      // AssessmentNotStartedCard (start-when-ready), not a forced funnel
-      // into /assessment/goal.
-      navigate(hasExistingProfile ? '/profile' : '/results', { replace: true });
+      clearDrafts();
+      // Fresh onboarding used to land on /results → AssessmentNotStartedCard
+      // ("Начать тест"), then /assessment/goal — two near-identical journey
+      // shells in a row (PRO-416). Send first-time students straight to goal
+      // selection; /results still shows the not-started card if they leave
+      // and come back later without starting.
+      navigate(hasExistingProfile ? '/profile' : '/assessment/goal', { replace: true });
     },
   });
 
@@ -246,6 +279,9 @@ export function useArtifactsSetup() {
       if (activeSection === 'dreams') {
         setActiveSection('activities');
       } else {
+        // Leaving the route unmounts this page — park the unsaved picks so
+        // "Далее" from profile setup brings them back.
+        setArtifactsDraft(buildItems());
         navigate('/onboarding/profile', { state: { resumeAtLastStep: true } });
       }
       return;

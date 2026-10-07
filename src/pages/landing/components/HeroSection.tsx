@@ -34,7 +34,7 @@ function FloatCard({
       )}
     >
       <div
-        className="fc-label flex items-center gap-[0.4rem] font-mono text-[0.6rem] font-medium uppercase tracking-[0.06em] text-subtle mb-2"
+        className="fc-label flex items-center gap-[0.4rem] font-mono text-mono-xs font-medium uppercase tracking-[0.06em] text-subtle mb-2"
         style={{ '--fc-dot': dot } as React.CSSProperties}
       >
         {label}
@@ -60,9 +60,20 @@ export function HeroSection() {
       <div className="hero-bg" />
 
       {/* Крупная органическая форма справа уводит взгляд вниз, к полосе цифр.
-          На узких экранах она мешает тексту — остаётся только свечение. */}
+          На узких экранах она мешает тексту — остаётся только свечение.
+          Мостик внизу справа того же --brand-solid, что у #stats: без него
+          на стыке мелькает бежевый bg-page (субпиксельный зазор + «выемка»
+          кривой). */}
       <div className="absolute inset-0 z-0 w-full h-full pointer-events-none max-[1024px]:hidden" aria-hidden="true">
-        <svg viewBox="0 0 1440 900" preserveAspectRatio="none" className="w-full h-full block">
+        {/* Узкий мост в stats: только шов секций, без прямоугольника под кривой. */}
+        <div
+          className="absolute bottom-0 right-0 h-3 w-[62%]"
+          style={{
+            background:
+              'linear-gradient(to left, var(--brand-solid) 70%, color-mix(in srgb, var(--brand-solid) 55%, transparent) 88%, transparent)',
+          }}
+        />
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="none" className="absolute inset-0 w-full h-[calc(100%+2px)] block">
           <defs>
             {/* Верхний стоп — тот же хвойный, чуть подсветлённый: сплошной
                 --pine-light дал бы мятную заливку вместо глубокой. */}
@@ -88,14 +99,14 @@ export function HeroSection() {
         <Reveal className="min-w-0 max-[1024px]:text-center">
           <Eyebrow>{t('hero.eyebrow')}</Eyebrow>
           <h1
-            className="font-display font-bold text-[clamp(2rem,3.9vw,3rem)] leading-[1.14] tracking-[-0.035em] text-balance mt-[1.4rem]"
+            className="font-display font-bold text-display-lg leading-[1.14] tracking-[-0.035em] text-balance mt-[1.4rem]"
             style={{ color: 'var(--text-heading)' }}
           >
             {t('hero.titleLine1')}
             <br />
             {t('hero.titleLine2Pre')}<Accent>{t('hero.titleAccent')}</Accent>
           </h1>
-          <p className="text-secondary text-[clamp(1.02rem,1.6vw,1.18rem)] mt-[1.3rem] max-w-[52ch] max-[1024px]:mx-auto">
+          <p className="text-secondary text-body-lg mt-[1.3rem] max-w-[52ch] max-[1024px]:mx-auto">
             {t('hero.lead')}
           </p>
 
@@ -137,25 +148,25 @@ export function HeroSection() {
           <FloatCard position="top-[2%] left-[-6%] card-a max-[680px]:left-[-3%]" label={t('hero.cardFitLabel')} dot="var(--pine)">
             <div className="flex items-center gap-[0.6rem]">
               <span
-                className="w-8 h-8 rounded-[var(--radius)] flex items-center justify-center font-display font-bold text-[0.6rem] tracking-[-0.02em] shrink-0"
+                className="w-8 h-8 rounded-[var(--radius)] flex items-center justify-center font-display font-bold text-mono-xs tracking-[-0.02em] shrink-0"
                 style={{ background: 'var(--pine)', color: 'var(--text-on-brand)' }}
               >
                 {t('hero.cardFitYes')}
               </span>
               <div>
-                <strong className="block text-[0.78rem] font-bold max-[680px]:text-[0.7rem]" style={{ color: 'var(--text-heading)' }}>
+                <strong className="block text-caption font-bold" style={{ color: 'var(--text-heading)' }}>
                   {t('hero.cardFitRole')}
                 </strong>
-                <small className="text-[0.65rem] text-subtle">{t('hero.cardFitMatch')}</small>
+                <small className="text-mono-xs text-subtle">{t('hero.cardFitMatch')}</small>
               </div>
             </div>
           </FloatCard>
 
           <FloatCard position="top-[6%] right-[-8%] card-b max-[680px]:right-[-3%]" label={t('hero.cardProgramLabel')} dot="var(--lake)">
-            <strong className="block text-[0.85rem] font-bold mb-[0.4rem]" style={{ color: 'var(--text-heading)' }}>
+            <strong className="block text-caption font-bold mb-[0.4rem]" style={{ color: 'var(--text-heading)' }}>
               Nazarbayev University
             </strong>
-            <em className="not-italic text-[0.68rem] text-subtle">{t('hero.cardProgramMeta')}</em>
+            <em className="not-italic text-mono-xs text-subtle">{t('hero.cardProgramMeta')}</em>
           </FloatCard>
 
           <FloatCard position="bottom-[8%] left-[-9%] card-c max-[680px]:left-[-3%]" label={t('hero.cardInterestsLabel')} dot="var(--dawn)">
@@ -164,7 +175,7 @@ export function HeroSection() {
               { label: t('hero.cardInterestsBar2'), width: '81%', color: 'var(--lake)' },
               { label: t('hero.cardInterestsBar3'), width: '68%', color: 'var(--dawn)' },
             ].map(bar => (
-              <div key={bar.label} className="mb-2 text-[0.66rem] text-secondary last:mb-0">
+              <div key={bar.label} className="mb-2 text-mono-xs text-secondary last:mb-0">
                 <span className="block mb-[0.22rem]">{bar.label}</span>
                 <div className="w-full h-[5px] rounded-pill overflow-hidden" style={{ background: 'var(--border-faint)' }}>
                   <div className="h-full rounded-pill" style={{ width: bar.width, background: bar.color }} />
@@ -175,7 +186,7 @@ export function HeroSection() {
 
           <FloatCard position="bottom-0 right-[-6%] card-d max-[680px]:right-[-3%]" label={t('hero.cardRouteLabel')} dot="var(--pine-light)">
             <ul className="list-none">
-              <li className="flex items-center gap-2 text-[0.72rem] mb-[0.4rem] text-secondary">
+              <li className="flex items-center gap-2 text-mono-xs mb-[0.4rem] text-secondary">
                 <span className="w-4 h-4 rounded-full shrink-0 flex items-center justify-center" style={{ background: 'var(--pine-light)' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-on-brand)" strokeWidth="3" className="w-[9px] h-[9px]">
                     <path d="M20 6L9 17l-5-5" />
@@ -183,7 +194,7 @@ export function HeroSection() {
                 </span>
                 <span className="line-through text-subtle">{t('hero.cardRouteStep1')}</span>
               </li>
-              <li className="flex items-center gap-2 text-[0.72rem] mb-[0.4rem] text-secondary">
+              <li className="flex items-center gap-2 text-mono-xs mb-[0.4rem] text-secondary">
                 <span
                   className="dot-pulse w-4 h-4 rounded-full shrink-0 flex items-center justify-center relative"
                   style={{ border: '1.5px solid var(--dawn)' }}
@@ -192,7 +203,7 @@ export function HeroSection() {
                   {t('hero.cardRouteStep2')}
                 </span>
               </li>
-              <li className="flex items-center gap-2 text-[0.72rem] text-secondary">
+              <li className="flex items-center gap-2 text-mono-xs text-secondary">
                 <span className="w-4 h-4 rounded-full shrink-0" style={{ border: '1.5px solid var(--border-strong)' }} />
                 <span>{t('hero.cardRouteStep3')}</span>
               </li>

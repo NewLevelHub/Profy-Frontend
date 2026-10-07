@@ -1,9 +1,45 @@
-import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { LIKERT_SCALE, BIGFIVE_LIKERT_SCALE } from '@/shared/config/constants';
-import type { Question } from '@/shared/types';
-import { LikertScale } from './LikertScale';
+import { LikertScale } from '@/shared/ui';
+import { playClick } from '@/shared/lib/sounds';
+import {
+  LIKERT_SCALE,
+  BIGFIVE_LIKERT_SCALE,
+  YES_NO_SCALE,
+  ABILITIES_LIKERT_SCALE,
+  KONDASH_ANXIETY_SCALE,
+} from '@/shared/config/constants';
+import type { Instrument, Question } from '@/shared/types';
+import { useFollowActiveItem } from '../hooks/useFollowActiveItem';
+
+/** PRO-338 Ф0.5: eysenck/elers/boyko_empathy are Да/Нет (binary) instruments
+ * reusing this same Likert engine — 2 options instead of 5, everything else
+ * (big_five's own 5-point wording, and the plain 5-point default) unchanged.
+ * `boyko_empathy` was missing from this branch until Ф1.10 — its content
+ * bank (Ф1.9) shipped without wiring the answer scale, so it silently fell
+ * through to the 5-point default; fixed here alongside adding
+ * kondash_anxiety's own 0-4 scale. */
+function scaleForInstrument(instrument: Instrument) {
+  if (instrument === 'big_five') return BIGFIVE_LIKERT_SCALE;
+  if (instrument === 'eysenck' || instrument === 'elers' || instrument === 'boyko_empathy') return YES_NO_SCALE;
+  if (instrument === 'professional_types_abilities') return ABILITIES_LIKERT_SCALE;
+  if (instrument === 'kondash_anxiety') return KONDASH_ANXIETY_SCALE;
+  return LIKERT_SCALE;
+}
+
+/** PRO-435: the generic "Совсем не моё…Точно моё" poles don't say what to
+ * rate on instruments that measure a degree of something — abilities are
+ * "выражено", Kondash asks how much a situation "тревожит". Returns the
+ * i18n keys of the pole pair, or `undefined` to keep the generic pair. */
+function polesForInstrument(instrument: Instrument) {
+  if (instrument === 'professional_types_abilities') {
+    return { left: 'scale.poleLeftAbilities', right: 'scale.poleRightAbilities' } as const;
+  }
+  if (instrument === 'kondash_anxiety') {
+    return { left: 'scale.poleLeftAnxiety', right: 'scale.poleRightAnxiety' } as const;
+  }
+  return undefined;
+}
 
 interface LikertPageProps {
   questions: Question[];
@@ -23,55 +59,42 @@ interface LikertPageProps {
 
 export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
   const { t } = useTranslation('common');
+  const { t: tAssessment } = useTranslation('assessment');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
 
-  // The next unanswered question on this page — answering one "cuts" to
-  // this one via a smooth scroll, guiding the eye down the page instead of
-  // leaving the user to hunt for what's next among 5 stacked questions.
-  // No opacity/position entrance animation here: every question is already
-  // fully visible on screen (all 5 render at once), so animating one "in"
-  // meant snapping an already-readable block to invisible and back — a
-  // visible flicker rather than a transition.
   const activeQuestion = questions.find(question => answers[question.id] === undefined) ?? null;
-  const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const prevActiveIdRef = useRef<string | null>(activeQuestion?.id ?? null);
-  const justBecameActive = activeQuestion !== null && activeQuestion.id !== prevActiveIdRef.current;
-
-  useEffect(() => {
-    if (justBecameActive && activeQuestion) {
-      const node = questionRefs.current[activeQuestion.id];
-      const reducedMotion =
-        typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      node?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
-    }
-    prevActiveIdRef.current = activeQuestion?.id ?? null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQuestion?.id]);
+  const itemRef = useFollowActiveItem(activeQuestion?.id ?? null);
 
   return (
     <div className="assessment-stage mx-auto w-full max-w-[720px]">
       <div className="assessment-stage__shell journey-shell flex flex-col gap-28 !p-6 sm:!p-8">
-      {questions.map(question => (
-        <div
-          key={question.id}
-          ref={el => {
-            questionRefs.current[question.id] = el;
-          }}
-          className="flex flex-col gap-6 scroll-mt-24 text-center"
-        >
-          <p
-            className="font-sans font-semibold text-[color:var(--text-heading)]"
-            style={{ fontSize: '1.375rem', lineHeight: 1.55 }}
+      {questions.map(question => {
+        const poles = polesForInstrument(question.instrument);
+        return (
+          <div
+            key={question.id}
+            ref={itemRef(question.id)}
+            className="flex flex-col gap-6 scroll-mt-24 text-center"
           >
-            {question.text}
-          </p>
-          <LikertScale
-            selected={answers[question.id] ?? null}
-            onSelect={value => onSelect(question.id, value)}
-            scale={question.instrument === 'big_five' ? BIGFIVE_LIKERT_SCALE : LIKERT_SCALE}
-          />
-        </div>
-      ))}
+            <p
+              className="font-sans font-semibold text-[color:var(--text-heading)]"
+              style={{ fontSize: '1.375rem', lineHeight: 1.55 }}
+            >
+              {question.text}
+            </p>
+            <LikertScale
+              selected={answers[question.id] ?? null}
+              onSelect={value => {
+                playClick('soft');
+                onSelect(question.id, value);
+              }}
+              scale={scaleForInstrument(question.instrument)}
+              poleLeft={poles ? tAssessment(poles.left) : undefined}
+              poleRight={poles ? tAssessment(poles.right) : undefined}
+            />
+          </div>
+        );
+      })}
 
       <Button
         onClick={onSubmit}

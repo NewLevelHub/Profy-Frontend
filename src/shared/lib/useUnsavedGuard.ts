@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useBlocker } from 'react-router';
-
-const MESSAGE = 'Изменения не сохранены. Уйти со страницы?';
+import { confirm } from './confirm';
 
 /**
  * Warns before losing unsaved admin form edits — both for in-app navigation
@@ -13,15 +13,32 @@ const MESSAGE = 'Изменения не сохранены. Уйти со ст�
  * discarded a rewritten question text.
  */
 export function useUnsavedGuard(dirty: boolean) {
+  const { t } = useTranslation('admin');
+  const MESSAGE = t('form.unsavedWarning');
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) => dirty && currentLocation.pathname !== nextLocation.pathname,
   );
 
+  // Effect re-runs on every blocker identity change while still 'blocked';
+  // the flag keeps it to one dialog per blocked navigation.
+  const blocked = blocker.state === 'blocked';
   useEffect(() => {
-    if (blocker.state !== 'blocked') return;
-    if (window.confirm(MESSAGE)) blocker.proceed();
-    else blocker.reset();
-  }, [blocker]);
+    if (!blocked) return;
+    let active = true;
+    void confirm({
+      title: MESSAGE,
+      confirmLabel: t('form.unsavedLeave'),
+      cancelLabel: t('form.unsavedStay'),
+    }).then((ok) => {
+      if (!active) return;
+      if (ok) blocker.proceed?.();
+      else blocker.reset?.();
+    });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocked]);
 
   useEffect(() => {
     if (!dirty) return;
