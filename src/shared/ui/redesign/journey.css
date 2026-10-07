@@ -66,7 +66,6 @@
 .rd-dreams-field p { text-align: right; font-size: 11px; color: var(--rd-muted); }
 .rd-dreams-field p.text-danger { color: var(--danger); }
 .rd-journey-error { padding: 14px 18px; border-radius: 12px; border: 1px solid var(--danger); color: var(--danger); font-size: 13px; }
-.rd-sage { background: var(--rd-sage); color: var(--rd-pine); }
 .rd-goal-main { width: min(760px, calc(100% - 80px)); margin: 55px auto 0; }
 .rd-goal-heading { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; margin-bottom: 34px; }
 .rd-goal-heading h1 { font-size: 42px; line-height: 1.14; max-width: 630px; }

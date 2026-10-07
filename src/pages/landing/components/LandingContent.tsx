@@ -4,11 +4,9 @@ import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/shared/i18n/format';
 import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
+import { CATALOG_MILESTONES } from '@/shared/config/catalogMilestones';
 import { LikertScale } from '@/shared/ui/LikertScale';
 
-// Conservative catalogue milestones, verified against the October 2026 catalogue.
-// These are editorial figures, not a live counter or a request to the private API.
-const CATALOG = { universities: 2000, programs: 12000, careers: 140 };
 export const LANDING_DURATION = Object.values(ASSESSMENT_PHASE_MINUTES).reduce((sum, minutes) => sum + minutes, 0);
 const SCALE = [1, 2, 3, 4, 5].map(value => ({ value, label: `landing:try.dot${value}` }));
 const TESTS = [
@@ -32,9 +30,9 @@ export function LandingSectionHeading({ section }: { section: 'how' | 'features'
 export function LandingStats() {
   const { t } = useTranslation('landing');
   const stats = [
-    { key: 'uni', icon: Building2, value: `${formatNumber(CATALOG.universities)}+` },
-    { key: 'programs', icon: BookOpen, value: `${formatNumber(CATALOG.programs)}+` },
-    { key: 'professions', icon: Target, value: `${formatNumber(CATALOG.careers)}+` },
+    { key: 'uni', icon: Building2, value: `${formatNumber(CATALOG_MILESTONES.universities)}+` },
+    { key: 'programs', icon: BookOpen, value: `${formatNumber(CATALOG_MILESTONES.programs)}+` },
+    { key: 'professions', icon: Target, value: `${formatNumber(CATALOG_MILESTONES.careers)}+` },
     { key: 'testsLabel', icon: Layers, value: t('stats.testsValue', { count: Object.keys(ASSESSMENT_PHASE_MINUTES).length }) },
   ];
   return <section className="rd-home-stats rd-wrap" id="stats" aria-label={t('redesign.catalogFacts')}>

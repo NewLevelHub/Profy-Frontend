@@ -80,6 +80,7 @@
 .rd-icon-button:hover { background: var(--rd-sage); }
 .rd-icon-tile { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 13px; flex-shrink: 0; }
 .rd-icon-tile svg { width: 22px; height: 22px; }
+.rd-sage { background: var(--rd-sage); color: var(--rd-pine); }
 .rd-lilac { background: var(--rd-lilac); color: var(--rd-purple); }
 .rd-peach { background: var(--rd-peach); color: #9b6139; }
 .dark .rd-peach { color: #edb98f; }
