@@ -54,7 +54,7 @@ export default function AdminAsturVersionsPage() {
 
       <AdminCard title={t('astur.versions.published')} description={t('astur.versions.publishedHint')}>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+          <table className="admin-stacked-table w-full border-collapse">
             <thead>
               <tr className={cn(ADMIN_META, 'text-left')}>
                 <th className="py-2 pr-3 font-medium">{t('astur.versions.col.version')}</th>
@@ -68,15 +68,15 @@ export default function AdminAsturVersionsPage() {
             <tbody>
               {published.map((version, i) => (
                 <tr key={version.id} className="border-t border-default">
-                  <td className="py-2.5 pr-3">
+                  <td data-label={t('astur.versions.col.version')} className="py-2.5 pr-3">
                     <span className={cn(ADMIN_NUM, 'mr-2')}>v{version.version}</span>
                     {i === 0 && <AdminBadge tone="brand">{t('astur.versions.current')}</AdminBadge>}
                   </td>
-                  <td className={cn(ADMIN_TEXT, 'py-2.5 pr-3')}>{formatDate(version.published_at)}</td>
-                  <td className={cn(ADMIN_NUM, 'py-2.5 pr-3')}>{version.item_count}</td>
-                  <td className={cn(ADMIN_NUM, 'py-2.5 pr-3')}>{version.attempt_count}</td>
-                  <td className={cn(ADMIN_META, 'py-2.5 pr-3 max-w-[280px]')}>{version.notes ?? '—'}</td>
-                  <td className="py-2.5">
+                  <td data-label={t('astur.versions.col.publishedAt')} className={cn(ADMIN_TEXT, 'py-2.5 pr-3')}>{formatDate(version.published_at)}</td>
+                  <td data-label={t('astur.versions.col.items')} className={cn(ADMIN_NUM, 'py-2.5 pr-3')}>{version.item_count}</td>
+                  <td data-label={t('astur.versions.col.attempts')} className={cn(ADMIN_NUM, 'py-2.5 pr-3')}>{version.attempt_count}</td>
+                  <td data-label={t('astur.versions.col.notes')} className={cn(ADMIN_META, 'admin-table-wide py-2.5 pr-3 max-w-[280px]')}>{version.notes ?? '—'}</td>
+                  <td className="admin-table-actions py-2.5">
                     <div className="flex justify-end gap-2">
                       <Link className={ADMIN_BUTTON} to={asturVersionPath(version.id)}>
                         {t('astur.versions.open')}

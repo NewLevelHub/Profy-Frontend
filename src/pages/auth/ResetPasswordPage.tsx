@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
-import { XCircle } from 'lucide-react';
-import { authApi } from '@/shared/api/auth';
+import { ArrowRight, KeyRound, Mail, XCircle } from 'lucide-react';
 import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
+import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
+import { PasswordInput } from '@/shared/ui/redesign/PasswordInput';
+import { AuthStepper } from '@/shared/ui/AuthStepper';
+import { authApi } from '@/shared/api/auth';
 import { Button } from '@/shared/ui/Button';
 import { OtpInput } from '@/shared/ui/OtpInput';
-import { PasswordInput } from '@/shared/ui/PasswordInput';
 import { PasswordStrengthMeter } from '@/shared/ui/PasswordStrengthMeter';
 
 const RESEND_SECONDS = 60;
@@ -92,7 +94,7 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
     try {
       await authApi.resetPassword(email!, code.trim(), password);
-      navigate('/login', { replace: true });
+      navigate('/login', { replace: true, state: { passwordReset: true } });
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         setFormError(t('auth:error.tooManyAttempts'));
@@ -136,19 +138,12 @@ export default function ResetPasswordPage() {
 
   if (!email) {
     return (
-      <div className="flex flex-col items-center text-center gap-4 py-6">
-        <XCircle size={40} className="text-danger" />
-        <h1 className="auth-headline-sm">{t('auth:reset.noEmailTitle')}</h1>
-        <p className="text-body text-secondary">{t('auth:reset.noEmailBody')}</p>
-        <Link
-          to="/forgot-password"
-          className="mt-1 inline-flex items-center justify-center w-full min-h-12 px-6 bg-brand text-on-brand font-medium text-label rounded-[var(--radius)] hover:bg-brand-hover transition-colors press-scale"
-        >
-          {t('auth:reset.requestAgain')}
-        </Link>
-        <Link to="/login" className="text-caption text-muted hover:opacity-70 transition-opacity">
-          {t('auth:backToLogin')}
-        </Link>
+      <div className="rd-auth-state">
+        <AuthHeading title={t('auth:reset.noEmailTitle')} icon={<XCircle />}>
+          {t('auth:reset.noEmailBody')}
+        </AuthHeading>
+        <Link to="/forgot-password" className="rd-button rd-login-submit">{t('auth:reset.requestAgain')}<ArrowRight size={20} aria-hidden="true" /></Link>
+        <p className="rd-login-switch"><Link to="/login">{t('auth:backToLogin')}</Link></p>
       </div>
     );
   }
@@ -156,118 +151,86 @@ export default function ResetPasswordPage() {
   if (step === 'code') {
     return (
       <>
-        <h1 className="auth-headline-sm mt-[20px]">{t('auth:reset.codeTitle')}</h1>
-        <p className="auth-sub">
-          <Trans
-            i18nKey="auth:reset.codeSubtitle"
-            values={{ email }}
-            components={{ b: <span className="font-semibold text-primary" /> }}
+        <AuthStepper current={2} kind="recovery" />
+        <AuthHeading title={t('auth:redesign.verify.title')} icon={<Mail />}>
+          <Trans i18nKey="auth:reset.codeSubtitle" values={{ email }} components={{ b: <strong className="rd-email-value" /> }} />
+        </AuthHeading>
+        <form className="rd-login-fields rd-auth-fields" onSubmit={handleVerifyCode} noValidate aria-busy={isCodeLoading}>
+          <p className="rd-code-label">{t('auth:verify.otpAria')}</p>
+          <OtpInput
+            className="rd-auth-otp"
+            length={6}
+            value={code}
+            onChange={v => { setCode(v); setCodeError(''); }}
+            error={!!codeError}
+            disabled={isCodeLoading}
+            aria-label={t('auth:verify.otpAria')}
+            aria-describedby={codeError ? 'reset-code-error' : undefined}
           />
-        </p>
-
-        <form onSubmit={handleVerifyCode} noValidate>
-          <div className="mt-[32px]">
-            <OtpInput
-              length={6}
-              value={code}
-              onChange={(v) => { setCode(v); setCodeError(''); }}
-              error={!!codeError}
-              disabled={isCodeLoading}
-              autoFocus
-              aria-label={t('auth:verify.otpAria')}
-            />
-            {codeError && (
-              <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
-                {codeError}
-              </p>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            isLoading={isCodeLoading}
-            disabled={!CODE_COMPLETE.test(code)}
-            size="lg"
-            className="w-full mt-[28px]"
-          >
+          {codeError && <p id="reset-code-error" className="rd-form-error" role="alert">{codeError}</p>}
+          <Button type="submit" isLoading={isCodeLoading} disabled={!CODE_COMPLETE.test(code)} size="lg" className="rd-button rd-login-submit">
             {isCodeLoading ? t('auth:reset.codeSubmitting') : t('auth:reset.codeSubmit')}
+            {!isCodeLoading && <ArrowRight size={20} aria-hidden="true" />}
           </Button>
         </form>
-
-        <div className="flex flex-col items-center gap-1 mt-[24px]">
+        <div className="rd-auth-actions">
           {resendCountdown > 0 ? (
-            <p className="font-mono text-mono-xs tracking-label uppercase text-muted">
-              {t('auth:verify.resendIn', { seconds: resendCountdown })}
-            </p>
+            <p className="rd-resend-countdown">{t('auth:verify.resendIn', { seconds: resendCountdown })}</p>
           ) : (
-            <button
-              type="button"
-              onClick={handleResend}
-              className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity"
-            >
-              {t('auth:verify.resend')}
-            </button>
+            <button type="button" onClick={handleResend} disabled={isCodeLoading} className="rd-text-link">{t('auth:verify.resend')}</button>
           )}
-          {resendMessage && (
-            <p className="text-small text-secondary text-center">{resendMessage}</p>
-          )}
-          <p className="text-caption text-muted text-center mt-1">{t('auth:checkSpamAddress')}</p>
-          <Link
-            to="/login"
-            className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
-          >
-            {t('auth:backToLogin')}
-          </Link>
+          {resendMessage && <p className="rd-auth-feedback" role="status">{resendMessage}</p>}
+          <p className="rd-auth-hint">{t('auth:redesign.checkSpam')}</p>
+          <Link to="/forgot-password" className="rd-text-link">{t('auth:redesign.changeEmail')}</Link>
         </div>
+        <p className="rd-login-switch"><Link to="/login">{t('auth:backToLogin')}</Link></p>
       </>
     );
   }
 
   return (
     <>
-      <h1 className="auth-headline-sm mt-[20px]">{t('auth:reset.passwordTitle')}</h1>
-      <p className="auth-sub">{t('auth:reset.passwordSubtitle')}</p>
-
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[32px]">
+      <AuthStepper current={3} kind="recovery" />
+      <AuthHeading title={t('auth:redesign.recovery.passwordTitle')} icon={<KeyRound />}>
+        {t('auth:redesign.passwordHint')}
+      </AuthHeading>
+      <div className="rd-auth-address"><Mail size={18} aria-hidden="true" /><span>{email}</span></div>
+      <form className="rd-login-fields rd-auth-fields" onSubmit={handleSubmit} noValidate aria-busy={isLoading}>
+        <div className="rd-auth-password">
           <PasswordInput
             label={t('auth:reset.newLabel')}
+            name="password"
+            placeholder={t('auth:redesign.newPasswordPlaceholder')}
             value={password}
             onChange={e => { setPassword(e.target.value); setPasswordError(''); setConfirmError(''); }}
             error={passwordError}
             autoComplete="new-password"
+            disabled={isLoading}
             autoFocus
+            required
           />
-          {!passwordError && <PasswordStrengthMeter password={password} />}
+          {!passwordError && <PasswordStrengthMeter password={password} className="rd-password-strength" />}
         </div>
-
-        <div className="mt-[24px]">
+        <div className="rd-login-password">
           <PasswordInput
             label={t('auth:reset.confirmLabel')}
+            name="confirm-password"
+            placeholder={t('auth:redesign.confirmPlaceholder')}
             value={confirm}
             onChange={e => { setConfirm(e.target.value); setConfirmError(''); }}
             error={confirmError}
             autoComplete="new-password"
+            disabled={isLoading}
+            required
           />
         </div>
-
-        {formError && (
-          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
-        )}
-
-        <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[28px]">
+        {formError && <p className="rd-form-error" role="alert">{formError}</p>}
+        <Button type="submit" isLoading={isLoading} size="lg" className="rd-button rd-login-submit">
           {isLoading ? t('auth:reset.submitting') : t('auth:reset.submit')}
+          {!isLoading && <ArrowRight size={20} aria-hidden="true" />}
         </Button>
       </form>
-
-      <div className="flex flex-col items-center gap-1 mt-[24px]">
-        <Link
-          to="/login"
-          className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
-        >
-          {t('auth:backToLogin')}
-        </Link>
-      </div>
+      <p className="rd-login-switch"><Link to="/login">{t('auth:backToLogin')}</Link></p>
     </>
   );
 }

@@ -13,6 +13,7 @@ import { InterestTypeDetail } from './InterestTypeDetail';
 import { InterestHowItWorks } from './InterestHowItWorks';
 
 interface InterestDomainSectionProps {
+  redesigned?: boolean;
   interestMap: InterestMapItem[];
   interestMapNote: string;
   interestCombination?: InterestCombination | null;
@@ -46,6 +47,7 @@ const hasDetails = (item: InterestMapItem): item is DetailedItem => Boolean(item
  * Older cached reports without `details` render as before.
  */
 export function InterestDomainSection({
+  redesigned = false,
   interestMap,
   interestMapNote,
   interestCombination = null,
@@ -89,7 +91,7 @@ export function InterestDomainSection({
               {t('results:interestDomain.alsoNotable', { items: secondaryNote })}
             </p>
           )}
-          <Mascot state="completion" size={68} celebrate />
+          {!redesigned && <Mascot state="completion" size={68} celebrate />}
         </div>
       </div>
 

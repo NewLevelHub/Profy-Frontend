@@ -2,15 +2,17 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
+import { ArrowLeft, ArrowRight, Mail } from 'lucide-react';
+import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
+import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
+import { PasswordInput } from '@/shared/ui/redesign/PasswordInput';
 import { authApi } from '@/shared/api/auth';
 import { env } from '@/shared/config/env';
-import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
 import { useAuthStore } from '@/shared/store/auth';
 import { AuthStepper } from '@/shared/ui/AuthStepper';
 import { Button } from '@/shared/ui/Button';
 import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
-import { PasswordInput } from '@/shared/ui/PasswordInput';
 import { PasswordStrengthMeter } from '@/shared/ui/PasswordStrengthMeter';
 
 // Validators return an i18n key (or '') — the component resolves it with t().
@@ -104,63 +106,45 @@ export default function RegisterPage() {
     }
   }
 
+  const busy = isLoading || googleSubmitting;
   const loginLink = (
-    <div className="text-center mt-[20px] text-body-sm">
-      <span className="text-muted">{t('register.haveAccount')} </span>
-      <Link to="/login" className="text-brand underline underline-offset-2 hover:opacity-70 transition-opacity">
-        {t('register.signIn')}
-      </Link>
-    </div>
+    <p className="rd-login-switch">
+      {t('register.haveAccount')} <Link to="/login">{t('register.signIn')}</Link>
+    </p>
   );
 
   if (step === 'email') {
     return (
       <>
         <AuthStepper current={1} />
-        <h1 className="auth-card-title">{t('register.emailStep.title')}</h1>
-        <p className="auth-card-sub">{t('register.emailStep.subtitle')}</p>
-
-        <form onSubmit={handleEmailStep} noValidate>
-          <div className="mt-[26px]">
-            <Input
-              label={t('field.emailLong')}
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={e => { setEmail(e.target.value); setEmailError(''); }}
-              error={emailError}
-              autoCapitalize="none"
-              autoComplete="email"
-              autoFocus
-            />
-          </div>
-
-          <Button type="submit" size="lg" className="w-full mt-[32px]">
-            {t('register.next')}
+        <AuthHeading title={t('redesign.register.title')}>
+          {t('redesign.register.subtitle')}
+        </AuthHeading>
+        <form className="rd-login-fields rd-auth-fields" onSubmit={handleEmailStep} noValidate aria-busy={busy}>
+          <Input
+            label={t('field.emailLong')}
+            type="email"
+            name="email"
+            placeholder={t('redesign.emailPlaceholder')}
+            value={email}
+            onChange={e => { setEmail(e.target.value); setEmailError(''); }}
+            error={emailError}
+            hint={t('redesign.register.emailHint')}
+            autoCapitalize="none"
+            autoComplete="email"
+            disabled={busy}
+            required
+          />
+          <Button type="submit" disabled={busy} size="lg" className="rd-button rd-login-submit">
+            {t('redesign.continue')}<ArrowRight size={20} aria-hidden="true" />
           </Button>
-
           {env.GOOGLE_CLIENT_ID && (
             <>
-              <div className="flex items-center gap-3 mt-[24px]">
-                <div className="h-px flex-1 bg-[var(--hairline)]" />
-                <span className="text-body-sm text-muted">{t('divider')}</span>
-                <div className="h-px flex-1 bg-[var(--hairline)]" />
-              </div>
-
-              <div className="mt-[16px]">
-                <GoogleSignInButton
-                  text="signup_with"
-                  disabled={googleSubmitting}
-                  onCredential={handleGoogleCredential}
-                />
-              </div>
+              <div className="rd-login-divider"><span>{t('divider')}</span></div>
+              <GoogleSignInButton text="signup_with" disabled={busy} onCredential={handleGoogleCredential} />
             </>
           )}
-
-          {formError && (
-            <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
-          )}
-
+          {formError && <p className="rd-form-error" role="alert">{formError}</p>}
           {loginLink}
         </form>
       </>
@@ -170,50 +154,55 @@ export default function RegisterPage() {
   return (
     <>
       <AuthStepper current={2} />
-      <h1 className="auth-card-title">{t('register.passwordStep.title')}</h1>
-      <p className="auth-card-sub">{t('register.passwordStep.subtitle')}</p>
-
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[26px]">
+      <AuthHeading title={t('redesign.register.passwordTitle')}>
+        {t('redesign.passwordHint')}
+      </AuthHeading>
+      <div className="rd-auth-address">
+        <Mail size={18} aria-hidden="true" /><span>{email.trim()}</span>
+        <button type="button" disabled={busy} className="rd-text-link" onClick={() => { setStep('email'); setFormError(''); }}>
+          {t('redesign.change')}
+        </button>
+      </div>
+      <form className="rd-login-fields rd-auth-fields" onSubmit={handleSubmit} noValidate aria-busy={busy}>
+        <div className="rd-auth-password">
           <PasswordInput
             ref={passwordRef}
             label={t('field.password')}
+            name="password"
+            placeholder={t('redesign.newPasswordPlaceholder')}
             value={password}
             onChange={e => { setPassword(e.target.value); setPasswordError(''); setConfirmError(''); }}
             error={passwordError}
             autoComplete="new-password"
+            disabled={busy}
+            required
             autoFocus
           />
-          {!passwordError && <PasswordStrengthMeter password={password} />}
+          {!passwordError && <PasswordStrengthMeter password={password} className="rd-password-strength" />}
         </div>
-
-        <div className="mt-[24px]">
+        <div className="rd-login-password">
           <PasswordInput
             label={t('field.passwordRepeat')}
+            name="confirm-password"
+            placeholder={t('redesign.confirmPlaceholder')}
             value={confirm}
             onChange={e => { setConfirm(e.target.value); setConfirmError(''); }}
             error={confirmError}
             autoComplete="new-password"
+            disabled={busy}
+            required
           />
         </div>
-
-        {formError && (
-          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
-        )}
-
-        <div className="flex items-center gap-4 mt-[30px]">
-          <button
-            type="button"
-            onClick={() => { setStep('email'); setFormError(''); }}
-            className="text-body-sm text-muted underline underline-offset-2 hover:opacity-70 transition-opacity"
-          >
-            {t('register.back')}
+        {formError && <p className="rd-form-error" role="alert">{formError}</p>}
+        <Button type="submit" isLoading={isLoading} disabled={googleSubmitting} size="lg" className="rd-button rd-login-submit">
+          {isLoading ? t('register.submitCreating') : t('register.submitCreate')}
+          {!isLoading && <ArrowRight size={20} aria-hidden="true" />}
+        </Button>
+        <div className="rd-auth-actions">
+          <button type="button" disabled={busy} className="rd-text-link" onClick={() => { setStep('email'); setFormError(''); }}>
+            <ArrowLeft size={16} aria-hidden="true" />{t('redesign.changeEmail')}
           </button>
-          <Button type="submit" isLoading={isLoading} size="lg" className="flex-1">
-            {isLoading ? t('register.submitCreating') : t('register.submitCreate')}
-          </Button>
         </div>
-
         {loginLink}
       </form>
     </>

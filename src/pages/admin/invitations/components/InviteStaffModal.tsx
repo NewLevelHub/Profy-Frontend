@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { Button } from '@/shared/ui/Button';
+import { AdminOverlay } from '@/shared/ui/admin/AdminOverlay';
 import { AdminField } from '@/shared/ui/admin/AdminField';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { ADMIN_INPUT, ADMIN_TEXT } from '@/shared/ui/admin/density';
@@ -40,8 +41,8 @@ export function InviteStaffModal({ isOpen, onClose, showListLink = false }: Invi
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
+    <AdminOverlay><div
+      className="rd-admin-dialog fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="invite-staff-title"
@@ -143,6 +144,6 @@ export function InviteStaffModal({ isOpen, onClose, showListLink = false }: Invi
           </form>
         )}
       </div>
-    </div>
+    </div></AdminOverlay>
   );
 }

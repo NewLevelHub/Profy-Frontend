@@ -2,9 +2,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { PageHeader } from '@/shared/ui/PageHeader';
+import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
-import { Mascot } from '@/shared/ui/Mascot';
 import { cn } from '@/shared/lib/cn';
 import { useUniversities } from './hooks/useUniversities';
 import { UniversityCard } from './components/UniversityCard';
@@ -12,6 +11,10 @@ import { UniversityCardSkeleton } from './components/UniversityCardSkeleton';
 import { UniversityFilters } from './components/UniversityFilters';
 
 export default function UniversitiesPage() {
+  return <UniversitiesView model={useUniversities()} />;
+}
+
+export function UniversitiesView({ model }: { model: Omit<ReturnType<typeof useUniversities>, 'refetch'> & { refetch: () => void } }) {
   const { t } = useTranslation(['results', 'common']);
   const {
     universities,
@@ -31,52 +34,34 @@ export default function UniversitiesPage() {
     onlyFavorites,
     toggleOnlyFavorites,
     toggleFavorite,
-  } = useUniversities();
+  } = model;
 
   return (
-    <div className="flex flex-col">
-      <PageContainer>
-        <PageHeader
-          className="mb-6"
-          kicker={t('catalog.kicker')}
-          title={t('catalog.title')}
-          subtitle={t('catalog.subtitle')}
-          aside={
-            <div className="journey-mascot-well hidden sm:flex">
-              <Mascot state="graduate" size={72} blink={false} />
-            </div>
-          }
+    <PageContainer className="rd-catalog">
+      <div className="rd-catalog-heading">
+        <StudentPageHeading kicker={t('catalog.kicker')} title={t('catalog.title')} subtitle={t('catalogDesign.subtitle')} />
+        <img src="/mascot/redesign/graduate.png" alt="" width={128} height={142} />
+      </div>
+      <div className="rd-catalog-filters">
+        <UniversityFilters
+          searchInput={searchInput}
+          onSearchChange={setSearchInput}
+          countries={countries}
+          activeCountry={activeCountry}
+          onCountryChange={setActiveCountry}
+          onlyFavorites={onlyFavorites}
+          onToggleOnlyFavorites={toggleOnlyFavorites}
         />
-      </PageContainer>
-
-      {/* Панель намеренно лежит РЯДОМ с PageContainer, а не внутри: только так
-          она может погасить padding-inline у <main> и встать во всю ширину,
-          как шапка. Внутри неё колонка возвращается вложенным PageContainer,
-          чтобы контролы стояли по той же сетке, что и карточки. */}
-      <div className="universities-filters">
-        <PageContainer>
-          <div className="filters-island">
-            <UniversityFilters
-              searchInput={searchInput}
-              onSearchChange={setSearchInput}
-              countries={countries}
-              activeCountry={activeCountry}
-              onCountryChange={setActiveCountry}
-              onlyFavorites={onlyFavorites}
-              onToggleOnlyFavorites={toggleOnlyFavorites}
-            />
-          </div>
-        </PageContainer>
       </div>
 
-      <PageContainer className="mt-6 flex flex-col gap-6">
+      <div className="rd-catalog-results" aria-busy={isFetching}>
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
+          <div className="rd-university-grid">
             {Array.from({ length: 6 }, (_, i) => <UniversityCardSkeleton key={i} />)}
           </div>
         ) : error !== null ? (
           <JourneyEmptyState
-            mascotState="pause"
+            illustration="/mascot/redesign/rest.png"
             title={t('error.somethingWrong')}
             body={t('catalog.loadListFailed')}
             actionLabel={t('common:retry')}
@@ -84,13 +69,13 @@ export default function UniversitiesPage() {
           />
         ) : universities.length === 0 ? (
           <JourneyEmptyState
-            mascotState={onlyFavorites ? 'waiting' : 'graduate'}
+            illustration="/mascot/redesign/book.png"
             title={onlyFavorites ? t('catalog.emptyFavoritesTitle') : t('catalog.emptyTitle')}
             body={onlyFavorites ? t('catalog.emptyFavoritesBody') : t('catalog.emptyBody')}
           />
         ) : (
           <>
-            <div className="flex items-center justify-between gap-3">
+            <div className="rd-catalog-count">
               <p className="text-sm font-bold text-muted m-0">
                 {t('catalog.count', { count: total })}
               </p>
@@ -101,7 +86,7 @@ export default function UniversitiesPage() {
 
             <div
               className={cn(
-                'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px] transition-opacity duration-200',
+                'rd-university-grid transition-opacity duration-200',
                 isFetching && !isLoading && 'opacity-70',
               )}
             >
@@ -115,14 +100,14 @@ export default function UniversitiesPage() {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 pt-4 pb-2">
+              <div className="rd-catalog-pagination">
                 <Button
                   variant="ghost"
                   size="sm"
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
                   aria-label={t('catalog.prevPageAria')}
-                  className="min-w-11 px-3"
+                  className="rd-button rd-button-outline rd-button-small"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span className="hidden sm:inline">{t('common:back')}</span>
@@ -137,7 +122,7 @@ export default function UniversitiesPage() {
                   disabled={page >= totalPages}
                   onClick={() => setPage(page + 1)}
                   aria-label={t('catalog.nextPageAria')}
-                  className="min-w-11 px-3"
+                  className="rd-button rd-button-outline rd-button-small"
                 >
                   <span className="hidden sm:inline">{t('catalog.further')}</span>
                   <ChevronRight className="w-4 h-4" />
@@ -146,7 +131,7 @@ export default function UniversitiesPage() {
             )}
           </>
         )}
-      </PageContainer>
-    </div>
+      </div>
+    </PageContainer>
   );
 }

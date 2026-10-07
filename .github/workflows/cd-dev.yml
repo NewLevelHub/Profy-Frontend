@@ -92,18 +92,16 @@ jobs:
           DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPOSITORY }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH_DEV }}
           COMMIT_SHA: ${{ github.sha }}
-          PROFI_EDGE_NETWORK_NAME: ${{ secrets.PROFI_EDGE_NETWORK_NAME }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          envs: DOCKER_REGISTRY,DOCKER_USERNAME,DOCKER_PASSWORD,DOCKER_REPOSITORY,DEPLOY_PATH,COMMIT_SHA,PROFI_EDGE_NETWORK_NAME
+          envs: DOCKER_REGISTRY,DOCKER_USERNAME,DOCKER_PASSWORD,DOCKER_REPOSITORY,DEPLOY_PATH,COMMIT_SHA
           script: |
             set -e
 
             DEPLOY_PATH="$(printf '%s' "$DEPLOY_PATH" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-            PROFI_EDGE_NETWORK_NAME="$(printf '%s' "${PROFI_EDGE_NETWORK_NAME:-profi-backend_profi_network}" | tr -d '\r\n')"
 
             echo "$DOCKER_PASSWORD" | docker login "$DOCKER_REGISTRY" -u "$DOCKER_USERNAME" --password-stdin
             unset DOCKER_PASSWORD
@@ -115,26 +113,23 @@ jobs:
             fi
             SHORT_SHA="${COMMIT_SHA::7}"
             export FRONTEND_IMAGE="${DOCKER_REGISTRY}/${IMAGE_PATH}:dev-sha-${SHORT_SHA}"
-            export PROFI_EDGE_NETWORK_NAME
 
             if [ ! -f ".env.development" ]; then
               echo "ERROR: .env.development not found in $DEPLOY_PATH"
               exit 1
             fi
 
-            if ! docker network inspect profi_network_dev >/dev/null 2>&1; then
-              echo "ERROR: network 'profi_network_dev' not found — deploy backend (dev) first"
-              exit 1
-            fi
-            if ! docker network inspect "$PROFI_EDGE_NETWORK_NAME" >/dev/null 2>&1; then
-              echo "ERROR: edge network '$PROFI_EDGE_NETWORK_NAME' not found — is prod stack running?"
+            # profi_edge is created only by the backend production deploy, which
+            # attaches nginx to it — never create it here: joining it before nginx
+            # does would leave the site unroutable (502).
+            if ! docker network inspect profi_edge >/dev/null 2>&1; then
+              echo "ERROR: edge network 'profi_edge' not found — deploy backend main (production) first"
               exit 1
             fi
 
             {
               grep -vE '^(FRONTEND_IMAGE|PROFI_EDGE_NETWORK_NAME)=' .env.development || true
               echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}"
-              echo "PROFI_EDGE_NETWORK_NAME=${PROFI_EDGE_NETWORK_NAME}"
             } > .env.development.tmp
             mv .env.development.tmp .env.development
 
@@ -156,6 +151,21 @@ jobs:
               fi
               sleep 1
             done
+
+            # Free disk: drop older dev frontend images now that the new one is
+            # live. Only this repository's `dev-sha-*` tags are candidates —
+            # production images are `sha-*` and never match. The image just
+            # deployed and the newest previous one (rollback) are kept. No `-f`:
+            # Docker refuses to remove an image any container still uses.
+            # Never fails the deploy.
+            KEEP_PREVIOUS_IMAGES=1
+            docker image ls --format '{{.CreatedAt}}|{{.Repository}}|{{.Tag}}' \
+              | awk -F'|' -v repo="$IMAGE_PATH" -v registry="$DOCKER_REGISTRY" -v current="dev-sha-${SHORT_SHA}" \
+                  '($2 == repo || $2 == registry "/" repo) && $3 ~ /^dev-sha-[0-9a-f]+$/ && $3 != current' \
+              | sort -r | tail -n +$((KEEP_PREVIOUS_IMAGES + 1)) \
+              | while IFS='|' read -r _ repo tag; do
+                  docker rmi "${repo}:${tag}" || echo "WARN: kept ${repo}:${tag} (still in use)"
+                done || true
 
             echo "=== Development deploy complete ==="
             echo "Image: $FRONTEND_IMAGE"

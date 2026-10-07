@@ -1,3 +1,4 @@
+import { AsturQuestionHeading } from './AsturQuestionHeading';
 import { Check, GripVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -50,7 +51,7 @@ function SortableConcept({ concept, number, position, total, onMove }: SortableC
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
-      className="flex items-center gap-3 rounded-[14px] border border-default bg-page px-4 py-3"
+      className="rd-astur-concept flex items-center gap-3 rounded-[14px] border border-default bg-page px-4 py-3"
     >
       {/* Fixed to the concept, not its current slot — same as the motivation
           cards (TripletRanking): renumbering every row as they move past each
@@ -96,9 +97,7 @@ export function HierarchyDragQuestion({ index, value, served, confirmed, onChang
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-body-md text-primary font-semibold">
-        {index}. {t('astur.hierarchyPrompt')}
-      </p>
+      <AsturQuestionHeading index={index}>{t('astur.hierarchyPrompt')}</AsturQuestionHeading>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={value} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-1.5">
@@ -120,7 +119,7 @@ export function HierarchyDragQuestion({ index, value, served, confirmed, onChang
         onClick={() => onChange([...value])}
         aria-pressed={confirmed}
         className={cn(
-          'self-start inline-flex items-center gap-1.5 text-body-sm font-medium transition-colors',
+          'rd-astur-order-confirm self-start inline-flex items-center gap-1.5 text-body-sm font-medium transition-colors',
           confirmed ? 'text-brand' : 'text-secondary hover:text-primary',
         )}
       >

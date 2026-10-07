@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router';
+import { Spinner } from '@/shared/ui/Spinner';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireAdmin } from '@/shared/guards/RequireAdmin';
@@ -89,6 +90,28 @@ import PsychologistReportHistoryPage from '@/pages/psychologist/PsychologistRepo
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
+  // Local design review uses fixtures and never calls assessment APIs.
+  ...(import.meta.env.DEV ? [{
+    path: '/design/finishing',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/FinishingDesignPreview')).default }),
+  }, {
+    path: '/design/assessment',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/AssessmentDesignPreview')).default }),
+  }, {
+    path: '/design/special-assessments',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/SpecialAssessmentDesignPreview')).default }),
+  }, {
+    path: '/design/student',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/results/design/StudentDesignPreview')).default }),
+  }, {
+    path: '/design/universities',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/universities/design/CatalogDesignPreview')).default }),
+  }] : []),
   // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
     element: <RequireGuest />,
@@ -130,7 +153,7 @@ export const router = createBrowserRouter([
         element: <RequirePsychologist />,
         children: [
           {
-            element: <AppLayout />,
+            element: <AppLayout psychologist />,
             children: [
               // The review queue is the cabinet's front page (it's where work starts).
               { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
@@ -160,10 +183,8 @@ export const router = createBrowserRouter([
         element: <RequireAdmin />,
         children: [
           {
-            // Same AppLayout shell as psychologist (TopRail: brand · nav ·
-            // language · theme · logout). Admin section destinations stay in
-            // AdminLayout's side rail — PRO-421 / PRO-391.
-            element: <AppLayout />,
+            // Dedicated admin navigation; keeps the shared scroll restoration.
+            element: <AppLayout admin />,
             children: [
               { path: '/admin', element: <Navigate to="/admin/users" replace /> },
               {
@@ -248,7 +269,7 @@ export const router = createBrowserRouter([
               // rail never lands in the exported PDF.
               { path: '/results/print', element: <ResultPrintPage /> },
               {
-                element: <AppLayout />,
+                element: <AppLayout redesigned />,
                 children: [
                   { path: '/results', element: <ResultsPage /> },
                   { path: '/profile', element: <ProfilePage /> },

@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { Printer } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
-import { Text } from '@/shared/ui/typography/Text';
+import { ArrowLeft, Printer } from 'lucide-react';
 
 interface PrintToolbarProps {
   onBack: () => void;
   onPrint: () => void;
+  disabled?: boolean;
 }
 
 /**
@@ -15,22 +14,12 @@ interface PrintToolbarProps {
  * without the pointer to «Сохранить как PDF» the destination defaults to a
  * physical printer on plenty of machines.
  */
-export function PrintToolbar({ onBack, onPrint }: PrintToolbarProps) {
+export function PrintToolbar({ onBack, onPrint, disabled }: PrintToolbarProps) {
   const { t } = useTranslation('results');
-  return (
-    <div data-print-hide className="flex items-center justify-between gap-3 flex-wrap mb-5">
-      <Button variant="text" size="sm" onClick={onBack}>
-        {t('print.toolbar.back')}
-      </Button>
-      <div className="flex items-center gap-3">
-        <Text variant="caption" className="text-secondary hidden sm:block">
-          {t('print.toolbar.hint')}
-        </Text>
-        <Button size="sm" onClick={onPrint}>
-          <Printer size={16} aria-hidden="true" />
-          {t('page.downloadPdf')}
-        </Button>
-      </div>
-    </div>
-  );
+  return <div data-print-hide className="print-toolbar">
+    <button type="button" className="rd-text-link" onClick={onBack}><ArrowLeft size={17} aria-hidden="true" />{t('print.toolbar.back')}</button>
+    <div><p>{t('print.toolbar.hint')}</p><button type="button" className="rd-button" disabled={disabled} onClick={onPrint}>
+      <Printer size={17} aria-hidden="true" />{t('page.downloadPdf')}
+    </button></div>
+  </div>;
 }

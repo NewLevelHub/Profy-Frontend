@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
-import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
@@ -24,7 +23,7 @@ export function AssessmentCompletedCard({
   return (
     <Card
       className={cn(
-        'journey-shell flex flex-col gap-7 !bg-transparent border-0 p-6 sm:p-8',
+        'rd-result-state journey-shell flex flex-col gap-7 !bg-transparent border-0 p-6 sm:p-8',
       )}
     >
       <div className="flex items-start justify-between gap-5 flex-wrap">
@@ -37,8 +36,8 @@ export function AssessmentCompletedCard({
             {t('completedPending.body')}
           </Text>
         </div>
-        <div className="journey-mascot-well">
-          <Mascot state="completion" size={96} />
+        <div className="rd-result-state-art">
+          <img src="/mascot/redesign/celebrate.png" alt="" width={200} height={220} />
         </div>
       </div>
 

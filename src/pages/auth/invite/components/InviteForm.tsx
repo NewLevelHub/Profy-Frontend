@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
+import { ArrowRight, Mail, MailPlus } from 'lucide-react';
 import { env } from '@/shared/config/env';
 import type { InvitationPreview } from '@/shared/types';
 import { Button } from '@/shared/ui/Button';
 import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
-import { Input } from '@/shared/ui/Input';
-import { PasswordInput } from '@/shared/ui/PasswordInput';
 import { PasswordStrengthMeter } from '@/shared/ui/PasswordStrengthMeter';
+import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
+import { PasswordInput } from '@/shared/ui/redesign/PasswordInput';
 
 interface InviteFormProps {
   invitation: InvitationPreview;
@@ -41,70 +43,59 @@ export function InviteForm({
 
   return (
     <>
-      <h1 className="auth-card-title">{t('auth:invite.title')}</h1>
-      <p className="auth-card-sub">{t(`auth:invite.subtitle.${invitation.role}`)}</p>
+      <AuthHeading title={t('auth:invite.title')} icon={<MailPlus />}>
+        {t(`auth:invite.subtitle.${invitation.role}`)}
+      </AuthHeading>
+      {/* The account is created for the invited address only — shown, not editable. */}
+      <div className="rd-auth-address">
+        <Mail size={18} aria-hidden="true" />
+        <span>{invitation.email}</span>
+      </div>
 
-      <form onSubmit={onSubmit} noValidate>
-        <div className="mt-[28px]">
-          {/* The account is created for the invited address only. */}
-          <Input
-            label={t('auth:field.email')}
-            type="email"
-            value={invitation.email}
-            readOnly
-            aria-readonly="true"
-            className="text-secondary"
-          />
-        </div>
-
-        <div className="mt-[24px]">
+      <form className="rd-login-fields rd-auth-fields" onSubmit={onSubmit} noValidate aria-busy={isBusy}>
+        <div className="rd-auth-password">
           <PasswordInput
             label={t('auth:field.password')}
+            name="password"
+            placeholder={t('auth:redesign.newPasswordPlaceholder')}
             value={password}
             onChange={e => onPasswordChange(e.target.value)}
             error={passwordError}
             autoComplete="new-password"
+            disabled={isBusy}
             autoFocus
+            required
           />
-          {!passwordError && <PasswordStrengthMeter password={password} />}
+          {!passwordError && <PasswordStrengthMeter password={password} className="rd-password-strength" />}
         </div>
-
-        <div className="mt-[24px]">
+        <div className="rd-login-password">
           <PasswordInput
             label={t('auth:field.passwordRepeat')}
+            name="confirm-password"
+            placeholder={t('auth:redesign.confirmPlaceholder')}
             value={confirm}
             onChange={e => onConfirmChange(e.target.value)}
             error={confirmError}
             autoComplete="new-password"
+            disabled={isBusy}
+            required
           />
         </div>
-
-        {formError && (
-          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]" role="alert">
-            {formError}
-          </p>
-        )}
-
-        <Button type="submit" isLoading={isSubmitting} disabled={isGoogleSubmitting} size="lg" className="w-full mt-[30px]">
+        {formError && <p className="rd-form-error" role="alert">{formError}</p>}
+        <Button type="submit" isLoading={isSubmitting} disabled={isGoogleSubmitting} size="lg" className="rd-button rd-login-submit">
           {isSubmitting ? t('auth:invite.submitting') : t('auth:invite.submit')}
+          {!isSubmitting && <ArrowRight size={20} aria-hidden="true" />}
         </Button>
 
         {env.GOOGLE_CLIENT_ID && (
           <>
-            <div className="flex items-center gap-3 mt-[24px]">
-              <div className="h-px flex-1 bg-[var(--hairline)]" />
-              <span className="text-body-sm text-muted">{t('auth:divider')}</span>
-              <div className="h-px flex-1 bg-[var(--hairline)]" />
-            </div>
-            <div className="mt-[16px]">
-              <GoogleSignInButton text="signin_with" disabled={isBusy} onCredential={onGoogleCredential} />
-            </div>
-            <p className="text-caption text-muted text-center mt-[12px]">
-              {t('auth:invite.googleHint', { email: invitation.email })}
-            </p>
+            <div className="rd-login-divider"><span>{t('auth:divider')}</span></div>
+            <GoogleSignInButton text="signin_with" disabled={isBusy} onCredential={onGoogleCredential} />
+            <p className="rd-auth-hint">{t('auth:invite.googleHint', { email: invitation.email })}</p>
           </>
         )}
       </form>
+      <p className="rd-login-switch"><Link to="/login">{t('auth:backToLogin')}</Link></p>
     </>
   );
 }

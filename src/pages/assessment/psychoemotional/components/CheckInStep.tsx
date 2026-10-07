@@ -36,8 +36,9 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
   return (
     <AssessmentStageShell
       centered
-      contentClassName="flex flex-col gap-7 !p-8 sm:!p-10"
+      contentClassName="rd-assessment-checkin flex flex-col gap-7 !p-8 sm:!p-10"
     >
+      <h1 className="sr-only">{t('psychoemotional.circle1.stepTitleCheckin')}</h1>
       {CHECKIN_QUESTIONS.map((q) => (
         <div
           key={q.key}
@@ -55,6 +56,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
                 <button
                   key={opt}
                   type="button"
+                  aria-pressed={isSelected}
                   className={cn(
                     'press-scale rounded-pill border-2 px-3.5 py-1.5 text-body-sm font-medium transition-colors',
                     isSelected

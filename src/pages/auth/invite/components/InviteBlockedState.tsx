@@ -1,7 +1,8 @@
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { Clock, LogIn, UserCheck, XCircle, type LucideIcon } from 'lucide-react';
-import { Button, buttonClasses } from '@/shared/ui/Button';
+import { ArrowRight, Clock, LogIn, UserCheck, XCircle, type LucideIcon } from 'lucide-react';
+import { Button } from '@/shared/ui/Button';
+import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
 import type { InviteBlocker } from '../hooks/useInvite';
 
 type Action = 'signIn' | 'retry' | 'signOut' | null;
@@ -29,45 +30,39 @@ interface InviteBlockedStateProps {
 export function InviteBlockedState({ blocker, signedInEmail, homePath, onRetry, onSignOut }: InviteBlockedStateProps) {
   const { t } = useTranslation();
   const { key, icon: Icon, action } = BLOCKERS[blocker];
-  const primaryClass = buttonClasses({ size: 'lg', className: 'w-full mt-1' });
 
   return (
-    <div className="flex flex-col items-center text-center gap-4 py-6" role="status">
-      <Icon size={40} className={blocker === 'signed_in' ? 'text-brand' : 'text-danger'} aria-hidden="true" />
-      <h1 className="auth-headline-sm">{t(`auth:invite.blocked.${key}.title`)}</h1>
-      <p className="text-body text-secondary">
+    <div className="rd-auth-state" role="status">
+      <AuthHeading title={t(`auth:invite.blocked.${key}.title`)} icon={<Icon />}>
         <Trans
           i18nKey={`auth:invite.blocked.${key}.body`}
           values={{ email: signedInEmail }}
-          components={{ b: <span className="font-semibold text-primary" /> }}
+          components={{ b: <strong className="rd-email-value" /> }}
         />
-      </p>
+      </AuthHeading>
 
       {action === 'signIn' && (
-        <Link to="/login" className={primaryClass}>
+        <Link to="/login" className="rd-button rd-login-submit">
           {t('auth:invite.signIn')}
+          <ArrowRight size={20} aria-hidden="true" />
         </Link>
       )}
       {action === 'retry' && (
-        <Button size="lg" className="w-full mt-1" onClick={onRetry}>
+        <Button size="lg" className="rd-button rd-login-submit" onClick={onRetry}>
           {t('auth:invite.retry')}
         </Button>
       )}
       {action === 'signOut' && (
-        <Button size="lg" className="w-full mt-1" onClick={onSignOut}>
+        <Button size="lg" className="rd-button rd-login-submit" onClick={onSignOut}>
           {t('auth:invite.signOut')}
         </Button>
       )}
 
       {action === 'signOut' && (
-        <Link to={homePath} className="text-caption text-muted hover:opacity-70 transition-opacity">
-          {t('auth:invite.toCabinet')}
-        </Link>
+        <p className="rd-login-switch"><Link to={homePath}>{t('auth:invite.toCabinet')}</Link></p>
       )}
       {action !== 'signOut' && action !== 'signIn' && (
-        <Link to="/login" className="text-caption text-muted hover:opacity-70 transition-opacity">
-          {t('auth:backToLogin')}
-        </Link>
+        <p className="rd-login-switch"><Link to="/login">{t('auth:backToLogin')}</Link></p>
       )}
     </div>
   );

@@ -76,7 +76,7 @@ function renderValue(value: unknown): ReactNode {
   if (!Array.isArray(value)) return '—';
   if (value.length === 0) return '—';
   return (
-    <ol className="m-0 pl-5 flex flex-col gap-1">
+    <ol className="m-0 pl-5 flex flex-col gap-1 list-decimal">
       {value.map((item, index) => {
         if (typeof item === 'string') return <li key={index}>{item}</li>;
         const record = item as Record<string, unknown>;
@@ -96,11 +96,8 @@ function ChangeSide({ tone, label, children }: { tone: 'old' | 'new'; label: str
   const old = tone === 'old';
   return (
     <div
-      className={
-        old
-          ? 'px-4 py-3 border-l-[3px] border-l-[color:var(--clay)] bg-danger-subtle'
-          : 'px-4 py-3 border-l-[3px] border-l-[color:var(--pine)] bg-brand-subtle'
-      }
+      className="rd-history-side"
+      data-tone={tone}
     >
       <Mono
         variant="xs"
@@ -129,10 +126,12 @@ export default function PsychologistReportHistoryPage() {
   const reportPath = `/psychologist/students/${studentId}/assessments/${assessmentId}/report?tab=review`;
 
   return (
-    <PageContainer className="flex flex-col gap-6 pb-16 max-w-4xl">
+    <PageContainer className="rd-psych-report-page rd-history-page flex flex-col gap-6 pb-16">
       <BackLink onClick={() => navigate(reportPath)}>{t('history.back')}</BackLink>
 
       <PageHeader
+        className="rd-psych-heading rd-psych-report-heading"
+        subtitle={t('history.intro')}
         level="display-md"
         kicker={
           review.detail
@@ -149,14 +148,14 @@ export default function PsychologistReportHistoryPage() {
       ) : review.editsError ? (
         <AdminError message={t('history.loadError')} onRetry={review.reloadEdits} />
       ) : rows.length === 0 ? (
-        <div className="bg-surface border border-strong rounded-[10px]">
+        <div className="rd-history-empty bg-surface border border-strong rounded-[10px]">
           <AdminEmpty title={t('history.emptyTitle')} hint={t('history.emptyText')} />
         </div>
       ) : (
-        <ol className="m-0 p-0 list-none bg-surface border border-strong rounded-[10px] overflow-hidden">
+        <ol className="rd-history-list">
           {rows.map((row) => (
-            <li key={row.key} className="px-5 py-5 border-b border-default last:border-b-0">
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <li key={row.key} className="rd-history-entry">
+              <div className="rd-history-entry-heading">
                 <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
                   {row.field}
                 </Text>
@@ -164,7 +163,7 @@ export default function PsychologistReportHistoryPage() {
                   {row.when} · {row.who}
                 </Mono>
               </div>
-              <div className="grid gap-2.5 mt-3 sm:grid-cols-2">
+              <div className="rd-history-comparison">
                 <ChangeSide tone="old" label={t('history.before')}>
                   {renderValue(row.old)}
                 </ChangeSide>

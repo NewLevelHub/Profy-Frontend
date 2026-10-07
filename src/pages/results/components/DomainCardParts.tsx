@@ -30,7 +30,7 @@ export function DomainCardFrame({
 }) {
   return (
     <section
-      className="panel-glass p-5 sm:p-7 flex flex-col gap-6"
+      className="rd-domain-card panel-glass p-5 sm:p-7 flex flex-col gap-6"
       aria-label={ariaLabel}
     >
       {children}
@@ -66,7 +66,7 @@ export function DomainGrid({
   return (
     <div
       className={cn(
-        'grid gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden',
+        'rd-domain-grid grid gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden',
         columnsClassName,
       )}
     >
@@ -127,11 +127,13 @@ export function DomainCell({
   const TextTag = onSelect ? 'span' : 'p';
   return (
     <Tag
+      data-level={level}
+      data-selected={selected}
       type={onSelect ? 'button' : undefined}
       aria-pressed={onSelect ? selected : undefined}
       onClick={onSelect}
       className={cn(
-        'p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-[opacity,box-shadow]',
+        'rd-domain-cell p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-[opacity,box-shadow]',
         isLow && !selected && 'opacity-45',
         onSelect && 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[color:var(--dawn-deep)]',
         onSelect && isLow && !selected && 'hover:opacity-75',
@@ -180,7 +182,7 @@ export function DomainListCard({
   descriptionLabel?: string;
 }) {
   return (
-    <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
+    <div className="rd-domain-list-card border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
       {icon}
       <div className="min-w-0">
         <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">{title}</p>

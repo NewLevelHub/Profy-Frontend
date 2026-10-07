@@ -38,37 +38,45 @@ const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 const SCRIPT_ID = 'google-identity-services';
 
 let loadedLocale: string | null = null;
-let loadGeneration = 0;
+let requestedLocale: string | null = null;
+let scriptPromise: Promise<void> | null = null;
 
 /**
- * GIS localizes the rendered button only when the client library is loaded
- * with a matching `hl` (see Google JS reference for `renderButton.locale`).
- * A language switch therefore drops the previous script and `window.google`
- * before loading the bundle for the new locale.
+ * GIS uses both the library's hl and the button's locale for its copy.
+ * Serialize locale loads and share pending work across StrictMode mounts.
+ * Finish the previous load before replacing GIS, so an older script cannot
+ * overwrite the runtime after the current locale is initialized.
  */
 export function loadGoogleIdentityScript(locale: string): Promise<void> {
-  if (window.google?.accounts?.id && loadedLocale === locale) return Promise.resolve();
-
-  const generation = ++loadGeneration;
-  document.getElementById(SCRIPT_ID)?.remove();
-  delete window.google;
-  loadedLocale = null;
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.id = SCRIPT_ID;
-    script.src = `${SCRIPT_SRC}?hl=${encodeURIComponent(locale)}`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (generation !== loadGeneration) return;
-      loadedLocale = locale;
-      resolve();
-    };
-    script.onerror = () => {
-      if (generation !== loadGeneration) return;
-      reject(new Error('Failed to load Google Identity script'));
-    };
-    document.head.appendChild(script);
+  if (scriptPromise && requestedLocale === locale) return scriptPromise;
+  requestedLocale = locale;
+  const previous = scriptPromise ?? Promise.resolve();
+  const next = previous.catch(() => undefined).then(() => {
+    if (window.google?.accounts?.id && loadedLocale === locale) return;
+    document.getElementById(SCRIPT_ID)?.remove();
+    delete window.google;
+    loadedLocale = null;
+    return new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.id = SCRIPT_ID;
+      script.src = `${SCRIPT_SRC}?hl=${encodeURIComponent(locale)}`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        loadedLocale = locale;
+        resolve();
+      };
+      script.onerror = () => {
+        script.remove();
+        if (scriptPromise === next) {
+          scriptPromise = null;
+          requestedLocale = null;
+        }
+        reject(new Error('Failed to load Google Identity script'));
+      };
+      document.head.appendChild(script);
+    });
   });
+  scriptPromise = next;
+  return next;
 }

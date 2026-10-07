@@ -1,3 +1,6 @@
+import { AdminNavigation } from '../redesign/AdminNavigation';
+import { StudentNavigation } from '../redesign/StudentNavigation';
+import { PsychologistNavigation } from '../redesign/PsychologistNavigation';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +23,7 @@ import { NAV_ITEMS, ADMIN_NAV_ITEM, PSYCHOLOGIST_NAV_ITEMS, isNavActive, type Na
 // item list). It is the single nav implementation used at every viewport —
 // full inline nav row on md+ screens, a hamburger dropdown below that —
 // backed by one shared NAV_ITEMS source (./navItems.ts).
-export function TopRail() {
+export function TopRail({ redesigned = false, psychologist = false, admin = false }: { redesigned?: boolean; psychologist?: boolean; admin?: boolean }) {
   const { t } = useTranslation('common');
   const { user, logout } = useAuth();
   const profile = useProfileStore((s) => s.profile);
@@ -56,6 +59,10 @@ export function TopRail() {
   const identity = profile
     ? `${profile.name} · ${t('ageYears', { count: profile.age })}`
     : null;
+
+  if (admin) return <AdminNavigation activePath={location.pathname} email={user?.email} onLogout={handleLogout} />;
+  if (psychologist) return <PsychologistNavigation activePath={location.pathname} email={user?.email} reviewCount={reviews?.length ?? 0} onLogout={handleLogout} />;
+  if (redesigned) return <StudentNavigation activePath={location.pathname} identity={identity} onLogout={handleLogout} />;
 
   return (
     <header className="sticky top-0 z-40 flex-none app-chrome">

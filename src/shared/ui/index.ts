@@ -25,9 +25,6 @@ export type { SpineProps, SpineNode, SpineNodeStatus, SpineSegmentStyle } from '
 export { OtpInput } from './OtpInput';
 export type { OtpInputProps } from './OtpInput';
 
-export { PasswordInput } from './PasswordInput';
-export type { PasswordInputProps } from './PasswordInput';
-
 export { PasswordStrengthMeter } from './PasswordStrengthMeter';
 export type { PasswordStrengthMeterProps } from './PasswordStrengthMeter';
 
@@ -64,3 +61,6 @@ export type { PsychoEmotionalInterpretationProps } from './PsychoEmotionalInterp
 export { AppLayout } from './layouts/AppLayout';
 export { AuthLayout } from './layouts/AuthLayout';
 export { TopRail } from './navigation/TopRail';
+
+export { JourneyCheckpoint } from './redesign/JourneyCheckpoint';
+export { PrintMasthead } from './print/PrintMasthead';

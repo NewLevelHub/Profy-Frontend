@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { useProfile } from './hooks/useProfile';
+import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { ProfileLedger } from './sections/ProfileLedger';
 
 export default function ProfilePage() {
@@ -9,9 +10,11 @@ export default function ProfilePage() {
   const { profile } = useProfile();
 
   return (
-    <PageContainer className="space-y-6 lg:space-y-8">
+    <PageContainer className="rd-profile">
+      <StudentPageHeading kicker={t('redesign.kicker')} title={t('redesign.title')} subtitle={t('redesign.subtitle')} />
       {!profile ? (
         <JourneyEmptyState
+          illustration="/mascot/redesign/notepad.png"
           mascotState="waiting"
           title={t('page.notFilledTitle')}
           body={t('page.notFilledBody')}
