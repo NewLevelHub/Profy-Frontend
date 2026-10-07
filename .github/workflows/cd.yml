@@ -118,7 +118,15 @@ jobs:
               exit 1
             fi
 
-            grep -v '^FRONTEND_IMAGE=' .env.production > .env.production.tmp
+            # profi_edge is created only by the backend production deploy, which
+            # attaches nginx to it — never create it here: joining it before nginx
+            # does would leave the site unroutable (502).
+            if ! docker network inspect profi_edge >/dev/null 2>&1; then
+              echo "ERROR: edge network 'profi_edge' not found — deploy backend main (production) first"
+              exit 1
+            fi
+
+            grep -vE '^(FRONTEND_IMAGE|PROFI_NETWORK_NAME)=' .env.production > .env.production.tmp
             echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >> .env.production.tmp
             mv .env.production.tmp .env.production
 
@@ -140,6 +148,21 @@ jobs:
               fi
               sleep 1
             done
+
+            # Free disk: drop older production frontend images now that the new
+            # one is live. Only this repository's `sha-*` tags are candidates — dev
+            # images are `dev-sha-*` and never match (anchored regex). The image
+            # just deployed and the newest previous one (rollback) are kept. No
+            # `-f`: Docker refuses to remove an image any container still uses.
+            # Never fails the deploy.
+            KEEP_PREVIOUS_IMAGES=1
+            docker image ls --format '{{.CreatedAt}}|{{.Repository}}|{{.Tag}}' \
+              | awk -F'|' -v repo="$IMAGE_PATH" -v registry="$DOCKER_REGISTRY" -v current="sha-${SHORT_SHA}" \
+                  '($2 == repo || $2 == registry "/" repo) && $3 ~ /^sha-[0-9a-f]+$/ && $3 != current' \
+              | sort -r | tail -n +$((KEEP_PREVIOUS_IMAGES + 1)) \
+              | while IFS='|' read -r _ repo tag; do
+                  docker rmi "${repo}:${tag}" || echo "WARN: kept ${repo}:${tag} (still in use)"
+                done || true
 
             echo "=== Production deploy complete ==="
             echo "Image: $FRONTEND_IMAGE"
