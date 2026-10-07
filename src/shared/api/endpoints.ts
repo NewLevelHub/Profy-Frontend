@@ -73,6 +73,7 @@ export const API = {
     invitations: '/admin/invitations',
     invitation: (id: string) => `/admin/invitations/${id}`,
     invitationResend: (id: string) => `/admin/invitations/${id}/resend`,
+    invitationLink: (id: string) => `/admin/invitations/${id}/link`,
     assessmentDetail: (id: string) => `/admin/assessments/${id}`,
     assessmentExport: (id: string) => `/admin/assessments/${id}/export`,
     feedback: '/admin/feedback',

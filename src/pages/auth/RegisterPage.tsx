@@ -7,7 +7,9 @@ import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
 import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
 import { PasswordInput } from '@/shared/ui/redesign/PasswordInput';
 import { authApi } from '@/shared/api/auth';
+import { apiErrorCode } from '@/shared/api/client';
 import { env } from '@/shared/config/env';
+import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 import { AuthStepper } from '@/shared/ui/AuthStepper';
 import { Button } from '@/shared/ui/Button';
@@ -72,7 +74,11 @@ export default function RegisterPage() {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
         const message: string = err.response?.data?.detail ?? err.response?.data?.message ?? '';
-        if (status === 409 || (status === 400 && message.toLowerCase().includes('already'))) {
+        if (apiErrorCode(err) === 'invited_email_register') {
+          // A student account here would block the staff invitation for good.
+          setStep('email');
+          setEmailError(t('error.invitedEmailRegister'));
+        } else if (status === 409 || (status === 400 && message.toLowerCase().includes('already'))) {
           // Занятость почты выясняется только здесь: отдельной проверки на
           // бэкенде нет. Возвращаем на первый шаг — ошибка про почту на экране
           // пароля стояла бы там, где её никто не ждёт, и исправить её было бы
@@ -98,7 +104,8 @@ export default function RegisterPage() {
     try {
       const { access_token, user } = await authApi.googleLogin(idToken);
       storeLogin(access_token, user);
-      navigate('/results', { replace: true });
+      // An invited email signs up as staff here (contract §5) — not a student.
+      navigate(user.role === 'student' ? '/results' : homePathForUser(user), { replace: true });
     } catch {
       setFormError(t('error.googleSignUpFailed'));
     } finally {

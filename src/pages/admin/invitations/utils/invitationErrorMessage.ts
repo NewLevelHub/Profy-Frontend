@@ -10,6 +10,8 @@ const KNOWN_CODES = [
   'invitation_revoked',
   'invitation_expired',
   'invitation_not_found',
+  'invitation_email_undeliverable',
+  'invitation_link_unavailable',
 ] as const;
 
 /** One readable line for a failed invitation call. Branches on `error_code`,

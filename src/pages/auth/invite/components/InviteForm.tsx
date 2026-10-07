@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
 import { ArrowRight, Mail, MailPlus } from 'lucide-react';
 import { env } from '@/shared/config/env';
 import type { InvitationPreview } from '@/shared/types';
@@ -57,7 +56,7 @@ export function InviteForm({
           <PasswordInput
             label={t('auth:field.password')}
             name="password"
-            placeholder={t('auth:redesign.newPasswordPlaceholder')}
+            placeholder={t('auth:invite.passwordPlaceholder')}
             value={password}
             onChange={e => onPasswordChange(e.target.value)}
             error={passwordError}
@@ -72,7 +71,7 @@ export function InviteForm({
           <PasswordInput
             label={t('auth:field.passwordRepeat')}
             name="confirm-password"
-            placeholder={t('auth:redesign.confirmPlaceholder')}
+            placeholder={t('auth:invite.confirmPlaceholder')}
             value={confirm}
             onChange={e => onConfirmChange(e.target.value)}
             error={confirmError}
@@ -91,11 +90,12 @@ export function InviteForm({
           <>
             <div className="rd-login-divider"><span>{t('auth:divider')}</span></div>
             <GoogleSignInButton text="signin_with" disabled={isBusy} onCredential={onGoogleCredential} />
-            <p className="rd-auth-hint">{t('auth:invite.googleHint', { email: invitation.email })}</p>
+            <p className="rd-auth-hint rd-google-hint">{t('auth:invite.googleHint', { email: invitation.email })}</p>
           </>
         )}
       </form>
-      <p className="rd-login-switch"><Link to="/login">{t('auth:backToLogin')}</Link></p>
+      {/* No way off this page: the account exists only once this form is
+          sent, and coming back takes the emailed link. */}
     </>
   );
 }

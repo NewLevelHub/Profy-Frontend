@@ -1074,6 +1074,10 @@ export type AdminStaffRole = Exclude<UserRole, 'student'>;
 /** Derived server-side from the invitation's dates, never stored. */
 export type AdminInvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
 
+/** Fate of the latest invitation email: `sent` = queued at Resend; the rest
+ *  come from the Resend webhook; `failed` = never went out. */
+export type AdminInvitationEmailStatus = 'sent' | 'delayed' | 'delivered' | 'bounced' | 'complained' | 'failed';
+
 export interface AdminInvitation {
   id: string;
   email: string;
@@ -1087,13 +1091,21 @@ export interface AdminInvitation {
   expires_at: string;
   accepted_at: string | null;
   revoked_at: string | null;
+  /** null only for invitations older than delivery tracking. */
+  email_status: AdminInvitationEmailStatus | null;
 }
 
-/** create / resend only — the raw link is never returned again. */
+/** create / resend: the invitation plus its fresh link. */
 export interface AdminInvitationSent extends AdminInvitation {
   invite_url: string;
   /** false: the provider failed, the link still works — hand it over manually. */
   email_sent: boolean;
+}
+
+/** GET /admin/invitations/{id}/link — a pending invitation's current link. */
+export interface AdminInvitationLink {
+  invite_url: string;
+  expires_at: string;
 }
 
 export interface AdminInvitationCreateRequest {

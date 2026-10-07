@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserPlus } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
@@ -7,17 +8,22 @@ import { AdminPager } from '@/shared/ui/admin/AdminPager';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { invitationColumns } from './components/invitationColumns';
-import { InvitationLinkNotice } from './components/InvitationLinkNotice';
+import { InvitationDialog } from './components/InvitationDialog';
+import { InvitationLinkPanel } from './components/InvitationLinkPanel';
 import { InviteStaffModal } from './components/InviteStaffModal';
 import { INVITATION_STATUSES, INVITATIONS_PAGE_SIZE, useAdminInvitations } from './hooks/useAdminInvitations';
 
 /** /admin/invitations — staff invitations and their state (PRO-464). */
 export default function AdminInvitationsPage() {
   const { t } = useTranslation('admin');
+  const linkTitleId = useId();
   const invitations = useAdminInvitations();
+  const { linkDialog } = invitations;
 
   const columns = invitationColumns(t, {
     busyId: invitations.busyId,
+    copiedId: invitations.copiedId,
+    onCopyLink: invitations.handleCopyLink,
     onResend: invitations.handleResend,
     onRevoke: (item) => void invitations.handleRevoke(item),
   });
@@ -34,10 +40,6 @@ export default function AdminInvitationsPage() {
           </Button>
         }
       />
-
-      {invitations.lastSent && (
-        <InvitationLinkNotice invitation={invitations.lastSent} onDismiss={invitations.dismissLastSent} />
-      )}
 
       <AdminToolbar
         search={{
@@ -79,6 +81,24 @@ export default function AdminInvitationsPage() {
       />
 
       <InviteStaffModal isOpen={invitations.isInviteOpen} onClose={invitations.closeInvite} />
+
+      {linkDialog && (
+        <InvitationDialog titleId={linkTitleId} onClose={invitations.closeLinkDialog}>
+          <InvitationLinkPanel
+            titleId={linkTitleId}
+            kind={linkDialog.kind}
+            email={linkDialog.email}
+            inviteUrl={linkDialog.inviteUrl}
+            expiresAt={linkDialog.expiresAt}
+            emailSent={linkDialog.emailSent}
+          />
+          <div className="rd-invite-footer">
+            <Button type="button" size="md" muteSound onClick={invitations.closeLinkDialog}>
+              {t('invitations.sent.done')}
+            </Button>
+          </div>
+        </InvitationDialog>
+      )}
     </>
   );
 }

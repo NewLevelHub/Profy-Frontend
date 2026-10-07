@@ -1,19 +1,18 @@
-import { useEffect } from 'react';
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { cn } from '@/shared/lib/cn';
+import { UserPlus } from 'lucide-react';
 import { USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { Button } from '@/shared/ui/Button';
-import { AdminOverlay } from '@/shared/ui/admin/AdminOverlay';
 import { AdminField } from '@/shared/ui/admin/AdminField';
-import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
-import { ADMIN_INPUT, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { ADMIN_INPUT } from '@/shared/ui/admin/density';
 import type { AdminStaffRole } from '@/shared/types';
-import { useInviteStaff } from '../hooks/useInviteStaff';
-import { InvitationLinkNotice } from './InvitationLinkNotice';
+import { useInviteStaff, type EmailLocale } from '../hooks/useInviteStaff';
+import { InvitationDialog } from './InvitationDialog';
+import { InvitationLinkPanel } from './InvitationLinkPanel';
 
 const STAFF_ROLES: readonly AdminStaffRole[] = ['psychologist', 'admin'];
-const EMAIL_LOCALES = ['ru', 'kk'] as const;
+const EMAIL_LOCALES: readonly EmailLocale[] = ['ru', 'kk'];
 
 interface InviteStaffModalProps {
   isOpen: boolean;
@@ -22,128 +21,140 @@ interface InviteStaffModalProps {
   showListLink?: boolean;
 }
 
+interface SegmentedProps<T extends string> {
+  labelId: string;
+  options: readonly T[];
+  value: T;
+  label: (value: T) => string;
+  disabled: boolean;
+  onChange: (value: T) => void;
+}
+
+function Segmented<T extends string>({ labelId, options, value, label, disabled, onChange }: SegmentedProps<T>) {
+  return (
+    <div role="radiogroup" aria-labelledby={labelId} className="admin-role-tabs rd-invite-segmented">
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          role="radio"
+          aria-checked={value === option}
+          disabled={disabled}
+          onClick={() => onChange(option)}
+        >
+          {label(option)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** "Пригласить сотрудника" (PRO-464). The account itself is created only
  *  when the invitee accepts — students never come through here. */
 export function InviteStaffModal({ isOpen, onClose, showListLink = false }: InviteStaffModalProps) {
   const { t } = useTranslation('admin');
+  const titleId = useId();
+  const roleLabelId = useId();
+  const localeLabelId = useId();
   const form = useInviteStaff(isOpen);
   const { isSubmitting } = form;
-
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !isSubmitting) onClose();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, isSubmitting]);
 
   if (!isOpen) return null;
 
   return (
-    <AdminOverlay><div
-      className="rd-admin-dialog fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/40 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="invite-staff-title"
-      onClick={isSubmitting ? undefined : onClose}
-    >
-      <div
-        className="w-full max-w-md bg-surface rounded-[var(--radius-lg)] shadow-pop p-6 flex flex-col gap-4"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div>
-          <h2 id="invite-staff-title" className="text-title font-black text-primary m-0">
-            {form.sent ? t('invitations.sent.title') : t('invitations.form.title')}
-          </h2>
-          {!form.sent && <p className={cn(ADMIN_TEXT, 'text-muted mt-1')}>{t('invitations.form.subtitle')}</p>}
-        </div>
-
-        {form.sent ? (
-          <>
-            <InvitationLinkNotice invitation={form.sent} />
-            <div className="flex items-center gap-2 pt-1">
-              <Button type="button" size="md" className="flex-1" muteSound onClick={onClose}>
-                {t('invitations.sent.done')}
-              </Button>
-              {showListLink && (
-                <Link to="/admin/invitations" className={cn(ADMIN_TEXT, 'text-brand font-semibold underline px-2')}>
-                  {t('invitations.sent.toList')}
-                </Link>
-              )}
-            </div>
-          </>
-        ) : (
-          <form className="flex flex-col gap-4" onSubmit={form.handleSubmit} noValidate>
-            <AdminField label={t('invitations.form.email')} error={form.emailError}>
-              {({ id, invalid, describedBy }) => (
-                <input
-                  id={id}
-                  type="email"
-                  className={ADMIN_INPUT}
-                  value={form.email}
-                  onChange={(e) => form.setEmail(e.target.value)}
-                  aria-invalid={invalid}
-                  aria-describedby={describedBy}
-                  autoComplete="off"
-                  autoFocus
-                  disabled={isSubmitting}
-                />
-              )}
-            </AdminField>
-
-            <AdminField label={t('invitations.form.role')}>
-              {({ id }) => (
-                <AdminSelect
-                  id={id}
-                  value={form.role}
-                  onChange={(e) => form.setRole(e.target.value as AdminStaffRole)}
-                  disabled={isSubmitting}
-                >
-                  {STAFF_ROLES.map((value) => (
-                    <option key={value} value={value}>
-                      {t(USER_ROLE_LABELS[value])}
-                    </option>
-                  ))}
-                </AdminSelect>
-              )}
-            </AdminField>
-
-            <AdminField label={t('invitations.form.locale')} hint={t('invitations.form.localeHint')}>
-              {({ id, describedBy }) => (
-                <AdminSelect
-                  id={id}
-                  value={form.locale}
-                  onChange={(e) => form.setLocale(e.target.value as (typeof EMAIL_LOCALES)[number])}
-                  aria-describedby={describedBy}
-                  disabled={isSubmitting}
-                >
-                  {EMAIL_LOCALES.map((value) => (
-                    <option key={value} value={value}>
-                      {t(`locale.${value}`)}
-                    </option>
-                  ))}
-                </AdminSelect>
-              )}
-            </AdminField>
-
-            {form.submitError && (
-              <p role="alert" className={cn(ADMIN_TEXT, 'text-danger m-0')}>
-                {form.submitError}
-              </p>
+    <InvitationDialog titleId={titleId} locked={isSubmitting} onClose={onClose}>
+      {form.sent ? (
+        <>
+          <InvitationLinkPanel
+            titleId={titleId}
+            kind="created"
+            email={form.sent.email}
+            inviteUrl={form.sent.invite_url}
+            expiresAt={form.sent.expires_at}
+            emailSent={form.sent.email_sent}
+          />
+          <div className="rd-invite-footer">
+            {showListLink && (
+              <Link to="/admin/invitations" className="rd-invite-footer-link">
+                {t('invitations.sent.toList')}
+              </Link>
             )}
-
-            <div className="flex items-center gap-2 pt-1">
-              <Button type="submit" size="md" className="flex-1" isLoading={isSubmitting} muteSound>
-                {t('invitations.form.submit')}
-              </Button>
-              <Button type="button" variant="ghost" size="md" muteSound onClick={onClose} disabled={isSubmitting}>
-                {t('invitations.cancel')}
-              </Button>
+            <Button type="button" size="md" muteSound onClick={onClose}>
+              {t('invitations.sent.done')}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <form className="rd-invite-form" onSubmit={form.handleSubmit} noValidate>
+          <div className="rd-invite-head">
+            <span className="rd-invite-icon">
+              <UserPlus size={20} aria-hidden="true" />
+            </span>
+            <div>
+              <h2 id={titleId}>{t('invitations.form.title')}</h2>
+              <p>{t('invitations.form.subtitle')}</p>
             </div>
-          </form>
-        )}
-      </div>
-    </div></AdminOverlay>
+          </div>
+
+          <AdminField label={t('invitations.form.email')} error={form.emailError}>
+            {({ id, invalid, describedBy }) => (
+              <input
+                id={id}
+                type="email"
+                className={ADMIN_INPUT}
+                placeholder={t('invitations.form.emailPlaceholder')}
+                value={form.email}
+                onChange={(e) => form.setEmail(e.target.value)}
+                aria-invalid={invalid}
+                aria-describedby={describedBy}
+                autoComplete="off"
+                autoFocus
+                disabled={isSubmitting}
+              />
+            )}
+          </AdminField>
+
+          <div className="admin-field flex flex-col">
+            <span className="rd-invite-field-label" id={roleLabelId}>{t('invitations.form.role')}</span>
+            <Segmented
+              labelId={roleLabelId}
+              options={STAFF_ROLES}
+              value={form.role}
+              label={(value) => t(USER_ROLE_LABELS[value])}
+              disabled={isSubmitting}
+              onChange={form.setRole}
+            />
+          </div>
+
+          <div className="admin-field flex flex-col">
+            <span className="rd-invite-field-label" id={localeLabelId}>{t('invitations.form.locale')}</span>
+            <Segmented
+              labelId={localeLabelId}
+              options={EMAIL_LOCALES}
+              value={form.locale}
+              label={(value) => t(`locale.${value}`)}
+              disabled={isSubmitting}
+              onChange={form.setLocale}
+            />
+            <p className="rd-invite-hint">{t('invitations.form.localeHint')}</p>
+          </div>
+
+          {form.submitError && (
+            <p role="alert" className="rd-invite-error">
+              {form.submitError}
+            </p>
+          )}
+
+          <div className="rd-invite-footer">
+            <Button type="button" variant="ghost" size="md" muteSound onClick={onClose} disabled={isSubmitting}>
+              {t('invitations.cancel')}
+            </Button>
+            <Button type="submit" size="md" isLoading={isSubmitting} muteSound>
+              {t('invitations.form.submit')}
+            </Button>
+          </div>
+        </form>
+      )}
+    </InvitationDialog>
   );
 }

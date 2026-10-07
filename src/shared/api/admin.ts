@@ -9,6 +9,7 @@ import type {
   AdminFeedbackStatsResponse,
   AdminInvitation,
   AdminInvitationCreateRequest,
+  AdminInvitationLink,
   AdminInvitationListParams,
   AdminInvitationListResponse,
   AdminInvitationSent,
@@ -112,6 +113,10 @@ export const adminApi = {
   /** New link + new email for a pending/expired invitation; the old link dies. */
   resendInvitation: (id: string) =>
     apiClient.post<AdminInvitationSent>(API.admin.invitationResend(id)).then((r) => r.data),
+
+  /** The link of a pending invitation — the one in its latest email. */
+  getInvitationLink: (id: string) =>
+    apiClient.get<AdminInvitationLink>(API.admin.invitationLink(id)).then((r) => r.data),
 
   revokeInvitation: (id: string) =>
     apiClient.delete<AdminInvitation>(API.admin.invitation(id)).then((r) => r.data),
