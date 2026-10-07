@@ -66,11 +66,13 @@
 .rd-report .rd-direction-row .truncate { white-space: normal; overflow: visible; }
 .rd-report .rd-direction-row>div:first-child { align-items: flex-start; flex-wrap: wrap; }
 .rd-report .rd-direction-row [class*="text-display"] { font-size: 24px; }
-.rd-report .rd-feedback { background: var(--rd-bg); border-style: dashed; }
+/* Сейчас padding перекрывает !p-6 sm:!p-7 в разметке FeedbackSection. */
+.rd-report .rd-feedback { padding: 30px; background: var(--rd-bg); border-style: dashed; }
 .rd-feedback textarea { background: var(--rd-card); border: 1px solid var(--rd-line); box-shadow: none; font-size: 16px; }
 .rd-feedback h2 { font-size: 28px; }
 .rd-report button:not([role=radio]):not(.rd-domain-cell) { font-weight: 500; }
-.rd-student .rd-result-state { max-width: 1020px; margin: 12px auto; padding: 44px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-xl); box-shadow: var(--rd-shadow); }
+/* Сейчас фон перекрывает !bg-transparent в разметке Assessment*Card. */
+.rd-student .rd-result-state { max-width: 1020px; margin: 12px auto; padding: 44px; background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-xl); box-shadow: var(--rd-shadow); }
 .rd-result-state>div:first-child { align-items: center; gap: 40px; }
 .rd-result-state h1 { font-size: clamp(30px, 3.5vw, 46px); line-height: 1.16; }
 .rd-result-state .journey-kicker { color: var(--rd-purple); font-family: inherit; font-size: 11px; letter-spacing: .08em; }
@@ -150,6 +152,7 @@
   .rd-report .rd-domain-list-card { padding: 17px 14px; gap: 11px; }
   .rd-feedback h2 { font-size: 24px; }
   .rd-report-sidebar nav a { font-size: 11px; }
+  .rd-report .rd-feedback { padding: 24px 18px; }
   .rd-student .rd-result-state { padding: 26px 22px; margin-top: 0; border-radius: var(--rd-radius-lg); }
   .rd-result-state>div:first-child { flex-direction: column; gap: 20px; }
   .rd-result-state .rd-result-state-art { flex-basis: auto; align-self: center; }

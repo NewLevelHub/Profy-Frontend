@@ -115,7 +115,7 @@ export function DomainCell({
       aria-pressed={onSelect ? selected : undefined}
       onClick={onSelect}
       className={cn(
-        'rd-domain-cell p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-[opacity,box-shadow]',
+        'rd-domain-cell p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-[border-color,box-shadow]',
         onSelect && 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[color:var(--dawn-deep)]',
       )}
     >

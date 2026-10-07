@@ -27,7 +27,7 @@
 .rd-card-interest { top: 88px; left: -16px; transform: rotate(-5deg); }
 .rd-card-path { right: -10px; bottom: 12px; transform: rotate(5deg); }
 .rd-mini-bars { display: flex; gap: 4px; height: 20px; align-items: end; margin-top: 8px; }
-.rd-mini-bars i { width: 12px; height: 12px; background: color-mix(in srgb, var(--rd-purple) 40%, var(--rd-card)); border-radius: var(--rd-radius-sm); }
+.rd-mini-bars i { width: 12px; height: 12px; background: color-mix(in srgb, var(--rd-purple) 40%, var(--rd-card)); border-radius: 25%; }
 .rd-mini-bars i:nth-child(2n) { height: 18px; background: color-mix(in srgb, var(--rd-purple) 70%, var(--rd-card)); }
 .rd-mini-bars i:nth-child(3n) { height: 14px; background: color-mix(in srgb, var(--rd-purple) 58%, var(--rd-card)); }
 .rd-path-dots { display: flex; align-items: center; margin-top: 10px; }
