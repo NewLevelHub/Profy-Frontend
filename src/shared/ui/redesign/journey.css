@@ -53,12 +53,12 @@
 .rd-subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .rd-choice-group, .rd-journey .rd-setup-card .panel-glass { display: flex; flex-direction: column; gap: 13px; padding: 17px; border: 1px solid var(--rd-line); background: transparent; border-radius: 13px; box-shadow: none; backdrop-filter: none; }
 .redesign.rd-journey .rd-choice, .rd-journey .rd-custom-choice { display: inline-flex; align-items: center; min-height: 39px; border: 1px solid var(--rd-line); border-radius: 9px; padding: 8px 11px; background: var(--rd-card); color: var(--rd-text); font-size: 12px; font-weight: 400; line-height: 1.5; box-shadow: none; }
+/* These buttons are fully CSS-painted. Avoid WebKit's native control clip
+   while a press transform and the checkmark change the button's bounds. */
+.redesign.rd-journey .rd-choice { -webkit-appearance: none; appearance: none; }
 .redesign.rd-journey .rd-choice:hover:not(:disabled) { border-color: var(--rd-pine); color: var(--rd-pine); }
 .redesign.rd-journey .rd-choice[aria-pressed=true] { background: var(--rd-sage); color: var(--rd-pine); border-color: var(--rd-pine); }
-/* Reserve the checkmark's space so selecting a chip never resizes it or
-   reflows its neighbours. Feedback stays within the button's bounds. */
-.redesign.rd-journey .rd-choice::before { content: ''; width: 10px; height: 6px; border: solid currentColor; border-width: 0 0 1.5px 1.5px; transform: rotate(-45deg); margin: -3px 8px 0 0; flex-shrink: 0; opacity: 0; transition: opacity 160ms ease-out; }
-.redesign.rd-journey .rd-choice[aria-pressed=true]::before { opacity: 1; }
+.redesign.rd-journey .rd-choice[aria-pressed=true]::before { content: ''; width: 10px; height: 6px; border: solid currentColor; border-width: 0 0 1.5px 1.5px; transform: rotate(-45deg); margin: -3px 8px 0 0; flex-shrink: 0; }
 .redesign.rd-journey .rd-choice:disabled { cursor: not-allowed; }
 .redesign.rd-journey .rd-custom-input { width: 160px; max-width: 100%; min-height: 39px; padding: 8px 11px; font-size: 12px; }
 .rd-setup-actions { display: flex; align-items: center; gap: 12px; margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--rd-line); }
