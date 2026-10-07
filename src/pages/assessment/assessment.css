@@ -1,5 +1,8 @@
 /* Assessment styles are scoped to AssessmentLayout. Diagnostic swatches
    and answer scales retain their reference colours and sizes. */
+/* The assessment already fits the viewport. Keep its sticky rail outside
+   ancestor clipping layers, which can jitter during Safari's async scrolling. */
+:where(html, body, #root):has(.rd-assessment) { overflow-x: visible; }
 .rd-assessment {
   --pine: var(--rd-pine);
   --ink: var(--rd-ink);
@@ -16,7 +19,9 @@
 }
 .rd-assessment :where(button, input) { font-family: inherit; }
 .rd-assessment :where(button:disabled) { cursor: not-allowed; }
-.rd-assessment-rail { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--rd-bg) 96%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--rd-line); }
+/* Use an opaque background so the sticky rail doesn't need to blur the
+   questions moving behind it during scrolling. */
+.rd-assessment-rail { position: sticky; top: 0; z-index: 10; background: var(--rd-bg); border-bottom: 1px solid var(--rd-line); }
 .rd-assessment-rail-inner { width: min(1240px, calc(100% - 80px)); min-height: 108px; margin: auto; display: grid; grid-template-columns: 1fr minmax(0, 500px) 1fr; align-items: center; gap: 40px; padding-block: 20px; }
 .rd-assessment-rail .rd-brand { font-size: 30px; }
 .rd-assessment-progress { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -25,7 +30,10 @@
 .rd-assessment-progress-detail { display: flex; align-items: center; gap: 16px; justify-content: space-between; color: var(--rd-muted); font-size: 11px; }
 .rd-assessment-progress-detail button { display: inline-flex; align-items: center; gap: 6px; padding: 0; color: var(--rd-pine); min-height: 24px; flex-shrink: 0; }
 .rd-assessment-controls { display: flex; align-items: center; justify-self: end; gap: 6px; }
-.rd-assessment-main { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; }
+/* The countdown's SVG stroke animates continuously. Give its slot a separate
+   compositing layer so Safari doesn't repaint the whole sticky rail each frame. */
+.rd-assessment-status:not(:empty) { transform: translateZ(0); }
+.rd-assessment-main { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; scroll-margin-top: var(--assessment-rail-h, 108px); }
 .rd-assessment-main:focus { outline: none; }
 .rd-assessment-workspace { width: min(840px, calc(100% - 48px)); margin: 44px auto; }
 .rd-assessment .assessment-stage--centered { min-height: calc(100dvh - var(--assessment-rail-h, 108px)); transform: none; padding: 40px 24px; }

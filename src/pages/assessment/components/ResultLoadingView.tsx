@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { LoaderCircle } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
+import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import '@/shared/ui/redesign/checkpoints.css';
 
 const MESSAGE_KEYS = ['resultLoading.msg1', 'resultLoading.msg2', 'resultLoading.msg3', 'resultLoading.msg4'];
@@ -20,6 +21,16 @@ export function ResultLoadingView({ className, fullPage = false }: { className?:
   const content = <div className={cn('rd-report-loading', className)} role="status" aria-live="polite" aria-atomic="true">
     <img src="/mascot/redesign/book.png" alt="" width={200} height={200} />
     <div className="rd-loading-message"><LoaderCircle className="rd-loading-spinner" size={22} aria-hidden="true" /><MessageHeading>{t(MESSAGE_KEYS[messageIndex])}</MessageHeading></div>
+    <Spine
+      className="rd-loading-progress"
+      nodes={MESSAGE_KEYS.map((_, index): SpineNode => ({
+        id: index,
+        status: index < messageIndex ? 'done' : index === messageIndex ? 'current' : 'upcoming',
+        goal: index === MESSAGE_KEYS.length - 1,
+      }))}
+      thickness={0.85}
+      ariaLabel={t('resultLoading.stepAria', { current: messageIndex + 1, total: MESSAGE_KEYS.length })}
+    />
     <p>{t('resultLoading.takesSeconds')}</p>
   </div>;
   return fullPage ? <JourneyShell><main id="journey-content" tabIndex={-1}>{content}</main></JourneyShell> : content;

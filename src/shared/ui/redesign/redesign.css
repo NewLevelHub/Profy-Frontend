@@ -87,8 +87,10 @@
 .rd-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; font-size: 10px; border-radius: 7px; font-weight: 500; }
 .rd-orange { color: var(--rd-orange); }
 .rd-preferences { display: flex; align-items: center; gap: 10px; }
-.rd-skip { position: fixed; left: 16px; top: 12px; z-index: 100; transform: translateY(-180%); padding: 12px 20px; background: var(--rd-card); border-radius: 10px; }
-.rd-skip:focus { transform: translateY(0); }
+.rd-skip { position: fixed; left: 16px; top: 12px; z-index: 100; padding: 12px 20px; background: var(--rd-card); border-radius: 10px; }
+/* Clip instead of moving above the viewport: Safari's rubber-band scroll
+   can reveal off-screen content. The link remains reachable with Tab. */
+.rd-skip:not(:focus) { width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 950px) { .rd-wrap { width: calc(100% - 56px); } }
 @media (max-width: 680px) { .rd-wrap { width: calc(100% - 40px); } .rd-brand { font-size: 29px; } }
 @media (prefers-reduced-motion: reduce) { .redesign *, .redesign *::before, .redesign *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
