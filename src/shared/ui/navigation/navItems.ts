@@ -3,10 +3,7 @@
 // resolves it with `t()`.
 export const NAV_ITEMS = [
   { label: 'common:nav.results', path: '/results' },
-  // matchPrefix keeps the tab lit on /universities/:id, which NavLink's own
-  // `isActive` would drop (it matches the exact path only for a nav item
-  // whose route has children).
-  { label: 'common:nav.universities', path: '/universities', matchPrefix: '/universities' },
+  { label: 'common:nav.universities', path: '/universities' },
   { label: 'common:nav.profile', path: '/profile' },
 ] as const;
 
