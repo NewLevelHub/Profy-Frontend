@@ -7,13 +7,12 @@ services:
     expose:
       - "80"
     networks:
-      - profi_network_dev
       - profi_edge
 
 networks:
-  profi_network_dev:
-    external: true
-    name: profi_network_dev
+  # The backend's edge network (see docker-compose.prod.yml). This container
+  # only serves static files: it needs nginx to reach it, not the dev
+  # backend's internal network (profi_network_dev, with its DB and Redis).
   profi_edge:
     external: true
-    name: ${PROFI_EDGE_NETWORK_NAME:-profi-backend_profi_network}
+    name: profi_edge

@@ -7,9 +7,13 @@ services:
     expose:
       - "80"
     networks:
-      - profi_network
+      - profi_edge
 
 networks:
-  profi_network:
+  # The backend's edge network: nginx plus the APIs and frontends it proxies
+  # to — never a database or Redis. Created only by the backend production
+  # deploy, which attaches nginx to it; this container only serves static files
+  # and needs nothing else.
+  profi_edge:
     external: true
-    name: ${PROFI_NETWORK_NAME:-profi-backend_profi_network}
+    name: profi_edge
