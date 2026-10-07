@@ -30,7 +30,8 @@ export function useInviteStaff() {
 
   const create = useMutation({
     mutationFn: adminApi.createInvitation,
-    // Also on error: `invitation_superseded` comes after the row was created.
+    // Also on error: `invitation_superseded` means the row was created or
+    // changed successfully, but its state moved on while email was in flight.
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ADMIN_INVITATIONS_KEY }),
     onError: (error) => {
       if (EMAIL_ERROR_CODES.includes(apiErrorCode(error) ?? '')) setEmailError(invitationErrorMessage(error, t));

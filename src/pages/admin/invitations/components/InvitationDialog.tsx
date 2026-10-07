@@ -50,7 +50,13 @@ export function InvitationDialog({ titleId, locked = false, contentKey, returnFo
       // Tab cycles inside the dialog instead of walking into the page under the overlay.
       if (event.key !== 'Tab' || !panelRef.current) return;
       const focusable = [...panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
-      if (focusable.length === 0) return;
+      if (focusable.length === 0) {
+        // A pending request disables every control. Keep keyboard focus on
+        // the dialog itself until its interactive content is available again.
+        event.preventDefault();
+        panelRef.current.focus();
+        return;
+      }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       const active = document.activeElement;
