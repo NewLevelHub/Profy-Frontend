@@ -115,19 +115,21 @@ function cssHits(file, mode) {
   for (const m of css.matchAll(CSS_DECL)) {
     const [, prop, value, , exempt] = m;
     const at = { line: lineAt(m.index), token: `${prop}: ${value.replace(/\s+/g, ' ')}` };
-    if (mode === 'floor') {
-      for (const [, n, unit] of value.matchAll(LITERAL_SIZE)) {
-        const px = unit === 'px' ? Number(n) : unit === 'rem' ? Number(n) * 16 : null;
-        if (px !== null && px < 12) hits.push({ ...at, token: `${at.token} — меньше 12 px` });
-      }
-      continue;
-    }
+    // Имена токенов проверяются везде: опечатка молча даёт размер родителя.
     for (const [, name] of value.matchAll(/var\((--[\w-]+)/g)) {
       if (!name.startsWith('--text-')) hits.push({ ...at, token: `${at.token} — ${name} не из шкалы --text-*` });
       else if (!DEFINED.has(name)) hits.push({ ...at, token: `${at.token} — ${name} нет в @theme static` });
     }
-    if (exempt) continue;
-    if ([...value.replace(/var\([^)]*\)/g, '').matchAll(LITERAL_SIZE)].length) hits.push(at);
+    // Вырезаем только var(--имя) без запасного значения: литерал в
+    // `var(--x, 8px)` остаётся видимым для проверок ниже.
+    const literals = [...value.replace(/var\(--[\w-]+\)/g, '').matchAll(LITERAL_SIZE)];
+    // Нижняя граница действует везде, в том числе для type-exempt.
+    for (const [, n, unit] of literals) {
+      const px = unit === 'px' ? Number(n) : unit === 'rem' ? Number(n) * 16 : null;
+      if (px !== null && px < 12) hits.push({ ...at, token: `${at.token} — меньше 12 px` });
+    }
+    if (mode === 'floor' || exempt) continue;
+    if (literals.length) hits.push(at);
   }
   return hits;
 }

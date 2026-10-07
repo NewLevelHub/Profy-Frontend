@@ -158,7 +158,6 @@
   .rd-goal-card img { grid-row: 1; width: 140px; height: 140px; justify-self: center; }
   .rd-goal-card h2 { font-size: var(--text-rd-heading); }
   .rd-goal-card .rd-button { width: 100%; }
-  .rd-goal-heading h1 { font-size: var(--text-rd-display); }
   .rd-welcome-intro { grid-template-columns: 1fr; }
   .rd-welcome-intro img { height: 210px; }
   .rd-welcome-features { grid-template-columns: 1fr; margin-top: 12px; }

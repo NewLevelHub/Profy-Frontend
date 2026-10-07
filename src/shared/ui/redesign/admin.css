@@ -111,7 +111,6 @@
 .rd-admin .admin-data-table :where(th,td):last-child { padding-right: 22px; }
 .rd-admin .admin-data-table tbody>tr:nth-child(even) { background: transparent; }
 .rd-admin .admin-data-table tbody>tr:hover { background: var(--rd-bg); }
-.rd-admin .admin-data-table :where(.text-body-md,.text-body-sm) { font-size: var(--text-rd-ui); }
 .rd-admin .admin-data-table .font-mono { font-size: var(--text-rd-label); }
 .rd-admin .admin-data-table a { color: var(--rd-ink); }
 .rd-admin .admin-data-table a:hover { color: var(--rd-pine); }
