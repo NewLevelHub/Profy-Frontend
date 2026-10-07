@@ -118,7 +118,15 @@ jobs:
               exit 1
             fi
 
-            grep -v '^FRONTEND_IMAGE=' .env.production > .env.production.tmp
+            # profi_edge is created only by the backend production deploy, which
+            # attaches nginx to it — never create it here: joining it before nginx
+            # does would leave the site unroutable (502).
+            if ! docker network inspect profi_edge >/dev/null 2>&1; then
+              echo "ERROR: edge network 'profi_edge' not found — deploy backend main (production) first"
+              exit 1
+            fi
+
+            grep -vE '^(FRONTEND_IMAGE|PROFI_NETWORK_NAME)=' .env.production > .env.production.tmp
             echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >> .env.production.tmp
             mv .env.production.tmp .env.production
 
