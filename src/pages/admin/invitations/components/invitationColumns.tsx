@@ -15,15 +15,10 @@ const STATUS_TONES: Record<AdminInvitationStatus, AdminBadgeTone> = {
   revoked: 'danger',
 };
 
-/** How the delivery line under the status reads. */
-const DELIVERY_TONES: Record<AdminInvitationEmailStatus, 'muted' | 'ok' | 'danger'> = {
+/** How the last send-attempt line under the invitation status reads. */
+const DELIVERY_TONES: Record<AdminInvitationEmailStatus, 'muted' | 'danger'> = {
   sent: 'muted',
-  delayed: 'muted',
-  delivered: 'ok',
-  bounced: 'danger',
-  complained: 'danger',
   failed: 'danger',
-  suppressed: 'danger',
 };
 
 const DATE_FORMAT: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
@@ -38,7 +33,7 @@ interface InvitationRowHandlers {
   onRevoke: (invitation: AdminInvitation) => void;
 }
 
-/** Delivery matters only while the invitation can still be accepted. */
+/** The last send attempt matters only while the invitation can be accepted. */
 function showsDelivery(invitation: AdminInvitation): invitation is AdminInvitation & { email_status: AdminInvitationEmailStatus } {
   return invitation.email_status !== null && (invitation.status === 'pending' || invitation.status === 'expired');
 }

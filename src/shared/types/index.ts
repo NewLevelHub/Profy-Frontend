@@ -1074,17 +1074,9 @@ export type AdminStaffRole = Exclude<UserRole, 'student'>;
 /** Derived server-side from the invitation's dates, never stored. */
 export type AdminInvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
 
-/** Fate of the latest invitation email: `sent` = queued at Resend; the rest
- *  come from the Resend webhook; `failed` = never went out; `suppressed` =
- *  Resend refused the address after an earlier bounce or complaint. */
-export type AdminInvitationEmailStatus =
-  | 'sent'
-  | 'delayed'
-  | 'delivered'
-  | 'bounced'
-  | 'complained'
-  | 'failed'
-  | 'suppressed';
+/** What the synchronous send attempt established. It does not claim that
+ *  the recipient's mail server delivered the message. */
+export type AdminInvitationEmailStatus = 'sent' | 'failed';
 
 export interface AdminInvitation {
   id: string;
@@ -1099,7 +1091,7 @@ export interface AdminInvitation {
   expires_at: string;
   accepted_at: string | null;
   revoked_at: string | null;
-  /** null only for invitations older than delivery tracking. */
+  /** null only for invitations created before send-result tracking. */
   email_status: AdminInvitationEmailStatus | null;
 }
 

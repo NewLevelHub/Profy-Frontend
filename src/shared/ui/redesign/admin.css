@@ -247,7 +247,6 @@
 .rd-admin .rd-invite-segmented>button { flex: 1; }
 .rd-admin .rd-invite-segmented>button[aria-checked=true] { background: var(--rd-sage); color: var(--rd-pine); font-weight: 500; }
 .rd-invite-delivery { margin-top: 6px; font-size: 12px; line-height: 1.5; color: var(--rd-muted); cursor: help; }
-.rd-invite-delivery[data-tone=ok] { color: var(--rd-pine); }
 .rd-invite-delivery[data-tone=danger] { color: var(--danger); }
 .rd-invite-actions { display: inline-flex; justify-content: flex-end; gap: 6px; }
 .rd-admin .rd-invite-actions .admin-button { min-height: 36px; padding: 7px 10px; gap: 6px; white-space: nowrap; }
