@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import '@/shared/ui/redesign/redesign.css';
 import './redesign.css';
-import { LANDING_DURATION, LandingDemo, LandingFeatures, LandingInside, LandingReportContents, LandingSectionHeading, LandingStats, LandingTry } from './components/LandingContent';
+import { LANDING_DURATION, LandingFeatures, LandingInside, LandingReportContents, LandingSectionHeading, LandingStats, LandingTry } from './components/LandingContent';
 import { useLandingReveal } from './useLandingReveal';
 
 const NAV = ['how', 'features', 'inside', 'try', 'faq'] as const;
@@ -94,7 +94,6 @@ export default function LandingPage() {
           <LandingSectionHeading section="how" />
           <div className="rd-journey-grid">{STEPS.map((step, i) => <article className="rd-journey-card" key={step} data-landing-reveal data-reveal-order={i}><span className="rd-step-chip">{t('redesign.how.step', { number: `0${i+1}` })}</span><JourneyArt step={step} /><h3>{t(`how.step${i+1}Title`)}</h3><p>{t(`how.step${i+1}Desc`)}</p></article>)}</div>
         </section>
-        <LandingDemo onOpenExample={showExample} />
         <LandingFeatures />
         <LandingInside />
         <LandingTry />
