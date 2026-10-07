@@ -126,8 +126,13 @@ jobs:
               exit 1
             fi
 
-            grep -vE '^(FRONTEND_IMAGE|PROFI_NETWORK_NAME)=' .env.production > .env.production.tmp
-            echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >> .env.production.tmp
+            # `|| true`: grep exits 1 when every line is filtered out (a file holding
+            # only FRONTEND_IMAGE/PROFI_NETWORK_NAME), which `set -e` would turn into
+            # a silent deploy failure.
+            {
+              grep -vE '^(FRONTEND_IMAGE|PROFI_NETWORK_NAME)=' .env.production || true
+              echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}"
+            } > .env.production.tmp
             mv .env.production.tmp .env.production
 
             docker pull "$FRONTEND_IMAGE"
