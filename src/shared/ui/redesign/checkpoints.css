@@ -1,20 +1,20 @@
 .rd-checkpoint { width: min(880px, calc(100% - 80px)); margin: 44px auto 0; outline: none; }
 .rd-checkpoint-heading { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 36px; align-items: center; margin-bottom: 30px; }
 .rd-checkpoint-heading h1 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.13; margin-top: 14px; overflow-wrap: anywhere; }
-.rd-checkpoint-intro { color: var(--rd-text); font-size: 15px; line-height: 1.75; margin-top: 18px !important; max-width: 56ch; }
+.rd-checkpoint-intro { color: var(--rd-text); font-size: 15px; line-height: 1.75; margin-top: 18px; max-width: 56ch; }
 .rd-checkpoint-heading img { width: 190px; height: 220px; object-fit: contain; }
 .rd-checkpoint-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
-.rd-checkpoint-option { padding: 26px; background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: 22px; }
+.rd-checkpoint-option { padding: 26px; background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); }
 .rd-checkpoint-option .rd-icon-tile { margin-bottom: 22px; }
 .rd-checkpoint-option h2 { font-size: 25px; line-height: 1.2; margin: 10px 0; overflow-wrap: anywhere; }
 .rd-checkpoint-option>p:last-child { color: var(--rd-text); font-size: 14px; line-height: 1.7; }
-.rd-checkpoint-unsure { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; text-align: left; padding: 22px 24px; margin-top: 16px; border: 1px solid var(--rd-line); border-radius: 18px; background: var(--rd-sage); color: var(--rd-pine); }
+.rd-checkpoint-unsure { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; text-align: left; padding: 22px 24px; margin-top: 16px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-sage); color: var(--rd-pine); }
 .rd-checkpoint-unsure:hover { border-color: var(--rd-pine); }
 .rd-checkpoint-unsure strong { display: block; font-weight: 600; font-size: 16px; }
 .rd-checkpoint-unsure span>span { display: block; margin-top: 6px; color: var(--rd-text); font-size: 13px; line-height: 1.7; }
 .rd-checkpoint-unsure svg { flex-shrink: 0; }
 .rd-checkpoint-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--rd-line); }
-.rd-checkpoint-progress { background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: 22px; padding: 28px; }
+.rd-checkpoint-progress { background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); padding: 28px; }
 .rd-report-loading { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; text-align: center; padding: 40px 24px; min-height: min(620px, 75svh); color: var(--rd-ink); }
 .rd-report-loading img { width: 180px; height: 200px; object-fit: contain; }
 .rd-loading-message { display: flex; align-items: center; justify-content: center; gap: 12px; max-width: 580px; min-height: 3.6em; }
@@ -42,9 +42,10 @@
 .rd-finishing-preview-bar { background: var(--rd-lilac); color: var(--rd-purple); padding: 16px 24px; }
 .rd-finishing-preview-bar>p { font-size: 13px; margin-bottom: 12px; }
 .rd-finishing-preview-bar nav { display: flex; flex-wrap: wrap; gap: 8px; }
-.rd-finishing-preview-bar button { border: 1px solid var(--rd-line); padding: 8px 12px; border-radius: 10px; background: var(--rd-card); font-size: 12px; }
+.rd-finishing-preview-bar button { border: 1px solid var(--rd-line); padding: 8px 12px; border-radius: var(--rd-radius-md); background: var(--rd-card); font-size: 12px; }
 .rd-finishing-preview-bar button[aria-pressed=true] { border-color: var(--rd-purple); }
-@media print { .rd-finishing-preview { min-height: 0 !important; background: white !important; } }
+/* Печать всегда на белом листе; двойной класс перебивает фон .redesign по специфичности. */
+@media print { .redesign.rd-finishing-preview { min-height: 0; background: white; } }
 
 @media (max-width: 600px) {
   .rd-finishing-preview-bar { padding: 12px 20px; }
