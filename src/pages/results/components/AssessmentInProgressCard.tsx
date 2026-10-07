@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
-import { Mascot } from '@/shared/ui/Mascot';
 import { Spine } from '@/shared/ui/Spine';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
@@ -39,7 +38,7 @@ export function AssessmentInProgressCard({
   return (
     <Card
       className={cn(
-        'journey-shell flex flex-col gap-7 !bg-transparent border-0 p-6 sm:p-8',
+        'rd-result-state journey-shell flex flex-col gap-7 !bg-transparent border-0 p-6 sm:p-8',
       )}
     >
       <div className="flex items-start justify-between gap-5 flex-wrap">
@@ -52,8 +51,8 @@ export function AssessmentInProgressCard({
             {t('inProgress.body', { completed: completedPhaseCount, total: totalPhaseCount })}
           </Text>
         </div>
-        <div className="journey-mascot-well">
-          <Mascot state="transition" size={88} />
+        <div className="rd-result-state-art">
+          <img src="/mascot/redesign/book.png" alt="" width={200} height={220} />
         </div>
       </div>
 

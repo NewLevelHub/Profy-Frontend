@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Download } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
@@ -12,7 +10,7 @@ import { AssessmentInProgressCard } from './components/AssessmentInProgressCard'
 import { AssessmentCompletedCard } from './components/AssessmentCompletedCard';
 import { ResultsReveal } from './components/ResultsReveal';
 import { FeedbackSection } from './components/FeedbackSection';
-import { ResultsReportBody } from './components/ResultsReportBody';
+import { StudentReport } from './components/StudentReport';
 
 function ResultsSkeleton() {
   return (
@@ -100,6 +98,7 @@ export default function ResultsPage() {
     return (
       <PageContainer>
         <JourneyEmptyState
+          illustration="/mascot/redesign/rest.png"
           mascotState="pause"
           title={t('error.somethingWrong')}
           body={error ?? t('error.loadResults')}
@@ -112,33 +111,16 @@ export default function ResultsPage() {
 
   return (
     <PageContainer className="flex flex-col gap-6">
-      {/* Обложка «Что мы узнали о тебе» снята: её чипсы (интересы, сильная
-          сторона, направление) и кнопка «Смотреть направления» слово в слово
-          повторяли секции ниже — отчёт начинался с пересказа самого себя.
-          Из неё остаётся только выход в PDF: /results/print больше ниоткуда
-          не открывается, поэтому кнопка живёт здесь отдельной строкой. */}
-      <div className="flex justify-end">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/results/print?auto=1')}>
-          <Download size={16} aria-hidden="true" />
-          {t('page.downloadPdf')}
-        </Button>
-      </div>
-
-      {/* Порядок разделов — TZ_Profi.md §18.2. Тело отчёта вынесено в
-          ResultsReportBody и переиспользуется на экране психолога
-          (PsychologistStudentReportPage). Психоблок «Дополнительно для
-          специалиста» там же — на стороне бэкенда он отдаётся только
-          психологу/админу (report_service.psych_sections_for), у ученика
-          `validity`/`psychoemotional` = null и блок не рендерится. */}
-      <ResultsReportBody
+      <StudentReport
         report={report}
         ageGroup={ageGroup}
         goal={goal}
-      />
-
-      <ResultsReveal>
-        <FeedbackSection assessmentId={assessmentId} />
-      </ResultsReveal>
+        onDownload={() => navigate('/results/print?auto=1')}
+      >
+        <ResultsReveal>
+          <FeedbackSection assessmentId={assessmentId} />
+        </ResultsReveal>
+      </StudentReport>
     </PageContainer>
   );
 }

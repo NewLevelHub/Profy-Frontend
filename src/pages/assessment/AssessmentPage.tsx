@@ -1,3 +1,4 @@
+import { AssessmentLayout } from './components/AssessmentLayout';
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/shared/ui/Spinner';
@@ -60,10 +61,11 @@ export default function AssessmentPage() {
     phase === 'question' && !testIntroInstrument ? undefined : sectionLabel;
 
   return (
-    <div className="flex flex-col min-h-screen bg-page">
+    <AssessmentLayout>
 
       {/* ── Exit confirmation modal ─────────────────────────────────── */}
       <ExitAssessmentModal
+        redesigned
         open={exitConfirmOpen}
         onSaveAndExit={confirmExit}
         onContinue={cancelExit}
@@ -72,6 +74,7 @@ export default function AssessmentPage() {
 
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
+        redesigned
         title={headerTitle}
         sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}
@@ -85,7 +88,7 @@ export default function AssessmentPage() {
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col w-full max-w-7xl mx-auto">
+      <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
 
         {phase === 'loading' && (
           <div className="flex-1 flex items-center justify-center">
@@ -94,6 +97,7 @@ export default function AssessmentPage() {
         )}
         {phase === 'intro' && (
           <AssessmentIntro
+            illustrated
             kicker={t('intro.diagnostic.kicker')}
             title={t('intro.diagnostic.title')}
             subtitle={t('intro.diagnostic.subtitle')}
@@ -106,6 +110,7 @@ export default function AssessmentPage() {
 
         {phase === 'question' && testIntroInstrument && (
           <AssessmentIntro
+            illustrated
             kicker={t(`intro.tests.${testIntroInstrument}.kicker`)}
             title={t(`intro.tests.${testIntroInstrument}.title`)}
             subtitle={t(`intro.tests.${testIntroInstrument}.subtitle`)}
@@ -120,10 +125,10 @@ export default function AssessmentPage() {
 
         {phase === 'question' && !testIntroInstrument && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6">
+            <div className="rd-assessment-workspace">
 
               {error !== null && (
-                <div className="mb-4 p-3 rounded-xl bg-danger-subtle text-danger text-caption text-center">
+                <div role="alert" className="rd-assessment-error">
                   <p>{error}</p>
                   <button type="button" onClick={retry} className="mt-2 font-semibold underline">
                     {t('error.retry')}
@@ -169,7 +174,7 @@ export default function AssessmentPage() {
             </div>
 
             {(currentLikertQuestions !== undefined || currentPairs !== undefined) && (
-              <div className="px-3 py-5 sm:px-4 lg:px-6" style={{ borderTop: '1px solid var(--line)' }}>
+              <div className="rd-assessment-reassurance">
                 <Text variant="body-sm" className="text-muted">
                   {t('format.noWrongAnswers')}
                 </Text>
@@ -177,7 +182,7 @@ export default function AssessmentPage() {
             )}
           </div>
         )}
-      </div>
-    </div>
+      </main>
+    </AssessmentLayout>
   );
 }

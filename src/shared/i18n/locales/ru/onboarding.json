@@ -193,5 +193,28 @@
     "pickAria": "Сданные экзамены",
     "scoreLabel": "{{exam}} — балл",
     "rangePlaceholder": "от {{min}} до {{max}}"
+  },
+  "redesign": {
+    "skip": "Перейти к вопросам",
+    "eyebrow": "Давай знакомиться",
+    "title": "Твоя история начинается здесь.",
+    "companion": "Здесь важен именно твой взгляд.",
+    "stepsLabel": "Шаги знакомства",
+    "steps": {
+      "about": "О тебе",
+      "subjects": "Предметы",
+      "interests": "Увлечения",
+      "dreams": "Мечты"
+    },
+    "aboutNote": "Начнём с самого простого — немного о тебе.",
+    "editSections": {
+      "activities": "Увлечения",
+      "achievements": "Достижения",
+      "professions": "Профессии",
+      "targets": "Страны и вузы",
+      "dreams": "Мечты и цели"
+    },
+    "goalEyebrow": "Твой следующий шаг",
+    "goalUnavailable": "Пока нет доступных целей для твоей возрастной группы."
   }
 }

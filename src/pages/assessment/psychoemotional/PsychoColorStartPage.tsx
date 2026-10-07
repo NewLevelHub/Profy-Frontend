@@ -1,3 +1,4 @@
+import { AssessmentLayout } from '../components/AssessmentLayout';
 import './psychoemotional.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -36,8 +37,9 @@ export default function PsychoColorStartPage() {
   const progress = introSeen ? ((STEP_ORDER.indexOf(step) + 1) / STEP_ORDER.length) * 100 : 0;
 
   return (
-    <div className="pe-block flex flex-col min-h-screen">
+    <AssessmentLayout>
       <AssessmentRail
+        redesigned
         title={introSeen ? t(STEP_TITLE_KEY[step]) : t('psychoemotional.circle1.railTitleIntro')}
         sectionLabel={t('psychoemotional.sectionLabel')}
         progressAriaLabel={t('psychoemotional.progressAriaLabel')}
@@ -45,13 +47,14 @@ export default function PsychoColorStartPage() {
         onExit={() => navigate('/results')}
       />
 
-      <div className="flex-1 flex flex-col w-full">
+      <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
         {!ready ? (
           <div className="flex-1 flex items-center justify-center">
             <Spinner size="lg" />
           </div>
         ) : !introSeen ? (
           <AssessmentIntro
+            illustrated
             kicker={t('psychoemotional.circle1.introKicker')}
             title={t('psychoemotional.circle1.introTitle')}
             subtitle={t('psychoemotional.circle1.introSubtitle')}
@@ -75,7 +78,7 @@ export default function PsychoColorStartPage() {
             )}
           </>
         )}
-      </div>
-    </div>
+      </main>
+    </AssessmentLayout>
   );
 }

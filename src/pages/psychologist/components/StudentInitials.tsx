@@ -13,7 +13,7 @@ export function StudentInitials({ name }: { name: string }) {
   return (
     <span
       aria-hidden="true"
-      className="w-9 h-9 flex-none inline-flex items-center justify-center rounded-[8px] border border-strong text-secondary"
+      className="rd-psych-initials w-9 h-9 flex-none inline-flex items-center justify-center rounded-[8px] border border-strong text-secondary"
     >
       <Mono variant="sm">{initialsOf(name) || '—'}</Mono>
     </span>

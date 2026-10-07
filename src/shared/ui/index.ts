@@ -61,3 +61,6 @@ export type { PsychoEmotionalInterpretationProps } from './PsychoEmotionalInterp
 export { AppLayout } from './layouts/AppLayout';
 export { AuthLayout } from './layouts/AuthLayout';
 export { TopRail } from './navigation/TopRail';
+
+export { JourneyCheckpoint } from './redesign/JourneyCheckpoint';
+export { PrintMasthead } from './print/PrintMasthead';

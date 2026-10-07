@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Mono } from '@/shared/ui/typography/Mono';
+import { Pencil } from 'lucide-react';
 
 export interface LedgerSectionProps {
   id: string;
@@ -18,14 +18,14 @@ export function LedgerSection({ id, number, title, editLabel, editAriaLabel, onE
   return (
     <section
       id={id}
-      className="grid grid-cols-1 lg:grid-cols-[168px_1fr] gap-3 lg:gap-8 px-5 py-6 sm:px-8 border-b border-[color:color-mix(in_srgb,var(--border)_70%,transparent)] last:border-b-0 scroll-mt-4"
+      tabIndex={-1}
+      className="rd-profile-section"
     >
-      <div className="flex flex-row items-center justify-between lg:flex-col lg:items-start lg:gap-2">
-        <Mono variant="xs" className="text-secondary tracking-label">
-          <span style={{ color: 'var(--pine)' }}>{number}</span>
-          {' · '}
+      <div className="rd-profile-section-heading">
+        <h2>
+          <span aria-hidden="true">{number}</span>
           {title}
-        </Mono>
+        </h2>
         {onEdit && (
           <button
             type="button"
@@ -33,7 +33,7 @@ export function LedgerSection({ id, number, title, editLabel, editAriaLabel, onE
             className="text-body-sm font-semibold text-brand hover:opacity-75 transition-opacity"
             aria-label={editAriaLabel ?? editLabel}
           >
-            {editLabel}
+            <Pencil size={13} aria-hidden="true" />{editLabel}
           </button>
         )}
       </div>

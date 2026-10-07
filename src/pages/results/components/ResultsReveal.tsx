@@ -4,6 +4,7 @@ import { cn } from '@/shared/lib/cn';
 interface RevealProps {
   children: ReactNode;
   className?: string;
+  id?: string;
   /** Stagger index → delay in ~80ms steps. */
   delay?: number;
 }
@@ -12,7 +13,7 @@ interface RevealProps {
  * Soft scroll-in for Results report sections — same idea as landing `.reveal`,
  * kept local so AppLayout tab switches don't double-animate page chrome.
  */
-export function ResultsReveal({ children, className, delay = 0 }: RevealProps) {
+export function ResultsReveal({ children, className, id, delay = 0 }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -42,6 +43,8 @@ export function ResultsReveal({ children, className, delay = 0 }: RevealProps) {
 
   return (
     <div
+      id={id}
+      tabIndex={id ? -1 : undefined}
       ref={ref}
       className={cn('results-reveal', visible && 'results-reveal--in', className)}
       style={delay > 0 ? { transitionDelay: `${delay * 80}ms` } : undefined}

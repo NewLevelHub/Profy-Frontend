@@ -218,23 +218,24 @@ export function ReportSectionsBlock({
   });
 
   return (
-    <ol className="flex flex-col gap-2 m-0 p-0 list-none">
+    <ol className="rd-test-sections flex flex-col gap-2 m-0 p-0 list-none">
       {sections.map((section, index) => {
         const open = openIds.has(section.id);
         const panelId = `test-section-${section.id}`;
         return (
-          <li key={section.id} className="bg-surface border border-strong rounded-[10px] overflow-hidden">
+          <li key={section.id} data-open={open} className="rd-test-section bg-surface border border-strong rounded-[10px] overflow-hidden">
             <button
               type="button"
+              id={`test-trigger-${section.id}`}
               aria-expanded={open}
               aria-controls={panelId}
               onClick={() => onToggle(section.id)}
-              className="w-full flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-4 text-left bg-transparent border-0 cursor-pointer hover:bg-hover transition-colors"
+              className="rd-test-trigger"
             >
-              <Mono variant="sm" className="text-[color:var(--dawn-deep)] flex-none">
+              <Mono variant="sm" className="rd-test-number">
                 {String(index + 1).padStart(2, '0')}
               </Mono>
-              <span className="flex-1 basis-64 min-w-0 flex flex-col gap-0.5">
+              <span className="rd-test-label">
                 <Text as="span" variant="body-lg" className="font-semibold text-heading">
                   {section.title}
                 </Text>
@@ -252,7 +253,7 @@ export function ReportSectionsBlock({
               />
             </button>
             {open && (
-              <div id={panelId} className="px-5 pb-5 pt-4 border-t border-default sm:pl-14">
+              <div id={panelId} role="region" aria-labelledby={`test-trigger-${section.id}`} className="rd-test-body">
                 <AdminCardEmbed>{section.body}</AdminCardEmbed>
               </div>
             )}

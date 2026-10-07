@@ -65,12 +65,10 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * Profy's mascot. Static pose sprite plus a lightweight blink overlay — body,
- * head, ears, paws and prop never animate, only the eyes.
- *
- * Ported 1:1 from the design team's approved reference (Profy Mascot.dc.html) —
- * see src/shared/ui/mascot/sprites.ts for the sprite/eye/head geometry this
- * reads from.
+ * Shared mascot sprite. Functional states use the approved transparent
+ * snow leopard; legacy profession art remains an unused asset pool.
+ * Blink overlays are enabled only for sprites with calibrated eye geometry.
+ * See src/shared/ui/mascot/sprites.ts for asset mappings and coordinates.
  *
  * Per ТЗ 29.2 this must never appear on the question screen itself, never
  * react to answer content, and never praise a specific choice — only on

@@ -21,8 +21,8 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
-import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
+import { useAdminLocaleGuard } from '@/shared/lib/useAdminLocaleGuard';
+import { KNOWN_LOCALES, useLocaleStore, type Locale } from '@/shared/store/locale';
 import type {
   AdminQuestionDetail,
   AdminQuestionUpdateRequest,
@@ -91,7 +91,7 @@ export default function AdminQuestionDetailPage() {
   const { t } = useTranslation('admin');
   const { questionId } = useParams<{ questionId: string }>();
   const [detail, setDetail] = useState<AdminQuestionDetail | null>(null);
-  const [locale, setLocale] = useState<Locale>('ru');
+  const locale = useLocaleStore(s => s.locale);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -135,6 +135,8 @@ export default function AdminQuestionDetailPage() {
       return updated;
     },
   });
+
+  useAdminLocaleGuard(dirty || saving);
 
   // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
   // return'ов и принимает ещё не загруженный detail — иначе после прихода
@@ -188,7 +190,7 @@ export default function AdminQuestionDetailPage() {
         }
       />
 
-      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
+      {!translated.has(locale) && <p className={ADMIN_META}>{t('common.untranslated')}</p>}
 
       {/* What the student actually sees, built from the values in the form —
           the previous screen was a bare list of inputs with no way to tell how

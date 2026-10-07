@@ -188,7 +188,7 @@ export default function AdminProgramDetailPage() {
   const grantsError = useMemo(() => validateGrants(grants, t), [grants, t]);
 
   const changedLabels = [
-    ...(Object.keys(simplePatch) as (keyof SimpleForm)[]).map((key) => SIMPLE_LABELS[key]),
+    ...(Object.keys(simplePatch) as (keyof SimpleForm)[]).map((key) => t(SIMPLE_LABELS[key])),
     ...(Object.keys(reqPatch).length > 0 ? [t('prog.group.requirements')] : []),
     ...(Object.keys(deadlinesPatch).length > 0 ? [t('prog.group.deadlines')] : []),
     ...(grantsDirty ? [t('prog.group.grants')] : []),

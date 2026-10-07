@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Mono } from '@/shared/ui/typography/Mono';
+import { scrollToStudentSection } from '@/shared/ui/redesign/scrollToStudentSection';
 
 export interface IdentityRailSection {
   id: string;
@@ -31,13 +31,13 @@ export function IdentityRail({ displayName, age, grade, city, sections }: Identi
   ].filter(Boolean).join(' · ');
 
   return (
-    <div className="identity-rail lg:border-r border-[color:color-mix(in_srgb,var(--border)_65%,transparent)] px-5 py-6 sm:px-8 lg:p-8 flex flex-col gap-6 lg:gap-7">
+    <div className="rd-profile-identity">
       <div className="flex items-center gap-4 lg:flex-col lg:items-start lg:gap-4">
-        <div className="journey-mascot-well !w-[88px] !h-[88px]">
-          <Mascot state="welcome" size={72} className="-scale-x-100" />
+        <div className="rd-profile-avatar">
+          <img src="/mascot/redesign/greeting.png" alt="" width={120} height={140} />
         </div>
         <div className="min-w-0">
-          <Heading level="display-sm" as="p" className="text-[color:var(--text-heading)] leading-tight truncate">
+          <Heading level="display-sm" as="p" className="text-[color:var(--text-heading)] leading-tight wrap-anywhere">
             {displayName}
           </Heading>
           {meta && (
@@ -54,6 +54,7 @@ export function IdentityRail({ displayName, age, grade, city, sections }: Identi
             <a
               key={s.id}
               href={`#${s.id}`}
+              onClick={event => scrollToStudentSection(event, s.id)}
               className="field-tile flex items-center justify-between px-3.5 py-2.5 text-body-sm font-medium text-primary hover:text-brand transition-colors"
             >
               <span>{s.label}</span>

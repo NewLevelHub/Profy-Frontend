@@ -1,8 +1,7 @@
 import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/ui/Button';
-import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
-import { Mascot } from '@/shared/ui/Mascot';
+import { ArrowRight, Pause } from 'lucide-react';
+import { JourneyCheckpoint } from '@/shared/ui';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Text } from '@/shared/ui/typography/Text';
 import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
@@ -32,9 +31,8 @@ export type { RestStopState };
  * "Привал" (rest stop) — a mid-assessment interstitial that appears at
  * 25/50/75% of the way through the whole run (see
  * useAssessmentStore.recordQuestionAnswered), independent of whether a
- * question-block has closed. Visually the same card
- * family as ExitAssessmentModal/ResultLoadingPage (Paper card on Fog
- * background, hairline border via shadow-pop, Mascot, Spine progress).
+ * question-block has closed. Uses the shared JourneyCheckpoint layout,
+ * a transparent mascot, and the existing Spine progress.
  *
  * Пришёл на смену экрану похвалы («Молодец!» + «Дальше →»), который был
  * простой констатацией факта и удалён в PRO-266 как недостижимый: этот
@@ -108,7 +106,6 @@ function remainingMinutes(stage: JourneyStage): number {
   return minutes >= 10 ? Math.round(minutes / 5) * 5 : Math.max(1, Math.round(minutes));
 }
 export default function RestStopPage() {
-  const { t } = useTranslation('assessment');
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -117,15 +114,6 @@ export default function RestStopPage() {
   const returnTo = state.returnTo ?? '/assessment';
   // `?? []`: the speed preview opened by URL has no transition state.
   const stages = state.stages ?? [];
-  const currentStage = stages.find((stage) => stage.fraction < 1);
-  const totalAnswered = state.totalAnswered ?? 0;
-  const spineNodes = stageSpineNodes(
-    stages,
-    currentStage,
-    (id) => t(`restStop.stage.${id}`),
-    (stage) => t('restStop.stageRemaining', { count: remainingMinutes(stage) }),
-  );
-
   // Real signal from useAssessmentStore.recordAnswerTiming, or the
   // `?variant=speed` QA/dev preview escape hatch — see doc comment above.
   const isSpeedVariant = state.isSpeedFlag === true || searchParams.get('variant') === 'speed';
@@ -134,7 +122,6 @@ export default function RestStopPage() {
   // показывал «Прошли 0, идём ровно» человеку вне теста. `?variant=speed`
   // остаётся рабочей превьюшкой для QA — см. комментарий выше.
   const openedOutOfFlow = location.state == null && searchParams.get('variant') === null;
-  const hasInsight = !isSpeedVariant && Boolean(state.microInsight);
 
   function handleContinue() {
     navigate(returnTo, { replace: true });
@@ -148,6 +135,24 @@ export default function RestStopPage() {
 
   if (openedOutOfFlow) return <Navigate to="/results" replace />;
 
+  return <RestStopView state={{ ...state, stages }} isSpeedVariant={isSpeedVariant} onContinue={handleContinue} onPause={handlePause} />;
+}
+
+export function RestStopView({ state, isSpeedVariant = false, onContinue, onPause }: {
+  state: RestStopState; isSpeedVariant?: boolean; onContinue: () => void; onPause: () => void;
+}) {
+  const { t } = useTranslation('assessment');
+  const stages = state.stages ?? [];
+  const hasInsight = !isSpeedVariant && Boolean(state.microInsight);
+  const currentStage = stages.find((stage) => stage.fraction < 1);
+  const totalAnswered = state.totalAnswered ?? 0;
+  const spineNodes = stageSpineNodes(
+    stages,
+    currentStage,
+    (id) => t(`restStop.stage.${id}`),
+    (stage) => t('restStop.stageRemaining', { count: remainingMinutes(stage) }),
+  );
+
   const kicker = isSpeedVariant || hasInsight ? t('restStop.kickerInsight') : t('restStop.kickerRest');
   const headline = isSpeedVariant
     ? t('restStop.speedHeadline')
@@ -160,30 +165,14 @@ export default function RestStopPage() {
       ? t('restStop.insightBody')
       : t('restStop.neutralBody');
 
-  return (
-    <div className="relative flex flex-col min-h-screen bg-page items-center justify-center px-4 py-10 sm:px-6">
-      <FullScreenPreferences className="absolute top-4 right-4 sm:right-6 z-10" />
-      <div
-        className="w-full max-w-[720px] bg-surface rounded-[var(--radius-lg)] shadow-pop p-6 sm:p-10 flex flex-col gap-8"
-        style={{ animation: 'fade-in-up 0.5s ease both' }}
-      >
-        <div className="flex items-center justify-between gap-6">
-          <div className="flex-1 flex flex-col gap-3 min-w-0">
-            <span className="font-mono text-tiny font-bold uppercase tracking-widest text-accent">
-              {kicker}
-            </span>
-            <h1 className="text-h1 font-black text-primary">{headline}</h1>
-            <p className="text-body text-secondary leading-relaxed">{body}</p>
-          </div>
-          <Mascot
-            state={isSpeedVariant ? 'welcome' : 'rest'}
-            size="clamp(88px, 22vw, 152px)"
-            className="shrink-0"
-          />
-        </div>
-
+  return <JourneyCheckpoint kicker={kicker} title={headline} body={body}
+    illustration={isSpeedVariant ? 'greeting' : 'rest'}
+    actions={<>
+      <button type="button" className="rd-button rd-button-outline" onClick={onPause}><Pause size={17} aria-hidden="true" />{t('restStop.pause')}</button>
+      <button type="button" className="rd-button" onClick={onContinue}>{t(isSpeedVariant ? 'restStop.continueSlow' : 'restStop.continue')}<ArrowRight size={17} aria-hidden="true" /></button>
+    </>}>
         {stages.length > 0 && (
-          <div className="flex flex-col gap-3">
+          <div className="rd-checkpoint-progress flex flex-col gap-3">
             {/* Labels under four milestones don't fit on a phone — there the
                 line goes bare and the current stage is named on its own line. */}
             <Spine nodes={spineNodes} thickness={0.9} showLabels ariaLabel={t('restStop.progressAria')} className="hidden sm:block" />
@@ -198,15 +187,5 @@ export default function RestStopPage() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="primary" size="lg" className="w-full sm:flex-1 rounded-pill" onClick={handleContinue}>
-            {isSpeedVariant ? t('restStop.continueSlow') : t('restStop.continue')}
-          </Button>
-          <Button variant="ghost" size="lg" className="w-full sm:w-auto rounded-pill" onClick={handlePause}>
-            {t('restStop.pause')}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  </JourneyCheckpoint>;
 }

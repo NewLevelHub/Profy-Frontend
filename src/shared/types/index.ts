@@ -999,10 +999,8 @@ export interface AdminUserListItem {
   /** null if the profile isn't filled in yet. */
   age: number | null;
   latest_assessment_status: AssessmentStatus | null;
-  /** Always the user's actual latest assessment — independent of which assessment
-   *  (if any) actually matched the `status`/`goal` list filters (see
-   *  docs/frontend-admin-users-api-contract.md §2's "found by filter" vs.
-   *  "actual latest" warning). null if the user has no assessments at all. */
+  /** Goal of the latest assessment, the same attempt used by status/goal filters.
+   *  null if the user has no assessments. */
   latest_assessment_goal: AssessmentGoal | null;
   /** Admin-only raw percentages from the latest COMPLETED assessment
    *  (TZ_Profi.md §18.3). `riasec` is null for junior (MI instrument, not

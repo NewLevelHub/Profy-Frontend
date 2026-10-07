@@ -86,7 +86,7 @@ export function UniversityFilters({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="rd-university-filters flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
           <Search

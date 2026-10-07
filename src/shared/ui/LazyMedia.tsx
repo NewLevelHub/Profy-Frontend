@@ -6,7 +6,7 @@ interface LazyMediaProps {
   /** Wrapper classes — must give the box its size (the <img> fills it). */
   className?: string;
   imgClassName?: string;
-  /** Shown before the image is mounted and after it's released. */
+  /** Shown before mounting, after release, or if both image URLs fail. */
   fallback: ReactNode;
   /** Swapped in if `src` fails to load (e.g. a resized variant that 404s). */
   fallbackSrc?: string;
@@ -44,6 +44,7 @@ export function LazyMedia({
   const ref = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [erroredSrc, setErroredSrc] = useState<string | null>(null);
+  const [failedSource, setFailedSource] = useState<string | null>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -79,7 +80,7 @@ export function LazyMedia({
 
   return (
     <div ref={ref} className={className}>
-      {mounted ? (
+      {mounted && failedSource !== src ? (
         <img
           key={effectiveSrc}
           src={effectiveSrc}
@@ -89,7 +90,8 @@ export function LazyMedia({
           decoding="async"
           fetchPriority="low"
           onError={() => {
-            if (effectiveSrc === src && fallbackSrc) setErroredSrc(src);
+            if (effectiveSrc === src && fallbackSrc && fallbackSrc !== src) setErroredSrc(src);
+            else setFailedSource(src);
           }}
         />
       ) : (

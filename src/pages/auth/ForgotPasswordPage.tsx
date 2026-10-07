@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
+import { ArrowRight, KeyRound, ShieldCheck } from 'lucide-react';
+import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
+import { AuthStepper } from '@/shared/ui/AuthStepper';
 import { authApi } from '@/shared/api/auth';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
@@ -42,43 +45,32 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <h1 className="auth-headline-sm mt-[20px]">{t('auth:forgot.title')}</h1>
-      <p className="auth-sub">{t('auth:forgot.subtitle')}</p>
-
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[32px]">
-          <Input
-            label={t('auth:field.emailLong')}
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={e => { setEmail(e.target.value); setEmailError(''); }}
-            error={emailError}
-            autoCapitalize="none"
-            autoComplete="email"
-            autoFocus
-          />
-        </div>
-
-        {formError && (
-          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
-        )}
-
-        <Button type="submit" isLoading={isLoading} size="lg" className="w-full mt-[28px]">
+      <AuthStepper current={1} kind="recovery" />
+      <AuthHeading title={t('auth:redesign.recovery.title')} icon={<KeyRound />}>
+        {t('auth:redesign.recovery.subtitle')}
+      </AuthHeading>
+      <form className="rd-login-fields rd-auth-fields" onSubmit={handleSubmit} noValidate aria-busy={isLoading}>
+        <Input
+          label={t('auth:field.emailLong')}
+          type="email"
+          name="email"
+          placeholder={t('auth:redesign.emailPlaceholder')}
+          value={email}
+          onChange={e => { setEmail(e.target.value); setEmailError(''); }}
+          error={emailError}
+          autoCapitalize="none"
+          autoComplete="email"
+          disabled={isLoading}
+          required
+        />
+        {formError && <p className="rd-form-error" role="alert">{formError}</p>}
+        <Button type="submit" isLoading={isLoading} size="lg" className="rd-button rd-login-submit">
           {isLoading ? t('auth:forgot.submitting') : t('auth:forgot.submit')}
+          {!isLoading && <ArrowRight size={20} aria-hidden="true" />}
         </Button>
       </form>
-
-      <p className="text-caption text-muted mt-[16px]">{t('auth:forgot.note')}</p>
-
-      <div className="text-center mt-[20px]">
-        <Link
-          to="/login"
-          className="text-caption text-muted hover:opacity-70 transition-opacity"
-        >
-          {t('auth:backToLogin')}
-        </Link>
-      </div>
+      <div className="rd-auth-callout"><ShieldCheck size={19} aria-hidden="true" /><p>{t('auth:redesign.recovery.note')}</p></div>
+      <p className="rd-login-switch"><Link to="/login">{t('auth:redesign.recovery.remembered')}</Link></p>
     </>
   );
 }
