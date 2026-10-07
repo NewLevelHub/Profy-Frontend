@@ -339,6 +339,7 @@
     "subtest": {
       "next": "Әрі қарай",
       "timeUp": "Уақыт бітті — әрі қарай өтудеміз",
+      "timeUpShort": "Уақыт бітті",
       "pageOf": "{{current}} / {{total}} бет · {{from}}–{{to}} / {{itemTotal}} тапсырма",
       "itemOf": "{{current}} / {{total}} тапсырма",
       "skip": "Тапсырманы өткізіп жіберу",

@@ -347,6 +347,7 @@
     "subtest": {
       "next": "Далее",
       "timeUp": "Время вышло — переходим дальше",
+      "timeUpShort": "Время вышло",
       "pageOf": "Страница {{current}} из {{total}} · задания {{from}}–{{to}} из {{itemTotal}}",
       "itemOf": "Задание {{current}} из {{total}}",
       "skip": "Пропустить задание",
