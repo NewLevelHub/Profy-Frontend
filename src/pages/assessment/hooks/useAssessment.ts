@@ -5,6 +5,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
+import { useOnContentLocaleChange } from '@/shared/hooks/useContentLocale';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment, autofillMainBattery, autofillToAstur } from '@/shared/dev/autofillAssessment';
@@ -235,6 +236,21 @@ export function useAssessment() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
+
+  // A language switch mid-test (the rail's switcher) re-reads the texts and
+  // swaps them in place. Not loadSequence again: that would flash the
+  // loader and re-run the resume logic. Ids, order and paging don't depend
+  // on the language, so the student stays on the same page with the same
+  // picks; a failed or mismatched reload just keeps the current text.
+  useOnContentLocaleChange(() => {
+    if (!assessmentId || pages.length === 0) return;
+    void Promise.all([assessmentApi.getQuestions(assessmentId), pairsApi.getPairs(assessmentId)])
+      .then(([questions, pairs]) => {
+        const rebuilt = buildPages(buildDisplaySequence(questions, pairs));
+        setPages(current => (rebuilt.length === current.length ? rebuilt : current));
+      })
+      .catch(() => {});
+  });
 
   useEffect(() => {
     itemShownAtRef.current = Date.now();

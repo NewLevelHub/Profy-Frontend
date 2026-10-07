@@ -130,6 +130,7 @@ export default function AsturPage() {
           exitDisabled={starting || submitting}
           devAutofill={{ onClick: handleAutofill, loading: submitting }}
           statusSlotRef={setRailStatusSlot}
+          languageLockedReason={t('rail.languageLocked')}
         />
       )}
 

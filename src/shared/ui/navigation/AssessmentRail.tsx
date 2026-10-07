@@ -3,6 +3,7 @@ import { ArrowLeft, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSoundEnabled } from '@/shared/hooks/useSoundEnabled';
 import { Spine } from '@/shared/ui/Spine';
+import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/shared/ui/ThemeToggle';
 import { Brand } from '@/shared/ui/redesign/Brand';
 
@@ -36,10 +37,14 @@ export interface AssessmentRailProps {
    *  further, for testing the АСТУР flow itself without clicking through
    *  everything ahead of it. Only offered on the main-battery screens. */
   devAutofillToAstur?: { onClick: () => void; loading: boolean };
-  /** Ref for an empty slot left of the theme toggle. A screen that owns
+  /** Ref for an empty slot left of the language and theme switches. A screen that owns
    *  live status for the header (АСТУР's countdown) portals it in here, so
    *  the state stays with the screen instead of being lifted to the page. */
   statusSlotRef?: (el: HTMLDivElement | null) => void;
+  /** Set when this screen's content can't follow a language switch (АСТУР
+   *  pins its items to the attempt's language). The switcher stays visible
+   *  but disabled, with this as its tooltip. */
+  languageLockedReason?: string;
 }
 
 // The single collapsed rail used by every assessment-flow screen
@@ -66,6 +71,7 @@ export function AssessmentRail({
   devAutofillToMotivation,
   devAutofillToAstur,
   statusSlotRef,
+  languageLockedReason,
 }: AssessmentRailProps) {
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
@@ -125,6 +131,7 @@ export function AssessmentRail({
             </div>
             <div className="rd-assessment-controls">
               {statusSlotRef && <div ref={statusSlotRef} className="rd-assessment-status flex empty:hidden" />}
+              <LanguageSwitcher disabledReason={languageLockedReason} />
               <ThemeToggle />
               <button type="button" onClick={toggleSound} role="switch" aria-checked={soundEnabled}
                 aria-label={soundLabel} title={soundLabel} className="rd-icon-button">
@@ -169,6 +176,7 @@ export function AssessmentRail({
 
             <div className="flex items-center gap-2 flex-shrink-0">
               {statusSlotRef && <div ref={statusSlotRef} className="flex empty:hidden" />}
+              <LanguageSwitcher disabledReason={languageLockedReason} />
               <ThemeToggle />
               {/* Slot 2: sound toggle */}
               <button

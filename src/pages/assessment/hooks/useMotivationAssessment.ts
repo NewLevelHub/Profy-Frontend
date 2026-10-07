@@ -6,6 +6,7 @@ import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { journeyStages } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
+import { useOnContentLocaleChange } from '@/shared/hooks/useContentLocale';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
 import type { MotivationTriplet, SavedAnswersResponse } from '@/shared/types';
@@ -73,6 +74,10 @@ export function useMotivationAssessment() {
   // Reset whenever the current triplet changes (see the effect below) —
   // elapsed time from here to handleNext feeds the speed-flag rest stop.
   const itemShownAtRef = useRef(Date.now());
+  // Set when `triplets` is replaced only to swap in another language's text
+  // — the effect below must not reset the card order the student is in the
+  // middle of dragging.
+  const textRefreshRef = useRef(false);
 
   useEffect(() => {
     if (!assessmentId) {
@@ -141,7 +146,25 @@ export function useMotivationAssessment() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
 
+  // Language switch mid-block: re-read the statements and swap the text in
+  // place — same ids and triplet indexes, so rankings and position hold.
+  useOnContentLocaleChange(() => {
+    if (!assessmentId || triplets.length === 0) return;
+    void motivationApi
+      .getTriplets(assessmentId)
+      .then(data => {
+        if (data.length !== triplets.length) return;
+        textRefreshRef.current = true;
+        setTriplets(data);
+      })
+      .catch(() => {});
+  });
+
   useEffect(() => {
+    if (textRefreshRef.current) {
+      textRefreshRef.current = false;
+      return;
+    }
     const triplet = triplets[tripletIndex];
     if (!triplet) return;
     itemShownAtRef.current = Date.now();
