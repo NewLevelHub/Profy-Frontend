@@ -13,72 +13,72 @@
 .rd-psych .text-on-brand { color: var(--text-on-brand); }
 .rd-psych main:focus { outline: none; }
 .rd-psych-sidebar { grid-column: 1; grid-row: 1 / -1; display: flex; flex-direction: column; padding: 32px 16px 16px; background: var(--rd-card); border-right: 1px solid var(--rd-line); min-height: 0; overflow-y: auto; }
-.rd-psych-sidebar>.rd-brand { padding-left: 16px; font-size: 38px; }
-.rd-psych-sidebar-caption { padding: 12px 16px 36px; color: var(--rd-muted); font-size: 12px; }
+.rd-psych-sidebar>.rd-brand { padding-left: 16px; font-size: 38px; /* type-exempt: логотип */ }
+.rd-psych-sidebar-caption { padding: 12px 16px 36px; color: var(--rd-muted); font-size: var(--text-rd-label); }
 .rd-psych :where(.rd-psych-sidebar,.rd-psych-mobile-menu) nav { display: grid; gap: 6px; }
-.rd-psych :where(.rd-psych-sidebar,.rd-psych-mobile-menu) nav>a { display: flex; align-items: center; gap: 10px; padding: 13px 12px; border-radius: var(--rd-radius-md); color: var(--rd-text); font-size: 13px; font-weight: 500; }
+.rd-psych :where(.rd-psych-sidebar,.rd-psych-mobile-menu) nav>a { display: flex; align-items: center; gap: 10px; padding: 13px 12px; border-radius: var(--rd-radius-md); color: var(--rd-text); font-size: var(--text-rd-ui); font-weight: 500; }
 .rd-psych :where(.rd-psych-sidebar,.rd-psych-mobile-menu) nav>a>svg { flex-shrink: 0; }
 .rd-psych :where(.rd-psych-sidebar,.rd-psych-mobile-menu) nav>a:hover { background: var(--rd-bg); }
 .rd-psych :where(.rd-psych-sidebar,.rd-psych-mobile-menu) nav>a[aria-current] { background: var(--rd-sage); color: var(--rd-pine); }
-.rd-psych-nav-count { margin-left: auto; background: var(--rd-card); font-size: 11px; border-radius: var(--rd-radius-sm); padding: 1px 6px; font-variant-numeric: tabular-nums; }
+.rd-psych-nav-count { margin-left: auto; background: var(--rd-card); font-size: var(--text-rd-label); border-radius: var(--rd-radius-sm); padding: 1px 6px; font-variant-numeric: tabular-nums; }
 .rd-psych-account { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 20px; border-top: 1px solid var(--rd-line); }
 .rd-psych-account-icon { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--rd-lilac); color: var(--rd-purple); font-weight: 600; }
 .rd-psych-account>div { min-width: 0; flex: 1; }
-.rd-psych-account strong { display: block; font-size: 12px; font-weight: 500; }
-.rd-psych-account div>span { display: block; overflow: hidden; text-overflow: ellipsis; font-size: 10px; color: var(--rd-muted); }
+.rd-psych-account strong { display: block; font-size: var(--text-rd-label); font-weight: 500; }
+.rd-psych-account div>span { display: block; overflow: hidden; text-overflow: ellipsis; font-size: var(--text-rd-label); color: var(--rd-muted); }
 .rd-psych-account>.rd-icon-button { width: 32px; }
 .rd-psych-topbar { grid-column: 2; grid-row: 1; display: flex; align-items: center; gap: 16px; padding: 0 32px; border-bottom: 1px solid var(--rd-line); position: relative; z-index: 40; background: var(--rd-bg); }
-.rd-psych-workspace-label { display: flex; align-items: center; gap: 10px; color: var(--rd-muted); font-size: 13px; }
+.rd-psych-workspace-label { display: flex; align-items: center; gap: 10px; color: var(--rd-muted); font-size: var(--text-rd-ui); }
 .rd-psych-preferences { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .rd-psych-mobile-brand,.rd-psych-menu-toggle,.rd-psych-mobile-menu { display: none; }
 .rd-psych-page { gap: 24px; }
-.rd-psych-heading h1 { font-size: clamp(28px, 2.8vw, 38px); line-height: 1.18; letter-spacing: -.045em; overflow-wrap: anywhere; }
-.rd-psych-heading .journey-kicker { font-size: 10px; color: var(--rd-muted); letter-spacing: .12em; margin-bottom: 10px; }
-.rd-psych-heading p { margin-top: 12px; font-weight: 400; font-size: 14px; line-height: 1.7; max-width: 72ch; }
+.rd-psych-heading h1 { font-size: var(--text-rd-page); line-height: 1.18; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.rd-psych-heading .journey-kicker { font-size: var(--text-rd-label); color: var(--rd-muted); letter-spacing: .12em; margin-bottom: 10px; }
+.rd-psych-heading p { margin-top: 12px; font-weight: 400; font-size: var(--text-rd-ui); line-height: 1.7; max-width: 72ch; }
 .rd-psych-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
 .rd-psych-stat { display: flex; align-items: center; gap: 16px; padding: 20px 24px; text-align: left; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); transition: border-color .15s; min-width: 0; }
 .rd-psych-stat:hover { border-color: var(--rd-pine); }
 .rd-psych-stat>span:last-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.rd-psych-stat strong { font-size: 28px; line-height: 1.15; font-weight: 600; font-variant-numeric: proportional-nums; font-kerning: normal; letter-spacing: -.04em; }
-.rd-psych-stat small { font-size: 12px; color: var(--rd-muted); }
+.rd-psych-stat strong { font-size: var(--text-rd-display); line-height: 1.15; font-weight: 600; font-variant-numeric: proportional-nums; font-kerning: normal; letter-spacing: -.02em; }
+.rd-psych-stat small { font-size: var(--text-rd-label); color: var(--rd-muted); }
 .rd-psych-sage { color: var(--rd-pine); background: var(--rd-sage); }
 .rd-psych-list { border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); overflow: hidden; }
 .rd-psych-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 20px; }
 .rd-psych-search { display: flex; align-items: center; gap: 10px; padding: 0 14px; min-height: 44px; width: 300px; max-width: 100%; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-md); background: var(--rd-bg); color: var(--rd-muted); }
 .rd-psych-search:focus-within { outline: 2px solid var(--rd-purple); outline-offset: 2px; }
 .rd-psych-search svg { flex: none; }
-.rd-psych-search input { width: 100%; min-width: 0; background: transparent; color: var(--rd-ink); font-size: 13px; height: 42px; }
+.rd-psych-search input { width: 100%; min-width: 0; background: transparent; color: var(--rd-ink); font-size: var(--text-rd-ui); height: 42px; }
 /* Кольцо фокуса рисует сама рамка поиска (:focus-within), не поле внутри. */
 .rd-psych-search input:focus-visible { outline: none; }
 .rd-psych-search input::placeholder { color: var(--rd-muted); }
 .rd-psych-tabs { border: 0; border-radius: var(--rd-radius-md); padding: 4px; background: var(--rd-bg); max-width: 100%; }
-.rd-psych-tabs button { border-radius: var(--rd-radius-sm); font-size: 13px; padding: 9px 14px; min-height: 38px; }
+.rd-psych-tabs button { border-radius: var(--rd-radius-sm); font-size: var(--text-rd-ui); padding: 9px 14px; min-height: 38px; }
 .rd-psych-tabs button[aria-selected=true] { background: var(--rd-sage); color: var(--rd-pine); }
 .rd-psych-list .field-tile { border: 0; border-radius: 0; box-shadow: none; background: var(--rd-card); padding: 0; }
 .rd-psych-list .field-tile::before,.rd-psych-list .field-tile::after { display: none; }
 .rd-psych-list thead { background: var(--rd-bg); border-top: 1px solid var(--rd-line); }
-.rd-psych-list th { font-size: 10px; letter-spacing: .08em; padding-block: 12px; }
-.rd-psych-list td { padding-block: 18px; font-size: 13px; }
+.rd-psych-list th { font-size: var(--text-rd-label); letter-spacing: .08em; padding-block: 12px; }
+.rd-psych-list td { padding-block: 18px; font-size: var(--text-rd-ui); }
 .rd-psych-list :where(th,td):first-child { padding-left: 24px; }
 .rd-psych-list :where(th,td):last-child { padding-right: 24px; }
-.rd-psych-list .font-mono { font-family: inherit; font-size: 12px; font-variant-numeric: tabular-nums; }
-.rd-psych-list .text-body-md { font-size: 14px; }
-.rd-psych-list .text-body-sm { font-size: 13px; }
-.rd-psych-list .text-caption { font-size: 12px; }
+.rd-psych-list .font-mono { font-family: inherit; font-size: var(--text-rd-label); font-variant-numeric: tabular-nums; }
+.rd-psych-list .text-body-md { font-size: var(--text-rd-ui); }
+.rd-psych-list .text-body-sm { font-size: var(--text-rd-ui); }
+.rd-psych-list .text-caption { font-size: var(--text-rd-label); }
 .rd-psych-initials { border: 0; border-radius: 50%; background: var(--rd-sage); color: var(--rd-pine); width: 38px; height: 38px; }
-.rd-psych-initials .font-mono { font-family: inherit; font-size: 12px; font-weight: 500; }
+.rd-psych-initials .font-mono { font-family: inherit; font-size: var(--text-rd-label); font-weight: 500; }
 .rd-psych-status { padding: 5px 9px; border-radius: var(--rd-radius-sm); background: var(--rd-bg); max-width: 100%; }
 .rd-psych-status[data-tone=pine] { background: var(--rd-sage); }
 .rd-psych-status[data-tone=dawn] { background: var(--rd-peach); }
-.rd-psych-status>span:last-child { white-space: normal; font-size: 12px; line-height: 1.45; }
+.rd-psych-status>span:last-child { white-space: normal; font-size: var(--text-rd-label); line-height: 1.45; }
 .rd-psych-status>span:first-child { width: 6px; height: 6px; }
-.rd-psych-footnote { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: var(--rd-muted); padding-inline: 4px; }
+.rd-psych-footnote { display: flex; align-items: flex-start; gap: 9px; font-size: var(--text-rd-label); color: var(--rd-muted); padding-inline: 4px; }
 .rd-psych-footnote svg { flex: none; margin-top: 2px; }
-.rd-psych-results-count { font-size: 13px; font-weight: 500; color: var(--rd-text); }
+.rd-psych-results-count { font-size: var(--text-rd-ui); font-weight: 500; color: var(--rd-text); }
 .rd-psych-detail-header>.flex>.rd-psych-initials { width: 60px; height: 60px; margin-top: 4px; border-radius: var(--rd-radius-lg); background: var(--rd-lilac); color: var(--rd-purple); }
-.rd-psych-detail-header>.flex>.rd-psych-initials span { font-size: 19px; }
+.rd-psych-detail-header>.flex>.rd-psych-initials span { font-size: var(--text-rd-title); }
 .rd-psych-panel { border-radius: var(--rd-radius-lg); overflow: hidden; }
-.rd-psych-panel h2 { letter-spacing: -.025em; }
+.rd-psych-panel h2 { letter-spacing: -.02em; }
 .rd-psych-path { border-radius: var(--rd-radius-lg) var(--rd-radius-lg) 0 0; }
 .rd-psych-path-mobile { display: none; }
 .rd-psych-facts { border-radius: 0 0 var(--rd-radius-lg) var(--rd-radius-lg); }
@@ -115,18 +115,18 @@
   .rd-psych-stat { padding: 14px 10px; display: block; }
   .rd-psych-stat .rd-icon-tile { width: 30px; height: 30px; border-radius: var(--rd-radius-sm); margin-bottom: 12px; }
   .rd-psych-stat .rd-icon-tile svg { width: 17px; height: 17px; }
-  .rd-psych-stat strong { font-size: 24px; }
-  .rd-psych-stat small { font-size: 10px; line-height: 1.5; }
+  .rd-psych-stat strong { font-size: var(--text-rd-heading); }
+  .rd-psych-stat small { line-height: 1.5; }
   .rd-psych-toolbar { padding: 16px; gap: 12px; }
   .rd-psych-search { width: 100%; }
   .rd-psych-tabs { width: 100%; }
-  .rd-psych-tabs button { flex: 1; padding: 8px; font-size: 12px; }
+  .rd-psych-tabs button { flex: 1; padding: 8px; }
   .rd-psych-detail-header>.flex>.rd-psych-initials { display: none; }
   .rd-psych-path-desktop { display: none; }
   .rd-psych-path-mobile { display: grid; gap: 18px; list-style: none; padding: 0; margin: 20px 0 0; }
-  .rd-psych-path-mobile li { display: flex; align-items: center; gap: 12px; color: var(--rd-muted); font-size: 12px; position: relative; }
+  .rd-psych-path-mobile li { display: flex; align-items: center; gap: 12px; color: var(--rd-muted); font-size: var(--text-rd-label); position: relative; }
   .rd-psych-path-mobile li:not(:last-child)::after { content: ''; position: absolute; left: 13px; top: 28px; height: 18px; border-left: 1px solid var(--rd-line); }
-  .rd-psych-path-mobile li>span:first-child { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%; border: 1px solid var(--rd-line); font-size: 11px; }
+  .rd-psych-path-mobile li>span:first-child { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%; border: 1px solid var(--rd-line); font-size: var(--text-rd-label); }
   .rd-psych-path-mobile li[data-status=done] { color: var(--rd-pine); }
   .rd-psych-path-mobile li[data-status=done]>span:first-child { background: var(--rd-sage); }
   .rd-psych-path-mobile li[data-status=current] { color: var(--dawn-deep); }

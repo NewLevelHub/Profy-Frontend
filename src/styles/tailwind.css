@@ -59,6 +59,25 @@
   --text-mono-xs--line-height: 1.3;
 }
 
+/* static: Tailwind иначе выводит только переменные, которые нужны его утилитам,
+   а redesign-CSS читает эти через var() — без static их бы не было. */
+@theme static {
+  /* Шкала redesign-CSS (src/shared/ui/redesign, лендинг): девять ступеней, CSS
+     берёт размеры только отсюда — `npm run lint:typography` это проверяет.
+     12 px — нижняя граница для любого текста, основной текст — 16 px. */
+  --text-rd-label: 0.75rem;     /* 12 — подписи, метки, бейджи, шапки таблиц, подсказки */
+  --text-rd-ui: 0.875rem;       /* 14 — кнопки, навигация, вкладки, ячейки, вторичный текст карточек */
+  --text-rd-body: 1rem;         /* 16 — основной текст и поля ввода (iOS не зумит с 16 px) */
+  --text-rd-lead: 1.125rem;     /* 18 — вводный абзац, крупные факты */
+  --text-rd-title: 1.25rem;     /* 20 — заголовок карточки */
+  --text-rd-heading: 1.5rem;    /* 24 — заголовок блока, диалога; цифры на телефоне */
+  --text-rd-display: 1.875rem;  /* 30 — заголовок раздела, цифры статистики */
+  --text-rd-display-lg: 2.5rem; /* 40 — заголовок секции лендинга */
+  --text-rd-hero: clamp(2.25rem, 4.6vw, 4.125rem); /* 36–66 — h1 лендинга */
+  /* Заголовок страницы: 30 px на телефоне, растёт до 40 px на широком экране. */
+  --text-rd-page: clamp(var(--text-rd-display), 3.2vw, var(--text-rd-display-lg));
+}
+
 @keyframes slide-down-fade {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }

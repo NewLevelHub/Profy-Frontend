@@ -16,6 +16,7 @@ Three roles. Pick by **authorship**, not taste.
 
 - Do not set `font-size`, `line-height`, or `letter-spacing` inline or as `text-[Npx]`. Add a named token in `src/styles/tailwind.css` `@theme` if a new size is needed.
 - Enforced by `local/no-arbitrary-text-size` (`npm run lint`) and `npm run lint:typography`.
+- Redesign CSS (`src/shared/ui/redesign/*.css`, `src/pages/landing/redesign.css`) takes font sizes only from the `--text-rd-*` scale in `@theme` (12 / 14 / 16 / 18 / 20 / 24 / 30 / 40 px + fluid hero/page). Nothing below 12px; prose is 16px. `npm run lint:typography` checks these files too; logo/glyph/monogram sizes carry `/* type-exempt: reason */`.
 - Do not use `font-display` outside `Heading`, `AuthLayout` wordmark, or `AdminLayout` wordmark.
 - One scale for all ages. Age differences live in copy, not type size/weight.
 - Exceptions (do not "fix"): Spine step numerals, OTP cell digits, emoji/icon sizes, Likert pole-label clamp. See `src/shared/ui/typography/tokens.ts`.
