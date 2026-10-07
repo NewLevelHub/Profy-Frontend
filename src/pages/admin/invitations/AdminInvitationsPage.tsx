@@ -40,7 +40,11 @@ export default function AdminInvitationsPage() {
       )}
 
       <AdminToolbar
-        search={{ value: invitations.search, onChange: invitations.setSearch, placeholder: 'Email' }}
+        search={{
+          value: invitations.search,
+          onChange: invitations.setSearch,
+          placeholder: t('invitations.searchPlaceholder'),
+        }}
         selects={[
           {
             key: 'status',

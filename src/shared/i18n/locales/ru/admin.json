@@ -1124,6 +1124,7 @@
       "invalid": "Проверьте email, роль и язык письма",
       "generic": "Не удалось выполнить действие. Попробуйте ещё раз"
     },
-    "invitedBy": "Пригласил: {{email}}"
+    "invitedBy": "Пригласил: {{email}}",
+    "searchPlaceholder": "Поиск по email"
   }
 }
