@@ -25,6 +25,14 @@ export interface TokenResponse {
   user: User;
 }
 
+/** GET /auth/invitations/{token} — docs/frontend-admin-invitations-api-contract.md §4.1. */
+export interface InvitationPreview {
+  email: string;
+  role: Exclude<UserRole, 'student'>;
+  locale: 'ru' | 'kk';
+  expires_at: string;
+}
+
 // ─── Profile ───────────────────────────────────────────────────────────────────
 
 export type AgeGroup = 'junior' | 'middle' | 'senior';

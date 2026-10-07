@@ -2,26 +2,20 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
-import { Eye, EyeOff } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
 import { env } from '@/shared/config/env';
+import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
 import { useAuthStore } from '@/shared/store/auth';
 import { AuthStepper } from '@/shared/ui/AuthStepper';
 import { Button } from '@/shared/ui/Button';
 import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
+import { PasswordInput } from '@/shared/ui/PasswordInput';
 import { PasswordStrengthMeter } from '@/shared/ui/PasswordStrengthMeter';
 
 // Validators return an i18n key (or '') — the component resolves it with t().
 function validateEmailKey(email: string): string {
   return email.includes('@') ? '' : 'validation.emailInvalid';
-}
-
-function validatePasswordKey(password: string): string {
-  if (password.length < 8) return 'validation.passwordMin8';
-  if (!/[A-Za-z]/.test(password)) return 'validation.passwordNeedsLetter';
-  if (!/\d/.test(password)) return 'validation.passwordNeedsDigit';
-  return '';
 }
 
 export default function RegisterPage() {
@@ -36,8 +30,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmError, setConfirmError] = useState('');
@@ -57,7 +49,7 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const pErr = validatePasswordKey(password);
+    const pErr = passwordRuleErrorKey(password);
     setPasswordError(tErr(pErr));
     const cErr = password !== confirm ? 'validation.passwordsMismatch' : '';
     setConfirmError(tErr(cErr));
@@ -183,53 +175,25 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="mt-[26px]">
-          <Input
+          <PasswordInput
             ref={passwordRef}
             label={t('field.password')}
-            className="pr-10"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
             value={password}
             onChange={e => { setPassword(e.target.value); setPasswordError(''); setConfirmError(''); }}
             error={passwordError}
             autoComplete="new-password"
             autoFocus
-            rightSlot={
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowPassword(v => !v)}
-                className="text-muted hover:text-secondary transition-colors"
-                aria-label={showPassword ? t('field.hidePassword') : t('field.showPassword')}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            }
           />
           {!passwordError && <PasswordStrengthMeter password={password} />}
         </div>
 
         <div className="mt-[24px]">
-          <Input
+          <PasswordInput
             label={t('field.passwordRepeat')}
-            className="pr-10"
-            type={showConfirm ? 'text' : 'password'}
-            placeholder="••••••••"
             value={confirm}
             onChange={e => { setConfirm(e.target.value); setConfirmError(''); }}
             error={confirmError}
             autoComplete="new-password"
-            rightSlot={
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowConfirm(v => !v)}
-                className="text-muted hover:text-secondary transition-colors"
-                aria-label={showConfirm ? t('field.hidePassword') : t('field.showPassword')}
-              >
-                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            }
           />
         </div>
 

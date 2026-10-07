@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
-import { Eye, EyeOff, XCircle } from 'lucide-react';
+import { XCircle } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
+import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
 import { Button } from '@/shared/ui/Button';
-import { Input } from '@/shared/ui/Input';
 import { OtpInput } from '@/shared/ui/OtpInput';
+import { PasswordInput } from '@/shared/ui/PasswordInput';
 import { PasswordStrengthMeter } from '@/shared/ui/PasswordStrengthMeter';
 
 const RESEND_SECONDS = 60;
@@ -28,8 +29,6 @@ export default function ResetPasswordPage() {
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [codeError, setCodeError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmError, setConfirmError] = useState('');
@@ -47,12 +46,7 @@ export default function ResetPasswordPage() {
 
   function validatePassword(): boolean {
     let valid = true;
-    const pwdErrKey = (() => {
-      if (password.length < 8) return 'auth:validation.passwordMin8';
-      if (!/[A-Za-z]/.test(password)) return 'auth:validation.passwordNeedsLetter';
-      if (!/\d/.test(password)) return 'auth:validation.passwordNeedsDigit';
-      return '';
-    })();
+    const pwdErrKey = passwordRuleErrorKey(password);
     if (pwdErrKey) {
       setPasswordError(t(pwdErrKey));
       valid = false;
@@ -236,52 +230,24 @@ export default function ResetPasswordPage() {
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="mt-[32px]">
-          <Input
+          <PasswordInput
             label={t('auth:reset.newLabel')}
-            className="pr-10"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
             value={password}
             onChange={e => { setPassword(e.target.value); setPasswordError(''); setConfirmError(''); }}
             error={passwordError}
             autoComplete="new-password"
             autoFocus
-            rightSlot={
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowPassword(v => !v)}
-                className="text-muted hover:text-secondary transition-colors"
-                aria-label={t(showPassword ? 'auth:field.hidePassword' : 'auth:field.showPassword')}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            }
           />
           {!passwordError && <PasswordStrengthMeter password={password} />}
         </div>
 
         <div className="mt-[24px]">
-          <Input
+          <PasswordInput
             label={t('auth:reset.confirmLabel')}
-            className="pr-10"
-            type={showConfirm ? 'text' : 'password'}
-            placeholder="••••••••"
             value={confirm}
             onChange={e => { setConfirm(e.target.value); setConfirmError(''); }}
             error={confirmError}
             autoComplete="new-password"
-            rightSlot={
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowConfirm(v => !v)}
-                className="text-muted hover:text-secondary transition-colors"
-                aria-label={t(showConfirm ? 'auth:field.hidePassword' : 'auth:field.showPassword')}
-              >
-                {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            }
           />
         </div>
 

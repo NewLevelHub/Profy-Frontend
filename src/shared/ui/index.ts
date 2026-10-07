@@ -25,6 +25,9 @@ export type { SpineProps, SpineNode, SpineNodeStatus, SpineSegmentStyle } from '
 export { OtpInput } from './OtpInput';
 export type { OtpInputProps } from './OtpInput';
 
+export { PasswordInput } from './PasswordInput';
+export type { PasswordInputProps } from './PasswordInput';
+
 export { PasswordStrengthMeter } from './PasswordStrengthMeter';
 export type { PasswordStrengthMeterProps } from './PasswordStrengthMeter';
 

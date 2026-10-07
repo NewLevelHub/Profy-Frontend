@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
 import { env } from '@/shared/config/env';
 import { homePathForUser } from '@/shared/lib/homePath';
@@ -11,6 +11,7 @@ import { resolveReturnTo } from '@/shared/lib/returnTo';
 import { Button } from '@/shared/ui/Button';
 import { GoogleSignInButton } from '@/shared/ui/GoogleSignInButton';
 import { Input } from '@/shared/ui/Input';
+import { PasswordInput } from '@/shared/ui/PasswordInput';
 
 function validateEmailKey(email: string): string {
   return email.includes('@') ? '' : 'auth:validation.emailInvalid';
@@ -29,7 +30,6 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
@@ -139,27 +139,13 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-[24px]">
-          <Input
+          <PasswordInput
             ref={passwordRef}
             label={t('auth:field.password')}
-            className="pr-10"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
             value={password}
             onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
             error={passwordError}
             autoComplete="current-password"
-            rightSlot={
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowPassword(v => !v)}
-                className="text-muted hover:text-secondary transition-colors"
-                aria-label={t(showPassword ? 'auth:field.hidePassword' : 'auth:field.showPassword')}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            }
           />
         </div>
 

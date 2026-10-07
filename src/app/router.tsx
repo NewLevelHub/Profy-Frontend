@@ -20,6 +20,8 @@ import RegisterPage from '@/pages/auth/RegisterPage';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
+// Web-only: staff accept an email invitation (PRO-465).
+import InvitePage from '@/pages/auth/invite/InvitePage';
 
 // ── Onboarding flow (mobile: Welcome → ProfileSetup → ArtifactsSetup) ─────────
 import WelcomePage from '@/pages/onboarding/WelcomePage';
@@ -106,6 +108,15 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+
+  // ── Staff invitation (web-only) ─────────────────────────────────────────────
+  // Outside RequireGuest on purpose: a signed-in visitor must see whose
+  // session would be replaced instead of being silently sent to a cabinet,
+  // and the page itself decides when to sign in after Google.
+  {
+    element: <AuthLayout />,
+    children: [{ path: '/invite', element: <InvitePage /> }],
   },
 
   // ── Authenticated (mobile: AppNavigator) ───────────────────────────────────

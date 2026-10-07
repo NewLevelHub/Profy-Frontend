@@ -16,6 +16,8 @@ export const API = {
     forgotPassword: '/auth/forgot-password',
     verifyResetCode: '/auth/verify-reset-code',
     resetPassword: '/auth/reset-password',
+    invitation: (token: string) => `/auth/invitations/${encodeURIComponent(token)}`,
+    acceptInvitation: '/auth/invitations/accept',
   },
   profile: {
     get: '/profile',
