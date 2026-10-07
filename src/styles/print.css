@@ -75,7 +75,7 @@
   .print-masthead h1 { font-size: 27px; }
   .print-toolbar { align-items: flex-start; }
   .print-toolbar>div { flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
-  .print-toolbar p { font-size: 11px; text-align: right; max-width: 180px; }
+  .print-toolbar p { font-size: var(--text-rd-label); text-align: right; max-width: 180px; }
 }
 
 /* Keep a card/row from being split across two pages. */

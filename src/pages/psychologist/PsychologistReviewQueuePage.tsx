@@ -128,7 +128,8 @@ export default function PsychologistReviewQueuePage() {
         key: 'grade',
         header: t('queue.col.grade'),
         mobile: 'field',
-        width: '72px',
+        // Шапка 12 px капсом: «СЫНЫП» — 52 px текста плюс поля ячейки.
+        width: '84px',
         cell: (row) => <Mono variant="md">{gradeShort(t, row.grade)}</Mono>,
       },
       {
@@ -208,7 +209,8 @@ export default function PsychologistReviewQueuePage() {
         key: 'grade',
         header: t('queue.col.grade'),
         mobile: 'field',
-        width: '72px',
+        // Шапка 12 px капсом: «СЫНЫП» — 52 px текста плюс поля ячейки.
+        width: '84px',
         cell: (row) => <Mono variant="md">{gradeShort(t, row.grade)}</Mono>,
       },
       {

@@ -107,7 +107,6 @@
 .rd-welcome-actions>div { display: flex; gap: 12px; align-items: center; flex-shrink: 0; }
 @media (max-width: 1100px) {
   .rd-setup-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 32px; }
-  
   .rd-setup-card { padding: 27px; }
   .rd-setup-companion { flex-direction: column; align-items: flex-start; gap: 5px; }
   .rd-setup-companion p { max-width: 170px; }
@@ -124,14 +123,12 @@
   .rd-setup-steps li { flex: 1; min-width: 0; font-size: var(--text-rd-label); line-height: 1.4; }
   .rd-setup-steps li>div, .rd-setup-steps button { flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 0; overflow-wrap: anywhere; }
   .rd-setup-steps--editable { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
-  .rd-setup-steps--editable li { font-size: var(--text-rd-label); }
   .rd-setup-steps--editable button { flex-direction: row; text-align: left; overflow-wrap: normal; }
   .rd-step-number { width: 29px; height: 29px; }
   .rd-setup-card { border-radius: var(--rd-radius-lg); padding: 23px; }
   .rd-school-fields { grid-template-columns: 1fr 1fr; }
   .rd-journey .rd-setup-content input, .rd-setup-content textarea, .redesign.rd-journey .rd-custom-input { font-size: var(--text-rd-body); }
   .rd-school-fields>div:first-child { grid-column: 1 / -1; }
-  
   .rd-setup-progress { margin-bottom: 23px; }
   .rd-goal-main { width: calc(100% - 40px); margin-top: 35px; }
   .rd-goal-heading h1 { font-size: var(--text-rd-display); }
@@ -139,7 +136,6 @@
   .rd-goal-card img { height: 180px; }
   .rd-welcome-main { width: calc(100% - 40px); }
   .rd-welcome-intro { gap: 15px; }
-  
   .rd-welcome-intro img { height: 240px; }
   .rd-welcome-features { gap: 10px; }
   .rd-welcome-feature { padding: 18px; }
@@ -156,7 +152,6 @@
   .rd-age-options button { min-width: 0; }
   .rd-setup-content { gap: 22px; }
   .rd-choice-group { padding: 13px; }
-  
   .rd-setup-actions { gap: 8px; flex-wrap: wrap; }
   .rd-setup-actions .rd-button { padding-inline: 15px; gap: 8px; }
   .rd-goal-card { grid-template-columns: 1fr; gap: 18px; padding: 24px; }
@@ -165,7 +160,6 @@
   .rd-goal-card .rd-button { width: 100%; }
   .rd-goal-heading h1 { font-size: var(--text-rd-display); }
   .rd-welcome-intro { grid-template-columns: 1fr; }
-  
   .rd-welcome-intro img { height: 210px; }
   .rd-welcome-features { grid-template-columns: 1fr; margin-top: 12px; }
   .rd-welcome-feature { display: grid; grid-template-columns: 43px minmax(0, 1fr); column-gap: 14px; }

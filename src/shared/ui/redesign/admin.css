@@ -170,14 +170,12 @@
   .rd-admin .rd-admin-content { gap: 20px; }
   .rd-admin :is(.admin-list-heading,.admin-detail-heading)>div:last-child:not(:first-child) { flex-wrap: wrap; }
   .rd-admin :is(.admin-list-heading,.admin-detail-heading)>div:last-child>div { flex-wrap: wrap; }
-  
   .rd-admin .admin-section-heading h2 { font-size: var(--text-rd-lead); }
   .rd-admin section.admin-card { padding: 18px; gap: 18px; }
   .rd-admin-stats { gap: 10px; }
   .rd-admin-stat { display: block; padding: 16px; }
   .rd-admin-stat-icon { margin-bottom: 14px; width: 34px; height: 34px; border-radius: var(--rd-radius-md); }
   .rd-admin-stat strong { font-size: var(--text-rd-heading); }
-  
   .rd-admin .admin-role-tabs { width: 100%; }
   .rd-admin .admin-role-tabs>button { flex: 1; font-size: var(--text-rd-label); padding-inline: 8px; }
   .rd-admin .admin-toolbar { padding: 14px; }

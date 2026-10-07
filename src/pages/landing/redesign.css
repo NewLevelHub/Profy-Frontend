@@ -121,7 +121,7 @@
 .rd-example-sections { display: grid; gap: 22px; margin: 28px 0; }
 .rd-example-sections h3 { margin: 8px 0; font-size: var(--text-rd-title); }
 .rd-example-sections p { font-size: var(--text-rd-body); color: var(--rd-text); line-height: 1.8; }
-@media (min-width: 1500px) { .rd-hero { min-height: 650px; padding-top: 60px; padding-bottom: 85px; }  .rd-hero-art { height: 500px; } .rd-mascot-scene { width: 375px; height: 425px; } .rd-art-orbit { width: 470px; height: 390px; } .rd-floating-card { padding: 18px 21px; } .rd-card-path { bottom: 10px; } }
+@media (min-width: 1500px) { .rd-hero { min-height: 650px; padding-top: 60px; padding-bottom: 85px; } .rd-hero-art { height: 500px; } .rd-mascot-scene { width: 375px; height: 425px; } .rd-art-orbit { width: 470px; height: 390px; } .rd-floating-card { padding: 18px 21px; } .rd-card-path { bottom: 10px; } }
 @media (max-width: 1190px) { .rd-desktop-nav { gap: 18px; } .rd-header-actions { gap: 8px; } .rd-site-header { gap: 20px; } .rd-hero-art { height: 420px; } .rd-mascot-scene { width: 300px; height: 355px; top: 48px; } .rd-art-orbit { width: 350px; height: 310px; } .rd-orbit-two { height: 380px; width: 290px; } .rd-floating-card { padding: 12px; gap: 9px; } .rd-card-interest { left: -5px; top: 60px; } .rd-card-path { bottom: 18px; right: -10px; } .rd-art-note { top: 0; right: -5px; } .rd-report-teaser { gap: 45px; padding: 45px; } .rd-parents { padding-inline: 30px; grid-template-columns: 250px 1fr; gap: 45px; } }
 @media (max-width: 950px) {
   .rd-desktop-nav { display: none; }.rd-menu-toggle { display: inline-flex; }
@@ -237,7 +237,6 @@
 }
 @media (max-width: 680px) {
   .rd-home-stats { border-radius: var(--rd-radius-lg); padding: 25px; gap: 28px 22px; }
-  
   .rd-feature-grid,.rd-test-grid,.rd-report-content-grid { grid-template-columns: 1fr; gap: 14px; }
   .rd-feature-card,.rd-test-card { padding: 24px; }
   .rd-feature-card h3 { margin-top: 17px; }
@@ -249,7 +248,6 @@
   .rd-try-result { grid-template-columns: minmax(0,1fr); }
   .rd-try-result>.rd-button { grid-column: 1; }
   .rd-demo-body { min-height: 300px; }
-  
   .rd-demo-title>img { width: 65px; height: 85px; }
   .rd-landing-footer { grid-template-columns: 1fr; gap: 24px; }
   .rd-landing-footer nav { justify-content: flex-start; }

@@ -27,11 +27,8 @@
   .rd-checkpoint { width: calc(100% - 40px); margin-top: 26px; }
   .rd-checkpoint-heading { grid-template-columns: minmax(0, 1fr) 92px; gap: 14px; margin-bottom: 24px; }
   .rd-checkpoint-heading img { width: 92px; height: 130px; align-self: start; }
-  
-  
   .rd-checkpoint-option { padding: 22px; }
   .rd-checkpoint-option .rd-icon-tile { margin-bottom: 16px; }
-  
   .rd-checkpoint-unsure { padding: 20px; }
   .rd-checkpoint-actions { flex-direction: column-reverse; align-items: stretch; margin-top: 24px; }
   .rd-checkpoint-progress { padding: 22px; }
