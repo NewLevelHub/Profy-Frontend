@@ -3,90 +3,90 @@
 .rd-psych .rd-psych-report-heading { align-items: flex-end; gap: 20px; }
 .rd-psych .rd-psych-report-heading .journey-kicker { letter-spacing: .06em; line-height: 1.65; }
 .rd-psych-report-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; text-align: right; }
-.rd-psych-report-meta .font-mono { font: 12px/1.55 'Onest',system-ui,sans-serif; }
-.rd-psych-report-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; padding: 6px; border: 1px solid var(--rd-line); border-radius: 18px; background: var(--rd-card); }
-.rd-psych-report-tab { display: flex; align-items: center; gap: 14px; min-width: 0; padding: 15px 20px; border-radius: 12px; text-align: left; transition: background .15s; }
+.rd-psych-report-meta .font-mono { font: var(--text-rd-label)/1.55 'Onest',system-ui,sans-serif; }
+.rd-psych-report-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; padding: 6px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); }
+.rd-psych-report-tab { display: flex; align-items: center; gap: 14px; min-width: 0; padding: 15px 20px; border-radius: var(--rd-radius-md); text-align: left; transition: background .15s; }
 .rd-psych-report-tab:hover { background: var(--rd-bg); }
 .rd-psych-report-tab[aria-selected=true] { background: var(--rd-sage); }
-.rd-psych-report-tab-icon { width: 38px; height: 38px; display: grid; place-items: center; flex: none; border-radius: 11px; background: var(--rd-bg); color: var(--rd-muted); }
+.rd-psych-report-tab-icon { width: 38px; height: 38px; display: grid; place-items: center; flex: none; border-radius: var(--rd-radius-md); background: var(--rd-bg); color: var(--rd-muted); }
 .rd-psych-report-tab[aria-selected=true] .rd-psych-report-tab-icon { background: var(--rd-card); color: var(--rd-pine); }
 .rd-psych-report-tab-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.rd-psych-report-tab-copy>.text-body-lg { font-size: 15px; line-height: 1.4; }
-.rd-psych-report-tab-copy>.text-caption { font-size: 11px; }
+.rd-psych-report-tab-copy>.text-body-lg { font-size: var(--text-rd-body); line-height: 1.4; }
+.rd-psych-report-tab-copy>.text-caption { font-size: var(--text-rd-label); }
 .rd-psych-report-notice { display: flex; align-items: flex-start; gap: 10px; color: var(--rd-muted); }
 .rd-psych-report-notice>svg { flex: none; margin-top: 2px; color: var(--rd-purple); }
-.rd-psych-report-notice>p { font-size: 13px; line-height: 1.65; max-width: 80ch; }
+.rd-psych-report-notice>p { font-size: var(--text-rd-ui); line-height: 1.65; max-width: 80ch; }
 .rd-test-sections { gap: 10px; }
-.rd-psych .rd-test-section { border-radius: 16px; }
+.rd-psych .rd-test-section { border-radius: var(--rd-radius-lg); }
 .rd-test-section[data-open=true] { border-color: color-mix(in srgb,var(--rd-pine) 40%,var(--rd-line)); }
 .rd-test-trigger { width: 100%; display: grid; grid-template-columns: 34px minmax(0,1fr) auto 18px; align-items: center; gap: 16px; padding: 18px 22px; text-align: left; transition: background .15s; }
 .rd-test-trigger:hover,.rd-test-trigger[aria-expanded=true] { background: var(--rd-sage); }
-.rd-test-trigger:focus-visible { outline-offset: -4px !important; }
-.rd-test-number { display: grid; place-items: center; width: 34px; height: 34px; background: var(--rd-bg); color: var(--rd-muted); border: 1px solid var(--rd-line); border-radius: 10px; font: 500 12px/1 'Onest',system-ui,sans-serif; }
+.redesign .rd-test-trigger:focus-visible { outline-offset: -4px; }
+.rd-test-number { display: grid; place-items: center; width: 34px; height: 34px; background: var(--rd-bg); color: var(--rd-muted); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-md); font: 500 var(--text-rd-label)/1 'Onest',system-ui,sans-serif; }
 .rd-test-trigger[aria-expanded=true] .rd-test-number { color: var(--text-on-brand); border-color: var(--rd-pine); background: var(--rd-pine); }
 .rd-test-label { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.rd-test-label>.text-body-lg { font-size: 16px; line-height: 1.45; letter-spacing: -.02em; }
-.rd-test-label>.text-caption { font-size: 12px; line-height: 1.5; }
+.rd-test-label>.text-body-lg { font-size: var(--text-rd-body); line-height: 1.45; letter-spacing: -.02em; }
+.rd-test-label>.text-caption { font-size: var(--text-rd-label); line-height: 1.5; }
 .rd-test-trigger>.rd-psych-status { max-width: 220px; }
 .rd-psych .rd-test-body { padding: 24px; border-top: 1px solid var(--rd-line); }
-.rd-psych-report-actions { position: sticky; bottom: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 20px; border: 1px solid var(--rd-line); border-radius: 16px; background: var(--rd-card); box-shadow: 0 -6px 24px -12px #203a302b; }
+.rd-psych-report-actions { position: sticky; bottom: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 20px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); box-shadow: var(--rd-shadow-up); }
 .rd-psych-report-actions>.flex { flex: 1; }
-.rd-psych-report-actions .text-caption { font-size: 12px; }
+.rd-psych-report-actions .text-caption { font-size: var(--text-rd-label); }
 .rd-psych-report-action-buttons { display: flex; align-items: center; gap: 10px; }
-.rd-psych-report-action-buttons>button { min-height: 44px; border-radius: 10px; font-size: 13px; padding: 11px 16px; line-height: 1.4; }
+.rd-psych-report-action-buttons>button { min-height: 44px; border-radius: var(--rd-radius-md); font-size: var(--text-rd-ui); padding: 11px 16px; line-height: 1.4; }
 .rd-psych-report-editor { display: flex; flex-direction: column; gap: 18px; }
 .rd-review-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
-.rd-psych .rd-psych-report-history-link { display: inline-flex; align-items: center; gap: 7px; color: var(--rd-purple); font-size: 12px; line-height: 1.5; flex-shrink: 0; padding-block: 3px; }
+.rd-psych .rd-psych-report-history-link { display: inline-flex; align-items: center; gap: 7px; color: var(--rd-purple); font-size: var(--text-rd-ui); line-height: 1.5; flex-shrink: 0; padding-block: 3px; }
 .rd-psych-report-history-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .rd-psych-report-history-link svg { flex: none; }
-.rd-review-contents { position: sticky; top: 0; z-index: 10; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 4px; padding: 6px; border: 1px solid var(--rd-line); border-radius: 14px; background: var(--rd-card); box-shadow: var(--rd-shadow); }
-.rd-review-contents button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 8px; text-align: left; color: var(--rd-text); font-size: 12px; line-height: 1.5; border-radius: 8px; }
+.rd-review-contents { position: sticky; top: 0; z-index: 10; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 4px; padding: 6px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-md); background: var(--rd-card); box-shadow: var(--rd-shadow); }
+.rd-review-contents button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 8px; text-align: left; color: var(--rd-text); font-size: var(--text-rd-ui); line-height: 1.5; border-radius: var(--rd-radius-sm); }
 .rd-review-contents button:hover { background: var(--rd-sage); color: var(--rd-pine); }
-.rd-review-contents button>span { font-size: 10px; color: var(--rd-purple); }
-.rd-psych .rd-review-block { padding: 24px; border-radius: 18px; scroll-margin-top: 100px; }
+.rd-review-contents button>span { font-size: var(--text-rd-label); color: var(--rd-purple); }
+.rd-psych .rd-review-block { padding: 24px; border-radius: var(--rd-radius-lg); scroll-margin-top: 100px; }
 .rd-review-block:focus { outline: none; }
 .rd-review-block:focus-visible { box-shadow: 0 0 0 2px var(--rd-purple); }
 .rd-review-block>header { align-items: center; }
 .rd-review-block>header>div:first-child { align-items: center; gap: 12px; }
-.rd-review-block h3 { font-size: 18px; letter-spacing: -.025em; }
-.rd-review-number { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 9px; background: var(--rd-lilac); color: var(--rd-purple); font: 500 11px/1 'Onest',system-ui,sans-serif; }
-.rd-review-block>p { font-size: 13px; line-height: 1.7; margin-top: 12px; max-width: 88ch; }
-.rd-psych .rd-review-textarea { background: var(--rd-bg); border-radius: 12px; font-size: 14px; line-height: 1.8; border-color: var(--rd-line); }
+.rd-review-block h3 { font-size: var(--text-rd-lead); letter-spacing: -.02em; }
+.rd-review-number { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: var(--rd-radius-sm); background: var(--rd-lilac); color: var(--rd-purple); font: 500 var(--text-rd-label)/1 'Onest',system-ui,sans-serif; }
+.rd-review-block>p { font-size: var(--text-rd-ui); line-height: 1.7; margin-top: 12px; max-width: 88ch; }
+.rd-psych .rd-review-textarea { background: var(--rd-bg); border-radius: var(--rd-radius-md); font-size: var(--text-rd-body); line-height: 1.8; border-color: var(--rd-line); }
 .rd-psych .rd-review-textarea:focus { border-color: var(--rd-purple); background: var(--rd-card); box-shadow: 0 0 0 2px var(--rd-lilac); }
-.rd-psych .rd-review-input { font-size: 14px; line-height: 1.65; }
+.rd-psych .rd-review-input { font-size: var(--text-rd-body); line-height: 1.65; }
 .rd-psych :is(.rd-review-textarea,.rd-review-input):disabled { opacity: 1; color: var(--rd-text); -webkit-text-fill-color: var(--rd-text); cursor: default; }
-.rd-psych .rd-review-careers { border-radius: 12px; }
+.rd-psych .rd-review-careers { border-radius: var(--rd-radius-md); }
 .rd-review-careers>div:first-child { background: var(--rd-bg); }
-.rd-review-career-row .text-body-md { font-size: 14px; }
-.rd-review-career-row .font-mono { font-family: 'Onest',system-ui,sans-serif; font-size: 12px; }
-.rd-review-career-row .text-caption { font-size: 11px; }
+.rd-review-career-row .text-body-md { font-size: var(--text-rd-ui); }
+.rd-review-career-row .font-mono { font-family: 'Onest',system-ui,sans-serif; font-size: var(--text-rd-label); }
+.rd-review-career-row .text-caption { font-size: var(--text-rd-label); }
 .rd-review-career-row:first-child { background: var(--rd-sage); }
-.rd-psych .rd-review-rebuild { border-radius: 12px; background: var(--rd-peach); border-color: transparent; }
-.rd-review-rebuild .text-body-sm { font-size: 13px; line-height: 1.65; }
+.rd-psych .rd-review-rebuild { border-radius: var(--rd-radius-md); background: var(--rd-peach); border-color: transparent; }
+.rd-review-rebuild .text-body-sm { font-size: var(--text-rd-ui); line-height: 1.65; }
 .rd-review-cards { gap: 12px; }
-.rd-review-card { padding: 18px; border: 1px solid var(--rd-line); border-radius: 14px; }
+.rd-review-card { padding: 18px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-md); }
 .rd-review-card .rd-review-input { font-weight: 600; }
 .rd-review-card .font-mono { font-family: 'Onest',system-ui,sans-serif; }
 .rd-review-card .rd-review-textarea { min-height: 100px; }
 .rd-review-motivations { gap: 10px; }
 .rd-review-motivations .font-mono { font-family: 'Onest',system-ui,sans-serif; }
 .rd-psych-report-dialog .text-brand { color: var(--rd-pine); }
-.rd-psych .rd-psych-report-dialog>div { border: 1px solid var(--rd-line); border-radius: 20px; background: var(--rd-card); max-height: calc(100svh - 40px); overflow-y: auto; }
-.rd-psych-report-dialog h2 { font-size: 22px; letter-spacing: -.03em; }
+.rd-psych .rd-psych-report-dialog>div { border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); max-height: calc(100svh - 40px); overflow-y: auto; }
+.rd-psych-report-dialog h2 { font-size: var(--text-rd-title); letter-spacing: -.02em; }
 .rd-psych-report-dialog .font-mono { font-family: 'Onest',system-ui,sans-serif; }
-.rd-psych-report-dialog button { border-radius: 10px; }
+.rd-psych-report-dialog button { border-radius: var(--rd-radius-md); }
 .rd-history-list { display: grid; gap: 20px; list-style: none; padding: 0; margin: 0; }
-.rd-history-entry { padding: 24px; background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: 18px; }
+.rd-history-entry { padding: 24px; background: var(--rd-card); border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); }
 .rd-history-entry-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; }
-.rd-history-entry-heading h2 { font-size: 18px; letter-spacing: -.02em; }
-.rd-history-entry-heading .font-mono { font: 12px/1.6 'Onest',system-ui,sans-serif; overflow-wrap: anywhere; }
+.rd-history-entry-heading h2 { font-size: var(--text-rd-lead); letter-spacing: -.02em; }
+.rd-history-entry-heading .font-mono { font: var(--text-rd-label)/1.6 'Onest',system-ui,sans-serif; overflow-wrap: anywhere; }
 .rd-history-comparison { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: start; margin-top: 18px; }
-.rd-history-side { padding: 18px; border-radius: 12px; background: var(--rd-bg); overflow-wrap: anywhere; white-space: pre-wrap; }
+.rd-history-side { padding: 18px; border-radius: var(--rd-radius-md); background: var(--rd-bg); overflow-wrap: anywhere; white-space: pre-wrap; }
 .rd-history-side[data-tone=new] { background: var(--rd-sage); }
-.rd-history-side>.font-mono { font: 600 10px/1.5 'Onest',system-ui,sans-serif; color: var(--rd-muted); margin-bottom: 10px; letter-spacing: .1em; }
+.rd-history-side>.font-mono { font: 600 var(--text-rd-label)/1.5 'Onest',system-ui,sans-serif; color: var(--rd-muted); margin-bottom: 10px; letter-spacing: .1em; }
 .rd-history-side[data-tone=new]>.font-mono { color: var(--rd-pine); }
-.rd-history-side>.text-body-sm { font-size: 14px; line-height: 1.8; }
-.rd-history-empty { border-radius: 18px; }
+.rd-history-side>.text-body-sm { font-size: var(--text-rd-body); line-height: 1.8; }
+.rd-history-empty { border-radius: var(--rd-radius-lg); }
 @media (max-width: 900px) {
   .rd-psych-report-meta { align-items: flex-start; text-align: left; }
   .rd-review-intro { flex-direction: column; gap: 10px; }
@@ -99,24 +99,21 @@
 @media (max-width: 600px) {
   .rd-psych .rd-psych-report-page { gap: 20px; }
   .rd-psych .rd-psych-report-heading { align-items: flex-start; gap: 12px; }
-  .rd-psych-report-tabs { gap: 4px; padding: 4px; border-radius: 14px; }
+  .rd-psych-report-tabs { gap: 4px; padding: 4px; border-radius: var(--rd-radius-md); }
   .rd-psych-report-tab { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 10px; }
-  .rd-psych-report-tab-icon { width: 30px; height: 30px; border-radius: 8px; }
-  .rd-psych-report-tab-copy>.text-body-lg { font-size: 13px; }
-  .rd-psych-report-tab-copy>.text-caption { font-size: 10px; }
-  .rd-test-number { width: 28px; height: 28px; font-size: 10px; border-radius: 8px; }
+  .rd-psych-report-tab-icon { width: 30px; height: 30px; border-radius: var(--rd-radius-sm); }
+  .rd-psych-report-tab-copy>.text-body-lg { font-size: var(--text-rd-ui); }
+  .rd-test-number { width: 28px; height: 28px; border-radius: var(--rd-radius-sm); }
   .rd-test-trigger { grid-template-columns: 28px minmax(0,1fr) 16px; gap: 8px; padding: 14px; }
-  .rd-test-label>.text-body-lg { font-size: 14px; }
-  .rd-test-label>.text-caption { font-size: 11px; }
+  .rd-test-label>.text-body-lg { font-size: var(--text-rd-ui); }
   .rd-psych .rd-test-body { padding: 16px 12px; }
-  .rd-psych-report-actions { gap: 12px; padding: 14px; border-radius: 14px; }
+  .rd-psych-report-actions { gap: 12px; padding: 14px; border-radius: var(--rd-radius-md); }
   .rd-psych-report-actions>.flex { flex-basis: 100%; }
   .rd-psych-report-action-buttons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; gap: 8px; align-items: stretch; }
-  .rd-psych-report-action-buttons>button { padding: 10px 8px; font-size: 12px; min-width: 0; }
+  .rd-psych-report-action-buttons>button { padding: 10px 8px; min-width: 0; }
   .rd-review-contents { position: static; grid-template-columns: repeat(2,minmax(0,1fr)); box-shadow: none; }
   .rd-review-contents button { flex-direction: row; justify-content: flex-start; text-align: left; gap: 8px; }
   .rd-psych .rd-review-block { padding: 18px 14px; scroll-margin-top: 16px; }
-  .rd-review-block h3 { font-size: 17px; }
   .rd-review-block>header { gap: 10px; }
   .rd-review-block>header>div:first-child { gap: 8px; }
   .rd-review-card { display: grid; grid-template-columns: minmax(0,1fr) 40px; padding: 12px; gap: 8px; }
@@ -125,7 +122,7 @@
   .rd-review-card>button { grid-column: 2; grid-row: 1; justify-self: end; margin: 0; }
   .rd-review-career-row { padding-inline: 12px; gap: 8px; }
   .rd-review-motivations>li { gap: 8px; }
-  .rd-review-motivations .font-mono { width: 16px; font-size: 11px; }
+  .rd-review-motivations .font-mono { width: 16px; font-size: var(--text-rd-label); }
   .rd-psych-report-dialog>div { padding: 20px; }
   .rd-psych-report-dialog>div>div:last-child { flex-wrap: wrap; }
   .rd-psych-report-dialog>div>div:last-child>button { width: 100%; }

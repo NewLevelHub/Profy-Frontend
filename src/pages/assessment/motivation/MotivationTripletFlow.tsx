@@ -60,7 +60,6 @@ export default function MotivationTripletFlow() {
 
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
-        redesigned
         title={headerTitle}
         sectionLabel={t('rail.sectionMotivation')}
         progressAriaLabel={t('rail.progressAriaMotivation')}

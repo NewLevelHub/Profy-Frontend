@@ -27,7 +27,6 @@ export function OnboardingShell({ current, children, actions, sections, onSectio
     <JourneyShell>
       <div className="rd-setup-layout">
         <aside className="rd-setup-sidebar">
-          <p className="rd-eyebrow">{t(sections ? 'artifacts.kickerInterests' : 'redesign.eyebrow')}</p>
           <h2>{t(sections ? 'artifacts.editTitle' : 'redesign.title')}</h2>
           <ol className={`rd-setup-steps${sections ? ' rd-setup-steps--editable' : ''}`} aria-label={t('redesign.stepsLabel')}>
             {labels.map((label, index) => {

@@ -19,7 +19,7 @@ const scrollPositions = new Map<string, number>();
  * Remount key for `.page-enter`. Top-rail tabs (Результаты / Университеты /
  * Профиль / Админка) should fade in; nested screens under a tab should not.
  *
- * `/admin/*` shares one key so the glass shell + side rail stay mounted and
+ * `/admin/*` shares one key so the shell + side rail stay mounted and
  * sidebar clicks swap content instantly. Other top-level areas still key by
  * full path (university detail, results deep links, etc.).
  */
@@ -28,7 +28,7 @@ function pageEnterKey(pathname: string): string {
   return pathname;
 }
 
-export function AppLayout({ redesigned = false, psychologist = false, admin = false }: { redesigned?: boolean; psychologist?: boolean; admin?: boolean }) {
+export function AppLayout({ psychologist = false, admin = false }: { psychologist?: boolean; admin?: boolean }) {
   const { t } = useTranslation('common');
   useAssessmentSync();
   const syncDone = useAssessmentStore(s => s.syncDone);
@@ -94,10 +94,10 @@ export function AppLayout({ redesigned = false, psychologist = false, admin = fa
   }, [location.key]);
 
   return (
-    <div className={admin ? "redesign rd-admin" : psychologist ? "redesign rd-psych" : redesigned ? "redesign rd-student h-screen flex flex-col overflow-hidden" : "journey-page h-screen text-primary flex flex-col overflow-hidden"}>
-      {(redesigned || psychologist || admin) && <a href={admin ? '#admin-content' : psychologist ? '#psychologist-content' : '#student-content'} className="rd-skip">{t('redesign.skip')}</a>}
-      <TopRail redesigned={redesigned} psychologist={psychologist} admin={admin} />
-      <main id={admin ? 'admin-content' : psychologist ? 'psychologist-content' : redesigned ? 'student-content' : undefined} tabIndex={redesigned || psychologist || admin ? -1 : undefined} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
+    <div className={admin ? "redesign rd-admin" : psychologist ? "redesign rd-psych" : "redesign rd-student h-screen flex flex-col overflow-hidden"}>
+      <a href={admin ? '#admin-content' : psychologist ? '#psychologist-content' : '#student-content'} className="rd-skip">{t('redesign.skip')}</a>
+      <TopRail psychologist={psychologist} admin={admin} />
+      <main id={admin ? 'admin-content' : psychologist ? 'psychologist-content' : 'student-content'} tabIndex={-1} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
         {syncDone ? (
           // key=pageEnterKey: анимация только при смене вкладки шапки.
           // Внутри /admin/* ключ стабилен — сайдбар без fade, контент сразу.

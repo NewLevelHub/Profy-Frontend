@@ -30,7 +30,6 @@ export default function PsychoEmotionalPage() {
   return (
     <AssessmentLayout>
       <AssessmentRail
-        redesigned
         title={introSeen ? t('psychoemotional.circle2.stepTitleCircle2') : t('psychoemotional.circle1.railTitleIntro')}
         sectionLabel={t('psychoemotional.sectionLabel')}
         progressAriaLabel={t('psychoemotional.progressAriaLabel')}

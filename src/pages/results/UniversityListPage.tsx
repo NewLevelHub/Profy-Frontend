@@ -42,7 +42,7 @@ export default function UniversityListPage() {
         <BackLink onClick={goBack} className="rd-detail-back">
           {t('common:back')}
         </BackLink>
-        <StudentPageHeading kicker={t('direction.universitiesKicker')} title={t('universityList.title')} />
+        <StudentPageHeading title={t('universityList.title')} />
       </div>
 
       <ProgramListSection

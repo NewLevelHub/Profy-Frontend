@@ -121,7 +121,6 @@ export default function AsturPage() {
 
       {running && (
         <AssessmentRail
-          redesigned
           title={headerTitle}
           sectionLabel={t('rail.sectionAstur')}
           progressAriaLabel={t('rail.progressAriaAstur')}

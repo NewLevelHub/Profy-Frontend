@@ -74,7 +74,6 @@ export default function AssessmentPage() {
 
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
-        redesigned
         title={headerTitle}
         sectionLabel={sectionLabel}
         progressAriaLabel={t('rail.progressAriaTest')}

@@ -17,7 +17,7 @@ export function CertificateEditView({ model }: { model: ReturnType<typeof useCer
   const { scores, setScore, errors, isLoading, saveError, handleSave, handleCancel } = model;
   return <div className="rd-setup-card rd-setup-content">
     <div className="rd-certificate-heading">
-      <div className="rd-setup-heading"><p className="rd-eyebrow">{t('redesign.scoresKicker')}</p><h1>{t('redesign.scoresTitle')}</h1><p>{t('edit.scoresHint')}</p></div>
+      <div className="rd-setup-heading"><h1>{t('redesign.scoresTitle')}</h1><p>{t('edit.scoresHint')}</p></div>
       <img src="/mascot/redesign/notepad.png" alt="" width={120} height={140} />
     </div>
     <div className="rd-subject-grid">

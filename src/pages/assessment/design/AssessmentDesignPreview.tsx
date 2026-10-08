@@ -59,7 +59,7 @@ export default function AssessmentDesignPreview() {
         </button>)}
       </nav>
     </aside>
-    <AssessmentRail redesigned title={view === 'motivation' ? t('rail.questionOf', { current: 1, total: 12 }) : title}
+    <AssessmentRail title={view === 'motivation' ? t('rail.questionOf', { current: 1, total: 12 }) : title}
       sectionLabel={title} progressAriaLabel={t('rail.progressAriaTest')} progress={view === 'intro' ? 0 : 24}
       showBack={view !== 'intro'} onBack={() => selectView(VIEWS[Math.max(0, VIEWS.indexOf(view) - 1)])}
       onExit={() => setExitOpen(true)} />

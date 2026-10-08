@@ -10,10 +10,11 @@ interface AssessmentNotStartedCardProps {
   onStart: () => void;
 }
 
+// tone — тон палитры редизайна для плитки иконки (.rd-sage/.rd-peach/.rd-lilac).
 const HIGHLIGHT_CONFIGS = [
-  { Icon: Clock, titleKey: 'notStarted.perks.time', subKey: 'notStarted.perks.timeSub', tone: 'pine' as const },
-  { Icon: Shield, titleKey: 'notStarted.perks.noGrades', subKey: 'notStarted.perks.noGradesSub', tone: 'dawn' as const },
-  { Icon: Compass, titleKey: 'notStarted.perks.map', subKey: 'notStarted.perks.mapSub', tone: 'iris' as const },
+  { Icon: Clock, titleKey: 'notStarted.perks.time', subKey: 'notStarted.perks.timeSub', tone: 'rd-sage' },
+  { Icon: Shield, titleKey: 'notStarted.perks.noGrades', subKey: 'notStarted.perks.noGradesSub', tone: 'rd-peach' },
+  { Icon: Compass, titleKey: 'notStarted.perks.map', subKey: 'notStarted.perks.mapSub', tone: 'rd-lilac' },
 ] as const;
 
 /** Shown on /results before any assessment has been started — results have
@@ -45,7 +46,7 @@ export function AssessmentNotStartedCard({ onStart }: AssessmentNotStartedCardPr
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {HIGHLIGHT_CONFIGS.map(({ Icon, titleKey, subKey, tone }) => (
           <div key={titleKey} className="journey-feature">
-            <span className={`journey-feature-icon journey-feature-icon--${tone}`} aria-hidden="true">
+            <span className={`journey-feature-icon ${tone}`} aria-hidden="true">
               <Icon size={18} strokeWidth={2} />
             </span>
             <div className="flex flex-col gap-0.5">

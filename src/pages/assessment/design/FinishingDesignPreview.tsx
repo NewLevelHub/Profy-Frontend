@@ -54,7 +54,7 @@ export default function FinishingDesignPreview() {
       <p>{t('common:finishingPreview.title')}</p>
       <nav aria-label={t('common:finishingPreview.viewsLabel')}>{VIEWS.map(value => <button type="button" key={value} aria-pressed={view === value} onClick={() => select(value)}>{t(`common:finishingPreview.views.${value}`)}</button>)}</nav>
     </aside>
-    {(view === 'goal' || view === 'empty') && <GoalCheckView showsCareers suggestions={view === 'empty' ? [] : report.careers.slice(0, 2).map(c => ({ key: c.slug, icon: '', title: c.name, subtitle: c.why }))} onContinue={next} />}
+    {(view === 'goal' || view === 'empty') && <GoalCheckView showsCareers suggestions={view === 'empty' ? [] : report.careers.slice(0, 2).map(c => ({ key: c.slug, kind: 'career' as const, title: c.name, subtitle: c.why }))} onContinue={next} />}
     {(view === 'rest' || view === 'speed') && <RestStopView state={{ returnTo: '/design/finishing', stages, totalAnswered: 156 }} isSpeedVariant={view === 'speed'} onContinue={next} onPause={() => select('goal')} />}
     {view === 'loading' && <ResultLoadingView fullPage />}
     {view === 'error' && <JourneyCheckpoint kicker={t('assessment:goalCheck.kicker')} title={t('common:errorBoundary.title')} body={t('assessment:resultLoading.error')} illustration="rest"

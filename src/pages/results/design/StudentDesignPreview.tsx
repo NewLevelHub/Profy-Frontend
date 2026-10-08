@@ -68,7 +68,7 @@ export default function StudentDesignPreview() {
         {view === 'inProgress' && <AssessmentInProgressCard completedPhaseCount={2} totalPhaseCount={4} progress={64} currentPhase="belbin" onContinue={() => select('completed')} />}
         {view === 'completed' && <AssessmentCompletedCard onOpenProfile={() => select('profile')} onOpenUniversities={() => navigate('/design/universities')} />}
         {view === 'error' && <JourneyEmptyState illustration="/mascot/redesign/rest.png" title={t('results:error.somethingWrong')} body={t('results:error.loadResults')} actionLabel={t('common:retry')} onAction={() => select('report')} />}
-        {view === 'profile' && <div className="rd-profile"><StudentPageHeading kicker={t('profile:redesign.kicker')} title={t('profile:redesign.title')} subtitle={t('profile:redesign.subtitle')} />
+        {view === 'profile' && <div className="rd-profile"><StudentPageHeading title={t('profile:redesign.title')} subtitle={t('profile:redesign.subtitle')} />
           <ProfileLedgerView persistLocale={false} model={model} sound={{ soundEnabled, toggleSound: () => setSoundEnabled(value => !value), prefersReducedMotion: false }} />
         </div>}
         {view === 'scores' && <div className="rd-journey rd-certificate-edit"><CertificateEditView model={{ scores,

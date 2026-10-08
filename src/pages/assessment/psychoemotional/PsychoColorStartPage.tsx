@@ -39,7 +39,6 @@ export default function PsychoColorStartPage() {
   return (
     <AssessmentLayout>
       <AssessmentRail
-        redesigned
         title={introSeen ? t(STEP_TITLE_KEY[step]) : t('psychoemotional.circle1.railTitleIntro')}
         sectionLabel={t('psychoemotional.sectionLabel')}
         progressAriaLabel={t('psychoemotional.progressAriaLabel')}

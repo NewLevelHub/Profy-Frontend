@@ -44,7 +44,7 @@ export function ResultsReportBody({ report, ageGroup, goal, readOnly = false, re
   return (
     <>
       <ResultsReveal id={redesigned ? "report-summary" : undefined}>
-        <SummaryCard redesigned={redesigned} summary={report.summary} disclaimer={report.disclaimer} />
+        <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
       </ResultsReveal>
 
       <ResultsReveal delay={1} id={redesigned ? "report-interests" : undefined}>
