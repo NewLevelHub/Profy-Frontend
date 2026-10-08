@@ -1,9 +1,9 @@
 .rd-login-shell { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); min-height: 100svh; }
 .rd-login-story { background: var(--rd-sage); padding: 40px 55px 30px; border-radius: 0 0 var(--rd-radius-xl) 0; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 .rd-story-top { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
-.rd-story-top>span { text-align: right; font-size: var(--text-rd-label); letter-spacing: .12em; text-transform: uppercase; max-width: 150px; color: var(--rd-muted); }
+.rd-story-top>span { text-align: right; font-size: var(--text-rd-label); max-width: 150px; color: var(--rd-muted); }
 .rd-story-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 28px; margin-top: 42px; }
-.rd-story-copy h2 { font-size: var(--text-rd-page); line-height: 1.14; color: var(--rd-pine); margin: 18px 0 20px; text-wrap: pretty; }
+.rd-story-copy h2 { font-size: var(--text-rd-page); line-height: 1.14; color: var(--rd-pine); margin: 0 0 20px; text-wrap: pretty; }
 .rd-story-copy h2>span { color: var(--rd-purple); }
 .rd-story-copy>p:last-child { font-size: var(--text-rd-body); line-height: 1.8; max-width: 550px; color: var(--rd-text); }
 .rd-auth-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; padding: 0; margin: 0; list-style: none; }

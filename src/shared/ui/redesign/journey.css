@@ -14,7 +14,7 @@
 .rd-journey-header .rd-brand { font-size: 32px; /* type-exempt: логотип */ }
 .rd-setup-layout { width: min(1200px, calc(100% - 80px)); margin: 54px auto 0; display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 70px; align-items: start; }
 .rd-setup-sidebar { position: sticky; top: 32px; padding-top: 12px; }
-.rd-setup-sidebar h2 { margin-top: 14px; font-size: var(--text-rd-display); line-height: 1.16; overflow-wrap: anywhere; }
+.rd-setup-sidebar h2 { font-size: var(--text-rd-display); line-height: 1.16; overflow-wrap: anywhere; }
 .rd-setup-steps { list-style: none; padding: 0; margin: 36px 0 0; display: flex; flex-direction: column; gap: 6px; }
 .rd-setup-steps li { color: var(--rd-muted); font-size: var(--text-rd-ui); }
 .rd-setup-steps li>div, .rd-setup-steps button { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; padding: 9px 0; background: transparent; border: 0; color: inherit; font: inherit; line-height: 1.5; }
@@ -29,7 +29,7 @@
 .rd-setup-card { min-width: 0; padding: 30px 34px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-xl); background: var(--rd-card); box-shadow: var(--rd-shadow); }
 .rd-setup-card:focus, .rd-goal-main:focus, .rd-welcome-main:focus { outline: none; }
 .rd-setup-progress { display: flex; flex-direction: column-reverse; gap: 12px; margin-bottom: 28px; }
-.rd-setup-progress p { font-size: var(--text-rd-label); text-transform: uppercase; letter-spacing: .1em; color: var(--rd-muted); }
+.rd-setup-progress p { font-size: var(--text-rd-label); color: var(--rd-muted); }
 .rd-setup-progress span { height: 3px; flex: 1; background: var(--rd-line); border-radius: var(--radius-pill); }
 .rd-setup-progress .is-filled { background: var(--rd-pine); }
 .rd-setup-content { display: flex; flex-direction: column; gap: 25px; }

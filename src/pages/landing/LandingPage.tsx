@@ -28,7 +28,6 @@ function ReportExample({ onClose }: { onClose: () => void }) {
     <dialog ref={ref} className="rd-report-dialog" aria-labelledby="report-example-title" onClose={e => { if (!e.currentTarget.open) onClose(); }} onClick={e => { if (e.target === e.currentTarget) ref.current?.close(); }}>
       <div className="rd-report-dialog-body">
         <button type="button" className="rd-icon-button rd-dialog-close" aria-label={t('redesign.close')} onClick={() => ref.current?.close()} autoFocus><X aria-hidden="true" /></button>
-        
         <h2 id="report-example-title">{t('redesign.example.title')}</h2>
         <p className="rd-example-note">{t('redesign.example.note')}</p>
         <div className="rd-example-summary"><div><Award aria-hidden="true" /><h3>{t('redesign.example.strengthTitle')}</h3><p>{t('redesign.example.strengthBody')}</p></div><img src="/mascot/redesign/celebrate.png" alt="" width="1254" height="1254" /></div>
@@ -79,7 +78,6 @@ export default function LandingPage() {
       <main id="landing-content" tabIndex={-1}>
         <section className="rd-hero rd-wrap">
           <div className="rd-hero-copy">
-            
             <h1>{t('redesign.hero.lineOne')}<br />{t('redesign.hero.lineTwo')}<br /><span>{t('redesign.hero.accent')}</span></h1>
             <p className="rd-hero-description">{t('hero.lead')}</p>
             <div className="rd-hero-cta"><Link to="/register" className="rd-button rd-button-large">{t('redesign.cta.start')}<ArrowRight aria-hidden="true" /></Link><button type="button" className="rd-text-link" onClick={showExample}>{t('redesign.cta.example')}<ArrowUpRight size={17} aria-hidden="true" /></button></div>

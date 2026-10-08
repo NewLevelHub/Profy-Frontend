@@ -23,7 +23,8 @@
 .rd-student-mobile { display: none; }
 .rd-student-page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
 .rd-student-page-heading>div { max-width: 780px; }
-.rd-student-page-heading h1 { font-size: var(--text-rd-page); line-height: 1.16; margin-top: 14px; }
+.rd-student-page-heading h1 { font-size: var(--text-rd-page); line-height: 1.16; }
+.rd-student-page-heading .rd-eyebrow+h1 { margin-top: 14px; }
 .rd-student-page-heading h1+p { margin-top: 14px; font-size: var(--text-rd-body); line-height: 1.75; color: var(--rd-text); max-width: 640px; }
 .rd-student-page-heading>button { flex-shrink: 0; }
 .rd-report-layout { display: grid; grid-template-columns: minmax(0, 1fr) 214px; gap: 30px; align-items: start; }

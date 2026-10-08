@@ -121,7 +121,6 @@ export default function LoginPage() {
 
   return (
     <>
-      
       <h1>{t('auth:redesign.title')}<span className="rd-orange" aria-hidden="true">.</span></h1>
       <p className="rd-login-intro">{t('auth:redesign.subtitle')}</p>
       {location.state?.passwordReset && <p className="rd-auth-success" role="status">{t('auth:redesign.recovery.success')}</p>}

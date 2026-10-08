@@ -87,7 +87,6 @@ export default function GoalSelectionPage() {
       <main id="journey-content" tabIndex={-1} className="rd-goal-main">
         <div className="rd-goal-heading">
           <span className="rd-icon-tile rd-peach"><Compass aria-hidden="true" /></span>
-          
           <h1>{t('goalSelection.question')}</h1>
           <p>{t('goalSelection.hint')}</p>
         </div>
