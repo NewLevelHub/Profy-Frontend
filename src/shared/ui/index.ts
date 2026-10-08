@@ -56,8 +56,16 @@ export type { JourneyEmptyStateProps } from './JourneyEmptyState';
 export { SectionHeading } from './SectionHeading';
 export { Heading, Text, Mono, typeClass } from './typography';
 export type { HeadingLevel, TextVariant, MonoVariant, TypeRole } from './typography';
-export { PsychoEmotionalInterpretation } from './PsychoEmotionalInterpretation';
-export type { PsychoEmotionalInterpretationProps } from './PsychoEmotionalInterpretation';
+export {
+  PsychoEmotionalInterpretationDocument,
+  PsychoEmotionalInterpretationDocument as PsychoEmotionalInterpretation,
+} from './PsychoEmotionalInterpretationDocument';
+export type {
+  PsychoEmotionalInterpretationDocumentProps,
+  PsychoEmotionalInterpretationDocumentProps as PsychoEmotionalInterpretationProps,
+} from './PsychoEmotionalInterpretationDocument';
+export { PsychoEmotionalReport } from './PsychoEmotionalReport';
+export type { PsychoEmotionalReportProps } from './PsychoEmotionalReport';
 export { AppLayout } from './layouts/AppLayout';
 export { AuthLayout } from './layouts/AuthLayout';
 export { TopRail } from './navigation/TopRail';

@@ -36,9 +36,6 @@
 .rd-report-sidebar nav a { display: flex; align-items: center; gap: 13px; min-height: 44px; padding: 10px 12px; border-radius: var(--rd-radius-md); font-size: var(--text-rd-ui); color: var(--rd-text); }
 .rd-report-sidebar nav a>span { color: var(--rd-purple); font-size: var(--text-rd-label); }
 .rd-report-sidebar nav a:hover { background: var(--rd-sage); color: var(--rd-pine); }
-.rd-report-note { padding: 23px; border-radius: var(--rd-radius-lg); background: var(--rd-lilac); color: var(--rd-purple); }
-.rd-report-note p { margin-top: 14px; font-size: var(--text-rd-body); line-height: 1.75; }
-.rd-report-note a { display: flex; align-items: center; gap: 8px; margin-top: 20px; font-size: var(--text-rd-ui); font-weight: 500; }
 .rd-report-summary { display: grid; grid-template-columns: minmax(0, 1fr) 165px; gap: 16px; align-items: center; padding: 30px; border-radius: var(--rd-radius-xl); background: var(--rd-sage); border: 1px solid var(--rd-line); }
 .rd-report-summary .rd-eyebrow { color: var(--rd-pine); }
 .rd-report-summary-text { font-size: var(--text-rd-lead); line-height: 1.75; margin-top: 17px; }
@@ -116,7 +113,6 @@
   .rd-report-sidebar nav { display: flex; flex-wrap: wrap; gap: 4px; padding: 0; }
   .rd-report-sidebar nav>p { width: 100%; margin-left: 0; margin-bottom: 4px; }
   .rd-report-sidebar nav a { padding: 8px 11px; min-height: 36px; background: var(--rd-card); border: 1px solid var(--rd-line); gap: 7px; }
-  .rd-report-note { display: none; }
   .rd-profile-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 22px; }
   .rd-profile-section { padding: 24px; }
   .rd-profile #personal .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -171,3 +167,15 @@
 }
 
 .rd-report-body>[id]:focus, .rd-profile-section:focus { outline: none; }
+
+/* Pending-review card: done → psychologist → report + email (AssessmentCompletedCard). */
+.rd-result-steps { display: flex; flex-direction: column; gap: 14px; margin-top: 10px; padding: 0; list-style: none; }
+.rd-result-steps>li { display: flex; align-items: flex-start; gap: 12px; color: var(--rd-muted); font-size: var(--text-rd-ui); line-height: 1.5; }
+.rd-result-steps>li>span:last-child { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }
+.rd-result-steps strong { font-weight: 500; }
+.rd-result-steps small { font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-result-step-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--rd-line); color: var(--rd-muted); }
+.rd-result-step--done { color: var(--rd-text); }
+.rd-result-step--done .rd-result-step-icon { background: var(--rd-sage); border-color: transparent; color: var(--rd-pine); }
+.rd-result-step--current { color: var(--rd-ink); }
+.rd-result-step--current .rd-result-step-icon { background: var(--rd-lilac); border-color: transparent; color: var(--rd-purple); }

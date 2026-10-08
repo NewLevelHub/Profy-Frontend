@@ -3,15 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
 import { AssessmentStageShell } from '../../components/AssessmentStageShell';
-import { CHECKIN_QUESTIONS, SKIPPED } from '../data/checkin';
+import { CHECKIN_QUESTIONS } from '../data/checkin';
 
 interface CheckInStepProps {
   onSubmit: (answers: Record<string, string>) => void;
 }
 
 /**
- * Check-in §5.2: 3 вопроса, одно касание, пропуск допустим («не указано»).
- * Не оценивается, никакой обратной связи. Отправляется как есть.
+ * Check-in §5.2: 3 вопроса, одно касание. Не оценивается, никакой обратной
+ * связи. Ответ на каждый обязателен: «Далее» неактивна, пока не отмечены
+ * все три — иначе тест открывался без единого ответа. Раньше пропуск был
+ * допустим и уходил как «не указано»; старые такие ответы отчёт по-прежнему
+ * показывает (CHECKIN_SKIPPED в PsychoEmotionalSection).
  * PRO-397: same journey-shell card as AssessmentIntro so the psycho start
  * matches every other test gate.
  *
@@ -25,12 +28,11 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
   const { t } = useTranslation('assessment');
   const [selected, setSelected] = useState<Record<string, string>>({});
 
+  const complete = CHECKIN_QUESTIONS.every((q) => Boolean(selected[q.key]));
+
   function submit() {
-    onSubmit(
-      Object.fromEntries(
-        CHECKIN_QUESTIONS.map((q) => [q.key, selected[q.key] || SKIPPED]),
-      ),
-    );
+    if (!complete) return;
+    onSubmit(Object.fromEntries(CHECKIN_QUESTIONS.map((q) => [q.key, selected[q.key]])));
   }
 
   return (
@@ -79,6 +81,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
       ))}
       <Button
         onClick={submit}
+        disabled={!complete}
         size="lg"
         className="mt-1 w-full rounded-pill text-body-lg font-extrabold"
         style={{ height: 56 }}

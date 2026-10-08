@@ -6,6 +6,7 @@ import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { journeyStages } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
+import { useOnContentLocaleChange } from '@/shared/hooks/useContentLocale';
 import { assessmentApi } from '@/shared/api/assessment';
 import { motivationApi } from '@/shared/api/motivation';
 import type { MotivationTriplet, SavedAnswersResponse } from '@/shared/types';
@@ -73,6 +74,14 @@ export function useMotivationAssessment() {
   // Reset whenever the current triplet changes (see the effect below) —
   // elapsed time from here to handleNext feeds the speed-flag rest stop.
   const itemShownAtRef = useRef(Date.now());
+  // Language-switch text reloads (see useOnContentLocaleChange below): the
+  // latest request id, and the triplet whose text was just swapped — the
+  // ranking effect must not reset the card order the student is in the
+  // middle of dragging, nor restart its speed-flag clock.
+  const textRequestRef = useRef(0);
+  const textRefreshTripletRef = useRef<number | null>(null);
+  const tripletIndexRef = useRef(tripletIndex);
+  tripletIndexRef.current = tripletIndex;
 
   useEffect(() => {
     if (!assessmentId) {
@@ -141,7 +150,32 @@ export function useMotivationAssessment() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
 
+  // Language switch mid-block: re-read the statements and swap the text in
+  // place — same ids and triplet indexes, so rankings and position hold.
+  // Only the latest switch may land; a switch before the first load
+  // finished restarts that load (its request went out in the old language).
+  useOnContentLocaleChange(() => {
+    if (!assessmentId) return;
+    const request = ++textRequestRef.current;
+    if (triplets.length === 0) {
+      setRetryCount(c => c + 1);
+      return;
+    }
+    const tripletCount = triplets.length;
+    void motivationApi
+      .getTriplets(assessmentId)
+      .then(data => {
+        if (request !== textRequestRef.current || data.length !== tripletCount) return;
+        textRefreshTripletRef.current = tripletIndexRef.current;
+        setTriplets(data);
+      })
+      .catch(() => {});
+  });
+
   useEffect(() => {
+    const textOnly = textRefreshTripletRef.current === tripletIndex;
+    textRefreshTripletRef.current = null;
+    if (textOnly) return;
     const triplet = triplets[tripletIndex];
     if (!triplet) return;
     itemShownAtRef.current = Date.now();
