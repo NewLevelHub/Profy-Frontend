@@ -259,6 +259,7 @@ export function SubtestRunner({
             timeLabel={formatCountdownMmSs(remainingMs)}
             expired={timeUp}
             expiredMessage={t('astur.subtest.timeUp')}
+            expiredLabel={t('astur.subtest.timeUpShort')}
             urgentBelowMs={15_000}
             variant="rail"
           />,
