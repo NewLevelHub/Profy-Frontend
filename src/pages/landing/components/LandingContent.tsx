@@ -21,9 +21,11 @@ const REPORT_ICONS = [UserRound, Compass, Award, Flame, Layers, GraduationCap];
 
 export function LandingSectionHeading({ section }: { section: 'how' | 'features' | 'inside' | 'try' | 'report' }) {
   const { t } = useTranslation('landing');
+  // Заголовки называют факты о продукте — цифры берутся из тех же констант, что и остальной лендинг.
+  const facts = { minutes: LANDING_DURATION, universities: formatNumber(CATALOG_MILESTONES.universities) };
   return <div className="rd-section-heading rd-information-heading" data-landing-reveal>
-    <h2>{t(`${section}.titlePre`)}<span>{t(`${section}.titleAccent`)}</span></h2>
-    <p>{t(`${section}.sub`)}</p>
+    <h2>{t(`${section}.title`, facts)}</h2>
+    <p>{t(`${section}.sub`, facts)}</p>
   </div>;
 }
 
@@ -105,7 +107,7 @@ export function LandingDemo({ onOpenExample }: { onOpenExample: () => void }) {
   const [frame, setFrame] = useState<'results' | 'universities' | 'plan'>('results');
   const frames = ['results', 'universities', 'plan'] as const;
   return <section className="rd-report-teaser rd-wrap" id="demo" data-landing-reveal>
-    <div className="rd-teaser-copy"><h2>{t('demo.titlePre')}<br />{t('demo.titleAccent')}</h2><p>{t('demo.sub')}</p>
+    <div className="rd-teaser-copy"><h2>{t('demo.title')}</h2><p>{t('demo.sub')}</p>
       <div className="rd-demo-tabs" aria-label={t('demo.dotsAria')}>{frames.map(id => <button type="button" key={id} aria-pressed={frame === id} onClick={() => setFrame(id)}>{t(`demo.frame.${id}.kicker`)}</button>)}</div>
       <button type="button" className="rd-button" onClick={onOpenExample}>{t('redesign.cta.openExample')}<ArrowRight size={20} aria-hidden="true" /></button>
     </div>

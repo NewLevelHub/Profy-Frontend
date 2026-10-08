@@ -151,7 +151,6 @@
 .rd-home-stats p { font-size: var(--text-rd-ui); line-height: 1.65; color: color-mix(in srgb,var(--rd-on-pine-solid) 80%,transparent); }
 .rd-information-heading { align-items: start; }
 .rd-information-heading>h2 { max-width: 660px; }
-.rd-information-heading h2>span { color: var(--rd-purple); }
 .rd-information-heading>p { max-width: 350px; }
 .rd-feature-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
 .rd-feature-card { min-width: 0; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); padding: 28px; background: var(--rd-card); }
