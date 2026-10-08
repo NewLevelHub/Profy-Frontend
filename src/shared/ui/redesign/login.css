@@ -1,7 +1,7 @@
 .rd-login-shell { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); min-height: 100svh; }
 .rd-login-story { background: var(--rd-sage); padding: 40px 55px 30px; border-radius: 0 0 var(--rd-radius-xl) 0; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 .rd-story-top { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
-.rd-story-top>span { text-align: right; font-size: var(--text-rd-label); max-width: 150px; color: var(--rd-muted); }
+.rd-story-top>span:not(.rd-brand) { text-align: right; font-size: var(--text-rd-label); max-width: 150px; color: var(--rd-muted); }
 .rd-story-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 28px; margin-top: 42px; }
 .rd-story-copy h2 { font-size: var(--text-rd-page); line-height: 1.14; color: var(--rd-pine); margin: 0 0 20px; text-wrap: pretty; }
 .rd-story-copy h2>span { color: var(--rd-purple); }
@@ -20,6 +20,7 @@
 .rd-login-panel { padding: 36px 55px 28px; display: flex; flex-direction: column; }
 .rd-login-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; }
 .rd-mobile-brand { display: none; }
+.rd-login-top>.rd-preferences { margin-left: auto; }
 .rd-login-form { width: 100%; max-width: 430px; margin: 65px auto 55px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .rd-login-form h1 { font-size: var(--text-rd-page); line-height: 1.15; }
 .rd-login-intro { font-size: var(--text-rd-body); line-height: 1.85; margin-top: 20px; color: var(--rd-text); }
@@ -48,7 +49,7 @@
 .rd-login-note svg { flex-shrink: 0; }
 /* Keep content bounded on wide screens while both panel backgrounds reach the edges. */
 @media (min-width: 1500px) { .rd-login-story { padding: 46px 70px 32px max(70px,calc((100vw - 1540px) / 2)); } .rd-login-panel { padding-right: max(55px,calc((100vw - 1570px) / 2)); } }
-@media (max-width: 1150px) { .rd-login-story { padding-inline: 35px; } .rd-login-panel { padding-inline: 35px; } .rd-story-top>span { max-width: 110px; } .rd-login-top { flex-wrap: wrap; } .rd-auth-fact { padding: 16px; } }
+@media (max-width: 1150px) { .rd-login-story { padding-inline: 35px; } .rd-login-panel { padding-inline: 35px; } .rd-story-top>span:not(.rd-brand) { max-width: 110px; } .rd-login-top { flex-wrap: wrap; } .rd-auth-fact { padding: 16px; } }
 @media (max-width: 900px) {
   .rd-login-shell { display: block; }
   .rd-login-story { display: none; }
@@ -89,6 +90,7 @@
 .rd-auth-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 24px; text-align: center; }
 .rd-auth-actions .rd-text-link { min-height: 28px; }
 .rd-auth-hint, .rd-auth-feedback, .rd-resend-countdown { font-size: var(--text-rd-label); line-height: 1.75; color: var(--rd-muted); }
+.rd-google-hint { text-align: center; }
 .rd-resend-countdown { font-variant-numeric: tabular-nums; }
 .rd-auth-feedback { padding: 12px 15px; background: var(--rd-sage); border-radius: var(--rd-radius-md); color: var(--rd-ink); }
 .rd-auth-callout, .rd-auth-success { display: flex; gap: 10px; align-items: start; padding: 16px; border-radius: var(--rd-radius-md); background: var(--rd-sage); color: var(--rd-text); font-size: var(--text-rd-ui); line-height: 1.75; margin-top: 24px; }
