@@ -3,6 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { ArrowRight, KeyRound, Mail, XCircle } from 'lucide-react';
+import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
 import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
 import { PasswordInput } from '@/shared/ui/redesign/PasswordInput';
 import { AuthStepper } from '@/shared/ui/AuthStepper';
@@ -47,12 +48,7 @@ export default function ResetPasswordPage() {
 
   function validatePassword(): boolean {
     let valid = true;
-    const pwdErrKey = (() => {
-      if (password.length < 8) return 'auth:validation.passwordMin8';
-      if (!/[A-Za-z]/.test(password)) return 'auth:validation.passwordNeedsLetter';
-      if (!/\d/.test(password)) return 'auth:validation.passwordNeedsDigit';
-      return '';
-    })();
+    const pwdErrKey = passwordRuleErrorKey(password);
     if (pwdErrKey) {
       setPasswordError(t(pwdErrKey));
       valid = false;
