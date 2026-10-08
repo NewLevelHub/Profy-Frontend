@@ -94,5 +94,6 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 @utility animate-toast-in {
-  animation: toast-slide-up 220ms cubic-bezier(0.34, 1.20, 0.64, 1) forwards;
+  /* ease-out без перелёта — тост не пружинит. */
+  animation: toast-slide-up 220ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }

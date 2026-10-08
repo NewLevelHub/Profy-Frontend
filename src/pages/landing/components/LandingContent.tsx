@@ -21,7 +21,7 @@ const REPORT_ICONS = [UserRound, Compass, Award, Flame, Layers, GraduationCap];
 
 export function LandingSectionHeading({ section }: { section: 'how' | 'features' | 'inside' | 'try' | 'report' }) {
   const { t } = useTranslation('landing');
-  return <div className="rd-section-heading rd-information-heading" data-landing-reveal>
+  return <div className="rd-section-heading rd-information-heading">
     <h2>{t(`${section}.titlePre`)}<span>{t(`${section}.titleAccent`)}</span></h2>
     <p>{t(`${section}.sub`)}</p>
   </div>;
@@ -36,7 +36,7 @@ export function LandingStats() {
     { key: 'testsLabel', icon: Layers, value: t('stats.testsValue', { count: Object.keys(ASSESSMENT_PHASE_MINUTES).length }) },
   ];
   return <section className="rd-home-stats rd-wrap" id="stats" aria-label={t('redesign.catalogFacts')}>
-    {stats.map(({ key, icon: Icon, value }, index) => <div key={key} data-landing-reveal data-reveal-order={index}>
+    {stats.map(({ key, icon: Icon, value }, index) => <div key={key}>
       <Icon size={22} aria-hidden="true" /><strong>{value}</strong><p>{t(`stats.${key}`)}</p>
     </div>)}
   </section>;
@@ -46,7 +46,7 @@ export function LandingFeatures() {
   const { t } = useTranslation('landing');
   return <section className="rd-home-section rd-wrap" id="features">
     <LandingSectionHeading section="features" />
-    <div className="rd-feature-grid">{FEATURE_ICONS.map((Icon, index) => <article key={index} className="rd-feature-card" data-landing-reveal data-reveal-order={index % 3}>
+    <div className="rd-feature-grid">{FEATURE_ICONS.map((Icon, index) => <article key={index} className="rd-feature-card">
       <span className={`rd-icon-tile ${index % 3 === 1 ? 'rd-peach' : index % 3 === 2 ? 'rd-lilac' : 'rd-sage'}`}><Icon aria-hidden="true" /></span>
       <h3>{t(`features.f${index + 1}Title`)}</h3><p>{t(`features.f${index + 1}Desc`)}</p>
     </article>)}</div>
@@ -57,7 +57,7 @@ export function LandingInside() {
   const { t } = useTranslation('landing');
   return <section className="rd-home-section rd-wrap" id="inside">
     <LandingSectionHeading section="inside" />
-    <div className="rd-test-grid">{TESTS.map(({ key, icon: Icon, tone }, index) => <article key={key} className={`rd-test-card rd-test-${tone}`} data-landing-reveal data-reveal-order={index}>
+    <div className="rd-test-grid">{TESTS.map(({ key, icon: Icon, tone }, index) => <article key={key} className={`rd-test-card rd-test-${tone}`}>
       <div className="rd-test-card-top"><Icon size={26} aria-hidden="true" /><span>0{index + 1}</span></div>
       <h3>{t(`inside.${key}Name`)}</h3><p>{t(`inside.${key}Desc`)}</p>
       <ul>{[1, 2, 3, 4, 5, 6].map(n => <li key={n}>{t(`inside.${key}Chip${n}`)}</li>)}</ul>
@@ -88,11 +88,11 @@ export function LandingReportContents() {
   return <section className="rd-home-section rd-wrap" id="outcome">
     <LandingSectionHeading section="report" />
     <div className="rd-report-contents">
-      <div className="rd-report-promises" data-landing-reveal>
+      <div className="rd-report-promises">
         {[MessageCircle, ShieldCheck].map((Icon, index) => <div key={index}><Icon size={23} aria-hidden="true" /><h3>{t(`report.fact${index + 1}Title`)}</h3><p>{t(`report.fact${index + 1}Desc`)}</p></div>)}
         <img src="/mascot/redesign/notepad.png" alt="" width={1254} height={1254} loading="lazy" />
       </div>
-      <div className="rd-report-content-grid">{REPORT_ICONS.map((Icon, index) => <article key={index} data-landing-reveal data-reveal-order={index % 2}>
+      <div className="rd-report-content-grid">{REPORT_ICONS.map((Icon, index) => <article key={index}>
         <div><span>0{index + 1}</span><Icon size={20} aria-hidden="true" /></div>
         <h3>{t(`report.block${index + 1}Title`)}</h3><p>{t(`report.block${index + 1}Desc`)}</p>
       </article>)}</div>

@@ -88,7 +88,7 @@ export default function LandingPage() {
         <LandingStats />
         <section className="rd-home-section rd-wrap" id="how">
           <LandingSectionHeading section="how" />
-          <div className="rd-journey-grid">{STEPS.map((step, i) => <article className="rd-journey-card" key={step} data-landing-reveal data-reveal-order={i}><span className="rd-step-chip">{t('redesign.how.step', { number: `0${i+1}` })}</span><JourneyArt step={step} /><h3>{t(`how.step${i+1}Title`)}</h3><p>{t(`how.step${i+1}Desc`)}</p></article>)}</div>
+          <div className="rd-journey-grid">{STEPS.map((step, i) => <article className="rd-journey-card" key={step}><span className="rd-step-chip">{t('redesign.how.step', { number: `0${i+1}` })}</span><JourneyArt step={step} /><h3>{t(`how.step${i+1}Title`)}</h3><p>{t(`how.step${i+1}Desc`)}</p></article>)}</div>
         </section>
         <LandingDemo onOpenExample={showExample} />
         <LandingFeatures />
@@ -96,7 +96,7 @@ export default function LandingPage() {
         <LandingTry />
         <LandingReportContents />
         <section className="rd-parents rd-wrap" id="parents" data-landing-reveal><div className="rd-parent-art"><img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
-        <section className="rd-faq rd-wrap" id="faq" data-landing-reveal><div><h2>{t('faq.titlePre')}{t('faq.titleAccent')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4,5].map(i => <details key={i}><summary>{t(`faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`faq.a${i}`, { minutes: LANDING_DURATION })}</p></details>)}</div></section>
+        <section className="rd-faq rd-wrap" id="faq"><div><h2>{t('faq.titlePre')}{t('faq.titleAccent')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4,5].map(i => <details key={i}><summary>{t(`faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`faq.a${i}`, { minutes: LANDING_DURATION })}</p></details>)}</div></section>
         <section className="rd-final-cta rd-wrap" data-landing-reveal><div><h2>{t('redesign.final.title')}</h2><p>{t('redesign.final.description')}</p></div><Link to="/register" className="rd-button rd-button-light rd-button-large">{t('redesign.final.cta')}<ArrowRight aria-hidden="true" /></Link></section>
       </main>
       <footer className="rd-landing-footer rd-wrap"><div><Brand /><p>{t('footer.about')}</p></div><nav aria-label={t('footer.colProduct')}>{NAV.map(id => <a key={id} href={`#${id}`}>{t(`nav.${id}`)}</a>)}</nav><div className="rd-landing-footer-bottom"><span>{t('footer.copyright', { app: 'Profile' })}</span><span>{t('footer.city')}</span></div></footer>
