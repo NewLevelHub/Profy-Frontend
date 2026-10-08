@@ -89,11 +89,3 @@
   animation: slide-down-fade 180ms ease-out forwards;
 }
 
-@keyframes toast-slide-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@utility animate-toast-in {
-  /* ease-out без перелёта — тост не пружинит. */
-  animation: toast-slide-up 220ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}

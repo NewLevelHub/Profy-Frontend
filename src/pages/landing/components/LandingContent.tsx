@@ -36,7 +36,7 @@ export function LandingStats() {
     { key: 'testsLabel', icon: Layers, value: t('stats.testsValue', { count: Object.keys(ASSESSMENT_PHASE_MINUTES).length }) },
   ];
   return <section className="rd-home-stats rd-wrap" id="stats" aria-label={t('redesign.catalogFacts')}>
-    {stats.map(({ key, icon: Icon, value }, index) => <div key={key}>
+    {stats.map(({ key, icon: Icon, value }) => <div key={key}>
       <Icon size={22} aria-hidden="true" /><strong>{value}</strong><p>{t(`stats.${key}`)}</p>
     </div>)}
   </section>;
