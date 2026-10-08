@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Building2, ClipboardList, Compass, Heart, Layers3, LogOut, Menu, MessageSquare, ShieldCheck, Users, UsersRound, X } from 'lucide-react';
+import { BookOpen, Building2, ClipboardList, Compass, Heart, Layers3, LogOut, MailPlus, Menu, MessageSquare, ShieldCheck, Users, UsersRound, X } from 'lucide-react';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAdminLocaleGuardState } from '@/shared/lib/useAdminLocaleGuard';
@@ -9,6 +9,7 @@ import { useAdminLocaleGuardState } from '@/shared/lib/useAdminLocaleGuard';
 const groups = [
   { label: 'nav.title', items: [
     { path: '/admin/users', label: 'nav.users', icon: Users },
+    { path: '/admin/invitations', label: 'nav.invitations', icon: MailPlus },
     { path: '/admin/universities', label: 'nav.universities', icon: Building2 },
     { path: '/admin/feedback', label: 'nav.feedback', icon: MessageSquare },
   ] },
