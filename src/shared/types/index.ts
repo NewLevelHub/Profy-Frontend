@@ -715,6 +715,8 @@ export interface PsychoEmotionalAnxiety {
   score: number;
   level: PsychoAnxietyLevel;
   breakdown: Record<string, number>;
+  frustration_score: number;
+  compensation_score: number;
 }
 
 export interface PsychoEmotionalCompensation {
@@ -723,6 +725,14 @@ export interface PsychoEmotionalCompensation {
   breakdown: Record<string, number>;
   purple_forward: boolean;
   purple_position: number;
+}
+
+export interface PsychoEmotionalChoiceAnalysis {
+  round: 1 | 2;
+  colors: number[];
+  anxiety: PsychoEmotionalAnxiety;
+  compensation: PsychoEmotionalCompensation;
+  function_marks: PsychoFunctionalSign[][];
 }
 
 export interface PsychoEmotionalStructural {
@@ -751,6 +761,7 @@ export interface PsychoEmotionalSection {
   validity_reasons: string[];
   choice_1: number[];
   choice_2: number[];
+  choice_analyses: PsychoEmotionalChoiceAnalysis[];
   d_value: number;
   d_memory: boolean;
   d_situationally_unstable: boolean;
@@ -762,8 +773,10 @@ export interface PsychoEmotionalSection {
   anxiety: PsychoEmotionalAnxiety;
   compensation: PsychoEmotionalCompensation;
   so_value: number;
+  so_score: number;
   so_level: PsychoSoLevel;
   vk_value: number;
+  vk_score: number;
   vk_level: PsychoVkLevel;
   structural?: PsychoEmotionalStructural;
   black_first: boolean;
@@ -790,9 +803,22 @@ export interface PsychoEmotionalIndexNote {
 /** `plus_minus` — descriptive contrast: [first, last] colour of choice 2. */
 export type PsychoPositionSign = PsychoFunctionalSign | 'plus_minus';
 
+export interface PsychoEmotionalColorNote {
+  color: number;
+  text: string;
+}
+
 export interface PsychoEmotionalPositionNote {
   sign: PsychoPositionSign;
   colors: number[];
+  text: string;
+  details?: PsychoEmotionalColorNote[];
+}
+
+export interface PsychoEmotionalMcvGroup {
+  sign: PsychoPositionSign;
+  colors: number[];
+  stable: boolean | null;
   text: string;
 }
 
@@ -801,6 +827,7 @@ export interface PsychoEmotionalInterpretation {
   highlights: PsychoEmotionalHighlight[];
   indices: PsychoEmotionalIndexNote[];
   positions: PsychoEmotionalPositionNote[];
+  mcv_groups?: PsychoEmotionalMcvGroup[];
 }
 
 interface ResultResponseBase {
