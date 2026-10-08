@@ -45,8 +45,6 @@ function HeroArt() {
   const { t } = useTranslation('landing');
   return (
     <div className="rd-hero-art">
-      
-      
       <div className="rd-mascot-scene"><img src="/mascot/redesign/greeting.png" alt={t('redesign.mascotAlt')} width="1254" height="1254" fetchPriority="high" /></div>
       <div className="rd-floating-card rd-card-interest"><span className="rd-icon-tile rd-lilac"><Heart aria-hidden="true" /></span><div><small>{t('redesign.hero.interestLabel')}</small><strong>{t('redesign.hero.interestTitle')}</strong><div className="rd-mini-bars" aria-hidden="true">{[1,2,3,4,5,6,7].map(i => <i key={i} />)}</div></div></div>
       <div className="rd-floating-card rd-card-path"><span className="rd-icon-tile rd-peach"><Compass aria-hidden="true" /></span><div><small>{t('redesign.hero.pathLabel')}</small><strong>{t('redesign.hero.pathTitle')}</strong><div className="rd-path-dots" aria-hidden="true"><b /><i /><b /><i /><b /></div></div></div>

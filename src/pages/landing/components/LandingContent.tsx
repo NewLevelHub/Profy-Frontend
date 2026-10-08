@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, BookOpen, Brain, Building2, ClipboardList, Compass, FileText, Flame, GraduationCap, Layers, Map, MessageCircle, Route, ShieldCheck, Target, Timer, Users } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, Brain, Building2, ClipboardList, Compass, Flame, GraduationCap, Layers, Map, MessageCircle, Route, ShieldCheck, Target, Timer, UserRound, Users } from 'lucide-react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/shared/i18n/format';
@@ -16,7 +16,8 @@ const TESTS = [
   { key: 'abilities', icon: Brain, tone: 'sage' },
 ] as const;
 const FEATURE_ICONS = [Layers, Timer, MessageCircle, ClipboardList, Target, Building2];
-const REPORT_ICONS = [FileText, Compass, Target, Flame, Layers, GraduationCap];
+// Те же иконки, что у разделов в самом отчёте.
+const REPORT_ICONS = [UserRound, Compass, Award, Flame, Layers, GraduationCap];
 
 export function LandingSectionHeading({ section }: { section: 'how' | 'features' | 'inside' | 'try' | 'report' }) {
   const { t } = useTranslation('landing');

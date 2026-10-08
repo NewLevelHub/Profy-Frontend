@@ -14,8 +14,7 @@
 .rd-auth-fact p { margin-top: 7px; font-size: var(--text-rd-ui); line-height: 1.7; color: var(--rd-text); }
 .rd-auth-companion { display: flex; align-items: center; justify-content: center; gap: 20px; }
 .rd-auth-companion>img { width: 96px; height: 108px; object-fit: contain; flex-shrink: 0; }
-.rd-auth-companion>div { display: flex; gap: 12px; align-items: center; font-size: var(--text-rd-ui); color: var(--rd-text); }
-.rd-auth-companion svg { color: var(--rd-purple); flex-shrink: 0; }
+.rd-auth-companion>div { font-size: var(--text-rd-ui); color: var(--rd-text); }
 .rd-auth-companion strong { display: block; font-weight: 500; color: var(--rd-pine); margin-top: 3px; }
 .rd-story-footer { font-size: var(--text-rd-label); color: var(--rd-muted); margin-top: 24px; }
 .rd-login-panel { padding: 36px 55px 28px; display: flex; flex-direction: column; }
