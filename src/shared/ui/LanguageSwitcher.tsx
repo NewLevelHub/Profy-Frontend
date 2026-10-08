@@ -24,6 +24,8 @@ const OPTIONS = KNOWN_LOCALES.filter((l) => (SUPPORTED_LOCALES as readonly strin
 
 export interface LanguageSwitcherProps {
   className?: string;
+  persistToAccount?: boolean;
+  disabledReason?: string;
 }
 
 /**
@@ -34,7 +36,7 @@ export interface LanguageSwitcherProps {
  * account preference sticks — but a missing/older backend without `locale`
  * must not block the switch or flash a cryptic "!" (that was the bug).
  */
-export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ className, persistToAccount = true, disabledReason }: LanguageSwitcherProps) {
   const { t } = useTranslation('common');
   const locale = useLocaleStore((s) => s.locale);
   const setLocale = useLocaleStore((s) => s.setLocale);
@@ -65,7 +67,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   if (OPTIONS.length <= 1) return null;
 
   async function choose(next: Locale) {
-    if (next === locale || pending) {
+    if (next === locale || pending || disabledReason) {
       setOpen(false);
       return;
     }
@@ -74,7 +76,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     setLocale(next);
     setOpen(false);
 
-    if (!isAuthenticated) return;
+    if (!persistToAccount || !isAuthenticated) return;
 
     // Persist on the account when the API supports it. Failure is non-fatal:
     // the session keeps the new UI language in localStorage.
@@ -98,13 +100,14 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
         aria-controls={listId}
         aria-label={t('languageSwitcherAria')}
         aria-busy={pending}
-        disabled={pending}
+        disabled={pending || Boolean(disabledReason)}
+        title={disabledReason}
         onClick={() => setOpen((v) => !v)}
         className={cn(
           'inline-flex items-center gap-1 rounded-[10px] px-2.5 py-1.5',
           'text-body-sm font-semibold text-[color:var(--text-heading)]',
           'hover:bg-hover transition-colors press-scale',
-          pending && 'opacity-60',
+          (pending || disabledReason) && 'opacity-60',
         )}
       >
         {LABEL[locale]}
@@ -137,7 +140,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                   type="button"
                   role="option"
                   aria-selected={active}
-                  disabled={pending}
+                  disabled={pending || Boolean(disabledReason)}
                   onClick={() => choose(l)}
                   className={cn(
                     'w-full flex items-center justify-between gap-3 rounded-[10px] px-3 py-2',

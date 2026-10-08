@@ -21,7 +21,7 @@ interface AdminSectionHeadingProps {
  */
 export function AdminSectionHeading({ title, description, aside, className }: AdminSectionHeadingProps) {
   return (
-    <div className={cn('flex items-start justify-between gap-3 flex-wrap', className)}>
+    <div className={cn('admin-section-heading flex items-start justify-between gap-3 flex-wrap', className)}>
       <div className="min-w-0">
         <h2 className="font-sans text-body-lg sm:text-display-sm font-bold text-primary m-0 tracking-tight">{title}</h2>
         {description && <p className="font-sans text-body-md text-muted mt-1.5 max-w-[68ch] leading-relaxed">{description}</p>}

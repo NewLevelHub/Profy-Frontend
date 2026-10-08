@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { Download, FileText, UserPlus } from 'lucide-react';
+import { Download, FileText, UserPlus, Users, ClipboardCheck, Clock3 } from 'lucide-react';
 import { adminApi } from '@/shared/api/admin';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
@@ -10,7 +10,6 @@ import { printWithTitle } from '@/shared/lib/printDocument';
 import { useAdminListParams } from '@/shared/lib/useAdminListParams';
 import { useRememberListQuery } from '@/shared/lib/listReturnPath';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
-import { USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { AdminListHeader } from '@/shared/ui/admin/AdminListHeader';
 import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
@@ -19,10 +18,9 @@ import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
 import { AgeBadge } from '@/shared/ui/admin/AgeBadge';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { UsersPrintReport } from './components/UsersPrintReport';
-import { CreateStaffModal } from './components/CreateStaffModal';
+import { InviteStaffModal } from '@/pages/admin/invitations/components/InviteStaffModal';
 import { ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type {
-  AdminUserDetail,
   AdminUserListItem,
   AdminUserStats,
   AssessmentGoal,
@@ -165,8 +163,7 @@ export default function AdminUsersPage() {
   } | null>(null);
   const [exportError, setExportError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createdUser, setCreatedUser] = useState<AdminUserDetail | null>(null);
+  const [isInviteOpen, setInviteOpen] = useState(false);
   const [stats, setStats] = useState<AdminUserStats | null>(null);
 
   const {
@@ -381,7 +378,7 @@ export default function AdminUsersPage() {
     align: 'right',
     mobile: 'field',
     cell: (item) => (
-      <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatRelative(item.created_at, t)}</span>
+      <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>{formatIntlDate(item.created_at, { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
     ),
   };
 
@@ -395,7 +392,7 @@ export default function AdminUsersPage() {
     headerTitle: t('users.col.activeHint'),
     cell: (item) =>
       item.last_active_at ? (
-        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')}>
+        <span className={cn(ADMIN_NUM, 'text-muted whitespace-nowrap')} title={formatIntlDate(item.last_active_at, { dateStyle: 'long', timeStyle: 'short' })}>
           {formatRelative(item.last_active_at, t)}
         </span>
       ) : (
@@ -414,16 +411,17 @@ export default function AdminUsersPage() {
         userColumn,
         {
           key: 'age',
-          header: t('users.tier'),
-          width: '146px',
+          header: t('common.col.age'),
+          width: '104px',
           mobile: 'field',
           cell: (item) => <AgeBadge age={item.age} />,
         },
         {
           key: 'diagnostics',
           header: t('users.col.assessment'),
-          width: '146px',
+          width: '158px',
           mobile: 'badge',
+          wrap: true,
           cell: (item) => <DiagnosticsCell status={item.latest_assessment_status} />,
         },
         {
@@ -475,17 +473,9 @@ export default function AdminUsersPage() {
               <Download size={14} />
               {t('users.exportCsv')}
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              muteSound
-              onClick={() => {
-                setCreatedUser(null);
-                setCreateOpen(true);
-              }}
-            >
+            <Button variant="primary" size="sm" muteSound onClick={() => setInviteOpen(true)}>
               <UserPlus size={14} />
-              {t('users.createStaff')}
+              {t('users.inviteStaff')}
             </Button>
           </>
         }
@@ -493,24 +483,10 @@ export default function AdminUsersPage() {
 
       {stats && <UserStatsTiles stats={stats} />}
 
-      {createdUser && (
-        <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-[3px] border border-brand bg-brand-subtle">
-          <p className={cn(ADMIN_TEXT, 'text-brand m-0')}>
-            {t('users.createdStaff', {
-              email: createdUser.email,
-              role: t(USER_ROLE_LABELS[createdUser.role]),
-            })}
-          </p>
-          <Link to={`/admin/users/${createdUser.id}`} className={cn(ADMIN_TEXT, 'text-brand font-semibold underline whitespace-nowrap')}>
-            {t('users.createdStaffOpen')}
-          </Link>
-        </div>
-      )}
-
       <div
         role="group"
         aria-label={t('users.roleTabs.aria')}
-        className="inline-flex rounded-[14px] border border-default overflow-hidden self-start"
+        className="admin-role-tabs inline-flex rounded-[14px] border border-default overflow-hidden self-start"
       >
         {ROLE_TABS.map((tab) => (
           <button
@@ -567,14 +543,14 @@ export default function AdminUsersPage() {
         onClearAll={clearListFilters}
       />
 
-      {/* The status/goal filters mean "has at least one matching assessment",
-          while the goal column always shows the latest one. Said once, in
-          place, instead of hidden in a header tooltip. */}
+      {/* The API predicates and the visible cells refer to the same latest test. */}
       {isStudentRole && (status || goal) && (
         <p className={cn(ADMIN_META, '-mt-1')}>
           {t('users.filterNote')}
         </p>
       )}
+
+      {inactiveDays && <p className={cn(ADMIN_META, '-mt-1')}>{t('users.activityFilterHint')}</p>}
 
       {error && <AdminError message={error} onRetry={() => setReloadToken((token) => token + 1)} />}
       {exportError && <AdminError message={exportError} />}
@@ -589,7 +565,7 @@ export default function AdminUsersPage() {
         onSortChange={setSort}
         loading={loading}
         emptyTitle={isStudentRole ? t('users.empty') : t('users.emptyStaff')}
-        emptyHint={isStudentRole ? t('users.emptyHint') : t('users.emptyStaffHint')}
+        emptyHint={isStudentRole || search || inactiveDays ? t('users.emptyHint') : t('users.emptyStaffHint')}
       />
 
       <AdminPager page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} countKey="users" />
@@ -603,19 +579,8 @@ export default function AdminUsersPage() {
         />
       )}
 
-      <CreateStaffModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreated={(user) => {
-          setCreatedUser(user);
-          // Jump to the new staff member's role tab so they show up immediately.
-          setFilters({
-            role: user.role === 'student' ? '' : user.role,
-            status: '',
-            goal: '',
-          });
-        }}
-      />
+      {/* Staff accounts are created only by accepting an invitation (PRO-457). */}
+      <InviteStaffModal isOpen={isInviteOpen} onClose={() => setInviteOpen(false)} showListLink />
     </>
   );
 }
@@ -646,17 +611,17 @@ function UserStatsTiles({ stats }: { stats: AdminUserStats }) {
   ];
 
   return (
-    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-      {tiles.map((tile) => (
+    <div className="rd-admin-stats">
+      {tiles.map((tile, index) => (
         <div
           key={tile.label}
-          className="bg-surface border border-default rounded-[3px] px-3 py-2.5"
+          className="rd-admin-stat"
           title={tile.hint}
         >
-          <p className="font-mono text-display-sm font-medium text-primary tabular-nums m-0 leading-none">
-            {tile.value}
-          </p>
-          <p className={cn(ADMIN_META, 'mt-1.5')}>{tile.label}</p>
+          <span className="rd-admin-stat-icon" data-tone={index === 1 ? 'purple' : index === 3 ? 'orange' : 'green'} aria-hidden="true">
+            {index === 0 ? <Users size={20} /> : index === 1 ? <UserPlus size={20} /> : index === 2 ? <ClipboardCheck size={20} /> : <Clock3 size={20} />}
+          </span>
+          <div><strong>{tile.value}</strong><p>{tile.label}</p></div>
         </div>
       ))}
     </div>

@@ -49,7 +49,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
         const reasons = career.fit_reasons;
         const extraReasons = isTop ? reasonsBeyondWhy(career) : [];
         const rowClassName = cn(
-          'group panel-glass flex flex-col gap-3 text-left !p-4 sm:!p-5',
+          'rd-direction-row group panel-glass flex flex-col gap-3 text-left !p-4 sm:!p-5',
           'transition-[border-color,box-shadow,transform] duration-200',
           !readOnly && 'press-scale hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--pine)_28%,var(--border))]',
           isTop && 'bg-[color-mix(in_srgb,var(--pine)_4%,var(--paper))]',

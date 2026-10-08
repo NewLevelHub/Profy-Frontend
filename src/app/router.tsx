@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router';
+import { Spinner } from '@/shared/ui/Spinner';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireAdmin } from '@/shared/guards/RequireAdmin';
@@ -20,6 +21,8 @@ import RegisterPage from '@/pages/auth/RegisterPage';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
+// Web-only: staff accept an email invitation (PRO-465).
+import InvitePage from '@/pages/auth/invite/InvitePage';
 
 // ── Onboarding flow (mobile: Welcome → ProfileSetup → ArtifactsSetup) ─────────
 import WelcomePage from '@/pages/onboarding/WelcomePage';
@@ -57,6 +60,7 @@ import UniversityDetailPage from '@/pages/universities/UniversityDetailPage';
 // ── Admin ─────────────────────────────────────────────────────────────────────
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
+import AdminInvitationsPage from '@/pages/admin/invitations/AdminInvitationsPage';
 import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
 import AdminUniversitiesPage from '@/pages/admin/AdminUniversitiesPage';
 import AdminUniversityDetailPage from '@/pages/admin/AdminUniversityDetailPage';
@@ -86,6 +90,28 @@ import PsychologistReportHistoryPage from '@/pages/psychologist/PsychologistRepo
 import NotFoundPage from '@/pages/errors/NotFoundPage';
 
 export const router = createBrowserRouter([
+  // Local design review uses fixtures and never calls assessment APIs.
+  ...(import.meta.env.DEV ? [{
+    path: '/design/finishing',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/FinishingDesignPreview')).default }),
+  }, {
+    path: '/design/assessment',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/AssessmentDesignPreview')).default }),
+  }, {
+    path: '/design/special-assessments',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/assessment/design/SpecialAssessmentDesignPreview')).default }),
+  }, {
+    path: '/design/student',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/results/design/StudentDesignPreview')).default }),
+  }, {
+    path: '/design/universities',
+    HydrateFallback: Spinner,
+    lazy: async () => ({ Component: (await import('@/pages/universities/design/CatalogDesignPreview')).default }),
+  }] : []),
   // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
   {
     element: <RequireGuest />,
@@ -108,6 +134,15 @@ export const router = createBrowserRouter([
     ],
   },
 
+  // ── Staff invitation (web-only) ─────────────────────────────────────────────
+  // Outside RequireGuest on purpose: a signed-in visitor must see whose
+  // session would be replaced instead of being silently sent to a cabinet,
+  // and the page itself decides when to sign in after Google.
+  {
+    element: <AuthLayout />,
+    children: [{ path: '/invite', element: <InvitePage /> }],
+  },
+
   // ── Authenticated (mobile: AppNavigator) ───────────────────────────────────
   {
     element: <RequireAuth />,
@@ -118,7 +153,7 @@ export const router = createBrowserRouter([
         element: <RequirePsychologist />,
         children: [
           {
-            element: <AppLayout />,
+            element: <AppLayout psychologist />,
             children: [
               // The review queue is the cabinet's front page (it's where work starts).
               { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
@@ -148,10 +183,8 @@ export const router = createBrowserRouter([
         element: <RequireAdmin />,
         children: [
           {
-            // Same AppLayout shell as psychologist (TopRail: brand · nav ·
-            // language · theme · logout). Admin section destinations stay in
-            // AdminLayout's side rail — PRO-421 / PRO-391.
-            element: <AppLayout />,
+            // Dedicated admin navigation; keeps the shared scroll restoration.
+            element: <AppLayout admin />,
             children: [
               { path: '/admin', element: <Navigate to="/admin/users" replace /> },
               {
@@ -159,6 +192,7 @@ export const router = createBrowserRouter([
                 children: [
                   { path: '/admin/users', element: <AdminUsersPage /> },
                   { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+                  { path: '/admin/invitations', element: <AdminInvitationsPage /> },
                   { path: '/admin/feedback', element: <AdminFeedbackPage /> },
                   { path: '/admin/universities', element: <AdminUniversitiesPage /> },
                   { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
@@ -235,7 +269,7 @@ export const router = createBrowserRouter([
               // rail never lands in the exported PDF.
               { path: '/results/print', element: <ResultPrintPage /> },
               {
-                element: <AppLayout />,
+                element: <AppLayout redesigned />,
                 children: [
                   { path: '/results', element: <ResultsPage /> },
                   { path: '/profile', element: <ProfilePage /> },

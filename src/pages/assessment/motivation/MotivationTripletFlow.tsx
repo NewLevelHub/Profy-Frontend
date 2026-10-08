@@ -1,13 +1,10 @@
+import { MotivationQuestion } from './MotivationQuestion';
+import { AssessmentLayout } from '../components/AssessmentLayout';
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
-import { Check } from 'lucide-react';
-import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { AssessmentRail } from '@/shared/ui/navigation/AssessmentRail';
-import { Heading } from '@/shared/ui/typography/Heading';
-import { Text } from '@/shared/ui/typography/Text';
 import { useMotivationAssessment } from '../hooks/useMotivationAssessment';
-import { TripletRanking } from '../components/TripletRanking';
 import { ExitAssessmentModal } from '../components/ExitAssessmentModal';
 import { AssessmentIntro } from '../components/AssessmentIntro';
 import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
@@ -48,13 +45,22 @@ export default function MotivationTripletFlow() {
       : t('rail.sectionMotivation');
 
   return (
-    <div className="flex flex-col min-h-screen bg-page">
+    <AssessmentLayout>
 
       {/* ── Exit confirmation modal ─────────────────────────────────── */}
-      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} />
+      <ExitAssessmentModal
+        redesigned
+        title={t('redesign.motivationExitTitle')}
+        body={t('redesign.motivationExitBody', { continueLabel: t('priority.continue') })}
+        saveAndExitLabel={t('rail.exit')}
+        open={exitConfirmOpen}
+        onSaveAndExit={confirmExit}
+        onContinue={cancelExit}
+      />
 
       {/* ── Rail (progress · sound · exit) ────────────────────────── */}
       <AssessmentRail
+        redesigned
         title={headerTitle}
         sectionLabel={t('rail.sectionMotivation')}
         progressAriaLabel={t('rail.progressAriaMotivation')}
@@ -66,7 +72,7 @@ export default function MotivationTripletFlow() {
       />
 
       {/* ── Content ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col max-w-2xl lg:max-w-4xl mx-auto w-full">
+      <main id="assessment-content" tabIndex={-1} className="rd-assessment-main">
 
         {phase === 'loading' && (
           <div className="flex-1 flex items-center justify-center">
@@ -76,6 +82,7 @@ export default function MotivationTripletFlow() {
 
         {phase === 'intro' && (
           <AssessmentIntro
+            illustrated
             kicker={t('intro.motivationTriplet.kicker')}
             title={t('intro.motivationTriplet.title')}
             subtitle={t('intro.motivationTriplet.subtitle')}
@@ -88,10 +95,10 @@ export default function MotivationTripletFlow() {
 
         {phase === 'question' && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="rd-assessment-workspace">
 
               {error !== null && (
-                <div className="mb-4 p-3 rounded-xl bg-danger-subtle text-danger text-caption text-center">
+                <div role="alert" className="rd-assessment-error">
                   <p>{error}</p>
                   <button type="button" onClick={retry} className="mt-2 font-semibold underline">
                     {t('error.retry')}
@@ -102,49 +109,25 @@ export default function MotivationTripletFlow() {
               {currentTriplet !== undefined && (
                 <div
                   className={cn(
-                    'transition-opacity duration-300',
+                    'rd-assessment-ranking transition-opacity duration-300',
                     transitioning ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  <Heading level="display-sm" as="h2" className="text-primary mb-2">
-                    {t('format.rankPriority')}
-                  </Heading>
-                  <Text variant="caption" className="text-secondary mb-6">
-                    {t('format.dragToTop')}
-                  </Text>
-                  <TripletRanking
+                  <MotivationQuestion
                     statements={orderedStatements}
                     onReorder={handleReorder}
+                    onConfirm={handleConfirmOrder}
+                    confirmed={hasInteracted}
+                    onNext={handleNext}
+                    canProceed={canProceed}
                     disabled={saving || transitioning}
                   />
-                  <button
-                    type="button"
-                    onClick={handleConfirmOrder}
-                    disabled={saving || transitioning}
-                    aria-pressed={hasInteracted}
-                    className={cn(
-                      'mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium transition-colors',
-                      'disabled:cursor-not-allowed disabled:opacity-50',
-                      hasInteracted ? 'text-brand' : 'text-secondary hover:text-primary',
-                    )}
-                  >
-                    <Check size={14} aria-hidden />
-                    {hasInteracted ? t('triplet.orderConfirmed') : t('triplet.confirmOrder')}
-                  </button>
-                  <Button
-                    onClick={handleNext}
-                    disabled={!canProceed || saving}
-                    size="lg"
-                    className="w-full rounded-pill mt-6"
-                  >
-                    {t('priority.continue')}
-                  </Button>
                 </div>
               )}
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </main>
+    </AssessmentLayout>
   );
 }

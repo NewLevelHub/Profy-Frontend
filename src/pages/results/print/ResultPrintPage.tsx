@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
+import { Brand } from '@/shared/ui/redesign/Brand';
+import '@/shared/ui/redesign/redesign.css';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { useResultPrint } from './hooks/useResultPrint';
 import { PrintToolbar } from './components/PrintToolbar';
@@ -51,12 +53,12 @@ export default function ResultPrintPage() {
   } = useResultPrint();
 
   return (
-    <div className="print-shell px-4 py-6 sm:py-10">
+    <div className="redesign print-shell px-4 py-6 sm:py-10">
       <div className="print-page-frame max-w-[210mm] mx-auto">
-        <div data-print-hide className="flex justify-end mb-4">
-          <FullScreenPreferences />
+        <div data-print-hide className="print-screen-header">
+          <Brand linked={false} /><FullScreenPreferences />
         </div>
-        <PrintToolbar onBack={back} onPrint={print} />
+        <PrintToolbar onBack={back} onPrint={print} disabled={isLoading || !hasCompletedAssessment || !report || Boolean(error)} />
 
         {!hasCompletedAssessment ? (
           <PrintFallback text={t('print.notCompleted')} onBack={back} />

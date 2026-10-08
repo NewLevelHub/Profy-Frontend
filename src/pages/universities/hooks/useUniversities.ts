@@ -5,7 +5,7 @@ import { universityApi } from '@/shared/api/university';
 import { useFavoriteUniversity } from '@/shared/hooks/useFavoriteUniversity';
 import { scrollMainToTop } from '@/shared/lib/scrollMain';
 
-const PAGE_SIZE = 24;
+export const UNIVERSITY_PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function useUniversities() {
@@ -74,7 +74,7 @@ export function useUniversities() {
   const params = useMemo(
     () => ({
       page,
-      limit: PAGE_SIZE,
+      limit: UNIVERSITY_PAGE_SIZE,
       ...(search ? { search } : {}),
       ...(activeCountry ? { country: activeCountry } : {}),
       ...(onlyFavorites ? { only_favorites: true } : {}),
@@ -137,7 +137,7 @@ export function useUniversities() {
   );
 
   const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / UNIVERSITY_PAGE_SIZE));
 
   // Номер страницы теперь можно переслать ссылкой, а значит и промахнуться:
   // под фильтром страниц меньше, чем было без него. Пустой экран вместо

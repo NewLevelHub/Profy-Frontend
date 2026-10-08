@@ -47,7 +47,7 @@ const ICON_BUTTON =
   'w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 inline-flex items-center justify-center text-secondary ' +
   'hover:bg-hover hover:text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none';
 
-const ROW_GRID = 'grid grid-cols-[24px_minmax(0,1fr)] sm:grid-cols-[28px_minmax(0,1fr)_52px_72px_148px] items-center gap-3';
+const ROW_GRID = 'rd-review-career-row grid grid-cols-[24px_minmax(0,1fr)] sm:grid-cols-[28px_minmax(0,1fr)_52px_72px_148px] items-center gap-3';
 
 interface SortableCareerRowProps {
   career: PsychologistReviewCareer;
@@ -209,7 +209,7 @@ export function ReviewCareersEditor({ careers, onChange, disabled, aiRecommended
       {careers.length === 0 ? (
         <Text variant="body-sm" className="text-muted m-0">{t('review.careers.empty')}</Text>
       ) : (
-        <div className="border border-default rounded-[8px] overflow-hidden">
+        <div className="rd-review-careers border border-default rounded-[8px] overflow-hidden">
           <div className={cn(ROW_GRID, 'hidden sm:grid px-4 py-2.5 border-b border-default')} aria-hidden="true">
             <Text as="span" variant="caption" className="text-muted">
               {t('review.careers.colNumber')}

@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Heading } from '@/shared/ui/typography/Heading';
-import { Text } from '@/shared/ui/typography/Text';
+import { PrintMasthead } from '@/shared/ui';
 import { formatDate } from '@/shared/i18n/format';
 import type { ProfileResponse } from '@/shared/types';
 
@@ -26,29 +25,8 @@ export function PrintCover({ profile, subtitle, createdAt }: PrintCoverProps) {
     profile?.city,
   ].filter(Boolean).join(' · ');
 
-  return (
-    <header className="print-block space-y-3 border-b border-[var(--hairline)] pb-5">
-      <div className="flex items-baseline justify-between gap-4">
-        <p className="font-mono text-mono-xs font-bold uppercase tracking-label text-muted">
-          {t('print.cover.eyebrow')}
-        </p>
-        {dateLabel && (
-          <p className="font-mono text-mono-xs uppercase tracking-label text-muted">{dateLabel}</p>
-        )}
-      </div>
-      <div>
-        <Heading level="display-md" className="text-[color:var(--text-heading)]">
-          {t('page.title')}
-        </Heading>
-        <Text variant="body-sm" className="text-secondary font-semibold mt-[3px]">
-          {subtitle}
-        </Text>
-      </div>
-      {meta && (
-        <Text variant="caption" className="text-secondary">
-          {meta}
-        </Text>
-      )}
-    </header>
-  );
+  return <PrintMasthead label={t('print.cover.eyebrow')} title={t('page.title')}
+    meta={<>{meta && <p>{meta}</p>}{dateLabel && <p>{dateLabel}</p>}</>}>
+    <p className="print-masthead-subtitle">{subtitle}</p>
+  </PrintMasthead>;
 }

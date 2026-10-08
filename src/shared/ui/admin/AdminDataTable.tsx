@@ -1,6 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { ArrowUp } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { ADMIN_CARD, ADMIN_CELL, ADMIN_TEXT, MONO_LABEL, MONO_MUTE } from '@/shared/ui/admin/density';
@@ -36,9 +36,10 @@ export type AdminColumnAlign = 'left' | 'right';
  * - `subtitle` — dimmer line right under the title (email, slug)
  * - `badge`    — sits in the card's status row (status, override marker)
  * - `field`    — label/value pair in the card's bottom grid
+ * - `action`   — visible link or button in the card's footer
  * - `hidden`   — dropped on narrow screens (raw ids, redundant columns)
  */
-export type AdminColumnMobileRole = 'title' | 'subtitle' | 'badge' | 'field' | 'hidden';
+export type AdminColumnMobileRole = 'title' | 'subtitle' | 'badge' | 'field' | 'action' | 'hidden';
 
 export interface AdminColumn<T> {
   key: string;
@@ -104,7 +105,7 @@ export function AdminDataTable<T>({
 
   if (loading) {
     return (
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
+      <div className={cn(ADMIN_CARD, 'admin-data-table p-0 overflow-hidden')}>
         <AdminTableSkeleton columns={Math.min(columns.length, 5)} />
       </div>
     );
@@ -112,7 +113,7 @@ export function AdminDataTable<T>({
 
   if (rows.length === 0) {
     return (
-      <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
+      <div className={cn(ADMIN_CARD, 'admin-data-table p-0 overflow-hidden')}>
         <AdminEmpty title={emptyTitle ?? t('table.empty')} hint={emptyHint} action={emptyAction} />
       </div>
     );
@@ -122,6 +123,7 @@ export function AdminDataTable<T>({
   const subtitleColumns = columns.filter((c) => c.mobile === 'subtitle');
   const badgeColumns = columns.filter((c) => c.mobile === 'badge');
   const fieldColumns = columns.filter((c) => c.mobile === 'field');
+  const actionColumns = columns.filter((c) => c.mobile === 'action');
 
   /**
    * Fixed table layout: every column but one gets an explicit width, declared
@@ -156,9 +158,9 @@ export function AdminDataTable<T>({
     GROW_COLUMN_MIN;
 
   return (
-    <div className={cn(ADMIN_CARD, 'p-0 overflow-hidden')}>
+    <div className={cn(ADMIN_CARD, 'admin-data-table p-0 overflow-hidden')}>
       {/* Desktop: full table */}
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="admin-desktop-table hidden lg:block overflow-x-auto">
         <table
           className={cn('w-full table-fixed', ADMIN_TEXT)}
           style={{ minWidth: `${minTableWidth}px` }}
@@ -247,12 +249,12 @@ export function AdminDataTable<T>({
       </div>
 
       {/* Below lg: one card per row */}
-      <ul className="lg:hidden divide-y divide-[var(--border)]">
+      <ul className="admin-mobile-table lg:hidden divide-y divide-[var(--border)]">
         {rows.map((row) => {
           const href = rowHref?.(row);
           const card = (
-            <div className={cn(ADMIN_TEXT, 'p-3 flex flex-col gap-2.5')}>
-              <div className="flex items-start justify-between gap-3">
+            <div className={cn(ADMIN_TEXT, 'admin-mobile-card p-3 flex flex-col gap-2.5')}>
+              <div className="admin-mobile-card-header flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-semibold text-primary truncate">{titleColumn.cell(row)}</div>
                   {subtitleColumns.map((column) => (
@@ -280,15 +282,22 @@ export function AdminDataTable<T>({
                   ))}
                 </dl>
               )}
+              {actionColumns.length > 0 && (
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+                  {actionColumns.map((column) => (
+                    <div key={column.key}>{column.cell(row)}</div>
+                  ))}
+                </div>
+              )}
             </div>
           );
 
           return (
             <li key={rowKey(row)}>
               {href ? (
-                <Link to={href} className="block hover:bg-hover transition-colors">
+                <div onClick={(event) => handleRowClick(event, href, navigate)} className="cursor-pointer hover:bg-hover transition-colors">
                   {card}
-                </Link>
+                </div>
               ) : (
                 card
               )}
@@ -306,7 +315,7 @@ export function AdminDataTable<T>({
  * and text selection all keep their normal behaviour.
  */
 function handleRowClick(
-  event: MouseEvent<HTMLTableRowElement>,
+  event: MouseEvent<HTMLElement>,
   href: string,
   navigate: ReturnType<typeof useNavigate>,
 ) {

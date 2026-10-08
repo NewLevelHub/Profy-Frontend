@@ -7,6 +7,12 @@ import type {
   AdminDirectionUpdateRequest,
   AdminFeedbackListResponse,
   AdminFeedbackStatsResponse,
+  AdminInvitation,
+  AdminInvitationCreateRequest,
+  AdminInvitationLink,
+  AdminInvitationListParams,
+  AdminInvitationListResponse,
+  AdminInvitationSent,
   AdminMotivationStatementDetail,
   AdminMotivationStatementListResponse,
   AdminMotivationStatementUpdateRequest,
@@ -23,7 +29,6 @@ import type {
   AdminUniversityDetail,
   AdminUniversityListResponse,
   AdminUniversityUpdateRequest,
-  AdminUserCreateRequest,
   AdminUserDetail,
   AdminUserListResponse,
   AdminUserStats,
@@ -44,7 +49,7 @@ interface AdminUserFilterParams {
    *  activity, so a fresh account is never "quiet". */
   inactive_days?: number;
   /** Defaults to `student` server-side when omitted — the list historically
-   *  only showed students, so staff accounts created via `createUser` stay
+   *  only showed students, so staff accounts (created from invitations) stay
    *  out of it unless this is passed explicitly. */
   role?: UserRole;
 }
@@ -96,11 +101,25 @@ export const adminApi = {
   getUser: (userId: string) =>
     apiClient.get<AdminUserDetail>(API.admin.userDetail(userId)).then((r) => r.data),
 
-  /** Creates an `admin`/`psychologist` account — self-registration never
-   *  produces staff, so this is the only way to create one. `role: 'student'`
-   *  is rejected (422) by design, see `AdminUserCreateRequest`. */
-  createUser: (body: AdminUserCreateRequest) =>
-    apiClient.post<AdminUserDetail>(API.admin.users, body).then((r) => r.data),
+  // Staff invitations (PRO-457) — the only way to create admin/psychologist accounts.
+  listInvitations: (params: AdminInvitationListParams) =>
+    apiClient
+      .get<AdminInvitationListResponse>(API.admin.invitations, { params })
+      .then((r) => r.data),
+
+  createInvitation: (body: AdminInvitationCreateRequest) =>
+    apiClient.post<AdminInvitationSent>(API.admin.invitations, body).then((r) => r.data),
+
+  /** New link + new email for a pending/expired invitation; the old link dies. */
+  resendInvitation: (id: string) =>
+    apiClient.post<AdminInvitationSent>(API.admin.invitationResend(id)).then((r) => r.data),
+
+  /** The link of a pending invitation — the one in its latest email. */
+  getInvitationLink: (id: string) =>
+    apiClient.get<AdminInvitationLink>(API.admin.invitationLink(id)).then((r) => r.data),
+
+  revokeInvitation: (id: string) =>
+    apiClient.delete<AdminInvitation>(API.admin.invitation(id)).then((r) => r.data),
 
   getAssessment: (assessmentId: string) =>
     apiClient

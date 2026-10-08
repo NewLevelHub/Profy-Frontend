@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ClipboardCheck, Clock3, Info, UsersRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -7,12 +7,12 @@ import { usePsychologistReviews } from '@/shared/hooks/usePsychologistReviews';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
 import { Button, buttonClasses } from '@/shared/ui/Button';
-import { Input } from '@/shared/ui/Input';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
-import { Mono, Text, typeClass } from '@/shared/ui/typography';
+import { Mono, Text } from '@/shared/ui/typography';
 import type { AssessmentGoal, PsychologistAvailableStudentItem, PsychologistReviewQueueItem } from '@/shared/types';
-import { LedgerRows } from './components/LedgerRows';
+import { CabinetSearch } from './components/CabinetSearch';
+import { StudentInitials } from './components/StudentInitials';
 import { SegmentedTabs } from './components/SegmentedTabs';
 import { StatusMark } from './components/StatusMark';
 import { agoLabel, daysAgo, gradeShort, studentName } from './components/cabinetFormat';
@@ -35,15 +35,18 @@ function matches(query: string, name: string | null, email: string) {
 
 function StudentCell({ name, email }: { name: string | null; email: string }) {
   return (
-    <span className="flex flex-col min-w-0">
-      <Text as="span" variant="body-md" className="font-medium text-heading truncate">
-        {studentName(name, email)}
-      </Text>
-      {name?.trim() && (
-        <Text as="span" variant="caption" className="text-muted truncate">
-          {email}
+    <span className="flex items-center gap-3 min-w-0">
+      <StudentInitials name={studentName(name, email)} />
+      <span className="flex flex-col min-w-0">
+        <Text as="span" variant="body-md" className="font-medium text-heading truncate">
+          {studentName(name, email)}
         </Text>
-      )}
+        {name?.trim() && (
+          <Text as="span" variant="caption" className="text-muted truncate">
+            {email}
+          </Text>
+        )}
+      </span>
     </span>
   );
 }
@@ -117,21 +120,23 @@ export default function PsychologistReviewQueuePage() {
         key: 'goal',
         header: t('queue.col.goal'),
         mobile: 'field',
-        width: '200px',
+        width: '175px',
+        wrap: true,
         cell: (row) => <GoalCell goal={row.goal} />,
       },
       {
         key: 'grade',
         header: t('queue.col.grade'),
         mobile: 'field',
-        width: '88px',
+        width: '72px',
         cell: (row) => <Mono variant="md">{gradeShort(t, row.grade)}</Mono>,
       },
       {
         key: 'received',
         header: t('queue.col.received'),
         mobile: 'field',
-        width: '150px',
+        width: '132px',
+        wrap: true,
         cell: (row) => (
           <Mono variant="md" className="text-muted">
             {row.completed_at ? agoLabel(t, row.completed_at) : '—'}
@@ -142,7 +147,8 @@ export default function PsychologistReviewQueuePage() {
         key: 'status',
         header: t('queue.col.status'),
         mobile: 'badge',
-        width: '160px',
+        width: '142px',
+        wrap: true,
         cell: (row) => {
           if (!row.has_pending_review) {
             return <StatusMark tone="mute" hollow>{t('queue.status.noReview')}</StatusMark>;
@@ -158,7 +164,7 @@ export default function PsychologistReviewQueuePage() {
       {
         key: 'action',
         header: '',
-        mobile: 'field',
+        mobile: 'action',
         align: 'right',
         width: '176px',
         cell: (row) => (
@@ -194,21 +200,23 @@ export default function PsychologistReviewQueuePage() {
         key: 'goal',
         header: t('queue.col.goal'),
         mobile: 'field',
-        width: '200px',
+        width: '175px',
+        wrap: true,
         cell: (row) => <GoalCell goal={row.goal} />,
       },
       {
         key: 'grade',
         header: t('queue.col.grade'),
         mobile: 'field',
-        width: '88px',
+        width: '72px',
         cell: (row) => <Mono variant="md">{gradeShort(t, row.grade)}</Mono>,
       },
       {
         key: 'received',
         header: t('queue.col.received'),
         mobile: 'field',
-        width: '150px',
+        width: '132px',
+        wrap: true,
         cell: (row) => (
           <Mono variant="md" className="text-muted">
             {agoLabel(t, row.generated_at)}
@@ -219,7 +227,8 @@ export default function PsychologistReviewQueuePage() {
         key: 'status',
         header: t('queue.col.status'),
         mobile: 'badge',
-        width: '160px',
+        width: '142px',
+        wrap: true,
         cell: (row) =>
           row.reviewed_at ? (
             <StatusMark tone="dawn">{t('queue.status.edited')}</StatusMark>
@@ -230,8 +239,7 @@ export default function PsychologistReviewQueuePage() {
       {
         key: 'action',
         header: '',
-        // The mobile card is itself the link to the report.
-        mobile: 'hidden',
+        mobile: 'action',
         align: 'right',
         width: '176px',
         cell: (row) => (
@@ -247,84 +255,79 @@ export default function PsychologistReviewQueuePage() {
   const failed = tab === 'pool' ? available.isError : reviews.isError;
 
   return (
-    <PageContainer className="flex flex-col gap-5 pb-12">
+    <PageContainer className="rd-psych-page flex flex-col pb-12">
       <PageHeader
         level="display-md"
         kicker={t('queue.kicker')}
         title={t('queue.title')}
-        subtitle={t('queue.lead')}
-        wrap
-        className="pb-5 border-b border-strong"
-        aside={
-          <LedgerRows
-            className="min-w-[240px]"
-            rows={[
-              { label: t('queue.statPool'), value: available.data ? poolWaiting : '—' },
-              { label: t('queue.statMine'), value: reviews.data ? mine.length : '—', tone: 'dawn' },
-              {
-                label: t('queue.statStudents'),
-                value: myStudents.data ? myStudents.data.length : '—',
-                tone: 'pine',
-              },
-            ]}
-          />
-        }
+        subtitle={t(tab === 'mine' ? 'queue.mineLead' : 'queue.lead')}
+        className="rd-psych-heading"
       />
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <SegmentedTabs<QueueTab>
-          label={t('queue.tabsLabel')}
-          active={tab}
-          onChange={setTab}
-          tabs={[
-            { key: 'pool', label: t('queue.tabPool', { count: pool.length }) },
-            { key: 'mine', label: t('queue.tabMine', { count: mine.length }) },
-          ]}
-        />
-        <div className="w-full sm:w-80">
-          <Input
-            type="search"
-            label={t('queue.searchLabel')}
-            labelClassName={`${typeClass.caption} normal-case tracking-normal`}
-            placeholder={t('queue.searchPlaceholder')}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </div>
+      <div className="rd-psych-stats">
+        <button type="button" className="rd-psych-stat" onClick={() => setTab('pool')}>
+          <span className="rd-icon-tile rd-peach"><Clock3 aria-hidden="true" /></span>
+          <span><strong>{available.data ? poolWaiting : '—'}</strong><small>{t('queue.statPool')}</small></span>
+        </button>
+        <button type="button" className="rd-psych-stat" onClick={() => setTab('mine')}>
+          <span className="rd-icon-tile rd-psych-sage"><ClipboardCheck aria-hidden="true" /></span>
+          <span><strong>{reviews.data ? mine.length : '—'}</strong><small>{t('queue.statMine')}</small></span>
+        </button>
+        <Link to="/psychologist/students" className="rd-psych-stat">
+          <span className="rd-icon-tile rd-lilac"><UsersRound aria-hidden="true" /></span>
+          <span><strong>{myStudents.data ? myStudents.data.length : '—'}</strong><small>{t('queue.statStudents')}</small></span>
+        </Link>
       </div>
 
-      {claim.isError && <AdminError message={t('queue.claimError')} />}
-      {failed && (
-        <AdminError
-          message={t('queue.loadError')}
-          onRetry={() => void (tab === 'pool' ? available.refetch() : reviews.refetch())}
-        />
-      )}
-
-      {!failed &&
-        (tab === 'pool' ? (
-          <AdminDataTable
-            label={t('queue.tabPoolLabel')}
-            columns={poolColumns}
-            rows={poolRows}
-            rowKey={(row) => row.id}
-            loading={loading}
-            emptyTitle={trimmed ? t('queue.emptySearch', { query: trimmed }) : t('queue.emptyPoolTitle')}
-            emptyHint={trimmed ? undefined : t('queue.emptyPoolText')}
+      <section className="rd-psych-list" aria-label={t('queue.tabsLabel')}>
+        <div className="rd-psych-toolbar">
+          <SegmentedTabs<QueueTab>
+            label={t('queue.tabsLabel')}
+            active={tab}
+            onChange={setTab}
+            tabs={[
+              { key: 'pool', label: t('queue.tabPool', { count: pool.length }) },
+              { key: 'mine', label: t('queue.tabMine', { count: mine.length }) },
+            ]}
           />
-        ) : (
-          <AdminDataTable
-            label={t('queue.tabMineLabel')}
-            columns={mineColumns}
-            rows={mineRows}
-            rowKey={(row) => row.assessment_id}
-            rowHref={reportPath}
-            loading={loading}
-            emptyTitle={trimmed ? t('queue.emptySearch', { query: trimmed }) : t('queue.emptyMineTitle')}
-            emptyHint={trimmed ? undefined : t('queue.emptyMineText')}
-          />
-        ))}
+          <CabinetSearch value={query} onChange={setQuery} />
+        </div>
 
+        {claim.isError && <AdminError message={t('queue.claimError')} />}
+        {failed && (
+          <AdminError
+            message={t('queue.loadError')}
+            onRetry={() => void (tab === 'pool' ? available.refetch() : reviews.refetch())}
+          />
+        )}
+
+        {!failed &&
+          (tab === 'pool' ? (
+            <AdminDataTable
+              label={t('queue.tabPoolLabel')}
+              columns={poolColumns}
+              rows={poolRows}
+              rowKey={(row) => row.id}
+              loading={loading}
+              emptyTitle={trimmed ? t('queue.emptySearch', { query: trimmed }) : t('queue.emptyPoolTitle')}
+              emptyHint={trimmed ? undefined : t('queue.emptyPoolText')}
+              emptyAction={!trimmed && mine.length > 0 ? <Button size="sm" variant="ghost" onClick={() => setTab('mine')}>{t('queue.openMine')}</Button> : undefined}
+            />
+          ) : (
+            <AdminDataTable
+              label={t('queue.tabMineLabel')}
+              columns={mineColumns}
+              rows={mineRows}
+              rowKey={(row) => row.assessment_id}
+              rowHref={reportPath}
+              loading={loading}
+              emptyTitle={trimmed ? t('queue.emptySearch', { query: trimmed }) : t('queue.emptyMineTitle')}
+              emptyHint={trimmed ? undefined : t('queue.emptyMineText')}
+            />
+          ))}
+
+      </section>
+      <p className="rd-psych-footnote"><Info size={15} aria-hidden="true" />{t('queue.visibilityHint')}</p>
       <p className="sr-only" aria-live="polite">
         {claim.isSuccess ? t('queue.claimed') : ''}
       </p>
