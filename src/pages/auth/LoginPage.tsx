@@ -70,9 +70,13 @@ export default function LoginPage() {
           setTimeout(() => passwordRef.current?.focus(), 0);
         } else if (status === 403) {
           const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
-          if (typeof detail === 'object' && detail !== null && (detail as { detail?: string }).detail === 'google_account') {
+          const kind = typeof detail === 'object' && detail !== null ? (detail as { detail?: string }).detail : undefined;
+          if (kind === 'google_account') {
             setFormError(t('auth:error.googleAccount'));
             setTimeout(() => passwordRef.current?.focus(), 0);
+          } else if (kind === 'invitation_pending') {
+            // Invited staff with no account yet: it is made from the emailed link.
+            setFormError(t('auth:error.invitationPending'));
           } else {
             setNeedsVerification(true);
           }
