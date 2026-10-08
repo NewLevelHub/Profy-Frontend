@@ -118,7 +118,7 @@
   .rd-journey-header .rd-brand { font-size: 29px; /* type-exempt: логотип */ }
   .rd-setup-layout { width: calc(100% - 40px); display: block; margin-top: 25px; }
   .rd-setup-sidebar { position: static; padding: 0; }
-  .rd-setup-sidebar>h2, .rd-setup-sidebar>.rd-eyebrow, .rd-setup-companion { display: none; }
+  .rd-setup-sidebar>h2, .rd-setup-companion { display: none; }
   .rd-setup-steps { flex-direction: row; gap: 10px; margin: 0 0 24px; }
   .rd-setup-steps li { flex: 1; min-width: 0; font-size: var(--text-rd-label); line-height: 1.4; }
   .rd-setup-steps li>div, .rd-setup-steps button { flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 0; overflow-wrap: anywhere; }

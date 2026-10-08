@@ -38,7 +38,7 @@ export function UniversityDetailView({ model, goBack }: {
             <FavoriteStar universityId={university.id} isFavorite={university.is_favorite} onToggle={toggleFavorite} className="rd-university-favorite" />
           </div>
           <div className="rd-university-hero-content">
-            <p className="rd-eyebrow">{t('catalogDesign.universityKicker')}</p>
+            
             <h1>{university.name}</h1>
             <p className="rd-university-location"><MapPin size={16} aria-hidden="true" />{localizeGeo(university.city)}, {localizeGeo(university.country)}</p>
             <UniversityRankBadges university={university} size="sm" />
@@ -49,7 +49,7 @@ export function UniversityDetailView({ model, goBack }: {
           <h2>{t('catalogDesign.aboutUniversity')}</h2><p>{university.description}</p>
         </section>}
         <section className="rd-university-programs">
-          <div className="rd-section-heading"><div><p className="rd-eyebrow">{t('catalogDesign.studyKicker')}</p><h2>{t('catalog.programsHeading')}</h2></div>
+          <div className="rd-section-heading"><div><h2>{t('catalog.programsHeading')}</h2></div>
             {university.programs.length > 0 && <span>{t('programList.count', { count: university.programs.length })}</span>}
           </div>
           {university.programs.length === 0 ? <p className="rd-catalog-empty-copy">{t('catalog.programsEmpty')}</p>

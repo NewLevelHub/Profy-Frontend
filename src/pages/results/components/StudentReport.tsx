@@ -20,7 +20,7 @@ export function StudentReport({ report, ageGroup, goal, onDownload, children, re
     ['results-goal-branch', 'next'],
   ];
   return <div className="rd-report">
-    <StudentPageHeading kicker={t('redesign.kicker')} title={t('redesign.title')} subtitle={t('redesign.subtitle')}>
+    <StudentPageHeading title={t('redesign.title')} subtitle={t('redesign.subtitle')}>
       <button type="button" className="rd-button rd-button-outline rd-button-small" onClick={onDownload}><Download size={16} />{t('page.downloadPdf')}</button>
     </StudentPageHeading>
     <div className="rd-report-layout">

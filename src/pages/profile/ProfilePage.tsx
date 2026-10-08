@@ -11,7 +11,7 @@ export default function ProfilePage() {
 
   return (
     <PageContainer className="rd-profile">
-      <StudentPageHeading kicker={t('redesign.kicker')} title={t('redesign.title')} subtitle={t('redesign.subtitle')} />
+      <StudentPageHeading title={t('redesign.title')} subtitle={t('redesign.subtitle')} />
       {!profile ? (
         <JourneyEmptyState
           illustration="/mascot/redesign/notepad.png"

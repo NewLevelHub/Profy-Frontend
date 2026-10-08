@@ -28,12 +28,12 @@ function ReportExample({ onClose }: { onClose: () => void }) {
     <dialog ref={ref} className="rd-report-dialog" aria-labelledby="report-example-title" onClose={e => { if (!e.currentTarget.open) onClose(); }} onClick={e => { if (e.target === e.currentTarget) ref.current?.close(); }}>
       <div className="rd-report-dialog-body">
         <button type="button" className="rd-icon-button rd-dialog-close" aria-label={t('redesign.close')} onClick={() => ref.current?.close()} autoFocus><X aria-hidden="true" /></button>
-        <p className="rd-eyebrow">{t('redesign.example.eyebrow')}</p>
+        
         <h2 id="report-example-title">{t('redesign.example.title')}</h2>
         <p className="rd-example-note">{t('redesign.example.note')}</p>
         <div className="rd-example-summary"><div><Award aria-hidden="true" /><h3>{t('redesign.example.strengthTitle')}</h3><p>{t('redesign.example.strengthBody')}</p></div><img src="/mascot/redesign/celebrate.png" alt="" width="1254" height="1254" /></div>
         <div className="rd-example-sections">
-          {['interests', 'directions', 'step'].map(key => <section key={key}><span className="rd-eyebrow">{t(`redesign.example.${key}Label`)}</span><h3>{t(`redesign.example.${key}Title`)}</h3><p>{t(`redesign.example.${key}Body`)}</p></section>)}
+          {['interests', 'directions', 'step'].map(key => <section key={key}><h3>{t(`redesign.example.${key}Title`)}</h3><p>{t(`redesign.example.${key}Body`)}</p></section>)}
         </div>
         <Link to="/register" className="rd-button">{t('redesign.cta.start')}<ArrowRight size={19} aria-hidden="true" /></Link>
       </div>
@@ -79,7 +79,7 @@ export default function LandingPage() {
       <main id="landing-content" tabIndex={-1}>
         <section className="rd-hero rd-wrap">
           <div className="rd-hero-copy">
-            <p className="rd-eyebrow"><span className="rd-green-dot" aria-hidden="true" />{t('redesign.hero.eyebrow')}</p>
+            
             <h1>{t('redesign.hero.lineOne')}<br />{t('redesign.hero.lineTwo')}<br /><span>{t('redesign.hero.accent')}</span></h1>
             <p className="rd-hero-description">{t('hero.lead')}</p>
             <div className="rd-hero-cta"><Link to="/register" className="rd-button rd-button-large">{t('redesign.cta.start')}<ArrowRight aria-hidden="true" /></Link><button type="button" className="rd-text-link" onClick={showExample}>{t('redesign.cta.example')}<ArrowUpRight size={17} aria-hidden="true" /></button></div>
@@ -98,8 +98,8 @@ export default function LandingPage() {
         <LandingTry />
         <LandingReportContents />
         <section className="rd-parents rd-wrap" id="parents" data-landing-reveal><div className="rd-parent-art"><img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
-        <section className="rd-faq rd-wrap" id="faq" data-landing-reveal><div><p className="rd-eyebrow">{t('faq.eyebrow')}</p><h2>{t('faq.titlePre')}{t('faq.titleAccent')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4,5].map(i => <details key={i}><summary>{t(`faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`faq.a${i}`, { minutes: LANDING_DURATION })}</p></details>)}</div></section>
-        <section className="rd-final-cta rd-wrap" data-landing-reveal><div><p className="rd-eyebrow">{t('redesign.final.eyebrow')}</p><h2>{t('redesign.final.title')}</h2><p>{t('redesign.final.description')}</p></div><Link to="/register" className="rd-button rd-button-light rd-button-large">{t('redesign.final.cta')}<ArrowRight aria-hidden="true" /></Link></section>
+        <section className="rd-faq rd-wrap" id="faq" data-landing-reveal><div><h2>{t('faq.titlePre')}{t('faq.titleAccent')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4,5].map(i => <details key={i}><summary>{t(`faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`faq.a${i}`, { minutes: LANDING_DURATION })}</p></details>)}</div></section>
+        <section className="rd-final-cta rd-wrap" data-landing-reveal><div><h2>{t('redesign.final.title')}</h2><p>{t('redesign.final.description')}</p></div><Link to="/register" className="rd-button rd-button-light rd-button-large">{t('redesign.final.cta')}<ArrowRight aria-hidden="true" /></Link></section>
       </main>
       <footer className="rd-landing-footer rd-wrap"><div><Brand /><p>{t('footer.about')}</p></div><nav aria-label={t('footer.colProduct')}>{NAV.map(id => <a key={id} href={`#${id}`}>{t(`nav.${id}`)}</a>)}</nav><div className="rd-landing-footer-bottom"><span>{t('footer.copyright', { app: 'Profile' })}</span><span>{t('footer.city')}</span></div></footer>
       {exampleOpen && <ReportExample onClose={() => setExampleOpen(false)} />}

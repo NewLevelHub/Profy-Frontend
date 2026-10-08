@@ -21,7 +21,6 @@
 .rd-login-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; }
 .rd-mobile-brand { display: none; }
 .rd-login-form { width: 100%; max-width: 430px; margin: 65px auto 55px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.rd-login-form>.rd-eyebrow { font-size: var(--text-rd-label); margin-bottom: 20px; }
 .rd-login-form h1 { font-size: var(--text-rd-page); line-height: 1.15; }
 .rd-login-intro { font-size: var(--text-rd-body); line-height: 1.85; margin-top: 20px; color: var(--rd-text); }
 .rd-login-fields { margin-top: 35px; }

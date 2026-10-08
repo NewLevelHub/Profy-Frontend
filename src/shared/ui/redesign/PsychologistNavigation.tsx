@@ -47,7 +47,7 @@ export function PsychologistNavigation({ activePath, email, reviewCount, onLogou
     </aside>
     <header className="rd-psych-topbar">
       <Link to="/psychologist/reviews" className="rd-brand rd-psych-mobile-brand" aria-label="Profile">profile<span>.</span></Link>
-      <span className="rd-psych-workspace-label"><span className="rd-green-dot" />{t('nav.workspace')}</span>
+      <span className="rd-psych-workspace-label">{t('nav.workspace')}</span>
       <div className="rd-psych-preferences"><LanguageSwitcher /><ThemeToggle /></div>
       <button type="button" className="rd-icon-button rd-psych-menu-toggle" aria-expanded={open} aria-controls="psychologist-menu"
         aria-label={t(open ? 'common:redesign.closeMenu' : 'common:redesign.openMenu')} onClick={() => setOpen(value => !value)}>

@@ -83,7 +83,7 @@ export default function CatalogDesignPreview() {
         <div className="rd-section-heading"><h2>{t('direction.universitiesKicker')}</h2></div>{programList}
       </DirectionDetailView>}
       {view === 'programs' && <PageContainer className="rd-catalog rd-detail"><BackLink className="rd-detail-back" onClick={() => select('direction')}>{t('common:back')}</BackLink>
-        <StudentPageHeading kicker={t('direction.universitiesKicker')} title={t('universityList.title')} />{programList}
+        <StudentPageHeading title={t('universityList.title')} />{programList}
       </PageContainer>}
       {(view === 'program' || view === 'international') && <ProgramDetailView model={{ program: view === 'international' ? programs[1] : (selectedProgram.startsWith('preview-secondary-') ? { ...programs[Number(selectedProgram.split('-').pop())], name: t('catalogDesign.preview.data.programName2') } : programs.find(item => item.id === selectedProgram)), isLoading: false, error: null, assessmentId: null }} goBack={() => select('programs')} />}
     </main>

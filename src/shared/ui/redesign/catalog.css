@@ -108,7 +108,7 @@
 @media (max-width: 640px) {
   .rd-catalog-heading { display: block; position: relative; }
   .rd-catalog-heading>img { position: absolute; top: -8px; right: 0; width: 62px; height: 68px; margin: 0; }
-  .rd-catalog-heading .rd-eyebrow { padding-right: 76px; min-height: 50px; }
+  .rd-catalog-heading .rd-student-page-heading>div { padding-right: 76px; min-height: 50px; }
   .rd-catalog-heading .rd-student-page-heading h1 { font-size: var(--text-rd-display); overflow-wrap: anywhere; }
   .rd-catalog-filters { padding: 16px; border-radius: var(--rd-radius-lg); margin-bottom: 22px; }
   .rd-university-grid { grid-template-columns: minmax(0, 1fr); }

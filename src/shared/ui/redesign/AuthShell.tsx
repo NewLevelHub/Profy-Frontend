@@ -33,7 +33,7 @@ export function AuthShell({ children, page }: {
           <div className="rd-story-top"><Brand /><span>{t('redesign.space')}</span></div>
           <div className="rd-story-body" key={page}>
             <div className="rd-story-copy auth-enter">
-              <p className="rd-eyebrow"><span className="rd-green-dot" aria-hidden="true" />{t(`${storyKey}.eyebrow`)}</p>
+              
               <h2>{t(`${storyKey}.head`)}{' '}<span>{t(`${storyKey}.accent`)}</span></h2>
               <p>{t(`${storyKey}.sub`)}</p>
             </div>
