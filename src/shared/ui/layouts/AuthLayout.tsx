@@ -7,6 +7,7 @@ const AUTH_PAGES = {
   '/verify-email': 'verifyEmail',
   '/forgot-password': 'forgotPassword',
   '/reset-password': 'resetPassword',
+  '/invite': 'invite',
 } as const;
 
 export function AuthLayout() {
