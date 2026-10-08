@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, BookOpen, Brain, Building2, ClipboardList, Compass, Flame, GraduationCap, Layers, Map, MessageCircle, Route, ShieldCheck, Sparkles, Target, Timer, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, Brain, Building2, ClipboardList, Compass, FileText, Flame, GraduationCap, Layers, Map, MessageCircle, Route, ShieldCheck, Target, Timer, Users } from 'lucide-react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/shared/i18n/format';
@@ -16,7 +16,7 @@ const TESTS = [
   { key: 'abilities', icon: Brain, tone: 'sage' },
 ] as const;
 const FEATURE_ICONS = [Layers, Timer, MessageCircle, ClipboardList, Target, Building2];
-const REPORT_ICONS = [Sparkles, Compass, Target, Flame, Layers, GraduationCap];
+const REPORT_ICONS = [FileText, Compass, Target, Flame, Layers, GraduationCap];
 
 export function LandingSectionHeading({ section }: { section: 'how' | 'features' | 'inside' | 'try' | 'report' }) {
   const { t } = useTranslation('landing');
@@ -89,7 +89,7 @@ export function LandingReportContents() {
     <LandingSectionHeading section="report" />
     <div className="rd-report-contents">
       <div className="rd-report-promises" data-landing-reveal>
-        {[Sparkles, ShieldCheck].map((Icon, index) => <div key={index}><Icon size={23} aria-hidden="true" /><h3>{t(`report.fact${index + 1}Title`)}</h3><p>{t(`report.fact${index + 1}Desc`)}</p></div>)}
+        {[MessageCircle, ShieldCheck].map((Icon, index) => <div key={index}><Icon size={23} aria-hidden="true" /><h3>{t(`report.fact${index + 1}Title`)}</h3><p>{t(`report.fact${index + 1}Desc`)}</p></div>)}
         <img src="/mascot/redesign/notepad.png" alt="" width={1254} height={1254} loading="lazy" />
       </div>
       <div className="rd-report-content-grid">{REPORT_ICONS.map((Icon, index) => <article key={index} data-landing-reveal data-reveal-order={index % 2}>

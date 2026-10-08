@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
-import { ArrowRight, Compass, Sparkles } from 'lucide-react';
+import { ArrowRight, Compass, Target } from 'lucide-react';
 import { JourneyCheckpoint } from '@/shared/ui';
 import { useGoalCheck, type GoalSuggestion } from './hooks/useGoalCheck';
 
@@ -15,7 +15,7 @@ export function GoalCheckView({ showsCareers, suggestions, onContinue }: {
     actions={<button type="button" className="rd-button" onClick={onContinue}>{t('goalCheck.showReport')}<ArrowRight size={18} aria-hidden="true" /></button>}>
     {hasSuggestions && <div className="rd-checkpoint-options">
       {suggestions.slice(0, 2).map((suggestion, index) => <section key={suggestion.key} className="rd-checkpoint-option">
-        <span className={`rd-icon-tile ${index === 0 ? 'rd-lilac' : 'rd-peach'}`}>{index === 0 ? <Sparkles aria-hidden="true" /> : <Compass aria-hidden="true" />}</span>
+        <span className={`rd-icon-tile ${index === 0 ? 'rd-lilac' : 'rd-peach'}`}>{index === 0 ? <Target aria-hidden="true" /> : <Compass aria-hidden="true" />}</span>
         <p className="rd-eyebrow">{t(index === 0 ? (showsCareers ? 'goalCheck.bestMatch' : 'goalCheck.strongInAnswers') : 'goalCheck.alsoFits')}</p>
         <h2>{suggestion.title}</h2>
         <p>{suggestion.subtitle}</p>

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ArrowLeft, Compass, Landmark, Layers, ListChecks, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, Compass, Landmark, Layers, ListChecks, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { CATALOG_MILESTONES } from '@/shared/config/catalogMilestones';
@@ -46,7 +46,7 @@ export function AuthShell({ children, page }: {
             </ul>
             <div className="rd-auth-companion auth-enter auth-enter-d5">
               <img src={`/mascot/redesign/${isRegistration ? 'book' : 'greeting'}.png`} alt="" width="1254" height="1254" />
-              <div><Sparkles size={20} aria-hidden="true" /><p>{t('redesign.stickerLine1')}<strong>{t('redesign.stickerLine2')}</strong></p></div>
+              <div><p>{t('redesign.stickerLine1')}<strong>{t('redesign.stickerLine2')}</strong></p></div>
             </div>
           </div>
           <p className="rd-story-footer">{t('redesign.storyFooter')}</p>

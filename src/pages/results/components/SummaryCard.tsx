@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Sparkles } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 
 interface SummaryCardProps {
   summary: string;
@@ -12,7 +12,7 @@ interface SummaryCardProps {
 export function SummaryCard({ summary, disclaimer }: SummaryCardProps) {
   const { t } = useTranslation('results');
   return <section className="rd-report-summary" aria-label={t('summary.aria')}>
-    <div><p className="rd-eyebrow"><Sparkles size={16} aria-hidden="true" />{t('redesign.sections.summary')}</p>
+    <div><p className="rd-eyebrow"><UserRound size={16} aria-hidden="true" />{t('redesign.sections.summary')}</p>
       <p className="rd-report-summary-text">{summary}</p>
       <p className="rd-report-disclaimer">{disclaimer}</p>
     </div>
