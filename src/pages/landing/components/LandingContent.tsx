@@ -22,7 +22,7 @@ const REPORT_ICONS = [UserRound, Compass, Award, Flame, Layers, GraduationCap];
 export function LandingSectionHeading({ section }: { section: 'how' | 'features' | 'inside' | 'try' | 'report' }) {
   const { t } = useTranslation('landing');
   // Заголовки называют факты о продукте — цифры берутся из тех же констант, что и остальной лендинг.
-  const facts = { minutes: LANDING_DURATION, universities: formatNumber(CATALOG_MILESTONES.universities) };
+  const facts = { ...ASSESSMENT_PHASE_MINUTES, minutes: LANDING_DURATION, universities: formatNumber(CATALOG_MILESTONES.universities) };
   return <div className="rd-section-heading rd-information-heading" data-landing-reveal>
     <h2>{t(`${section}.title`, facts)}</h2>
     <p>{t(`${section}.sub`, facts)}</p>
