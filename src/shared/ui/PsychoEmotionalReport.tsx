@@ -16,9 +16,9 @@ import type {
 } from '@/shared/types';
 import { Mono } from './typography/Mono';
 import { Text } from './typography/Text';
-import { PsychoEmotionalInterpretation } from './PsychoEmotionalInterpretation';
+import { PsychoEmotionalInterpretationDocument } from './PsychoEmotionalInterpretationDocument';
 
-type MetricKey = 'anxiety' | 'compensation' | 'so' | 'vk';
+type MetricKey = 'anxiety' | 'so' | 'vk';
 type Tone = 'success' | 'warning' | 'danger';
 
 interface ScaleBand {
@@ -49,12 +49,6 @@ const SIGN_GLYPH: Record<PsychoPairSign, string> = {
 
 const AUTOGENIC_NORM = [3, 4, 2, 5, 1, 6, 0, 7];
 
-const BAND_TONE: Record<Tone, string> = {
-  success: 'bg-success',
-  warning: 'bg-warning',
-  danger: 'bg-danger',
-};
-
 const VALIDITY_DOT = {
   ok: 'bg-success',
   caution: 'bg-warning',
@@ -76,25 +70,9 @@ export interface PsychoEmotionalReportProps {
 export function PsychoEmotionalReport({ section, className }: PsychoEmotionalReportProps) {
   const { t } = useTranslation('psychologist');
   const indexText = new Map(section.interpretation.indices.map((note) => [note.metric, note]));
-  const metrics = buildMetricSpecs(section, indexText, t);
 
   return (
-    <div className={cn('flex flex-col gap-5', className)}>
-      <div className="flex items-start gap-3 rounded-[12px] border border-default bg-brand-subtle p-3.5">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
-        <div className="flex flex-col gap-1">
-          <Text variant="caption" className="font-semibold text-heading">
-            {t('psychoResult.methodFrameTitle')}
-          </Text>
-          <Text variant="body-sm" className="text-primary">
-            {t('psychoResult.methodFrame')}
-          </Text>
-          <Text variant="caption" className="text-muted">
-            {t('psychoResult.methodAttribution')}
-          </Text>
-        </div>
-      </div>
-
+    <div className={cn('flex flex-col gap-8', className)}>
       {section.black_first && (
         <div role="note" className="flex items-start gap-3 rounded-[12px] border border-warning bg-warning-subtle p-3.5">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
@@ -104,37 +82,20 @@ export function PsychoEmotionalReport({ section, className }: PsychoEmotionalRep
         </div>
       )}
 
-      <ReportSection
-        title={t('psychoResult.choiceComparisonTitle')}
-        description={t('psychoResult.choiceComparisonIntro')}
+      <ProtocolDocument section={section} />
+
+      <CalculationReport section={section} />
+
+      <PsychoEmotionalInterpretationDocument interpretation={section.interpretation} part="classic" />
+
+      <QuantitativeReport section={section} indexText={indexText} />
+
+      <PsychoEmotionalInterpretationDocument interpretation={section.interpretation} part="mcv" />
+
+      <Disclosure
+        title={t('psychoResult.technicalDetailsTitle')}
+        hint={t('psychoResult.technicalDetailsHint')}
       >
-        <div className="grid gap-3 xl:grid-cols-2">
-          {section.choice_analyses.map((analysis) => (
-            <ChoiceAnalysisCard key={analysis.round} analysis={analysis} />
-          ))}
-        </div>
-        {section.choice_analyses.length === 2 && (
-          <ChoiceDynamics analyses={section.choice_analyses} dValue={section.d_value} />
-        )}
-      </ReportSection>
-
-      <PsychoEmotionalInterpretation interpretation={section.interpretation} />
-
-      <ReportSection
-        title={t('psychoResult.quantitativeTitle')}
-        description={t('psychoResult.quantitativeIntro')}
-      >
-        <div className="grid gap-3 xl:grid-cols-2">
-          {metrics.map((metric) => (
-            <MetricCard key={metric.key} metric={metric} />
-          ))}
-        </div>
-        <Text variant="caption" className="text-muted">
-          {t('psychoResult.preliminaryThresholds')}
-        </Text>
-      </ReportSection>
-
-      <Disclosure title={t('psychoResult.protocolTitle')} hint={t('psychoResult.protocolHint')}>
         <TechnicalProtocol section={section} />
       </Disclosure>
 
@@ -149,7 +110,244 @@ export function PsychoEmotionalReport({ section, className }: PsychoEmotionalRep
           <History items={section.history} />
         </Disclosure>
       )}
+
+      <div className="flex items-start gap-3 border-t border-default pt-5">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+        <div className="flex flex-col gap-1">
+          <Text variant="caption" className="font-semibold text-heading">
+            {t('psychoResult.methodFrameTitle')}
+          </Text>
+          <Text variant="body-sm" className="text-primary">
+            {t('psychoResult.methodFrame')}
+          </Text>
+          <Text variant="caption" className="text-muted">
+            {t('psychoResult.methodAttribution')}
+          </Text>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function ProtocolDocument({ section }: { section: PsychoEmotionalSection }) {
+  const { t } = useTranslation('psychologist');
+  const first = section.choice_analyses.find((item) => item.round === 1);
+  const second = section.choice_analyses.find((item) => item.round === 2);
+  if (!first || !second) return null;
+
+  return (
+    <Disclosure
+      title={t('psychoResult.choiceComparisonTitle')}
+      hint={t('psychoResult.choiceComparisonIntro')}
+    >
+      <div className="overflow-x-auto border-y border-default">
+        <table className="w-full min-w-[760px] border-collapse text-sm">
+          <tbody>
+            <ProtocolMarksRow
+              label={t('psychoResult.roundAnxietyPlain', { value: first.anxiety.score })}
+              marks={first.colors.map((id) => '!'.repeat(first.anxiety.breakdown[String(id)] ?? 0))}
+              tone="warning"
+            />
+            <ProtocolMarksRow
+              label={t('psychoResult.compensationAnxiety')}
+              marks={compensationAndAnxietyMarks(first, t)}
+            />
+            <ProtocolMarksRow
+              label={t('psychoResult.functionLabel')}
+              marks={first.function_marks.map((marks) => marks.map((mark) => SIGN_GLYPH[mark]).join(''))}
+              emphasized
+            />
+            <ProtocolChoiceRow label={t('psychoResult.firstChoice')} analysis={first} />
+            <tr aria-hidden><td colSpan={9} className="h-3 bg-raised/40" /></tr>
+            <ProtocolChoiceRow label={t('psychoResult.secondChoice')} analysis={second} />
+            <ProtocolMarksRow
+              label={t('psychoResult.functionLabel')}
+              marks={second.function_marks.map((marks) => marks.map((mark) => SIGN_GLYPH[mark]).join(''))}
+              emphasized
+            />
+            <ProtocolMarksRow
+              label={t('psychoResult.compensationAnxiety')}
+              marks={compensationAndAnxietyMarks(second, t)}
+            />
+            <ProtocolMarksRow
+              label={t('psychoResult.roundAnxietyPlain', { value: second.anxiety.score })}
+              marks={second.colors.map((id) => '!'.repeat(second.anxiety.breakdown[String(id)] ?? 0))}
+              tone="warning"
+            />
+          </tbody>
+        </table>
+      </div>
+      <Text variant="caption" className="text-muted">
+        {t('psychoResult.choiceDynamicsCompact', { d: section.d_value })}
+      </Text>
+    </Disclosure>
+  );
+}
+
+function compensationAndAnxietyMarks(
+  analysis: PsychoEmotionalChoiceAnalysis,
+  t: TFunction<'psychologist'>,
+): string[] {
+  const stressStart = analysis.colors.findIndex(
+    (id) => id >= 1 && id <= 4 && (analysis.anxiety.breakdown[String(id)] ?? 0) > 0,
+  );
+  const hasCompensation = analysis.compensation.score > 0
+    || analysis.compensation.purple_forward;
+  const compensationEnd = hasCompensation
+    ? 3
+    : analysis.anxiety.frustration_score > 0
+      ? 1
+      : 0;
+  return analysis.colors.map((_, index) => {
+    if (index < compensationEnd) return t('psychoResult.compensationSymbol');
+    if (stressStart >= 0 && index >= stressStart) return t('psychoResult.anxietySymbol');
+    return '';
+  });
+}
+
+function ProtocolMarksRow({
+  label,
+  marks,
+  tone,
+  emphasized = false,
+}: {
+  label: string;
+  marks: string[];
+  tone?: 'warning';
+  emphasized?: boolean;
+}) {
+  return (
+    <tr className="border-b border-default last:border-0">
+      <th scope="row" className="w-48 px-3 py-2 text-left font-normal text-muted">
+        {label}
+      </th>
+      {marks.map((mark, index) => (
+        <Mono
+          as="td"
+          key={`${label}-${index}`}
+          variant="sm"
+          className={cn(
+            'w-16 border-l border-default px-2 py-2 text-center',
+            emphasized && 'font-semibold text-heading',
+            tone === 'warning' && mark && 'font-semibold text-warning',
+          )}
+        >
+          {mark || '\u00a0'}
+        </Mono>
+      ))}
+    </tr>
+  );
+}
+
+function ProtocolChoiceRow({
+  label,
+  analysis,
+}: {
+  label: string;
+  analysis: PsychoEmotionalChoiceAnalysis;
+}) {
+  const { t } = useTranslation('assessment');
+  return (
+    <tr className="border-b border-default">
+      <th scope="row" className="w-48 px-3 py-3 text-left font-semibold text-heading">
+        {label}
+      </th>
+      {analysis.colors.map((id, index) => (
+        <td key={`${analysis.round}-${id}-${index}`} className="w-16 border-l border-default px-1.5 py-2">
+          <span
+            className={cn(
+              'flex h-9 items-center justify-center rounded-[4px] font-mono text-sm font-semibold ring-1 ring-inset ring-black/15',
+              id === 4 ? 'text-black' : 'text-white',
+            )}
+            style={{ backgroundColor: PSYCHO_COLOR_BY_ID[id]?.hex ?? 'transparent' }}
+            title={t(`psychoemotional.color.${id}`)}
+          >
+            {id}
+          </span>
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+function CalculationReport({ section }: { section: PsychoEmotionalSection }) {
+  const { t } = useTranslation('psychologist');
+  const positions = Object.fromEntries(section.choice_2.map((id, index) => [id, index + 1]));
+  const numerator = 18 - positions[3] - positions[4];
+  const denominator = 18 - positions[1] - positions[2];
+  const soSymbol = t('psychoResult.soSymbol');
+  const vkSymbol = t('psychoResult.vkSymbol');
+
+  return (
+    <ReportSection title={t('psychoResult.calculations')}>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3">
+          <Text as="h4" variant="body-sm" className="font-semibold text-heading">
+            {t('psychoResult.soCalculationTitle')}
+          </Text>
+          <SoBreakdown choice={section.choice_2} />
+          <CalculationResult
+            symbol={soSymbol}
+            raw={formatNumber(section.so_value)}
+            score={section.so_score}
+          />
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-default pt-5">
+          <Text as="h4" variant="body-sm" className="font-semibold text-heading">
+            {t('psychoResult.vkCalculationTitle')}
+          </Text>
+          <Mono as="div" variant="sm" className="text-primary">
+            {`${vkSymbol} = (18 − ${positions[3]} − ${positions[4]}) / (18 − ${positions[1]} − ${positions[2]})`}
+          </Mono>
+          <Mono as="div" variant="sm" className="text-muted">
+            {`${vkSymbol} = ${numerator} / ${denominator}`}
+          </Mono>
+          <CalculationResult
+            symbol={vkSymbol}
+            raw={formatNumber(section.vk_value, { maximumFractionDigits: 1 })}
+            score={section.vk_score}
+          />
+        </div>
+      </div>
+    </ReportSection>
+  );
+}
+
+function CalculationResult({ symbol, raw, score }: { symbol: string; raw: string; score: number }) {
+  const { t } = useTranslation('psychologist');
+  return (
+    <div className="grid grid-cols-[1fr_auto_auto] items-center border-y border-default bg-raised/40">
+      <Mono variant="md" className="px-3 py-2 font-semibold text-heading">{symbol} =</Mono>
+      <Mono variant="md" className="border-l border-default px-5 py-2 text-heading">{raw}</Mono>
+      <span className="border-l border-default px-5 py-2 text-center">
+        <Mono variant="md" className="font-semibold text-heading">{score}</Mono>
+        <Text as="span" variant="caption" className="ml-1 text-muted">
+          {t('psychoResult.outOf', { n: 7 })}
+        </Text>
+      </span>
+    </div>
+  );
+}
+
+function QuantitativeReport({
+  section,
+  indexText,
+}: {
+  section: PsychoEmotionalSection;
+  indexText: Map<string, PsychoEmotionalIndexNote>;
+}) {
+  const { t } = useTranslation('psychologist');
+  const metrics = buildMetricSpecs(section, indexText, t);
+  return (
+    <ReportSection title={t('psychoResult.quantitativeTitle')}>
+      <div className="border-y border-default">
+        {metrics.map((metric) => <MetricCard key={metric.key} metric={metric} />)}
+      </div>
+      <Text variant="caption" className="text-muted">
+        {t('psychoResult.preliminaryThresholds')}
+      </Text>
+    </ReportSection>
   );
 }
 
@@ -167,13 +365,6 @@ function buildMetricSpecs(
         { level: 'very_high', from: 9, to: 12, tone: 'danger', rangeLabel: '9–12' },
       ]
     : [{ level: section.anxiety.level, from: 0, to: 12, tone: toneForLevel(section.anxiety.level), rangeLabel: '0–12' }];
-  const compensationBands: ScaleBand[] = versionTwo
-    ? [
-        { level: 'low', from: 0, to: 2, tone: 'success', rangeLabel: '0–2' },
-        { level: 'moderate', from: 3, to: 5, tone: 'warning', rangeLabel: '3–5' },
-        { level: 'high', from: 6, to: 9, tone: 'danger', rangeLabel: '6–9' },
-      ]
-    : [{ level: section.compensation.level, from: 0, to: 9, tone: toneForLevel(section.compensation.level), rangeLabel: '0–9' }];
   const soBands: ScaleBand[] = versionTwo
     ? [
         { level: 'norm', from: 0, to: 16, tone: 'success', rangeLabel: '0–16' },
@@ -194,28 +385,16 @@ function buildMetricSpecs(
     {
       key: 'anxiety',
       value: section.anxiety.score,
-      displayValue: `${formatNumber(section.anxiety.score)} / 12`,
+      displayValue: formatNumber(section.anxiety.score),
       level: section.anxiety.level,
       bands: anxietyBands,
       description: indexText.get('anxiety')?.text,
       contributors: section.anxiety.breakdown,
     },
     {
-      key: 'compensation',
-      value: section.compensation.score,
-      displayValue: `${formatNumber(section.compensation.score)} / 9`,
-      level: section.compensation.level,
-      bands: compensationBands,
-      description: t(`psychoResult.compensationText.${section.compensation.level}`),
-      contributors: section.compensation.breakdown,
-      note: section.compensation.purple_forward
-        ? t('psychoResult.purpleForward', { position: section.compensation.purple_position })
-        : undefined,
-    },
-    {
       key: 'so',
       value: section.so_value,
-      displayValue: `${formatNumber(section.so_value)} / 32`,
+      displayValue: formatNumber(section.so_score),
       level: section.so_level,
       bands: soBands,
       description: indexText.get('so')?.text,
@@ -223,7 +402,7 @@ function buildMetricSpecs(
     {
       key: 'vk',
       value: section.vk_value,
-      displayValue: formatNumber(section.vk_value, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      displayValue: formatNumber(section.vk_score),
       level: section.vk_level,
       bands: vkBands,
       description: indexText.get('vk')?.text,
@@ -242,93 +421,58 @@ function MetricCard({ metric }: { metric: MetricSpec }) {
   const contributorEntries = Object.entries(metric.contributors ?? {}).filter(([, value]) => value > 0);
 
   return (
-    <article className="flex flex-col gap-3 rounded-[12px] border border-default bg-surface p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
-          <Text as="h4" variant="body-sm" className="font-semibold text-heading">
-            {t(`psychoResult.${metric.key}`)}
-          </Text>
-          <Text variant="caption" className="text-muted">
-            {t(`psychoResult.metricHelp.${metric.key}`)}
-          </Text>
-        </div>
-        <Mono variant="md" className="shrink-0 text-heading">
-          {metric.displayValue}
-        </Mono>
+    <article className="grid gap-3 border-b border-default px-1 py-5 last:border-b-0 md:grid-cols-[minmax(180px,0.32fr)_1fr] md:gap-6">
+      <div className="min-w-0">
+        <Text as="h4" variant="body-sm" className="font-semibold text-heading">
+          {t(`psychoResult.${metric.key}`)}
+        </Text>
+        <Text variant="caption" className="mt-1 text-muted">
+          {t(`psychoResult.metricHelp.${metric.key}`)}
+        </Text>
       </div>
 
-      <MetricScale metric={metric} />
-
-      <Text variant="caption" className={cn('font-semibold', levelTone(metric.level))}>
-        {t(`psycho.level.${metric.key}.${metric.level}`)}
-      </Text>
-      {metric.description && (
-        <Text variant="body-sm" className="text-primary">
-          {metric.description}
-        </Text>
-      )}
-
-      {contributorEntries.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 border-t border-default pt-2">
-          <Text as="span" variant="caption" className="text-muted">
-            {t('psychoResult.contribution')}
-          </Text>
-          {contributorEntries.map(([id, value]) => (
-            <span key={id} className="inline-flex items-center gap-1 rounded-full bg-raised px-2 py-1">
-              <ColourDot id={Number(id)} />
-              <Mono variant="xs" className="text-primary">+{value}</Mono>
-            </span>
-          ))}
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <Mono variant="md" className="text-heading">
+            {metric.displayValue}
+          </Mono>
+          <MetricScale metric={metric} />
         </div>
-      )}
-      {metric.note && (
-        <Text variant="caption" className="text-warning">
-          {metric.note}
-        </Text>
-      )}
+
+        {metric.description && (
+          <Text variant="body-sm" className="text-primary">
+            {metric.description}
+          </Text>
+        )}
+
+        {contributorEntries.length > 0 && (
+          <Text variant="caption" className="text-muted">
+            {t('psychoResult.contribution')}{' '}
+            {contributorEntries.map(([id, value], index) => (
+              <span key={id} className="mr-2 inline-flex items-center gap-1">
+                {index > 0 && <span aria-hidden>·</span>}
+                <ColourDot id={Number(id)} />
+                <Mono as="span" variant="xs" className="text-primary">+{value}</Mono>
+              </span>
+            ))}
+          </Text>
+        )}
+        {metric.note && (
+          <Text variant="caption" className="text-warning">
+            {metric.note}
+          </Text>
+        )}
+      </div>
     </article>
   );
 }
 
 function MetricScale({ metric }: { metric: MetricSpec }) {
-  const activeIndex = Math.max(0, metric.bands.findIndex((band) => band.level === metric.level));
-  const minimum = Math.min(...metric.bands.map((band) => band.from));
-  const maximum = Math.max(...metric.bands.map((band) => band.to));
-  const fullSpan = Math.max(maximum - minimum, Number.EPSILON);
-  const marker = ((metric.value - minimum) / fullSpan) * 100;
-
+  const { t } = useTranslation('psychologist');
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="relative flex h-2.5 gap-1" aria-hidden>
-        {metric.bands.map((band, index) => (
-          <span
-            key={`${metric.key}-${band.level}`}
-            className={cn(
-              'h-full rounded-full',
-              BAND_TONE[band.tone],
-              index === activeIndex ? 'opacity-100' : 'opacity-30',
-            )}
-            style={{ width: `${Math.max(3, ((band.to - band.from) / fullSpan) * 100)}%` }}
-          />
-        ))}
-        <span
-          className="absolute top-1/2 h-4 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-strong bg-surface shadow-sm"
-          style={{ left: `${Math.max(1, Math.min(99, marker))}%` }}
-        />
-      </div>
-      <div className="flex gap-1">
-        {metric.bands.map((band) => (
-          <Mono
-            key={band.level}
-            variant="xs"
-            className="text-center text-muted"
-            style={{ width: `${Math.max(3, ((band.to - band.from) / fullSpan) * 100)}%` }}
-          >
-            {band.rangeLabel}
-          </Mono>
-        ))}
-      </div>
-    </div>
+    <Text as="span" variant="caption" className={cn('font-semibold', levelTone(metric.level))}>
+      [{t(`psycho.level.${metric.key}.${metric.level}`)}]
+    </Text>
   );
 }
 
@@ -356,12 +500,19 @@ function ChoiceAnalysisCard({ analysis }: { analysis: PsychoEmotionalChoiceAnaly
         </span>
       </div>
       <ChoiceSequence ids={analysis.colors} analysis={analysis} />
+      <Text variant="caption" className="text-secondary">
+        {t('psychoResult.anxietyComposition', {
+          frustration: analysis.anxiety.frustration_score,
+          compensation: analysis.anxiety.compensation_score,
+        })}
+      </Text>
       <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-default pt-2">
         <Text as="span" variant="caption" className="text-muted">
           <b className="text-warning">!</b> {t('psychoResult.anxietyMark')}
         </Text>
         <Text as="span" variant="caption" className="text-muted">
-          <b className="text-brand">К</b> {t('psychoResult.compensationMark')}
+          <b className="text-brand">{t('psychoResult.compensationSymbol')}</b>{' '}
+          {t('psychoResult.compensationMark')}
         </Text>
       </div>
     </article>
@@ -399,8 +550,12 @@ function TechnicalProtocol({ section }: { section: PsychoEmotionalSection }) {
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3">
         <ProtocolTitle>{t('psychoResult.choiceMarkup')}</ProtocolTitle>
-        <ChoiceSequence label={t('psychoResult.round1')} ids={section.choice_1} analysis={section.choice_analyses.find((item) => item.round === 1)} />
-        <ChoiceSequence label={t('psychoResult.round2')} ids={section.choice_2} analysis={section.choice_analyses.find((item) => item.round === 2)} />
+        <div className="grid gap-3 xl:grid-cols-2">
+          {section.choice_analyses.map((analysis) => (
+            <ChoiceAnalysisCard key={analysis.round} analysis={analysis} />
+          ))}
+        </div>
+        <ChoiceDynamics analyses={section.choice_analyses} dValue={section.d_value} />
       </div>
 
       <div className="flex flex-col gap-3 border-t border-default pt-4">
@@ -456,12 +611,18 @@ function TechnicalProtocol({ section }: { section: PsychoEmotionalSection }) {
           </Text>
           <SoBreakdown choice={section.choice_2} />
         </div>
-        <FormulaRow label={t('psychoResult.so')} result={formatNumber(section.so_value)}>
+        <FormulaRow
+          label={t('psychoResult.so')}
+          result={t('psychoResult.rawAndStandardScore', { raw: formatNumber(section.so_value), score: section.so_score })}
+        >
           {t('psychoResult.soFormula')}
         </FormulaRow>
         <FormulaRow
           label={t('psychoResult.vk')}
-          result={formatNumber(section.vk_value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          result={t('psychoResult.rawAndStandardScore', {
+            raw: formatNumber(section.vk_value, { maximumFractionDigits: 1 }),
+            score: section.vk_score,
+          })}
         >
           {`(18 − ${positions[3]} − ${positions[4]}) / (18 − ${positions[1]} − ${positions[2]}) = ${numerator} / ${denominator}`}
         </FormulaRow>
@@ -483,14 +644,19 @@ function SoBreakdown({ choice }: { choice: number[] }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[520px] border-separate border-spacing-x-1 border-spacing-y-1.5">
+      <table className="w-full min-w-[520px] border-collapse">
         <tbody>
           <tr>
-            <th scope="row" className="pr-2 text-left align-middle">
+            <th scope="row" className="border border-default px-2 py-2 text-left align-middle">
               <Text as="span" variant="caption" className="text-muted">{t('psychoResult.soTable.colours')}</Text>
             </th>
             {AUTOGENIC_NORM.map((id) => (
-              <td key={id} className="text-center"><ColourDot id={id} size="large" /></td>
+              <td key={id} className="border border-default px-2 py-2 text-center">
+                <span className="inline-flex items-center gap-1.5">
+                  <ColourDot id={id} size="large" />
+                  <Mono as="span" variant="xs" className="text-secondary">{id}</Mono>
+                </span>
+              </td>
             ))}
           </tr>
           <SoBreakdownRow label={t('psychoResult.soTable.normPosition')} values={AUTOGENIC_NORM.map((_, index) => index + 1)} />
@@ -505,11 +671,11 @@ function SoBreakdown({ choice }: { choice: number[] }) {
 function SoBreakdownRow({ label, values, emphasized = false }: { label: string; values: number[]; emphasized?: boolean }) {
   return (
     <tr>
-      <th scope="row" className="pr-2 text-left align-middle">
+      <th scope="row" className="border border-default px-2 py-2 text-left align-middle">
         <Text as="span" variant="caption" className="text-muted">{label}</Text>
       </th>
       {values.map((value, index) => (
-        <Mono key={`${label}-${index}`} as="td" variant="xs" className={cn('text-center', emphasized ? 'font-semibold text-heading' : 'text-secondary')}>
+        <Mono key={`${label}-${index}`} as="td" variant="xs" className={cn('border border-default px-2 py-2 text-center', emphasized ? 'font-semibold text-heading' : 'text-secondary')}>
           {value}
         </Mono>
       ))}
@@ -563,7 +729,9 @@ function ChoiceSequence({
                     <Mono variant="xs" className="font-semibold text-warning">{'!'.repeat(anxiety)}</Mono>
                   )}
                   {(compensation > 0 || purpleCompensation) && (
-                    <Mono variant="xs" className="font-semibold text-brand">К</Mono>
+                    <Mono variant="xs" className="font-semibold text-brand">
+                      {t('psychoResult.compensationSymbol')}
+                    </Mono>
                   )}
                 </span>
               )}
@@ -571,6 +739,15 @@ function ChoiceSequence({
           );
         })}
       </div>
+      {analysis && !compact && (
+        <div className="grid grid-cols-8 gap-1.5" aria-label={t('psychoResult.functionRow')}>
+          {analysis.function_marks.map((marks, index) => (
+            <Mono key={`${analysis.round}-function-${index}`} variant="xs" className="text-center font-semibold text-secondary">
+              {marks.map((mark) => SIGN_GLYPH[mark]).join('')}
+            </Mono>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

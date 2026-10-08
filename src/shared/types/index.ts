@@ -715,6 +715,8 @@ export interface PsychoEmotionalAnxiety {
   score: number;
   level: PsychoAnxietyLevel;
   breakdown: Record<string, number>;
+  frustration_score: number;
+  compensation_score: number;
 }
 
 export interface PsychoEmotionalCompensation {
@@ -730,6 +732,7 @@ export interface PsychoEmotionalChoiceAnalysis {
   colors: number[];
   anxiety: PsychoEmotionalAnxiety;
   compensation: PsychoEmotionalCompensation;
+  function_marks: PsychoFunctionalSign[][];
 }
 
 export interface PsychoEmotionalStructural {
@@ -770,8 +773,10 @@ export interface PsychoEmotionalSection {
   anxiety: PsychoEmotionalAnxiety;
   compensation: PsychoEmotionalCompensation;
   so_value: number;
+  so_score: number;
   so_level: PsychoSoLevel;
   vk_value: number;
+  vk_score: number;
   vk_level: PsychoVkLevel;
   structural?: PsychoEmotionalStructural;
   black_first: boolean;
@@ -811,14 +816,9 @@ export interface PsychoEmotionalPositionNote {
 }
 
 export interface PsychoEmotionalMcvGroup {
-  sign: PsychoFunctionalSign;
+  sign: PsychoPositionSign;
   colors: number[];
-  stable: boolean;
-  text: string;
-}
-
-export interface PsychoEmotionalConversationPrompt {
-  key: string;
+  stable: boolean | null;
   text: string;
 }
 
@@ -828,7 +828,6 @@ export interface PsychoEmotionalInterpretation {
   indices: PsychoEmotionalIndexNote[];
   positions: PsychoEmotionalPositionNote[];
   mcv_groups?: PsychoEmotionalMcvGroup[];
-  conversation_prompts?: PsychoEmotionalConversationPrompt[];
 }
 
 interface ResultResponseBase {
