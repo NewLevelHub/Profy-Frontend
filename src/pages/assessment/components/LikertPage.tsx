@@ -46,6 +46,8 @@ interface LikertPageProps {
   answers: Record<string, number>;
   onSelect: (questionId: string, value: number) => void;
   onSubmit: () => void;
+  /** Number of the first item on this page within its test (default 1). */
+  firstNumber?: number;
   /** Blocks input immediately on click — a save is in flight, however fast. */
   saving: boolean;
   /**
@@ -57,7 +59,7 @@ interface LikertPageProps {
   savingVisible: boolean;
 }
 
-export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
+export function LikertPage({ questions, answers, onSelect, onSubmit, firstNumber = 1, saving, savingVisible }: LikertPageProps) {
   const { t } = useTranslation('common');
   const { t: tAssessment } = useTranslation('assessment');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
@@ -78,7 +80,7 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
             data-answered={answers[question.id] !== undefined}
           >
             <div className="rd-assessment-question-heading">
-              <span className="rd-assessment-question-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+              <span className="rd-assessment-question-number" aria-hidden="true">{String(firstNumber + index).padStart(2, '0')}</span>
               <h2>{question.text}</h2>
             </div>
             <LikertScale

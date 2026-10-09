@@ -13,6 +13,8 @@ interface PairPageProps {
   answers: Record<number, string>;
   onSelect: (pairIndex: number, questionId: string) => void;
   onSubmit: () => void;
+  /** Number of the first item on this page within its test (default 1). */
+  firstNumber?: number;
   /** Blocks input immediately on click — a save is in flight, however fast. */
   saving: boolean;
   /** Delayed mirror of `saving` that drives the spinner — see LikertPage. */
@@ -74,7 +76,7 @@ function PairOption({
 
 /** A page of forced-choice pairs ("Что тебе ближе?"), sent together on
  *  "Далее" — the pair counterpart of LikertPage, same card and rhythm. */
-export function PairPage({ pairs, answers, onSelect, onSubmit, saving, savingVisible }: PairPageProps) {
+export function PairPage({ pairs, answers, onSelect, onSubmit, firstNumber = 1, saving, savingVisible }: PairPageProps) {
   const { t } = useTranslation('assessment');
   const { t: tCommon } = useTranslation('common');
   const allAnswered = pairs.every(pair => answers[pair.pair_index] !== undefined);
@@ -97,7 +99,7 @@ export function PairPage({ pairs, answers, onSelect, onSubmit, saving, savingVis
           return (
             <div key={pair.pair_index} ref={itemRef(String(pair.pair_index))} className="rd-assessment-question" data-answered={picked !== undefined}>
               <div className="rd-assessment-question-heading">
-                <span className="rd-assessment-question-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                <span className="rd-assessment-question-number" aria-hidden="true">{String(firstNumber + index).padStart(2, '0')}</span>
                 {pair.frame && <h2>{pair.frame}</h2>}
               </div>
               <div
