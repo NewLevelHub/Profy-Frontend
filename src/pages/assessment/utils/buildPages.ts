@@ -80,3 +80,23 @@ export function isFirstPageOfInstrument(pages: Page[], index: number): boolean {
 export function pageItemCount(page: Page): number {
   return page.kind === 'likert' ? page.questions.length : page.pairs.length;
 }
+
+/** How many items of the same section come before this page — so a page's
+ *  question numbers continue the count (06, 07…) instead of restarting at
+ *  01 on every page. The section is not the instrument: the main battery
+ *  interleaves riasec/big_five items page by page, so `sectionOf` lumps
+ *  those together and only splits off the standalone tests. */
+export function itemsBeforePageInSection(
+  pages: Page[],
+  index: number,
+  sectionOf: (instrument: Instrument) => string,
+): number {
+  const page = pages[index];
+  if (!page) return 0;
+  const section = sectionOf(pageInstrument(page));
+  let count = 0;
+  for (let i = index - 1; i >= 0 && sectionOf(pageInstrument(pages[i])) === section; i--) {
+    count += pageItemCount(pages[i]);
+  }
+  return count;
+}

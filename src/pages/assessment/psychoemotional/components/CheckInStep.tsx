@@ -3,15 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
 import { AssessmentStageShell } from '../../components/AssessmentStageShell';
-import { CHECKIN_QUESTIONS, SKIPPED } from '../data/checkin';
+import { CHECKIN_QUESTIONS } from '../data/checkin';
 
 interface CheckInStepProps {
   onSubmit: (answers: Record<string, string>) => void;
 }
 
 /**
- * Check-in §5.2: 3 вопроса, одно касание, пропуск допустим («не указано»).
- * Не оценивается, никакой обратной связи. Отправляется как есть.
+ * Check-in §5.2: 3 вопроса, одно касание. Не оценивается, никакой обратной
+ * связи. Ответ на каждый обязателен: «Далее» неактивна, пока не отмечены
+ * все три — иначе тест открывался без единого ответа. Раньше пропуск был
+ * допустим и уходил как «не указано»; старые такие ответы отчёт по-прежнему
+ * показывает (CHECKIN_SKIPPED в PsychoEmotionalSection).
  * PRO-397: same journey-shell card as AssessmentIntro so the psycho start
  * matches every other test gate.
  *
@@ -25,19 +28,19 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
   const { t } = useTranslation('assessment');
   const [selected, setSelected] = useState<Record<string, string>>({});
 
+  const complete = CHECKIN_QUESTIONS.every((q) => Boolean(selected[q.key]));
+
   function submit() {
-    onSubmit(
-      Object.fromEntries(
-        CHECKIN_QUESTIONS.map((q) => [q.key, selected[q.key] || SKIPPED]),
-      ),
-    );
+    if (!complete) return;
+    onSubmit(Object.fromEntries(CHECKIN_QUESTIONS.map((q) => [q.key, selected[q.key]])));
   }
 
   return (
     <AssessmentStageShell
       centered
-      contentClassName="flex flex-col gap-7 !p-8 sm:!p-10"
+      contentClassName="rd-assessment-checkin flex flex-col gap-7 !p-8 sm:!p-10"
     >
+      <h1 className="sr-only">{t('psychoemotional.circle1.stepTitleCheckin')}</h1>
       {CHECKIN_QUESTIONS.map((q) => (
         <div
           key={q.key}
@@ -55,6 +58,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
                 <button
                   key={opt}
                   type="button"
+                  aria-pressed={isSelected}
                   className={cn(
                     'press-scale rounded-pill border-2 px-3.5 py-1.5 text-body-sm font-medium transition-colors',
                     isSelected
@@ -77,6 +81,7 @@ export function CheckInStep({ onSubmit }: CheckInStepProps) {
       ))}
       <Button
         onClick={submit}
+        disabled={!complete}
         size="lg"
         className="mt-1 w-full rounded-pill text-body-lg font-extrabold"
         style={{ height: 56 }}

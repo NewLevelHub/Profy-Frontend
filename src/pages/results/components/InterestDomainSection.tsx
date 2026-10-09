@@ -13,23 +13,13 @@ import { InterestTypeDetail } from './InterestTypeDetail';
 import { InterestHowItWorks } from './InterestHowItWorks';
 
 interface InterestDomainSectionProps {
+  redesigned?: boolean;
   interestMap: InterestMapItem[];
   interestMapNote: string;
   interestCombination?: InterestCombination | null;
 }
 
-type Level = InterestMapItem['level'];
 type DetailedItem = InterestMapItem & { details: InterestMapItemDetails };
-
-// Icon color — the fill-contrast cell goes solid Pine at `high` and solid
-// Dawn at `medium`, so both flip to --text-on-brand (readable on either
-// fill) instead of a color-on-same-color icon. Muted --text-subtle for
-// barely-present — the cell's own opacity-45 does the rest of the dimming.
-const ICON_COLOR: Record<Level, string> = {
-  high: 'var(--text-on-brand)',
-  medium: 'var(--text-on-brand)',
-  low: 'var(--text-subtle)',
-};
 
 const hasDetails = (item: InterestMapItem): item is DetailedItem => Boolean(item.details);
 
@@ -46,6 +36,7 @@ const hasDetails = (item: InterestMapItem): item is DetailedItem => Boolean(item
  * Older cached reports without `details` render as before.
  */
 export function InterestDomainSection({
+  redesigned = false,
   interestMap,
   interestMapNote,
   interestCombination = null,
@@ -89,7 +80,7 @@ export function InterestDomainSection({
               {t('results:interestDomain.alsoNotable', { items: secondaryNote })}
             </p>
           )}
-          <Mascot state="completion" size={68} celebrate />
+          {!redesigned && <Mascot state="completion" size={68} celebrate />}
         </div>
       </div>
 
@@ -136,7 +127,7 @@ export function InterestDomainSection({
                   onSelect={detailed && item.details ? () => setSelectedCode(item.code) : undefined}
                 >
                   {detailed && item.details && (
-                    <CellEvidence details={item.details} level={item.level} selected={isSelected} />
+                    <CellEvidence details={item.details} selected={isSelected} />
                   )}
                 </DomainCell>
               );
@@ -165,11 +156,10 @@ export function InterestDomainSection({
 }
 
 /** Mini level meter + "нравится 17 из 24" + a "why" affordance inside a cell. */
-function CellEvidence({ details, level, selected }: { details: InterestMapItemDetails; level: Level; selected: boolean }) {
+function CellEvidence({ details, selected }: { details: InterestMapItemDetails; selected: boolean }) {
   const { t } = useTranslation();
-  const color = level === 'low' ? 'var(--text-heading)' : 'var(--text-on-brand)';
   return (
-    <span className="flex flex-col items-center gap-1.5 w-full" style={{ color }}>
+    <span className="flex flex-col items-center gap-1.5 w-full">
       <span
         className="relative w-4/5 h-1 rounded-sm mt-0.5"
         style={{ background: 'color-mix(in srgb, currentColor 22%, transparent)' }}
@@ -197,7 +187,6 @@ function TypeIcon({ item }: { item: InterestMapItem }) {
       type={item.code as RiasecType}
       size={32}
       strokeWidth={item.level === 'high' ? 2.25 : 1.75}
-      style={{ color: ICON_COLOR[item.level] }}
     />
   );
 }

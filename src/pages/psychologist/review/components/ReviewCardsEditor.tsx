@@ -40,11 +40,11 @@ export function ReviewCardsEditor({
           {t('review.cards.empty')}
         </Text>
       ) : (
-        <ol className="flex flex-col gap-5 m-0 p-0 list-none">
+        <ol className="rd-review-cards flex flex-col gap-5 m-0 p-0 list-none">
           {cards.map((card, index) => {
             const number = index + 1;
             return (
-              <li key={index} className="flex gap-3.5 items-start">
+              <li key={index} className="rd-review-card flex gap-3.5 items-start">
                 <Mono variant="sm" className="text-[color:var(--dawn-deep)] pt-2.5 w-6 flex-none">
                   {String(number).padStart(2, '0')}
                 </Mono>

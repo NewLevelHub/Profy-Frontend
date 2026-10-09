@@ -86,7 +86,7 @@ export function UniversityFilters({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="rd-university-filters flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
           <Search
@@ -99,7 +99,7 @@ export function UniversityFilters({
             onChange={e => onSearchChange(e.target.value)}
             placeholder={t('catalog.searchPlaceholder')}
             aria-label={t('catalog.searchAria')}
-            className="w-full h-11 pl-11 pr-10 rounded-pill bg-[color-mix(in_srgb,var(--paper)_78%,transparent)] border border-[color:color-mix(in_srgb,#fff_50%,var(--border))] text-sm font-semibold text-primary placeholder:text-muted focus:border-brand focus:outline-none transition-colors backdrop-blur-sm [&::-webkit-search-cancel-button]:hidden"
+            className="w-full h-11 pl-11 pr-10 rounded-pill bg-[color-mix(in_srgb,var(--paper)_78%,transparent)] border border-[color:color-mix(in_srgb,#fff_50%,var(--border))] text-sm font-semibold text-primary placeholder:text-muted focus:border-brand focus:outline-none transition-colors [&::-webkit-search-cancel-button]:hidden"
           />
           {searchInput && (
             <button

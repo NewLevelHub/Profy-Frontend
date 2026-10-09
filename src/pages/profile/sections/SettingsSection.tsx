@@ -7,6 +7,7 @@ import { LanguageSwitcher } from '@/shared/ui/LanguageSwitcher';
 import { LedgerSection } from '../components/LedgerSection';
 
 export interface SettingsSectionProps {
+  persistLocale?: boolean;
   soundEnabled: boolean;
   toggleSound: () => void;
   prefersReducedMotion: boolean;
@@ -22,6 +23,7 @@ export interface SettingsSectionProps {
 // separately-carded pieces in ProfilePage, now one ledger row of
 // divider-separated rows.
 export function SettingsSection({
+  persistLocale = true,
   soundEnabled,
   toggleSound,
   prefersReducedMotion,
@@ -45,7 +47,7 @@ export function SettingsSection({
                 <p className="text-caption text-secondary">{t('settings.languageHint')}</p>
               </div>
             </div>
-            <LanguageSwitcher />
+            <LanguageSwitcher persistToAccount={persistLocale} />
           </div>
         )}
 

@@ -16,7 +16,7 @@ const VARIANT_CLASS: Record<ChipVariant, string> = {
 
 function ChipBase({ label, variant = 'solid' }: ChipProps) {
   return (
-    <span className={cn('px-3 py-1 rounded-pill font-semibold text-body-sm', VARIANT_CLASS[variant])}>
+    <span data-variant={variant} className={cn('rd-profile-chip px-3 py-1 rounded-pill font-semibold text-body-sm', VARIANT_CLASS[variant])}>
       {label}
     </span>
   );

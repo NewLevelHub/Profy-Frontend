@@ -119,7 +119,8 @@ export default function AdminDirectionsPage() {
       key: 'programs',
       header: t('directions.col.programs'),
       align: 'right',
-      width: '104px',
+      // Влезает казахское «БАҒДАРЛАМА» шрифтом шапки (12 px, капс).
+      width: '124px',
       mobile: 'field',
       headerTitle: t('directions.col.programsHint'),
       cell: (item) => (

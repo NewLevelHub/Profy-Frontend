@@ -46,6 +46,8 @@ interface LikertPageProps {
   answers: Record<string, number>;
   onSelect: (questionId: string, value: number) => void;
   onSubmit: () => void;
+  /** Number of the first item on this page within its test (default 1). */
+  firstNumber?: number;
   /** Blocks input immediately on click — a save is in flight, however fast. */
   saving: boolean;
   /**
@@ -57,7 +59,7 @@ interface LikertPageProps {
   savingVisible: boolean;
 }
 
-export function LikertPage({ questions, answers, onSelect, onSubmit, saving, savingVisible }: LikertPageProps) {
+export function LikertPage({ questions, answers, onSelect, onSubmit, firstNumber = 1, saving, savingVisible }: LikertPageProps) {
   const { t } = useTranslation('common');
   const { t: tAssessment } = useTranslation('assessment');
   const allAnswered = questions.every(question => answers[question.id] !== undefined);
@@ -66,23 +68,23 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
   const itemRef = useFollowActiveItem(activeQuestion?.id ?? null);
 
   return (
-    <div className="assessment-stage mx-auto w-full max-w-[720px]">
-      <div className="assessment-stage__shell journey-shell flex flex-col gap-28 !p-6 sm:!p-8">
-      {questions.map(question => {
+    <div className="rd-assessment-battery" aria-busy={saving}>
+      <h1 className="sr-only">{tAssessment('rail.sectionDiagnostic')}</h1>
+      {questions.map((question, index) => {
         const poles = polesForInstrument(question.instrument);
         return (
           <div
             key={question.id}
             ref={itemRef(question.id)}
-            className="flex flex-col gap-6 scroll-mt-24 text-center"
+            className="rd-assessment-question"
+            data-answered={answers[question.id] !== undefined}
           >
-            <p
-              className="font-sans font-semibold text-[color:var(--text-heading)]"
-              style={{ fontSize: '1.375rem', lineHeight: 1.55 }}
-            >
-              {question.text}
-            </p>
+            <div className="rd-assessment-question-heading">
+              <span className="rd-assessment-question-number" aria-hidden="true">{String(firstNumber + index).padStart(2, '0')}</span>
+              <h2>{question.text}</h2>
+            </div>
             <LikertScale
+              ariaLabel={question.text}
               selected={answers[question.id] ?? null}
               onSelect={value => {
                 playClick('soft');
@@ -101,12 +103,10 @@ export function LikertPage({ questions, answers, onSelect, onSubmit, saving, sav
         disabled={!allAnswered || saving}
         isLoading={savingVisible}
         size="lg"
-        className="w-full max-w-[560px] mx-auto rounded-pill text-body-lg font-extrabold"
-        style={{ height: 60 }}
+        className="rd-assessment-next"
       >
         {t('next')}
       </Button>
-      </div>
     </div>
   );
 }

@@ -67,8 +67,8 @@ export default function AdminBelbinEditorPage() {
         actions={dirty && <UnsavedBadge />}
       />
 
-      <div className="grid gap-5 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <nav aria-label={t('belbinEditor.sectionsNav')} className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+      <div className="admin-bank-editor grid gap-5 lg:grid-cols-[200px_minmax(0,1fr)]">
+        <nav aria-label={t('belbinEditor.sectionsNav')} className="admin-bank-nav flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
           {sectionsRu.map((sec, idx) => (
             <button
               key={sec.section}

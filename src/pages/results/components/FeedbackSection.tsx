@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
@@ -21,6 +22,7 @@ type SubmitState = 'idle' | 'submitting' | 'sent' | 'error';
  */
 export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
   const { t } = useTranslation('results');
+  const commentId = useId();
   const [relevanceScore, setRelevanceScore] = useState<number | null>(null);
   const [sections, setSections] = useState<Set<string>>(new Set());
   const [comment, setComment] = useState('');
@@ -59,19 +61,19 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
 
   if (state === 'sent') {
     return (
-      <section className="panel-glass flex flex-col gap-2 !p-6 sm:!p-7">
+      <Card className="rd-feedback flex flex-col gap-2 !p-6 sm:!p-7">
         <span className="journey-kicker" style={{ color: 'var(--pine)' }}>
           {t('feedback.sentKicker')}
         </span>
         <Text variant="body-md" className="text-secondary leading-relaxed">
           {t('feedback.sentBody')}
         </Text>
-      </section>
+      </Card>
     );
   }
 
   return (
-    <section className="panel-glass flex flex-col gap-6 !p-6 sm:!p-7">
+    <Card className="rd-feedback flex flex-col gap-6 !p-6 sm:!p-7">
       <div className="flex flex-col gap-2">
         <span className="journey-kicker">{t('feedback.kicker')}</span>
         <Heading level="display-sm" as="h2" className="text-[color:var(--text-heading)] m-0">
@@ -132,11 +134,12 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
       </div>
 
       <div className="flex flex-col gap-2.5">
-        <p className="text-body-sm font-semibold text-[color:var(--text-heading)] m-0">
+        <label htmlFor={commentId} className="text-body-sm font-semibold text-[color:var(--text-heading)] m-0">
           {t('feedback.commentQuestion')}{' '}
           <span className="font-normal text-muted">{t('feedback.commentOptional')}</span>
-        </p>
+        </label>
         <textarea
+          id={commentId}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder={t('feedback.commentPlaceholder')}
@@ -171,6 +174,6 @@ export function FeedbackSection({ assessmentId }: FeedbackSectionProps) {
           {t('feedback.submit')}
         </Button>
       </div>
-    </section>
+    </Card>
   );
 }

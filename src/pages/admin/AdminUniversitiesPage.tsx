@@ -183,6 +183,7 @@ export default function AdminUniversitiesPage() {
       header: country ? t('universities.col.city') : t('universities.col.cityCountry'),
       width: country ? '160px' : '220px',
       mobile: 'subtitle',
+      wrap: true,
       cell: (item) => {
         const text = (country ? [item.city] : [item.city, item.country]).filter(Boolean).join(', ');
         return text ? (
@@ -199,7 +200,8 @@ export default function AdminUniversitiesPage() {
       header: t('universities.col.programs'),
       sortKey: 'programs_count',
       align: 'right',
-      width: '110px',
+      // Влезает казахское «БАҒДАРЛАМА» шрифтом шапки (12 px, капс) и стрелка сортировки.
+      width: '124px',
       mobile: 'field',
       // A university with no programs can be recommended by nothing — it is
       // invisible to students. Worth spotting while scanning the catalog.

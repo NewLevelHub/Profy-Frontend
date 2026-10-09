@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AdminOverlay } from '@/shared/ui/admin/AdminOverlay';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -37,8 +38,8 @@ export function AsturPublishModal({ open, keyChangedItemIds, publishing, issues,
     });
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
+    <AdminOverlay><div
+      className="rd-admin-dialog fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="astur-publish-title"
@@ -96,6 +97,6 @@ export function AsturPublishModal({ open, keyChangedItemIds, publishing, issues,
           </Button>
         </div>
       </div>
-    </div>
+    </div></AdminOverlay>
   );
 }

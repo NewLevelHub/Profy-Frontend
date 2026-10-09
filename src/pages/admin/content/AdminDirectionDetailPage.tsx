@@ -15,8 +15,8 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { StringListEditor } from '@/shared/ui/admin/StringListEditor';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT, ADMIN_TEXTAREA } from '@/shared/ui/admin/density';
-import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
-import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
+import { useAdminLocaleGuard } from '@/shared/lib/useAdminLocaleGuard';
+import { KNOWN_LOCALES, useLocaleStore, type Locale } from '@/shared/store/locale';
 import type { AdminDirectionDetail, AdminDirectionUpdateRequest } from '@/shared/types';
 
 const EDITABLE_KEYS = [
@@ -98,7 +98,7 @@ export default function AdminDirectionDetailPage() {
   const { t } = useTranslation('admin');
   const { directionId } = useParams<{ directionId: string }>();
   const [detail, setDetail] = useState<AdminDirectionDetail | null>(null);
-  const [locale, setLocale] = useState<Locale>('ru');
+  const locale = useLocaleStore(s => s.locale);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
@@ -142,6 +142,8 @@ export default function AdminDirectionDetailPage() {
       return updated;
     },
   });
+
+  useAdminLocaleGuard(dirty || saving);
 
   // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
   // return'ов и принимает ещё не загруженный detail — иначе после прихода
@@ -207,7 +209,7 @@ export default function AdminDirectionDetailPage() {
         notice={revertNotice}
       />
 
-      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
+      {!translated.has(locale) && <p className={ADMIN_META}>{t('common.untranslated')}</p>}
 
       <AdminCard title={t('directions.mainCard')} description={t('directions.mainDescription')}>
         <div className="grid gap-3.5 sm:grid-cols-[1fr_200px]">

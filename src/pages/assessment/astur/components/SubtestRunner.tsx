@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { BookOpen, ChevronDown, SkipForward, Undo2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { cn } from '@/shared/lib/cn';
@@ -248,7 +249,7 @@ export function SubtestRunner({
   const primaryEnabled = !submitting && (timeUp || (isLastPage ? allDone : pageDone));
 
   return (
-    <div className="assessment-stage mx-auto w-full max-w-[720px]">
+    <div className="rd-astur">
       {durationMs !== null &&
         timerSlot &&
         createPortal(
@@ -258,40 +259,47 @@ export function SubtestRunner({
             timeLabel={formatCountdownMmSs(remainingMs)}
             expired={timeUp}
             expiredMessage={t('astur.subtest.timeUp')}
+            expiredLabel={t('astur.subtest.timeUpShort')}
             urgentBelowMs={15_000}
             variant="rail"
           />,
           timerSlot,
         )}
-      <div className="assessment-stage__shell journey-shell flex flex-col gap-5 !p-6 sm:!p-8">
-        <div className="flex flex-col gap-2">
+      <div className="rd-astur-content">
+        <div className="rd-astur-heading">
+          <div>
+            <p className="rd-assessment-kicker">{t('rail.sectionAstur')}</p>
+            <h1>{subtest.name}</h1>
+          </div>
           <button
             type="button"
             onClick={() => setInstructionOpen((open) => !open)}
             aria-expanded={instructionOpen}
             aria-controls={instructionId}
-            className="self-start text-body-sm font-medium text-brand underline underline-offset-4 hover:opacity-70"
+            className="rd-astur-instruction-toggle"
           >
+            <BookOpen size={17} aria-hidden="true" />
             {instructionOpen ? t('astur.subtest.hideInstruction') : t('astur.subtest.showInstruction')}
+            <ChevronDown size={15} aria-hidden="true" />
           </button>
-          {instructionOpen && (
-            <div id={instructionId} className="rounded-[12px] border border-default px-4 py-3">
-              <Text variant="body-md" className="m-0 text-secondary whitespace-pre-wrap">
-                {subtest.instruction}
-              </Text>
-              {/* The countdown runs off the server's startedAt (useCountdown) —
-                  opening the instruction neither pauses nor restarts it. */}
-              {durationMs !== null && (
-                <Text variant="caption" className="mt-2 mb-0 text-muted">
-                  {t('astur.subtest.instructionTimerNote')}
-                </Text>
-              )}
-            </div>
-          )}
         </div>
+        {instructionOpen && (
+          <div id={instructionId} className="rd-astur-instruction">
+            <Text variant="body-md" className="m-0 text-secondary whitespace-pre-wrap">
+              {subtest.instruction}
+            </Text>
+            {/* The countdown runs off the server's startedAt (useCountdown) —
+                opening the instruction neither pauses nor restarts it. */}
+            {durationMs !== null && (
+              <Text variant="caption" className="mt-2 mb-0 text-muted">
+                {t('astur.subtest.instructionTimerNote')}
+              </Text>
+            )}
+          </div>
+        )}
 
         {pageCount > 1 && (
-          <Text variant="caption" className={cn(isGeometry ? 'font-semibold text-secondary' : 'text-muted')}>
+          <Text variant="caption" className="rd-astur-page-meta">
             {isGeometry
               ? t('astur.subtest.itemOf', { current: pageIndex + 1, total: subtest.items.length })
               : t('astur.subtest.pageOf', {
@@ -304,12 +312,13 @@ export function SubtestRunner({
           </Text>
         )}
 
-        <div className="flex flex-col gap-6">
+        <div className="rd-astur-items">
           {pageItems.map((item, offset) => {
             const index = String(pageStart + offset + 1);
             const skipped = state.skipped.has(index);
             return (
-              <div key={index} className="flex flex-col gap-2">
+              <div key={index} className="rd-astur-item" data-skipped={skipped}
+                data-answered={!skipped && isAsturItemDone(subtest, state, index)}>
                 <div className={cn(skipped && 'opacity-50')}>
                   {renderItem(subtest, item, pageStart + offset, state, setAnswer, t)}
                 </div>
@@ -318,10 +327,11 @@ export function SubtestRunner({
                   onClick={() => toggleSkip(index)}
                   aria-pressed={skipped}
                   className={cn(
-                    'self-start text-body-sm font-medium transition-colors',
+                    'rd-astur-skip self-start text-body-sm font-medium transition-colors',
                     skipped ? 'text-brand' : 'text-muted hover:text-secondary',
                   )}
                 >
+                  {skipped ? <Undo2 size={14} aria-hidden="true" /> : <SkipForward size={14} aria-hidden="true" />}
                   {skipped ? t('astur.subtest.unskip') : t('astur.subtest.skip')}
                 </button>
               </div>
@@ -329,19 +339,15 @@ export function SubtestRunner({
           })}
         </div>
 
-        {submitError && (
-          <Text variant="body-sm" className="text-danger">
-            {submitError}
-          </Text>
-        )}
+        {submitError && <p className="rd-assessment-error" role="alert">{submitError}</p>}
 
-        <div className="flex flex-col gap-2 w-full">
+        <div className="rd-astur-footer">
           {!primaryEnabled && !submitting && (
             <Text variant="caption" className={cn('text-muted', isGeometry ? 'text-center' : 'text-right')}>
               {t(isGeometry ? 'astur.subtest.answerOrSkipOne' : 'astur.subtest.answerOrSkip')}
             </Text>
           )}
-          <div className="flex items-center justify-between gap-3">
+          <div className="rd-assessment-actions">
             <Button
               variant="ghost"
               onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
@@ -357,6 +363,7 @@ export function SubtestRunner({
       </div>
 
       <ConfirmDialog
+        className="rd-astur-confirm"
         open={confirmSkipsOpen}
         title={t('astur.subtest.skipConfirmTitle', { count: skippedCount })}
         body={t('astur.subtest.skipConfirmBody')}

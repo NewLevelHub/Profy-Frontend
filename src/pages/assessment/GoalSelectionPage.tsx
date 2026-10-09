@@ -1,19 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
-import { cn } from '@/shared/lib/cn';
-import { Button, FullScreenPreferences, Spinner } from '@/shared/ui';
-import { Heading } from '@/shared/ui/typography/Heading';
-import { Text } from '@/shared/ui/typography/Text';
-import { type as typeClass } from '@/shared/ui/typography/tokens';
+import { ArrowRight, Compass, RotateCcw } from 'lucide-react';
+import { Button, Spinner } from '@/shared/ui';
+import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
 import type { AssessmentGoal, AgeGroup } from '@/shared/types';
-
-// ── Step 4 — Goal selection ─────────────────────────────────────────────────
-// IMPORTANT DATA-MODEL NOTE: each card here is a real assessment goal from
-// the product model (`AssessmentGoal`), and choosing one immediately starts
-// the flow. The UI should therefore present them as equal alternatives rather
-// than a "main" goal plus secondary ones.
 
 interface GoalCard {
   goal: AssessmentGoal;
@@ -51,252 +43,74 @@ const GOAL_CARDS: GoalCard[] = [
   },
 ];
 
-// ── Resume dialog ─────────────────────────────────────────────────────────────
-
-function ResumeDialog({
-  open, onResume, onStartNew,
-}: {
-  open: boolean;
-  onResume: () => void;
-  onStartNew: () => void;
+function GoalDialog({ open, title, body, onDismiss, children }: {
+  open: boolean; title: string; body: string; onDismiss: () => void; children: ReactNode;
 }) {
+  const ref = useRef<HTMLDialogElement>(null);
   const { t } = useTranslation('assessment');
-  if (!open) return null;
-
+  useEffect(() => {
+    const dialog = ref.current;
+    if (open && !dialog?.open) dialog?.showModal();
+    if (!open && dialog?.open) dialog.close();
+    return () => { if (dialog?.open) dialog.close(); };
+  }, [open]);
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="resume-dialog-title"
-    >
-      <div className={cn(
-        'w-full max-w-sm bg-surface rounded-[var(--radius-lg)] shadow-pop p-6',
-        'flex flex-col gap-5',
-      )}>
-        <div className="flex flex-col gap-2">
-          <h2 id="resume-dialog-title" className="text-title font-black text-primary">
-            {t('goalSelection.incompleteTitle')}
-          </h2>
-          <p className="text-body text-secondary">
-            {t('goalSelection.incompleteBody')}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Button
-            size="lg"
-            className="w-full h-12 rounded-pill font-extrabold shadow-button"
-            onClick={onResume}
-          >
-            {t('goalSelection.continueTest')}
-          </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            className="w-full h-12 rounded-pill"
-            onClick={onStartNew}
-          >
-            {t('goalSelection.startOver')}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <dialog ref={ref} className="rd-goal-dialog" aria-labelledby="goal-dialog-title" aria-describedby="goal-dialog-body" onCancel={event => { event.preventDefault(); onDismiss(); }}>
+      <span className="rd-icon-tile rd-lilac"><RotateCcw aria-hidden="true" /></span>
+      <h2 id="goal-dialog-title">{title}</h2>
+      <p id="goal-dialog-body">{body}</p>
+      <div className="rd-dialog-actions">{children}</div>
+      <Button variant="text" onClick={onDismiss}>{t('goalSelection.notNow')}</Button>
+    </dialog>
   );
 }
-
-// ── Restart confirmation dialog ───────────────────────────────────────────────
-
-function RestartDialog({
-  open, onViewResults, onStartNew,
-}: {
-  open: boolean;
-  onViewResults: () => void;
-  onStartNew: () => void;
-}) {
-  const { t } = useTranslation('assessment');
-  if (!open) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-scrim backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="restart-dialog-title"
-    >
-      <div className={cn(
-        'w-full max-w-sm bg-surface rounded-[var(--radius-lg)] shadow-pop p-6',
-        'flex flex-col gap-5',
-      )}>
-        <div className="flex flex-col gap-2">
-          <h2 id="restart-dialog-title" className="text-title font-black text-primary">
-            {t('goalSelection.haveResultsTitle')}
-          </h2>
-          <p className="text-body text-secondary">
-            {t('goalSelection.haveResultsBody')}
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Button
-            size="lg"
-            className="w-full h-12 rounded-pill font-extrabold shadow-button"
-            onClick={onViewResults}
-          >
-            {t('goalSelection.viewResults')}
-          </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            className="w-full h-12 rounded-pill"
-            onClick={onStartNew}
-          >
-            {t('goalSelection.retakeAgain')}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GoalSelectionPage() {
   const { t } = useTranslation('assessment');
-  const [hoveredGoal, setHoveredGoal] = useState<AssessmentGoal | null>(null);
+  const { t: to } = useTranslation('onboarding');
+  const { t: tc } = useTranslation('common');
   const { shouldRedirect } = useGoalGuard();
   const {
-    ageGroup,
-    isLoading,
-    isCheckingCurrent,
-    error,
-    resumeOpen,
-    restartOpen,
-    handleGoalSelect,
-    handleResume,
-    handleStartNew,
-    handleViewResults,
-    handleConfirmRestart,
-    handleSkip,
+    ageGroup, isLoading, isCheckingCurrent, error, resumeOpen, restartOpen,
+    handleGoalSelect, handleResume, handleStartNew, handleViewResults, handleConfirmRestart, handleSkip,
   } = useGoalSelection();
 
-  if (shouldRedirect) {
-    return <Navigate to="/results" replace />;
-  }
-
-  const visibleCards = GOAL_CARDS.filter(
-    card => !card.hidden && (!card.minAgeGroup || AGE_RANK[ageGroup] >= AGE_RANK[card.minAgeGroup]),
-  );
+  if (shouldRedirect) return <Navigate to="/results" replace />;
+  const visibleCards = GOAL_CARDS.filter(card => !card.hidden && (!card.minAgeGroup || AGE_RANK[ageGroup] >= AGE_RANK[card.minAgeGroup]));
 
   return (
-    <>
-      <ResumeDialog
-        open={resumeOpen}
-        onResume={handleResume}
-        onStartNew={handleStartNew}
-      />
-      <RestartDialog
-        open={restartOpen}
-        onViewResults={handleViewResults}
-        onStartNew={handleConfirmRestart}
-      />
-
-      <div className="min-h-screen bg-page flex flex-col">
-        <div className="px-3 pt-4 sm:px-4 lg:px-6">
-          <div className="w-full max-w-7xl mx-auto">
-            <FullScreenPreferences />
-          </div>
+    <JourneyShell>
+      <GoalDialog open={resumeOpen || restartOpen} title={t(resumeOpen ? 'goalSelection.incompleteTitle' : 'goalSelection.haveResultsTitle')} body={t(resumeOpen ? 'goalSelection.incompleteBody' : 'goalSelection.haveResultsBody')} onDismiss={handleSkip}>
+        <Button className="rd-button" onClick={resumeOpen ? handleResume : handleViewResults}>{t(resumeOpen ? 'goalSelection.continueTest' : 'goalSelection.viewResults')}<ArrowRight size={17} aria-hidden="true" /></Button>
+        <Button variant="ghost" className="rd-button rd-button-outline" onClick={resumeOpen ? handleStartNew : handleConfirmRestart}>{t(resumeOpen ? 'goalSelection.startOver' : 'goalSelection.retakeAgain')}</Button>
+      </GoalDialog>
+      <main id="journey-content" tabIndex={-1} className="rd-goal-main">
+        <div className="rd-goal-heading">
+          <span className="rd-icon-tile rd-peach"><Compass aria-hidden="true" /></span>
+          <h1>{t('goalSelection.question')}</h1>
+          <p>{t('goalSelection.hint')}</p>
         </div>
-        <div className="flex-1 overflow-y-auto px-3 py-10 sm:px-4 lg:px-6 lg:py-14">
-          <div className="w-full max-w-7xl mx-auto flex flex-col">
-
-            <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                {/* <span className="font-mono text-mono-xs tracking-label uppercase text-muted">
-                  Шаг 4 · Цель · Выбери, что сейчас важнее
-                </span> */}
-                <Heading level="display-md" className="mt-2 mb-2 text-[color:var(--text-heading)]">
-                  {t('goalSelection.question')}
-                </Heading>
-                <Text variant="body-md" className="text-muted">
-                  {t('goalSelection.hint')}
-                </Text>
-              </div>
-
-              {/* Test is optional — a student can leave before picking a goal
-                  (which is what actually starts an assessment) and come back
-                  to it anytime from /results. */}
-              <Button variant="text" size="sm" className="mt-2" onClick={handleSkip}>
-                {t('goalSelection.notNow')}
-              </Button>
-            </div>
-
-            {isCheckingCurrent || restartOpen ? (
-              <div className="flex justify-center py-8">
-                <Spinner size="lg" />
-              </div>
-            ) : (
-              <div className={cn(
-                'grid grid-cols-1 gap-4',
-                visibleCards.length > 1 ? 'md:grid-cols-3' : 'max-w-sm',
-              )}>
-                {visibleCards.map(card => {
-                  const isHovered = hoveredGoal === card.goal;
-
-                  return (
-                    <div
-                      key={card.goal}
-                      className="flex flex-col gap-4 p-5 transition-all duration-200"
-                      onMouseEnter={() => setHoveredGoal(card.goal)}
-                      onMouseLeave={() => setHoveredGoal(null)}
-                      style={{
-                        background: isHovered ? 'color-mix(in srgb, var(--brand) 6%, var(--bg-surface))' : 'var(--bg-surface)',
-                        borderRadius: 'var(--radius)',
-                        border: isHovered ? '1px solid var(--brand)' : '1px solid var(--border)',
-                        boxShadow: isHovered
-                          ? '0 18px 40px color-mix(in srgb, var(--midnight) 8%, transparent)'
-                          : 'none',
-                      }}
-                    >
-                      <div className="flex items-center">
-                        <span className={`${typeClass.monoLabel} text-muted`}>{t(card.tag)}</span>
-                      </div>
-
-                      <div className="flex flex-col gap-1.5">
-                        <p className={`${typeClass.bodyLg} font-semibold text-[color:var(--text-heading)]`}>
-                          {t(card.title)}
-                        </p>
-                        <p className={`${typeClass.bodySm} text-muted`}>{t(card.subtitle)}</p>
-                      </div>
-
-                      <Button
-                        variant={isHovered ? 'primary' : 'ghost'}
-                        size="md"
-                        className="w-full mt-auto"
-                        disabled={isLoading}
-                        onClick={() => handleGoalSelect(card.goal)}
-                      >
-                        {t('goalSelection.pickThisGoal')}
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {isLoading && (
-              <div className="flex justify-center mt-4">
-                <Spinner size="sm" />
-              </div>
-            )}
-
-            {error && (
-              <p className="text-xs text-danger text-center mt-4">{error}</p>
-            )}
-
+        {isCheckingCurrent || restartOpen ? (
+          <div className="rd-goal-loading" role="status" aria-label={tc('loading')}><Spinner size="lg" /></div>
+        ) : (
+          <div className="rd-goal-cards">
+            {visibleCards.map(card => (
+              <article className="rd-goal-card" key={card.goal}>
+                <div className="rd-goal-card-copy">
+                  <span className="rd-eyebrow">{t(card.tag)}</span>
+                  <h2>{t(card.title)}</h2>
+                  <p>{t(card.subtitle)}</p>
+                  <Button className="rd-button" isLoading={isLoading} onClick={() => handleGoalSelect(card.goal)}>{t('goalSelection.pickThisGoal')}<ArrowRight size={17} aria-hidden="true" /></Button>
+                </div>
+                <img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" />
+              </article>
+            ))}
+            {visibleCards.length === 0 && <p className="rd-journey-error">{to('redesign.goalUnavailable')}</p>}
           </div>
-        </div>
-      </div>
-    </>
+        )}
+        {error && <p className="rd-journey-error" role="alert">{error}</p>}
+        <div className="rd-goal-later"><Button variant="text" disabled={isLoading} onClick={handleSkip}>{t('goalSelection.notNow')}</Button></div>
+      </main>
+    </JourneyShell>
   );
 }

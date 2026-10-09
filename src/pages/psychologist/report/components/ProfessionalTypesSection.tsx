@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sparkles } from 'lucide-react';
+import { Blend } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminBadge } from '@/shared/ui/admin/AdminBadge';
@@ -72,7 +72,7 @@ export function ProfessionalTypesSection({ section }: { section: ProfessionalTyp
 
       {hybrid_profile && hybrid_profile.length === 2 && (
         <div className="p-3 mb-3 rounded-[12px] bg-brand-subtle/70 border border-brand/30 flex items-start gap-2.5">
-          <Sparkles size={16} className="text-brand flex-shrink-0 mt-0.5" />
+          <Blend size={16} className="text-brand flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div className={ADMIN_TEXT}>
             <p className="font-semibold text-primary m-0">
               {t('psychReport:ddo.hybridProfile')}{' '}

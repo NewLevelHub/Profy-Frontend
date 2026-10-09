@@ -11,6 +11,7 @@ import { GoalBranchSection } from './GoalBranchSection';
 import { SpecialistSectionsBlock } from './psych/SpecialistSectionsBlock';
 
 interface ResultsReportBodyProps {
+  redesigned?: boolean;
   report: ResultResponse;
   ageGroup: AgeGroup | undefined;
   goal: AssessmentGoal | null | undefined;
@@ -34,7 +35,7 @@ interface ResultsReportBodyProps {
  * (report_service.psych_sections_for → psychologist/admin only), so on the
  * student's page `hasPsych` is always false and nothing renders.
  */
-export function ResultsReportBody({ report, ageGroup, goal, readOnly = false }: ResultsReportBodyProps) {
+export function ResultsReportBody({ report, ageGroup, goal, readOnly = false, redesigned = false }: ResultsReportBodyProps) {
   const psychSections = {
     psychoemotional: report.psychoemotional ?? null,
   };
@@ -42,24 +43,25 @@ export function ResultsReportBody({ report, ageGroup, goal, readOnly = false }: 
 
   return (
     <>
-      <ResultsReveal>
+      <ResultsReveal id={redesigned ? "report-summary" : undefined}>
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
       </ResultsReveal>
 
-      <ResultsReveal delay={1}>
+      <ResultsReveal delay={1} id={redesigned ? "report-interests" : undefined}>
         <InterestDomainSection
+          redesigned={redesigned}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
           interestCombination={report.interest_instrument === 'riasec' ? report.interest_combination : null}
         />
       </ResultsReveal>
 
-      <ResultsReveal delay={1}>
+      <ResultsReveal delay={1} id={redesigned ? "report-strengths" : undefined}>
         <StrengthsDomainSection strengthCards={report.strength_cards} />
       </ResultsReveal>
 
       {report.personality_notes.length > 0 && (
-        <ResultsReveal>
+        <ResultsReveal id={redesigned ? "report-personality" : undefined}>
           <PersonalityDomainSection
             personalityNotes={report.personality_notes}
             personalityNote={report.personality_note}
@@ -67,25 +69,25 @@ export function ResultsReportBody({ report, ageGroup, goal, readOnly = false }: 
         </ResultsReveal>
       )}
 
-      <ResultsReveal>
+      <ResultsReveal id={redesigned ? "report-thinking" : undefined}>
         <ThinkingStyleMotivationSection
           thinkingStyleNotes={report.thinking_style_notes}
           motivationHighlights={report.motivation_highlights}
         />
       </ResultsReveal>
 
-      <ResultsReveal>
+      <ResultsReveal id={redesigned ? "report-exploration" : undefined}>
         <ExplorationActivitiesSection
           activities={report.exploration_activities}
           note={report.exploration_note}
         />
       </ResultsReveal>
 
-      <ResultsReveal>
+      <ResultsReveal id={redesigned ? "report-analysis" : undefined}>
         <FinalAnalysisSection text={report.final_analysis} />
       </ResultsReveal>
 
-      <div id="results-goal-branch">
+      <div id="results-goal-branch" tabIndex={redesigned ? -1 : undefined}>
         <ResultsReveal>
           <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal ?? null} readOnly={readOnly} />
         </ResultsReveal>

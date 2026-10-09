@@ -1,27 +1,17 @@
+import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-/**
- * Индикатор шагов регистрации. Живёт отдельным компонентом, потому что шаги
- * разложены по двум маршрутам: почта и пароль — на /register, код из письма —
- * на /verify-email (там уже есть вся логика OTP, дублировать её ради мастера
- * было бы хуже, чем провести индикатор через два экрана).
- */
-export function AuthStepper({ current, total = 3 }: { current: number; total?: number }) {
+export function AuthStepper({ current, kind = 'register' }: { current: number; kind?: 'register' | 'recovery' }) {
   const { t } = useTranslation('auth');
+  const steps = kind === 'register' ? ['email', 'password', 'code'] : ['email', 'code', 'password'];
   return (
-    <div className="flex items-center justify-between mb-[26px]">
-      <span className="font-mono text-mono-xs tracking-label uppercase text-muted">
-        {t('stepper.step', { current, total })}
-      </span>
-      <span className="flex gap-[5px]" aria-hidden="true">
-        {Array.from({ length: total }).map((_, i) => (
-          <span
-            key={i}
-            className="block w-[26px] h-[3px] rounded-pill"
-            style={{ background: i < current ? 'var(--brand)' : 'var(--border)' }}
-          />
-        ))}
-      </span>
-    </div>
+    <ol className="rd-auth-steps" aria-label={t('stepper.step', { current, total: steps.length })}>
+      {steps.map((step, i) => (
+        <li key={step} className={i + 1 === current ? 'is-current' : i + 1 < current ? 'is-done' : ''} aria-current={i + 1 === current ? 'step' : undefined}>
+          <span aria-hidden="true">{i + 1 < current ? <Check size={14} /> : `0${i + 1}`}</span>
+          <b>{t(`redesign.steps.${step}`)}</b>
+        </li>
+      ))}
+    </ol>
   );
 }

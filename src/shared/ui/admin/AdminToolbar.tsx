@@ -70,14 +70,16 @@ export function AdminToolbar({
   actions,
 }: AdminToolbarProps) {
   const { t } = useTranslation('admin');
+  const [searchResetKey, setSearchResetKey] = useState(0);
   const activeSelects = selects.filter((s) => s.value);
   const hasActive = activeSelects.length > 0 || Boolean(search?.value);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2 flex-wrap">
+    <div className="admin-toolbar flex flex-col gap-2">
+      <div className="admin-toolbar-controls flex items-center gap-2 flex-wrap">
         {search && (
           <DebouncedSearchInput
+            key={searchResetKey}
             value={search.value}
             onChange={search.onChange}
             placeholder={search.placeholder}
@@ -97,7 +99,11 @@ export function AdminToolbar({
         {hasActive && onClearAll && (
           <button
             type="button"
-            onClick={onClearAll}
+            onClick={() => {
+              // Cancel an uncommitted debounced search as well as URL filters.
+              setSearchResetKey(key => key + 1);
+              onClearAll?.();
+            }}
             className={cn(
               ADMIN_TEXT,
               'text-muted hover:text-primary underline underline-offset-2 transition-colors',
@@ -139,7 +145,7 @@ function FilterSelect({
     <span
       className={cn(
         ADMIN_CONTROL,
-        'inline-flex items-center gap-1.5 h-8 py-0 pr-1.5',
+        'admin-filter inline-flex items-center gap-1.5 h-8 py-0 pr-1.5',
         'focus-within:border-brand focus-within:ring-2 focus-within:ring-[color-mix(in_srgb,var(--brand)_25%,transparent)]',
         active && 'border-brand',
       )}
@@ -216,7 +222,7 @@ function DebouncedSearchInput({
   }, [draft, onChange]);
 
   return (
-    <div className="relative">
+    <div className="admin-search relative">
       <Search
         size={13}
         className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
