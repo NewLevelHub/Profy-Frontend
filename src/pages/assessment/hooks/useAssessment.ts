@@ -13,7 +13,14 @@ import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { journeyStages } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
-import { buildPages, isFirstPageOfInstrument, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
+import {
+  buildPages,
+  isFirstPageOfInstrument,
+  itemsBeforePageInSection,
+  pageInstrument,
+  pageItemCount,
+  type Page,
+} from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
 import type { Instrument, SavedAnswersResponse } from '@/shared/types';
 
@@ -614,6 +621,12 @@ export function useAssessment() {
   const currentPage = pages[pageIndex];
   const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
   const currentPairs = currentPage?.kind === 'pair' ? currentPage.pairs : undefined;
+  // Question numbers run through the whole section, not 01–05 on every page:
+  // the main battery counts as one, each additional test restarts at 01.
+  const firstItemNumber =
+    itemsBeforePageInSection(pages, pageIndex, instrument =>
+      ADDITIONAL_TESTS_INSTRUMENTS.has(instrument) ? instrument : 'main',
+    ) + 1;
   const isAdditionalTestsSection =
     currentLikertQuestions?.some(q => ADDITIONAL_TESTS_INSTRUMENTS.has(q.instrument)) ?? false;
   // Between-tests card (post-Ф4.1 follow-up): a card reopened on purpose
@@ -655,6 +668,7 @@ export function useAssessment() {
     error,
     currentLikertQuestions,
     currentPairs,
+    firstItemNumber,
     isAdditionalTestsSection,
     testIntroInstrument,
     testIntroItemCount,

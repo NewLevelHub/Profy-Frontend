@@ -25,6 +25,7 @@ export default function AssessmentPage() {
     error,
     currentLikertQuestions,
     currentPairs,
+    firstItemNumber,
     isAdditionalTestsSection,
     testIntroInstrument,
     testIntroItemCount,
@@ -144,6 +145,7 @@ export default function AssessmentPage() {
                 >
                   <LikertPage
                     questions={currentLikertQuestions}
+                    firstNumber={firstItemNumber}
                     answers={likertAnswers}
                     onSelect={handleLikertSelect}
                     onSubmit={handleSubmitLikertPage}
@@ -162,6 +164,7 @@ export default function AssessmentPage() {
                 >
                   <PairPage
                     pairs={currentPairs}
+                    firstNumber={firstItemNumber}
                     answers={pairAnswers}
                     onSelect={handlePairSelect}
                     onSubmit={handleSubmitPairPage}
