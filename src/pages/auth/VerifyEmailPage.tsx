@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 import { AuthStepper } from '@/shared/ui/AuthStepper';
 import axios from 'axios';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, CheckCircle, Mail, XCircle, Loader2 } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
 import { useAuthStore } from '@/shared/store/auth';
 import { Button } from '@/shared/ui/Button';
+import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
 import { OtpInput } from '@/shared/ui/OtpInput';
 
 const RESEND_SECONDS = 60;
@@ -39,39 +40,25 @@ function TokenVerify({ token }: { token: string }) {
       .catch(() => setStatus('error'));
   }, []);
 
-  if (status === 'loading') {
+  if (status === 'loading' || status === 'success') {
     return (
-      <div className="flex flex-col items-center text-center gap-4 py-6">
-        <Loader2 size={40} className="text-brand animate-spin" />
-        <p className="text-body font-semibold text-primary">{t('verify.confirming')}</p>
-      </div>
-    );
-  }
-
-  if (status === 'success') {
-    return (
-      <div className="flex flex-col items-center text-center gap-4 py-6">
-        <CheckCircle size={40} className="text-success" />
-        <p className="text-body font-semibold text-primary">{t('verify.confirmedTitle')}</p>
-        <p className="text-caption text-secondary">{t('verify.redirecting')}</p>
+      <div className="rd-auth-state" role="status">
+        <span className="rd-icon-tile rd-lilac rd-auth-form-icon" aria-hidden="true">
+          {status === 'loading' ? <Loader2 className="animate-spin" /> : <CheckCircle />}
+        </span>
+        <h1>{t(status === 'loading' ? 'verify.confirming' : 'verify.confirmedTitle')}</h1>
+        {status === 'success' && <p className="rd-login-intro">{t('verify.redirecting')}</p>}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center text-center gap-4 py-6">
-      <XCircle size={40} className="text-danger" />
-      <h1 className="auth-headline-sm">{t('verify.linkExpiredTitle')}</h1>
-      <p className="text-body text-secondary">{t('verify.linkExpiredBody')}</p>
-      <Link
-        to="/register"
-        className="mt-1 inline-flex items-center justify-center w-full min-h-12 px-6 bg-brand text-on-brand font-medium text-label rounded-[var(--radius)] hover:bg-brand-hover transition-colors press-scale"
-      >
-        {t('verify.registerAgain')}
-      </Link>
-      <Link to="/login" className="text-caption text-muted hover:opacity-70 transition-opacity">
-        {t('backToLogin')}
-      </Link>
+    <div className="rd-auth-state">
+      <AuthHeading title={t('verify.linkExpiredTitle')} icon={<XCircle />}>
+        {t('verify.linkExpiredBody')}
+      </AuthHeading>
+      <Link to="/login" className="rd-button rd-login-submit">{t('register.signIn')}<ArrowRight size={20} aria-hidden="true" /></Link>
+      <p className="rd-login-switch"><Link to="/register">{t('verify.registerAgain')}</Link></p>
     </div>
   );
 }
@@ -143,65 +130,39 @@ function OtpVerify({ email, showStepper }: { email: string; showStepper: boolean
 
   return (
     <>
-      {/* Индикатор только когда пришли из регистрации: на этот же экран
-          попадают со входа, если почта не подтверждена, — там мастера нет. */}
       {showStepper && <AuthStepper current={3} />}
-      <h1 className="auth-headline-sm mt-[20px]">
-        {t('verify.otpTitle', { email })}
-      </h1>
-
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-[32px]">
-          <OtpInput
-            length={6}
-            value={code}
-            onChange={(v) => { setCode(v); setCodeError(''); }}
-            error={!!codeError}
-            disabled={isLoading}
-            autoFocus
-            aria-label={t('verify.otpAria')}
-          />
-          {codeError && (
-            <p className="field-error-in text-body-sm text-danger mt-[8px]" role="alert">
-              {codeError}
-            </p>
-          )}
-        </div>
-
-        {formError && (
-          <p className="field-error-in text-body-sm text-danger text-center mt-[16px]">{formError}</p>
-        )}
-
-        <Button type="submit" isLoading={isLoading} disabled={!CODE_COMPLETE.test(code)} size="lg" className="w-full mt-[28px]">
+      <AuthHeading title={t('redesign.verify.title')} icon={<Mail />}>
+        <Trans i18nKey="auth:redesign.verify.subtitle" values={{ email }} components={{ b: <strong className="rd-email-value" /> }} />
+      </AuthHeading>
+      <form className="rd-login-fields rd-auth-fields" onSubmit={handleSubmit} noValidate aria-busy={isLoading}>
+        <p className="rd-code-label">{t('verify.otpAria')}</p>
+        <OtpInput
+          className="rd-auth-otp"
+          length={6}
+          value={code}
+          onChange={v => { setCode(v); setCodeError(''); }}
+          error={!!codeError}
+          disabled={isLoading}
+          aria-label={t('verify.otpAria')}
+          aria-describedby={codeError ? 'verify-code-error' : undefined}
+        />
+        {codeError && <p id="verify-code-error" className="rd-form-error" role="alert">{codeError}</p>}
+        {formError && <p className="rd-form-error" role="alert">{formError}</p>}
+        <Button type="submit" isLoading={isLoading} disabled={!CODE_COMPLETE.test(code)} size="lg" className="rd-button rd-login-submit">
           {isLoading ? t('verify.submitting') : t('verify.submit')}
+          {!isLoading && <ArrowRight size={20} aria-hidden="true" />}
         </Button>
       </form>
-
-      <div className="flex flex-col items-center gap-2 mt-[24px]">
+      <div className="rd-auth-actions">
         {resendCountdown > 0 ? (
-          <p className="font-mono text-mono-xs tracking-label uppercase text-muted">
-            {t('verify.resendIn', { seconds: resendCountdown })}
-          </p>
+          <p className="rd-resend-countdown">{t('verify.resendIn', { seconds: resendCountdown })}</p>
         ) : (
-          <button
-            type="button"
-            onClick={handleResend}
-            className="font-mono text-mono-xs tracking-label uppercase text-brand hover:opacity-70 transition-opacity"
-          >
-            {t('verify.resend')}
-          </button>
+          <button type="button" onClick={handleResend} disabled={isLoading} className="rd-text-link">{t('verify.resend')}</button>
         )}
-        {resendMessage && (
-          <p className="text-small text-secondary text-center">{resendMessage}</p>
-        )}
-        <p className="text-caption text-muted text-center mt-1">{t('checkSpam')}</p>
-        <Link
-          to="/login"
-          className="text-caption text-muted hover:opacity-70 transition-opacity mt-2"
-        >
-          {t('backToLogin')}
-        </Link>
+        {resendMessage && <p className="rd-auth-feedback" role="status">{resendMessage}</p>}
+        <p className="rd-auth-hint">{t('redesign.checkSpam')}</p>
       </div>
+      <p className="rd-login-switch"><Link to="/login">{t('backToLogin')}</Link></p>
     </>
   );
 }
@@ -219,13 +180,11 @@ export default function VerifyEmailPage() {
   if (email) return <OtpVerify email={email} showStepper={searchParams.get('step') === '3'} />;
 
   return (
-    <div className="flex flex-col items-center text-center gap-4 py-6">
-      <XCircle size={40} className="text-danger" />
-      <h1 className="auth-headline-sm">{t('verify.linkInvalidTitle')}</h1>
-      <p className="text-body text-secondary">{t('verify.linkInvalidBody')}</p>
-      <Link to="/login" className="text-caption text-brand hover:opacity-70 transition-opacity">
-        {t('backToLogin')}
-      </Link>
+    <div className="rd-auth-state">
+      <AuthHeading title={t('verify.linkInvalidTitle')} icon={<XCircle />}>
+        {t('verify.linkInvalidBody')}
+      </AuthHeading>
+      <Link to="/login" className="rd-button rd-login-submit">{t('backToLogin')}</Link>
     </div>
   );
 }

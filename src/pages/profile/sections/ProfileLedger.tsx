@@ -8,33 +8,27 @@ import { ArtifactsSection } from './ArtifactsSection';
 import { CertificatesSection } from './CertificatesSection';
 import { SettingsSection } from './SettingsSection';
 
-// Full (non-junior) profile — glass identity rail + numbered ledger over the
-// mesh canvas. Reads its own data/handlers off useProfile rather than taking
-// two dozen props, since it's the only caller.
+// Keep account data and actions in the hook; the view is reusable for design review.
 export function ProfileLedger() {
-  const {
-    profile,
-    displayName,
-    hasSubjects,
-    artifacts,
-    certificates,
-    railSections,
-    confirmRestart,
-    handleLogout,
-    handleRestartRequest,
-    handleRestartConfirm,
-    handleRestartCancel,
-    handleEditPersonal,
-    handleEditSubjects,
-    handleEditArtifacts,
-    handleEditCertificates,
-  } = useProfile();
-  const { soundEnabled, toggleSound, prefersReducedMotion } = useSoundEnabled();
+  const model = useProfile();
+  const sound = useSoundEnabled();
+  return <ProfileLedgerView model={model} sound={sound} />;
+}
+
+export function ProfileLedgerView({ model, sound, persistLocale = true }: {
+  persistLocale?: boolean;
+  model: ReturnType<typeof useProfile>;
+  sound: Pick<ReturnType<typeof useSoundEnabled>, 'soundEnabled' | 'toggleSound' | 'prefersReducedMotion'>;
+}) {
+  const { profile, displayName, hasSubjects, artifacts, certificates, railSections, confirmRestart,
+    handleLogout, handleRestartRequest, handleRestartConfirm, handleRestartCancel,
+    handleEditPersonal, handleEditSubjects, handleEditArtifacts, handleEditCertificates } = model;
+  const { soundEnabled, toggleSound, prefersReducedMotion } = sound;
 
   if (!profile) return null;
 
   return (
-    <div className="panel-glass overflow-hidden lg:grid lg:grid-cols-[300px_1fr]">
+    <div className="rd-profile-layout">
       <IdentityRail
         displayName={displayName}
         age={profile.age}
@@ -42,7 +36,7 @@ export function ProfileLedger() {
         city={localizeGeo(profile.city)}
         sections={railSections}
       />
-      <div className="flex flex-col min-w-0 bg-[color-mix(in_srgb,var(--paper)_45%,transparent)]">
+      <div className="rd-profile-sections">
         <PersonalInfoSection profile={profile} onEdit={handleEditPersonal} />
         {hasSubjects && <SubjectsSection profile={profile} onEdit={handleEditSubjects} />}
         <ArtifactsSection artifacts={artifacts} onEdit={handleEditArtifacts} />
@@ -51,6 +45,7 @@ export function ProfileLedger() {
           onEdit={handleEditCertificates}
         />
         <SettingsSection
+          persistLocale={persistLocale}
           soundEnabled={soundEnabled}
           toggleSound={toggleSound}
           prefersReducedMotion={prefersReducedMotion}

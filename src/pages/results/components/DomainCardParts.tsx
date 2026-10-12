@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/cn';
+import { Card } from '@/shared/ui/Card';
 import type { InterestLevel } from '@/shared/types';
 
 /**
@@ -29,12 +30,13 @@ export function DomainCardFrame({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className="panel-glass p-5 sm:p-7 flex flex-col gap-6"
+    <Card
+      role="region"
+      className="rd-domain-card p-5 sm:p-7 flex flex-col gap-6"
       aria-label={ariaLabel}
     >
       {children}
-    </section>
+    </Card>
   );
 }
 
@@ -66,7 +68,7 @@ export function DomainGrid({
   return (
     <div
       className={cn(
-        'grid gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden',
+        'rd-domain-grid grid gap-px bg-[var(--hairline)] border border-[var(--hairline)] rounded-[var(--radius)] overflow-hidden',
         columnsClassName,
       )}
     >
@@ -75,26 +77,13 @@ export function DomainGrid({
   );
 }
 
-// Fill color per level — high is Pine (green, structure/success), medium is
-// Dawn (orange, the interface's "finding" accent), low has no fill at all.
-const LEVEL_FILL: Record<InterestLevel, string | undefined> = {
-  high: 'var(--pine)',
-  medium: 'var(--dawn)',
-  low: undefined,
-};
-
 /** Centered grid cell — for short, enumerable items (interest types,
- * personality traits, strengths, thinking-style notes).
+ * personality traits).
  *
- * "Fill contrast" variant: when `level` is given, it — not the caller — owns
- * background/text/icon color. Borders stay the grid's plain hairline in all
- * three cases, only the fill changes:
- *   low    — background goes transparent (page shows through), whole cell
- *            dims to ~45% so it visibly recedes.
- *   medium — fills solid Dawn; text/icon flip to --text-on-brand.
- *   high   — fills solid Pine; text/icon flip to --text-on-brand.
- * Cells with no `level` (strengths, thinking-style) render exactly as
- * before — plain surface, ink text, no dimming. */
+ * `level` and `selected` only land in data attributes: fill, text and icon
+ * colors per level live in the report stylesheet (`.rd-report .rd-domain-cell`
+ * in `shared/ui/redesign/student.css`). No inline colors here — the
+ * stylesheet couldn't override them without !important. */
 export function DomainCell({
   icon,
   title,
@@ -116,45 +105,35 @@ export function DomainCell({
   /** Extra content under the description (e.g. a level meter). */
   children?: React.ReactNode;
 }) {
-  const fill = level ? LEVEL_FILL[level] : undefined;
-  const isFilled = fill !== undefined;
   const isLow = level === 'low';
-  const fg = isFilled ? 'var(--text-on-brand)' : 'var(--text-heading)';
-  const descFg = isFilled ? 'var(--text-on-brand)' : 'var(--ink)';
-  const statusFg = isFilled ? 'var(--text-on-brand)' : 'var(--text-muted)';
   const Tag = onSelect ? 'button' : 'div';
   // <p> isn't valid inside <button> — same look, phrasing element instead.
   const TextTag = onSelect ? 'span' : 'p';
   return (
     <Tag
+      data-level={level}
+      data-selected={selected}
       type={onSelect ? 'button' : undefined}
       aria-pressed={onSelect ? selected : undefined}
       onClick={onSelect}
       className={cn(
-        'p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-[opacity,box-shadow]',
-        isLow && !selected && 'opacity-45',
+        'rd-domain-cell p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 transition-[border-color,box-shadow]',
         onSelect && 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-[color:var(--dawn-deep)]',
-        onSelect && isLow && !selected && 'hover:opacity-75',
       )}
-      style={{
-        background: fill ?? (isLow ? 'transparent' : 'var(--bg-surface)'),
-        boxShadow: selected ? `inset 0 0 0 3px ${isFilled ? 'var(--text-on-brand)' : 'var(--text-heading)'}` : undefined,
-      }}
     >
       {icon}
-      <TextTag className="block text-body-sm font-semibold leading-snug line-clamp-2" style={{ color: fg }}>
+      <TextTag className="block text-body-sm font-semibold leading-snug line-clamp-2">
         {title}
       </TextTag>
       {status && (
         <TextTag
           className={cn('block font-mono uppercase tracking-label', isLow ? 'text-tiny' : 'text-mono-xs')}
-          style={{ color: statusFg }}
         >
           {status}
         </TextTag>
       )}
       {description && (
-        <TextTag className="block text-caption leading-snug" style={{ color: descFg }}>
+        <TextTag className="block text-caption leading-snug">
           {description}
         </TextTag>
       )}
@@ -180,7 +159,7 @@ export function DomainListCard({
   descriptionLabel?: string;
 }) {
   return (
-    <div className="border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
+    <div className="rd-domain-list-card border border-[var(--hairline)] rounded-[var(--radius)] bg-surface p-4 sm:p-5 flex items-start gap-3">
       {icon}
       <div className="min-w-0">
         <p className="text-body-sm font-semibold text-[color:var(--text-heading)] leading-snug">{title}</p>

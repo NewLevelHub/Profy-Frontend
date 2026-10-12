@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom';
+import { PrintMasthead } from '@/shared/ui';
 import { useTranslation } from 'react-i18next';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
 import type { AdminUserListItem } from '@/shared/types';
@@ -20,9 +21,9 @@ import { formatDate as formatIntlDate } from '@/shared/i18n/format';
  * бумага всегда светлая, токены темы — нет.
  */
 
-const INK = '#26332F';
-const MUTE = '#6B7671';
-const LINE = '#D2CCBE';
+const INK = '#203A30';
+const MUTE = '#65735F';
+const LINE = '#DCE3D7';
 
 function formatDate(value: string): string {
   return formatIntlDate(value, {
@@ -39,6 +40,8 @@ const CELL: React.CSSProperties = {
 };
 
 interface UsersPrintReportProps {
+  /** Render the same document inline in the DEV design gallery. */
+  preview?: boolean;
   items: readonly AdminUserListItem[];
   /** Сколько строк подошло под фильтры на сервере — может быть больше `items`. */
   total: number;
@@ -48,10 +51,10 @@ interface UsersPrintReportProps {
   truncated: boolean;
 }
 
-export function UsersPrintReport({ items, total, filters, truncated }: UsersPrintReportProps) {
+export function UsersPrintReport({ items, total, filters, truncated, preview = false }: UsersPrintReportProps) {
   const { t } = useTranslation('admin');
   const body = (
-    <div
+    <div className="print-report"
       style={{
         fontFamily: 'var(--font-sans)',
         fontSize: '9pt',
@@ -60,20 +63,7 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
         background: '#fff',
       }}
     >
-      <header style={{ borderBottom: `0.5mm solid ${INK}`, paddingBottom: '3mm' }}>
-        <p
-          style={{
-            margin: 0,
-            fontFamily: 'var(--font-mono)',
-            fontSize: '7.5pt',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: MUTE,
-          }}
-        >
-          {t('print.brand')}
-        </p>
-        <h1 style={{ fontSize: '16pt', fontWeight: 600, margin: '1.5mm 0 0' }}>{t('nav.users')}</h1>
+      <PrintMasthead label={t('nav.kicker')} title={t('nav.users')}>
         <p style={{ margin: '1.5mm 0 0', color: MUTE }}>
           {t('print.usersInExport', { count: items.length })}
           {items.length !== total ? t('print.ofMatching', { total }) : ''} · {t('print.exportedAt')}{' '}
@@ -95,12 +85,12 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
             {t('print.truncated', { count: items.length })}
           </p>
         )}
-      </header>
+      </PrintMasthead>
 
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4mm' }}>
         <thead>
           <tr>
-            {[t('feedback.col.user'), t('users.tier'), t('users.col.assessment'), t('users.col.goal'), t('print.testsCount'), t('users.col.registered')].map(
+            {[t('feedback.col.user'), t('common.col.age'), t('users.col.assessment'), t('users.col.goal'), t('print.testsCount'), t('users.col.registered')].map(
               (header, index) => (
                 <th
                   key={header}
@@ -175,5 +165,6 @@ export function UsersPrintReport({ items, total, filters, truncated }: UsersPrin
     </div>
   );
 
+  if (preview) return body;
   return createPortal(<div id="print-root">{body}</div>, document.body);
 }

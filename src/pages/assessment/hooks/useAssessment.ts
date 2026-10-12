@@ -5,6 +5,7 @@ import { useAssessmentStore } from '@/shared/store/assessment';
 import { afterBatteryRoute } from '@/shared/store/psychoemotional';
 import { useFinishedAssessmentGuard } from './useFinishedAssessmentGuard';
 import { useDelayedFlag } from '@/shared/hooks/useDelayedFlag';
+import { useOnContentLocaleChange } from '@/shared/hooks/useContentLocale';
 import { assessmentApi } from '@/shared/api/assessment';
 import { pairsApi } from '@/shared/api/pairs';
 import { autofillAssessment, autofillMainBattery, autofillToAstur } from '@/shared/dev/autofillAssessment';
@@ -12,7 +13,14 @@ import { playBlockFinishAudio } from '@/shared/lib/sounds';
 import { journeyStages } from '@/shared/lib/journeyProgress';
 import { useAssessmentJourneyProgress } from './useAssessmentJourneyProgress';
 import { buildDisplaySequence } from '../utils/buildDisplaySequence';
-import { buildPages, isFirstPageOfInstrument, pageInstrument, pageItemCount, type Page } from '../utils/buildPages';
+import {
+  buildPages,
+  isFirstPageOfInstrument,
+  itemsBeforePageInSection,
+  pageInstrument,
+  pageItemCount,
+  type Page,
+} from '../utils/buildPages';
 import type { RestStopState } from '../utils/restStop';
 import type { Instrument, SavedAnswersResponse } from '@/shared/types';
 
@@ -137,6 +145,13 @@ export function useAssessment() {
   // Reset whenever the current page changes (see the effect below) —
   // elapsed time from here to submit feeds the speed-flag rest stop.
   const itemShownAtRef = useRef(Date.now());
+  // Language-switch text reloads (see useOnContentLocaleChange below): the
+  // latest request id, and the page whose text was just swapped — that
+  // swap must not restart the page's speed-flag clock.
+  const textRequestRef = useRef(0);
+  const textRefreshPageRef = useRef<number | null>(null);
+  const pageIndexRef = useRef(pageIndex);
+  pageIndexRef.current = pageIndex;
 
   useEffect(() => {
     if (!assessmentId) {
@@ -236,8 +251,41 @@ export function useAssessment() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentId, retryCount]);
 
+  // A language switch mid-test (the rail's switcher) re-reads the texts and
+  // swaps them in place. Not loadSequence again: that would flash the
+  // loader and re-run the resume logic. Ids, order and paging don't depend
+  // on the language, so the student stays on the same page with the same
+  // picks; a failed or mismatched reload just keeps the current text.
+  //
+  // Only the latest switch may land — a slow response for a language the
+  // student already switched away from is dropped. A switch before the
+  // first load finished restarts that load instead: its request went out in
+  // the old language.
+  useOnContentLocaleChange(() => {
+    if (!assessmentId) return;
+    const request = ++textRequestRef.current;
+    if (pages.length === 0) {
+      setRetryCount(c => c + 1);
+      return;
+    }
+    const pageCount = pages.length;
+    void Promise.all([assessmentApi.getQuestions(assessmentId), pairsApi.getPairs(assessmentId)])
+      .then(([questions, pairs]) => {
+        if (request !== textRequestRef.current) return;
+        const rebuilt = buildPages(buildDisplaySequence(questions, pairs));
+        if (rebuilt.length !== pageCount) return;
+        textRefreshPageRef.current = pageIndexRef.current;
+        setPages(rebuilt);
+      })
+      .catch(() => {});
+  });
+
+  // The speed-flag clock starts when a page is shown — not when the same
+  // page only got its text swapped for another language.
   useEffect(() => {
-    itemShownAtRef.current = Date.now();
+    const textOnly = textRefreshPageRef.current === pageIndex;
+    textRefreshPageRef.current = null;
+    if (!textOnly) itemShownAtRef.current = Date.now();
   }, [pageIndex, pages]);
 
   useEffect(() => {
@@ -573,6 +621,12 @@ export function useAssessment() {
   const currentPage = pages[pageIndex];
   const currentLikertQuestions = currentPage?.kind === 'likert' ? currentPage.questions : undefined;
   const currentPairs = currentPage?.kind === 'pair' ? currentPage.pairs : undefined;
+  // Question numbers run through the whole section, not 01–05 on every page:
+  // the main battery counts as one, each additional test restarts at 01.
+  const firstItemNumber =
+    itemsBeforePageInSection(pages, pageIndex, instrument =>
+      ADDITIONAL_TESTS_INSTRUMENTS.has(instrument) ? instrument : 'main',
+    ) + 1;
   const isAdditionalTestsSection =
     currentLikertQuestions?.some(q => ADDITIONAL_TESTS_INSTRUMENTS.has(q.instrument)) ?? false;
   // Between-tests card (post-Ф4.1 follow-up): a card reopened on purpose
@@ -614,6 +668,7 @@ export function useAssessment() {
     error,
     currentLikertQuestions,
     currentPairs,
+    firstItemNumber,
     isAdditionalTestsSection,
     testIntroInstrument,
     testIntroItemCount,

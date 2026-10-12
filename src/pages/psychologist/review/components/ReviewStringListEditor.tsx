@@ -21,7 +21,7 @@ export function ReviewStringListEditor({ items, onChange, disabled, addLabel }: 
           {t('review.list.empty')}
         </Text>
       ) : (
-        <ol className="flex flex-col gap-1 m-0 p-0 list-none">
+        <ol className="rd-review-motivations flex flex-col gap-1 m-0 p-0 list-none">
           {items.map((item, index) => (
             <li key={index} className="flex gap-3.5 items-center">
               <Mono variant="sm" className="text-[color:var(--dawn-deep)] w-6 flex-none">

@@ -38,6 +38,46 @@
   padding: 14mm 12mm;
 }
 
+/* Printed documents deliberately keep light semantic tokens under a dark app. */
+.print-sheet, .print-report {
+  --rd-ink: #203a30; --rd-pine: #164d3e; --rd-text: #56645c; --rd-muted: #65735f;
+  --pine: #164d3e; --dawn: #b86936; --ink: #203a30; --midnight: #203a30;
+  --dawn-deep: #9b572b;
+  --mute: #65735f; --hairline: #dce3d7; --border: #dce3d7; --paper: #fff;
+  --text-heading: #203a30; --text-primary: #203a30; --text-secondary: #56645c; --text-muted: #65735f;
+  --bg-page: #fff; --bg-surface: #fff; --bg-raised: #eaf1e8;
+  font-family: 'Onest', system-ui, sans-serif;
+  color: #203a30; overflow-wrap: anywhere;
+}
+.print-sheet { border-radius: 20px; box-shadow: 0 16px 50px -30px #203a3033; }
+.print-screen-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
+.print-screen-header .rd-brand { font-size: 29px; }
+.print-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.print-toolbar>div { display: flex; align-items: center; gap: 16px; }
+.print-toolbar p { font-size: 12px; color: var(--rd-muted); max-width: 220px; }
+.print-masthead { border-bottom: 2px solid #164d3e; padding-bottom: 6mm; margin-bottom: 6mm; color: #203a30; }
+.print-masthead-top { display: flex; align-items: center; justify-content: space-between; gap: 6mm; margin-bottom: 6mm; }
+.print-wordmark { display: inline-block; font-size: 25pt; line-height: 1; letter-spacing: -.02em; font-weight: 800; color: #164d3e; white-space: nowrap; }
+.print-wordmark>span { color: #95633f; }
+.print-document-label { font-size: 9pt; letter-spacing: .05em; text-align: right; color: #65735f; max-width: 70mm; }
+.print-masthead h1 { font-size: 24pt; font-weight: 600; line-height: 1.13; letter-spacing: -.02em; margin: 0 0 3mm; text-wrap: balance; }
+.print-masthead-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2mm 6mm; font-size: 10pt; line-height: 1.5; color: #56645c; }
+.print-masthead-meta p { margin: 0; }
+.print-masthead-subtitle { color: #65735f; font-size: 10pt; line-height: 1.5; margin-top: 2mm !important; }
+.print-section-title { font: 600 12pt/1.35 'Onest', system-ui, sans-serif; letter-spacing: -.02em; color: #164d3e; margin: 0 0 3mm; padding-bottom: 2mm; border-bottom: 1px solid #dce3d7; break-after: avoid; }
+.print-section p { orphans: 3; widows: 3; }
+.print-report th, .print-report td { overflow-wrap: anywhere; }
+.print-report thead { display: table-header-group; }
+.print-report tr { break-inside: avoid; }
+@media screen and (max-width: 600px) {
+  .print-sheet { padding: 24px 20px; border-radius: 16px; }
+  .print-masthead-top { gap: 20px; }
+  .print-masthead h1 { font-size: 27px; }
+  .print-toolbar { align-items: flex-start; }
+  .print-toolbar>div { flex-direction: column-reverse; align-items: flex-end; gap: 8px; }
+  .print-toolbar p { text-align: right; max-width: 180px; }
+}
+
 /* Keep a card/row from being split across two pages. */
 .print-block {
   break-inside: avoid;
@@ -62,7 +102,7 @@
   /* The canvas tint is a screen surface; on paper it would either waste ink
      or (more often) be silently dropped with "Background graphics" off,
      depending on the reader's print settings. Neither is worth depending on. */
-  .print-shell {
+  .print-shell, .redesign.print-shell {
     min-height: 0;
     background: none;
     padding: 0;
@@ -75,6 +115,7 @@
     border: none;
     border-radius: 0;
     padding: 0;
+    box-shadow: none;
   }
 
   /* This wrapper's own 210mm cap (ResultPrintPage) is a screen-only

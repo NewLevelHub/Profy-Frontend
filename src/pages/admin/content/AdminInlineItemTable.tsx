@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -31,8 +32,9 @@ interface AdminInlineItemTableProps<T> {
  * PUT, not a per-row PATCH.
  */
 export function AdminInlineItemTable<T>({ label, columns, rows, onRowClick }: AdminInlineItemTableProps<T>) {
+  const { t } = useTranslation('admin');
   return (
-    <div className="overflow-hidden rounded-[14px] border border-default">
+    <div className="admin-inline-table overflow-hidden rounded-[14px] border border-default">
       <table className="w-full table-fixed">
         <caption className="sr-only">{label}</caption>
         <thead className="bg-raised">
@@ -65,12 +67,24 @@ export function AdminInlineItemTable<T>({ label, columns, rows, onRowClick }: Ad
                 </td>
               ))}
               <td className="px-2 align-middle text-muted">
-                <ChevronRight size={14} aria-hidden="true" />
+                <button type="button" className="admin-inline-open" aria-label={t('table.openRow')} onClick={(event) => { event.stopPropagation(); onRowClick(index); }}>
+                  <ChevronRight size={14} aria-hidden="true" />
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <ul className="admin-inline-cards hidden" aria-label={label}>
+        {rows.map((row, index) => <li key={index}>
+          <button type="button" onClick={() => onRowClick(index)}>
+            <span className="admin-inline-card-fields">{columns.map(column => <span key={column.key}>
+              <small>{column.header}</small><span>{column.cell(row, index)}</span>
+            </span>)}</span>
+            <ChevronRight size={16} aria-hidden="true" />
+          </button>
+        </li>)}
+      </ul>
     </div>
   );
 }

@@ -47,11 +47,12 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
     <div className={cn('flex flex-col gap-3', className)}>
       <div
         className={cn(
-          'flex items-center justify-between rounded-[14px] border px-4 py-3 text-body-md font-semibold transition-colors',
+          'rd-point-status flex items-center justify-between rounded-[14px] border px-4 py-3 text-body-md font-semibold transition-colors',
           isBalanced
             ? 'border-default bg-success-subtle text-success'
             : 'border-default bg-raised text-secondary',
         )}
+        data-balanced={isBalanced}
         role="status"
         aria-live="polite"
       >
@@ -70,11 +71,12 @@ function PointAllocatorComponent({ items, total, value, onChange, className }: P
           return (
             <li
               key={item.id}
+              data-allocated={itemValue > 0}
               className="flex items-center gap-3 rounded-[14px] border border-default bg-page px-4 py-3"
             >
               <span className="flex-1 min-w-0 text-body-md text-primary break-words">{item.label}</span>
 
-              <div className="flex items-center gap-2.5 flex-shrink-0">
+              <div className="rd-point-stepper flex items-center gap-2.5 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setItemValue(item.id, itemValue - 1)}

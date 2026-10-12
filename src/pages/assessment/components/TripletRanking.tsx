@@ -80,7 +80,7 @@ function SortableCard({ statement, index, total, onMove, disabled }: SortableCar
         borderRadius: 18,
       }}
       className={cn(
-        'w-full flex items-center gap-2 border-2 py-[18px] pl-5 pr-3 transition-colors duration-150',
+        'rd-assessment-rank-card w-full flex items-center gap-2 border-2 py-[18px] pl-5 pr-3 transition-colors duration-150',
         CARD_STYLE.border,
         CARD_STYLE.bg,
       )}
@@ -205,7 +205,7 @@ export const TripletRanking = React.memo(function TripletRanking({
         {activeStatement && activeIndex !== -1 ? (
           <div
             className={cn(
-              'w-full flex items-center gap-2 border-2 py-[18px] pl-5 pr-3',
+              'rd-assessment-rank-card w-full flex items-center gap-2 border-2 py-[18px] pl-5 pr-3',
               CARD_STYLE.border,
               CARD_STYLE.bg,
               'triplet-drag-lift',

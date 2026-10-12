@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
+import { ArrowRight, ClipboardCheck, FileText, ShieldCheck } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
@@ -25,40 +25,45 @@ type ReportTab = 'tests' | 'review';
 const PUBLISHED_TOAST_MS = 2400;
 
 function TabButton({
-  number,
+  tab,
   label,
   note,
   noteAccent,
   active,
   onClick,
+  onKeyDown,
 }: {
-  number: string;
+  tab: ReportTab;
   label: string;
   note: string;
   noteAccent?: boolean;
   active: boolean;
   onClick: () => void;
+  onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
 }) {
   return (
     <button
       type="button"
       role="tab"
+      id={`report-tab-${tab}`}
+      aria-controls={`report-panel-${tab}`}
       aria-selected={active}
+      tabIndex={active ? 0 : -1}
       onClick={onClick}
-      className={cn(
-        'flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 py-3.5 -mb-px bg-transparent border-0 border-b-[2.5px] cursor-pointer text-left',
-        active ? 'border-b-[color:var(--pine)]' : 'border-b-transparent hover:border-b-[color:var(--line)]',
-      )}
+      onKeyDown={onKeyDown}
+      className="rd-psych-report-tab"
     >
-      <Mono variant="xs" className="text-muted">
-        {number}
-      </Mono>
-      <Text as="span" variant="body-lg" className={cn('font-semibold', active ? 'text-heading' : 'text-muted')}>
-        {label}
-      </Text>
-      <Text as="span" variant="caption" className={noteAccent ? 'text-[color:var(--dawn-deep)]' : 'text-muted'}>
-        {note}
-      </Text>
+      <span className="rd-psych-report-tab-icon" aria-hidden="true">
+        {tab === 'tests' ? <ClipboardCheck size={20} /> : <FileText size={20} />}
+      </span>
+      <span className="rd-psych-report-tab-copy">
+        <Text as="span" variant="body-lg" className={cn('font-semibold', active ? 'text-heading' : 'text-muted')}>
+          {label}
+        </Text>
+        <Text as="span" variant="caption" className={noteAccent ? 'text-[color:var(--dawn-deep)]' : 'text-muted'}>
+          {note}
+        </Text>
+      </span>
     </button>
   );
 }
@@ -86,7 +91,14 @@ export default function PsychologistReportPage() {
 
   function switchTab(next: ReportTab) {
     setSearchParams(next === 'review' ? { tab: 'review' } : {}, { replace: true });
-    window.scrollTo({ top: 0 });
+  }
+
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === 'Home' ? 'tests' : event.key === 'End' ? 'review' : tab === 'tests' ? 'review' : 'tests';
+    switchTab(next);
+    document.getElementById(`report-tab-${next}`)?.focus();
   }
 
   function toggleSection(id: string) {
@@ -139,7 +151,7 @@ export default function PsychologistReportPage() {
             : t('report.bar.untouched');
 
   return (
-    <PageContainer className="flex flex-col gap-6 pb-10">
+    <PageContainer className="rd-psych-report-page flex flex-col gap-6 pb-10">
       {pending || !detail ? (
         <BackLink onClick={() => navigate('/psychologist/reviews?tab=mine')}>{t('report.backToQueue')}</BackLink>
       ) : (
@@ -149,6 +161,7 @@ export default function PsychologistReportPage() {
       )}
 
       <PageHeader
+        className="rd-psych-heading rd-psych-report-heading"
         level="display-md"
         kicker={
           detail ? (
@@ -164,7 +177,7 @@ export default function PsychologistReportPage() {
         title={name || t('report.titleFallback')}
         wrap
         aside={
-          <div className="flex flex-col items-end gap-1 text-right">
+          <div className="rd-psych-report-meta">
             {metaLine && (
               <Text as="span" variant="caption" className="text-muted">
                 {metaLine}
@@ -179,49 +192,54 @@ export default function PsychologistReportPage() {
         }
       />
 
-      <div role="tablist" aria-label={t('report.tabsLabel')} className="flex flex-wrap gap-x-8 border-b border-strong">
+      <div role="tablist" aria-label={t('report.tabsLabel')} className="rd-psych-report-tabs">
         <TabButton
-          number="01"
+          tab="tests"
           label={t('report.tabTests')}
           note={t('report.tabTestsNote')}
           active={tab === 'tests'}
           onClick={() => switchTab('tests')}
+          onKeyDown={handleTabKeyDown}
         />
         <TabButton
-          number="02"
+          tab="review"
           label={t('report.tabReview')}
           note={!historyReady ? '' : editedCount > 0 ? t('report.tabReviewEdited', { count: editedCount }) : t('report.tabReviewClean')}
           noteAccent={editedCount > 0}
           active={tab === 'review'}
           onClick={() => switchTab('review')}
+          onKeyDown={handleTabKeyDown}
         />
       </div>
 
-      {tab === 'tests' && (
-        <div className="flex flex-col gap-4">
-          <Text variant="body-sm" className="text-muted m-0 max-w-[72ch]">
-            {t('report.testsIntro')}
-          </Text>
-          {tests.isLoading && <AdminLoading />}
-          {tests.notFound && !tests.isLoading && <AdminError message={t('report.testsNotFound')} />}
-          {tests.error && !tests.isLoading && <AdminError message={t('report.testsError')} onRetry={tests.refetch} />}
-          {tests.testResults && !tests.isLoading && (
-            <ReportSectionsBlock
-              testResults={tests.testResults}
-              artifacts={student.data?.artifacts ?? []}
-              aiAnalysis={tests.aiAnalysis}
-              onRegenerateAiAnalysis={tests.regenerateAiAnalysis}
-              regeneratingAiAnalysis={tests.regeneratingAiAnalysis}
-              regenerateAiAnalysisError={tests.regenerateAiAnalysisError}
-              openIds={openSections}
-              onToggle={toggleSection}
-            />
-          )}
-        </div>
-      )}
+      <div id="report-panel-tests" role="tabpanel" aria-labelledby="report-tab-tests" tabIndex={0} hidden={tab !== 'tests'}>
+        {tab === 'tests' && (
+          <div className="rd-psych-report-tests flex flex-col gap-4">
+            <div className="rd-psych-report-notice">
+              <ShieldCheck size={19} aria-hidden="true" />
+              <Text variant="body-sm">{t('report.testsIntro')}</Text>
+            </div>
+            {tests.isLoading && <AdminLoading />}
+            {tests.notFound && !tests.isLoading && <AdminError message={t('report.testsNotFound')} />}
+            {tests.error && !tests.isLoading && <AdminError message={t('report.testsError')} onRetry={tests.refetch} />}
+            {tests.testResults && !tests.isLoading && (
+              <ReportSectionsBlock
+                testResults={tests.testResults}
+                artifacts={student.data?.artifacts ?? []}
+                aiAnalysis={tests.aiAnalysis}
+                onRegenerateAiAnalysis={tests.regenerateAiAnalysis}
+                regeneratingAiAnalysis={tests.regeneratingAiAnalysis}
+                regenerateAiAnalysisError={tests.regenerateAiAnalysisError}
+                openIds={openSections}
+                onToggle={toggleSection}
+              />
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Keep local editor controls, including undo, when switching tabs. */}
-      <div hidden={tab !== 'review'}>
+      <div id="report-panel-review" role="tabpanel" aria-labelledby="report-tab-review" tabIndex={0} hidden={tab !== 'review'}>
         {review.isLoading ? (
           <AdminLoading />
         ) : review.loadError ? (
@@ -236,7 +254,7 @@ export default function PsychologistReportPage() {
       </div>
 
       {pending && (
-        <div className="sticky bottom-4 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-strong bg-surface px-5 py-3.5 shadow-pop">
+        <div className="rd-psych-report-actions">
           <div className="flex items-center gap-2.5 min-w-0" aria-live="polite">
             {review.actionError ? (
               <p role="alert" className={cn(typeClass.bodySm, 'text-danger m-0')}>
@@ -257,7 +275,7 @@ export default function PsychologistReportPage() {
               </>
             )}
           </div>
-          <div className="grid w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:items-center">
+          <div className="rd-psych-report-action-buttons">
             {tab === 'tests' ? (
               <Button type="button" className="col-span-2 py-2.5" muteSound onClick={() => switchTab('review')}>
                 {t('report.bar.toReview')}
@@ -292,6 +310,8 @@ export default function PsychologistReportPage() {
       )}
 
       <ConfirmDialog
+        className="rd-psych-report-dialog"
+        portalTarget={document.getElementById('psychologist-overlays')}
         open={publishOpen}
         size="md"
         kicker={t('report.publish.kicker')}

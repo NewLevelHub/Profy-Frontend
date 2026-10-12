@@ -1,3 +1,4 @@
+import { AsturQuestionHeading } from './AsturQuestionHeading';
 import { cn } from '@/shared/lib/cn';
 
 interface McQuestionProps {
@@ -11,17 +12,16 @@ interface McQuestionProps {
 export function McQuestion({ index, prompt, options, value, onChange }: McQuestionProps) {
   return (
     <div role="group" aria-labelledby={`mc-label-${index}`} className="flex flex-col gap-3">
-      <p id={`mc-label-${index}`} className="text-body-md text-primary font-semibold">
-        {index}. {prompt}
-      </p>
+      <AsturQuestionHeading index={index} id={`mc-label-${index}`}>{prompt}</AsturQuestionHeading>
       <div className="flex flex-col gap-2">
         {options.map((option) => {
           const selected = value === option;
           return (
             <label
               key={option}
+              data-selected={selected}
               className={cn(
-                'flex items-center gap-3 rounded-[14px] border px-4 py-3 cursor-pointer transition-colors',
+                'rd-astur-choice flex items-center gap-3 rounded-[14px] border px-4 py-3 cursor-pointer transition-colors',
                 selected ? 'border-brand bg-brand-subtle' : 'border-default hover:border-strong',
               )}
             >

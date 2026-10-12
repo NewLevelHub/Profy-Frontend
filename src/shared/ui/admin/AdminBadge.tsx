@@ -29,7 +29,7 @@ export function AdminBadge({ tone = 'neutral', dot, children, className, title }
     <span
       title={title}
       className={cn(
-        'font-sans text-body-sm font-medium inline-flex items-center gap-1.5 px-3 py-0.5 rounded-pill whitespace-nowrap',
+        'admin-badge font-sans text-body-sm font-medium inline-flex items-center gap-1.5 px-3 py-0.5 rounded-pill whitespace-nowrap',
         tone === 'neutral' && 'bg-raised text-secondary',
         tone === 'brand' && 'bg-brand-subtle text-brand',
         tone === 'accent' && 'bg-accent-soft text-accent',

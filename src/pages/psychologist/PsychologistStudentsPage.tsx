@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight } from 'lucide-react';
@@ -8,6 +9,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Mono, Text } from '@/shared/ui/typography';
 import type { PsychologistStudentListItem } from '@/shared/types';
+import { CabinetSearch } from './components/CabinetSearch';
 import { StatusMark } from './components/StatusMark';
 import { StudentInitials } from './components/StudentInitials';
 import { gradeShort, shortDateLabel, studentName } from './components/cabinetFormat';
@@ -27,6 +29,12 @@ function ReportStatus({ status }: { status: PsychologistStudentListItem['report_
 export default function PsychologistStudentsPage() {
   const { t } = useTranslation('psychologist');
   const students = useMyStudents();
+  const [query, setQuery] = useState('');
+  const trimmed = query.trim();
+  const search = trimmed.toLowerCase();
+  const rows = (students.data ?? []).filter(row =>
+    !search || row.email.toLowerCase().includes(search) || (row.profile_name ?? '').toLowerCase().includes(search),
+  );
 
   const columns: AdminColumn<PsychologistStudentListItem>[] = [
     {
@@ -81,15 +89,16 @@ export default function PsychologistStudentsPage() {
     {
       key: 'open',
       header: '',
-      mobile: 'hidden',
+      mobile: 'action',
       align: 'right',
-      width: '56px',
+      width: '88px',
       cell: (row) => (
         <Link
           to={studentPath(row)}
           aria-label={t('students.openCard', { name: studentName(row.profile_name, row.email) })}
-          className="inline-flex items-center justify-center min-w-10 min-h-10 [@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:min-h-11 rounded-[8px] text-brand hover:bg-hover"
+          className="inline-flex items-center justify-center gap-2 min-w-10 min-h-10 [@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:min-h-11 rounded-[8px] px-3 lg:px-0 text-brand hover:bg-hover"
         >
+          <span className="lg:hidden">{t('students.open')}</span>
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
       ),
@@ -97,34 +106,40 @@ export default function PsychologistStudentsPage() {
   ];
 
   return (
-    <PageContainer className="flex flex-col gap-5 pb-12">
+    <PageContainer className="rd-psych-page flex flex-col pb-12">
       <PageHeader
         level="display-md"
         kicker={t('students.kicker')}
         title={t('students.title')}
         subtitle={t('students.lead')}
-        className="pb-5 border-b border-strong"
+        className="rd-psych-heading"
       />
 
-      {students.isError ? (
-        <AdminError message={t('students.loadError')} onRetry={() => void students.refetch()} />
-      ) : (
-        <AdminDataTable
-          label={t('students.tableLabel')}
-          columns={columns}
-          rows={students.data ?? []}
-          rowKey={(row) => row.id}
-          rowHref={studentPath}
-          loading={students.isLoading}
-          emptyTitle={t('students.emptyTitle')}
-          emptyHint={t('students.emptyText')}
-          emptyAction={
-            <Link to="/psychologist/reviews" className={buttonClasses({ size: 'sm', variant: 'ghost', className: 'min-h-10 [@media(pointer:coarse)]:min-h-11' })}>
-              {t('students.emptyAction')}
-            </Link>
-          }
-        />
-      )}
+      <section className="rd-psych-list" aria-label={t('students.tableLabel')}>
+        <div className="rd-psych-toolbar">
+          <span className="rd-psych-results-count" aria-live="polite">{students.data ? t('students.count', { count: rows.length }) : t('students.tableLabel')}</span>
+          <CabinetSearch value={query} onChange={setQuery} />
+        </div>
+        {students.isError ? (
+          <AdminError message={t('students.loadError')} onRetry={() => void students.refetch()} />
+        ) : (
+          <AdminDataTable
+            label={t('students.tableLabel')}
+            columns={columns}
+            rows={rows}
+            rowKey={(row) => row.id}
+            rowHref={studentPath}
+            loading={students.isLoading}
+            emptyTitle={trimmed ? t('queue.emptySearch', { query: trimmed }) : t('students.emptyTitle')}
+            emptyHint={trimmed ? undefined : t('students.emptyText')}
+            emptyAction={!trimmed &&
+              <Link to="/psychologist/reviews" className={buttonClasses({ size: 'sm', variant: 'ghost', className: 'min-h-10 [@media(pointer:coarse)]:min-h-11' })}>
+                {t('students.emptyAction')}
+              </Link>
+            }
+          />
+        )}
+      </section>
     </PageContainer>
   );
 }

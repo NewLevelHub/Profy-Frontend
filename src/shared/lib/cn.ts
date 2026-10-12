@@ -26,6 +26,17 @@ const FONT_SIZE_CLASSES = [
   'mono-md',
   'mono-sm',
   'mono-xs',
+  // Redesign-CSS scale (@theme static) — utilities exist, keep them sizes.
+  'rd-label',
+  'rd-ui',
+  'rd-body',
+  'rd-lead',
+  'rd-title',
+  'rd-heading',
+  'rd-display',
+  'rd-display-lg',
+  'rd-hero',
+  'rd-page',
   // Legacy aliases kept in theme.css — they set font-size too.
   'display',
   'h1',

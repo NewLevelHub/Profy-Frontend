@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -8,9 +7,7 @@ import { useLocaleStore } from '@/shared/store/locale';
 import { apiErrorCode } from '@/shared/api/client';
 import { isPendingReview, resultApi } from '@/shared/api/result';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
-import { cn } from '@/shared/lib/cn';
-import { Button } from '@/shared/ui/Button';
-import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
+import { JourneyCheckpoint } from '@/shared/ui';
 import { ResultLoadingView } from './components/ResultLoadingView';
 
 export default function ResultLoadingPage() {
@@ -123,30 +120,12 @@ export default function ResultLoadingPage() {
   }, [retryCount]);
 
   if (notCompleted || error !== null) {
-    return (
-      <div className="relative flex flex-col min-h-screen items-center justify-center bg-page px-6">
-        <FullScreenPreferences className="absolute top-4 right-4 sm:right-6 z-10" />
-        <div className="flex flex-col items-center gap-4 text-center">
-          <TriangleAlert
-            size={36}
-            strokeWidth={1.75}
-            className={notCompleted ? 'text-accent' : 'text-danger'}
-            aria-hidden="true"
-          />
-          <p className={cn('text-body-md max-w-md', notCompleted ? 'text-secondary' : 'text-danger')}>
-            {notCompleted ? t('resultLoading.notCompleted') : error}
-          </p>
-          {notCompleted ? (
-            <Button onClick={() => navigate('/results', { replace: true })}>
-              {t('resultLoading.backToTest')}
-            </Button>
-          ) : (
-            <Button onClick={() => setRetryCount(c => c + 1)}>{t('error.retry')}</Button>
-          )}
-        </div>
-      </div>
-    );
+    return <JourneyCheckpoint kicker={t('goalCheck.kicker')}
+      title={t(notCompleted ? 'resultLoading.notCompletedTitle' : 'common:errorBoundary.title')}
+      body={notCompleted ? t('resultLoading.notCompleted') : error ?? undefined} illustration="rest"
+      actions={<button type="button" className="rd-button" onClick={notCompleted ? () => navigate('/results', { replace: true }) : () => setRetryCount(c => c + 1)}>
+        {t(notCompleted ? 'resultLoading.backToTest' : 'error.retry')}
+      </button>} />;
   }
-
-  return <ResultLoadingView className="min-h-screen" />;
+  return <ResultLoadingView fullPage />;
 }

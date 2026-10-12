@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
@@ -37,7 +38,7 @@ export function ExamScoresBlock({
         </Text>
       </div>
 
-      <div className="panel-glass flex flex-col gap-3 !p-4 sm:!p-5">
+      <Card className="rd-exam-scores flex flex-col gap-3 !p-4 sm:!p-5">
         <p className="text-body-sm font-semibold text-[color:var(--text-heading)] m-0">
           {t('exams.pickLabel')}
         </p>
@@ -51,7 +52,7 @@ export function ExamScoresBlock({
             />
           ))}
         </div>
-      </div>
+      </Card>
 
       {revealed.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

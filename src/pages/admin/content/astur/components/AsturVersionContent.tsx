@@ -55,8 +55,8 @@ export function AsturVersionContent({ editor, document, readOnly }: AsturVersion
   ];
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
-      <nav aria-label={t('astur.content.subtestsNav')} className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+    <div className="admin-bank-editor grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <nav aria-label={t('astur.content.subtestsNav')} className="admin-bank-nav flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
         {document.subtests.map((s, idx) => (
           <button
             key={s.key}

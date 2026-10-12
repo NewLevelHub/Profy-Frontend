@@ -4,6 +4,14 @@ services:
     pull_policy: always
     container_name: profy_frontend_prod
     restart: unless-stopped
+    # Docker's json-file log (nginx access log on stdout) grows without limit
+    # by default; on the shared 20 GB VPS cap it at 3 x 10 MB, like the
+    # backend containers.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     expose:
       - "80"
     networks:

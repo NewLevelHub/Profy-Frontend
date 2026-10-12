@@ -33,7 +33,7 @@ interface AdminPageHeaderProps {
 export function AdminPageHeader({ crumbs, title, meta, actions }: AdminPageHeaderProps) {
   const { t } = useTranslation('admin');
   return (
-    <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="admin-detail-heading flex items-start justify-between gap-4 flex-wrap">
       <div className="min-w-0">
         <nav aria-label={t('breadcrumbs.aria')} className="flex items-center gap-1 flex-wrap mb-1.5">
           {crumbs.map((crumb, index) => (

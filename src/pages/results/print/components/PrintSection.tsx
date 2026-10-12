@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
-import { type as typeClass } from '@/shared/ui/typography/tokens';
 
 interface PrintSectionProps {
   kicker: string;
@@ -28,8 +27,8 @@ interface PrintSectionProps {
  */
 export function PrintSection({ kicker, title, children, className }: PrintSectionProps) {
   return (
-    <section className={cn('space-y-2', className)} aria-label={title ?? kicker}>
-      <p className={cn(typeClass.monoLabel, 'text-muted')}>{kicker}</p>
+    <section className={cn('print-section space-y-2', className)} aria-label={title ?? kicker}>
+      <h2 className="print-section-title">{kicker}</h2>
       {title && (
         <p className="text-body-md font-semibold text-[color:var(--text-heading)] leading-snug">
           {title}

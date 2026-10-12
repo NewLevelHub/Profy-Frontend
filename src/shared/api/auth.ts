@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
-import type { TokenResponse, User } from '@/shared/types';
+import type { InvitationPreview, TokenResponse, User } from '@/shared/types';
 
 export const authApi = {
   me: () =>
@@ -32,4 +32,10 @@ export const authApi = {
 
   resetPassword: (email: string, code: string, password: string) =>
     apiClient.post(API.auth.resetPassword, { email, code, new_password: password }),
+
+  getInvitation: (token: string) =>
+    apiClient.get<InvitationPreview>(API.auth.invitation(token)).then(r => r.data),
+
+  acceptInvitation: (token: string, password: string) =>
+    apiClient.post<TokenResponse>(API.auth.acceptInvitation, { token, password }).then(r => r.data),
 };

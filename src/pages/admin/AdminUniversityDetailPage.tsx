@@ -359,7 +359,7 @@ export default function AdminUniversityDetailPage() {
           <p className={cn(ADMIN_TEXT, 'text-muted m-0')}>{t('uni.noPrograms')}</p>
         ) : (
           <div className="overflow-x-auto -mx-4 px-4">
-            <table className={cn('w-full', ADMIN_TEXT)}>
+            <table className={cn('admin-stacked-table w-full', ADMIN_TEXT)}>
               <thead className="border-b border-default">
                 <tr>
                   <th className={cn(ADMIN_CELL, MONO_LABEL, 'text-left text-muted font-medium')}>{t('uni.programCol')}</th>
@@ -372,7 +372,7 @@ export default function AdminUniversityDetailPage() {
               <tbody>
                 {detail.programs.map((program) => (
                   <tr key={program.id} className="border-b border-default last:border-b-0 hover:bg-hover transition-colors">
-                    <td className={cn(ADMIN_CELL, 'align-top')}>
+                    <td data-label={t('uni.programCol')} className={cn(ADMIN_CELL, 'align-top')}>
                       <Link
                         to={`/admin/programs/${program.id}`}
                         className="font-medium text-primary hover:text-brand hover:underline"
@@ -380,10 +380,10 @@ export default function AdminUniversityDetailPage() {
                         {program.name}
                       </Link>
                     </td>
-                    <td className={cn(ADMIN_CELL, 'text-secondary align-top')}>
+                    <td data-label={t('uni.languageCol')} className={cn(ADMIN_CELL, 'text-secondary align-top')}>
                       {program.language ?? <span className={MONO_MUTE}>—</span>}
                     </td>
-                    <td className={cn(ADMIN_CELL, 'align-top text-right font-mono text-mono-sm text-secondary tabular-nums')}>
+                    <td data-label={t('uni.costPerYear')} className={cn(ADMIN_CELL, 'align-top text-right font-mono text-mono-sm text-secondary tabular-nums')}>
                       {program.cost_label ??
                         (program.cost_per_year != null
                           ? `${formatNumber(program.cost_per_year)} ₸`

@@ -7,5 +7,4 @@ export {
   type CheckInQuestion,
   CHECKIN_QUESTIONS,
   CHECKIN_QUESTION_BY_KEY,
-  CHECKIN_SKIPPED as SKIPPED,
 } from '@/shared/config/psychoCheckin';

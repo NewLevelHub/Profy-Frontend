@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
 
 export interface JourneyEmptyStateProps {
+  illustration?: string;
   title: string;
   body: string;
   /** Mascot pose — waiting for empty, pause for soft errors. */
@@ -19,6 +20,7 @@ export interface JourneyEmptyStateProps {
  * AssessmentNotStarted (journey shell + well + one CTA), not icon+emoji stubs.
  */
 export function JourneyEmptyState({
+  illustration,
   title,
   body,
   mascotState = 'waiting',
@@ -34,8 +36,8 @@ export function JourneyEmptyState({
         className,
       )}
     >
-      <div className="journey-mascot-well">
-        <Mascot state={mascotState} size={88} interactive={mascotState === 'welcome'} />
+      <div className={illustration ? "rd-empty-art" : "journey-mascot-well"}>
+        {illustration ? <img src={illustration} alt="" width={150} height={150} /> : <Mascot state={mascotState} size={88} interactive={mascotState === 'welcome'} />}
       </div>
       <div className="flex flex-col gap-2 max-w-[40ch]">
         <p className="text-label font-bold text-[color:var(--text-heading)] m-0">{title}</p>

@@ -22,9 +22,9 @@
  *      scale stays readable beside the dots at every viewport.
  */
 export const type = {
-  displayLg: 'font-display text-display-lg font-semibold tracking-tight',
-  displayMd: 'font-display text-display-md font-semibold tracking-tight',
-  displaySm: 'font-display text-display-sm font-medium tracking-tight',
+  displayLg: 'font-display text-display-lg font-semibold',
+  displayMd: 'font-display text-display-md font-semibold',
+  displaySm: 'font-display text-display-sm font-medium',
   bodyLg: 'font-sans text-body-lg font-book',
   bodyMd: 'font-sans text-body-md font-book',
   bodySm: 'font-sans text-body-sm font-book',

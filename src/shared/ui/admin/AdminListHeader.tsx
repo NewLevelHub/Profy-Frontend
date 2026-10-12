@@ -16,6 +16,8 @@ interface AdminListHeaderProps {
 export function AdminListHeader({ title, description, actions }: AdminListHeaderProps) {
   return (
     <PageHeader
+      className="admin-list-heading"
+      wrap
       title={title}
       subtitle={description}
       actions={actions}

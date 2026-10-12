@@ -1,3 +1,4 @@
+import { AsturQuestionHeading } from './AsturQuestionHeading';
 import type { CSSProperties } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
@@ -33,16 +34,14 @@ export function FigureAssemblyQuestion({ index, stimulus, value, onChange }: Fig
   const options = Object.entries(stimulus.options);
   return (
     <div role="group" aria-labelledby={`figure-label-${index}`} className="flex flex-col gap-3">
-      <p id={`figure-label-${index}`} className="text-body-md text-primary font-semibold">
-        {t('astur.figureAssemblyPrompt')}
-      </p>
+      <AsturQuestionHeading index={index} id={`figure-label-${index}`}>{t('astur.figureAssemblyPrompt')}</AsturQuestionHeading>
       {/* The stimuli used to sit on a white theme-day plate in dark mode too —
           their lines were baked in dark. StimulusImage recolours them per
           theme instead, so the block is an ordinary surface.
           The target and all four options stay in one vertical composition:
           this avoids the old horizontal strip where the target scrolled out
           of view before the student reached the last options. */}
-      <div className="mx-auto flex w-full max-w-[600px] flex-col gap-3 rounded-[var(--radius)] border border-default bg-surface p-3 sm:p-4">
+      <div className="rd-astur-geometry mx-auto flex w-full max-w-[600px] flex-col gap-3 rounded-[var(--radius)] border border-default bg-surface p-3 sm:p-4">
         <div className="flex flex-col items-center gap-2 border-b border-default pb-3">
           <div className="flex h-36 w-full items-center justify-center sm:h-44">
             <StimulusImage path={stimulus.target} label={t('astur.figureAssemblyTarget')} />
@@ -55,8 +54,9 @@ export function FigureAssemblyQuestion({ index, stimulus, value, onChange }: Fig
             return (
               <label
                 key={letter}
+                data-selected={selected}
                 className={cn(
-                  'flex min-w-0 cursor-pointer flex-col items-center gap-2 rounded-[var(--radius)] border-2 p-2 transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 sm:p-3',
+                  'rd-astur-choice flex min-w-0 cursor-pointer flex-col items-center gap-2 rounded-[var(--radius)] border-2 p-2 transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 sm:p-3',
                   selected ? 'border-brand bg-active-tint' : 'border-default hover:border-strong',
                 )}
               >

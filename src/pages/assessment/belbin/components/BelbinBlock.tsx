@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
+import { UsersRound } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { PointAllocator } from '@/shared/ui/PointAllocator';
-import { Text } from '@/shared/ui/typography/Text';
 import type { BelbinContentSection } from '@/shared/types';
 
 interface BelbinBlockProps {
@@ -35,42 +35,36 @@ export function BelbinBlock({
 }: BelbinBlockProps) {
   const { t } = useTranslation('assessment');
   return (
-    <div className="assessment-stage mx-auto w-full max-w-[720px]">
-      <div className="assessment-stage__shell journey-shell flex flex-col gap-6 !p-6 sm:!p-8">
-        <div className="flex flex-col gap-2">
-          <Text variant="caption" className="text-muted">
+    <section className="rd-belbin">
+      <div className="rd-assessment-section-heading">
+        <span className="rd-icon-tile rd-lilac" aria-hidden="true"><UsersRound /></span>
+        <div>
+          <p className="rd-assessment-kicker">
             {t('belbin.sectionLabel', { section: section.section, current: sectionIndex + 1, total: sectionCount })}
-          </Text>
-          <p
-            className="font-sans font-semibold text-[color:var(--text-heading)]"
-            style={{ fontSize: '1.375rem', lineHeight: 1.4 }}
-          >
-            {section.title}
           </p>
-        </div>
-
-        <PointAllocator
-          items={section.items.map((item) => ({ id: item.id, label: item.text }))}
-          total={blockTotal}
-          value={allocation}
-          onChange={onChange}
-        />
-
-        {submitError && (
-          <Text variant="body-sm" className="text-danger">
-            {submitError}
-          </Text>
-        )}
-
-        <div className="flex items-center justify-between gap-3">
-          <Button variant="ghost" onClick={onBack} disabled={submitting}>
-            {t('common:back')}
-          </Button>
-          <Button onClick={onNext} disabled={!isValid || submitting} isLoading={submitting}>
-            {isLastBlock ? t('belbin.finish') : t('common:next')}
-          </Button>
+          <h1>{section.title}</h1>
         </div>
       </div>
-    </div>
+      <p className="rd-belbin-instruction">{t('redesign.belbinInstruction', { total: blockTotal })}</p>
+
+      <PointAllocator
+        className="rd-point-allocator"
+        items={section.items.map((item) => ({ id: item.id, label: item.text }))}
+        total={blockTotal}
+        value={allocation}
+        onChange={onChange}
+      />
+
+      {submitError && <p className="text-body-sm text-danger" role="alert">{submitError}</p>}
+
+      <div className="rd-assessment-actions">
+        <Button variant="ghost" onClick={onBack} disabled={submitting}>
+          {t('common:back')}
+        </Button>
+        <Button onClick={onNext} disabled={!isValid || submitting} isLoading={submitting}>
+          {isLastBlock ? t('belbin.finish') : t('common:next')}
+        </Button>
+      </div>
+    </section>
   );
 }

@@ -82,33 +82,31 @@ export function useProfileSetup() {
   // left this flow, just stepped back one screen.
   const resumeAtLastStep = Boolean(locationState?.resumeAtLastStep);
   const [step, setStep] = useState(resumeAtLastStep ? TOTAL_STEPS : 1);
-  // Field values come from (in priority order): an already-onboarded server
-  // profile (settings edit), a draft parked here on a previous pass through
-  // this screen during onboarding (resumed via "Назад" from artifacts), or
-  // blank for a brand-new pass.
-  const [name, setName] = useState(existing?.name ?? draft?.name ?? '');
-  const [age, setAge] = useState(existing?.age ? String(existing.age) : draft?.age ?? '');
-  const [grade, setGrade] = useState(existing?.grade ? String(existing.grade) : draft?.grade ?? '');
-  const [city, setCity] = useState(existing?.city ?? draft?.city ?? '');
-  const [country, setCountry] = useState(existing?.country ?? draft?.country ?? '');
+  // A parked draft is newer than the server profile when returning from
+  // artifacts. Fresh edit entries clear drafts in useProfile before navigating.
+  const [name, setName] = useState(draft?.name ?? existing?.name ?? '');
+  const [age, setAge] = useState(draft?.age ?? (existing?.age ? String(existing.age) : ''));
+  const [grade, setGrade] = useState(draft?.grade ?? (existing?.grade ? String(existing.grade) : ''));
+  const [city, setCity] = useState(draft?.city ?? existing?.city ?? '');
+  const [country, setCountry] = useState(draft?.country ?? existing?.country ?? '');
   // No onboarding screen collects this right now (removed as not-needed-yet) —
   // kept in state purely so an edit-mode profile that already has a language
   // set doesn't lose it on save, and so the required ProfilePayload field
   // still gets submitted (empty string for new profiles).
-  const [language, setLanguage] = useState(existing?.language ?? draft?.language ?? '');
-  const [subjectsLike, setSubjectsLike] = useState<string[]>(existing?.subjects_liked ?? draft?.subjectsLike ?? []);
+  const [language, setLanguage] = useState(draft?.language ?? existing?.language ?? '');
+  const [subjectsLike, setSubjectsLike] = useState<string[]>(draft?.subjectsLike ?? existing?.subjects_liked ?? []);
   // "Не нравятся" — a preference axis (paired with subjectsLike), collected
   // on the same SUBJECTS_LIKE screen, distinct from the easy/hard
   // difficulty axis below.
-  const [subjectsDislike, setSubjectsDislike] = useState<string[]>(existing?.subjects_disliked ?? draft?.subjectsDislike ?? []);
-  const [subjectsEasy, setSubjectsEasy] = useState<string[]>(existing?.subjects_easy ?? draft?.subjectsEasy ?? []);
-  const [subjectsHard, setSubjectsHard] = useState<string[]>(existing?.subjects_hard ?? draft?.subjectsHard ?? []);
+  const [subjectsDislike, setSubjectsDislike] = useState<string[]>(draft?.subjectsDislike ?? existing?.subjects_disliked ?? []);
+  const [subjectsEasy, setSubjectsEasy] = useState<string[]>(draft?.subjectsEasy ?? existing?.subjects_easy ?? []);
+  const [subjectsHard, setSubjectsHard] = useState<string[]>(draft?.subjectsHard ?? existing?.subjects_hard ?? []);
 
   // Exams the student says they've actually sat. Kept separate from the
   // scores themselves so "ticked IELTS but hasn't typed the score yet" is a
   // distinct, validatable state — otherwise a blank field would be
   // indistinguishable from "didn't sit it" and would silently vanish on save.
-  const savedCertificates = existing?.certificates ?? draft?.certificates;
+  const savedCertificates = draft?.certificates ?? existing?.certificates;
   const [examsTaken, setExamsTaken] = useState<CertificateType[]>(
     () => savedCertificates?.map(c => c.type) ?? [],
   );

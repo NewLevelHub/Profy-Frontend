@@ -155,7 +155,7 @@ function TripletCard({ triplet }: { triplet: Triplet }) {
   return (
     <li
       className={cn(
-        'field-tile overflow-hidden',
+        'admin-triplet field-tile overflow-hidden',
         duplicates.length > 0 && 'border-danger',
       )}
     >

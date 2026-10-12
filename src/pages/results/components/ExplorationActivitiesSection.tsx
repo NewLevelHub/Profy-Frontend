@@ -1,3 +1,4 @@
+import { FlaskConical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
 import { SectionHeading } from '@/shared/ui/SectionHeading';
@@ -18,7 +19,7 @@ export function ExplorationActivitiesSection({ activities, note }: ExplorationAc
       <div className="flex flex-col gap-2.5">
         {activities.map((activity, i) => (
           <Card key={i} className="flex flex-row items-center gap-2.5">
-            <span className="text-lg select-none flex-shrink-0" aria-hidden="true">✨</span>
+            <FlaskConical size={18} className="flex-shrink-0 text-[color:var(--pine)]" aria-hidden="true" />
             <p className="text-body font-semibold text-primary">{activity}</p>
           </Card>
         ))}

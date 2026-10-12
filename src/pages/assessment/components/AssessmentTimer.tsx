@@ -13,6 +13,10 @@ export interface AssessmentTimerProps {
   /** Soft deadline passed — the chip turns clay and carries the message. */
   expired?: boolean;
   expiredMessage?: string;
+  /** Shorter visible text for the expired chip — the rail shares its row
+   *  with the language/theme switches and wraps the full sentence into a
+   *  tall pill. `expiredMessage` stays the aria-label. */
+  expiredLabel?: string;
   /** Switch ring + digits to dawn once remaining drops below this (ms). */
   urgentBelowMs?: number;
   /** `rail` — the compact chip in AssessmentRail's slot: rail-button height,
@@ -37,6 +41,7 @@ export function AssessmentTimer({
   meta,
   expired = false,
   expiredMessage,
+  expiredLabel,
   urgentBelowMs = 15_000,
   variant = 'card',
   className,
@@ -68,7 +73,9 @@ export function AssessmentTimer({
         {expired ? (
           <>
             <TimerOff size={rail ? 16 : 18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
-            <span className={cn(typeClass.bodySm, 'font-semibold', desktopOnly)}>{expiredMessage}</span>
+            <span className={cn(typeClass.bodySm, 'font-semibold', rail && 'whitespace-nowrap', desktopOnly)}>
+              {expiredLabel ?? expiredMessage}
+            </span>
           </>
         ) : (
           <>

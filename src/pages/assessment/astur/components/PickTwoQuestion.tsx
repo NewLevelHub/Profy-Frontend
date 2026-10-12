@@ -1,3 +1,4 @@
+import { AsturQuestionHeading } from './AsturQuestionHeading';
 import { cn } from '@/shared/lib/cn';
 import { useTranslation } from 'react-i18next';
 
@@ -21,9 +22,7 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
 
   return (
     <div role="group" aria-labelledby={`pick2-label-${index}`} className="flex flex-col gap-3">
-      <p id={`pick2-label-${index}`} className="text-body-md text-primary font-semibold">
-        {index}. {t('astur.pickTwoPrompt')}
-      </p>
+      <AsturQuestionHeading index={index} id={`pick2-label-${index}`}>{t('astur.pickTwoPrompt')}</AsturQuestionHeading>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {words.map((word) => {
           const selected = value.includes(word);
@@ -33,9 +32,11 @@ export function PickTwoQuestion({ index, words, value, onChange }: PickTwoQuesti
               key={word}
               type="button"
               disabled={disabled}
+              aria-pressed={selected}
+              data-selected={selected}
               onClick={() => toggle(word)}
               className={cn(
-                'rounded-[14px] border px-3 py-3 text-body-md transition-colors text-center',
+                'rd-astur-choice rounded-[14px] border px-3 py-3 text-body-md transition-colors text-center',
                 selected ? 'border-brand bg-brand-subtle text-primary' : 'border-default text-secondary hover:border-strong',
                 disabled && 'opacity-40 cursor-not-allowed',
               )}

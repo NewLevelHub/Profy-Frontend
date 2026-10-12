@@ -17,12 +17,13 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Mono, Text, typeClass } from '@/shared/ui/typography';
 import type { PsychologistAssessmentSummary } from '@/shared/types';
+import { StudentInitials } from './components/StudentInitials';
 import { StatusMark } from './components/StatusMark';
 import { REVIEW_TEXTAREA } from './review/components/reviewFieldStyles';
 import { dateTimeLabel, gradeShort, shortDateLabel, studentName } from './components/cabinetFormat';
 import { useStudentDetail } from './hooks/useCabinetQueries';
 
-const PANEL = 'bg-surface border border-strong rounded-[10px]';
+const PANEL = 'rd-psych-panel bg-surface border border-strong rounded-[10px]';
 
 function reportPath(studentId: string, assessment: PsychologistAssessmentSummary) {
   return `/psychologist/students/${studentId}/assessments/${assessment.id}/report`;
@@ -65,11 +66,16 @@ function ReportPath({ assessment }: { assessment: PsychologistAssessmentSummary 
   ];
 
   return (
-    <section className={cn(PANEL, 'rounded-b-none px-6 pt-6 pb-5')}>
+    <section className={cn(PANEL, 'rd-psych-path rounded-b-none px-6 pt-6 pb-5')}>
       <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
         {t('detail.path.title')}
       </Text>
-      <Spine nodes={nodes} showLabels className="mt-5" ariaLabel={t('detail.path.title')} />
+      <div className="rd-psych-path-desktop"><Spine nodes={nodes} showLabels className="mt-5" ariaLabel={t('detail.path.title')} /></div>
+      <ol className="rd-psych-path-mobile">
+        {nodes.map((node, index) => <li key={node.id} data-status={node.status}>
+          <span aria-hidden="true">{index + 1}</span><span>{node.label}</span>
+        </li>)}
+      </ol>
     </section>
   );
 }
@@ -172,13 +178,14 @@ export default function PsychologistStudentDetailPage() {
   ];
 
   return (
-    <PageContainer className="flex flex-col gap-6 pb-16">
+    <PageContainer className="rd-psych-page flex flex-col pb-16">
       <BackLink onClick={() => navigate('/psychologist/students')}>{t('detail.back')}</BackLink>
 
       <PageHeader
         level="display-md"
         kicker={profile ? t('detail.kicker', { grade: gradeShort(t, profile.grade) }) : t('detail.kickerNoProfile')}
         title={name}
+        leading={<StudentInitials name={name} />}
         subtitle={
           data && (
             <Mono variant="sm" className="text-muted font-normal">
@@ -189,7 +196,7 @@ export default function PsychologistStudentDetailPage() {
           )
         }
         wrap
-        className="pb-5 border-b border-strong"
+        className="rd-psych-heading rd-psych-detail-header"
         actions={
           current && (
             <Link to={reportPath(studentId, current)} className={buttonClasses({ size: 'md' })}>
@@ -204,7 +211,7 @@ export default function PsychologistStudentDetailPage() {
       {data && (
         <div className="flex flex-col">
           <ReportPath assessment={current} />
-          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-px m-0 bg-[color:var(--hairline)] border border-t-0 border-strong rounded-b-[10px] overflow-hidden">
+          <dl className="rd-psych-facts grid grid-cols-1 sm:grid-cols-3 gap-px m-0 bg-[color:var(--hairline)] border border-t-0 border-strong rounded-b-[10px] overflow-hidden">
             {facts.map((fact) => (
               <div key={fact.label} className="bg-surface px-6 py-4">
                 <dt className={cn(typeClass.caption, 'text-muted')}>{fact.label}</dt>
@@ -215,194 +222,197 @@ export default function PsychologistStudentDetailPage() {
         </div>
       )}
 
-      {assessments.length > 0 && (
-        <section className={PANEL}>
-          <header className="px-6 pt-5 pb-3">
-            <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
-              {t('detail.diagnosticsTitle')}
-            </Text>
-          </header>
-          <ul className="m-0 p-0 list-none">
-            {assessments.map((a) => (
-              <li
-                key={a.id}
-                className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 border-t border-default"
-              >
-                <div className="min-w-0">
-                  <Text variant="body-md" className="text-heading m-0">
-                    {t(ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal)}
-                  </Text>
-                  <Mono variant="sm" className="text-muted">
-                    {dateTimeLabel(a.created_at)}
-                  </Mono>
-                </div>
-                <div className="flex flex-wrap items-center gap-4">
-                  {a.review_status === 'pending_review' ? (
-                    <StatusMark tone="dawn">{t('detail.pendingReview')}</StatusMark>
-                  ) : a.review_status === 'published' ? (
-                    <StatusMark tone="pine">{t('detail.published')}</StatusMark>
-                  ) : a.status === 'completed' ? (
-                    <StatusMark tone="mute" hollow>{t('detail.noReport')}</StatusMark>
-                  ) : (
-                    <StatusMark tone="mute" hollow>{t('detail.inProgress')}</StatusMark>
-                  )}
-                  {(a.has_result || a.review_status) && (
-                    <Link
-                      to={reportPath(studentId, a)}
-                      className={buttonClasses({
-                        size: 'sm',
-                        className: 'min-h-10 [@media(pointer:coarse)]:min-h-11',
-                        variant: a.review_status === 'pending_review' ? 'primary' : 'ghost',
-                      })}
-                    >
-                      {a.review_status === 'pending_review' ? t('detail.checkReport') : t('detail.openReport')}
-                    </Link>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className={cn(PANEL, 'px-6 py-5 flex flex-col gap-4')}>
-        <header className="flex items-baseline justify-between gap-3">
-          <div>
-            <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
-              {t('detail.notesTitle')}
-            </Text>
-            <Text variant="body-sm" className="text-muted mt-1 mb-0">
-              {canAddNotes ? t('detail.notesHintActive') : t('detail.notesHintReadonly')}
-            </Text>
-          </div>
-          <Mono variant="sm" className="text-muted">
-            {notes.data?.length ?? 0}
-          </Mono>
-        </header>
-
-        {canAddNotes && (
-          <form
-            className="flex flex-col gap-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const content = draft.trim();
-              if (!content) return;
-              setNoteError(null);
-              createNote.mutate(content);
-            }}
-          >
-            <textarea
-              value={draft}
-              disabled={savingNote}
-              onChange={(e) => setDraft(e.target.value)}
-              rows={3}
-              placeholder={t('detail.notePlaceholder')}
-              aria-label={t('detail.notePlaceholder')}
-              className={REVIEW_TEXTAREA}
-            />
-            <Button
-              type="submit"
-              size="sm"
-              className="self-end min-h-10 [@media(pointer:coarse)]:min-h-11"
-              muteSound
-              isLoading={createNote.isPending}
-              disabled={savingNote || !draft.trim()}
-            >
-              {t('detail.addNote')}
-            </Button>
-          </form>
-        )}
-
-        {noteError && (
-          <Text variant="body-sm" className="text-danger m-0">
-            {noteError}
-          </Text>
-        )}
-
-        {(notes.data?.length ?? 0) === 0 ? (
-          <Text variant="body-sm" className="text-muted m-0">
-            {t('detail.notesEmpty')}
-          </Text>
-        ) : (
-          <ul className="m-0 p-0 list-none">
-            {notes.data?.map((note) => (
-              <li key={note.id} className="py-3.5 border-t border-default">
-                {editingId === note.id ? (
-                  <div className="flex flex-col gap-2">
-                    <textarea
-                      value={editDraft}
-                      disabled={savingNote}
-                      onChange={(e) => setEditDraft(e.target.value)}
-                      rows={3}
-                      aria-label={t('detail.editAria')}
-                      className={REVIEW_TEXTAREA}
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="min-h-10 [@media(pointer:coarse)]:min-h-11"
-                        variant="ghost"
-                        muteSound
-                        onClick={() => {
-                          setEditingId(null);
-                          setEditDraft('');
-                        }}
-                      >
-                        {t('detail.cancel')}
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="min-h-10 [@media(pointer:coarse)]:min-h-11"
-                        muteSound
-                        isLoading={updateNote.isPending}
-                        disabled={savingNote || !editDraft.trim()}
-                        onClick={() => updateNote.mutate({ id: note.id, content: editDraft.trim() })}
-                      >
-                        {t('detail.save')}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <Text variant="body-md" className="text-heading m-0 whitespace-pre-wrap">
-                      {note.content}
+      <div className={assessments.length > 0 ? "rd-psych-detail-columns" : undefined}>
+        {assessments.length > 0 && (
+          <section className={PANEL}>
+            <header className="px-6 pt-5 pb-3">
+              <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
+                {t('detail.diagnosticsTitle')}
+              </Text>
+            </header>
+            <ul className="m-0 p-0 list-none">
+              {assessments.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 border-t border-default"
+                >
+                  <div className="min-w-0">
+                    <Text variant="body-md" className="text-heading m-0">
+                      {t(ASSESSMENT_GOAL_LABELS[a.goal] ?? a.goal)}
                     </Text>
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <Mono variant="sm" className="text-muted">
-                        {dateTimeLabel(note.created_at)}
-                      </Mono>
-                      <div className="flex gap-1">
-                        <button
+                    <Mono variant="sm" className="text-muted">
+                      {dateTimeLabel(a.created_at)}
+                    </Mono>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4">
+                    {a.review_status === 'pending_review' ? (
+                      <StatusMark tone="dawn">{t('detail.pendingReview')}</StatusMark>
+                    ) : a.review_status === 'published' ? (
+                      <StatusMark tone="pine">{t('detail.published')}</StatusMark>
+                    ) : a.status === 'completed' ? (
+                      <StatusMark tone="mute" hollow>{t('detail.noReport')}</StatusMark>
+                    ) : (
+                      <StatusMark tone="mute" hollow>{t('detail.inProgress')}</StatusMark>
+                    )}
+                    {(a.has_result || a.review_status) && (
+                      <Link
+                        to={reportPath(studentId, a)}
+                        className={buttonClasses({
+                          size: 'sm',
+                          className: 'min-h-10 [@media(pointer:coarse)]:min-h-11',
+                          variant: a.review_status === 'pending_review' ? 'primary' : 'ghost',
+                        })}
+                      >
+                        {a.review_status === 'pending_review' ? t('detail.checkReport') : t('detail.openReport')}
+                      </Link>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className={cn(PANEL, 'px-6 py-5 flex flex-col gap-4')}>
+          <header className="flex items-baseline justify-between gap-3">
+            <div>
+              <Text as="h2" variant="body-lg" className="font-semibold text-heading m-0">
+                {t('detail.notesTitle')}
+              </Text>
+              <Text variant="body-sm" className="text-muted mt-1 mb-0">
+                {canAddNotes ? t('detail.notesHintActive') : t('detail.notesHintReadonly')}
+              </Text>
+            </div>
+            <Mono variant="sm" className="text-muted">
+              {notes.data?.length ?? 0}
+            </Mono>
+          </header>
+
+          {canAddNotes && (
+            <form
+              className="flex flex-col gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const content = draft.trim();
+                if (!content) return;
+                setNoteError(null);
+                createNote.mutate(content);
+              }}
+            >
+              <textarea
+                value={draft}
+                disabled={savingNote}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={3}
+                placeholder={t('detail.notePlaceholder')}
+                aria-label={t('detail.notePlaceholder')}
+                className={REVIEW_TEXTAREA}
+              />
+              <Button
+                type="submit"
+                size="sm"
+                className="self-end min-h-10 [@media(pointer:coarse)]:min-h-11"
+                muteSound
+                isLoading={createNote.isPending}
+                disabled={savingNote || !draft.trim()}
+              >
+                {t('detail.addNote')}
+              </Button>
+            </form>
+          )}
+
+          {noteError && (
+            <Text variant="body-sm" className="text-danger m-0">
+              {noteError}
+            </Text>
+          )}
+
+          {(notes.data?.length ?? 0) === 0 ? (
+            <Text variant="body-sm" className="text-muted m-0">
+              {t('detail.notesEmpty')}
+            </Text>
+          ) : (
+            <ul className="m-0 p-0 list-none">
+              {notes.data?.map((note) => (
+                <li key={note.id} className="py-3.5 border-t border-default">
+                  {editingId === note.id ? (
+                    <div className="flex flex-col gap-2">
+                      <textarea
+                        value={editDraft}
+                        disabled={savingNote}
+                        onChange={(e) => setEditDraft(e.target.value)}
+                        rows={3}
+                        aria-label={t('detail.editAria')}
+                        className={REVIEW_TEXTAREA}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <Button
                           type="button"
-                          className="w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 inline-flex items-center justify-center rounded-[8px] border border-default text-secondary hover:border-brand"
-                          aria-label={t('detail.editAria')}
+                          size="sm"
+                          className="min-h-10 [@media(pointer:coarse)]:min-h-11"
+                          variant="ghost"
+                          muteSound
                           onClick={() => {
-                            setEditingId(note.id);
-                            setEditDraft(note.content);
+                            setEditingId(null);
+                            setEditDraft('');
                           }}
                         >
-                          <Pencil size={16} aria-hidden="true" />
-                        </button>
-                        <button
+                          {t('detail.cancel')}
+                        </Button>
+                        <Button
                           type="button"
-                          className="w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)]"
-                          aria-label={t('detail.deleteAria')}
-                          disabled={savingNote}
-                          onClick={() => setDeleteNoteId(note.id)}
+                          size="sm"
+                          className="min-h-10 [@media(pointer:coarse)]:min-h-11"
+                          muteSound
+                          isLoading={updateNote.isPending}
+                          disabled={savingNote || !editDraft.trim()}
+                          onClick={() => updateNote.mutate({ id: note.id, content: editDraft.trim() })}
                         >
-                          <Trash2 size={16} aria-hidden="true" />
-                        </button>
+                          {t('detail.save')}
+                        </Button>
                       </div>
                     </div>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                  ) : (
+                    <>
+                      <Text variant="body-md" className="text-heading m-0 whitespace-pre-wrap">
+                        {note.content}
+                      </Text>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <Mono variant="sm" className="text-muted">
+                          {dateTimeLabel(note.created_at)}
+                        </Mono>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            className="w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 inline-flex items-center justify-center rounded-[8px] border border-default text-secondary hover:border-brand"
+                            aria-label={t('detail.editAria')}
+                            onClick={() => {
+                              setEditingId(note.id);
+                              setEditDraft(note.content);
+                            }}
+                          >
+                            <Pencil size={16} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            className="w-10 h-10 [@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 inline-flex items-center justify-center rounded-[8px] border border-default text-[color:var(--clay)] hover:border-[color:var(--clay)]"
+                            aria-label={t('detail.deleteAria')}
+                            disabled={savingNote}
+                            onClick={() => setDeleteNoteId(note.id)}
+                          >
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+      </div>
 
       <ConfirmDialog
         open={deleteNoteId !== null}

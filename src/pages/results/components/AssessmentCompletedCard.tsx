@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
+import { Check, Mail, ShieldCheck } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
-import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
@@ -14,7 +14,10 @@ interface AssessmentCompletedCardProps {
 /** Shown on /results after the student finished the test but the report is
  *  not published yet (PRO-401). Replaces the old "almost ready / waiting for
  *  psychologist" empty state — this is a done state with somewhere to go,
- *  not a waiting room. */
+ *  not a waiting room. It still has to say *why* the report isn't here: a
+ *  bare "появится позже" read as a glitch. The three steps answer it — what's
+ *  done, who has it now, and how the student learns it's ready (the
+ *  publish email from psychologist_service). */
 export function AssessmentCompletedCard({
   onOpenProfile,
   onOpenUniversities,
@@ -24,7 +27,7 @@ export function AssessmentCompletedCard({
   return (
     <Card
       className={cn(
-        'journey-shell flex flex-col gap-7 !bg-transparent border-0 p-6 sm:p-8',
+        'rd-result-state journey-shell flex flex-col gap-7 !bg-transparent border-0 p-6 sm:p-8',
       )}
     >
       <div className="flex items-start justify-between gap-5 flex-wrap">
@@ -36,9 +39,23 @@ export function AssessmentCompletedCard({
           <Text variant="body-sm" className="text-secondary max-w-[52ch]">
             {t('completedPending.body')}
           </Text>
+          <ol className="rd-result-steps">
+            <li className="rd-result-step--done">
+              <span className="rd-result-step-icon"><Check size={16} strokeWidth={2.5} aria-hidden="true" /></span>
+              <span><strong>{t('completedPending.steps.saved')}</strong><span className="sr-only"> — {t('completedPending.steps.doneLabel')}</span></span>
+            </li>
+            <li className="rd-result-step--current" aria-current="step">
+              <span className="rd-result-step-icon"><ShieldCheck size={16} aria-hidden="true" /></span>
+              <span><strong>{t('completedPending.steps.review')}</strong></span>
+            </li>
+            <li>
+              <span className="rd-result-step-icon"><Mail size={16} aria-hidden="true" /></span>
+              <span><strong>{t('completedPending.steps.ready')}</strong><small>{t('completedPending.steps.readyHint')}</small></span>
+            </li>
+          </ol>
         </div>
-        <div className="journey-mascot-well">
-          <Mascot state="completion" size={96} />
+        <div className="rd-result-state-art">
+          <img src="/mascot/redesign/celebrate.png" alt="" width={200} height={220} />
         </div>
       </div>
 

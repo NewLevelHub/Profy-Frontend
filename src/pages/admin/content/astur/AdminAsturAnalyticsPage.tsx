@@ -4,7 +4,8 @@ import { cn } from '@/shared/lib/cn';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
-import { ADMIN_BUTTON, ADMIN_CONTROL, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
+import { AdminToolbar } from '@/shared/ui/admin/AdminToolbar';
+import { ADMIN_BUTTON, ADMIN_META, ADMIN_NUM, ADMIN_TEXT } from '@/shared/ui/admin/density';
 import type { AsturAgeBand, AsturItemAnalytics } from '@/shared/types';
 import { useAsturAnalytics } from './hooks/useAsturAnalytics';
 import { asturVersionPath } from './hooks/useAsturVersions';
@@ -16,7 +17,7 @@ const pct = (share: number | null | undefined) => (share === null || share === u
 /** Per-item product analytics of one published version — for spotting
  *  too-easy, confusing or broken items. Not a norm. */
 export default function AdminAsturAnalyticsPage() {
-  const { t } = useTranslation('admin');
+  const { t, i18n } = useTranslation('admin');
   const { versionId = '' } = useParams<{ versionId: string }>();
   const {
     version, analytics, isLoading, isError, ageBand, setAgeBand, grade, setGrade, addSynonym, isAdded, synonymError,
@@ -45,29 +46,25 @@ export default function AdminAsturAnalyticsPage() {
 
       {synonymError && <p className={cn(ADMIN_META, 'text-danger m-0')}>{synonymError}</p>}
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <select className={ADMIN_CONTROL} value={ageBand ?? ''} onChange={(e) => setAgeBand((e.target.value || null) as AsturAgeBand | null)} aria-label={t('astur.analytics.age')}>
-          <option value="">{t('astur.analytics.allAges')}</option>
-          {AGE_BANDS.map((band) => (
-            <option key={band} value={band}>
-              {t(`astur.analytics.ageBand.${band}`)} ({analytics.age_bands[band] ?? 0})
-            </option>
-          ))}
-        </select>
-        <select className={ADMIN_CONTROL} value={grade ?? ''} onChange={(e) => setGrade(e.target.value ? Number(e.target.value) : null)} aria-label={t('astur.analytics.grade')}>
-          <option value="">{t('astur.analytics.allGrades')}</option>
-          {grades.map((g) => (
-            <option key={g} value={g}>
-              {t('astur.analytics.gradeOption', { grade: g, count: analytics.grades[String(g)] })}
-            </option>
-          ))}
-        </select>
-      </div>
+      <AdminToolbar
+        selects={[
+          { key: 'age', label: t('astur.analytics.age'), value: ageBand ?? '',
+            options: AGE_BANDS.map(band => ({ value: band, label: `${t(`astur.analytics.ageBand.${band}`)} (${analytics.age_bands[band] ?? 0})` })),
+          },
+          { key: 'grade', label: t('astur.analytics.grade'), value: grade === null ? '' : String(grade),
+            options: grades.map(g => ({ value: String(g), label: t('astur.analytics.gradeOption', { grade: g, count: analytics.grades[String(g)] }) })),
+          },
+        ]}
+        onFilterChange={(key, value) => {
+          if (key === 'age') setAgeBand((value || null) as AsturAgeBand | null);
+          if (key === 'grade') setGrade(value ? Number(value) : null);
+        }}
+      />
 
       {analytics.subtests.map((subtest) => (
         <AdminCard
           key={subtest.key}
-          title={subtest.key}
+          title={version.document.subtests.find(s => s.key === subtest.key)?.name[i18n.language === 'kk' ? 'kk' : 'ru'] || subtest.key}
           description={
             subtest.median_ms !== null
               ? t('astur.analytics.medianTime', { sec: Math.round(subtest.median_ms / 1000) })
@@ -75,7 +72,7 @@ export default function AdminAsturAnalyticsPage() {
           }
         >
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="admin-stacked-table w-full border-collapse">
               <thead>
                 <tr className={cn(ADMIN_META, 'text-left')}>
                   <th className="py-2 pr-3 font-medium">№</th>
@@ -116,12 +113,12 @@ function ItemRow({ item, quick, onAccept, isAdded }: ItemRowProps) {
   const answeredTotal = item.option_counts.reduce((sum, o) => sum + o.count, 0);
   return (
     <tr className="border-t border-default align-top">
-      <td className={cn(ADMIN_NUM, 'py-2 pr-3')}>{item.position}</td>
-      <td className={cn(ADMIN_NUM, 'py-2 pr-3')}>
+      <td data-label="№" className={cn(ADMIN_NUM, 'py-2 pr-3')}>{item.position}</td>
+      <td data-label={t('astur.analytics.col.answered')} className={cn(ADMIN_NUM, 'py-2 pr-3')}>
         {item.answered} / {item.skipped} / {item.unanswered}
       </td>
-      <td className={cn(ADMIN_NUM, 'py-2 pr-3')}>{quick ? pct(item.on_time_share) : pct(item.mean_score_share)}</td>
-      <td className={cn(ADMIN_TEXT, 'py-2 pr-3')}>
+      <td data-label={quick ? t('astur.analytics.col.onTime') : t('astur.analytics.col.scoreShare')} className={cn(ADMIN_NUM, 'py-2 pr-3')}>{quick ? pct(item.on_time_share) : pct(item.mean_score_share)}</td>
+      <td data-label={t('astur.analytics.col.options')} className={cn(ADMIN_TEXT, 'admin-table-wide py-2 pr-3')}>
         {item.option_counts.length === 0
           ? '—'
           : item.option_counts.map((o) => (
@@ -131,7 +128,7 @@ function ItemRow({ item, quick, onAccept, isAdded }: ItemRowProps) {
               </div>
             ))}
       </td>
-      <td className={cn(ADMIN_META, 'py-2')}>
+      <td data-label={t('astur.analytics.col.unrecognized')} className={cn(ADMIN_META, 'admin-table-wide py-2')}>
         {item.unrecognized_answers.length === 0
           ? '—'
           : item.unrecognized_answers.map((a) => (

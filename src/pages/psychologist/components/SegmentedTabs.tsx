@@ -22,7 +22,7 @@ export function SegmentedTabs<K extends string>({
     <div
       role="tablist"
       aria-label={label}
-      className="inline-flex rounded-[10px] border border-strong bg-surface overflow-hidden"
+      className="rd-psych-tabs inline-flex rounded-[10px] border border-strong bg-surface overflow-hidden"
     >
       {tabs.map((tab) => {
         const on = tab.key === active;

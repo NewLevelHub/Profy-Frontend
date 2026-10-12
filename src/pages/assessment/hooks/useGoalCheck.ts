@@ -7,7 +7,8 @@ import type { InterestMapItem, ResultResponse, StrengthCard, StudentCareer } fro
 
 export interface GoalSuggestion {
   key: string;
-  icon: string;
+  /** What the card is about — the page picks the icon from it. */
+  kind: 'career' | 'interest' | 'strength';
   title: string;
   subtitle: string;
 }
@@ -21,7 +22,7 @@ function buildRiasecSuggestions(careers: StudentCareer[]): GoalSuggestion[] {
     .slice(0, 2)
     .map(c => ({
       key: c.slug,
-      icon: '🎯',
+      kind: 'career',
       title: c.name,
       subtitle: c.why,
     }));
@@ -35,7 +36,7 @@ function buildInterestMapSuggestions(items: InterestMapItem[], strongLabel: stri
   const pool = high.length >= 2 ? high : [...high, ...items.filter(i => i.level === 'medium')];
   return pool.slice(0, 2).map(i => ({
     key: i.code,
-    icon: '🧭',
+    kind: 'interest',
     title: i.sphere,
     subtitle: strongLabel,
   }));
@@ -44,7 +45,7 @@ function buildInterestMapSuggestions(items: InterestMapItem[], strongLabel: stri
 function buildStrengthSuggestions(cards: StrengthCard[]): GoalSuggestion[] {
   return cards.slice(0, 2).map(c => ({
     key: c.title,
-    icon: '✨',
+    kind: 'strength',
     title: c.title,
     subtitle: c.description,
   }));

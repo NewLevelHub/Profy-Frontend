@@ -66,7 +66,7 @@ export function AdminField({
   const errorId = `${id}-error`;
 
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
+    <div className={cn('admin-field flex flex-col gap-1', className)}>
       <div className="flex items-center gap-2 flex-wrap">
         <label htmlFor={id} className={cn(MONO_LABEL, error ? 'text-danger' : 'text-muted')}>
           {label}

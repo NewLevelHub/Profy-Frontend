@@ -44,7 +44,7 @@ export function AdminPager({ page, total, pageSize, onPageChange, countKey }: Ad
    * нужен объём, названный своим словом.
    */
   return (
-    <nav className="flex items-center justify-between flex-wrap gap-3" aria-label={t('pager.aria')}>
+    <nav className="admin-pager flex items-center justify-between flex-wrap gap-3" aria-label={t('pager.aria')}>
       <span className={ADMIN_META}>
         {countKey ? `${t(`pager.count.${countKey}`, { count: total })}: ` : `${t('pager.total')}: `}
         <span className={ADMIN_NUM}>{total}</span>

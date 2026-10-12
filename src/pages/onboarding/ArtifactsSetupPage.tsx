@@ -1,23 +1,12 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/shared/lib/cn';
-import { Button, FullScreenPreferences, Mascot } from '@/shared/ui';
-import { Heading } from '@/shared/ui/typography/Heading';
-import { Text } from '@/shared/ui/typography/Text';
-import { Mono } from '@/shared/ui/typography/Mono';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { Button } from '@/shared/ui';
 import { useArtifactsSetup, ARTIFACT_SECTIONS, DREAMS_MAX_LENGTH, type ArtifactSection } from './hooks/useArtifactsSetup';
-import { OnboardingProgress } from './components/OnboardingProgress';
+import { OnboardingShell } from './components/OnboardingShell';
 import { SelectableChip } from './components/SelectableChip';
 import { AddCustomChip } from './components/AddCustomChip';
-import { PROFILE_STEP_COUNT, TOTAL_ONBOARDING_STEPS } from './onboardingSteps';
-
-// ── Artifacts — onboarding steps 5-9 ────────────────────────────────────────
-// During onboarding this renders as five linear steps in the exact page
-// shell ProfileSetupPage uses (sticky progress bar, plain full-width
-// content, fixed Назад/Далее footer) — not a boxed "card" sitting apart
-// from the rest of onboarding. Reopened later from Profile settings to
-// add/change artifacts (edit mode), it switches to a tabbed single-screen
-// editor instead: free jump-to-any-group beats a forced sequence once
-// onboarding itself is behind you.
+import { PROFILE_STEP_COUNT } from './onboardingSteps';
 
 // Preset chip options. Each entry is the canonical (ru) string stored on the
 // profile / sent to the API — locale-independent. Display labels are resolved
@@ -58,50 +47,6 @@ const TARGETS = [
   'Германия', 'Турция', 'ОАЭ', 'Южная Корея',
 ];
 
-// One mascot per step, `position: fixed` to the viewport's bottom-right
-// corner (see the single <Mascot> rendered near the top of the JSX below,
-// picked by isDreamsStep) — a different pose from the other 3 onboarding
-// steps (see ProfileSetupPage's own MASCOT_*_SIZE constants for
-// 'welcome'/'waiting') — sizes calibrated per pose to a common ~182px
-// rendered character height, same ~2.5x scale-up and rationale as
-// ProfileSetupPage.
-// Под лунку .journey-mascot-well (112px), а не под угол экрана.
-const MASCOT_TRANSITION_SIZE = 88;
-const MASCOT_PAUSE_SIZE = 198;
-// Edit mode (opened from Profile settings) isn't one of the 4 onboarding
-// steps — kept at its own pre-existing fixed size, unaffected by the above.
-const MASCOT_EDIT_SIZE = 64;
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function SectionTabs({ active, onChange }: { active: ArtifactSection; onChange: (s: ArtifactSection) => void }) {
-  const { t } = useTranslation('onboarding');
-  return (
-    <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('artifacts.tablistAria')}>
-      {ARTIFACT_SECTIONS.map(section => {
-        const isActive = section === active;
-        return (
-          <button
-            key={section}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            onClick={() => onChange(section)}
-            className="px-3 py-2 rounded-pill font-mono text-mono-xs tracking-label uppercase transition-colors"
-            style={{
-              background: isActive ? 'var(--pine)' : 'transparent',
-              color: isActive ? 'var(--text-on-brand)' : 'var(--mute)',
-              border: isActive ? '1.5px solid var(--pine)' : '1.5px solid var(--line)',
-            }}
-          >
-            {t(`artifacts.tab.${section}`)}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function ChipGrid({
   options, selected, onToggle, onAddCustom, subtitle, labelFor,
 }: {
@@ -116,7 +61,7 @@ function ChipGrid({
   const label = labelFor ?? ((v: string) => v);
   const custom = selected.filter(s => !options.includes(s));
   return (
-    <div className="panel-glass flex flex-col gap-3 !p-4 sm:!p-5">
+    <div className="rd-choice-group">
       {subtitle && (
         <p className="text-body-sm font-semibold text-[color:var(--text-heading)] m-0">{subtitle}</p>
       )}
@@ -225,268 +170,59 @@ export default function ArtifactsSetupPage() {
     />
   );
 
-  // Счётчик под полем: без него maxLength молча переставал принимать ввод, и
-  // казалось, что поле сломалось. Сохранённый раньше длинный текст (> лимита)
-  // подсвечивается — бэкенд такой не примет.
   const isDreamsOverLimit = dreams.length > DREAMS_MAX_LENGTH;
   const dreamsBody = (
-    <div className="w-full flex flex-col gap-1.5">
+    <div className="rd-dreams-field">
       <textarea
         value={dreams}
         maxLength={DREAMS_MAX_LENGTH}
         onChange={e => setDreams(e.target.value)}
         placeholder={t('artifacts.dreamsPlaceholder')}
+        aria-label={t('artifacts.section.dreamsHeadline')}
         aria-describedby="dreams-counter"
         aria-invalid={isDreamsOverLimit}
-        className={cn(
-          // Высота под пару строк, а не aspect-[2/1]: пропорция растила поле вместе
-          // с карточкой и на широком экране разворачивала «одну строку, без правил»
-          // в пустой прямоугольник в треть экрана.
-          'w-full min-h-[8.5rem] mx-auto field-tile !rounded-[16px] px-4 py-3.5 text-body-md resize-none',
-          'placeholder:text-placeholder focus:outline-none transition-colors',
-          'focus:border-[color:var(--pine)]',
-        )}
-        style={{ color: 'var(--ink)' }}
+        rows={6}
       />
-      <Mono
-        variant="xs"
-        as="p"
-        className={cn('self-end m-0', isDreamsOverLimit ? 'text-danger' : 'text-muted')}
-      >
-        <span id="dreams-counter" aria-live="polite">
-          {t('artifacts.dreamsCounter', { current: dreams.length, max: DREAMS_MAX_LENGTH })}
-        </span>
-      </Mono>
+      <p id="dreams-counter" className={isDreamsOverLimit ? 'text-danger' : undefined} aria-live="polite">
+        {t('artifacts.dreamsCounter', { current: dreams.length, max: DREAMS_MAX_LENGTH })}
+      </p>
     </div>
   );
-
-  const sectionContent = (
-    <>
-      {activeSection === 'activities' && activitiesBody}
-      {activeSection === 'achievements' && achievementsBody}
-      {activeSection === 'professions' && professionsBody}
-      {activeSection === 'targets' && targetsBody}
-      {activeSection === 'dreams' && dreamsBody}
-    </>
-  );
-
-  // ── Artifacts-only shortcut (opened directly from ArtifactsSection) —
-  // tabbed single-screen editor, not a "step". Kept close to the original
-  // boxed layout since jumping freely between groups is the point here.
-  if (!isLinearFlow) {
-    return (
-      <div className="journey-page journey-page--lit min-h-screen flex flex-col">
-        <div className="relative z-10 px-4 pt-4 sm:px-5 sm:pt-5">
-          <div className="max-w-6xl mx-auto">
-            <FullScreenPreferences />
-          </div>
-        </div>
-        <div className="relative z-[1] flex-1 overflow-y-auto px-3 py-8 sm:px-4 lg:px-6 lg:py-12">
-          <div className="max-w-6xl mx-auto flex flex-col gap-6">
-
-            <div>
-              <span className="journey-kicker">{t('artifacts.kickerInterests')}</span>
-              <Heading level="display-md" className="text-[color:var(--text-heading)] mt-3">
-                {t('artifacts.editTitle')}
-              </Heading>
-              <Text variant="body-md" className="text-secondary mt-1.5">
-                {t('artifacts.editSubtitle')}
-              </Text>
-            </div>
-
-            <SectionTabs active={activeSection} onChange={setActiveSection} />
-
-            <div className="journey-shell flex flex-col gap-6 px-5 py-6 sm:px-8 sm:py-8">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
-                    {copy.headline}
-                  </Heading>
-                  <Text variant="body-md" className="text-secondary">{copy.note}</Text>
-                </div>
-                <Mascot state="welcome" size={MASCOT_EDIT_SIZE} className="shrink-0" />
-              </div>
-
-              {sectionContent}
-
-              {saveError && (
-                <p className="text-xs text-danger text-center m-0">{t('artifacts.saveFailed')}</p>
-              )}
-
-              <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-default">
-                <Button
-                  size="lg"
-                  isLoading={isLoading}
-                  className="h-12 rounded-pill font-extrabold shadow-button press-scale"
-                  onClick={handleNext}
-                >
-                  {isLastSection ? t('artifacts.done') : t('artifacts.nextGroup')}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="h-12 rounded-pill press-scale"
-                  onClick={handleSkip}
-                >
-                  {t('artifacts.skipGroup')}
-                </Button>
-                <span className="ml-auto font-mono text-mono-xs uppercase tracking-label text-muted">
-                  {t('artifacts.groupCounter', { current: sectionIndex + 1, total: ARTIFACT_SECTIONS.length })}
-                </span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Onboarding — steps 3-4, identical shell to ProfileSetupPage's steps
-  // 1-2: sticky progress bar, plain full-width content, fixed footer. The
-  // first four groups render merged onto one screen (step 3); 'dreams'
-  // gets its own screen alone (step 4) — see useArtifactsSetup.advance/
-  // handleBack for the matching two-screen navigation.
+  const bodies: Record<ArtifactSection, ReactNode> = {
+    activities: activitiesBody, achievements: achievementsBody,
+    professions: professionsBody, targets: targetsBody, dreams: dreamsBody,
+  };
   const isDreamsStep = activeSection === 'dreams';
+  const current = isLinearFlow ? PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1) : sectionIndex + 1;
 
   return (
-    <div className="journey-page journey-page--lit min-h-screen flex flex-col">
-      {/* Ни заливки, ни блюра: полоса шагов — flex-сосед НАД областью прокрутки,
-          а не слой поверх неё, и прятать ей нечего. Тонировка --bg-page на 72%
-          ничего не скрывала, зато клала плоский фог поверх градиента холста и
-          давала видимый горизонтальный шов. */}
-      <div className="relative z-10 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
-        <div className="max-w-6xl mx-auto flex flex-col gap-3">
-          <FullScreenPreferences />
-          <OnboardingProgress
-            current={PROFILE_STEP_COUNT + (isDreamsStep ? 2 : 1)}
-            total={TOTAL_ONBOARDING_STEPS}
-          />
-        </div>
-      </div>
-
-      <div className="relative z-[1] flex-1 overflow-y-auto px-3 pt-4 pb-40 sm:px-4 lg:px-6 lg:pb-10">
-        <div className="w-full max-w-6xl mx-auto">
-          <div className="journey-shell flex flex-col gap-7 px-5 py-7 sm:px-8 sm:py-9">
-            {/* Угол карточки, а не угол экрана: при ширине 1152 боковое поле
-                меньше спрайта, и приколотый маскот ложился на «Далее».
-                На шаге «мечт» его нет — там своя композиция с маскотом по
-                центру. !absolute перебивает `.journey-shell > *`, которое
-                принудительно ставит детям position: relative. */}
-            {!isDreamsStep && (
-              <div className="pointer-events-none !absolute right-6 top-6 hidden lg:block">
-                <div className="journey-mascot-well">
-                  <Mascot state="transition" size={MASCOT_TRANSITION_SIZE} />
-                </div>
-              </div>
-            )}
-
-            {isDreamsStep ? (
-              /* Шаг «мечт» держит свою, узкую колонку и не наследует ширину
-                 карточки: это одна центрированная реплика с полем на пару
-                 строк, а не сетка чипов. На всю ширину поле «одна строка, без
-                 правил» разворачивалось в пустой прямоугольник 1050×525. */
-              <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <Mascot state="pause" size={MASCOT_PAUSE_SIZE} className="shrink-0" />
-                  <div>
-                    <div className="flex justify-center mb-3">
-                      <span className="journey-kicker">{t('artifacts.kickerDreams')}</span>
-                    </div>
-                    <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance">
-                      {copy.headline}
-                    </Heading>
-                    <Text variant="body-md" className="text-secondary mt-1.5">
-                      {copy.note}
-                    </Text>
-                  </div>
-                </div>
-
-                {dreamsBody}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-7">
-                <div>
-                  <span className="journey-kicker">{t('artifacts.kickerInterests')}</span>
-                  <Heading level="display-md" className="text-[color:var(--text-heading)] text-balance mt-3">
-                    {t(SECTION_KEY.activities.headline)}
-                  </Heading>
-                  <Text variant="body-md" className="text-secondary mt-1.5">
-                    {t(SECTION_KEY.activities.note)}
-                  </Text>
-                </div>
-                {activitiesBody}
-
-                <div className="flex flex-col gap-4 pt-1 border-t border-default">
-                  <div className="pt-5">
-                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
-                      {t(SECTION_KEY.achievements.headline)}
-                    </Heading>
-                    <Text variant="body-md" className="text-secondary mt-1.5">
-                      {t(SECTION_KEY.achievements.note)}
-                    </Text>
-                  </div>
-                  {achievementsBody}
-                </div>
-
-                <div className="flex flex-col gap-4 pt-1 border-t border-default">
-                  <div className="pt-5">
-                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
-                      {t(SECTION_KEY.professions.headline)}
-                    </Heading>
-                    <Text variant="body-md" className="text-secondary mt-1.5">
-                      {t(SECTION_KEY.professions.note)}
-                    </Text>
-                  </div>
-                  {professionsBody}
-                </div>
-
-                <div className="flex flex-col gap-4 pt-1 border-t border-default">
-                  <div className="pt-5">
-                    <Heading level="display-md" as="h2" className="text-[color:var(--text-heading)]">
-                      {t(SECTION_KEY.targets.headline)}
-                    </Heading>
-                    <Text variant="body-md" className="text-secondary mt-1.5">
-                      {t(SECTION_KEY.targets.note)}
-                    </Text>
-                  </div>
-                  {targetsBody}
-                </div>
-              </div>
-            )}
-
-            {saveError && (
-              <p className="text-xs text-danger text-center m-0">{t('artifacts.saveFailed')}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className={cn(
-        'px-3 py-4 z-20 sm:px-4',
-        'fixed bottom-0 inset-x-0 lg:static',
-        'action-bar-scrim',
-      )}>
-        <div className="max-w-6xl mx-auto w-full flex items-center gap-3 p-3 lg:mb-6">
-          <Button
-            variant="ghost"
-            size="lg"
-            className="h-12 sm:h-14 px-5 sm:px-6 rounded-pill press-scale"
-            onClick={handleBack}
-          >
-            {tc('back')}
-          </Button>
-
-          <Button
-            size="lg"
-            isLoading={isLoading}
-            className="ml-auto h-12 sm:h-14 px-8 sm:px-10 rounded-pill font-extrabold shadow-button press-scale"
-            onClick={handleNext}
-          >
-            {isLastSection ? t('artifacts.done') : tc('next')}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <OnboardingShell
+      current={current}
+      showCompanion={!isDreamsStep}
+      sections={isLinearFlow ? undefined : ARTIFACT_SECTIONS.map(section => t(`redesign.editSections.${section}`))}
+      onSectionSelect={isLinearFlow ? undefined : index => { if (!isLoading) setActiveSection(ARTIFACT_SECTIONS[index]); }}
+      actions={<>
+        {isLinearFlow ? (
+          <Button variant="ghost" className="rd-button rd-button-outline" disabled={isLoading} onClick={handleBack}><ArrowLeft size={17} aria-hidden="true" />{tc('back')}</Button>
+        ) : (
+          <Button variant="text" disabled={isLoading} onClick={handleSkip}>{t('artifacts.skipGroup')}</Button>
+        )}
+        <Button className="rd-button rd-setup-next" isLoading={isLoading} onClick={handleNext}>
+          {isLastSection ? t('artifacts.done') : tc('next')}
+          {isLastSection ? <Check size={17} aria-hidden="true" /> : <ArrowRight size={17} aria-hidden="true" />}
+        </Button>
+      </>}
+    >
+      <div className="rd-setup-heading"><h1>{copy.headline}</h1><p>{copy.note}</p></div>
+      {isDreamsStep && <img className="rd-dreams-mascot" src="/mascot/redesign/celebrate.png" width="1254" height="1254" alt="" />}
+      {bodies[activeSection]}
+      {isLinearFlow && !isDreamsStep && (['achievements', 'professions', 'targets'] as const).map(section => (
+        <section className="rd-form-section" key={section}>
+          <div className="rd-setup-section-heading"><h2>{t(SECTION_KEY[section].headline)}</h2><p>{t(SECTION_KEY[section].note)}</p></div>
+          {bodies[section]}
+        </section>
+      ))}
+      {saveError && <p className="rd-journey-error" role="alert">{t('artifacts.saveFailed')}</p>}
+    </OnboardingShell>
   );
 }

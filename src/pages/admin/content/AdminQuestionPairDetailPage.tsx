@@ -15,8 +15,8 @@ import { useOverrideRevert } from './useOverrideRevert';
 import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
-import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
+import { useAdminLocaleGuard } from '@/shared/lib/useAdminLocaleGuard';
+import { KNOWN_LOCALES, useLocaleStore, type Locale } from '@/shared/store/locale';
 import type { AdminQuestionDetail, AdminQuestionPairDetail, AdminQuestionPairUpdateRequest } from '@/shared/types';
 
 const EDITABLE_KEYS = [
@@ -84,7 +84,7 @@ export default function AdminQuestionPairDetailPage() {
   const { t } = useTranslation('admin');
   const { pairId } = useParams<{ pairId: string }>();
   const [detail, setDetail] = useState<AdminQuestionPairDetail | null>(null);
-  const [locale, setLocale] = useState<Locale>('ru');
+  const locale = useLocaleStore(s => s.locale);
   const [fallbacks, setFallbacks] = useState<{ a: Record<Locale, Fallback> | null; b: Record<Locale, Fallback> | null }>({
     a: null,
     b: null,
@@ -151,6 +151,8 @@ export default function AdminQuestionPairDetailPage() {
       return updated;
     },
   });
+
+  useAdminLocaleGuard(dirty || saving);
 
   // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
   // return'ов и принимает ещё не загруженный detail — иначе после прихода
@@ -220,7 +222,7 @@ export default function AdminQuestionPairDetailPage() {
         }
       />
 
-      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
+      {!translated.has(locale) && <p className={ADMIN_META}>{t('common.untranslated')}</p>}
 
       <OverrideNotice
         count={locked.size}

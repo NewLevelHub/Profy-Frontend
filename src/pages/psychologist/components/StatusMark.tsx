@@ -38,7 +38,7 @@ export function StatusMark({
   className?: string;
 }) {
   return (
-    <span className={cn('inline-flex items-center gap-2 min-w-0', className)}>
+    <span data-tone={tone} className={cn('rd-psych-status inline-flex items-center gap-2 min-w-0', className)}>
       <span
         aria-hidden="true"
         className={cn('w-2 h-2 rounded-full flex-none border-[1.5px]', TONE_DOT[tone], hollow && 'bg-transparent')}

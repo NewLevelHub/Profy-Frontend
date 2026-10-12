@@ -1,3 +1,4 @@
+import { AsturQuestionHeading } from './AsturQuestionHeading';
 import { useRef, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/shared/ui/Input';
@@ -35,12 +36,11 @@ export function NumericPairQuestion({ index, sequence, value, onChange }: Numeri
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-body-md text-primary font-semibold">
-        {index}. {sequence.join(', ')}, …, …
-      </p>
+    <div role="group" aria-labelledby={`numeric-label-${index}`} className="flex flex-col gap-4">
+      <AsturQuestionHeading index={index} id={`numeric-label-${index}`}>{sequence.join(', ')}, …, …</AsturQuestionHeading>
       <div className="flex items-center gap-3 max-w-xs">
         <Input
+          className="rd-astur-input"
           type="number"
           inputMode="numeric"
           step={1}
@@ -49,10 +49,12 @@ export function NumericPairQuestion({ index, sequence, value, onChange }: Numeri
           onKeyDown={onFirstKey}
           enterKeyHint="next"
           placeholder={t('astur.numericPairFirst')}
+          aria-label={t('astur.numericPairFirst')}
           {...{ [FIRST_FIELD_ATTR]: '' }}
         />
         <Input
           ref={secondRef}
+          className="rd-astur-input"
           type="number"
           inputMode="numeric"
           step={1}
@@ -61,6 +63,7 @@ export function NumericPairQuestion({ index, sequence, value, onChange }: Numeri
           onKeyDown={onSecondKey}
           enterKeyHint="next"
           placeholder={t('astur.numericPairSecond')}
+          aria-label={t('astur.numericPairSecond')}
         />
       </div>
     </div>

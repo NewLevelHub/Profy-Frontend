@@ -73,7 +73,7 @@ export function ScenarioProfessional({ careers, ageGroup, readOnly = false }: Sc
   return (
     <div className="flex flex-col gap-6">
       {isBridge && (
-        <Card className="panel-glass !border-[color:color-mix(in_srgb,var(--lake)_35%,var(--border))] bg-[color-mix(in_srgb,var(--lake)_6%,var(--paper))]">
+        <Card className="rd-scenario-bridge !border-[color:color-mix(in_srgb,var(--lake)_35%,var(--border))] bg-[color-mix(in_srgb,var(--lake)_6%,var(--paper))]">
           <div className="mb-4">
             <span className="journey-kicker" style={{ color: 'var(--lake)' }}>
               {t('scenarioProfessional.bridgeLabel')}

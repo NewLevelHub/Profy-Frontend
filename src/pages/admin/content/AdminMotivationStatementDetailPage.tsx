@@ -17,8 +17,8 @@ import { AdminSaveBar } from '@/shared/ui/admin/AdminSaveBar';
 import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { AdminError, AdminLoading } from '@/shared/ui/admin/AdminStates';
 import { ADMIN_INPUT, ADMIN_META, ADMIN_TEXT } from '@/shared/ui/admin/density';
-import { LocaleTabs } from '@/shared/ui/admin/LocaleTabs';
-import { KNOWN_LOCALES, type Locale } from '@/shared/store/locale';
+import { useAdminLocaleGuard } from '@/shared/lib/useAdminLocaleGuard';
+import { KNOWN_LOCALES, useLocaleStore, type Locale } from '@/shared/store/locale';
 import type {
   AdminMotivationStatementDetail,
   AdminMotivationStatementListItem,
@@ -59,7 +59,7 @@ export default function AdminMotivationStatementDetailPage() {
   const { t } = useTranslation('admin');
   const { statementId } = useParams<{ statementId: string }>();
   const [detail, setDetail] = useState<AdminMotivationStatementDetail | null>(null);
-  const [locale, setLocale] = useState<Locale>('ru');
+  const locale = useLocaleStore(s => s.locale);
   const [siblings, setSiblings] = useState<AdminMotivationStatementListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -116,6 +116,8 @@ export default function AdminMotivationStatementDetailPage() {
       return updated;
     },
   });
+
+  useAdminLocaleGuard(dirty || saving);
 
   // Хуки обязаны вызываться на каждом рендере, поэтому этот стоит ДО ранних
   // return'ов и принимает ещё не загруженный detail — иначе после прихода
@@ -178,7 +180,7 @@ export default function AdminMotivationStatementDetailPage() {
         notice={revertNotice}
       />
 
-      <LocaleTabs value={locale} onChange={setLocale} translated={translated} dirty={dirty} />
+      {!translated.has(locale) && <p className={ADMIN_META}>{t('common.untranslated')}</p>}
 
       <AdminCard
         title={t('common.contentCard')}
