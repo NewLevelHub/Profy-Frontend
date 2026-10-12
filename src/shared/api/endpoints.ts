@@ -8,6 +8,7 @@ export type AdminContentResource =
 export const API = {
   auth: {
     me: '/auth/me',
+    logout: '/auth/logout',
     register: '/auth/register',
     login: '/auth/login',
     google: '/auth/google',
@@ -16,7 +17,7 @@ export const API = {
     forgotPassword: '/auth/forgot-password',
     verifyResetCode: '/auth/verify-reset-code',
     resetPassword: '/auth/reset-password',
-    invitation: (token: string) => `/auth/invitations/${encodeURIComponent(token)}`,
+    invitationPreview: '/auth/invitations/preview',
     acceptInvitation: '/auth/invitations/accept',
   },
   profile: {

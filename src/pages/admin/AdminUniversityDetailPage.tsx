@@ -7,6 +7,7 @@ import { adminApi } from '@/shared/api/admin';
 import { cn } from '@/shared/lib/cn';
 import { useAdminForm } from '@/shared/lib/useAdminForm';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
+import { safeExternalUrl } from '@/shared/lib/safeExternalUrl';
 import { AdminPageHeader } from '@/shared/ui/admin/AdminBreadcrumbs';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { AdminField, type AdminFieldRevert } from '@/shared/ui/admin/AdminField';
@@ -160,6 +161,7 @@ export default function AdminUniversityDetailPage() {
   }
 
   const locked = new Set(detail.admin_locked_fields);
+  const websiteUrl = safeExternalUrl(detail.website);
 
   return (
     <>
@@ -168,9 +170,9 @@ export default function AdminUniversityDetailPage() {
         title={detail.name}
         meta={`${detail.slug} · ${t('uni.programCount', { count: detail.programs.length })}`}
         actions={
-          detail.website ? (
+          websiteUrl ? (
             <a
-              href={detail.website}
+              href={websiteUrl}
               target="_blank"
               rel="noreferrer"
               className={cn(MONO_LABEL, 'inline-flex items-center gap-1.5 text-brand hover:underline')}

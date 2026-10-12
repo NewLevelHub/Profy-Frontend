@@ -9,6 +9,7 @@ import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
 import { UniversityMedia } from '@/shared/ui/redesign/UniversityMedia';
 import { localizeGeo } from '@/shared/i18n/geo';
 import { formatCost } from '@/shared/lib/universityDisplay';
+import { safeExternalUrl } from '@/shared/lib/safeExternalUrl';
 import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityDetail } from './hooks/useUniversityDetail';
 import { FavoriteStar } from '@/shared/ui/FavoriteStar';
@@ -23,6 +24,7 @@ export function UniversityDetailView({ model, goBack }: {
 }) {
   const { t } = useTranslation(['results', 'common']);
   const { university, isLoading, error, refetch, toggleFavorite } = model;
+  const websiteUrl = safeExternalUrl(university?.website);
   return <PageContainer className="rd-catalog rd-detail">
     <BackLink onClick={goBack} className="rd-detail-back">{t('common:back')}</BackLink>
     {isLoading ? <div className="space-y-4"><Skeleton className="h-72 w-full rounded-2xl" /><Skeleton className="h-8 w-2/3" /><Skeleton className="h-28 w-full" /></div>
@@ -41,7 +43,7 @@ export function UniversityDetailView({ model, goBack }: {
             <h1>{university.name}</h1>
             <p className="rd-university-location"><MapPin size={16} aria-hidden="true" />{localizeGeo(university.city)}, {localizeGeo(university.country)}</p>
             <UniversityRankBadges university={university} size="sm" />
-            {university.website && <a href={university.website} target="_blank" rel="noopener noreferrer" className="rd-text-link">{t('program.visitSite')}<ExternalLink size={15} aria-hidden="true" /></a>}
+            {websiteUrl && <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="rd-text-link">{t('program.visitSite')}<ExternalLink size={15} aria-hidden="true" /></a>}
           </div>
         </section>
         {university.description && <section className="rd-university-about">

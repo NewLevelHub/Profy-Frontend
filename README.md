@@ -127,3 +127,31 @@ src/
 - Серверное состояние — TanStack React Query
 - Auth — через `useAuth()` хук; токен хранится в Zustand persist (`profy-auth`)
 - Дизайн-токены — CSS custom properties в `theme.css`, палитра и радиусы соответствуют `profi-mobile/src/constants/themes/themes.ts`
+- Внешние ссылки из данных (сайт вуза и т.п.) — в `href` только через `safeExternalUrl()` из `@/shared/lib/safeExternalUrl.ts`
+
+## Content-Security-Policy
+
+На стендах (dev и prod) страницу отдаёт `nginx/nginx.conf` с заголовком
+`Content-Security-Policy`. Он разрешает выполнять только собственный бандл и
+скрипт входа через Google, а обращаться — только к своему домену. В `npm run
+dev` политики нет, поэтому нарушение видно только на стенде: в консоли
+браузера появится `Refused to … Content Security Policy directive …`, а
+ресурс не загрузится.
+
+Правила, чтобы этого не случилось:
+
+- **Никаких встроенных скриптов в `index.html`.** Нужен код до загрузки
+  приложения — кладите файл в `public/` и подключайте через `<script src>`
+  (как `public/theme-init.js`). Обработчики вида `onclick="…"` в разметке
+  тоже не выполнятся.
+- **Новый внешний источник — правка `nginx/nginx.conf` в том же PR.** Шрифт,
+  виджет, аналитика, запрос к чужому API: добавьте его домен в нужную
+  директиву (`script-src`, `style-src`, `font-src`, `connect-src`,
+  `frame-src`). Картинки по `https:` разрешены с любых доменов.
+- **`'unsafe-inline'` и `'unsafe-eval'` в `script-src` не добавлять** — это
+  отменяет защиту целиком. В `style-src` `'unsafe-inline'` стоит намеренно:
+  без него кнопка Google рендерится сломанной.
+
+Проверить политику до стенда можно на собранном бандле: `npm run build`, затем
+отдать `dist/` через nginx с этим конфигом и пройти нужные страницы с открытой
+консолью.

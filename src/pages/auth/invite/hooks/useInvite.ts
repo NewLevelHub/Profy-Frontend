@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { authApi } from '@/shared/api/auth';
@@ -39,8 +39,10 @@ function isRateLimited(err: unknown): boolean {
 export function useInvite() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') ?? '';
+  // The link is /invite#token=…: the browser keeps a fragment to itself, so
+  // opening it puts the token in no server log (a ?token= query would).
+  const { hash } = useLocation();
+  const token = new URLSearchParams(hash.slice(1)).get('token') ?? '';
 
   const authToken = useAuthStore(s => s.token);
   const currentUser = useAuthStore(s => s.user);

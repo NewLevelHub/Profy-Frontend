@@ -14,6 +14,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { toDisplayString, splitRequirementNotes } from '@/pages/results/utils/programUtils';
 import { formatCost, getUniversityRankingLabels } from '@/shared/lib/universityDisplay';
+import { safeExternalUrl } from '@/shared/lib/safeExternalUrl';
 import { useBackTo } from '@/shared/lib/useBackTo';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { DomainCardFrame, DomainKicker, DomainListCard } from '@/pages/results/components/DomainCardParts';
@@ -337,7 +338,7 @@ export function ProgramDetailView({ model, goBack }: {
                 <button>, which can't get real link semantics like
                 target="_blank", right-click "open in new tab", etc). */}
             {(() => {
-              const websiteUrl = program.requirements_summary?.website || program.university.website;
+              const websiteUrl = safeExternalUrl(program.requirements_summary?.website || program.university.website);
               if (!websiteUrl) return null;
               return (
                 <a

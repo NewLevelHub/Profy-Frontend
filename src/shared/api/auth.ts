@@ -33,8 +33,10 @@ export const authApi = {
   resetPassword: (email: string, code: string, password: string) =>
     apiClient.post(API.auth.resetPassword, { email, code, new_password: password }),
 
+  // POST with the token in the body: a token in the URL would be written to
+  // the server's access logs, and it is the key to a staff account.
   getInvitation: (token: string) =>
-    apiClient.get<InvitationPreview>(API.auth.invitation(token)).then(r => r.data),
+    apiClient.post<InvitationPreview>(API.auth.invitationPreview, { token }).then(r => r.data),
 
   acceptInvitation: (token: string, password: string) =>
     apiClient.post<TokenResponse>(API.auth.acceptInvitation, { token, password }).then(r => r.data),
