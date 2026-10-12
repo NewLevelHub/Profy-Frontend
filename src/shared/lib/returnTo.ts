@@ -26,9 +26,21 @@ export function toPath(location: Location): string {
  * Внутренний путь и только он: `next` приходит из адресной строки, а
  * «//evil.com» и «https://evil.com» браузер считает абсолютным адресом —
  * без этой проверки форма логина стала бы открытым редиректом.
+ *
+ * Сверять приходится так, как адрес прочитает сам браузер, а не по первым
+ * символам строки: обратную косую он принимает за прямую, а табуляцию и
+ * перевод строки выбрасывает, так что «/\evil.com» и «/<TAB>/evil.com» для
+ * него — тот же «//evil.com». Такие символы в наших путях не встречаются,
+ * поэтому отсекаются сразу; остальное решает совпадение origin.
  */
 function isInternalPath(value: string): boolean {
-  return value.startsWith('/') && !value.startsWith('//');
+  // eslint-disable-next-line no-control-regex -- управляющие символы и есть то, что ищем
+  if (!value.startsWith('/') || /[\\\u0000-\u001f]/.test(value)) return false;
+  try {
+    return new URL(value, window.location.origin).origin === window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 /**

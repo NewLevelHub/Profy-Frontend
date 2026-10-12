@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { revokeSession } from '@/shared/api/revokeSession';
 import { resetUserSession } from '@/shared/lib/session';
 import type { User } from '@/shared/types';
 
@@ -8,14 +9,17 @@ interface AuthState {
   user: User | null;
   _hasHydrated: boolean;
   login: (token: string, user: User) => void;
-  logout: () => void;
+  /** Ends the session here and on the server. `revoke: false` is for the one
+   *  caller that has nothing to revoke: the 401 handler, whose token the
+   *  server has just refused. */
+  logout: (options?: { revoke?: boolean }) => void;
   setUser: (user: User) => void;
   setHasHydrated: (val: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       user: null,
       _hasHydrated: false,
@@ -23,7 +27,9 @@ export const useAuthStore = create<AuthState>()(
         resetUserSession();
         set({ token, user });
       },
-      logout: () => {
+      logout: (options) => {
+        const { token } = get();
+        if (token && options?.revoke !== false) revokeSession(token);
         resetUserSession();
         set({ token: null, user: null });
       },

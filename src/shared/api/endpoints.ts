@@ -8,6 +8,7 @@ export type AdminContentResource =
 export const API = {
   auth: {
     me: '/auth/me',
+    logout: '/auth/logout',
     register: '/auth/register',
     login: '/auth/login',
     google: '/auth/google',
