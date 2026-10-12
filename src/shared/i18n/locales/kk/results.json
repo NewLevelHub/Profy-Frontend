@@ -15,23 +15,12 @@
     "E": "Ертіп жүргенді, сендіргенді және өз идеяларыңды іске қосқанды ұнатасың",
     "C": "Тәртіп, нақты ережелер мен түсінікті құрылымды ұнатасың"
   },
-  "thinkingStyle": {
-    "creative_think": "Шығармашылық ойлау",
-    "systematic": "Жүйелілік",
-    "strategic": "Стратегиялық көзқарас",
-    "practical": "Іскерлік"
-  },
   "personality": {
     "openness": "Жаңаға ашықтық",
     "conscientiousness": "Жинақылық",
     "extraversion": "Ашық-жарқындық",
     "agreeableness": "Ізгі ниеттілік",
     "emotional_stability": "Эмоциялық тұрақтылық"
-  },
-  "interestLevel": {
-    "low": "Әлсіз көрінген",
-    "medium": "Орташа көрінген",
-    "high": "Айқын көрінген"
   },
   "careerTier": {
     "strong": "Күшті сәйкестік",
@@ -42,16 +31,6 @@
     "title": "Сен туралы нені білдік",
     "subtitleAdult": "Қызығушылық профилің және ұсынылған бағыт",
     "downloadPdf": "PDF жүктеу"
-  },
-  "cover": {
-    "aria": "Картаңның мұқабасы",
-    "kicker": "Сенің картаң",
-    "identity": "{{name}} · {{age}}",
-    "chipInterest": "Қызығушылық",
-    "chipStrength": "Күшті жақ",
-    "chipDirection": "Бағыт",
-    "ctaExplore": "Бағыттарды қарау",
-    "ctaExploreJunior": "Нені байқап көру"
   },
   "completedPending": {
     "kicker": "ДИАГНОСТИКА · ӨТІЛДІ",
@@ -179,7 +158,6 @@
     "body": "{{total}} кезеңнен {{completed}} өтілді — кез келген уақытта жалғастыруға болады",
     "tip": "Асықпа: жауаптар автоматты түрде сақталады. Қайтып келгенде — сол жерден жалғастырамыз.",
     "progressAria": "Тест барысы",
-    "progressLabel": "Диагностика",
     "cta": "Тестті жалғастыру",
     "phase": {
       "diagnostic": "Диагностика",
@@ -249,55 +227,11 @@
   },
   "rank": {
     "kzPosition": "UniRanks · Қазақстанда #{{rank}}",
-    "worldPosition": "UniRanks · әлемде #{{rank}}",
-    "qsWorldPosition": "QS World · әлемде #{{rank}}"
+    "worldPosition": "UniRanks · әлемде #{{rank}}"
   },
   "cost": {
     "notSpecified": "Құны көрсетілмеген",
     "perYear": "{{amount}} $/жыл"
-  },
-  "reqKey": {
-    "exams": "Түсу емтихандары",
-    "min_gpa": "Ең төменгі GPA",
-    "min_sat": "Ең төменгі SAT балы",
-    "min_ielts": "Ең төменгі IELTS балы",
-    "min_toefl": "Ең төменгі TOEFL балы",
-    "min_ent": "Ең төменгі ҰБТ балы",
-    "needs_essay": "Эссе",
-    "essay": "Эссе",
-    "needs_interview": "Әңгімелесу",
-    "interview": "Әңгімелесу",
-    "needs_portfolio": "Портфолио",
-    "portfolio": "Портфолио",
-    "needs_recommendation": "Ұсыныс хаттары",
-    "needs_recommendations": "Ұсыныс хаттары",
-    "recommendation": "Ұсыныс хаты",
-    "recommendations": "Ұсыныс хаттары",
-    "language_certificate": "Тіл сертификаты",
-    "extracurriculars": "Сыныптан тыс қызмет",
-    "extracurricular": "Сыныптан тыс қызмет",
-    "activities": "Қосымша іс-шаралар",
-    "leadership": "Көшбасшылық қасиеттер",
-    "community_service": "Волонтёрлік",
-    "research": "Зерттеу жұмысы",
-    "awards": "Марапаттар мен жетістіктер",
-    "gpa": "GPA",
-    "sat": "SAT балы",
-    "act": "ACT балы",
-    "ielts": "IELTS балы",
-    "toefl": "TOEFL балы",
-    "ent": "ҰБТ балы",
-    "application": "Өтініш беру",
-    "application_open": "Қабылдау басталуы",
-    "application_close": "Қабылдау аяқталуы",
-    "decision_date": "Шешім күні",
-    "exam_deadline": "Емтихан тапсыру мерзімі",
-    "documents": "Құжаттар",
-    "early_decision": "Ерте өтініш",
-    "regular": "Негізгі мерзім",
-    "rolling": "Жылжымалы мерзім",
-    "spring": "Көктемгі қабылдау",
-    "fall": "Күзгі қабылдау"
   },
   "universityList": {
     "lockedTitle": "Бөлім қолжетімсіз",
@@ -415,7 +349,6 @@
     "directionsTitleSenior": "МАҚСАТҚА САЙ БАҒЫТТАР",
     "directionsSubtitleMiddle": "Профиліңе сай мамандықтар — көбірек білу үшін кез келгенін аш.",
     "directionsSubtitleSenior": "Профиліңе сай мамандықтар — ол бойынша ЖОО мен бағдарламаларды көру үшін кез келгенін аш.",
-    "directionsSubtitleReadOnly": "Оқушының профиліне сай мамандықтар.",
     "roadmapTitle": "ТАҢДАУ ROADMAP-Ы",
     "roadmapAria": "Мамандық таңдау roadmap-ы: шешімге дейін 1 ай, 3 ай, 6 ай"
   },
@@ -443,10 +376,6 @@
     "topPick": "Үздік сәйкестік",
     "open": "Ашу"
   },
-  "career": {
-    "findUniversities": "Университеттерді табу",
-    "moreAboutDirection": "Бағыт туралы толығырақ →"
-  },
   "feedback": {
     "sentKicker": "ПІКІР ҚАБЫЛДАНДЫ",
     "sentBody": "Рақмет — оқимыз. Бұл хабарламаға жауап болмайды, ол командаға хат алмасусыз жетеді.",
@@ -467,15 +396,6 @@
     "careers": "Мамандықтар мен бағыттар",
     "thinking_style": "Ойлау стилі",
     "motivation": "Мотивация"
-  },
-  "legacy": {
-    "interestMapTitleJunior": "Сенің қызығушылық картаң",
-    "interestMapTitleAdult": "Сенің қызығушылық профилің",
-    "strengthsTitle": "Күшті жақтар",
-    "thinkingStyleTitle": "Ойлау стилі",
-    "personalityTitle": "Сенің мінезің",
-    "motivationTitle": "Сені не жігерлендіреді",
-    "explorationTitle": "Нені байқап көруге болады"
   },
   "print": {
     "cover": {

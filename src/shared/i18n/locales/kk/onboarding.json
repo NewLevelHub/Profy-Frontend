@@ -1,17 +1,4 @@
 {
-  "artifactType": {
-    "hobby": "Хобби",
-    "club": "Үйірме / секция",
-    "sport": "Спорт",
-    "achievement": "Жетістік",
-    "goal": "Мақсат",
-    "book": "Кітап",
-    "game": "Ойын",
-    "topic": "Қызықтыратын тақырып",
-    "profession": "Арман мамандығы",
-    "university": "Қалаған университет",
-    "dream": "Арман"
-  },
   "progress": {
     "step": "Қадам: {{current}} / {{total}}"
   },
@@ -88,24 +75,13 @@
   },
   "artifacts": {
     "editTitle": "Қызығушылықтарың мен мақсаттарың",
-    "editSubtitle": "Немен айналысатыныңды және не туралы армандайтыныңды айт",
-    "tablistAria": "Артефакт топтары",
     "saveFailed": "Сақтау мүмкін болмады. Қайта көр.",
     "done": "Дайын",
-    "nextGroup": "Әрі қарай",
     "skipGroup": "Бұл топты өткізіп жіберу",
-    "groupCounter": "Топ: {{current}} / {{total}}",
     "addCustom": "+ өзіңдікі",
     "customPlaceholder": "Өзіңдікі",
     "dreamsPlaceholder": "Мысалы: бір күні нағыз қазба жұмыстарына барғым келеді",
     "dreamsCounter": "{{current}} / {{max}}",
-    "tab": {
-      "activities": "01 немен айналысасың",
-      "achievements": "02 бәлкім, болған",
-      "professions": "03 не ұнайды",
-      "targets": "04 не туралы ойлайсың",
-      "dreams": "05 армандар мен мақсаттар"
-    },
     "section": {
       "activitiesHeadline": "Мектептен тыс немен айналысасың?",
       "activitiesNote": "Хобби, үйірмелер мен секциялар — саған қатыстының бәрін таңда",

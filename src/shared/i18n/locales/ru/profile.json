@@ -72,12 +72,6 @@
     "editAria": "Редактировать сертификаты и баллы",
     "addAria": "Добавить сертификаты и баллы"
   },
-  "certificate": {
-    "ielts": "IELTS",
-    "unt": "ЕНТ",
-    "sat": "SAT",
-    "toefl": "TOEFL"
-  },
   "settings": {
     "title": "Настройки",
     "languageLabel": "Язык",
@@ -96,25 +90,11 @@
   "edit": {
     "title": "Сертификаты и GPA",
     "subtitle": "Баллы IELTS, ЕНТ, SAT, TOEFL и средний балл — если уже есть",
-    "scoresHeading": "Языковые и вступительные баллы",
     "scoresHint": "Заполни то, что уже сдавал — остальное можно оставить пустым",
     "rangePlaceholder": "от {{min}} до {{max}}",
-    "gpaHeading": "Средний балл (GPA)",
-    "gpaHint": "Выбери систему оценки в своей школе",
-    "gpaScaleAria": "Система оценки GPA",
-    "scoreLabel": "Балл",
-    "gpaRangePlaceholder": "от 0 до {{max}}",
-    "gpaChooseScaleFirst": "сначала выбери систему",
     "saveError": "Не удалось сохранить. Попробуй ещё раз.",
     "errorRange": "От {{min}} до {{max}}",
-    "errorChooseScale": "Выбери систему оценки",
-    "errorEnterScore": "Укажи балл",
-    "errorGpaRange": "От 0 до {{max}}"
-  },
-  "ageGroup": {
-    "junior": "Младший (6–10 лет)",
-    "middle": "Средний (11–14 лет)",
-    "senior": "Старший (15–18 лет)"
+    "errorEnterScore": "Укажи балл"
   },
   "redesign": {
     "title": "Твой профиль",
