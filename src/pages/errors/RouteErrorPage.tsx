@@ -9,11 +9,12 @@ const RELOAD_COOLDOWN_MS = 60_000;
 /**
  * After a deploy, a tab opened on the previous build still asks for page
  * chunks whose hashed names are gone from the server. Chrome, Firefox and
- * Safari word that failure differently.
+ * Safari word a missing JS chunk differently; a missing page stylesheet is
+ * Vite's own preload error.
  */
 function isChunkLoadError(error: unknown): boolean {
   return error instanceof Error
-    && /dynamically imported module|Importing a module script failed/i.test(error.message);
+    && /dynamically imported module|Importing a module script failed|Unable to preload CSS/i.test(error.message);
 }
 
 /** Reload at most once a minute, so a chunk that is really missing can't loop. */
