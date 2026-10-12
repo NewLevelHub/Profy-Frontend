@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { EMAIL_AS_TEXT } from '@/shared/i18n/transText';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import axios from 'axios';
 import { ArrowRight, KeyRound, Mail, XCircle } from 'lucide-react';
@@ -153,7 +154,7 @@ export default function ResetPasswordPage() {
       <>
         <AuthStepper current={2} kind="recovery" />
         <AuthHeading title={t('auth:redesign.verify.title')} icon={<Mail />}>
-          <Trans i18nKey="auth:reset.codeSubtitle" values={{ email }} components={{ b: <strong className="rd-email-value" /> }} />
+          <Trans i18nKey="auth:reset.codeSubtitle" values={{ email }} components={{ b: <strong className="rd-email-value" /> }} {...EMAIL_AS_TEXT} />
         </AuthHeading>
         <form className="rd-login-fields rd-auth-fields" onSubmit={handleVerifyCode} noValidate aria-busy={isCodeLoading}>
           <p className="rd-code-label">{t('auth:verify.otpAria')}</p>
