@@ -3,22 +3,6 @@
 // strings**, not display text — resolve at the call site with
 // `t(MAP[code])` (see docs/i18n.md). Icons/emojis are not text and stay literal.
 
-export const ASSESSMENT_GOALS = {
-  EXPLORE: 'explore',
-  PROFESSION: 'profession',
-  UNIVERSITY: 'university',
-} as const;
-
-export type AssessmentGoal = (typeof ASSESSMENT_GOALS)[keyof typeof ASSESSMENT_GOALS];
-
-export const ASSESSMENT_GOAL_LABELS: Record<AssessmentGoal, string> = {
-  [ASSESSMENT_GOALS.EXPLORE]: 'assessment:goal.explore',
-  [ASSESSMENT_GOALS.PROFESSION]: 'assessment:goal.profession',
-  [ASSESSMENT_GOALS.UNIVERSITY]: 'assessment:goal.university',
-};
-
-export const RIASEC_TYPES = ['R', 'I', 'A', 'S', 'E', 'C'] as const;
-
 export const RIASEC_LABELS: Record<string, string> = {
   R: 'results:riasecLabel.R',
   I: 'results:riasecLabel.I',
@@ -26,15 +10,6 @@ export const RIASEC_LABELS: Record<string, string> = {
   S: 'results:riasecLabel.S',
   E: 'results:riasecLabel.E',
   C: 'results:riasecLabel.C',
-};
-
-export const RIASEC_ICONS: Record<string, string> = {
-  R: '🔧',
-  I: '🔬',
-  A: '🎨',
-  S: '🤝',
-  E: '🚀',
-  C: '📋',
 };
 
 // Plain-language, one-sentence gloss for each RIASEC letter — the label
@@ -117,49 +92,6 @@ export const ASSESSMENT_PHASE_MINUTES = {
 /** Average time on one scale / yes-no item — per-test intro estimates. */
 export const SECONDS_PER_LIKERT_ITEM = 7;
 
-export const THINKING_STYLE_LABELS: Record<string, string> = {
-  creative_think: 'results:thinkingStyle.creative_think',
-  systematic: 'results:thinkingStyle.systematic',
-  strategic: 'results:thinkingStyle.strategic',
-  practical: 'results:thinkingStyle.practical',
-};
-
-export const THINKING_STYLE_ICONS: Record<string, string> = {
-  creative_think: '💡',
-  systematic: '🗂️',
-  strategic: '🧭',
-  practical: '🔨',
-};
-
-export const PERSONALITY_LABELS: Record<string, string> = {
-  openness: 'results:personality.openness',
-  conscientiousness: 'results:personality.conscientiousness',
-  extraversion: 'results:personality.extraversion',
-  agreeableness: 'results:personality.agreeableness',
-  emotional_stability: 'results:personality.emotional_stability',
-};
-
-export const PERSONALITY_ICONS: Record<string, string> = {
-  openness: '🌱',
-  conscientiousness: '🗂️',
-  extraversion: '🎉',
-  agreeableness: '🤝',
-  emotional_stability: '🧘',
-};
-
-export const PERSONALITY_ORDER: string[] = [
-  'openness', 'conscientiousness', 'extraversion', 'agreeableness', 'emotional_stability',
-];
-
-// interest_map[].level (result-v2 contract §5) — opaque enum, never a
-// percentage: the backend deliberately doesn't expose the score it was
-// computed from, so this is display-only.
-export const INTEREST_LEVEL_LABELS: Record<'low' | 'medium' | 'high', string> = {
-  low: 'results:interestLevel.low',
-  medium: 'results:interestLevel.medium',
-  high: 'results:interestLevel.high',
-};
-
 // careers[].tier (result-v2 contract §6) — three-tier match instead of a
 // score, per TZ §18.3 (no percentages shown to the student).
 export const CAREER_TIER_LABELS: Record<'strong' | 'good' | 'worth_trying', string> = {
@@ -168,16 +100,3 @@ export const CAREER_TIER_LABELS: Record<'strong' | 'good' | 'worth_trying', stri
   worth_trying: 'results:careerTier.worth_trying',
 };
 
-export const ARTIFACT_TYPE_LABELS: Record<string, string> = {
-  hobby: 'onboarding:artifactType.hobby',
-  club: 'onboarding:artifactType.club',
-  sport: 'onboarding:artifactType.sport',
-  achievement: 'onboarding:artifactType.achievement',
-  goal: 'onboarding:artifactType.goal',
-  book: 'onboarding:artifactType.book',
-  game: 'onboarding:artifactType.game',
-  topic: 'onboarding:artifactType.topic',
-  profession: 'onboarding:artifactType.profession',
-  university: 'onboarding:artifactType.university',
-  dream: 'onboarding:artifactType.dream',
-};
