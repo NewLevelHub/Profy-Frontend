@@ -15,7 +15,6 @@ export default function ProfilePage() {
       {!profile ? (
         <JourneyEmptyState
           illustration="/mascot/redesign/notepad.png"
-          mascotState="waiting"
           title={t('page.notFilledTitle')}
           body={t('page.notFilledBody')}
         />

@@ -87,7 +87,7 @@ export default function SpecialAssessmentDesignPreview() {
         message={t(isBelbin ? 'belbin.doneMessage' : 'astur.doneMessage')}
         action={t(isBelbin ? 'belbin.toAstur' : 'astur.generateReport')} onContinue={next} /></div>}
     </main>
-    <ExitAssessmentModal redesigned open={exitOpen} onContinue={() => setExitOpen(false)}
+    <ExitAssessmentModal open={exitOpen} onContinue={() => setExitOpen(false)}
       title={!isBelbin ? t('astur.exit.title') : undefined} body={!isBelbin ? t('astur.exit.body') : undefined}
       saveAndExitLabel={!isBelbin ? t('astur.exit.confirm') : undefined}
       onSaveAndExit={() => { setExitOpen(false); selectView(isBelbin ? 'belbinIntro' : 'asturIntro'); }} />

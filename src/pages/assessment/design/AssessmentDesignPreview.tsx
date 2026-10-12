@@ -78,7 +78,7 @@ export default function AssessmentDesignPreview() {
       {view === 'checkin' && <CheckInStep onSubmit={next} />}
       {view === 'colors' && <ColorCircleStep instruction={t('psychoemotional.circle1.instruction')} onComplete={next} />}
     </main>
-    <ExitAssessmentModal redesigned open={exitOpen}
+    <ExitAssessmentModal open={exitOpen}
       title={view === 'motivation' ? t('redesign.motivationExitTitle') : undefined}
       body={view === 'motivation' ? t('redesign.motivationExitBody', { continueLabel: t('priority.continue') }) : undefined}
       saveAndExitLabel={view === 'motivation' ? t('rail.exit') : undefined} onContinue={() => setExitOpen(false)}

@@ -99,7 +99,6 @@ export default function ResultsPage() {
       <PageContainer>
         <JourneyEmptyState
           illustration="/mascot/redesign/rest.png"
-          mascotState="pause"
           title={t('error.somethingWrong')}
           body={error ?? t('error.loadResults')}
           actionLabel={t('common:retry')}

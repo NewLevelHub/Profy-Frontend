@@ -151,14 +151,6 @@ export function useResults() {
   // recomputing it; this needs a backend-side regeneration/backfill.
   const isLegacyShape = error instanceof Error && error.message === 'legacy_result_shape';
 
-  // Psych-block slots (PRO-292) — pulled off the report here so the page
-  // stays assembly-only. Every entry is `null` until its phase ships on the
-  // backend (psychoemotional → Фаза 2).
-  const psychSections = {
-    psychoemotional: effectiveReport?.psychoemotional ?? null,
-  };
-  const hasPsychSections = !!psychSections.psychoemotional;
-
   const belbinCompleted = useAssessmentStore(s => s.belbinCompleted);
   const asturCompleted = useAssessmentStore(s => s.asturCompleted);
 
@@ -211,8 +203,6 @@ export function useResults() {
 
   return {
     report: effectiveReport,
-    psychSections,
-    hasPsychSections,
     isLoading: isLoading && !effectiveReport,
     isTranslating,
     isPendingReview: pendingReview && !effectiveReport,

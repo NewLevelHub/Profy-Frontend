@@ -66,7 +66,6 @@ export default function AssessmentPage() {
 
       {/* ── Exit confirmation modal ─────────────────────────────────── */}
       <ExitAssessmentModal
-        redesigned
         open={exitConfirmOpen}
         onSaveAndExit={confirmExit}
         onContinue={cancelExit}

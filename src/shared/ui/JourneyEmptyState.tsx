@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react';
-import { Mascot, type MascotState } from '@/shared/ui/Mascot';
 import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
 
 export interface JourneyEmptyStateProps {
-  illustration?: string;
+  /** Path of a redesign illustration, e.g. `/mascot/redesign/rest.png`. */
+  illustration: string;
   title: string;
   body: string;
-  /** Mascot pose — waiting for empty, pause for soft errors. */
-  mascotState?: MascotState;
   actionLabel?: string;
   onAction?: () => void;
   className?: string;
@@ -16,14 +14,13 @@ export interface JourneyEmptyStateProps {
 }
 
 /**
- * Mascot-led empty / soft-error composition — same language as Welcome and
+ * Illustrated empty / soft-error composition — same language as Welcome and
  * AssessmentNotStarted (journey shell + well + one CTA), not icon+emoji stubs.
  */
 export function JourneyEmptyState({
   illustration,
   title,
   body,
-  mascotState = 'waiting',
   actionLabel,
   onAction,
   className,
@@ -36,8 +33,8 @@ export function JourneyEmptyState({
         className,
       )}
     >
-      <div className={illustration ? "rd-empty-art" : "journey-mascot-well"}>
-        {illustration ? <img src={illustration} alt="" width={150} height={150} /> : <Mascot state={mascotState} size={88} interactive={mascotState === 'welcome'} />}
+      <div className="rd-empty-art">
+        <img src={illustration} alt="" width={150} height={150} />
       </div>
       <div className="flex flex-col gap-2 max-w-[40ch]">
         <p className="text-label font-bold text-[color:var(--text-heading)] m-0">{title}</p>

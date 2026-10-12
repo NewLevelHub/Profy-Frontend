@@ -41,9 +41,6 @@ export type { SpinnerProps, SpinnerSize } from './Spinner';
 export { Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
 
-export { Mascot, SPRITES, PRO } from './Mascot';
-export type { MascotProps, MascotState, MascotFunctionalState, MascotProfessionState } from './Mascot';
-
 export { FavoriteStar } from './FavoriteStar';
 export { UniversityRankBadges } from './UniversityRankBadges';
 export { LanguageSwitcher } from './LanguageSwitcher';

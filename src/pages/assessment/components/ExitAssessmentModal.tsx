@@ -1,10 +1,8 @@
 import { useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { Mascot } from '@/shared/ui/Mascot';
 
 interface ExitAssessmentModalProps {
-  redesigned?: boolean;
   open: boolean;
   title?: string;
   body?: string;
@@ -26,7 +24,6 @@ interface ExitAssessmentModalProps {
 // действия должны быть равноценными и не деструктивными, поэтому обе кнопки
 // рендерятся ghost-вариантом (без заливки), без выделенного "primary" выхода.
 export function ExitAssessmentModal({
-  redesigned = false,
   open,
   title,
   body,
@@ -65,13 +62,13 @@ export function ExitAssessmentModal({
       }}
     >
       <div className="flex flex-col gap-5">
-        {redesigned ? <img src="/mascot/redesign/greeting.png" alt="" width={120} height={120} className="mx-auto" /> : <Mascot state="pause" size={96} className="mx-auto" />}
+        <img src="/mascot/redesign/greeting.png" alt="" width={120} height={120} className="mx-auto" />
         <div className="flex flex-col gap-2">
           <h2 id={titleId} className="text-title font-black text-primary">
             {title ?? t('exitModal.title')}
           </h2>
           <p id={bodyId} className="text-body text-secondary">
-            {body ?? t(redesigned ? 'redesign.exitBody' : 'exitModal.body')}
+            {body ?? t('redesign.exitBody')}
           </p>
           {error && <p role="alert" className="text-body-sm text-danger">{error}</p>}
         </div>
