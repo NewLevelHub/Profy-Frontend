@@ -29,9 +29,9 @@
 .rd-path-dots i { width: 26px; height: 1px; background: var(--rd-line); }
 .rd-art-note { position: absolute; font-size: var(--text-rd-label); max-width: 110px; line-height: 1.8; color: var(--rd-muted); right: -5px; top: 27px; transform: rotate(8deg); }
 .rd-home-section { padding-top: 95px; }
-.rd-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-bottom: 34px; }
-.rd-section-heading h2,.rd-teaser-copy h2,.rd-parents h2,.rd-faq h2,.rd-final-cta h2 { font-size: var(--text-rd-display-lg); line-height: 1.15; white-space: pre-line; }
-.rd-section-heading>p { max-width: 285px; font-size: var(--text-rd-body); color: var(--rd-text); line-height: 1.9; }
+:where(.rd-landing) .rd-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-bottom: 34px; }
+:where(.rd-landing) .rd-section-heading h2,.rd-teaser-copy h2,.rd-parents h2,.rd-faq h2,.rd-final-cta h2 { font-size: var(--text-rd-display-lg); line-height: 1.15; white-space: pre-line; }
+:where(.rd-landing) .rd-section-heading>p { max-width: 285px; font-size: var(--text-rd-body); color: var(--rd-text); line-height: 1.9; }
 .rd-journey-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 22px; }
 .rd-journey-card { border: 1px solid var(--rd-line); background: var(--rd-card); border-radius: var(--rd-radius-lg); padding: 26px 27px 30px; }
 .rd-step-chip { display: inline-block; padding: 5px 9px; background: var(--rd-sage); border-radius: var(--rd-radius-sm); font-size: var(--text-rd-label); letter-spacing: .06em; color: var(--rd-muted); }
@@ -109,7 +109,7 @@
   .rd-hero { gap: 15px; min-height: 510px; padding-bottom: 35px; }
   .rd-hero-cta { gap: 18px; }.rd-hero-cta .rd-button { font-size: var(--text-rd-ui); padding: 13px 17px; }
   .rd-hero-art { height: 390px; }.rd-mascot-scene { width: 235px; height: 290px; top: 40px; }.rd-floating-card .rd-icon-tile { width: 29px; height: 29px; border-radius: var(--rd-radius-sm); }.rd-floating-card .rd-icon-tile svg { width: 17px; height: 17px; }.rd-card-interest { top: 75px; left: -15px; }.rd-card-path { bottom: 35px; right: -7px; }.rd-art-note { max-width: 90px; }
-  .rd-home-section { padding-top: 65px; }.rd-section-heading h2,.rd-teaser-copy h2 { font-size: var(--text-rd-display); }.rd-journey-grid { gap: 13px; }.rd-journey-card { padding: 22px 19px; }.rd-journey-art { height: 150px; }
+  .rd-home-section { padding-top: 65px; }:where(.rd-landing) .rd-section-heading h2,.rd-teaser-copy h2 { font-size: var(--text-rd-display); }.rd-journey-grid { gap: 13px; }.rd-journey-card { padding: 22px 19px; }.rd-journey-art { height: 150px; }
   .rd-report-teaser { padding: 35px; gap: 30px; margin-top: 65px; }.rd-teaser-body { padding: 23px; }
   .rd-parents { padding: 60px 10px; grid-template-columns: 200px 1fr; gap: 35px; }.rd-parent-art img { width: 220px; height: 220px; }
   .rd-faq { gap: 40px; }
@@ -119,7 +119,7 @@
   .rd-desktop-theme { display: none; }.rd-header-actions { gap: 6px; }.rd-site-header { gap: 12px; min-height: 78px; }.rd-header-actions>.rd-button { padding: 9px 11px; }.rd-menu-toggle { width: 35px; }
   .rd-hero { display: flex; flex-direction: column; align-items: stretch; gap: 5px; min-height: 0; padding-top: 28px; padding-bottom: 25px; }.rd-hero-copy h1 { line-height: 1.08; margin: 21px 0; }.rd-hero-description { max-width: 350px; }.rd-hero-cta { margin-top: 24px; gap: 20px; }.rd-hero-cta>.rd-button { min-height: 51px; font-size: var(--text-rd-ui); padding: 13px 21px; }.rd-hero-reassurance { gap: 10px 15px; margin-top: 23px; }
   .rd-hero-art { height: 415px; width: 100%; max-width: 420px; margin: 22px auto 0; }.rd-mascot-scene { width: 255px; height: 300px; top: 52px; }.rd-floating-card { padding: 12px; border-radius: var(--rd-radius-md); }.rd-card-interest { top: 8px; left: 0; }.rd-card-path { bottom: 17px; right: 0; }.rd-art-note { right: 2px; top: 8px; }.rd-mini-bars { height: 16px; margin-top: 6px; }.rd-mini-bars i { width: 9px; }
-  .rd-home-section { padding-top: 55px; }.rd-section-heading { display: block; margin-bottom: 25px; }.rd-section-heading>p { margin-top: 20px; max-width: 300px; }.rd-journey-grid { grid-template-columns: 1fr; gap: 17px; }.rd-journey-card { padding: 24px 27px; }.rd-journey-art { height: 160px; max-width: 260px; margin-inline: auto; }.rd-journey-card h3 { font-size: var(--text-rd-heading); }
+  .rd-home-section { padding-top: 55px; }:where(.rd-landing) .rd-section-heading { display: block; margin-bottom: 25px; }:where(.rd-landing) .rd-section-heading>p { margin-top: 20px; max-width: 300px; }.rd-journey-grid { grid-template-columns: 1fr; gap: 17px; }.rd-journey-card { padding: 24px 27px; }.rd-journey-art { height: 160px; max-width: 260px; margin-inline: auto; }.rd-journey-card h3 { font-size: var(--text-rd-heading); }
   .rd-report-teaser { display: flex; flex-direction: column; align-items: stretch; padding: 30px 26px 35px; margin-top: 45px; gap: 30px; border-radius: var(--rd-radius-lg); }.rd-teaser-preview { transform: rotate(2deg); }
   .rd-parents { display: flex; flex-direction: column; gap: 25px; padding: 45px 5px; align-items: stretch; }.rd-parent-art img { width: 210px; height: 210px; }
   .rd-faq { grid-template-columns: 1fr; gap: 20px; padding-top: 35px; padding-bottom: 50px; }.rd-faq-icon { display: none; }
