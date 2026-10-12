@@ -43,3 +43,12 @@ export function Spinner({ size = 'md', className, label }: SpinnerProps) {
     </svg>
   );
 }
+
+/** Whole-viewport loading state: route guards, lazy routes on first load. */
+export function FullPageSpinner() {
+  return (
+    <div className="min-h-screen grid place-items-center bg-page">
+      <Spinner size="lg" />
+    </div>
+  );
+}

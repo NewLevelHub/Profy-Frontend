@@ -4,7 +4,7 @@ import { JourneyShell } from './JourneyShell';
 import './checkpoints.css';
 
 interface JourneyCheckpointProps {
-  kicker: string;
+  kicker?: string;
   title: string;
   body?: string;
   illustration?: 'notepad' | 'greeting' | 'rest' | 'book' | 'celebrate';
@@ -19,7 +19,7 @@ export function JourneyCheckpoint({ kicker, title, body, illustration = 'notepad
     <main id="journey-content" tabIndex={-1} className={cn('rd-checkpoint', className)}>
       <header className="rd-checkpoint-heading">
         <div>
-          <p className="rd-eyebrow">{kicker}</p>
+          {kicker && <p className="rd-eyebrow">{kicker}</p>}
           <h1>{title}</h1>
           {body && <p className="rd-checkpoint-intro">{body}</p>}
         </div>
