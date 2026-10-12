@@ -40,15 +40,17 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && readAccessToken()) {
       // Use the exact same logout path as every UI entry point. It clears the
       // in-memory auth state, persisted auth, all private stores, drafts and
-      // the complete React Query cache before navigation.
-      useAuthStore.getState().logout();
+      // the complete React Query cache before navigation. Without the server
+      // call: this token is the one the server has just refused.
+      useAuthStore.getState().logout({ revoke: false });
       // Здесь React уже не работает — состояние навигации передать нечем,
       // поэтому адрес, на котором человека застала протухшая сессия,
       // уезжает в сам URL. Форма логина читает его тем же
       // resolveReturnTo, что и `state.from` при обычном перехвате гвардой,
       // и после повторного входа возвращает человека на прежний экран,
-      // а не на /results.
-      const here = window.location.pathname + window.location.search + window.location.hash;
+      // а не на /results. Без фрагмента: `?next=` уходит на сервер и в его
+      // логи, а во фрагменте может лежать секрет (токен в /invite#token=…).
+      const here = window.location.pathname + window.location.search;
       const next = here.startsWith('/login') ? '' : `?next=${encodeURIComponent(here)}`;
       window.location.replace(`/login${next}`);
     }
