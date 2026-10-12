@@ -143,7 +143,7 @@ npm run lint
 стоит держать эту карту в уме.
 
 - Новый защищённый экран — оборачивать существующим guard'ом из
-  `src/shared/guards/` (`RequireAuth`, `RequireAdmin`, `RequirePsychologist`,
+  `src/shared/guards/` (`RequireAuth`, `RequireRole role="admin|psychologist"`,
   `RequireStudent`, `RequireGuest`, `RequireProfile`), а не проверять
   токен/роль вручную в компоненте. Порядок вложенности guard'ов в дереве
   соответствует реальным ограничениям (роль → наличие профиля), не

@@ -1,18 +1,16 @@
 import type { ComponentType } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, Navigate, redirect } from 'react-router';
 import { FullPageSpinner } from '@/shared/ui/Spinner';
 import RouteErrorPage from '@/pages/errors/RouteErrorPage';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
-import { RequireAdmin } from '@/shared/guards/RequireAdmin';
-import { RequirePsychologist } from '@/shared/guards/RequirePsychologist';
+import { RequireRole } from '@/shared/guards/RequireRole';
 import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
-import { AdminContentLayout } from '@/shared/ui/layouts/AdminContentLayout';
 
 /**
  * Every page is its own chunk, fetched when its route matches; guards and
@@ -77,10 +75,10 @@ export const router = createBrowserRouter([{
         // and student APIs would 403 them. Gated by role alone.
         // ── Psychologist cabinet ──
         {
-          element: <RequirePsychologist />,
+          element: <RequireRole role="psychologist" />,
           children: [
             {
-              element: <AppLayout psychologist />,
+              element: <AppLayout area="psychologist" />,
               children: [
                 // The review queue is the cabinet's front page (it's where work starts).
                 { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
@@ -108,11 +106,11 @@ export const router = createBrowserRouter([{
         },
         // ── Admin ──
         {
-          element: <RequireAdmin />,
+          element: <RequireRole role="admin" />,
           children: [
             {
               // Dedicated admin navigation; keeps the shared scroll restoration.
-              element: <AppLayout admin />,
+              element: <AppLayout area="admin" />,
               children: [
                 { path: '/admin', element: <Navigate to="/admin/users" replace /> },
                 {
@@ -126,8 +124,8 @@ export const router = createBrowserRouter([{
                     { path: '/admin/universities/:universityId', ...page(() => import('@/pages/admin/AdminUniversityDetailPage')) },
                     { path: '/admin/programs/:programId', ...page(() => import('@/pages/admin/AdminProgramDetailPage')) },
                     {
+                      // No layout of its own: the content sections live in the admin side rail.
                       path: '/admin/content',
-                      element: <AdminContentLayout />,
                       children: [
                         { index: true, element: <Navigate to="/admin/content/questions" replace /> },
                         { path: 'questions', ...page(() => import('@/pages/admin/content/AdminQuestionsPage')) },
@@ -174,15 +172,16 @@ export const router = createBrowserRouter([{
             { path: '/assessment/goal-check', ...page(() => import('@/pages/assessment/GoalCheckPage')) },
 
             // Assessment flow — Belbin & ASTUR (PRO-338 Ф2.6/Ф3.6) follow Motivation directly
-            { path: '/assessment/belbin/:assessmentId', ...page(() => import('@/pages/assessment/belbin/BelbinPage')) },
-            { path: '/assessment/belbin', ...page(() => import('@/pages/assessment/belbin/BelbinPage')) },
-            { path: '/assessment/astur/:assessmentId', ...page(() => import('@/pages/assessment/astur/AsturPage')) },
-            { path: '/assessment/astur', ...page(() => import('@/pages/assessment/astur/AsturPage')) },
-            // Backward-compatibility aliases
-            { path: '/assessment/extended/belbin/:assessmentId', ...page(() => import('@/pages/assessment/belbin/BelbinPage')) },
-            { path: '/assessment/extended/astur/:assessmentId', ...page(() => import('@/pages/assessment/astur/AsturPage')) },
+            { path: '/assessment/belbin/:assessmentId?', ...page(() => import('@/pages/assessment/belbin/BelbinPage')) },
+            { path: '/assessment/astur/:assessmentId?', ...page(() => import('@/pages/assessment/astur/AsturPage')) },
+            // Old links that psychologists handed out by hand before blocks
+            // were assigned in the cabinet (PRO-338) — same screens.
+            {
+              path: '/assessment/extended/:block/:assessmentId',
+              loader: ({ params }) => redirect(`/assessment/${params.block}/${params.assessmentId}`),
+            },
 
-            // Main app — guarded by profile; redirects to /welcome if profile not yet created
+            // Main app — guarded by profile; redirects to /onboarding/profile if it isn't created yet
             {
               element: <RequireProfile />,
               children: [
@@ -197,7 +196,7 @@ export const router = createBrowserRouter([{
                 // rail never lands in the exported PDF.
                 { path: '/results/print', ...page(() => import('@/pages/results/print/ResultPrintPage')) },
                 {
-                  element: <AppLayout />,
+                  element: <AppLayout area="student" />,
                   children: [
                     // Main tabs (mobile: Home | Result | Profile)
                     { path: '/results', ...page(() => import('@/pages/results/ResultsPage')) },
