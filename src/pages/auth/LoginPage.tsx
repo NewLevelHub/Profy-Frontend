@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { EMAIL_AS_TEXT } from '@/shared/i18n/transText';
 import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
 import { ArrowRight, Eye, EyeOff, Mail } from 'lucide-react';
@@ -177,7 +178,7 @@ export default function LoginPage() {
             <Mail size={21} aria-hidden="true" />
             <div>
               <strong>{t('auth:verifyBanner.title')}</strong>
-              <p><Trans i18nKey="auth:verifyBanner.body" values={{ email }} components={{ b: <strong /> }} /></p>
+              <p><Trans i18nKey="auth:verifyBanner.body" values={{ email }} components={{ b: <strong /> }} {...EMAIL_AS_TEXT} /></p>
               {resendDone ? (
                 <p className="rd-form-error" role="alert">{t('auth:verifyBanner.failed')}</p>
               ) : (
