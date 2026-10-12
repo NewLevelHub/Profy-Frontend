@@ -193,7 +193,7 @@ export default function AdminUniversityDetailPage() {
 
       <AdminCard title={t('directions.mainCard')}>
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} revert={fieldRelease('name')} lockReason={LOCK_REASON}>
+          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} revert={fieldRelease('name')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input id={id} className={ADMIN_INPUT} value={form.name} onChange={(e) => setField('name', e.target.value)} />
             )}
@@ -201,7 +201,7 @@ export default function AdminUniversityDetailPage() {
           <AdminField
             label={t('uni.field.shortNameLabel')}
             locked={locked.has('short_name')} revert={fieldRelease('short_name')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             hint={t('uni.shortNameHint')}
           >
             {({ id, describedBy }) => (
@@ -214,12 +214,12 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label={t('universities.col.city')} locked={locked.has('city')} revert={fieldRelease('city')} lockReason={LOCK_REASON}>
+          <AdminField label={t('universities.col.city')} locked={locked.has('city')} revert={fieldRelease('city')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input id={id} className={ADMIN_INPUT} value={form.city} onChange={(e) => setField('city', e.target.value)} />
             )}
           </AdminField>
-          <AdminField label={t('universities.col.country')} locked={locked.has('country')} revert={fieldRelease('country')} lockReason={LOCK_REASON}>
+          <AdminField label={t('universities.col.country')} locked={locked.has('country')} revert={fieldRelease('country')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -230,7 +230,7 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label={t('uni.field.locationLabel')} locked={locked.has('location')} revert={fieldRelease('location')} lockReason={LOCK_REASON} className="sm:col-span-2">
+          <AdminField label={t('uni.field.locationLabel')} locked={locked.has('location')} revert={fieldRelease('location')} lockReasonKey={LOCK_REASON} className="sm:col-span-2">
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -241,7 +241,7 @@ export default function AdminUniversityDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label={t('uni.field.websiteLabel')} locked={locked.has('website')} revert={fieldRelease('website')} lockReason={LOCK_REASON}>
+          <AdminField label={t('uni.field.websiteLabel')} locked={locked.has('website')} revert={fieldRelease('website')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -256,7 +256,7 @@ export default function AdminUniversityDetailPage() {
           <AdminField
             label={t('uni.field.sourceLabel')}
             locked={locked.has('source_url')} revert={fieldRelease('source_url')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             hint={t('uni.sourceHint')}
           >
             {({ id, describedBy }) => (
@@ -275,7 +275,7 @@ export default function AdminUniversityDetailPage() {
         <AdminField
           label={t('uni.field.aliasesLabel')}
           locked={locked.has('aliases')} revert={fieldRelease('aliases')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
           hint={t('uni.aliasesHint')}
         >
           <StringListEditor
@@ -285,7 +285,7 @@ export default function AdminUniversityDetailPage() {
           />
         </AdminField>
 
-        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} revert={fieldRelease('description')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} revert={fieldRelease('description')} lockReasonKey={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -309,7 +309,7 @@ export default function AdminUniversityDetailPage() {
             value={form.ranking}
             onChange={(v) => setField('ranking', v)}
           />
-          <AdminField label={t('uni.field.rankingLabelLabel')} locked={locked.has('ranking_label')} revert={fieldRelease('ranking_label')} lockReason={LOCK_REASON}>
+          <AdminField label={t('uni.field.rankingLabelLabel')} locked={locked.has('ranking_label')} revert={fieldRelease('ranking_label')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -335,7 +335,7 @@ export default function AdminUniversityDetailPage() {
           <AdminField
             label={t('uni.field.uniranksNoteLabel')}
             locked={locked.has('uniranks_note')} revert={fieldRelease('uniranks_note')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             className="sm:col-span-2"
             hint={t('uni.uniranksNoteHint')}
           >
@@ -450,7 +450,7 @@ function NumberField({
       label={label}
       locked={locked}
       revert={revert}
-      lockReason={LOCK_REASON}
+      lockReasonKey={LOCK_REASON}
       error={invalid ? t('uni.integerOnly') : undefined}
     >
       {({ id, invalid: fieldInvalid, describedBy }) => (
