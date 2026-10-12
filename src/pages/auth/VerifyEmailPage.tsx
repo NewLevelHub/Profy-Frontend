@@ -5,6 +5,7 @@ import { AuthStepper } from '@/shared/ui/AuthStepper';
 import axios from 'axios';
 import { ArrowRight, CheckCircle, Mail, XCircle, Loader2 } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
+import { apiErrorCode } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/store/auth';
 import { Button } from '@/shared/ui/Button';
 import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
@@ -100,6 +101,10 @@ function OtpVerify({ email, showStepper }: { email: string; showStepper: boolean
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
           setFormError(t('error.tooManyAttempts'));
+        } else if (apiErrorCode(err) === 'invited_email_register') {
+          // The code is right, but the address has an open staff invitation:
+          // it is confirmed by the link from that email, never by this code.
+          setFormError(t('error.invitedEmailRegister'));
         } else {
           setCodeError(t('error.invalidOrExpiredCode'));
         }
