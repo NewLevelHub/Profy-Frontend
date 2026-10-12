@@ -25,7 +25,7 @@ export interface TokenResponse {
   user: User;
 }
 
-/** GET /auth/invitations/{token} — docs/frontend-admin-invitations-api-contract.md §4.1. */
+/** POST /auth/invitations/preview — docs/frontend-admin-invitations-api-contract.md §4.1. */
 export interface InvitationPreview {
   email: string;
   role: Exclude<UserRole, 'student'>;

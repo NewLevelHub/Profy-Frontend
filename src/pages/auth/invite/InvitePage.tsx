@@ -3,7 +3,7 @@ import { InviteForm } from './components/InviteForm';
 import { InviteSkeleton } from './components/InviteSkeleton';
 import { useInvite } from './hooks/useInvite';
 
-/** /invite?token=… — staff account from an email invitation (PRO-465).
+/** /invite#token=… — staff account from an email invitation (PRO-465).
  *  Contract: docs/frontend-admin-invitations-api-contract.md §4–§5 (backend repo). */
 export default function InvitePage() {
   const invite = useInvite();

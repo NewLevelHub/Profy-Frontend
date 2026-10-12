@@ -47,8 +47,9 @@ apiClient.interceptors.response.use(
       // уезжает в сам URL. Форма логина читает его тем же
       // resolveReturnTo, что и `state.from` при обычном перехвате гвардой,
       // и после повторного входа возвращает человека на прежний экран,
-      // а не на /results.
-      const here = window.location.pathname + window.location.search + window.location.hash;
+      // а не на /results. Без фрагмента: `?next=` уходит на сервер и в его
+      // логи, а во фрагменте может лежать секрет (токен в /invite#token=…).
+      const here = window.location.pathname + window.location.search;
       const next = here.startsWith('/login') ? '' : `?next=${encodeURIComponent(here)}`;
       window.location.replace(`/login${next}`);
     }
