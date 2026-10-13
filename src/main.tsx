@@ -14,11 +14,20 @@ initTheme();
 watchSessionAcrossTabs();
 
 // The active locale's catalog is a separate chunk (shared/i18n/index.ts);
-// render once it is in, so no screen ever shows raw keys. If it fails to
-// load, render anyway — keys on screen beat a blank page.
-const render = () => createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+// render once it is in, so no screen ever shows raw keys. If it fails or
+// stalls (a request swallowed by flaky Wi-Fi), render anyway after a while:
+// screens still waiting for their texts show the Suspense spinner in App
+// and fill in when the catalog arrives — never an empty white page.
+const CATALOG_WAIT_MS = 8_000;
+let rendered = false;
+const render = () => {
+  if (rendered) return;
+  rendered = true;
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+};
 i18nReady.then(render, render);
+window.setTimeout(render, CATALOG_WAIT_MS);

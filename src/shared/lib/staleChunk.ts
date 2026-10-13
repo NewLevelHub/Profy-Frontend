@@ -7,9 +7,19 @@ const RELOAD_COOLDOWN_MS = 60_000;
  * word a missing JS chunk differently; a missing stylesheet is Vite's own
  * preload error.
  */
-export function isChunkLoadError(error: unknown): boolean {
+function isChunkLoadError(error: unknown): boolean {
   return error instanceof Error
     && /dynamically imported module|Importing a module script failed|Unable to preload CSS/i.test(error.message);
+}
+
+/**
+ * A chunk failed to load while the browser reports a connection — most
+ * likely a deploy removed it. Offline, the same error means no network: a
+ * reload would only land on the browser's offline page and lose our
+ * «Обновить страницу» screen, so callers show that screen instead.
+ */
+export function looksLikeStaleChunk(error: unknown): boolean {
+  return isChunkLoadError(error) && (typeof navigator === 'undefined' || navigator.onLine !== false);
 }
 
 /** Reload at most once a minute, so a chunk that is really missing can't loop. */

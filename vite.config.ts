@@ -55,7 +55,7 @@ export default defineConfig({
           const catalog = id.match(/\/src\/shared\/i18n\/locales\/(\w+)\/(\w+)\.json$/);
           if (catalog) {
             const [, locale, namespace] = catalog;
-            // Staff namespaces (STAFF_NAMESPACES in shared/i18n) load only in the staff cabinets.
+            // Staff namespaces (STAFF_NAMESPACES in shared/i18n/index.ts) load only in the staff cabinets.
             const staff = ['admin', 'psychologist', 'psychReport'].includes(namespace);
             return staff ? `i18n-${locale}-staff` : `i18n-${locale}`;
           }

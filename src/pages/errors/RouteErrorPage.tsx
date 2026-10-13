@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouteError } from 'react-router';
 import { ErrorScreen } from '@/shared/ui/ErrorScreen';
 import { FullPageSpinner } from '@/shared/ui/Spinner';
-import { claimReload, isChunkLoadError } from '@/shared/lib/staleChunk';
+import { claimReload, looksLikeStaleChunk } from '@/shared/lib/staleChunk';
 
 /**
  * The router's error boundary. Without it react-router renders its own bare
@@ -11,7 +11,7 @@ import { claimReload, isChunkLoadError } from '@/shared/lib/staleChunk';
  */
 export default function RouteErrorPage() {
   const error = useRouteError();
-  const staleChunk = isChunkLoadError(error);
+  const staleChunk = looksLikeStaleChunk(error);
   const [reloadDenied, setReloadDenied] = useState(false);
 
   useEffect(() => {

@@ -10,7 +10,9 @@ export interface SpinnerProps {
 }
 
 export function Spinner({ size = 'md', className, label }: SpinnerProps) {
-  const { t } = useTranslation('common');
+  // Never suspends: the spinner is what shows while catalogs are still
+  // loading (the Suspense fallback in App), so it can't wait for one itself.
+  const { t } = useTranslation('common', { useSuspense: false });
   const resolvedLabel = label ?? t('loading');
   return (
     <svg
