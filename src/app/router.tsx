@@ -9,14 +9,15 @@ import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
+import { StudentRail } from '@/shared/ui/navigation/StudentRail';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
 
 /**
  * Every page is its own chunk, fetched when its route matches; guards and
  * the student/auth layouts stay in the entry bundle. The staff shells
- * (AdminArea, PsychologistArea) are lazy too, so their stylesheets don't
- * ship to students. A guest no longer downloads the admin panel, and a
+ * (AdminArea, PsychologistArea) are lazy too, so their navigation and
+ * stylesheets don't ship to students. A guest no longer downloads the admin panel, and a
  * student no longer downloads the psychologist cabinet.
  */
 const page = (load: () => Promise<{ default: ComponentType }>) => ({
@@ -198,7 +199,7 @@ export const router = createBrowserRouter([{
                 // rail never lands in the exported PDF.
                 { path: '/results/print', ...page(() => import('@/pages/results/print/ResultPrintPage')) },
                 {
-                  element: <AppLayout area="student" />,
+                  element: <AppLayout area="student" rail={<StudentRail />} />,
                   children: [
                     // Main tabs (mobile: Home | Result | Profile)
                     { path: '/results', ...page(() => import('@/pages/results/ResultsPage')) },

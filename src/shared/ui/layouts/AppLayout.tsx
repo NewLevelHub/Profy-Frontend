@@ -1,6 +1,5 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Outlet, useLocation, useNavigationType } from 'react-router';
-import { TopRail } from '@/shared/ui/navigation/TopRail';
 import { Spinner } from '@/shared/ui/Spinner';
 import { useAssessmentSync } from '@/shared/hooks/useAssessmentSync';
 import { useAssessmentStore } from '@/shared/store/assessment';
@@ -34,7 +33,9 @@ const AREA_SHELL: Record<AppArea, { className: string; contentId: string }> = {
   admin: { className: 'redesign rd-admin', contentId: 'admin-content' },
 };
 
-export function AppLayout({ area }: { area: AppArea }) {
+/** `rail` is the area's navigation: StudentRail here, the staff ones from
+ *  their lazy shells (AdminArea, PsychologistArea). */
+export function AppLayout({ area, rail }: { area: AppArea; rail: ReactNode }) {
   const shell = AREA_SHELL[area];
   const { t } = useTranslation('common');
   useAssessmentSync();
@@ -103,7 +104,7 @@ export function AppLayout({ area }: { area: AppArea }) {
   return (
     <div className={shell.className}>
       <a href={`#${shell.contentId}`} className="rd-skip">{t('redesign.skip')}</a>
-      <TopRail area={area} />
+      {rail}
       <main id={shell.contentId} tabIndex={-1} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
         {syncDone ? (
           // key=pageEnterKey: анимация только при смене вкладки шапки.
