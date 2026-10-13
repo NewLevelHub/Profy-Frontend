@@ -2,6 +2,7 @@ import axios from 'axios';
 import { env } from '@/shared/config/env';
 import { useAuthStore } from '@/shared/store/auth';
 import { readPersistedLocale } from '@/shared/store/locale';
+import { readStoredSession, syncSessionFromStorage } from '@/shared/lib/sessionSync';
 
 export const apiClient = axios.create({
   baseURL: env.API_URL,
@@ -11,18 +12,18 @@ export const apiClient = axios.create({
 // Read the persisted token so requests made during Zustand hydration still
 // carry the existing session.
 export function readAccessToken(): string | null {
-  try {
-    const raw = localStorage.getItem('profy-auth');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { state?: { token?: string } };
-    return parsed.state?.token ?? null;
-  } catch {
-    return null;
-  }
+  return readStoredSession().token;
 }
 
 apiClient.interceptors.request.use((config) => {
   const token = readAccessToken();
+  const auth = useAuthStore.getState();
+  // Another tab signed in or out and this one has not caught up yet: the
+  // stored token belongs to a different session than what is on screen, so
+  // the request must not go out with it.
+  if (auth._hasHydrated && token !== auth.token && syncSessionFromStorage()) {
+    throw new axios.CanceledError('session changed in another tab');
+  }
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -37,7 +38,9 @@ apiClient.interceptors.response.use(
   (error) => {
     // Only force-logout on 401 if the user had an active session.
     // A 401 on the login endpoint itself must reach the form's catch block.
-    if (error.response?.status === 401 && readAccessToken()) {
+    // The in-memory token counts too: if another tab cleared the stored one,
+    // this tab still shows a session that the server no longer accepts.
+    if (error.response?.status === 401 && (readAccessToken() || useAuthStore.getState().token)) {
       // Use the exact same logout path as every UI entry point. It clears the
       // in-memory auth state, persisted auth, all private stores, drafts and
       // the complete React Query cache before navigation. Without the server
