@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { AlertTriangle, Check, Copy, Link2, MailCheck } from 'lucide-react';
 import { formatDate } from '@/shared/i18n/format';
+import { EMAIL_AS_TEXT } from '@/shared/i18n/transText';
 import { Button } from '@/shared/ui/Button';
 
 const COPIED_MS = 2000;
@@ -63,7 +64,7 @@ export function InvitationLinkPanel({ titleId, kind, email, inviteUrl, expiresAt
 
       <div className="rd-invite-text" role="status">
         <p>
-          <Trans t={t} i18nKey={textKey} values={{ email }} components={{ b: <b /> }} />
+          <Trans t={t} i18nKey={textKey} values={{ email }} components={{ b: <b /> }} {...EMAIL_AS_TEXT} />
         </p>
         {kind === 'resent' && <p>{t('invitations.sent.resentNote')}</p>}
       </div>

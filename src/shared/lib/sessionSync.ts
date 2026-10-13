@@ -31,7 +31,10 @@ export function syncSessionFromStorage(): boolean {
   if (stored.token === token) return false;
 
   if (!stored.token) {
-    window.location.replace('/login');
+    // Same return path as client.ts's 401 handler: after signing in again
+    // the person lands back on the screen they were on.
+    const here = window.location.pathname + window.location.search;
+    window.location.replace(here.startsWith('/login') ? '/login' : `/login?next=${encodeURIComponent(here)}`);
     return true;
   }
   if (token && stored.userId !== null && stored.userId === user?.id) {
