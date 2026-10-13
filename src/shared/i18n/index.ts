@@ -1,5 +1,6 @@
 import i18next, { type BackendModule } from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { claimReload, isChunkLoadError } from '@/shared/lib/staleChunk';
 
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, readPersistedLocale, resolveLocale } from '@/shared/store/locale';
 
@@ -38,7 +39,15 @@ const lazyCatalogs: BackendModule = {
       callback(null, {});
       return;
     }
-    load().then((module) => callback(null, module.default), (error: Error) => callback(error, null));
+    load().then(
+      (module) => callback(null, module.default),
+      (error: Error) => {
+        // A tab from before a deploy asking for a catalog that is gone: reload
+        // once, as RouteErrorPage does for pages, instead of raw keys on screen.
+        if (isChunkLoadError(error) && claimReload()) window.location.reload();
+        callback(error, null);
+      },
+    );
   },
 };
 
