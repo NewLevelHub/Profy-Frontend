@@ -1,31 +1,7 @@
-import i18next from 'i18next';
+import i18next, { type BackendModule } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, readPersistedLocale, resolveLocale } from '@/shared/store/locale';
-
-import ruCommon from './locales/ru/common.json';
-import ruAuth from './locales/ru/auth.json';
-import ruOnboarding from './locales/ru/onboarding.json';
-import ruAssessment from './locales/ru/assessment.json';
-import ruResults from './locales/ru/results.json';
-import ruProfile from './locales/ru/profile.json';
-import ruErrors from './locales/ru/errors.json';
-import ruLanding from './locales/ru/landing.json';
-import ruAdmin from './locales/ru/admin.json';
-import ruPsychologist from './locales/ru/psychologist.json';
-import ruPsychReport from './locales/ru/psychReport.json';
-
-import kkCommon from './locales/kk/common.json';
-import kkAuth from './locales/kk/auth.json';
-import kkOnboarding from './locales/kk/onboarding.json';
-import kkAssessment from './locales/kk/assessment.json';
-import kkResults from './locales/kk/results.json';
-import kkProfile from './locales/kk/profile.json';
-import kkErrors from './locales/kk/errors.json';
-import kkLanding from './locales/kk/landing.json';
-import kkAdmin from './locales/kk/admin.json';
-import kkPsychologist from './locales/kk/psychologist.json';
-import kkPsychReport from './locales/kk/psychReport.json';
 
 // One namespace per product area. Mirror this list when adding a namespace, in
 // both locales, and in the parity check (KZ-211 / KZ-602). `admin` covers
@@ -46,34 +22,25 @@ export const NAMESPACES = [
   'psychReport',
 ] as const;
 
-const resources = {
-  ru: {
-    common: ruCommon,
-    auth: ruAuth,
-    onboarding: ruOnboarding,
-    assessment: ruAssessment,
-    results: ruResults,
-    profile: ruProfile,
-    errors: ruErrors,
-    landing: ruLanding,
-    admin: ruAdmin,
-    psychologist: ruPsychologist,
-    psychReport: ruPsychReport,
+// Catalogs load on demand, one chunk per locale (vite.config manualChunks):
+// a Russian-speaking visitor never downloads the Kazakh one, and the other
+// way round apart from the ru fallback. main.tsx waits for `i18nReady`
+// before the first render, so no component ever sees a missing namespace;
+// a language switch loads the new catalog before i18next flips to it.
+const catalogs = import.meta.glob<{ default: Record<string, unknown> }>('./locales/*/*.json');
+
+const lazyCatalogs: BackendModule = {
+  type: 'backend',
+  init() {},
+  read(language, namespace, callback) {
+    const load = catalogs[`./locales/${language}/${namespace}.json`];
+    if (!load) {
+      callback(null, {});
+      return;
+    }
+    load().then((module) => callback(null, module.default), (error: Error) => callback(error, null));
   },
-  kk: {
-    common: kkCommon,
-    auth: kkAuth,
-    onboarding: kkOnboarding,
-    assessment: kkAssessment,
-    results: kkResults,
-    profile: kkProfile,
-    errors: kkErrors,
-    landing: kkLanding,
-    admin: kkAdmin,
-    psychologist: kkPsychologist,
-    psychReport: kkPsychReport,
-  },
-} as const;
+};
 
 // Dev-only pseudo-locale: `?pseudo` in the URL wraps every resolved string in
 // ⟦…⟧, so a hardcoded (un-t()'d) string shows up bracket-less on screen. Runs
@@ -91,8 +58,7 @@ if (PSEUDO) {
   });
 }
 
-void i18next.use(initReactI18next).init({
-  resources,
+export const i18nReady = i18next.use(lazyCatalogs).use(initReactI18next).init({
   lng: resolveLocale(readPersistedLocale()),
   fallbackLng: DEFAULT_LOCALE,
   postProcess: PSEUDO ? ['pseudo'] : [],
