@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AsturContentSubtest } from '@/shared/types';
 import { AssessmentIntro } from '../../components/AssessmentIntro';
+import { preloadStimuli } from '../utils/preloadStimuli';
 
 interface SubtestIntroProps {
   subtest: AsturContentSubtest;
@@ -15,6 +17,9 @@ interface SubtestIntroProps {
 /** АСТУР per-subtest gate — thin wrapper around the shared AssessmentIntro card (PRO-396). */
 export function SubtestIntro({ subtest, index, count, labilityItemLimitMs, starting, onStart }: SubtestIntroProps) {
   const { t } = useTranslation('assessment');
+
+  // While the student reads the instruction — the timer hasn't started yet.
+  useEffect(() => preloadStimuli(subtest), [subtest]);
 
   const limitMinutes = subtest.time_limit_sec !== null ? Math.max(1, Math.round(subtest.time_limit_sec / 60)) : null;
   const durationLabel = limitMinutes !== null ? t('intro.durationExactMin', { count: limitMinutes }) : undefined;

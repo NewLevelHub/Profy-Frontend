@@ -135,6 +135,40 @@ function renderItem(
 }
 
 /**
+ * Owns the subtest countdown, so its five ticks a second re-render only the
+ * timer — not every task on the page, which used to re-render (and recount
+ * done/skipped items) with each tick. Mounted whenever the subtest has a
+ * limit, with or without a slot to show it in: expiry must submit anyway.
+ */
+function SubtestCountdown({ durationMs, resetKey, startedAt, clockSync, onExpire, timerSlot, expired, expiredMessage, expiredLabel }: {
+  durationMs: number;
+  resetKey: string;
+  startedAt: string | null;
+  clockSync: CountdownClockSync | null;
+  onExpire: () => void;
+  timerSlot: HTMLElement | null;
+  expired: boolean;
+  expiredMessage: string;
+  expiredLabel: string;
+}) {
+  const { remainingMs } = useCountdown(durationMs, resetKey, onExpire, startedAt, clockSync);
+  if (!timerSlot) return null;
+  return createPortal(
+    <AssessmentTimer
+      remainingMs={remainingMs}
+      durationMs={durationMs}
+      timeLabel={formatCountdownMmSs(remainingMs)}
+      expired={expired}
+      expiredMessage={expiredMessage}
+      expiredLabel={expiredLabel}
+      urgentBelowMs={15_000}
+      variant="rail"
+    />,
+    timerSlot,
+  );
+}
+
+/**
  * One (non-lability) ASTUR subtest: ordinary items are shown five per page,
  * while spatial geometry uses one item per page. There is still one timer
  * for the whole subtest. Every item is either answered or
@@ -190,10 +224,10 @@ export function SubtestRunner({
   }, [submitError]);
 
   const durationMs = subtest.time_limit_sec !== null ? subtest.time_limit_sec * 1000 : null;
-  const { remainingMs } = useCountdown(durationMs, subtest.key, () => {
+  const handleExpire = () => {
     setTimeUp(true);
     send();
-  }, startedAt, serverClock);
+  };
 
   const pageStart = pageIndex * pageSize;
   const pageItems = subtest.items.slice(pageStart, pageStart + pageSize);
@@ -250,21 +284,19 @@ export function SubtestRunner({
 
   return (
     <div className="rd-astur">
-      {durationMs !== null &&
-        timerSlot &&
-        createPortal(
-          <AssessmentTimer
-            remainingMs={remainingMs}
-            durationMs={durationMs}
-            timeLabel={formatCountdownMmSs(remainingMs)}
-            expired={timeUp}
-            expiredMessage={t('astur.subtest.timeUp')}
-            expiredLabel={t('astur.subtest.timeUpShort')}
-            urgentBelowMs={15_000}
-            variant="rail"
-          />,
-          timerSlot,
-        )}
+      {durationMs !== null && (
+        <SubtestCountdown
+          durationMs={durationMs}
+          resetKey={subtest.key}
+          startedAt={startedAt}
+          clockSync={serverClock}
+          onExpire={handleExpire}
+          timerSlot={timerSlot}
+          expired={timeUp}
+          expiredMessage={t('astur.subtest.timeUp')}
+          expiredLabel={t('astur.subtest.timeUpShort')}
+        />
+      )}
       <div className="rd-astur-content">
         <div className="rd-astur-heading">
           <div>
