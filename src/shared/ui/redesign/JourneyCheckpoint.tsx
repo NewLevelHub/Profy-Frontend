@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
 import { JourneyShell } from './JourneyShell';
+import { MASCOT, type MascotArt } from './mascotArt';
 import './checkpoints.css';
 
 interface JourneyCheckpointProps {
   kicker?: string;
   title: string;
   body?: string;
-  illustration?: 'notepad' | 'greeting' | 'rest' | 'book' | 'celebrate';
+  illustration?: MascotArt;
   children?: ReactNode;
   actions?: ReactNode;
   className?: string;
@@ -23,7 +24,7 @@ export function JourneyCheckpoint({ kicker, title, body, illustration = 'notepad
           <h1>{title}</h1>
           {body && <p className="rd-checkpoint-intro">{body}</p>}
         </div>
-        <img src={`/mascot/redesign/${illustration}.png`} alt="" width={220} height={220} />
+        <img src={MASCOT[illustration]} alt="" width={220} height={220} />
       </header>
       {children}
       {actions && <footer className="rd-checkpoint-actions">{actions}</footer>}

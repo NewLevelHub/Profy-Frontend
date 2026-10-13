@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/Button';
 import { cn } from '@/shared/lib/cn';
 
 export interface JourneyEmptyStateProps {
-  /** Path of a redesign illustration, e.g. `/mascot/redesign/rest.png`. */
+  /** Image URL, normally one of MASCOT from shared/ui/redesign/mascotArt. */
   illustration: string;
   title: string;
   body: string;

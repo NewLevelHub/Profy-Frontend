@@ -11,6 +11,7 @@ import { AssessmentCompletedCard } from './components/AssessmentCompletedCard';
 import { ResultsReveal } from './components/ResultsReveal';
 import { FeedbackSection } from './components/FeedbackSection';
 import { StudentReport } from './components/StudentReport';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 function ResultsSkeleton() {
   return (
@@ -98,7 +99,7 @@ export default function ResultsPage() {
     return (
       <PageContainer>
         <JourneyEmptyState
-          illustration="/mascot/redesign/rest.png"
+          illustration={MASCOT.rest}
           title={t('error.somethingWrong')}
           body={error ?? t('error.loadResults')}
           actionLabel={t('common:retry')}

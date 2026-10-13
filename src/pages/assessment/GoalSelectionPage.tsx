@@ -7,6 +7,7 @@ import { Spinner } from '@/shared/ui/Spinner';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
 import type { AssessmentGoal, AgeGroup } from '@/shared/types';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 interface GoalCard {
   goal: AssessmentGoal;
@@ -103,7 +104,7 @@ export default function GoalSelectionPage() {
                   <p>{t(card.subtitle)}</p>
                   <Button className="rd-button" isLoading={isLoading} onClick={() => handleGoalSelect(card.goal)}>{t('goalSelection.pickThisGoal')}<ArrowRight size={17} aria-hidden="true" /></Button>
                 </div>
-                <img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" />
+                <img src={MASCOT.book} alt="" width="1254" height="1254" />
               </article>
             ))}
             {visibleCards.length === 0 && <p className="rd-journey-error">{to('redesign.goalUnavailable')}</p>}

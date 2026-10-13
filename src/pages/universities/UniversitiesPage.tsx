@@ -9,6 +9,7 @@ import { useUniversities } from './hooks/useUniversities';
 import { UniversityCard } from './components/UniversityCard';
 import { UniversityCardSkeleton } from './components/UniversityCardSkeleton';
 import { UniversityFilters } from './components/UniversityFilters';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 export default function UniversitiesPage() {
   return <UniversitiesView model={useUniversities()} />;
@@ -40,7 +41,7 @@ export function UniversitiesView({ model }: { model: Omit<ReturnType<typeof useU
     <PageContainer className="rd-catalog">
       <div className="rd-catalog-heading">
         <StudentPageHeading title={t('catalog.title')} subtitle={t('catalogDesign.subtitle')} />
-        <img src="/mascot/redesign/graduate.png" alt="" width={128} height={142} />
+        <img src={MASCOT.graduate} alt="" width={128} height={142} />
       </div>
       <div className="rd-catalog-filters">
         <UniversityFilters
@@ -61,7 +62,7 @@ export function UniversitiesView({ model }: { model: Omit<ReturnType<typeof useU
           </div>
         ) : error !== null ? (
           <JourneyEmptyState
-            illustration="/mascot/redesign/rest.png"
+            illustration={MASCOT.rest}
             title={t('error.somethingWrong')}
             body={t('catalog.loadListFailed')}
             actionLabel={t('common:retry')}
@@ -69,7 +70,7 @@ export function UniversitiesView({ model }: { model: Omit<ReturnType<typeof useU
           />
         ) : universities.length === 0 ? (
           <JourneyEmptyState
-            illustration="/mascot/redesign/book.png"
+            illustration={MASCOT.book}
             title={onlyFavorites ? t('catalog.emptyFavoritesTitle') : t('catalog.emptyTitle')}
             body={onlyFavorites ? t('catalog.emptyFavoritesBody') : t('catalog.emptyBody')}
           />

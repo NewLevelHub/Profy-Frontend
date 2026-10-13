@@ -10,6 +10,7 @@ import type { CountryFilter } from '@/pages/results/hooks/useUniversityList';
 import { UniversityRankBadges } from '@/shared/ui/UniversityRankBadges';
 import { FavoriteStar } from '@/shared/ui/FavoriteStar';
 import { localizeGeo } from '@/shared/i18n/geo';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 function ProgramCardSkeleton() {
   return <div className="rd-university-card rd-university-skeleton">
@@ -72,8 +73,8 @@ export function ProgramListSection({ programs, isLoading, error, activeCountry, 
     {isLoading ? <>
       <p className="rd-catalog-count" role="status">{t('programList.loading')}</p>
       <div className="rd-university-grid">{Array.from({ length: 6 }, (_, i) => <ProgramCardSkeleton key={i} />)}</div>
-    </> : error !== null ? <JourneyEmptyState illustration="/mascot/redesign/rest.png" title={t('error.somethingWrong')} body={error} actionLabel={t('common:retry')} onAction={refetch} />
-      : programs.length === 0 ? <JourneyEmptyState illustration="/mascot/redesign/book.png" title={t('programList.emptyTitle')} body={t('programList.emptyBody')} />
+    </> : error !== null ? <JourneyEmptyState illustration={MASCOT.rest} title={t('error.somethingWrong')} body={error} actionLabel={t('common:retry')} onAction={refetch} />
+      : programs.length === 0 ? <JourneyEmptyState illustration={MASCOT.book} title={t('programList.emptyTitle')} body={t('programList.emptyBody')} />
         : <>
           <div className="rd-catalog-count"><span>{t('programList.count', { count: programs.length })}</span>
             {onToggleSort && sortDirection && <button type="button" onClick={onToggleSort} className="rd-sort-button">

@@ -7,6 +7,7 @@ import { OnboardingShell } from './components/OnboardingShell';
 import { SelectableChip } from './components/SelectableChip';
 import { AddCustomChip } from './components/AddCustomChip';
 import { PROFILE_STEP_COUNT } from './onboardingSteps';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 // Preset chip options. Each entry is the canonical (ru) string stored on the
 // profile / sent to the API — locale-independent. Display labels are resolved
@@ -214,7 +215,7 @@ export default function ArtifactsSetupPage() {
       </>}
     >
       <div className="rd-setup-heading"><h1>{copy.headline}</h1><p>{copy.note}</p></div>
-      {isDreamsStep && <img className="rd-dreams-mascot" src="/mascot/redesign/celebrate.png" width="1254" height="1254" alt="" />}
+      {isDreamsStep && <img className="rd-dreams-mascot" src={MASCOT.celebrate} width="1254" height="1254" alt="" />}
       {bodies[activeSection]}
       {isLinearFlow && !isDreamsStep && (['achievements', 'professions', 'targets'] as const).map(section => (
         <section className="rd-form-section" key={section}>

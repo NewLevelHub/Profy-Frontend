@@ -9,6 +9,7 @@ import '@/shared/ui/redesign/redesign.css';
 import './redesign.css';
 import { LANDING_DURATION, LandingDemo, LandingFeatures, LandingInside, LandingReportContents, LandingSectionHeading, LandingStats, LandingTry } from './components/LandingContent';
 import { useLandingReveal } from './useLandingReveal';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 const NAV = ['how', 'features', 'inside', 'try', 'faq'] as const;
 const STEPS = ['discover', 'understand', 'explore'] as const;
@@ -30,7 +31,7 @@ function ReportExample({ onClose }: { onClose: () => void }) {
         <button type="button" className="rd-icon-button rd-dialog-close" aria-label={t('redesign.close')} onClick={() => ref.current?.close()} autoFocus><X aria-hidden="true" /></button>
         <h2 id="report-example-title">{t('redesign.example.title')}</h2>
         <p className="rd-example-note">{t('redesign.example.note')}</p>
-        <div className="rd-example-summary"><div><Award aria-hidden="true" /><h3>{t('redesign.example.strengthTitle')}</h3><p>{t('redesign.example.strengthBody')}</p></div><img src="/mascot/redesign/celebrate.png" alt="" width="1254" height="1254" /></div>
+        <div className="rd-example-summary"><div><Award aria-hidden="true" /><h3>{t('redesign.example.strengthTitle')}</h3><p>{t('redesign.example.strengthBody')}</p></div><img src={MASCOT.celebrate} alt="" width="1254" height="1254" loading="lazy" /></div>
         <div className="rd-example-sections">
           {['interests', 'directions', 'step'].map(key => <section key={key}><h3>{t(`redesign.example.${key}Title`)}</h3><p>{t(`redesign.example.${key}Body`)}</p></section>)}
         </div>
@@ -44,7 +45,7 @@ function HeroArt() {
   const { t } = useTranslation('landing');
   return (
     <div className="rd-hero-art">
-      <div className="rd-mascot-scene"><img src="/mascot/redesign/greeting.png" alt={t('redesign.mascotAlt')} width="1254" height="1254" fetchPriority="high" /></div>
+      <div className="rd-mascot-scene"><img src={MASCOT.greeting} alt={t('redesign.mascotAlt')} width="1254" height="1254" fetchPriority="high" /></div>
       <div className="rd-floating-card rd-card-interest"><span className="rd-icon-tile rd-lilac"><Heart aria-hidden="true" /></span><div><small>{t('redesign.hero.interestLabel')}</small><strong>{t('redesign.hero.interestTitle')}</strong><div className="rd-mini-bars" aria-hidden="true">{[1,2,3,4,5,6,7].map(i => <i key={i} />)}</div></div></div>
       <div className="rd-floating-card rd-card-path"><span className="rd-icon-tile rd-peach"><Compass aria-hidden="true" /></span><div><small>{t('redesign.hero.pathLabel')}</small><strong>{t('redesign.hero.pathTitle')}</strong><div className="rd-path-dots" aria-hidden="true"><b /><i /><b /><i /><b /></div></div></div>
       <p className="rd-art-note">{t('redesign.hero.note')}</p>
@@ -95,7 +96,7 @@ export default function LandingPage() {
         <LandingInside />
         <LandingTry />
         <LandingReportContents />
-        <section className="rd-parents rd-wrap" id="parents" data-landing-reveal><div className="rd-parent-art"><img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
+        <section className="rd-parents rd-wrap" id="parents" data-landing-reveal><div className="rd-parent-art"><img src={MASCOT.book} alt="" width="1254" height="1254" loading="lazy" /></div><div><p className="rd-eyebrow">{t('redesign.parents.eyebrow')}</p><h2>{t('redesign.parents.title')}</h2><p>{t('redesign.parents.description')}</p><span className="rd-parent-trust"><ShieldCheck size={21} aria-hidden="true" />{t('redesign.parents.review')}</span></div></section>
         <section className="rd-faq rd-wrap" id="faq" data-landing-reveal><div><h2>{t('faq.title')}</h2><BookOpen className="rd-faq-icon" size={38} aria-hidden="true" /></div><div>{[1,2,3,4,5].map(i => <details key={i}><summary>{t(`faq.q${i}`)}<ChevronDown size={18} aria-hidden="true" /></summary><p>{t(`faq.a${i}`, { minutes: LANDING_DURATION })}</p></details>)}</div></section>
         <section className="rd-final-cta rd-wrap" data-landing-reveal><div><h2>{t('redesign.final.title')}</h2><p>{t('redesign.final.description', { minutes: LANDING_DURATION })}</p></div><Link to="/register" className="rd-button rd-button-light rd-button-large">{t('redesign.final.cta')}<ArrowRight aria-hidden="true" /></Link></section>
       </main>

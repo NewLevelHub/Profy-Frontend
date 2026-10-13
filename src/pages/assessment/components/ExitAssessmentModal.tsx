@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 interface ExitAssessmentModalProps {
   open: boolean;
@@ -62,7 +63,7 @@ export function ExitAssessmentModal({
       }}
     >
       <div className="flex flex-col gap-5">
-        <img src="/mascot/redesign/greeting.png" alt="" width={120} height={120} className="mx-auto" />
+        <img src={MASCOT.greeting} alt="" width={120} height={120} className="mx-auto" />
         <div className="flex flex-col gap-2">
           <h2 id={titleId} className="text-title font-black text-primary">
             {title ?? t('exitModal.title')}

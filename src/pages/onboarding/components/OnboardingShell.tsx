@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 import { OnboardingProgress } from './OnboardingProgress';
 import { TOTAL_ONBOARDING_STEPS } from '../onboardingSteps';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 const STEP_KEYS = ['about', 'subjects', 'interests', 'dreams'] as const;
 
@@ -44,7 +45,7 @@ export function OnboardingShell({ current, children, actions, sections, onSectio
             })}
           </ol>
           {showCompanion && <div className="rd-setup-companion">
-            <img src="/mascot/redesign/book.png" alt="" width="1254" height="1254" />
+            <img src={MASCOT.book} alt="" width="1254" height="1254" />
             <p>{t('redesign.companion')}</p>
           </div>}
         </aside>

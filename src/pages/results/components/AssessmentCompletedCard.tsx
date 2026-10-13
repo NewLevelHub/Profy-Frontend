@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/Button';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 interface AssessmentCompletedCardProps {
   onOpenProfile: () => void;
@@ -55,7 +56,7 @@ export function AssessmentCompletedCard({
           </ol>
         </div>
         <div className="rd-result-state-art">
-          <img src="/mascot/redesign/celebrate.png" alt="" width={200} height={220} />
+          <img src={MASCOT.celebrate} alt="" width={200} height={220} />
         </div>
       </div>
 
