@@ -1,5 +1,8 @@
 # Маскот Profile
 
+Исходники, не ассеты сайта: папка лежит вне `public/`, поэтому её ~10 МБ
+не попадают в сборку и в образ nginx.
+
 Рабочие изображения нового снежного барса находятся в `redesign/`.
 Это прозрачные PNG 1254×1254 без подложки — исходники. Приложение их не
 загружает: оно берёт WebP 840×840 из `src/assets/mascot/` через
@@ -7,7 +10,7 @@
 с хешем в имени файла. После правки PNG пересобрать WebP:
 
 ```
-python3 -c "from PIL import Image; [Image.open(f'public/mascot/redesign/{n}.png').convert('RGBA').resize((840, 840), Image.LANCZOS).save(f'src/assets/mascot/{n}.webp', 'WEBP', quality=85, method=6, alpha_quality=100) for n in ['book', 'celebrate', 'graduate', 'greeting', 'notepad', 'rest']]"
+python3 -c "from PIL import Image; [Image.open(f'design/mascot/redesign/{n}.png').convert('RGBA').resize((840, 840), Image.LANCZOS).save(f'src/assets/mascot/{n}.webp', 'WEBP', quality=85, method=6, alpha_quality=100) for n in ['book', 'celebrate', 'graduate', 'greeting', 'notepad', 'rest']]"
 ```
 
 | Роль на экране | Файл |

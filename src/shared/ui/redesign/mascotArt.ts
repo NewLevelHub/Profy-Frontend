@@ -8,7 +8,7 @@ import rest from '@/assets/mascot/rest.webp';
 /**
  * The redesign's snow-leopard illustrations. WebP at 840px (the largest
  * placement, the landing hero, is ~420 CSS px): ~70 kB each instead of the
- * 0.8–1 MB 1254px PNG sources in public/mascot/redesign. Imported through
+ * 0.8–1 MB 1254px PNG sources in design/mascot/redesign. Imported through
  * Vite, so the URLs carry a content hash and can be cached for a year.
  */
 export const MASCOT = { book, celebrate, graduate, greeting, notepad, rest } as const;
