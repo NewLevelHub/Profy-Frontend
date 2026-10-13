@@ -14,8 +14,10 @@ import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
 
 /**
  * Every page is its own chunk, fetched when its route matches; guards and
- * layouts stay in the entry bundle. A guest no longer downloads the admin
- * panel, and a student no longer downloads the psychologist cabinet.
+ * the student/auth layouts stay in the entry bundle. The staff shells
+ * (AdminArea, PsychologistArea) are lazy too, so their stylesheets don't
+ * ship to students. A guest no longer downloads the admin panel, and a
+ * student no longer downloads the psychologist cabinet.
  */
 const page = (load: () => Promise<{ default: ComponentType }>) => ({
   lazy: async () => ({ Component: (await load()).default }),
@@ -78,7 +80,7 @@ export const router = createBrowserRouter([{
           element: <RequireRole role="psychologist" />,
           children: [
             {
-              element: <AppLayout area="psychologist" />,
+              ...page(() => import('@/shared/ui/layouts/PsychologistArea')),
               children: [
                 // The review queue is the cabinet's front page (it's where work starts).
                 { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
@@ -110,7 +112,7 @@ export const router = createBrowserRouter([{
           children: [
             {
               // Dedicated admin navigation; keeps the shared scroll restoration.
-              element: <AppLayout area="admin" />,
+              ...page(() => import('@/shared/ui/layouts/AdminArea')),
               children: [
                 { path: '/admin', element: <Navigate to="/admin/users" replace /> },
                 {
