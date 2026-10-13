@@ -11,5 +11,8 @@ export function usePsychologistReviews({ enabled = true }: { enabled?: boolean }
     queryFn: psychologistApi.listReviews,
     enabled,
     staleTime: 30_000,
+    // New reports arrive from students while the psychologist is elsewhere:
+    // refresh the queue and its counter on return to the tab.
+    refetchOnWindowFocus: true,
   });
 }
