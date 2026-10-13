@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import { createBrowserRouter, Navigate, redirect } from 'react-router';
 import { FullPageSpinner } from '@/shared/ui/Spinner';
 import RouteErrorPage from '@/pages/errors/RouteErrorPage';
+import { loadStaffCatalogs } from '@/shared/i18n';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
 import { RequireRole } from '@/shared/guards/RequireRole';
@@ -20,9 +21,16 @@ import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
  * stylesheets don't ship to students. A guest no longer downloads the admin panel, and a
  * student no longer downloads the psychologist cabinet.
  */
-const page = (load: () => Promise<{ default: ComponentType }>) => ({
-  lazy: async () => ({ Component: (await load()).default }),
+const page = (load: () => Promise<{ default: ComponentType }>, before?: () => Promise<unknown>) => ({
+  lazy: async () => {
+    const [module] = await Promise.all([load(), before?.()]);
+    return { Component: module.default };
+  },
 });
+
+/** Staff cabinets (and the DEV previews that render their parts) also wait
+ *  for the staff translation namespaces, which students never download. */
+const staffPage = (load: () => Promise<{ default: ComponentType }>) => page(load, loadStaffCatalogs);
 
 export const router = createBrowserRouter([{
   // Pathless root: one error boundary and one first-load fallback for the
@@ -33,11 +41,11 @@ export const router = createBrowserRouter([{
   children: [
     // Local design review uses fixtures and never calls assessment APIs.
     ...(import.meta.env.DEV ? [
-      { path: '/design/finishing', ...page(() => import('@/pages/assessment/design/FinishingDesignPreview')) },
-      { path: '/design/assessment', ...page(() => import('@/pages/assessment/design/AssessmentDesignPreview')) },
-      { path: '/design/special-assessments', ...page(() => import('@/pages/assessment/design/SpecialAssessmentDesignPreview')) },
-      { path: '/design/student', ...page(() => import('@/pages/results/design/StudentDesignPreview')) },
-      { path: '/design/universities', ...page(() => import('@/pages/universities/design/CatalogDesignPreview')) },
+      { path: '/design/finishing', ...staffPage(() => import('@/pages/assessment/design/FinishingDesignPreview')) },
+      { path: '/design/assessment', ...staffPage(() => import('@/pages/assessment/design/AssessmentDesignPreview')) },
+      { path: '/design/special-assessments', ...staffPage(() => import('@/pages/assessment/design/SpecialAssessmentDesignPreview')) },
+      { path: '/design/student', ...staffPage(() => import('@/pages/results/design/StudentDesignPreview')) },
+      { path: '/design/universities', ...staffPage(() => import('@/pages/universities/design/CatalogDesignPreview')) },
     ] : []),
     // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
     {
@@ -81,7 +89,7 @@ export const router = createBrowserRouter([{
           element: <RequireRole role="psychologist" />,
           children: [
             {
-              ...page(() => import('@/shared/ui/layouts/PsychologistArea')),
+              ...staffPage(() => import('@/shared/ui/layouts/PsychologistArea')),
               children: [
                 // The review queue is the cabinet's front page (it's where work starts).
                 { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
@@ -113,7 +121,7 @@ export const router = createBrowserRouter([{
           children: [
             {
               // Dedicated admin navigation; keeps the shared scroll restoration.
-              ...page(() => import('@/shared/ui/layouts/AdminArea')),
+              ...staffPage(() => import('@/shared/ui/layouts/AdminArea')),
               children: [
                 { path: '/admin', element: <Navigate to="/admin/users" replace /> },
                 {

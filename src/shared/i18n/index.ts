@@ -23,11 +23,19 @@ export const NAMESPACES = [
   'psychReport',
 ] as const;
 
-// Catalogs load on demand, one chunk per locale (vite.config manualChunks):
-// a Russian-speaking visitor never downloads the Kazakh one, and the other
-// way round apart from the ru fallback. main.tsx waits for `i18nReady`
-// before the first render, so no component ever sees a missing namespace;
-// a language switch loads the new catalog before i18next flips to it.
+/** Read only inside the staff cabinets — more than half of each catalog. */
+export const STAFF_NAMESPACES = ['admin', 'psychologist', 'psychReport'] as const;
+const BASE_NAMESPACES = NAMESPACES.filter(
+  (ns) => !(STAFF_NAMESPACES as readonly string[]).includes(ns),
+);
+
+// Catalogs load on demand, two chunks per locale (vite.config manualChunks):
+// the base namespaces and the staff ones. A Russian-speaking visitor never
+// downloads Kazakh (and the other way round apart from the ru fallback), and
+// students and guests never download the staff namespaces. main.tsx waits
+// for `i18nReady` (the base catalog) before the first render; the staff
+// shells' lazy routes await `loadStaffCatalogs()` before theirs. A language
+// switch loads every namespace already in use before i18next flips to it.
 const catalogs = import.meta.glob<{ default: Record<string, unknown> }>('./locales/*/*.json');
 
 const lazyCatalogs: BackendModule = {
@@ -73,7 +81,7 @@ export const i18nReady = i18next.use(lazyCatalogs).use(initReactI18next).init({
   postProcess: PSEUDO ? ['pseudo'] : [],
   // ['ru', 'kk'] since KZ-603. `revert` that change to drop back to ['ru'].
   supportedLngs: [...SUPPORTED_LOCALES],
-  ns: [...NAMESPACES],
+  ns: [...BASE_NAMESPACES],
   defaultNS: 'common',
   // A missing kk key must render the ru string, never the key or "".
   returnEmptyString: false,
@@ -86,3 +94,9 @@ export const i18nReady = i18next.use(lazyCatalogs).use(initReactI18next).init({
       }
     : undefined,
 });
+
+/** Staff cabinets call this from their lazy routes, so their screens never
+ *  render — or suspend — before their namespaces are in. Idempotent. */
+export function loadStaffCatalogs(): Promise<void> {
+  return i18nReady.then(() => i18next.loadNamespaces([...STAFF_NAMESPACES]));
+}

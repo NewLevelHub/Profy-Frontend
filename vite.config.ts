@@ -50,10 +50,15 @@ export default defineConfig({
       output: {
         // Libraries and translation catalogs change far less often than app
         // code: separate chunks keep their hashes, and the browser cache,
-        // across our deploys. One chunk per locale, loaded on demand.
+        // across our deploys. Catalogs: base and staff chunk per locale, on demand.
         manualChunks(id) {
-          const locale = id.match(/\/src\/shared\/i18n\/locales\/(\w+)\//)?.[1];
-          if (locale) return `i18n-${locale}`;
+          const catalog = id.match(/\/src\/shared\/i18n\/locales\/(\w+)\/(\w+)\.json$/);
+          if (catalog) {
+            const [, locale, namespace] = catalog;
+            // Staff namespaces (STAFF_NAMESPACES in shared/i18n) load only in the staff cabinets.
+            const staff = ['admin', 'psychologist', 'psychReport'].includes(namespace);
+            return staff ? `i18n-${locale}-staff` : `i18n-${locale}`;
+          }
           if (/\/node_modules\/(react|react-dom|react-router|scheduler)\//.test(id)) return 'react';
           if (/\/node_modules\/(@tanstack|axios|i18next|react-i18next|zustand|clsx|tailwind-merge)\//.test(id)) return 'vendor';
         },
