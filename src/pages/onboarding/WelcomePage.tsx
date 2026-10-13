@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { ArrowRight, Clock, PauseCircle, Smile } from 'lucide-react';
-import { Button } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 
 // The assessment already exists here: this is the first-test intro after goal selection.

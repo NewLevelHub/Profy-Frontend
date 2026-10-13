@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { LikertScale } from '@/shared/ui';
+import { LikertScale } from '@/shared/ui/LikertScale';
 import { playClick } from '@/shared/lib/sounds';
 import {
   LIKERT_SCALE,

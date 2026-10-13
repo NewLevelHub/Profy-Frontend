@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { PrintMasthead } from '@/shared/ui';
+import { PrintMasthead } from '@/shared/ui/print/PrintMasthead';
 import { formatDate } from '@/shared/i18n/format';
 import type { ProfileResponse } from '@/shared/types';
 

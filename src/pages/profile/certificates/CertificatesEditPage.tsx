@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Input } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 import { useCertificatesEdit } from './hooks/useCertificatesEdit';
 import { CERTIFICATE_TYPES, CERTIFICATE_LABELS, CERTIFICATE_SCORE_RANGES } from '@/shared/config/certificates';

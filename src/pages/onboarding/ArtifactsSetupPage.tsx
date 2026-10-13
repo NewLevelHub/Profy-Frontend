@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { Button } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
 import { useArtifactsSetup, ARTIFACT_SECTIONS, DREAMS_MAX_LENGTH, type ArtifactSection } from './hooks/useArtifactsSetup';
 import { OnboardingShell } from './components/OnboardingShell';
 import { SelectableChip } from './components/SelectableChip';

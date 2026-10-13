@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 import { ArrowRight } from 'lucide-react';
-import { JourneyCheckpoint } from '@/shared/ui';
+import { JourneyCheckpoint } from '@/shared/ui/redesign/JourneyCheckpoint';
 
 export default function NotFoundPage() {
   const { t } = useTranslation('common');

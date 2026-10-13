@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Button, Input } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
 import { useProfileSetup, PROFILE_STEPS, NAME_MAX_LENGTH, sanitizeName } from './hooks/useProfileSetup';
 import { gradesForAge } from '@/shared/lib/ageGrade';
 import { OnboardingShell } from './components/OnboardingShell';

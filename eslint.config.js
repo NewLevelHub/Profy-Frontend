@@ -41,6 +41,11 @@ export default tseslint.config(
     },
     rules: {
       'local/no-arbitrary-text-size': 'error',
+      // PRO-479: a shared/ui barrel pulled every re-exported module (layouts
+      // with their CSS included) into each lazy page chunk that used it.
+      'no-restricted-imports': ['error', {
+        paths: [{ name: '@/shared/ui', message: 'Import the component from its own file, e.g. @/shared/ui/Button.' }],
+      }],
     },
   },
 );
