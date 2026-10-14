@@ -18,8 +18,6 @@ export const authApi = {
   verifyEmailByCode: (email: string, code: string) =>
     apiClient.post<TokenResponse>(API.auth.verifyEmail, { email, code }).then(r => r.data),
 
-  verifyEmailByToken: (token: string) =>
-    apiClient.post<TokenResponse>(API.auth.verifyEmail, { token }).then(r => r.data),
 
   resendVerification: (email: string) =>
     apiClient.post(API.auth.resendVerification, { email }),

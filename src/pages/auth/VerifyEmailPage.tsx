@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { EMAIL_AS_TEXT } from '@/shared/i18n/transText';
 import { Link, useSearchParams } from 'react-router';
 import { AuthStepper } from '@/shared/ui/AuthStepper';
 import axios from 'axios';
-import { ArrowRight, CheckCircle, Mail, XCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, Mail, XCircle } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
 import { apiErrorCode } from '@/shared/api/client';
 import { useAuthStore } from '@/shared/store/auth';
@@ -16,53 +17,6 @@ const RESEND_SECONDS = 60;
 // a complete code has no spaces, so length alone can't tell "done" from
 // "mid-edit with a gap".
 const CODE_COMPLETE = /^\d{6}$/;
-
-// ─── Token mode (link from email) ────────────────────────────────────────────
-
-type TokenStatus = 'loading' | 'success' | 'error';
-
-function TokenVerify({ token }: { token: string }) {
-  const { t } = useTranslation('auth');
-  const storeLogin = useAuthStore(s => s.login);
-  const [status, setStatus] = useState<TokenStatus>('loading');
-  const called = useRef(false);
-
-  useEffect(() => {
-    if (called.current) return;
-    called.current = true;
-
-    authApi.verifyEmailByToken(token)
-      .then(({ access_token, user }) => {
-        storeLogin(access_token, user);
-        setStatus('success');
-        // Navigation is handled by RequireGuest — it detects the token
-        // and renders <Navigate to="/welcome" replace /> declaratively.
-      })
-      .catch(() => setStatus('error'));
-  }, []);
-
-  if (status === 'loading' || status === 'success') {
-    return (
-      <div className="rd-auth-state" role="status">
-        <span className="rd-icon-tile rd-lilac rd-auth-form-icon" aria-hidden="true">
-          {status === 'loading' ? <Loader2 className="animate-spin" /> : <CheckCircle />}
-        </span>
-        <h1>{t(status === 'loading' ? 'verify.confirming' : 'verify.confirmedTitle')}</h1>
-        {status === 'success' && <p className="rd-login-intro">{t('verify.redirecting')}</p>}
-      </div>
-    );
-  }
-
-  return (
-    <div className="rd-auth-state">
-      <AuthHeading title={t('verify.linkExpiredTitle')} icon={<XCircle />}>
-        {t('verify.linkExpiredBody')}
-      </AuthHeading>
-      <Link to="/login" className="rd-button rd-login-submit">{t('register.signIn')}<ArrowRight size={20} aria-hidden="true" /></Link>
-      <p className="rd-login-switch"><Link to="/register">{t('verify.registerAgain')}</Link></p>
-    </div>
-  );
-}
 
 // ─── OTP mode (code from email, after registration) ───────────────────────────
 
@@ -137,7 +91,7 @@ function OtpVerify({ email, showStepper }: { email: string; showStepper: boolean
     <>
       {showStepper && <AuthStepper current={3} />}
       <AuthHeading title={t('redesign.verify.title')} icon={<Mail />}>
-        <Trans i18nKey="auth:redesign.verify.subtitle" values={{ email }} components={{ b: <strong className="rd-email-value" /> }} />
+        <Trans i18nKey="auth:redesign.verify.subtitle" values={{ email }} components={{ b: <strong className="rd-email-value" /> }} {...EMAIL_AS_TEXT} />
       </AuthHeading>
       <form className="rd-login-fields rd-auth-fields" onSubmit={handleSubmit} noValidate aria-busy={isLoading}>
         <p className="rd-code-label">{t('verify.otpAria')}</p>
@@ -177,10 +131,7 @@ function OtpVerify({ email, showStepper }: { email: string; showStepper: boolean
 export default function VerifyEmailPage() {
   const { t } = useTranslation('auth');
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
   const email = searchParams.get('email');
-
-  if (token) return <TokenVerify token={token} />;
 
   if (email) return <OtpVerify email={email} showStepper={searchParams.get('step') === '3'} />;
 

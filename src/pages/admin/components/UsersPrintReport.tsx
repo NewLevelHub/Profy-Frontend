@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { PrintMasthead } from '@/shared/ui';
+import { PrintMasthead } from '@/shared/ui/print/PrintMasthead';
 import { useTranslation } from 'react-i18next';
 import { ASSESSMENT_GOAL_LABELS, ASSESSMENT_STATUS_LABELS } from '@/shared/lib/assessmentLabels';
 import type { AdminUserListItem } from '@/shared/types';

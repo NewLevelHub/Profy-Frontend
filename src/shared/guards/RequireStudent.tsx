@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router';
 import { homePathForUser, isStaffUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
+import { FullPageSpinner } from '@/shared/ui/Spinner';
 
 /** Student-only surfaces (assessment, results, onboarding). Staff bounce home. */
 export function RequireStudent() {
@@ -8,11 +9,7 @@ export function RequireStudent() {
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
 
   if (!hasHydrated) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-page">
-        <div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
-      </div>
-    );
+    return <FullPageSpinner />;
   }
 
   if (isStaffUser(user)) {

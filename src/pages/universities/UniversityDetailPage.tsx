@@ -13,6 +13,7 @@ import { safeExternalUrl } from '@/shared/lib/safeExternalUrl';
 import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityDetail } from './hooks/useUniversityDetail';
 import { FavoriteStar } from '@/shared/ui/FavoriteStar';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 export default function UniversityDetailPage() {
   const goBack = useBackTo('/universities');
@@ -28,7 +29,7 @@ export function UniversityDetailView({ model, goBack }: {
   return <PageContainer className="rd-catalog rd-detail">
     <BackLink onClick={goBack} className="rd-detail-back">{t('common:back')}</BackLink>
     {isLoading ? <div className="space-y-4"><Skeleton className="h-72 w-full rounded-2xl" /><Skeleton className="h-8 w-2/3" /><Skeleton className="h-28 w-full" /></div>
-      : error !== null || !university ? <JourneyEmptyState illustration="/mascot/redesign/rest.png"
+      : error !== null || !university ? <JourneyEmptyState illustration={MASCOT.rest}
         title={error === 'not_found' ? t('catalog.notFound') : t('catalog.loadFailed')}
         body={error === 'not_found' ? t('catalog.backToList') : t('common:retry')}
         actionLabel={error === 'not_found' ? t('catalog.backToList') : t('common:retry')}

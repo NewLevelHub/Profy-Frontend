@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { UserRound } from 'lucide-react';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 interface SummaryCardProps {
   summary: string;
@@ -16,6 +17,6 @@ export function SummaryCard({ summary, disclaimer }: SummaryCardProps) {
       <p className="rd-report-summary-text">{summary}</p>
       <p className="rd-report-disclaimer">{disclaimer}</p>
     </div>
-    <img src="/mascot/redesign/celebrate.png" alt="" width={190} height={220} />
+    <img src={MASCOT.celebrate} alt="" width={190} height={220} />
   </section>;
 }

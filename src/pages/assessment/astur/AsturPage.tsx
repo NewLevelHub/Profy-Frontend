@@ -108,7 +108,6 @@ export default function AsturPage() {
   return (
     <AssessmentLayout>
       <ExitAssessmentModal
-        redesigned
         open={exitConfirmOpen}
         title={t('astur.exit.title')}
         body={t('astur.exit.body')}
@@ -129,7 +128,6 @@ export default function AsturPage() {
           exitDisabled={starting || submitting}
           devAutofill={{ onClick: handleAutofill, loading: submitting }}
           statusSlotRef={setRailStatusSlot}
-          languageLockedReason={t('rail.languageLocked')}
         />
       )}
 

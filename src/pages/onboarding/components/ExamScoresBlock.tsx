@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/Card';
-import { Input } from '@/shared/ui';
+import { Input } from '@/shared/ui/Input';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import {

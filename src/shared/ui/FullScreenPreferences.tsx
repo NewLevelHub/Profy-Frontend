@@ -8,7 +8,7 @@ export interface FullScreenPreferencesProps {
 
 /**
  * Theme + language on chrome-free routes (onboarding, assessment intro,
- * certificates edit, 404). Same pair as AuthLayout / TopRail — without it
+ * certificates edit, 404). Same pair as AuthLayout / the app navigation — without it
  * users who land here first cannot switch theme until they reach a tab.
  */
 export function FullScreenPreferences({ className }: FullScreenPreferencesProps) {

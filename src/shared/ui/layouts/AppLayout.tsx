@@ -1,16 +1,13 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Outlet, useLocation, useNavigationType } from 'react-router';
-import { TopRail } from '@/shared/ui/navigation/TopRail';
-import { Spinner } from '@/shared/ui';
+import { Spinner } from '@/shared/ui/Spinner';
 import { useAssessmentSync } from '@/shared/hooks/useAssessmentSync';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { useTranslation } from 'react-i18next';
 import '../redesign/redesign.css';
 import '../redesign/student.css';
 import '../redesign/catalog.css';
-import '../redesign/psychologist.css';
-import '../redesign/psychologist-report.css';
-import '../redesign/admin.css';
+// Staff stylesheets load with their own shells: AdminArea, PsychologistArea.
 
 // Keyed by location.key so each history entry keeps its own scroll position.
 const scrollPositions = new Map<string, number>();
@@ -28,7 +25,18 @@ function pageEnterKey(pathname: string): string {
   return pathname;
 }
 
-export function AppLayout({ psychologist = false, admin = false }: { psychologist?: boolean; admin?: boolean }) {
+export type AppArea = 'student' | 'psychologist' | 'admin';
+
+const AREA_SHELL: Record<AppArea, { className: string; contentId: string }> = {
+  student: { className: 'redesign rd-student h-screen flex flex-col overflow-hidden', contentId: 'student-content' },
+  psychologist: { className: 'redesign rd-psych', contentId: 'psychologist-content' },
+  admin: { className: 'redesign rd-admin', contentId: 'admin-content' },
+};
+
+/** `rail` is the area's navigation: StudentRail here, the staff ones from
+ *  their lazy shells (AdminArea, PsychologistArea). */
+export function AppLayout({ area, rail }: { area: AppArea; rail: ReactNode }) {
+  const shell = AREA_SHELL[area];
   const { t } = useTranslation('common');
   useAssessmentSync();
   const syncDone = useAssessmentStore(s => s.syncDone);
@@ -94,10 +102,10 @@ export function AppLayout({ psychologist = false, admin = false }: { psychologis
   }, [location.key]);
 
   return (
-    <div className={admin ? "redesign rd-admin" : psychologist ? "redesign rd-psych" : "redesign rd-student h-screen flex flex-col overflow-hidden"}>
-      <a href={admin ? '#admin-content' : psychologist ? '#psychologist-content' : '#student-content'} className="rd-skip">{t('redesign.skip')}</a>
-      <TopRail psychologist={psychologist} admin={admin} />
-      <main id={admin ? 'admin-content' : psychologist ? 'psychologist-content' : 'student-content'} tabIndex={-1} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
+    <div className={shell.className}>
+      <a href={`#${shell.contentId}`} className="rd-skip">{t('redesign.skip')}</a>
+      {rail}
+      <main id={shell.contentId} tabIndex={-1} ref={mainRef} className="relative z-[1] flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-[var(--main-pad-y)]">
         {syncDone ? (
           // key=pageEnterKey: анимация только при смене вкладки шапки.
           // Внутри /admin/* ключ стабилен — сайдбар без fade, контент сразу.
@@ -110,8 +118,7 @@ export function AppLayout({ psychologist = false, admin = false }: { psychologis
           </div>
         )}
       </main>
-      {psychologist && <div id="psychologist-overlays" className="contents" />}
-      {admin && <div id="admin-overlays" className="contents" />}
+      {area !== 'student' && <div id={`${area}-overlays`} className="contents" />}
     </div>
   );
 }

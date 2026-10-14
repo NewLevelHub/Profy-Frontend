@@ -4,7 +4,7 @@ import { GoalCheckView } from '../GoalCheckPage';
 import { RestStopView } from '../RestStopPage';
 import { ResultLoadingView } from '../components/ResultLoadingView';
 import NotFoundPage from '@/pages/errors/NotFoundPage';
-import { JourneyCheckpoint } from '@/shared/ui';
+import { JourneyCheckpoint } from '@/shared/ui/redesign/JourneyCheckpoint';
 import { FullScreenPreferences } from '@/shared/ui/FullScreenPreferences';
 import { PrintDocument } from '@/pages/results/print/components/PrintDocument';
 import { PrintToolbar } from '@/pages/results/print/components/PrintToolbar';

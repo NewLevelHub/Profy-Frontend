@@ -1,26 +1,8 @@
 const STORAGE_KEY = 'profy-sound-enabled';
-const CELEBRATION_STORAGE_KEY = 'profy-celebration-sound';
 
 export const SOUND_ENABLED_STORAGE_KEY = STORAGE_KEY;
 
 export type SoundVariant = 'default' | 'soft';
-
-export type CelebrationSoundId = 'chime' | 'sparkle' | 'fanfare' | 'soft' | 'party';
-
-// `label`/`description` are i18n keys (common namespace) — resolve with `t()`
-// at the (future) sound-picker call site, same convention as config/constants.
-export const CELEBRATION_SOUNDS: ReadonlyArray<{
-  id: CelebrationSoundId;
-  label: string;
-  description: string;
-  emoji: string;
-}> = [
-  { id: 'chime', label: 'common:celebrationSound.chime.label', description: 'common:celebrationSound.chime.desc', emoji: '🔔' },
-  { id: 'sparkle', label: 'common:celebrationSound.sparkle.label', description: 'common:celebrationSound.sparkle.desc', emoji: '✨' },
-  { id: 'fanfare', label: 'common:celebrationSound.fanfare.label', description: 'common:celebrationSound.fanfare.desc', emoji: '🎺' },
-  { id: 'soft', label: 'common:celebrationSound.soft.label', description: 'common:celebrationSound.soft.desc', emoji: '🌸' },
-  { id: 'party', label: 'common:celebrationSound.party.label', description: 'common:celebrationSound.party.desc', emoji: '🎉' },
-];
 
 type ToneNote = {
   frequency: number;
@@ -77,27 +59,7 @@ export function setSoundEnabled(enabled: boolean): void {
   }
 }
 
-export function getCelebrationSound(): CelebrationSoundId {
-  try {
-    const stored = localStorage.getItem(CELEBRATION_STORAGE_KEY) as CelebrationSoundId | null;
-    if (stored && CELEBRATION_SOUNDS.some((sound) => sound.id === stored)) {
-      return stored;
-    }
-  } catch {
-    // ignore
-  }
-  return 'sparkle';
-}
-
-export function setCelebrationSound(id: CelebrationSoundId): void {
-  try {
-    localStorage.setItem(CELEBRATION_STORAGE_KEY, id);
-  } catch {
-    // ignore
-  }
-}
-
-export function shouldPlaySound(): boolean {
+function shouldPlaySound(): boolean {
   if (typeof window === 'undefined') return false;
   if (window.location.pathname.startsWith('/admin')) return false;
   return getSoundEnabled();
@@ -147,9 +109,8 @@ function playTone(
   volume: number,
   type: OscillatorType = 'sine',
   delaySec = 0,
-  force = false,
 ) {
-  if (!force && !shouldPlaySound()) return;
+  if (!shouldPlaySound()) return;
 
   const ctx = getAudioContext();
   if (!ctx) return;
@@ -174,7 +135,7 @@ function playTone(
   oscillator.stop(end);
 }
 
-function playSequence(notes: ToneNote[], force = false) {
+function playSequence(notes: ToneNote[]) {
   for (const note of notes) {
     playTone(
       note.frequency,
@@ -182,103 +143,34 @@ function playSequence(notes: ToneNote[], force = false) {
       note.volume,
       note.type ?? 'sine',
       note.delaySec ?? 0,
-      force,
     );
   }
 }
 
-function getCelebrationSequence(id: CelebrationSoundId, finale: boolean): ToneNote[] {
-  switch (id) {
-    case 'chime':
-      return finale
-        ? [
-            { frequency: 392, durationSec: 0.1, volume: 0.08, delaySec: 0 },
-            { frequency: 523, durationSec: 0.1, volume: 0.09, delaySec: 0.1 },
-            { frequency: 659, durationSec: 0.14, volume: 0.1, delaySec: 0.2 },
-            { frequency: 784, durationSec: 0.18, volume: 0.11, delaySec: 0.32 },
-          ]
-        : [
-            { frequency: 523, durationSec: 0.08, volume: 0.09, delaySec: 0 },
-            { frequency: 659, durationSec: 0.12, volume: 0.1, delaySec: 0.09 },
-          ];
-    case 'sparkle':
-      return finale
-        ? [
-            { frequency: 523, durationSec: 0.07, volume: 0.08, delaySec: 0 },
-            { frequency: 659, durationSec: 0.07, volume: 0.08, delaySec: 0.08 },
-            { frequency: 784, durationSec: 0.07, volume: 0.09, delaySec: 0.16 },
-            { frequency: 988, durationSec: 0.07, volume: 0.09, delaySec: 0.24 },
-            { frequency: 1175, durationSec: 0.16, volume: 0.11, delaySec: 0.34 },
-          ]
-        : [
-            { frequency: 523, durationSec: 0.07, volume: 0.08, delaySec: 0 },
-            { frequency: 659, durationSec: 0.07, volume: 0.08, delaySec: 0.07 },
-            { frequency: 784, durationSec: 0.07, volume: 0.09, delaySec: 0.14 },
-            { frequency: 1047, durationSec: 0.12, volume: 0.1, delaySec: 0.22 },
-          ];
-    case 'fanfare':
-      return finale
-        ? [
-            { frequency: 294, durationSec: 0.12, volume: 0.07, type: 'triangle', delaySec: 0 },
-            { frequency: 392, durationSec: 0.1, volume: 0.08, delaySec: 0.1 },
-            { frequency: 523, durationSec: 0.1, volume: 0.09, delaySec: 0.2 },
-            { frequency: 659, durationSec: 0.1, volume: 0.1, delaySec: 0.3 },
-            { frequency: 784, durationSec: 0.2, volume: 0.11, delaySec: 0.4 },
-          ]
-        : [
-            { frequency: 392, durationSec: 0.09, volume: 0.08, delaySec: 0 },
-            { frequency: 523, durationSec: 0.09, volume: 0.09, delaySec: 0.1 },
-            { frequency: 659, durationSec: 0.14, volume: 0.1, delaySec: 0.2 },
-          ];
-    case 'soft':
-      return finale
-        ? [
-            { frequency: 440, durationSec: 0.22, volume: 0.07, type: 'triangle', delaySec: 0 },
-            { frequency: 554, durationSec: 0.22, volume: 0.06, type: 'triangle', delaySec: 0.05 },
-            { frequency: 659, durationSec: 0.28, volume: 0.08, type: 'triangle', delaySec: 0.1 },
-          ]
-        : [
-            { frequency: 440, durationSec: 0.18, volume: 0.08, type: 'triangle', delaySec: 0 },
-            { frequency: 554, durationSec: 0.2, volume: 0.07, type: 'triangle', delaySec: 0.04 },
-          ];
-    case 'party':
-      return finale
-        ? [
-            { frequency: 659, durationSec: 0.06, volume: 0.09, delaySec: 0 },
-            { frequency: 784, durationSec: 0.06, volume: 0.09, delaySec: 0.07 },
-            { frequency: 988, durationSec: 0.06, volume: 0.09, delaySec: 0.14 },
-            { frequency: 1175, durationSec: 0.06, volume: 0.1, delaySec: 0.21 },
-            { frequency: 1319, durationSec: 0.06, volume: 0.1, delaySec: 0.28 },
-            { frequency: 1568, durationSec: 0.14, volume: 0.11, delaySec: 0.36 },
-          ]
-        : [
-            { frequency: 587, durationSec: 0.06, volume: 0.09, delaySec: 0 },
-            { frequency: 740, durationSec: 0.06, volume: 0.09, delaySec: 0.06 },
-            { frequency: 880, durationSec: 0.06, volume: 0.09, delaySec: 0.12 },
-            { frequency: 1047, durationSec: 0.1, volume: 0.1, delaySec: 0.18 },
-          ];
-    default:
-      return getCelebrationSequence('sparkle', finale);
-  }
-}
-
-export function playCelebration(options?: {
-  variant?: CelebrationSoundId;
-  finale?: boolean;
-  preview?: boolean;
-}) {
-  const variant = options?.variant ?? getCelebrationSound();
-  const finale = options?.finale ?? false;
-  const force = options?.preview ?? false;
-  playSequence(getCelebrationSequence(variant, finale), force);
-}
+// The block-finish jingle when no recorded audio is available: a rising
+// arpeggio, longer on the final block.
+const SPARKLE: Record<'block' | 'finale', ToneNote[]> = {
+  finale: [
+    { frequency: 523, durationSec: 0.07, volume: 0.08, delaySec: 0 },
+    { frequency: 659, durationSec: 0.07, volume: 0.08, delaySec: 0.08 },
+    { frequency: 784, durationSec: 0.07, volume: 0.09, delaySec: 0.16 },
+    { frequency: 988, durationSec: 0.07, volume: 0.09, delaySec: 0.24 },
+    { frequency: 1175, durationSec: 0.16, volume: 0.11, delaySec: 0.34 },
+  ],
+  block: [
+    { frequency: 523, durationSec: 0.07, volume: 0.08, delaySec: 0 },
+    { frequency: 659, durationSec: 0.07, volume: 0.08, delaySec: 0.07 },
+    { frequency: 784, durationSec: 0.07, volume: 0.09, delaySec: 0.14 },
+    { frequency: 1047, durationSec: 0.12, volume: 0.1, delaySec: 0.22 },
+  ],
+};
 
 export function playBlockFinishAudio(completedCount?: number, totalBlocks?: number) {
   if (!shouldPlaySound()) return;
   const isFinal = typeof totalBlocks === 'number' && typeof completedCount === 'number' && completedCount >= totalBlocks;
 
   const playSynthFallback = () => {
-    playCelebration({ finale: isFinal });
+    playSequence(SPARKLE[isFinal ? 'finale' : 'block']);
   };
 
   if (typeof completedCount !== 'number' || completedCount <= 0) {
@@ -319,22 +211,10 @@ export function playBlockFinishAudio(completedCount?: number, totalBlocks?: numb
   }
 }
 
-export function previewCelebration(variant: CelebrationSoundId, finale = false) {
-  playCelebration({ variant, finale, preview: true });
-}
-
 export function playClick(variant: SoundVariant = 'default') {
   if (variant === 'soft') {
     playTone(520, 0.055, 0.08);
     return;
   }
   playTone(640, 0.065, 0.11);
-}
-
-export function playSuccess() {
-  playCelebration({ variant: 'chime' });
-}
-
-export function playError() {
-  playTone(220, 0.11, 0.09, 'triangle');
 }

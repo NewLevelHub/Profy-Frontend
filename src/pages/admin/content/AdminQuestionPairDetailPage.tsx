@@ -247,7 +247,7 @@ export default function AdminQuestionPairDetailPage() {
         title={t('questionPairs.frameTitle')}
         description={t('questionPairs.frameDescription')}
       >
-        <AdminField label={t('questionPairs.field.frameLabel')} locked={locked.has('frame')} revert={fieldRevert('frame')} lockReason={LOCK_REASON}>
+        <AdminField label={t('questionPairs.field.frameLabel')} locked={locked.has('frame')} revert={fieldRevert('frame')} lockReasonKey={LOCK_REASON}>
           {({ id, describedBy }) => (
             <input
               id={id}
@@ -378,7 +378,7 @@ function PairSideCard({
       <AdminField
         label={t('questionPairs.optionText')}
         locked={textLocked}
-        lockReason={LOCK_REASON}
+        lockReasonKey={LOCK_REASON}
         hint={
           usingFallbackText ? (
             fallback ? (
@@ -409,7 +409,7 @@ function PairSideCard({
       <AdminField
         label={t('questionPairs.icon')}
         locked={iconLocked}
-        lockReason={LOCK_REASON}
+        lockReasonKey={LOCK_REASON}
         hint={usingFallbackIcon ? t('questionPairs.emptyUsesQuestionIcon') : undefined}
       >
         {({ id, describedBy }) => (

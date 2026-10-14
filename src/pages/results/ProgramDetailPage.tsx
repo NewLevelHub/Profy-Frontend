@@ -19,6 +19,7 @@ import { useBackTo } from '@/shared/lib/useBackTo';
 import { useProgramDetail } from '@/pages/results/hooks/useProgramDetail';
 import { DomainCardFrame, DomainKicker, DomainListCard } from '@/pages/results/components/DomainCardParts';
 import type { ProgramDetail } from '@/shared/types';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 function ProgramDetailSkeleton() {
   return (
@@ -262,7 +263,7 @@ export function ProgramDetailView({ model, goBack }: {
       {isLoading ? (
         <ProgramDetailSkeleton />
       ) : error !== null || !program ? (
-        <JourneyEmptyState illustration="/mascot/redesign/rest.png" title={error ?? t('program.notFound')}
+        <JourneyEmptyState illustration={MASCOT.rest} title={error ?? t('program.notFound')}
           body="" actionLabel={t('common:back')} onAction={goBack} />
       ) : (
         <div className="flex flex-col gap-6 animate-fade-in">
@@ -298,7 +299,7 @@ export function ProgramDetailView({ model, goBack }: {
                       })()}
                       <p className="text-body text-primary m-0">{desc}</p>
                     </div>
-                    <img className="rd-program-description-mascot" src="/mascot/redesign/book.png" alt="" width={72} height={82} />
+                    <img className="rd-program-description-mascot" src={MASCOT.book} alt="" width={72} height={82} />
                   </section>
                 )}
 

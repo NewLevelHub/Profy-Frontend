@@ -15,26 +15,16 @@ interface DirectionMatchListProps {
    *  tier's detail page has nothing university-shaped to point at yet, so
    *  the hint would be a promise the click doesn't keep. */
   showUniversitiesHint?: boolean;
-  /** Psychologist's read-only view of a student's report
-   *  (PsychologistStudentReportPage): a plain list, not a doorway into the
-   *  student's own browsing flow (direction detail → universities/programs).
-   *  Rows render as static `<div>`s, not `<Link>`s — no navigation, no hover
-   *  "Open" caption, no "открой направление" CTA. */
-  readOnly?: boolean;
 }
 
 /**
  * Shared "direction + match ladder" list — glass rows, no arrow/cap chrome.
- * By default every row is a real `<Link>` to the direction detail page;
- * `readOnly` (the psychologist's read-only view of a student's report)
- * renders plain `<div>` rows instead — no navigation, no hover "Open"
- * caption, no "открой направление" CTA.
+ * Every row is a real `<Link>` to the direction detail page.
  */
 export const DirectionMatchList = memo(function DirectionMatchList({
   careers,
   emptyText,
   showUniversitiesHint = false,
-  readOnly = false,
 }: DirectionMatchListProps) {
   const { t } = useTranslation('results');
 
@@ -51,7 +41,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
         const rowClassName = cn(
           'rd-direction-row group flex flex-col gap-3 text-left !p-4 sm:!p-5',
           'transition-[border-color,box-shadow,transform] duration-200',
-          !readOnly && 'press-scale hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--pine)_28%,var(--border))]',
+          'press-scale hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--pine)_28%,var(--border))]',
           isTop && 'bg-[color-mix(in_srgb,var(--pine)_4%,var(--paper))]',
         );
         const rowContent = (
@@ -75,11 +65,9 @@ export const DirectionMatchList = memo(function DirectionMatchList({
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
                 <CareerMatchLadder tier={career.tier} showLabel={isTop} />
-                {!readOnly && (
-                  <span className="text-caption font-semibold text-brand opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
-                    {t('directionMatch.open')}
-                  </span>
-                )}
+                <span className="text-caption font-semibold text-brand opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
+                  {t('directionMatch.open')}
+                </span>
               </div>
             </div>
 
@@ -110,8 +98,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
                     ))}
                   </ul>
                 )}
-                {/* CTA — only makes sense where the row itself is clickable. */}
-                {showUniversitiesHint && !readOnly && (
+                {showUniversitiesHint && (
                   <p
                     className="text-caption font-semibold mt-2.5 pt-2.5 m-0"
                     style={{
@@ -127,11 +114,7 @@ export const DirectionMatchList = memo(function DirectionMatchList({
           </>
         );
 
-        return readOnly ? (
-          <div key={career.slug} className={rowClassName}>
-            {rowContent}
-          </div>
-        ) : (
+        return (
           <Link
             key={career.slug}
             to={`/results/directions/${encodeURIComponent(career.slug)}`}

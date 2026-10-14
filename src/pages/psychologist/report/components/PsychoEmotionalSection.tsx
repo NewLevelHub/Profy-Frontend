@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDate } from '@/shared/i18n/format';
 import { cn } from '@/shared/lib/cn';
 import type { PsychoEmotionalSection as PsychoEmotionalSectionData } from '@/shared/types';
-import { PsychoEmotionalReport } from '@/shared/ui';
+import { PsychoEmotionalReport } from '@/shared/ui/PsychoEmotionalReport';
 import { AdminBadge, type AdminBadgeTone } from '@/shared/ui/admin/AdminBadge';
 import { AdminCard } from '@/shared/ui/admin/AdminSectionHeading';
 import { ADMIN_META } from '@/shared/ui/admin/density';

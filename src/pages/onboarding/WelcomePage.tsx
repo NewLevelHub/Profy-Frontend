@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { ArrowRight, Clock, PauseCircle, Smile } from 'lucide-react';
-import { Button } from '@/shared/ui';
+import { Button } from '@/shared/ui/Button';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 // The assessment already exists here: this is the first-test intro after goal selection.
 const FEATURES = [
@@ -23,7 +24,7 @@ export default function WelcomePage() {
             <h1>{t('welcome.title')}</h1>
             <p>{t('welcome.body')}</p>
           </div>
-          <img src="/mascot/redesign/greeting.png" width="1254" height="1254" alt="" />
+          <img src={MASCOT.greeting} width="1254" height="1254" alt="" />
         </div>
         <div className="rd-welcome-features">
           {FEATURES.map(({ Icon, titleKey, subKey, tone }) => (

@@ -5,6 +5,7 @@ import { Spine } from '@/shared/ui/Spine';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Text } from '@/shared/ui/typography/Text';
 import { cn } from '@/shared/lib/cn';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 type AssessmentPhase = 'diagnostic' | 'motivation' | 'belbin' | 'astur' | 'done';
 
@@ -52,7 +53,7 @@ export function AssessmentInProgressCard({
           </Text>
         </div>
         <div className="rd-result-state-art">
-          <img src="/mascot/redesign/book.png" alt="" width={200} height={220} />
+          <img src={MASCOT.book} alt="" width={200} height={220} />
         </div>
       </div>
 

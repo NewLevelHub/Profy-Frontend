@@ -7,7 +7,9 @@ import { assessmentApi } from '@/shared/api/assessment';
 
 export function useAssessmentSync() {
   const userId = useAuthStore(s => s.user?.id);
-  const user = useAuthStore(s => s.user);
+  // A boolean, not the user object: LanguageSwitcher/LocaleGate replace the
+  // object on every locale change, and re-running this effect blanks the page.
+  const isStaff = useAuthStore(s => isStaffUser(s.user));
   const hasHydrated = useAuthStore(s => s._hasHydrated);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export function useAssessmentSync() {
     }
 
     // Staff never take the assessment — skip the student sync round-trip.
-    if (isStaffUser(user)) {
+    if (isStaff) {
       useAssessmentStore.setState({ syncDone: true });
       return;
     }
@@ -54,5 +56,5 @@ export function useAssessmentSync() {
       // rather than briefly flashing stale content while the re-sync is in flight.
       useAssessmentStore.setState({ syncDone: false });
     };
-  }, [userId, user, hasHydrated]);
+  }, [userId, isStaff, hasHydrated]);
 }

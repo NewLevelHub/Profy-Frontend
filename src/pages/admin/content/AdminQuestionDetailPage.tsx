@@ -214,7 +214,7 @@ export default function AdminQuestionDetailPage() {
         title={t('common.contentCard')}
         description={t('questions.contentDescription')}
       >
-        <AdminField label={t('questions.field.textLabel')} locked={locked.has('text')} revert={fieldRevert('text')} lockReason={LOCK_REASON}>
+        <AdminField label={t('questions.field.textLabel')} locked={locked.has('text')} revert={fieldRevert('text')} lockReasonKey={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -230,7 +230,7 @@ export default function AdminQuestionDetailPage() {
           <AdminField
             label={t('questions.field.shortTextLabel')}
             locked={locked.has('short_text')} revert={fieldRevert('short_text')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             hint={t('questions.shortTextHint')}
           >
             {({ id, describedBy }) => (
@@ -247,7 +247,7 @@ export default function AdminQuestionDetailPage() {
           {/* Отдельного превью эмодзи рядом с полем нет: карточка «Как увидит
               ученик» вверху уже показывает его в нужном размере, а тут он
               дублировался в 22px рядом с тем же символом в самом поле. */}
-          <AdminField label={t('questionPairs.icon')} locked={locked.has('icon')} revert={fieldRevert('icon')} lockReason={LOCK_REASON} hint={t('questions.iconHint')}>
+          <AdminField label={t('questionPairs.icon')} locked={locked.has('icon')} revert={fieldRevert('icon')} lockReasonKey={LOCK_REASON} hint={t('questions.iconHint')}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -265,7 +265,7 @@ export default function AdminQuestionDetailPage() {
           invite cross-instrument data that no scoring path reads. */}
       {detail.instrument === 'riasec' && (
         <AdminCard title="RIASEC" description={t('questions.riasecDescription')}>
-          <AdminField label={t('questions.field.typeLabel')} locked={locked.has('riasec_type')} revert={fieldRevert('riasec_type')} lockReason={LOCK_REASON}>
+          <AdminField label={t('questions.field.typeLabel')} locked={locked.has('riasec_type')} revert={fieldRevert('riasec_type')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <AdminSelect
                 id={id}
@@ -289,7 +289,7 @@ export default function AdminQuestionDetailPage() {
       {detail.instrument === 'big_five' && (
         <AdminCard title="Big Five" description={t('questions.bigfiveDescription')}>
           <div className="grid gap-3.5 sm:grid-cols-2">
-            <AdminField label={t('questions.field.domainLabel')} locked={locked.has('bigfive_domain')} revert={fieldRevert('bigfive_domain')} lockReason={LOCK_REASON}>
+            <AdminField label={t('questions.field.domainLabel')} locked={locked.has('bigfive_domain')} revert={fieldRevert('bigfive_domain')} lockReasonKey={LOCK_REASON}>
               {({ id, describedBy }) => (
                 <AdminSelect
                   id={id}
@@ -310,7 +310,7 @@ export default function AdminQuestionDetailPage() {
             <AdminField
               label={t('questions.field.keyedLabel')}
               locked={locked.has('keyed')} revert={fieldRevert('keyed')}
-              lockReason={LOCK_REASON}
+              lockReasonKey={LOCK_REASON}
               hint={t('questions.keyedHint')}
             >
               {({ id, describedBy }) => (
@@ -333,7 +333,7 @@ export default function AdminQuestionDetailPage() {
             <AdminField
               label={t('questions.field.facetLabel')}
               locked={locked.has('facet')} revert={fieldRevert('facet')}
-              lockReason={LOCK_REASON}
+              lockReasonKey={LOCK_REASON}
               className="sm:col-span-2"
             >
               {({ id, describedBy }) => (

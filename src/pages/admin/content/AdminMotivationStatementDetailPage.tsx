@@ -190,7 +190,7 @@ export default function AdminMotivationStatementDetailPage() {
           label={t('contentFields.category')}
           locked={locked.has('category')}
           revert={fieldRevert('category')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
           error={
             conflicting.length > 0
               ? t('statements.categoryTaken', { index: detail.triplet_index })
@@ -219,7 +219,7 @@ export default function AdminMotivationStatementDetailPage() {
           label={t('statements.field.textLabel')}
           locked={locked.has('text')}
           revert={fieldRevert('text')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
         >
           {({ id, describedBy }) => (
             <textarea

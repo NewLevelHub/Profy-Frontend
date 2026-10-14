@@ -6,9 +6,9 @@ import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { scrollToStudentSection } from '@/shared/ui/redesign/scrollToStudentSection';
 import { ResultsReportBody } from './ResultsReportBody';
 
-export function StudentReport({ report, ageGroup, goal, onDownload, children, readOnly = false }: {
+export function StudentReport({ report, ageGroup, goal, onDownload, children }: {
   report: ResultResponse; ageGroup: AgeGroup | undefined; goal: AssessmentGoal | null | undefined;
-  onDownload: () => void; children?: ReactNode; readOnly?: boolean;
+  onDownload: () => void; children?: ReactNode;
 }) {
   const { t } = useTranslation('results');
   const sections = [
@@ -25,7 +25,7 @@ export function StudentReport({ report, ageGroup, goal, onDownload, children, re
     </StudentPageHeading>
     <div className="rd-report-layout">
       <div className="rd-report-body">
-        <ResultsReportBody redesigned report={report} ageGroup={ageGroup} goal={goal} readOnly={readOnly} />
+        <ResultsReportBody report={report} ageGroup={ageGroup} goal={goal} />
         {children}
       </div>
       <aside className="rd-report-sidebar">

@@ -4,7 +4,8 @@ import { useBlocker } from 'react-router';
 import { confirm } from './confirm';
 
 /**
- * Warns before losing unsaved admin form edits — both for in-app navigation
+ * Warns before losing unsaved form edits (admin detail screens, the
+ * student's certificates editor) — both for in-app navigation
  * (react-router's blocker, available because the app uses a data router) and
  * for closing/reloading the tab (`beforeunload`).
  *
@@ -13,8 +14,10 @@ import { confirm } from './confirm';
  * discarded a rewritten question text.
  */
 export function useUnsavedGuard(dirty: boolean) {
-  const { t } = useTranslation('admin');
-  const MESSAGE = t('form.unsavedWarning');
+  // `common`, not `admin`: students use it too, and they don't load the
+  // staff catalogs (shared/i18n/index.ts).
+  const { t } = useTranslation('common');
+  const MESSAGE = t('unsavedChanges.warning');
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) => dirty && currentLocation.pathname !== nextLocation.pathname,
   );
@@ -27,8 +30,8 @@ export function useUnsavedGuard(dirty: boolean) {
     let active = true;
     void confirm({
       title: MESSAGE,
-      confirmLabel: t('form.unsavedLeave'),
-      cancelLabel: t('form.unsavedStay'),
+      confirmLabel: t('unsavedChanges.leave'),
+      cancelLabel: t('unsavedChanges.stay'),
     }).then((ok) => {
       if (!active) return;
       if (ok) blocker.proceed?.();

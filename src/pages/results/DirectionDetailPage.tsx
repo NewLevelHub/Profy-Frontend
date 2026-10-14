@@ -16,6 +16,7 @@ import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
 import { DomainCardFrame, DomainKicker } from '@/pages/results/components/DomainCardParts';
 import { reasonsBeyondWhy } from '@/pages/results/utils/careerReasons';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 function capitalizeFirst(text: string): string {
   return text.length > 0 ? text[0].toUpperCase() + text.slice(1) : text;
@@ -102,14 +103,14 @@ export default function DirectionDetailPage() {
 
   if (error) {
     return (
-      <PageContainer className="rd-catalog"><JourneyEmptyState illustration="/mascot/redesign/rest.png"
+      <PageContainer className="rd-catalog"><JourneyEmptyState illustration={MASCOT.rest}
         title={t('direction.errorTitle')} body={error} actionLabel={t('common:retry')} onAction={() => refetch()} /></PageContainer>
     );
   }
 
   if (!direction) {
     return (
-      <PageContainer className="rd-catalog"><JourneyEmptyState illustration="/mascot/redesign/book.png"
+      <PageContainer className="rd-catalog"><JourneyEmptyState illustration={MASCOT.book}
         title={t('direction.notFoundTitle')} body="" actionLabel={t('common:backToResults')} onAction={() => navigate('/results')} /></PageContainer>
     );
   }
@@ -175,7 +176,7 @@ export function DirectionDetailView({ direction, goBack, children }: {
                 {t('direction.skillsSubjectsBody')}
               </Text>
             </div>
-            <img className="rd-direction-mascot" src="/mascot/redesign/notepad.png" width={100} height={110} alt="" />
+            <img className="rd-direction-mascot" src={MASCOT.notepad} width={100} height={110} alt="" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">

@@ -7,6 +7,7 @@ import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
 import { CATALOG_MILESTONES } from '@/shared/config/catalogMilestones';
 import { LikertScale } from '@/shared/ui/LikertScale';
 import { RiasecIcon } from '@/shared/ui/icons/RiasecIcon';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 export const LANDING_DURATION = Object.values(ASSESSMENT_PHASE_MINUTES).reduce((sum, minutes) => sum + minutes, 0);
 const SCALE = [1, 2, 3, 4, 5].map(value => ({ value, label: `landing:try.dot${value}` }));
@@ -96,7 +97,7 @@ export function LandingReportContents() {
     <div className="rd-report-contents">
       <div className="rd-report-promises" data-landing-reveal>
         {[MessageCircle, ShieldCheck].map((Icon, index) => <div key={index}><Icon size={23} aria-hidden="true" /><h3>{t(`report.fact${index + 1}Title`)}</h3><p>{t(`report.fact${index + 1}Desc`)}</p></div>)}
-        <img src="/mascot/redesign/notepad.png" alt="" width={1254} height={1254} loading="lazy" />
+        <img src={MASCOT.notepad} alt="" width={1254} height={1254} loading="lazy" />
       </div>
       <div className="rd-report-content-grid">{REPORT_ICONS.map((Icon, index) => <article key={index} data-landing-reveal data-reveal-order={index % 2}>
         <div><span>0{index + 1}</span><Icon size={20} aria-hidden="true" /></div>
@@ -117,7 +118,7 @@ export function LandingDemo({ onOpenExample }: { onOpenExample: () => void }) {
     </div>
     <div className="rd-teaser-preview"><div className="rd-teaser-window" aria-hidden="true"><i /><i /><i /><span>profile.</span></div>
       <div className="rd-teaser-body rd-demo-body" aria-live="polite">
-        <div className="rd-demo-title"><h3>{t(`demo.frame.${frame}.title`)}</h3><img src={`/mascot/redesign/${frame === 'results' ? 'celebrate' : frame === 'universities' ? 'graduate' : 'notepad'}.png`} alt="" width={1254} height={1254} loading="lazy" /></div>
+        <div className="rd-demo-title"><h3>{t(`demo.frame.${frame}.title`)}</h3><img src={MASCOT[frame === 'results' ? 'celebrate' : frame === 'universities' ? 'graduate' : 'notepad']} alt="" width={1254} height={1254} loading="lazy" /></div>
         {frame === 'results' ? <div className="rd-demo-rows">{DEMO_INTERESTS.map(([type, level]) => <div key={type} data-level={level}><RiasecIcon type={type} size={22} strokeWidth={level === 'high' ? 2.75 : 2.25} /><span className="rd-demo-interest"><span>{t(`results:riasecLabel.${type}`)}</span><em>{t(level === 'high' ? 'results:interestDetail.markHigh' : 'results:interestDetail.markMedium')}</em></span></div>)}</div>
           : <div className="rd-demo-rows">{[1, 2, 3].map(n => <div key={n}>{frame === 'universities' ? <GraduationCap size={19} aria-hidden="true" /> : n === 1 ? <Compass size={19} aria-hidden="true" /> : n === 2 ? <Map size={19} aria-hidden="true" /> : <Route size={19} aria-hidden="true" />}<span>{t(`redesign.demo.${frame}${n}`)}</span></div>)}</div>}
         <p className="rd-teaser-caption">{t('redesign.report.sample')}</p>

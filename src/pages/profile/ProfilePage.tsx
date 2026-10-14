@@ -4,6 +4,7 @@ import { JourneyEmptyState } from '@/shared/ui/JourneyEmptyState';
 import { useProfile } from './hooks/useProfile';
 import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { ProfileLedger } from './sections/ProfileLedger';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 export default function ProfilePage() {
   const { t } = useTranslation('profile');
@@ -14,8 +15,7 @@ export default function ProfilePage() {
       <StudentPageHeading title={t('redesign.title')} subtitle={t('redesign.subtitle')} />
       {!profile ? (
         <JourneyEmptyState
-          illustration="/mascot/redesign/notepad.png"
-          mascotState="waiting"
+          illustration={MASCOT.notepad}
           title={t('page.notFilledTitle')}
           body={t('page.notFilledBody')}
         />

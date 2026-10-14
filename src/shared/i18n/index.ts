@@ -1,31 +1,8 @@
-import i18next from 'i18next';
+import i18next, { type BackendModule } from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { claimReload, looksLikeStaleChunk } from '@/shared/lib/staleChunk';
 
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, readPersistedLocale, resolveLocale } from '@/shared/store/locale';
-
-import ruCommon from './locales/ru/common.json';
-import ruAuth from './locales/ru/auth.json';
-import ruOnboarding from './locales/ru/onboarding.json';
-import ruAssessment from './locales/ru/assessment.json';
-import ruResults from './locales/ru/results.json';
-import ruProfile from './locales/ru/profile.json';
-import ruErrors from './locales/ru/errors.json';
-import ruLanding from './locales/ru/landing.json';
-import ruAdmin from './locales/ru/admin.json';
-import ruPsychologist from './locales/ru/psychologist.json';
-import ruPsychReport from './locales/ru/psychReport.json';
-
-import kkCommon from './locales/kk/common.json';
-import kkAuth from './locales/kk/auth.json';
-import kkOnboarding from './locales/kk/onboarding.json';
-import kkAssessment from './locales/kk/assessment.json';
-import kkResults from './locales/kk/results.json';
-import kkProfile from './locales/kk/profile.json';
-import kkErrors from './locales/kk/errors.json';
-import kkLanding from './locales/kk/landing.json';
-import kkAdmin from './locales/kk/admin.json';
-import kkPsychologist from './locales/kk/psychologist.json';
-import kkPsychReport from './locales/kk/psychReport.json';
 
 // One namespace per product area. Mirror this list when adding a namespace, in
 // both locales, and in the parity check (KZ-211 / KZ-602). `admin` covers
@@ -46,34 +23,41 @@ export const NAMESPACES = [
   'psychReport',
 ] as const;
 
-const resources = {
-  ru: {
-    common: ruCommon,
-    auth: ruAuth,
-    onboarding: ruOnboarding,
-    assessment: ruAssessment,
-    results: ruResults,
-    profile: ruProfile,
-    errors: ruErrors,
-    landing: ruLanding,
-    admin: ruAdmin,
-    psychologist: ruPsychologist,
-    psychReport: ruPsychReport,
+/** Read only inside the staff cabinets — more than half of each catalog. */
+const STAFF_NAMESPACES = ['admin', 'psychologist', 'psychReport'] as const;
+const BASE_NAMESPACES = NAMESPACES.filter(
+  (ns) => !(STAFF_NAMESPACES as readonly string[]).includes(ns),
+);
+
+// Catalogs load on demand, two chunks per locale (vite.config manualChunks):
+// the base namespaces and the staff ones. A Russian-speaking visitor never
+// downloads Kazakh (and the other way round apart from the ru fallback), and
+// students and guests never download the staff namespaces. main.tsx waits
+// for `i18nReady` (the base catalog) before the first render; the staff
+// shells' lazy routes await `loadStaffCatalogs()` before theirs. A language
+// switch loads every namespace already in use before i18next flips to it.
+const catalogs = import.meta.glob<{ default: Record<string, unknown> }>('./locales/*/*.json');
+
+const lazyCatalogs: BackendModule = {
+  type: 'backend',
+  init() {},
+  read(language, namespace, callback) {
+    const load = catalogs[`./locales/${language}/${namespace}.json`];
+    if (!load) {
+      callback(null, {});
+      return;
+    }
+    load().then(
+      (module) => callback(null, module.default),
+      (error: Error) => {
+        // A tab from before a deploy asking for a catalog that is gone: reload
+        // once, as RouteErrorPage does for pages, instead of raw keys on screen.
+        if (looksLikeStaleChunk(error) && claimReload()) window.location.reload();
+        callback(error, null);
+      },
+    );
   },
-  kk: {
-    common: kkCommon,
-    auth: kkAuth,
-    onboarding: kkOnboarding,
-    assessment: kkAssessment,
-    results: kkResults,
-    profile: kkProfile,
-    errors: kkErrors,
-    landing: kkLanding,
-    admin: kkAdmin,
-    psychologist: kkPsychologist,
-    psychReport: kkPsychReport,
-  },
-} as const;
+};
 
 // Dev-only pseudo-locale: `?pseudo` in the URL wraps every resolved string in
 // ⟦…⟧, so a hardcoded (un-t()'d) string shows up bracket-less on screen. Runs
@@ -91,14 +75,13 @@ if (PSEUDO) {
   });
 }
 
-void i18next.use(initReactI18next).init({
-  resources,
+export const i18nReady = i18next.use(lazyCatalogs).use(initReactI18next).init({
   lng: resolveLocale(readPersistedLocale()),
   fallbackLng: DEFAULT_LOCALE,
   postProcess: PSEUDO ? ['pseudo'] : [],
   // ['ru', 'kk'] since KZ-603. `revert` that change to drop back to ['ru'].
   supportedLngs: [...SUPPORTED_LOCALES],
-  ns: [...NAMESPACES],
+  ns: [...BASE_NAMESPACES],
   defaultNS: 'common',
   // A missing kk key must render the ru string, never the key or "".
   returnEmptyString: false,
@@ -112,4 +95,8 @@ void i18next.use(initReactI18next).init({
     : undefined,
 });
 
-export { default as i18n } from 'i18next';
+/** Staff cabinets call this from their lazy routes, so their screens never
+ *  render — or suspend — before their namespaces are in. Idempotent. */
+export function loadStaffCatalogs(): Promise<void> {
+  return i18nReady.then(() => i18next.loadNamespaces([...STAFF_NAMESPACES]));
+}

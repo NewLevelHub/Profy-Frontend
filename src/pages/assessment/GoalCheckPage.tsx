@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
 import { ArrowRight, Award, Compass, Target } from 'lucide-react';
-import { JourneyCheckpoint } from '@/shared/ui';
+import { JourneyCheckpoint } from '@/shared/ui/redesign/JourneyCheckpoint';
 import { useGoalCheck, type GoalSuggestion } from './hooks/useGoalCheck';
 
 const SUGGESTION_ICONS = { career: Target, interest: Compass, strength: Award } as const;
