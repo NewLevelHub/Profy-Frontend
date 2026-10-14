@@ -48,8 +48,7 @@
     "progressAriaBelbin": "Топтық тесттің барысы",
     "questionOf": "Сұрақ: {{current}} / {{total}}",
     "subtestOf": "Субтест: {{current}} / {{total}}",
-    "sectionOf": "Бөлім: {{current}} / {{total}}",
-    "languageLocked": "Бұл тесттің тілі бекітілген — тапсырмалар таңдалған тілде ашылып қойған"
+    "sectionOf": "Бөлім: {{current}} / {{total}}"
   },
   "error": {
     "loadQuestions": "Сұрақтарды жүктеу мүмкін болмады. Қайта көр.",
