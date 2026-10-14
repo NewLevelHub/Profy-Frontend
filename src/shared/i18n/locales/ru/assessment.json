@@ -48,8 +48,7 @@
     "progressAriaBelbin": "Прогресс командного теста",
     "questionOf": "Вопрос {{current}} из {{total}}",
     "subtestOf": "Субтест {{current}} из {{total}}",
-    "sectionOf": "Раздел {{current}} из {{total}}",
-    "languageLocked": "Язык этого теста закреплён — его задания уже открыты на выбранном языке"
+    "sectionOf": "Раздел {{current}} из {{total}}"
   },
   "error": {
     "loadQuestions": "Не удалось загрузить вопросы. Попробуй ещё раз.",

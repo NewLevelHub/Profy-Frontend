@@ -11,6 +11,7 @@ import {
   useCountdown,
   type CountdownClockSync,
 } from '../hooks/useCountdown';
+import { remapAsturAnswers } from '../utils/remapAsturAnswers';
 import { LabilityChoiceGlyph, resolveLabilityGlyph } from './LabilityChoiceGlyph';
 
 interface LabilityRunnerProps {
@@ -24,9 +25,21 @@ interface LabilityRunnerProps {
   onSubmit: (payload: { answers: Record<string, AsturItemAnswer>; elapsed_ms: Record<string, number> }) => void;
 }
 
+/** Saved between reloads. Choices are kept as option positions, not texts:
+ *  a command's options are served in the same order in every language, so
+ *  a draft restored after a language switch (or one made in another tab)
+ *  never submits the language the screen no longer shows. */
 interface LabilityDraft {
-  timerVersion: 2;
+  timerVersion: 3;
   startedAt: string | null;
+  itemIndex: number;
+  /** Command position -> picked option position, `null` = skipped. */
+  picks: Record<string, number | null>;
+  elapsedMs: Record<string, number>;
+  itemStartedAt: string | null;
+}
+
+interface LabilityProgress {
   itemIndex: number;
   answers: Record<string, AsturItemAnswer>;
   elapsedMs: Record<string, number>;
@@ -37,10 +50,32 @@ function draftKey(runId: string) {
   return `profy-astur-lability:${runId}`;
 }
 
-function readDraft(runId: string, startedAt: string | null, itemCount: number): LabilityDraft {
-  const fresh = (): LabilityDraft => ({
-    timerVersion: 2,
-    startedAt,
+function toPicks(answers: Record<string, AsturItemAnswer>, items: AsturLabilityItem[]): LabilityDraft['picks'] {
+  return Object.fromEntries(
+    Object.entries(answers).map(([position, answer]) => [
+      position,
+      answer.status === 'answered' ? items[Number(position) - 1].options.indexOf(answer.value as string) : null,
+    ]),
+  );
+}
+
+/** `null` when a pick doesn't point at an option of the served command. */
+function fromPicks(picks: LabilityDraft['picks'], items: AsturLabilityItem[]): Record<string, AsturItemAnswer> | null {
+  const answers: Record<string, AsturItemAnswer> = {};
+  for (const [position, pick] of Object.entries(picks)) {
+    if (pick === null) {
+      answers[position] = { status: 'skipped', value: null };
+      continue;
+    }
+    const value = items[Number(position) - 1]?.options[pick];
+    if (value === undefined) return null;
+    answers[position] = { status: 'answered', value };
+  }
+  return answers;
+}
+
+function readDraft(runId: string, startedAt: string | null, items: AsturLabilityItem[]): LabilityProgress {
+  const fresh = (): LabilityProgress => ({
     itemIndex: 0,
     answers: {},
     elapsedMs: {},
@@ -55,16 +90,18 @@ function readDraft(runId: string, startedAt: string | null, itemCount: number): 
     if (!raw) return fresh();
     const saved = JSON.parse(raw) as LabilityDraft;
     if (
-      saved.timerVersion !== 2
+      saved.timerVersion !== 3
       || saved.startedAt !== startedAt
       || !Number.isInteger(saved.itemIndex)
       || saved.itemIndex < 0
-      || saved.itemIndex >= itemCount
-      || !saved.answers
+      || saved.itemIndex >= items.length
+      || !saved.picks
       || !saved.elapsedMs
       || (saved.itemStartedAt !== null && !Number.isFinite(Date.parse(saved.itemStartedAt)))
     ) return fresh();
-    return saved;
+    const answers = fromPicks(saved.picks, items);
+    if (!answers) return fresh();
+    return { itemIndex: saved.itemIndex, answers, elapsedMs: saved.elapsedMs, itemStartedAt: saved.itemStartedAt };
   } catch {
     return fresh();
   }
@@ -110,8 +147,8 @@ export function LabilityRunner({
 }: LabilityRunnerProps) {
   const { t } = useTranslation('assessment');
   const items = subtest.items as AsturLabilityItem[];
-  const initialRef = useRef<LabilityDraft | null>(null);
-  if (initialRef.current === null) initialRef.current = readDraft(runId, startedAt, items.length);
+  const initialRef = useRef<LabilityProgress | null>(null);
+  if (initialRef.current === null) initialRef.current = readDraft(runId, startedAt, items);
   const initial = initialRef.current;
   const [itemIndex, setItemIndex] = useState(initial.itemIndex);
   const [answers, setAnswers] = useState<Record<string, AsturItemAnswer>>(initial.answers);
@@ -121,6 +158,14 @@ export function LabilityRunner({
   const [lockedIndex, setLockedIndex] = useState<string | null>(
     initial.answers[String(initial.itemIndex + 1)] ? String(initial.itemIndex + 1) : null,
   );
+
+  // A language switch serves the same commands again in the other language:
+  // carry the committed choices over by position (see SubtestRunner).
+  const [shownSubtest, setShownSubtest] = useState(subtest);
+  if (shownSubtest !== subtest) {
+    setShownSubtest(subtest);
+    if (shownSubtest.key === subtest.key) setAnswers((prev) => remapAsturAnswers(shownSubtest, subtest, prev));
+  }
 
   const item = items[itemIndex];
   const index = String(itemIndex + 1);
@@ -140,10 +185,10 @@ export function LabilityRunner({
     setElapsedMs(nextElapsed);
     try {
       sessionStorage.setItem(draftKey(runId), JSON.stringify({
-        timerVersion: 2,
+        timerVersion: 3,
         startedAt,
         itemIndex: isLast ? itemIndex : itemIndex + 1,
-        answers: nextAnswers,
+        picks: toPicks(nextAnswers, items),
         elapsedMs: nextElapsed,
         itemStartedAt: nextItemStartedAt,
       } satisfies LabilityDraft));

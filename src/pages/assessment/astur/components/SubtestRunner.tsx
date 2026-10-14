@@ -27,6 +27,7 @@ import {
   countAsturSkipped,
   isAsturItemDone,
 } from '../utils/asturAnswersComplete';
+import { remapAsturValues } from '../utils/remapAsturAnswers';
 import { McQuestion } from './McQuestion';
 import { PickTwoQuestion } from './PickTwoQuestion';
 import { OpenTextQuestion } from './OpenTextQuestion';
@@ -197,6 +198,17 @@ export function SubtestRunner({
   const [instructionOpen, setInstructionOpen] = useState(false);
   const instructionId = useId();
   const submittedRef = useRef(false);
+
+  // A language switch serves this same subtest again in the other language:
+  // carry the picks over by position before anything renders with them, so
+  // the chosen options stay selected on screen. The timer keeps running.
+  const [shownSubtest, setShownSubtest] = useState(subtest);
+  if (shownSubtest !== subtest) {
+    setShownSubtest(subtest);
+    if (shownSubtest.key === subtest.key) {
+      setState((prev) => ({ ...prev, values: remapAsturValues(shownSubtest, subtest, prev.values) }));
+    }
+  }
 
   const pageSize = pageSizeFor(subtest);
   const pageCount = Math.max(1, Math.ceil(subtest.items.length / pageSize));

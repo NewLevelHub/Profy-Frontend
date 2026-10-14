@@ -410,7 +410,10 @@ export interface AsturContentSubtest {
   items: (AsturContentItem & { item_id: string })[];
 }
 
-/** Content of the bank version AND locale the attempt is pinned to (PRO-427). */
+/** Content of the bank version the attempt is pinned to (PRO-427), in the
+ *  current language — the language can be switched mid-attempt. Lists are
+ *  served in the same order in every language, so an in-progress answer
+ *  carries over to the other language by position. */
 export interface AsturContent {
   run_id: string;
   bank_version: number;
@@ -425,7 +428,7 @@ export interface AsturRunSummary {
   run_id: string;
   status: AsturRunStatus;
   bank_version: number;
-  /** Language the attempt's items and keys are pinned to. */
+  /** Language the attempt was opened in; answers are accepted in either. */
   locale: string;
   created_at: string;
   completed_at: string | null;

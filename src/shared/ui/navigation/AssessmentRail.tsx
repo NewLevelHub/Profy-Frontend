@@ -40,10 +40,6 @@ export interface AssessmentRailProps {
    *  live status for the header (АСТУР's countdown) portals it in here, so
    *  the state stays with the screen instead of being lifted to the page. */
   statusSlotRef?: (el: HTMLDivElement | null) => void;
-  /** Set when this screen's content can't follow a language switch (АСТУР
-   *  pins its items to the attempt's language). The switcher stays visible
-   *  but disabled, with this as its tooltip. */
-  languageLockedReason?: string;
 }
 
 // The single collapsed rail used by every assessment-flow screen
@@ -69,7 +65,6 @@ export function AssessmentRail({
   devAutofillToMotivation,
   devAutofillToAstur,
   statusSlotRef,
-  languageLockedReason,
 }: AssessmentRailProps) {
   const { t } = useTranslation();
   const { soundEnabled, toggleSound } = useSoundEnabled();
@@ -128,7 +123,7 @@ export function AssessmentRail({
           </div>
           <div className="rd-assessment-controls">
             {statusSlotRef && <div ref={statusSlotRef} className="rd-assessment-status flex empty:hidden" />}
-            <LanguageSwitcher disabledReason={languageLockedReason} />
+            <LanguageSwitcher />
             <ThemeToggle />
             <button type="button" onClick={toggleSound} role="switch" aria-checked={soundEnabled}
               aria-label={soundLabel} title={soundLabel} className="rd-icon-button">

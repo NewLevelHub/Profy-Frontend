@@ -139,9 +139,11 @@ function withReset(run: AsturRunSummary, key: AsturSubtestKey, stateVersion: num
 /**
  * АСТУР attempt flow (PRO-338 Ф3.6, lifecycle PRO-427). The attempt is
  * opened first and its content comes back in the same response, pinned to
- * the attempt's bank version and language — items are never shown before
- * the attempt that scores them exists, and switching the app language
- * mid-attempt doesn't swap them. Every start/submit names the attempt
+ * the attempt's bank version — items are never shown before the attempt
+ * that scores them exists. The language is not pinned: a switch refetches
+ * the content in the new language (LocaleGate invalidates every query) and
+ * the runners carry in-progress picks over by position; the server accepts
+ * answers in either language. Every start/submit names the attempt
  * (`run_id`). Progress comes from the server (`submitted_subtests`), so a
  * reload or another device resumes exactly where the attempt stands. A
  * finished attempt is never extended or reopened.
@@ -160,7 +162,10 @@ export function useAsturAssessment(assessmentId: string) {
   const needsAttempt = attemptStatus === 'not_started' || attemptStatus === 'in_progress';
 
   const attemptQuery = useQuery({
-    // No locale in the key: the attempt's language is its own.
+    // No locale in the key: a language switch refetches this same entry
+    // (LocaleGate invalidates every query) and the old content stays on
+    // screen until the new one arrives, so a running subtest never unmounts
+    // and its answers are carried over instead of lost.
     queryKey: asturAttemptQueryKey(assessmentId),
     queryFn: () => asturApi.openAttempt(assessmentId),
     enabled: !!assessmentId && needsAttempt,
@@ -648,7 +653,12 @@ export function useAsturAssessment(assessmentId: string) {
       || (needsAttempt && attemptQuery.isLoading)
       || recoveringAbandonedSubtest
       || waitingForAbandonedRecovery,
-    loadError: stateQuery.isError || attemptQuery.isError || recoveryError ? t('astur.loadError') : null,
+    // Only a query with nothing to show is a load error. A failed background
+    // refetch (the one a language switch triggers) keeps the content already
+    // on screen — unmounting the runner would drop the subtest's answers.
+    loadError: (stateQuery.isError && !stateQuery.data) || (attemptQuery.isError && !attemptQuery.data) || recoveryError
+      ? t('astur.loadError')
+      : null,
     runId,
     completedAt: stateQuery.data?.latest_completed_run?.completed_at ?? null,
     showCompleted,
