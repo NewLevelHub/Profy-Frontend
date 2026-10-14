@@ -5,6 +5,7 @@ import { Text } from '@/shared/ui/typography/Text';
 import { type as typeClass } from '@/shared/ui/typography/tokens';
 import { cn } from '@/shared/lib/cn';
 import { AssessmentStageShell } from './AssessmentStageShell';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 export interface AssessmentIntroProps {
   illustrated?: boolean;
@@ -61,7 +62,7 @@ export function AssessmentIntro({
       animate
       contentClassName="rd-assessment-intro flex flex-col items-center gap-8 text-center !p-8 sm:!p-10"
     >
-      {illustrated && <img className="rd-assessment-intro-mascot" src="/mascot/redesign/book.png" alt="" width={152} height={152} />}
+      {illustrated && <img className="rd-assessment-intro-mascot" src={MASCOT.book} alt="" width={152} height={152} />}
       <div className="flex flex-col items-center gap-4">
         <span className="journey-kicker">{kicker}</span>
 

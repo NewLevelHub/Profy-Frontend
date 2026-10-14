@@ -1,7 +1,7 @@
 import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Pause } from 'lucide-react';
-import { JourneyCheckpoint } from '@/shared/ui';
+import { JourneyCheckpoint } from '@/shared/ui/redesign/JourneyCheckpoint';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import { Text } from '@/shared/ui/typography/Text';
 import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';

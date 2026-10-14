@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { Mono } from '@/shared/ui/typography/Mono';
 import { scrollToStudentSection } from '@/shared/ui/redesign/scrollToStudentSection';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 export interface IdentityRailSection {
   id: string;
@@ -34,7 +35,7 @@ export function IdentityRail({ displayName, age, grade, city, sections }: Identi
     <div className="rd-profile-identity">
       <div className="flex items-center gap-4 lg:flex-col lg:items-start lg:gap-4">
         <div className="rd-profile-avatar">
-          <img src="/mascot/redesign/greeting.png" alt="" width={120} height={140} />
+          <img src={MASCOT.greeting} alt="" width={120} height={140} />
         </div>
         <div className="min-w-0">
           <Heading level="display-sm" as="p" className="text-[color:var(--text-heading)] leading-tight wrap-anywhere">

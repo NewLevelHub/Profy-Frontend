@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/cn';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 import { Spine, type SpineNode } from '@/shared/ui/Spine';
 import '@/shared/ui/redesign/checkpoints.css';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 const MESSAGE_KEYS = ['resultLoading.msg1', 'resultLoading.msg2', 'resultLoading.msg3', 'resultLoading.msg4'];
 
@@ -19,7 +20,7 @@ export function ResultLoadingView({ className, fullPage = false }: { className?:
   }, []);
 
   const content = <div className={cn('rd-report-loading', className)} role="status" aria-live="polite" aria-atomic="true">
-    <img src="/mascot/redesign/book.png" alt="" width={200} height={200} />
+    <img src={MASCOT.book} alt="" width={200} height={200} />
     <div className="rd-loading-message"><LoaderCircle className="rd-loading-spinner" size={22} aria-hidden="true" /><MessageHeading>{t(MESSAGE_KEYS[messageIndex])}</MessageHeading></div>
     <Spine
       className="rd-loading-progress"

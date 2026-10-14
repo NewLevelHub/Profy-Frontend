@@ -6,6 +6,7 @@ import { CATALOG_MILESTONES } from '@/shared/config/catalogMilestones';
 import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
 import { formatNumber } from '@/shared/i18n/format';
 import { Brand } from './Brand';
+import { MASCOT } from './mascotArt';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { ThemeToggle } from '../ThemeToggle';
 import './redesign.css';
@@ -61,7 +62,7 @@ export function AuthShell({ children, page }: {
             </ul>
             {!isInvite && (
               <div className="rd-auth-companion auth-enter auth-enter-d5">
-                <img src={`/mascot/redesign/${isRegistration ? 'book' : 'greeting'}.png`} alt="" width="1254" height="1254" />
+                <img src={MASCOT[isRegistration ? 'book' : 'greeting']} alt="" width="1254" height="1254" />
                 <div><p>{t('redesign.stickerLine1')}<strong>{t('redesign.stickerLine2')}</strong></p></div>
               </div>
             )}

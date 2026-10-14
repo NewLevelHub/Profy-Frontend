@@ -7,6 +7,7 @@ import { StudentPageHeading } from '@/shared/ui/redesign/StudentPageHeading';
 import { useBackTo } from '@/shared/lib/useBackTo';
 import { useUniversityList } from '@/pages/results/hooks/useUniversityList';
 import { ProgramListSection } from '@/pages/results/components/ProgramListSection';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 export default function UniversityListPage() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function UniversityListPage() {
 
   if (!isAllowed) {
     return (
-      <PageContainer className="rd-catalog"><JourneyEmptyState illustration="/mascot/redesign/book.png"
+      <PageContainer className="rd-catalog"><JourneyEmptyState illustration={MASCOT.book}
         title={t('universityList.lockedTitle')} body={t('universityList.lockedBody')}
         actionLabel={t('common:backToResults')} onAction={() => navigate('/results')} /></PageContainer>
     );

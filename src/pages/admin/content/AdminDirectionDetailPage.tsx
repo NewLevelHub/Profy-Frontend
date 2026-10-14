@@ -217,7 +217,7 @@ export default function AdminDirectionDetailPage() {
             label={t('directions.field.nameLabel')}
             locked={locked.has('name')}
             revert={fieldRevert('name')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             hint={
               nameChanged ? (
                 <>
@@ -242,7 +242,7 @@ export default function AdminDirectionDetailPage() {
             label="Holland code"
             locked={locked.has('holland_code')}
             revert={fieldRevert('holland_code')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             error={hollandError}
             hint={hollandError ? undefined : t('directions.codeHintShort')}
           >
@@ -264,7 +264,7 @@ export default function AdminDirectionDetailPage() {
           label={t('directions.field.descriptionLabel')}
           locked={locked.has('description')}
           revert={fieldRevert('description')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
         >
           {({ id, describedBy }) => (
             <textarea
@@ -290,7 +290,7 @@ export default function AdminDirectionDetailPage() {
           label={t('directions.field.professionsLabel')}
           locked={locked.has('professions')}
           revert={fieldRevert('professions')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
         >
           <StringListEditor
             values={form.professions}
@@ -304,7 +304,7 @@ export default function AdminDirectionDetailPage() {
           label={t('directions.field.skillsLabel')}
           locked={locked.has('skills_needed')}
           revert={fieldRevert('skills_needed')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
         >
           <StringListEditor
             values={form.skills_needed}
@@ -317,7 +317,7 @@ export default function AdminDirectionDetailPage() {
           label={t('directions.field.subjectsLabel')}
           locked={locked.has('subjects_to_develop')}
           revert={fieldRevert('subjects_to_develop')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
         >
           <StringListEditor
             values={form.subjects_to_develop}
@@ -330,7 +330,7 @@ export default function AdminDirectionDetailPage() {
           label={t('directions.field.firstStepsLabel')}
           locked={locked.has('first_steps')}
           revert={fieldRevert('first_steps')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
           hint={t('directions.firstStepsHint')}
         >
           {/* `ordered` here and not on the lists above: the other three are

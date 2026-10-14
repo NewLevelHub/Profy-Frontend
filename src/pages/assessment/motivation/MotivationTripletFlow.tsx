@@ -49,7 +49,6 @@ export default function MotivationTripletFlow() {
 
       {/* ── Exit confirmation modal ─────────────────────────────────── */}
       <ExitAssessmentModal
-        redesigned
         title={t('redesign.motivationExitTitle')}
         body={t('redesign.motivationExitBody', { continueLabel: t('priority.continue') })}
         saveAndExitLabel={t('rail.exit')}

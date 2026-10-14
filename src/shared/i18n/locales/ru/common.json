@@ -10,7 +10,6 @@
   "cancel": "Отмена",
   "goHome": "На главную",
   "reloadPage": "Обновить страницу",
-  "pageInDevelopment": "Страница в разработке",
   "yes": "Да",
   "no": "Нет",
   "emptyValue": "—",
@@ -36,28 +35,6 @@
     "enable": "Включить звук",
     "disable": "Выключить звук"
   },
-  "celebrationSound": {
-    "chime": {
-      "label": "Колокольчик",
-      "desc": "Два лёгких нотных удара"
-    },
-    "sparkle": {
-      "label": "Искры",
-      "desc": "Быстрое восходящее мелодичное «та-да»"
-    },
-    "fanfare": {
-      "label": "Фанфары",
-      "desc": "Торжественная короткая фанфара"
-    },
-    "soft": {
-      "label": "Мягкое",
-      "desc": "Спокойный однотонный аккорд"
-    },
-    "party": {
-      "label": "Праздник",
-      "desc": "Весёлая быстрая последовательность"
-    }
-  },
   "otp": {
     "cellLabel": "Цифра {{index}} из {{total}}"
   },
@@ -79,35 +56,6 @@
   },
   "favoriteAdd": "Добавить в избранное",
   "favoriteRemove": "Убрать из избранного",
-  "mascot": {
-    "welcome": "Маскот Profile · приветствие",
-    "transition": "Маскот Profile · переход между блоками",
-    "rest": "Маскот Profile · привал",
-    "completion": "Маскот Profile · завершение",
-    "waiting": "Маскот Profile · ожидание",
-    "pause": "Маскот Profile · пауза",
-    "graduate": "Маскот Profile · университет",
-    "doctor": "Маскот Profile · врач",
-    "engineer": "Маскот Profile · инженер",
-    "developer": "Маскот Profile · программист",
-    "chemist": "Маскот Profile · химик",
-    "artist": "Маскот Profile · художник",
-    "musician": "Маскот Profile · музыкант",
-    "chef": "Маскот Profile · повар",
-    "architect": "Маскот Profile · архитектор",
-    "footballer": "Маскот Profile · футболист",
-    "pilot": "Маскот Profile · пилот",
-    "photographer": "Маскот Profile · фотограф",
-    "lawyer": "Маскот Profile · юрист",
-    "vet": "Маскот Profile · ветеринар",
-    "gardener": "Маскот Profile · садовник",
-    "actor": "Маскот Profile · актёр",
-    "journalist": "Маскот Profile · журналист",
-    "gamer": "Маскот Profile · геймер",
-    "baker": "Маскот Profile · пекарь",
-    "astronomer": "Маскот Profile · астроном",
-    "entrepreneur": "Маскот Profile · предприниматель"
-  },
   "toHome": "На главную",
   "examLabel": {
     "ielts": "IELTS",
@@ -136,5 +84,10 @@
       "users": "PDF списка",
       "assessment": "PDF диагностики"
     }
+  },
+  "unsavedChanges": {
+    "warning": "Изменения не сохранены. Уйти со страницы?",
+    "leave": "Уйти",
+    "stay": "Остаться"
   }
 }

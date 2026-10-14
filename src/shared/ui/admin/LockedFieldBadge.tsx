@@ -16,15 +16,10 @@ import { MONO_LABEL } from '@/shared/ui/admin/density';
  * that, and the label is visible text rather than an icon whose meaning lives
  * only in a tooltip.
  */
-export function LockedFieldBadge({ reason }: { reason?: string }) {
+export function LockedFieldBadge({ reasonKey = 'badge.lockedReason' }: { reasonKey?: string }) {
   const { t } = useTranslation('admin');
   return (
-    <Tooltip
-      content={
-        reason ??
-        t('badge.lockedReason')
-      }
-    >
+    <Tooltip content={t(reasonKey)}>
       <span
         tabIndex={0}
         className={cn(

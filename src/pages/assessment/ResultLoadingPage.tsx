@@ -7,7 +7,7 @@ import { useLocaleStore } from '@/shared/store/locale';
 import { apiErrorCode } from '@/shared/api/client';
 import { isPendingReview, resultApi } from '@/shared/api/result';
 import { playBlockFinishAudio } from '@/shared/lib/sounds';
-import { JourneyCheckpoint } from '@/shared/ui';
+import { JourneyCheckpoint } from '@/shared/ui/redesign/JourneyCheckpoint';
 import { ResultLoadingView } from './components/ResultLoadingView';
 
 export default function ResultLoadingPage() {

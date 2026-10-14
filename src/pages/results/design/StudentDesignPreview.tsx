@@ -19,6 +19,7 @@ import { studentFixtures } from './studentFixtures';
 import '@/shared/ui/redesign/redesign.css';
 import '@/shared/ui/redesign/student.css';
 import '@/shared/ui/redesign/journey.css';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 const VIEWS = ['report', 'explore', 'notStarted', 'inProgress', 'completed', 'error', 'profile', 'scores'] as const;
 type View = typeof VIEWS[number];
@@ -67,7 +68,7 @@ export default function StudentDesignPreview() {
         {view === 'notStarted' && <AssessmentNotStartedCard onStart={() => select('inProgress')} />}
         {view === 'inProgress' && <AssessmentInProgressCard completedPhaseCount={2} totalPhaseCount={4} progress={64} currentPhase="belbin" onContinue={() => select('completed')} />}
         {view === 'completed' && <AssessmentCompletedCard onOpenProfile={() => select('profile')} onOpenUniversities={() => navigate('/design/universities')} />}
-        {view === 'error' && <JourneyEmptyState illustration="/mascot/redesign/rest.png" title={t('results:error.somethingWrong')} body={t('results:error.loadResults')} actionLabel={t('common:retry')} onAction={() => select('report')} />}
+        {view === 'error' && <JourneyEmptyState illustration={MASCOT.rest} title={t('results:error.somethingWrong')} body={t('results:error.loadResults')} actionLabel={t('common:retry')} onAction={() => select('report')} />}
         {view === 'profile' && <div className="rd-profile"><StudentPageHeading title={t('profile:redesign.title')} subtitle={t('profile:redesign.subtitle')} />
           <ProfileLedgerView persistLocale={false} model={model} sound={{ soundEnabled, toggleSound: () => setSoundEnabled(value => !value), prefersReducedMotion: false }} />
         </div>}

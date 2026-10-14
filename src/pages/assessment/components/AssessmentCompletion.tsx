@@ -1,5 +1,6 @@
 import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
 interface AssessmentCompletionProps {
   title: string;
@@ -13,7 +14,7 @@ export function AssessmentCompletion({ title, message, action, onContinue }: Ass
   return (
     <section className="rd-assessment-completion">
       <div className="rd-assessment-completion-art" aria-hidden="true">
-        <img src="/mascot/redesign/celebrate.png" alt="" width={180} height={180} />
+        <img src={MASCOT.celebrate} alt="" width={180} height={180} />
         <span><Check size={18} /></span>
       </div>
       <h1>{title}</h1>

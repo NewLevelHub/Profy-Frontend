@@ -1,17 +1,4 @@
 {
-  "artifactType": {
-    "hobby": "Хобби",
-    "club": "Кружок / секция",
-    "sport": "Спорт",
-    "achievement": "Достижение",
-    "goal": "Цель",
-    "book": "Книга",
-    "game": "Игра",
-    "topic": "Тема, которая интересует",
-    "profession": "Профессия мечты",
-    "university": "Желаемый университет",
-    "dream": "Мечта"
-  },
   "progress": {
     "step": "Шаг {{current}} из {{total}}"
   },
@@ -88,24 +75,13 @@
   },
   "artifacts": {
     "editTitle": "Твои увлечения и цели",
-    "editSubtitle": "Расскажи, чем занимаешься и о чём мечтаешь",
-    "tablistAria": "Группы артефактов",
     "saveFailed": "Не удалось сохранить. Попробуй ещё раз.",
     "done": "Готово",
-    "nextGroup": "Дальше",
     "skipGroup": "Пропустить эту группу",
-    "groupCounter": "Группа {{current}} из {{total}}",
     "addCustom": "+ своё",
     "customPlaceholder": "Своё",
     "dreamsPlaceholder": "Например: хочу однажды поехать на настоящие раскопки",
     "dreamsCounter": "{{current}} / {{max}}",
-    "tab": {
-      "activities": "01 чем занимаешься",
-      "achievements": "02 может, уже было",
-      "professions": "03 что нравится",
-      "targets": "04 о чём думаешь",
-      "dreams": "05 мечты и цели"
-    },
     "section": {
       "activitiesHeadline": "Чем занимаешься помимо школы?",
       "activitiesNote": "Хобби, кружки и секции — выбери всё, что подходит",

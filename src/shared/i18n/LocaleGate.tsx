@@ -114,19 +114,26 @@ export function LocaleGate() {
   // Apply the (clamped) locale to i18next and the document.
   useEffect(() => {
     const active = resolveLocale(locale);
-    if (i18next.language !== active) {
-      void i18next.changeLanguage(active);
-    }
-    document.documentElement.lang = active;
-
-    const previous = appliedLocaleRef.current;
-    appliedLocaleRef.current = active;
-    if (previous !== null && previous !== active) {
-      document.documentElement.classList.add('locale-crossfade');
-      window.setTimeout(() => {
-        document.documentElement.classList.remove('locale-crossfade');
-      }, 280);
-    }
+    let cancelled = false;
+    // The other locale's catalog may still be loading (it is a lazy chunk):
+    // mark the document and run the crossfade once the text actually swaps.
+    const apply = () => {
+      if (cancelled) return;
+      document.documentElement.lang = active;
+      const previous = appliedLocaleRef.current;
+      appliedLocaleRef.current = active;
+      if (previous !== null && previous !== active) {
+        document.documentElement.classList.add('locale-crossfade');
+        window.setTimeout(() => {
+          document.documentElement.classList.remove('locale-crossfade');
+        }, 280);
+      }
+    };
+    if (i18next.language !== active) void i18next.changeLanguage(active).then(apply);
+    else apply();
+    return () => {
+      cancelled = true;
+    };
   }, [locale]);
 
   // University / program names and descriptions, the direction catalog,

@@ -1,310 +1,250 @@
-import { createBrowserRouter, Navigate } from 'react-router';
-import { Spinner } from '@/shared/ui/Spinner';
+import type { ComponentType } from 'react';
+import { createBrowserRouter, Navigate, redirect } from 'react-router';
+import { FullPageSpinner } from '@/shared/ui/Spinner';
+import RouteErrorPage from '@/pages/errors/RouteErrorPage';
+import { loadStaffCatalogs } from '@/shared/i18n';
 
 import { RequireAuth } from '@/shared/guards/RequireAuth';
-import { RequireAdmin } from '@/shared/guards/RequireAdmin';
-import { RequirePsychologist } from '@/shared/guards/RequirePsychologist';
+import { RequireRole } from '@/shared/guards/RequireRole';
 import { RequireStudent } from '@/shared/guards/RequireStudent';
 import { RequireGuest } from '@/shared/guards/RequireGuest';
 import { RequireProfile } from '@/shared/guards/RequireProfile';
 import { AppLayout } from '@/shared/ui/layouts/AppLayout';
+import { StudentRail } from '@/shared/ui/navigation/StudentRail';
 import { AuthLayout } from '@/shared/ui/layouts/AuthLayout';
 import { AdminLayout } from '@/shared/ui/layouts/AdminLayout';
-import { AdminContentLayout } from '@/shared/ui/layouts/AdminContentLayout';
 
-// ── Landing (публичный корень) ───────────────────────────────────────────────
-import LandingPage from '@/pages/landing/LandingPage';
-
-// ── Auth (mobile: AuthNavigator) ──────────────────────────────────────────────
-import LoginPage from '@/pages/auth/LoginPage';
-import RegisterPage from '@/pages/auth/RegisterPage';
-import VerifyEmailPage from '@/pages/auth/VerifyEmailPage';
-import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
-import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
-// Web-only: staff accept an email invitation (PRO-465).
-import InvitePage from '@/pages/auth/invite/InvitePage';
-
-// ── Onboarding flow (mobile: Welcome → ProfileSetup → ArtifactsSetup) ─────────
-import WelcomePage from '@/pages/onboarding/WelcomePage';
-import ProfileSetupPage from '@/pages/onboarding/ProfileSetupPage';
-import ArtifactsSetupPage from '@/pages/onboarding/ArtifactsSetupPage';
-
-// ── Assessment flow (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
-import GoalSelectionPage from '@/pages/assessment/GoalSelectionPage';
-import GoalCheckPage from '@/pages/assessment/GoalCheckPage';
-import AssessmentPage from '@/pages/assessment/AssessmentPage';
-import MotivationTripletFlow from '@/pages/assessment/motivation/MotivationTripletFlow';
-import PsychoColorStartPage from '@/pages/assessment/psychoemotional/PsychoColorStartPage';
-import PsychoEmotionalPage from '@/pages/assessment/psychoemotional/PsychoEmotionalPage';
-import RestStopPage from '@/pages/assessment/RestStopPage';
-import ResultLoadingPage from '@/pages/assessment/ResultLoadingPage';
-// PRO-338 Ф2.6 — Belbin BTRSPI: own route outside this flow, launched only
-// from the psychologist cabinet (see 03-Фаза2-Белбин.md Ф2.6/Ф0.8).
-import BelbinPage from '@/pages/assessment/belbin/BelbinPage';
-// PRO-338 Ф3.6 — АСТУР: same pattern as Belbin above (04-Фаза3-АСТУР.md Ф3.6).
-import AsturPage from '@/pages/assessment/astur/AsturPage';
-
-// ── Main tabs (mobile: Home | Result | Profile) ───────────────────────────────
-import ResultsPage from '@/pages/results/ResultsPage';
-import ResultPrintPage from '@/pages/results/print/ResultPrintPage';
-import ProfilePage from '@/pages/profile/ProfilePage';
-import CertificatesEditPage from '@/pages/profile/certificates/CertificatesEditPage';
-
-// ── Detail screens (mobile: App stack) ───────────────────────────────────────
-import DirectionDetailPage from '@/pages/results/DirectionDetailPage';
-import UniversityListPage from '@/pages/results/UniversityListPage';
-import ProgramDetailPage from '@/pages/results/ProgramDetailPage';
-import UniversitiesPage from '@/pages/universities/UniversitiesPage';
-import UniversityDetailPage from '@/pages/universities/UniversityDetailPage';
-
-// ── Admin ─────────────────────────────────────────────────────────────────────
-import AdminUsersPage from '@/pages/admin/AdminUsersPage';
-import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
-import AdminInvitationsPage from '@/pages/admin/invitations/AdminInvitationsPage';
-import AdminFeedbackPage from '@/pages/admin/AdminFeedbackPage';
-import AdminUniversitiesPage from '@/pages/admin/AdminUniversitiesPage';
-import AdminUniversityDetailPage from '@/pages/admin/AdminUniversityDetailPage';
-import AdminProgramDetailPage from '@/pages/admin/AdminProgramDetailPage';
-import AdminQuestionsPage from '@/pages/admin/content/AdminQuestionsPage';
-import AdminQuestionDetailPage from '@/pages/admin/content/AdminQuestionDetailPage';
-import AdminQuestionPairsPage from '@/pages/admin/content/AdminQuestionPairsPage';
-import AdminQuestionPairDetailPage from '@/pages/admin/content/AdminQuestionPairDetailPage';
-import AdminMotivationStatementsPage from '@/pages/admin/content/AdminMotivationStatementsPage';
-import AdminMotivationStatementDetailPage from '@/pages/admin/content/AdminMotivationStatementDetailPage';
-import AdminDirectionsPage from '@/pages/admin/content/AdminDirectionsPage';
-import AdminDirectionDetailPage from '@/pages/admin/content/AdminDirectionDetailPage';
-import AdminAsturVersionsPage from '@/pages/admin/content/astur/AdminAsturVersionsPage';
-import AdminAsturVersionPage from '@/pages/admin/content/astur/AdminAsturVersionPage';
-import AdminAsturAnalyticsPage from '@/pages/admin/content/astur/AdminAsturAnalyticsPage';
-import AdminBelbinEditorPage from '@/pages/admin/content/AdminBelbinEditorPage';
-
-// ── Psychologist cabinet ──────────────────────────────────────────────────────
-import PsychologistStudentsPage from '@/pages/psychologist/PsychologistStudentsPage';
-import PsychologistStudentDetailPage from '@/pages/psychologist/PsychologistStudentDetailPage';
-import PsychologistReportPage from '@/pages/psychologist/PsychologistReportPage';
-import PsychologistReviewQueuePage from '@/pages/psychologist/PsychologistReviewQueuePage';
-import PsychologistResultReviewPage from '@/pages/psychologist/PsychologistResultReviewPage';
-import PsychologistReportHistoryPage from '@/pages/psychologist/PsychologistReportHistoryPage';
-
-// ── Errors ────────────────────────────────────────────────────────────────────
-import NotFoundPage from '@/pages/errors/NotFoundPage';
-
-export const router = createBrowserRouter([
-  // Local design review uses fixtures and never calls assessment APIs.
-  ...(import.meta.env.DEV ? [{
-    path: '/design/finishing',
-    HydrateFallback: Spinner,
-    lazy: async () => ({ Component: (await import('@/pages/assessment/design/FinishingDesignPreview')).default }),
-  }, {
-    path: '/design/assessment',
-    HydrateFallback: Spinner,
-    lazy: async () => ({ Component: (await import('@/pages/assessment/design/AssessmentDesignPreview')).default }),
-  }, {
-    path: '/design/special-assessments',
-    HydrateFallback: Spinner,
-    lazy: async () => ({ Component: (await import('@/pages/assessment/design/SpecialAssessmentDesignPreview')).default }),
-  }, {
-    path: '/design/student',
-    HydrateFallback: Spinner,
-    lazy: async () => ({ Component: (await import('@/pages/results/design/StudentDesignPreview')).default }),
-  }, {
-    path: '/design/universities',
-    HydrateFallback: Spinner,
-    lazy: async () => ({ Component: (await import('@/pages/universities/design/CatalogDesignPreview')).default }),
-  }] : []),
-  // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
-  {
-    element: <RequireGuest />,
-    children: [
-      // Корень отдаёт посадочную страницу. Отдельного редиректа на /results
-      // здесь больше нет: RequireGuest сам уводит вошедшего в приложение, а
-      // гость видит лендинг — то есть «/» ведёт себя по-разному для разных
-      // посетителей, чего статический Navigate не умел.
-      { path: '/', element: <LandingPage /> },
-      {
-        element: <AuthLayout />,
-        children: [
-          { path: '/login', element: <LoginPage /> },
-          { path: '/register', element: <RegisterPage /> },
-          { path: '/verify-email', element: <VerifyEmailPage /> },
-          { path: '/forgot-password', element: <ForgotPasswordPage /> },
-          { path: '/reset-password', element: <ResetPasswordPage /> },
-        ],
-      },
-    ],
+/**
+ * Every page is its own chunk, fetched when its route matches; guards and
+ * the student/auth layouts stay in the entry bundle. The staff shells
+ * (AdminArea, PsychologistArea) are lazy too, so their navigation and
+ * stylesheets don't ship to students. A guest no longer downloads the admin panel, and a
+ * student no longer downloads the psychologist cabinet.
+ */
+const page = (load: () => Promise<{ default: ComponentType }>, before?: () => Promise<unknown>) => ({
+  lazy: async () => {
+    const [module] = await Promise.all([load(), before?.()]);
+    return { Component: module.default };
   },
+});
 
-  // ── Staff invitation (web-only) ─────────────────────────────────────────────
-  // Outside RequireGuest on purpose: a signed-in visitor must see whose
-  // session would be replaced instead of being silently sent to a cabinet,
-  // and the page itself decides when to sign in after Google.
-  {
-    element: <AuthLayout />,
-    children: [{ path: '/invite', element: <InvitePage /> }],
-  },
+/** Staff cabinets (and the DEV previews that render their parts) also wait
+ *  for the staff translation namespaces, which students never download. */
+const staffPage = (load: () => Promise<{ default: ComponentType }>) => page(load, loadStaffCatalogs);
 
-  // ── Authenticated (mobile: AppNavigator) ───────────────────────────────────
-  {
-    element: <RequireAuth />,
-    children: [
-      // Staff cabinets — outside RequireProfile: staff have no student Profile
-      // and student APIs would 403 them. Gated by role alone.
-      {
-        element: <RequirePsychologist />,
-        children: [
-          {
-            element: <AppLayout psychologist />,
-            children: [
-              // The review queue is the cabinet's front page (it's where work starts).
-              { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
-              { path: '/psychologist/students', element: <PsychologistStudentsPage /> },
-              {
-                path: '/psychologist/students/:studentId',
-                element: <PsychologistStudentDetailPage />,
-              },
-              {
-                path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
-                element: <PsychologistReportPage />,
-              },
-              {
-                path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
-                element: <PsychologistReportHistoryPage />,
-              },
-              { path: '/psychologist/reviews', element: <PsychologistReviewQueuePage /> },
-              {
-                path: '/psychologist/students/:studentId/results/:assessmentId/review',
-                element: <PsychologistResultReviewPage />,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        element: <RequireAdmin />,
-        children: [
-          {
-            // Dedicated admin navigation; keeps the shared scroll restoration.
-            element: <AppLayout admin />,
-            children: [
-              { path: '/admin', element: <Navigate to="/admin/users" replace /> },
-              {
-                element: <AdminLayout />,
-                children: [
-                  { path: '/admin/users', element: <AdminUsersPage /> },
-                  { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
-                  { path: '/admin/invitations', element: <AdminInvitationsPage /> },
-                  { path: '/admin/feedback', element: <AdminFeedbackPage /> },
-                  { path: '/admin/universities', element: <AdminUniversitiesPage /> },
-                  { path: '/admin/universities/:universityId', element: <AdminUniversityDetailPage /> },
-                  { path: '/admin/programs/:programId', element: <AdminProgramDetailPage /> },
-                  {
-                    path: '/admin/content',
-                    element: <AdminContentLayout />,
-                    children: [
-                      { index: true, element: <Navigate to="/admin/content/questions" replace /> },
-                      { path: 'questions', element: <AdminQuestionsPage /> },
-                      { path: 'questions/:questionId', element: <AdminQuestionDetailPage /> },
-                      { path: 'question-pairs', element: <AdminQuestionPairsPage /> },
-                      { path: 'question-pairs/:pairId', element: <AdminQuestionPairDetailPage /> },
-                      { path: 'motivation-statements', element: <AdminMotivationStatementsPage /> },
-                      { path: 'motivation-statements/:statementId', element: <AdminMotivationStatementDetailPage /> },
-                      { path: 'directions', element: <AdminDirectionsPage /> },
-                      { path: 'directions/:directionId', element: <AdminDirectionDetailPage /> },
-                      { path: 'belbin', element: <AdminBelbinEditorPage /> },
-                      { path: 'tests', element: <AdminAsturVersionsPage /> },
-                      { path: 'tests/versions/:versionId', element: <AdminAsturVersionPage /> },
-                      { path: 'tests/versions/:versionId/analytics', element: <AdminAsturAnalyticsPage /> },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
+export const router = createBrowserRouter([{
+  // Pathless root: one error boundary and one first-load fallback for the
+  // whole tree. Without an errorElement react-router shows its own bare
+  // «Unexpected Application Error!» instead of our screen.
+  errorElement: <RouteErrorPage />,
+  HydrateFallback: FullPageSpinner,
+  children: [
+    // Local design review uses fixtures and never calls assessment APIs.
+    ...(import.meta.env.DEV ? [
+      { path: '/design/finishing', ...staffPage(() => import('@/pages/assessment/design/FinishingDesignPreview')) },
+      { path: '/design/assessment', ...staffPage(() => import('@/pages/assessment/design/AssessmentDesignPreview')) },
+      { path: '/design/special-assessments', ...staffPage(() => import('@/pages/assessment/design/SpecialAssessmentDesignPreview')) },
+      { path: '/design/student', ...staffPage(() => import('@/pages/results/design/StudentDesignPreview')) },
+      { path: '/design/universities', ...staffPage(() => import('@/pages/universities/design/CatalogDesignPreview')) },
+    ] : []),
+    // ── Guest-only (mobile: AuthNavigator) ─────────────────────────────────────
+    {
+      element: <RequireGuest />,
+      children: [
+        // Корень отдаёт посадочную страницу. Отдельного редиректа на /results
+        // здесь больше нет: RequireGuest сам уводит вошедшего в приложение, а
+        // гость видит лендинг — то есть «/» ведёт себя по-разному для разных
+        // посетителей, чего статический Navigate не умел.
+        { path: '/', ...page(() => import('@/pages/landing/LandingPage')) },
+        {
+          element: <AuthLayout />,
+          children: [
+            { path: '/login', ...page(() => import('@/pages/auth/LoginPage')) },
+            { path: '/register', ...page(() => import('@/pages/auth/RegisterPage')) },
+            { path: '/verify-email', ...page(() => import('@/pages/auth/VerifyEmailPage')) },
+            { path: '/forgot-password', ...page(() => import('@/pages/auth/ForgotPasswordPage')) },
+            { path: '/reset-password', ...page(() => import('@/pages/auth/ResetPasswordPage')) },
+          ],
+        },
+      ],
+    },
 
-      // Student-only surfaces — staff bounce to their cabinet home.
-      {
-        element: <RequireStudent />,
-        children: [
-          // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
-          { path: '/welcome', element: <WelcomePage /> },
-          { path: '/onboarding/profile', element: <ProfileSetupPage /> },
-          { path: '/onboarding/artifacts', element: <ArtifactsSetupPage /> },
+    // ── Staff invitation (web-only, PRO-465) ───────────────────────────────────
+    // Outside RequireGuest on purpose: a signed-in visitor must see whose
+    // session would be replaced instead of being silently sent to a cabinet,
+    // and the page itself decides when to sign in after Google.
+    {
+      element: <AuthLayout />,
+      children: [{ path: '/invite', ...page(() => import('@/pages/auth/invite/InvitePage')) }],
+    },
 
-          // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
-          { path: '/assessment/goal', element: <GoalSelectionPage /> },
-          { path: '/assessment', element: <AssessmentPage /> },
-          // Preserve old bookmarked/session URLs after pair questions moved
-          // into the unified assessment sequence.
-          { path: '/assessment/pairs', element: <Navigate to="/assessment" replace /> },
-          { path: '/assessment/motivation', element: <MotivationTripletFlow /> },
-          { path: '/assessment/psychoemotional-start', element: <PsychoColorStartPage /> },
-          { path: '/assessment/psychoemotional', element: <PsychoEmotionalPage /> },
-          { path: '/assessment/rest', element: <RestStopPage /> },
-          { path: '/assessment/loading', element: <ResultLoadingPage /> },
-          { path: '/assessment/goal-check', element: <GoalCheckPage /> },
+    // ── Authenticated (mobile: AppNavigator) ───────────────────────────────────
+    {
+      element: <RequireAuth />,
+      children: [
+        // Staff cabinets — outside RequireProfile: staff have no student Profile
+        // and student APIs would 403 them. Gated by role alone.
+        // ── Psychologist cabinet ──
+        {
+          element: <RequireRole role="psychologist" />,
+          children: [
+            {
+              ...staffPage(() => import('@/shared/ui/layouts/PsychologistArea')),
+              children: [
+                // The review queue is the cabinet's front page (it's where work starts).
+                { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
+                { path: '/psychologist/students', ...page(() => import('@/pages/psychologist/PsychologistStudentsPage')) },
+                {
+                  path: '/psychologist/students/:studentId',
+                  ...page(() => import('@/pages/psychologist/PsychologistStudentDetailPage')),
+                },
+                {
+                  path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
+                  ...page(() => import('@/pages/psychologist/PsychologistReportPage')),
+                },
+                {
+                  path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
+                  ...page(() => import('@/pages/psychologist/PsychologistReportHistoryPage')),
+                },
+                { path: '/psychologist/reviews', ...page(() => import('@/pages/psychologist/PsychologistReviewQueuePage')) },
+                {
+                  path: '/psychologist/students/:studentId/results/:assessmentId/review',
+                  ...page(() => import('@/pages/psychologist/PsychologistResultReviewPage')),
+                },
+              ],
+            },
+          ],
+        },
+        // ── Admin ──
+        {
+          element: <RequireRole role="admin" />,
+          children: [
+            {
+              // Dedicated admin navigation; keeps the shared scroll restoration.
+              ...staffPage(() => import('@/shared/ui/layouts/AdminArea')),
+              children: [
+                { path: '/admin', element: <Navigate to="/admin/users" replace /> },
+                {
+                  element: <AdminLayout />,
+                  children: [
+                    { path: '/admin/users', ...page(() => import('@/pages/admin/AdminUsersPage')) },
+                    { path: '/admin/users/:userId', ...page(() => import('@/pages/admin/AdminUserDetailPage')) },
+                    { path: '/admin/invitations', ...page(() => import('@/pages/admin/invitations/AdminInvitationsPage')) },
+                    { path: '/admin/feedback', ...page(() => import('@/pages/admin/AdminFeedbackPage')) },
+                    { path: '/admin/universities', ...page(() => import('@/pages/admin/AdminUniversitiesPage')) },
+                    { path: '/admin/universities/:universityId', ...page(() => import('@/pages/admin/AdminUniversityDetailPage')) },
+                    { path: '/admin/programs/:programId', ...page(() => import('@/pages/admin/AdminProgramDetailPage')) },
+                    {
+                      // No layout of its own: the content sections live in the admin side rail.
+                      path: '/admin/content',
+                      children: [
+                        { index: true, element: <Navigate to="/admin/content/questions" replace /> },
+                        { path: 'questions', ...page(() => import('@/pages/admin/content/AdminQuestionsPage')) },
+                        { path: 'questions/:questionId', ...page(() => import('@/pages/admin/content/AdminQuestionDetailPage')) },
+                        { path: 'question-pairs', ...page(() => import('@/pages/admin/content/AdminQuestionPairsPage')) },
+                        { path: 'question-pairs/:pairId', ...page(() => import('@/pages/admin/content/AdminQuestionPairDetailPage')) },
+                        { path: 'motivation-statements', ...page(() => import('@/pages/admin/content/AdminMotivationStatementsPage')) },
+                        { path: 'motivation-statements/:statementId', ...page(() => import('@/pages/admin/content/AdminMotivationStatementDetailPage')) },
+                        { path: 'directions', ...page(() => import('@/pages/admin/content/AdminDirectionsPage')) },
+                        { path: 'directions/:directionId', ...page(() => import('@/pages/admin/content/AdminDirectionDetailPage')) },
+                        { path: 'belbin', ...page(() => import('@/pages/admin/content/AdminBelbinEditorPage')) },
+                        { path: 'tests', ...page(() => import('@/pages/admin/content/astur/AdminAsturVersionsPage')) },
+                        { path: 'tests/versions/:versionId', ...page(() => import('@/pages/admin/content/astur/AdminAsturVersionPage')) },
+                        { path: 'tests/versions/:versionId/analytics', ...page(() => import('@/pages/admin/content/astur/AdminAsturAnalyticsPage')) },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
 
-          // Assessment flow — Belbin & ASTUR follow Motivation directly
-          { path: '/assessment/belbin/:assessmentId', element: <BelbinPage /> },
-          { path: '/assessment/belbin', element: <BelbinPage /> },
-          { path: '/assessment/astur/:assessmentId', element: <AsturPage /> },
-          { path: '/assessment/astur', element: <AsturPage /> },
-          // Backward-compatibility aliases
-          { path: '/assessment/extended/belbin/:assessmentId', element: <BelbinPage /> },
-          { path: '/assessment/extended/astur/:assessmentId', element: <AsturPage /> },
+        // Student-only surfaces — staff bounce to their cabinet home.
+        {
+          element: <RequireStudent />,
+          children: [
+            // Onboarding flow — full-screen, no header (mobile: Welcome / ProfileSetup / ArtifactsSetup)
+            { path: '/welcome', ...page(() => import('@/pages/onboarding/WelcomePage')) },
+            { path: '/onboarding/profile', ...page(() => import('@/pages/onboarding/ProfileSetupPage')) },
+            { path: '/onboarding/artifacts', ...page(() => import('@/pages/onboarding/ArtifactsSetupPage')) },
 
-          // Main app — guarded by profile; redirects to /welcome if profile not yet created
-          {
-            element: <RequireProfile />,
-            children: [
-              // Chrome-free, own full-screen shell — same reasoning as
-              // /onboarding/artifacts's edit-mode branch: a focused edit screen,
-              // not a tab inside AppLayout. Sits under RequireProfile (unlike
-              // /onboarding/artifacts) because editing certificates only makes
-              // sense once a profile already exists.
-              { path: '/profile/certificates', element: <CertificatesEditPage /> },
-              // Printable/PDF result — chrome-free for the same reason: a
-              // document view, not a tab. Sits outside AppLayout so the nav
-              // rail never lands in the exported PDF.
-              { path: '/results/print', element: <ResultPrintPage /> },
-              {
-                element: <AppLayout />,
-                children: [
-                  { path: '/results', element: <ResultsPage /> },
-                  { path: '/profile', element: <ProfilePage /> },
+            // Assessment flow — full-screen wizard (mobile: GoalSelection → Assessment → RestStop → ResultLoading)
+            { path: '/assessment/goal', ...page(() => import('@/pages/assessment/GoalSelectionPage')) },
+            { path: '/assessment', ...page(() => import('@/pages/assessment/AssessmentPage')) },
+            // Preserve old bookmarked/session URLs after pair questions moved
+            // into the unified assessment sequence.
+            { path: '/assessment/pairs', element: <Navigate to="/assessment" replace /> },
+            { path: '/assessment/motivation', ...page(() => import('@/pages/assessment/motivation/MotivationTripletFlow')) },
+            { path: '/assessment/psychoemotional-start', ...page(() => import('@/pages/assessment/psychoemotional/PsychoColorStartPage')) },
+            { path: '/assessment/psychoemotional', ...page(() => import('@/pages/assessment/psychoemotional/PsychoEmotionalPage')) },
+            { path: '/assessment/rest', ...page(() => import('@/pages/assessment/RestStopPage')) },
+            { path: '/assessment/loading', ...page(() => import('@/pages/assessment/ResultLoadingPage')) },
+            { path: '/assessment/goal-check', ...page(() => import('@/pages/assessment/GoalCheckPage')) },
 
-                  // Standalone university catalogue (PRO-265) — a top-level tab,
-                  // deliberately outside /results: unlike the direction-scoped
-                  // picker below it needs no assessment and no senior gate.
-                  { path: '/universities', element: <UniversitiesPage /> },
-                  { path: '/universities/:universityId', element: <UniversityDetailPage /> },
+            // Assessment flow — Belbin & ASTUR (PRO-338 Ф2.6/Ф3.6) follow Motivation directly
+            { path: '/assessment/belbin/:assessmentId?', ...page(() => import('@/pages/assessment/belbin/BelbinPage')) },
+            { path: '/assessment/astur/:assessmentId?', ...page(() => import('@/pages/assessment/astur/AsturPage')) },
+            // Old links that psychologists handed out by hand before blocks
+            // were assigned in the cabinet (PRO-338) — same screens.
+            {
+              path: '/assessment/extended/:block/:assessmentId',
+              loader: ({ params }) => redirect(`/assessment/${params.block}/${params.assessmentId}`),
+            },
 
-                  // Detail screens (mobile: App stack over tabs)
-                  { path: '/results/directions/:slug', element: <DirectionDetailPage /> },
-                  { path: '/results/directions/:slug/universities', element: <UniversityListPage /> },
-                  {
-                    path: '/results/directions/:slug/universities/:programId',
-                    element: <ProgramDetailPage />,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
+            // Main app — guarded by profile; redirects to /onboarding/profile if it isn't created yet
+            {
+              element: <RequireProfile />,
+              children: [
+                // Chrome-free, own full-screen shell — same reasoning as
+                // /onboarding/artifacts's edit-mode branch: a focused edit screen,
+                // not a tab inside AppLayout. Sits under RequireProfile (unlike
+                // /onboarding/artifacts) because editing certificates only makes
+                // sense once a profile already exists.
+                { path: '/profile/certificates', ...page(() => import('@/pages/profile/certificates/CertificatesEditPage')) },
+                // Printable/PDF result — chrome-free for the same reason: a
+                // document view, not a tab. Sits outside AppLayout so the nav
+                // rail never lands in the exported PDF.
+                { path: '/results/print', ...page(() => import('@/pages/results/print/ResultPrintPage')) },
+                {
+                  element: <AppLayout area="student" rail={<StudentRail />} />,
+                  children: [
+                    // Main tabs (mobile: Home | Result | Profile)
+                    { path: '/results', ...page(() => import('@/pages/results/ResultsPage')) },
+                    { path: '/profile', ...page(() => import('@/pages/profile/ProfilePage')) },
 
-  // Единственный 404 на всё приложение.
-  //
-  // Раньше их было два: этот и такой же `*` внутри AppLayout. У обоих
-  // одинаковый путь, поэтому побеждал вложенный — а он лежит под
-  // RequireAuth и RequireProfile, и несуществующий адрес оборачивался
-  // не сообщением «страница не найдена», а редиректом: гостя уводило на
-  // /login, человека без профиля — на онбординг. Увидеть 404 мог только
-  // полностью настроенный пользователь. Один маршрут снаружи гвард даёт
-  // всем один и тот же честный ответ; выход с него NotFoundPage
-  // подбирает по тому, вошёл человек или нет.
-  { path: '*', element: <NotFoundPage /> },
-]);
+                    // Standalone university catalogue (PRO-265) — a top-level tab,
+                    // deliberately outside /results: unlike the direction-scoped
+                    // picker below it needs no assessment and no senior gate.
+                    { path: '/universities', ...page(() => import('@/pages/universities/UniversitiesPage')) },
+                    { path: '/universities/:universityId', ...page(() => import('@/pages/universities/UniversityDetailPage')) },
+
+                    // Detail screens (mobile: App stack over tabs)
+                    { path: '/results/directions/:slug', ...page(() => import('@/pages/results/DirectionDetailPage')) },
+                    { path: '/results/directions/:slug/universities', ...page(() => import('@/pages/results/UniversityListPage')) },
+                    {
+                      path: '/results/directions/:slug/universities/:programId',
+                      ...page(() => import('@/pages/results/ProgramDetailPage')),
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+
+    // Единственный 404 на всё приложение.
+    //
+    // Раньше их было два: этот и такой же `*` внутри AppLayout. У обоих
+    // одинаковый путь, поэтому побеждал вложенный — а он лежит под
+    // RequireAuth и RequireProfile, и несуществующий адрес оборачивался
+    // не сообщением «страница не найдена», а редиректом: гостя уводило на
+    // /login, человека без профиля — на онбординг. Увидеть 404 мог только
+    // полностью настроенный пользователь. Один маршрут снаружи гвард даёт
+    // всем один и тот же честный ответ; выход с него NotFoundPage
+    // подбирает по тому, вошёл человек или нет.
+    { path: '*', ...page(() => import('@/pages/errors/NotFoundPage')) },
+  ],
+}]);

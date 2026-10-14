@@ -8,60 +8,44 @@ import { ThinkingStyleMotivationSection } from './ThinkingStyleMotivationSection
 import { ExplorationActivitiesSection } from './ExplorationActivitiesSection';
 import { FinalAnalysisSection } from './FinalAnalysisSection';
 import { GoalBranchSection } from './GoalBranchSection';
-import { SpecialistSectionsBlock } from './psych/SpecialistSectionsBlock';
 
 interface ResultsReportBodyProps {
-  redesigned?: boolean;
   report: ResultResponse;
   ageGroup: AgeGroup | undefined;
   goal: AssessmentGoal | null | undefined;
-  /** Psychologist's view (PsychologistStudentReportPage): the "Направления
-   *  под цель" list is informational only there, not a doorway into the
-   *  student's own direction/university browsing flow — see
-   *  GoalBranchSection/ScenarioProfessional/DirectionMatchList. Defaults to
-   *  the student's normal, clickable behaviour. */
-  readOnly?: boolean;
 }
 
 /**
  * The report itself — every diagnostic section, in the TZ_Profi.md §18.2
- * order. Presentational: fed a `report` object, no data fetching. Shared by
- * the student's own ResultsPage and the psychologist's read-only view of a
- * student's report (PsychologistStudentReportPage), so both render an
- * identical body. Page chrome (header, "Скачать PDF", feedback) stays on the
- * pages, not here.
+ * order. Presentational: fed a `report` object, no data fetching. Page
+ * chrome (header, "Скачать PDF", feedback) stays on the page, not here.
+ * Section ids are the anchors of StudentReport's table of contents.
  *
- * The psych-block (psychoemotional) is gated server-side
- * (report_service.psych_sections_for → psychologist/admin only), so on the
- * student's page `hasPsych` is always false and nothing renders.
+ * The psych-block (psychoemotional) is not rendered here: the API includes
+ * it only for psychologist/admin (report_service.psych_sections_for), and
+ * the psychologist cabinet has its own report screens.
  */
-export function ResultsReportBody({ report, ageGroup, goal, readOnly = false, redesigned = false }: ResultsReportBodyProps) {
-  const psychSections = {
-    psychoemotional: report.psychoemotional ?? null,
-  };
-  const hasPsych = !!psychSections.psychoemotional;
-
+export function ResultsReportBody({ report, ageGroup, goal }: ResultsReportBodyProps) {
   return (
     <>
-      <ResultsReveal id={redesigned ? "report-summary" : undefined}>
+      <ResultsReveal id="report-summary">
         <SummaryCard summary={report.summary} disclaimer={report.disclaimer} />
       </ResultsReveal>
 
-      <ResultsReveal delay={1} id={redesigned ? "report-interests" : undefined}>
+      <ResultsReveal delay={1} id="report-interests">
         <InterestDomainSection
-          redesigned={redesigned}
           interestMap={report.interest_map}
           interestMapNote={report.interest_map_note}
           interestCombination={report.interest_instrument === 'riasec' ? report.interest_combination : null}
         />
       </ResultsReveal>
 
-      <ResultsReveal delay={1} id={redesigned ? "report-strengths" : undefined}>
+      <ResultsReveal delay={1} id="report-strengths">
         <StrengthsDomainSection strengthCards={report.strength_cards} />
       </ResultsReveal>
 
       {report.personality_notes.length > 0 && (
-        <ResultsReveal id={redesigned ? "report-personality" : undefined}>
+        <ResultsReveal id="report-personality">
           <PersonalityDomainSection
             personalityNotes={report.personality_notes}
             personalityNote={report.personality_note}
@@ -69,35 +53,29 @@ export function ResultsReportBody({ report, ageGroup, goal, readOnly = false, re
         </ResultsReveal>
       )}
 
-      <ResultsReveal id={redesigned ? "report-thinking" : undefined}>
+      <ResultsReveal id="report-thinking">
         <ThinkingStyleMotivationSection
           thinkingStyleNotes={report.thinking_style_notes}
           motivationHighlights={report.motivation_highlights}
         />
       </ResultsReveal>
 
-      <ResultsReveal id={redesigned ? "report-exploration" : undefined}>
+      <ResultsReveal id="report-exploration">
         <ExplorationActivitiesSection
           activities={report.exploration_activities}
           note={report.exploration_note}
         />
       </ResultsReveal>
 
-      <ResultsReveal id={redesigned ? "report-analysis" : undefined}>
+      <ResultsReveal id="report-analysis">
         <FinalAnalysisSection text={report.final_analysis} />
       </ResultsReveal>
 
-      <div id="results-goal-branch" tabIndex={redesigned ? -1 : undefined}>
+      <div id="results-goal-branch" tabIndex={-1}>
         <ResultsReveal>
-          <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal ?? null} readOnly={readOnly} />
+          <GoalBranchSection report={report} ageGroup={ageGroup} initialGoal={goal ?? null} />
         </ResultsReveal>
       </div>
-
-      {hasPsych && (
-        <ResultsReveal>
-          <SpecialistSectionsBlock {...psychSections} />
-        </ResultsReveal>
-      )}
     </>
   );
 }

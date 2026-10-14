@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { profileApi } from '@/shared/api/profile';
 import { useAuthStore } from '@/shared/store/auth';
 import { useProfileStore } from '@/shared/store/profile';
-import { Spinner } from '@/shared/ui';
+import { FullPageSpinner } from '@/shared/ui/Spinner';
 import type { AxiosError } from 'axios';
 
 export function RequireProfile() {
@@ -45,13 +45,7 @@ export function RequireProfile() {
 
   if (profileMatchesUser || data) return <Outlet />;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-page">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  if (isLoading) return <FullPageSpinner />;
 
   if (data === null) return <Navigate to="/onboarding/profile" replace />;
 

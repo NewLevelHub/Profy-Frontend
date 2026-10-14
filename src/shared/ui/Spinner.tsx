@@ -10,7 +10,9 @@ export interface SpinnerProps {
 }
 
 export function Spinner({ size = 'md', className, label }: SpinnerProps) {
-  const { t } = useTranslation('common');
+  // Never suspends: the spinner is what shows while catalogs are still
+  // loading (the Suspense fallback in App), so it can't wait for one itself.
+  const { t } = useTranslation('common', { useSuspense: false });
   const resolvedLabel = label ?? t('loading');
   return (
     <svg
@@ -41,5 +43,14 @@ export function Spinner({ size = 'md', className, label }: SpinnerProps) {
         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
       />
     </svg>
+  );
+}
+
+/** Whole-viewport loading state: route guards, lazy routes on first load. */
+export function FullPageSpinner() {
+  return (
+    <div className="min-h-screen grid place-items-center bg-page">
+      <Spinner size="lg" />
+    </div>
   );
 }

@@ -66,12 +66,6 @@
     "editAria": "Сертификаттар мен балдарды өңдеу",
     "addAria": "Сертификаттар мен балдарды қосу"
   },
-  "certificate": {
-    "ielts": "IELTS",
-    "unt": "ҰБТ",
-    "sat": "SAT",
-    "toefl": "TOEFL"
-  },
   "settings": {
     "title": "Баптаулар",
     "languageLabel": "Тіл",
@@ -90,25 +84,11 @@
   "edit": {
     "title": "Сертификаттар және GPA",
     "subtitle": "IELTS, ҰБТ, SAT, TOEFL балдары және орташа балл — егер бар болса",
-    "scoresHeading": "Тілдік және түсу балдары",
     "scoresHint": "Тапсырғаныңды толтыр — қалғанын бос қалдыруға болады",
     "rangePlaceholder": "{{min}}-ден {{max}}-ке дейін",
-    "gpaHeading": "Орташа балл (GPA)",
-    "gpaHint": "Мектебіңдегі бағалау жүйесін таңда",
-    "gpaScaleAria": "GPA бағалау жүйесі",
-    "scoreLabel": "Балл",
-    "gpaRangePlaceholder": "0-ден {{max}}-ке дейін",
-    "gpaChooseScaleFirst": "алдымен жүйені таңда",
     "saveError": "Сақтау мүмкін болмады. Қайта көр.",
     "errorRange": "{{min}}-ден {{max}}-ке дейін",
-    "errorChooseScale": "Бағалау жүйесін таңда",
-    "errorEnterScore": "Балды көрсет",
-    "errorGpaRange": "0-ден {{max}}-ке дейін"
-  },
-  "ageGroup": {
-    "junior": "Кіші (6–10 жас)",
-    "middle": "Орта (11–14 жас)",
-    "senior": "Үлкен (15–18 жас)"
+    "errorEnterScore": "Балды көрсет"
   },
   "redesign": {
     "title": "Сенің профилің",

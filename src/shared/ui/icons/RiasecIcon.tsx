@@ -1,6 +1,6 @@
 import type { ReactElement, SVGAttributes } from 'react';
 
-/** Matches RIASEC_TYPES in shared/config/constants.ts */
+/** Holland's six interest types (RIASEC). */
 export type RiasecType = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
 
 export interface RiasecIconProps extends Omit<SVGAttributes<SVGSVGElement>, 'viewBox'> {

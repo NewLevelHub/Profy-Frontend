@@ -15,23 +15,12 @@
     "E": "Нравится вести за собой, убеждать и запускать свои идеи",
     "C": "Нравится порядок, чёткие правила и понятная структура"
   },
-  "thinkingStyle": {
-    "creative_think": "Творческое мышление",
-    "systematic": "Системность",
-    "strategic": "Стратегическое видение",
-    "practical": "Практичность"
-  },
   "personality": {
     "openness": "Открытость новому",
     "conscientiousness": "Организованность",
     "extraversion": "Общительность",
     "agreeableness": "Доброжелательность",
     "emotional_stability": "Эмоциональная устойчивость"
-  },
-  "interestLevel": {
-    "low": "Слабо выражено",
-    "medium": "Средне выражено",
-    "high": "Ярко выражено"
   },
   "careerTier": {
     "strong": "Сильное совпадение",
@@ -42,16 +31,6 @@
     "title": "Что мы узнали о тебе",
     "subtitleAdult": "Твой профиль интересов и рекомендованное направление",
     "downloadPdf": "Скачать PDF"
-  },
-  "cover": {
-    "aria": "Обложка твоей карты",
-    "kicker": "Твоя карта",
-    "identity": "{{name}} · {{age}}",
-    "chipInterest": "Интерес",
-    "chipStrength": "Сильная сторона",
-    "chipDirection": "Направление",
-    "ctaExplore": "Смотреть направления",
-    "ctaExploreJunior": "Что попробовать"
   },
   "completedPending": {
     "kicker": "ДИАГНОСТИКА · ПРОЙДЕНА",
@@ -179,7 +158,6 @@
     "body": "Пройдено {{completed}} из {{total}} этапов теста — можно продолжить в любой момент",
     "tip": "Никуда не спеши: ответы сохраняются сами. Когда вернёшься — продолжим с того же места.",
     "progressAria": "Прогресс теста",
-    "progressLabel": "Диагностика",
     "cta": "Продолжить тест",
     "phase": {
       "diagnostic": "Диагностика",
@@ -251,55 +229,11 @@
   },
   "rank": {
     "kzPosition": "UniRanks · #{{rank}} в Казахстане",
-    "worldPosition": "UniRanks · #{{rank}} в мире",
-    "qsWorldPosition": "QS World · #{{rank}} в мире"
+    "worldPosition": "UniRanks · #{{rank}} в мире"
   },
   "cost": {
     "notSpecified": "Стоимость не указана",
     "perYear": "{{amount}} $/год"
-  },
-  "reqKey": {
-    "exams": "Вступительные экзамены",
-    "min_gpa": "Минимальный GPA",
-    "min_sat": "Минимальный балл SAT",
-    "min_ielts": "Минимальный балл IELTS",
-    "min_toefl": "Минимальный балл TOEFL",
-    "min_ent": "Минимальный балл ЕНТ",
-    "needs_essay": "Эссе",
-    "essay": "Эссе",
-    "needs_interview": "Собеседование",
-    "interview": "Собеседование",
-    "needs_portfolio": "Портфолио",
-    "portfolio": "Портфолио",
-    "needs_recommendation": "Рекомендательные письма",
-    "needs_recommendations": "Рекомендательные письма",
-    "recommendation": "Рекомендательное письмо",
-    "recommendations": "Рекомендательные письма",
-    "language_certificate": "Языковой сертификат",
-    "extracurriculars": "Внеклассная деятельность",
-    "extracurricular": "Внеклассная деятельность",
-    "activities": "Дополнительные активности",
-    "leadership": "Лидерские качества",
-    "community_service": "Волонтёрство",
-    "research": "Исследовательская работа",
-    "awards": "Награды и достижения",
-    "gpa": "GPA",
-    "sat": "Балл SAT",
-    "act": "Балл ACT",
-    "ielts": "Балл IELTS",
-    "toefl": "Балл TOEFL",
-    "ent": "Балл ЕНТ",
-    "application": "Подача заявки",
-    "application_open": "Открытие приёма",
-    "application_close": "Закрытие приёма",
-    "decision_date": "Дата решения",
-    "exam_deadline": "Срок сдачи экзаменов",
-    "documents": "Документы",
-    "early_decision": "Ранняя подача",
-    "regular": "Основной срок",
-    "rolling": "Скользящий срок",
-    "spring": "Весенний набор",
-    "fall": "Осенний набор"
   },
   "universityList": {
     "lockedTitle": "Раздел недоступен",
@@ -419,7 +353,6 @@
     "directionsTitleSenior": "НАПРАВЛЕНИЯ ПОД ЦЕЛЬ",
     "directionsSubtitleMiddle": "Профессии, которые подходят по твоему профилю — открой любую, чтобы узнать больше.",
     "directionsSubtitleSenior": "Профессии, которые подходят по твоему профилю — открой любую, чтобы увидеть вузы и программы по ней.",
-    "directionsSubtitleReadOnly": "Профессии, которые подходят по профилю ученика.",
     "roadmapTitle": "ROADMAP ВЫБОРА",
     "roadmapAria": "Roadmap выбора профессии: 1 месяц, 3 месяца, 6 месяцев до решения"
   },
@@ -447,10 +380,6 @@
     "topPick": "Лучшее совпадение",
     "open": "Открыть"
   },
-  "career": {
-    "findUniversities": "Найти университеты",
-    "moreAboutDirection": "Подробнее о направлении →"
-  },
   "feedback": {
     "sentKicker": "ОТЗЫВ ПОЛУЧЕН",
     "sentBody": "Спасибо — прочитаем. Ответа на это сообщение не будет, оно уходит команде без переписки.",
@@ -471,15 +400,6 @@
     "careers": "Профессии и направления",
     "thinking_style": "Стиль мышления",
     "motivation": "Мотивация"
-  },
-  "legacy": {
-    "interestMapTitleJunior": "Твоя карта интересов",
-    "interestMapTitleAdult": "Твой профиль интересов",
-    "strengthsTitle": "Сильные стороны",
-    "thinkingStyleTitle": "Стиль мышления",
-    "personalityTitle": "Твой характер",
-    "motivationTitle": "Что тебя мотивирует",
-    "explorationTitle": "Что можно попробовать"
   },
   "print": {
     "cover": {

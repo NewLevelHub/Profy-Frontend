@@ -29,7 +29,8 @@ export interface AdminFieldRevert {
 interface AdminFieldProps {
   label: string;
   locked?: boolean;
-  lockReason?: string;
+  /** i18n key of the lock tooltip; defaults to the generic `admin:badge.lockedReason`. */
+  lockReasonKey?: string;
   /** Offers "вернуть исходное" next to the lock marker. Only meaningful on a
    *  locked field — an untouched one has nothing to revert. */
   revert?: AdminFieldRevert;
@@ -54,7 +55,7 @@ interface AdminFieldProps {
 export function AdminField({
   label,
   locked,
-  lockReason,
+  lockReasonKey,
   revert,
   hint,
   error,
@@ -71,7 +72,7 @@ export function AdminField({
         <label htmlFor={id} className={cn(MONO_LABEL, error ? 'text-danger' : 'text-muted')}>
           {label}
         </label>
-        {locked && <LockedFieldBadge reason={lockReason} />}
+        {locked && <LockedFieldBadge reasonKey={lockReasonKey} />}
         {locked && revert && <RevertButton {...revert} />}
       </div>
 

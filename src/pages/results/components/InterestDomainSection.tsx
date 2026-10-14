@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
-import { Mascot } from '@/shared/ui/Mascot';
 import { Heading } from '@/shared/ui/typography/Heading';
 import { RiasecIcon, type RiasecType } from '@/shared/ui/icons/RiasecIcon';
 import { RIASEC_LABELS, RIASEC_DESCRIPTIONS } from '@/shared/config/constants';
@@ -13,7 +12,6 @@ import { InterestTypeDetail } from './InterestTypeDetail';
 import { InterestHowItWorks } from './InterestHowItWorks';
 
 interface InterestDomainSectionProps {
-  redesigned?: boolean;
   interestMap: InterestMapItem[];
   interestMapNote: string;
   interestCombination?: InterestCombination | null;
@@ -36,7 +34,6 @@ const hasDetails = (item: InterestMapItem): item is DetailedItem => Boolean(item
  * Older cached reports without `details` render as before.
  */
 export function InterestDomainSection({
-  redesigned = false,
   interestMap,
   interestMapNote,
   interestCombination = null,
@@ -80,7 +77,6 @@ export function InterestDomainSection({
               {t('results:interestDomain.alsoNotable', { items: secondaryNote })}
             </p>
           )}
-          {!redesigned && <Mascot state="completion" size={68} celebrate />}
         </div>
       </div>
 

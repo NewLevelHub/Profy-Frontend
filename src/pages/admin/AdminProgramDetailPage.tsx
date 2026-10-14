@@ -288,7 +288,7 @@ export default function AdminProgramDetailPage() {
 
       <AdminCard title={t('directions.mainCard')}>
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} revert={fieldRelease('name')} lockReason={LOCK_REASON}>
+          <AdminField label={t('directions.field.nameLabel')} locked={locked.has('name')} revert={fieldRelease('name')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -299,7 +299,7 @@ export default function AdminProgramDetailPage() {
               />
             )}
           </AdminField>
-          <AdminField label={t('prog.field.languageLabel')} locked={locked.has('language')} revert={fieldRelease('language')} lockReason={LOCK_REASON}>
+          <AdminField label={t('prog.field.languageLabel')} locked={locked.has('language')} revert={fieldRelease('language')} lockReasonKey={LOCK_REASON}>
             {({ id, describedBy }) => (
               <input
                 id={id}
@@ -313,7 +313,7 @@ export default function AdminProgramDetailPage() {
           <AdminField
             label={t('prog.field.costLabelLabel')}
             locked={locked.has('cost_per_year')} revert={fieldRelease('cost_per_year')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             hint={t('prog.costHint')}
           >
             {({ id, describedBy }) => (
@@ -330,7 +330,7 @@ export default function AdminProgramDetailPage() {
           <AdminField
             label={t('prog.field.costCaptionLabel')}
             locked={locked.has('cost_label')} revert={fieldRelease('cost_label')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             hint={t('prog.costCaptionHint')}
           >
             {({ id, describedBy }) => (
@@ -346,7 +346,7 @@ export default function AdminProgramDetailPage() {
           <AdminField
             label={t('uni.field.sourceLabel')}
             locked={locked.has('source_url')} revert={fieldRelease('source_url')}
-            lockReason={LOCK_REASON}
+            lockReasonKey={LOCK_REASON}
             className="sm:col-span-2"
           >
             {({ id, describedBy }) => (
@@ -362,7 +362,7 @@ export default function AdminProgramDetailPage() {
           </AdminField>
         </div>
 
-        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} revert={fieldRelease('description')} lockReason={LOCK_REASON}>
+        <AdminField label={t('directions.field.descriptionLabel')} locked={locked.has('description')} revert={fieldRelease('description')} lockReasonKey={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -373,7 +373,7 @@ export default function AdminProgramDetailPage() {
             />
           )}
         </AdminField>
-        <AdminField label={t('prog.field.whoItsForLabel')} locked={locked.has('who_its_for')} revert={fieldRelease('who_its_for')} lockReason={LOCK_REASON}>
+        <AdminField label={t('prog.field.whoItsForLabel')} locked={locked.has('who_its_for')} revert={fieldRelease('who_its_for')} lockReasonKey={LOCK_REASON}>
           {({ id, describedBy }) => (
             <textarea
               id={id}
@@ -437,7 +437,7 @@ export default function AdminProgramDetailPage() {
         <AdminField
           label={t('prog.applicationClose')}
           locked={locked.has('deadlines')} revert={fieldRelease('deadlines')}
-          lockReason={LOCK_REASON}
+          lockReasonKey={LOCK_REASON}
           className="max-w-[240px]"
         >
           {({ id, describedBy }) => (

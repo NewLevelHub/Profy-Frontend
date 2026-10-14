@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuthStore } from '@/shared/store/auth';
+import { FullPageSpinner } from '@/shared/ui/Spinner';
 import { toPath } from '@/shared/lib/returnTo';
 
 export function RequireAuth() {
@@ -8,11 +9,7 @@ export function RequireAuth() {
   const location = useLocation();
 
   if (!hasHydrated) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-page">
-        <div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
-      </div>
-    );
+    return <FullPageSpinner />;
   }
 
   if (!token) {

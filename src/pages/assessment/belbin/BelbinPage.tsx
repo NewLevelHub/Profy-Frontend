@@ -73,7 +73,7 @@ export default function BelbinPage() {
 
   return (
     <AssessmentLayout>
-      <ExitAssessmentModal redesigned open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} exiting={submitting} />
+      <ExitAssessmentModal open={exitConfirmOpen} onSaveAndExit={confirmExit} onContinue={cancelExit} exiting={submitting} />
 
       {phase !== 'done' && (
         <AssessmentRail

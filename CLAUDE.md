@@ -52,12 +52,17 @@ npm run lint
 Перед тем как писать новый компонент/разметку — сначала проверить, нет ли
 уже подходящего:
 
-- Общая библиотека — `src/shared/ui/` (баррель-экспорт `src/shared/ui/index.ts`:
-  `Button`, `Input`, `Card`, `Badge`, `ProgressBar`, `Spinner`, `Skeleton`,
-  `Tooltip`, `PageContainer`, `PageHeader`, `SectionHeading` и т.д.) и её
-  подпапки `icons/`, `navigation/`, `layouts/`, `typography/`, `admin/`,
-  `mascot/`. Новый общий элемент интерфейса — сюда, с экспортом через
-  `index.ts`, а не копипастой разметки в очередной странице.
+- Общая библиотека — `src/shared/ui/` (`Button`, `Input`, `Card`,
+  `ProgressBar`, `Spinner`, `Skeleton`, `Tooltip`, `PageContainer`,
+  `PageHeader`, `SectionHeading` и т.д.) и её подпапки `icons/`,
+  `navigation/`, `layouts/`, `typography/`, `admin/`, `redesign/`. Новый
+  общий элемент интерфейса — сюда, отдельным файлом, а не копипастой
+  разметки в очередной странице.
+- Импорт — прямо из файла компонента: `@/shared/ui/Button`, а не
+  `@/shared/ui`. Общего барреля `index.ts` нет намеренно (PRO-479): он
+  затягивал в чанк каждой страницы все реэкспортированные модули вместе с
+  CSS лейаутов (+5 КБ gzip и ~8 лишних файлов на страницу). Запрещено
+  ESLint-правилом `no-restricted-imports`.
 - Специфичные для экрана компоненты живут в `src/pages/<page>/components/`.
   Если компонент понадобился на второй странице — не копировать файл, а
   поднять его в `src/shared/ui/` (или в `shared/lib`/`shared/hooks`, если
@@ -67,7 +72,7 @@ npm run lint
   используемых библиотеках (`grep`/поиск по названию функции перед `npm i`).
 - Не плодить варианты одного и того же компонента через `if`/copy-paste —
   расширять существующий пропсами (`variant`, `size` и т.п.), как это
-  сделано в `Button`/`Badge`/`ProgressBar`.
+  сделано в `Button`/`ProgressBar`.
 
 ## Тёмная тема (обязательно, всегда)
 
@@ -143,7 +148,7 @@ npm run lint
 стоит держать эту карту в уме.
 
 - Новый защищённый экран — оборачивать существующим guard'ом из
-  `src/shared/guards/` (`RequireAuth`, `RequireAdmin`, `RequirePsychologist`,
+  `src/shared/guards/` (`RequireAuth`, `RequireRole role="admin|psychologist"`,
   `RequireStudent`, `RequireGuest`, `RequireProfile`), а не проверять
   токен/роль вручную в компоненте. Порядок вложенности guard'ов в дереве
   соответствует реальным ограничениям (роль → наличие профиля), не
