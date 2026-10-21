@@ -24,6 +24,7 @@ export function useInviteStaff() {
   const uiLocale = useLocaleStore((s) => s.locale);
 
   const [email, setEmailValue] = useState('');
+  const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<AdminStaffRole>('psychologist');
   const [locale, setLocale] = useState<EmailLocale>(uiLocale);
   const [emailError, setEmailError] = useState('');
@@ -49,11 +50,13 @@ export function useInviteStaff() {
     event.preventDefault();
     const trimmed = email.trim();
     if (!/\S+@\S+\.\S+/.test(trimmed)) return setEmailError(t('invitations.errors.email'));
-    create.mutate({ email: trimmed, role, locale });
+    const name = fullName.trim();
+    create.mutate({ email: trimmed, role, locale, ...(name ? { full_name: name } : {}) });
   }
 
   return {
     email,
+    fullName,
     role,
     locale,
     emailError,
@@ -61,6 +64,7 @@ export function useInviteStaff() {
     isSubmitting: create.isPending,
     sent: create.data ?? null,
     setEmail,
+    setFullName,
     setRole,
     setLocale,
     handleSubmit,

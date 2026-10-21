@@ -132,3 +132,61 @@
   .rd-psych-path-mobile li[data-status=current] { color: var(--dawn-deep); }
   .rd-psych-path-mobile li[data-status=current]>span:first-child { background: var(--rd-peach); border-color: transparent; }
 }
+
+/* ── Расписание специалиста (PRO-551) ─────────────────────────────────────
+   Неделя 7 × 30 мин. Цвет ячейки — состояние слота; заморозка — штриховка,
+   прошедшее время — приглушено. Только --rd-* токены: тёмная тема даром. */
+.rd-schedule { display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); }
+.rd-schedule-owner { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--rd-line); }
+.rd-schedule-field { display: flex; flex-direction: column; gap: 6px; min-width: 240px; font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-schedule-reason { flex: 1; min-width: 260px; }
+/* Admin form controls are tuned to the admin palette (--paper); in the cabinet
+   they take the cabinet's surface so they stay readable in the dark theme. */
+.rd-schedule-owner .admin-input { background: var(--rd-bg); color: var(--rd-ink); border-color: var(--rd-line); }
+.rd-schedule-owner .admin-input::placeholder { color: var(--rd-muted); }
+.rd-schedule-hint { flex-basis: 100%; margin: 0; font-size: var(--text-rd-label); color: var(--rd-orange-deep); }
+.rd-schedule-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.rd-schedule-weeknav { display: flex; align-items: center; gap: 8px; }
+.rd-schedule-weeknav strong { min-width: 220px; text-align: center; font-size: var(--text-rd-ui); font-weight: 600; color: var(--rd-ink); }
+.rd-schedule-status { padding: 4px 10px; border-radius: 999px; font-size: var(--text-rd-label); background: var(--rd-peach); color: var(--rd-orange-deep); }
+.rd-schedule-status.is-published { background: var(--rd-sage); color: var(--rd-pine); }
+.rd-schedule-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.rd-schedule-notice { min-height: 1.5em; margin: 0; font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-schedule-publish-hint { margin: 0; padding: 10px 14px; border-radius: var(--rd-radius-md); font-size: var(--text-rd-label); line-height: 1.5; background: var(--rd-bg); color: var(--rd-muted); }
+.rd-schedule-publish-hint.is-published { background: var(--rd-sage); color: var(--rd-pine); }
+.rd-schedule-loading { display: grid; place-items: center; min-height: 240px; }
+
+.rd-schedule-scroll { overflow-x: auto; }
+.rd-schedule-grid { width: 100%; min-width: 640px; border-collapse: separate; border-spacing: 3px 2px; table-layout: fixed; user-select: none; }
+.rd-schedule-grid th { font-weight: 500; font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-schedule-grid thead th { padding: 0 0 8px; text-align: center; vertical-align: top; color: var(--rd-ink); }
+.rd-schedule-grid thead th.is-past { color: var(--rd-muted); }
+.rd-schedule-corner { width: 56px; }
+.rd-schedule-time { width: 56px; padding-right: 8px; text-align: right; vertical-align: middle; font-variant-numeric: tabular-nums; }
+.rd-schedule-grid tr.is-hour .rd-schedule-time { color: var(--rd-ink); }
+/* A gap and a hairline above each full hour; none inside the hour. */
+.rd-schedule-grid tbody tr.is-hour > * { padding-top: 6px; }
+.rd-schedule-grid tbody tr.is-hour:not(:first-child) > td { background: linear-gradient(var(--rd-line), var(--rd-line)) top / 100% 1px no-repeat; }
+.rd-schedule-frozen { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; color: var(--rd-muted); font-weight: 400; }
+.rd-schedule-grid td { padding: 0; }
+
+.rd-schedule-cell { display: block; width: 100%; height: 22px; border-radius: var(--rd-radius-sm); border: 1px solid var(--rd-line); background: var(--rd-bg); cursor: pointer; touch-action: none; transition: background-color .1s, border-color .1s; }
+.rd-schedule-cell:hover:not([aria-disabled=true]) { border-color: var(--rd-pine); }
+.rd-schedule-cell:focus-visible { outline: 2px solid var(--rd-purple); outline-offset: 1px; }
+.rd-schedule-cell[aria-disabled=true] { cursor: not-allowed; }
+.rd-schedule-cell.is-free { background: color-mix(in srgb, var(--rd-pine) 28%, var(--rd-card)); border-color: var(--rd-pine); }
+.rd-schedule-cell.is-personal { background: color-mix(in srgb, var(--rd-purple) 30%, var(--rd-card)); border-color: var(--rd-purple); }
+.rd-schedule-cell.is-booked { background: var(--rd-peach); border-color: var(--rd-orange-deep); }
+.rd-schedule-cell.is-frozen { background-image: repeating-linear-gradient(135deg, transparent 0 5px, var(--rd-line) 5px 6px); }
+.rd-schedule-cell.is-past { opacity: .45; }
+.rd-schedule-cell.is-selected { outline: 2px solid var(--rd-purple); outline-offset: -1px; }
+
+.rd-schedule-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--rd-line); background: var(--rd-bg); }
+.rd-schedule-swatch.is-free { background: color-mix(in srgb, var(--rd-pine) 28%, var(--rd-card)); border-color: var(--rd-pine); }
+.rd-schedule-swatch.is-personal { background: color-mix(in srgb, var(--rd-purple) 30%, var(--rd-card)); border-color: var(--rd-purple); }
+
+@media (max-width: 760px) {
+  .rd-schedule { padding: 14px; }
+  .rd-schedule-weeknav strong { min-width: 0; }
+  .rd-schedule-field, .rd-schedule-reason { min-width: 100%; }
+}

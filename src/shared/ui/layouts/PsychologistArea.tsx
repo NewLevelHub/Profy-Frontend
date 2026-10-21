@@ -7,9 +7,17 @@ import '../redesign/psychologist-report.css';
 
 function PsychologistRail() {
   const { user, activePath, onLogout } = useRailSession();
-  const { data: reviews } = usePsychologistReviews();
+  const isOwner = user?.role === 'owner';
+  // The review queue is psychologist-only on the API; the owner has none.
+  const { data: reviews } = usePsychologistReviews({ enabled: !isOwner });
   return (
-    <PsychologistNavigation activePath={activePath} email={user?.email} reviewCount={reviews?.length ?? 0} onLogout={onLogout} />
+    <PsychologistNavigation
+      activePath={activePath}
+      email={user?.email}
+      reviewCount={reviews?.length ?? 0}
+      isOwner={isOwner}
+      onLogout={onLogout}
+    />
   );
 }
 
