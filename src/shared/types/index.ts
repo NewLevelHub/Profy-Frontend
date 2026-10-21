@@ -4,7 +4,16 @@ import type { Locale } from '@/shared/store/locale';
 
 /** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
  *  this (`is_admin === (role === 'admin')`) and kept only for back-compat. */
-export type UserRole = 'student' | 'admin' | 'psychologist';
+export type UserRole =
+  | 'student'
+  | 'admin'
+  | 'psychologist'
+  // CRM roles (ТЗ CRM Profile v4.1 §2, PRO-497). `owner` is the business
+  // owner, not the platform content `admin`.
+  | 'owner'
+  | 'sales_head'
+  | 'sales_manager'
+  | 'marketer';
 
 export interface User {
   id: string;
@@ -1114,6 +1123,8 @@ export interface AdminInvitation {
   role: AdminStaffRole;
   /** Language of the email; becomes the account's locale on accept. */
   locale: 'ru' | 'kk';
+  /** Becomes `users.full_name` on accept — the name in the schedule and CRM. */
+  full_name: string | null;
   status: AdminInvitationStatus;
   /** null once the inviting admin's account is deleted. */
   invited_by: { id: string; email: string } | null;
@@ -1142,6 +1153,7 @@ export interface AdminInvitationCreateRequest {
   email: string;
   role: AdminStaffRole;
   locale: 'ru' | 'kk';
+  full_name?: string;
 }
 
 export interface AdminInvitationListParams {
@@ -2389,4 +2401,93 @@ export type AdminDirectionUpdateRequest = Partial<{
 export interface ValidationMessage {
   key: string;
   params?: Record<string, string | number>;
+}
+
+// ─── Scheduling ── docs/frontend-scheduling-api-contract.md (backend repo) ──
+// Times are UTC ISO strings; dates (`YYYY-MM-DD`) are Asia/Almaty days.
+
+type ScheduleSlotState = 'closed' | 'free' | 'personal' | 'booked';
+export type ScheduleEditableState = Exclude<ScheduleSlotState, 'booked'>;
+
+export interface ScheduleConfig {
+  timezone: string;
+  slot_minutes: number;
+  day_start: string;
+  day_end: string;
+  freeze_days: number;
+  now: string;
+  today: string;
+  editable_from: string;
+}
+
+interface ScheduleSpecialistRef {
+  id: string;
+  full_name: string;
+}
+
+export interface ScheduleSlot {
+  start: string;
+  end: string;
+  state: ScheduleSlotState;
+  frozen: boolean;
+  past: boolean;
+  /** Always null until bookings land (R2). */
+  meeting: { id: string; type: 'intro30' | 'main60'; status: string } | null;
+}
+
+export interface ScheduleDay {
+  date: string;
+  frozen: boolean;
+  past: boolean;
+  slots: ScheduleSlot[];
+}
+
+export interface ScheduleWeek {
+  specialist: ScheduleSpecialistRef;
+  week_start: string;
+  published: boolean;
+  published_at: string | null;
+  days: ScheduleDay[];
+}
+
+export interface ScheduleAvailabilityChange {
+  start: string;
+  end: string;
+  state: ScheduleEditableState;
+}
+
+export interface ScheduleSkippedDay {
+  date: string;
+  error_code: 'slot_frozen' | 'slot_in_past' | 'slot_booked';
+  count: number;
+}
+
+export interface ScheduleWeekBulkResponse {
+  week: ScheduleWeek;
+  skipped: ScheduleSkippedDay[];
+}
+
+interface ScheduleTemplateInterval {
+  start: string;
+  end: string;
+  state: 'free' | 'personal';
+}
+
+export interface ScheduleTemplate {
+  /** "1"…"7" = Monday…Sunday, Almaty wall time. */
+  days: Record<string, ScheduleTemplateInterval[]>;
+  updated_at?: string | null;
+}
+
+interface ScheduleSpecialistStatus {
+  id: string;
+  full_name: string;
+  week_published: boolean;
+  published_at: string | null;
+  free_slots: number;
+}
+
+export interface ScheduleSpecialistList {
+  week_start: string;
+  items: ScheduleSpecialistStatus[];
 }

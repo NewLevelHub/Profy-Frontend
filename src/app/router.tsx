@@ -85,35 +85,51 @@ export const router = createBrowserRouter([{
         // Staff cabinets — outside RequireProfile: staff have no student Profile
         // and student APIs would 403 them. Gated by role alone.
         // ── Psychologist cabinet ──
+        // The owner shares the cabinet shell for the schedule only (ТЗ §4.1);
+        // every other page stays psychologist-only.
         {
-          element: <RequireRole role="psychologist" />,
+          element: <RequireRole role={['psychologist', 'owner']} />,
           children: [
             {
               ...staffPage(() => import('@/shared/ui/layouts/PsychologistArea')),
               children: [
-                // The review queue is the cabinet's front page (it's where work starts).
-                { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
-                { path: '/psychologist/students', ...page(() => import('@/pages/psychologist/PsychologistStudentsPage')) },
                 {
-                  path: '/psychologist/students/:studentId',
-                  ...page(() => import('@/pages/psychologist/PsychologistStudentDetailPage')),
+                  path: '/psychologist/schedule',
+                  ...page(() => import('@/pages/psychologist/schedule/PsychologistSchedulePage')),
                 },
                 {
-                  path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
-                  ...page(() => import('@/pages/psychologist/PsychologistReportPage')),
-                },
-                {
-                  path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
-                  ...page(() => import('@/pages/psychologist/PsychologistReportHistoryPage')),
-                },
-                { path: '/psychologist/reviews', ...page(() => import('@/pages/psychologist/PsychologistReviewQueuePage')) },
-                {
-                  path: '/psychologist/students/:studentId/results/:assessmentId/review',
-                  ...page(() => import('@/pages/psychologist/PsychologistResultReviewPage')),
+                  element: <RequireRole role="psychologist" />,
+                  children: [
+                    // The review queue is the cabinet's front page (it's where work starts).
+                    { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
+                    { path: '/psychologist/students', ...page(() => import('@/pages/psychologist/PsychologistStudentsPage')) },
+                    {
+                      path: '/psychologist/students/:studentId',
+                      ...page(() => import('@/pages/psychologist/PsychologistStudentDetailPage')),
+                    },
+                    {
+                      path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
+                      ...page(() => import('@/pages/psychologist/PsychologistReportPage')),
+                    },
+                    {
+                      path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
+                      ...page(() => import('@/pages/psychologist/PsychologistReportHistoryPage')),
+                    },
+                    { path: '/psychologist/reviews', ...page(() => import('@/pages/psychologist/PsychologistReviewQueuePage')) },
+                    {
+                      path: '/psychologist/students/:studentId/results/:assessmentId/review',
+                      ...page(() => import('@/pages/psychologist/PsychologistResultReviewPage')),
+                    },
+                  ],
                 },
               ],
             },
           ],
+        },
+        // ── CRM-only roles (sales, marketing): their cabinet is Profy-CRM ──
+        {
+          element: <RequireRole role={['sales_head', 'sales_manager', 'marketer']} />,
+          children: [{ path: '/staff', ...page(() => import('@/pages/staff/CrmOnlyPage')) }],
         },
         // ── Admin ──
         {

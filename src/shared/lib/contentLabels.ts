@@ -16,6 +16,10 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   student: 'admin:role.student',
   admin: 'admin:role.admin',
   psychologist: 'admin:role.psychologist',
+  owner: 'admin:role.owner',
+  sales_head: 'admin:role.sales_head',
+  sales_manager: 'admin:role.sales_manager',
+  marketer: 'admin:role.marketer',
 };
 
 /**

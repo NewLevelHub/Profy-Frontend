@@ -141,4 +141,18 @@ export const API = {
     resultEdits: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/results/${assessmentId}/edits`,
   },
+  /** `specialist` is `me` for the specialist themself, an id for the owner. */
+  scheduling: {
+    config: '/scheduling/config',
+    specialists: '/scheduling/specialists',
+    week: (specialist: string, weekStart: string) => `/scheduling/specialists/${specialist}/weeks/${weekStart}`,
+    availability: (specialist: string) => `/scheduling/specialists/${specialist}/availability`,
+    copyPrevious: (specialist: string, weekStart: string) =>
+      `/scheduling/specialists/${specialist}/weeks/${weekStart}/copy-previous`,
+    template: (specialist: string) => `/scheduling/specialists/${specialist}/template`,
+    applyTemplate: (specialist: string, weekStart: string) =>
+      `/scheduling/specialists/${specialist}/weeks/${weekStart}/apply-template`,
+    publish: (specialist: string, weekStart: string) =>
+      `/scheduling/specialists/${specialist}/weeks/${weekStart}/publish`,
+  },
 } as const;

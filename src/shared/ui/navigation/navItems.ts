@@ -21,6 +21,21 @@ export const PSYCHOLOGIST_NAV_ITEMS = [
     path: '/psychologist/students',
     matchPrefix: '/psychologist/students',
   },
+  {
+    label: 'psychologist:nav.schedule',
+    path: '/psychologist/schedule',
+    matchPrefix: '/psychologist/schedule',
+  },
+] as const;
+
+/** The owner's part of the cabinet: every specialist's schedule (ТЗ §4.1).
+ *  The rest of the psychologist API is psychologist-only. */
+export const OWNER_NAV_ITEMS = [
+  {
+    label: 'psychologist:nav.schedule',
+    path: '/psychologist/schedule',
+    matchPrefix: '/psychologist/schedule',
+  },
 ] as const;
 
 export function isNavActive(
