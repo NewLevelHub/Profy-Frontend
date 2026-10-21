@@ -67,7 +67,8 @@ export function weekToTemplate(week: ScheduleWeek, dayStart: string, slotMinutes
       run = null;
     };
     day.slots.forEach((slot, index) => {
-      const state = slot.state === 'free' || slot.state === 'personal' ? slot.state : null;
+      // A booked slot was working time: it goes into the template as free.
+      const state = slot.state === 'booked' ? 'free' : slot.state === 'free' || slot.state === 'personal' ? slot.state : null;
       if (run && run.state !== state) close(index);
       if (state && !run) run = { start: index, state };
     });

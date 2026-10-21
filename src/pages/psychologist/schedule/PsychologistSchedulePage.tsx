@@ -24,6 +24,7 @@ import {
   useScheduleWeek,
 } from './useSchedule';
 import { WeekGrid } from './WeekGrid';
+import { WeekMeetings } from './WeekMeetings';
 
 /** Codes with their own message; anything else reads as a generic failure. */
 const KNOWN_ERRORS = [
@@ -289,6 +290,8 @@ export default function PsychologistSchedulePage() {
           )}
         </section>
       )}
+
+      {specialist && weekStart && !error && <WeekMeetings specialist={specialist} weekStart={weekStart} />}
     </PageContainer>
   );
 }
