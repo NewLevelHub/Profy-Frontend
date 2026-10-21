@@ -190,3 +190,14 @@
   .rd-schedule-weeknav strong { min-width: 0; }
   .rd-schedule-field, .rd-schedule-reason { min-width: 100%; }
 }
+
+.rd-schedule-meetings { display: flex; flex-direction: column; gap: 12px; }
+.rd-schedule-meetings h2 { margin: 0; font-size: var(--text-rd-title); }
+.rd-schedule-meetings ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.rd-schedule-meeting { padding: 16px; border: 1px solid var(--rd-line); border-left: 3px solid var(--rd-orange-deep); border-radius: var(--rd-radius-md); background: var(--rd-card); font-size: var(--text-rd-ui); color: var(--rd-ink); }
+.rd-schedule-meeting-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.rd-schedule-meeting-head span { font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-schedule-meeting p { margin: 0 0 8px; }
+.rd-schedule-meeting dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; font-size: var(--text-rd-label); }
+.rd-schedule-meeting dt { color: var(--rd-muted); }
+.rd-schedule-meeting dd { margin: 0; }

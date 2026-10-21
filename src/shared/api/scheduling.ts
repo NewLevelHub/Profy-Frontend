@@ -3,6 +3,7 @@ import { API } from '@/shared/api/endpoints';
 import type {
   ScheduleAvailabilityChange,
   ScheduleConfig,
+  ScheduleMeeting,
   ScheduleSpecialistList,
   ScheduleTemplate,
   ScheduleWeek,
@@ -48,6 +49,11 @@ export const schedulingApi = {
 
   publish: (specialist: string, weekStart: string) =>
     apiClient.post<ScheduleWeek>(API.scheduling.publish(specialist, weekStart)).then((r) => r.data),
+
+  meetings: (specialist: string, from: string, to: string) =>
+    apiClient
+      .get<ScheduleMeeting[]>(API.scheduling.meetings(specialist), { params: { from, to } })
+      .then((r) => r.data),
 };
 
 export const schedulingKeys = {
@@ -57,4 +63,6 @@ export const schedulingKeys = {
   week: (specialist: string, weekStart: string) =>
     [...schedulingKeys.all, 'week', specialist, weekStart] as const,
   template: (specialist: string) => [...schedulingKeys.all, 'template', specialist] as const,
+  meetings: (specialist: string, weekStart: string) =>
+    [...schedulingKeys.all, 'meetings', specialist, weekStart] as const,
 };

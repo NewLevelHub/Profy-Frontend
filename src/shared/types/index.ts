@@ -2491,3 +2491,28 @@ export interface ScheduleSpecialistList {
   week_start: string;
   items: ScheduleSpecialistStatus[];
 }
+
+/** GET /scheduling/specialists/{id|me}/meetings — the handoff card the CRM
+ *  manager filled (ТЗ §3.10); no prices, no sales chat. */
+export interface ScheduleMeeting {
+  id: string;
+  type: 'intro30' | 'main60';
+  status: 'pending' | 'confirmed' | 'done' | 'no_show' | 'cancelled';
+  start: string;
+  end: string;
+  handoff: {
+    student_name: string;
+    age: number;
+    gender: 'male' | 'female';
+    grade: number;
+    study_language: 'ru' | 'kk' | 'en' | 'other';
+    russian_level: 'fluent' | 'medium' | 'weak';
+    family_request: string;
+    parent_participates: boolean;
+    contact: 'parent' | 'student';
+    contact_phone: string;
+    manager_comment: string | null;
+    tariff: string;
+    consent_at: string | null;
+  };
+}

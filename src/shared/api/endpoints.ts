@@ -154,5 +154,6 @@ export const API = {
       `/scheduling/specialists/${specialist}/weeks/${weekStart}/apply-template`,
     publish: (specialist: string, weekStart: string) =>
       `/scheduling/specialists/${specialist}/weeks/${weekStart}/publish`,
+    meetings: (specialist: string) => `/scheduling/specialists/${specialist}/meetings`,
   },
 } as const;
