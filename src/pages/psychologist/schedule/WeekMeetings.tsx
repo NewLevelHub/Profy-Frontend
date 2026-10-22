@@ -1,9 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { apiErrorCode } from '@/shared/api/client';
 import { schedulingApi, schedulingKeys } from '@/shared/api/scheduling';
 import { formatDate } from '@/shared/i18n/format';
-import type { ScheduleMeeting } from '@/shared/types';
-import { addDays } from './scheduleDates';
+import { Button } from '@/shared/ui/Button';
+import type { ScheduleMeeting, ScheduleMeetingMark } from '@/shared/types';
+import { useWeekMeetings } from './useSchedule';
+
+const KNOWN_ERRORS = ['meeting_not_started', 'meeting_cancelled'];
 
 const TIMEZONE = 'Asia/Almaty';
 
@@ -16,15 +21,29 @@ function when(meeting: ScheduleMeeting): string {
 /**
  * Calls booked into this week from the CRM, with the handoff card the
  * manager filled (ТЗ §3.10, §4.3) — what the specialist needs before the
- * call. Prices and the sales chat never reach this view (ТЗ §4.8).
+ * call. Prices and the sales chat never reach this view (ТЗ §4.8). The
+ * specialist marks each call: confirmed, and after the start held or no-show
+ * (ТЗ §4.5); the CRM sees the status at once.
  */
 export function WeekMeetings({ specialist, weekStart }: { specialist: string; weekStart: string }) {
   const { t } = useTranslation('psychologist');
-  const meetings = useQuery({
-    queryKey: schedulingKeys.meetings(specialist, weekStart),
-    queryFn: () => schedulingApi.meetings(specialist, weekStart, addDays(weekStart, 6)),
-  });
+  const meetings = useWeekMeetings(specialist, weekStart);
   const items = (meetings.data ?? []).filter((m) => m.status !== 'cancelled');
+  const queryClient = useQueryClient();
+  const [failed, setFailed] = useState<{ id: string; message: string } | null>(null);
+  const mark = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: ScheduleMeetingMark }) =>
+      schedulingApi.setMeetingStatus(specialist, id, status),
+    onMutate: () => setFailed(null),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: schedulingKeys.meetings(specialist, weekStart) }),
+    onError: (error, { id }) => {
+      const code = apiErrorCode(error);
+      setFailed({
+        id,
+        message: t(code && KNOWN_ERRORS.includes(code) ? `schedule.meetings.errors.${code}` : 'schedule.meetings.errors.generic'),
+      });
+    },
+  });
 
   return (
     <section className="rd-schedule-meetings" aria-label={t('schedule.meetings.title')}>
@@ -37,12 +56,18 @@ export function WeekMeetings({ specialist, weekStart }: { specialist: string; we
         <ul>
           {items.map((meeting) => {
             const h = meeting.handoff;
+            const started = Date.now() >= Date.parse(meeting.start);
+            const busy = mark.isPending && mark.variables?.id === meeting.id;
+            const set = (status: ScheduleMeetingMark) => mark.mutate({ id: meeting.id, status });
             return (
-              <li key={meeting.id} className="rd-schedule-meeting">
+              <li key={meeting.id} id={`meeting-${meeting.id}`} className="rd-schedule-meeting">
                 <div className="rd-schedule-meeting-head">
                   <strong>{when(meeting)}</strong>
                   <span>{t(`schedule.meetings.type.${meeting.type}`)}</span>
                 </div>
+                <p className={`rd-schedule-meeting-status is-${meeting.status}`}>
+                  {t(`schedule.meetings.status.${meeting.status}`)}
+                </p>
                 <p>
                   <strong>{h.student_name}</strong>
                   {' · '}
@@ -75,6 +100,37 @@ export function WeekMeetings({ specialist, weekStart }: { specialist: string; we
                     </>
                   )}
                 </dl>
+                <div className="rd-schedule-meeting-actions">
+                  {meeting.status === 'pending' && (
+                    <Button variant="ghost" size="sm" muteSound disabled={busy} onClick={() => set('confirmed')}>
+                      {t('schedule.meetings.actions.confirm')}
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    muteSound
+                    disabled={busy || !started || meeting.status === 'done'}
+                    onClick={() => set('done')}
+                  >
+                    {t('schedule.meetings.actions.done')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    muteSound
+                    disabled={busy || !started || meeting.status === 'no_show'}
+                    onClick={() => set('no_show')}
+                  >
+                    {t('schedule.meetings.actions.noShow')}
+                  </Button>
+                </div>
+                {!started && <p className="rd-schedule-hint">{t('schedule.meetings.afterStart')}</p>}
+                {failed?.id === meeting.id && (
+                  <p className="rd-schedule-notice" role="alert">
+                    {failed.message}
+                  </p>
+                )}
               </li>
             );
           })}

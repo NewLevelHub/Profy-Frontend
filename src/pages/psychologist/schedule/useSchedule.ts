@@ -6,6 +6,7 @@ import type {
   ScheduleTemplate,
   ScheduleWeek,
 } from '@/shared/types';
+import { addDays } from './scheduleDates';
 
 export function useScheduleConfig() {
   return useQuery({ queryKey: schedulingKeys.config(), queryFn: schedulingApi.config, staleTime: 60_000 });
@@ -23,6 +24,16 @@ export function useScheduleWeek(specialist: string | undefined, weekStart: strin
   return useQuery({
     queryKey: schedulingKeys.week(specialist ?? '', weekStart ?? ''),
     queryFn: () => schedulingApi.week(specialist!, weekStart!),
+    enabled: Boolean(specialist && weekStart),
+  });
+}
+
+/** Calls booked into the week from the CRM — the grid draws them, the list
+ *  below shows their handoff cards; one query serves both. */
+export function useWeekMeetings(specialist: string | undefined, weekStart: string | undefined) {
+  return useQuery({
+    queryKey: schedulingKeys.meetings(specialist ?? '', weekStart ?? ''),
+    queryFn: () => schedulingApi.meetings(specialist!, weekStart!, addDays(weekStart!, 6)),
     enabled: Boolean(specialist && weekStart),
   });
 }

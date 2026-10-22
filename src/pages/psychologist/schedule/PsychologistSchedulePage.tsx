@@ -15,13 +15,14 @@ import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { ADMIN_INPUT } from '@/shared/ui/admin/density';
 import type { ScheduleEditableState, ScheduleSlot } from '@/shared/types';
 import { SegmentedTabs } from '../components/SegmentedTabs';
-import { addDays, defaultWeek, formatWeekRange, mondayOf, toChanges, weekToTemplate } from './scheduleDates';
+import { addDays, defaultWeek, formatMonthTitle, formatWeekRange, mondayOf, toChanges, weekToTemplate } from './scheduleDates';
 import {
   skippedSlots,
   useScheduleConfig,
   useScheduleMutations,
   useScheduleSpecialists,
   useScheduleWeek,
+  useWeekMeetings,
 } from './useSchedule';
 import { WeekGrid } from './WeekGrid';
 import { WeekMeetings } from './WeekMeetings';
@@ -70,6 +71,7 @@ export default function PsychologistSchedulePage() {
   const specialist = isOwner ? specialistParam ?? specialists.data?.items[0]?.id : 'me';
 
   const week = useScheduleWeek(specialist, weekStart);
+  const meetings = useWeekMeetings(specialist, weekStart);
   const ownerReason = isOwner ? reason.trim() : undefined;
   const mutations = useScheduleMutations(specialist ?? 'me', weekStart ?? '', ownerReason || undefined);
   const busy = Object.values(mutations).some((m) => m.isPending);
@@ -140,7 +142,12 @@ export default function PsychologistSchedulePage() {
     });
   }
 
+  const openMeeting = useCallback((id: string) => {
+    document.getElementById(`meeting-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, []);
+
   const error = config.error ?? specialists.error ?? week.error;
+  const title = weekStart ? formatMonthTitle(weekStart) : null;
   const selected = specialists.data?.items.find((item) => item.id === specialist);
 
   return (
@@ -194,38 +201,48 @@ export default function PsychologistSchedulePage() {
             </div>
           )}
 
-          <div className="rd-schedule-toolbar">
-            <div className="rd-schedule-weeknav">
-              <button
-                type="button"
-                className="rd-icon-button"
-                aria-label={t('schedule.prevWeek')}
-                disabled={!weekStart}
-                onClick={() => weekStart && update({ week: addDays(weekStart, -7) })}
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <strong aria-live="polite">{weekStart ? formatWeekRange(weekStart) : ''}</strong>
-              <button
-                type="button"
-                className="rd-icon-button"
-                aria-label={t('schedule.nextWeek')}
-                disabled={!weekStart}
-                onClick={() => weekStart && update({ week: addDays(weekStart, 7) })}
-              >
-                <ChevronRight size={18} />
-              </button>
-              {today && (
-                <Button variant="text" size="sm" muteSound onClick={() => update({ week: mondayOf(today) })}>
-                  {t('schedule.thisWeek')}
-                </Button>
+          <div className="rd-cal-header">
+            <h2 className="rd-cal-title" aria-live="polite">
+              {title && (
+                <>
+                  <b>{title.month}</b> {title.year}
+                </>
               )}
-            </div>
+            </h2>
+            {weekStart && <span className="rd-cal-range">{formatWeekRange(weekStart)}</span>}
             {week.data && (
               <span className={week.data.published ? 'rd-schedule-status is-published' : 'rd-schedule-status'}>
                 {week.data.published ? t('schedule.published') : t('schedule.notPublished')}
               </span>
             )}
+            <div className="rd-cal-nav">
+              <button
+                type="button"
+                className="rd-cal-arrow"
+                aria-label={t('schedule.prevWeek')}
+                disabled={!weekStart}
+                onClick={() => weekStart && update({ week: addDays(weekStart, -7) })}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                className="rd-cal-today"
+                disabled={!today}
+                onClick={() => today && update({ week: mondayOf(today) })}
+              >
+                {t('schedule.today')}
+              </button>
+              <button
+                type="button"
+                className="rd-cal-arrow"
+                aria-label={t('schedule.nextWeek')}
+                disabled={!weekStart}
+                onClick={() => weekStart && update({ week: addDays(weekStart, 7) })}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
 
           <div className="rd-schedule-toolbar">
@@ -233,7 +250,7 @@ export default function PsychologistSchedulePage() {
               label={t('schedule.toolLabel')}
               active={tool}
               onChange={setTool}
-              tabs={(['free', 'personal', 'closed'] as const).map((key) => ({
+              tabs={(['free', 'closed'] as const).map((key) => ({
                 key,
                 label: (
                   <span className="inline-flex items-center gap-2">
@@ -274,15 +291,32 @@ export default function PsychologistSchedulePage() {
           </p>
 
           {week.data && config.data ? (
-            <WeekGrid
-              week={week.data}
-              dayStart={config.data.day_start}
-              slotMinutes={config.data.slot_minutes}
-              tool={tool}
-              isEditable={isEditable}
-              onPaint={onPaint}
-              busy={busy}
-            />
+            <>
+              <WeekGrid
+                week={week.data}
+                dayStart={config.data.day_start}
+                slotMinutes={config.data.slot_minutes}
+                today={config.data.today}
+                meetings={meetings.data ?? []}
+                tool={tool}
+                isEditable={isEditable}
+                onPaint={onPaint}
+                onOpenMeeting={openMeeting}
+                busy={busy}
+              />
+              <div className="rd-cal-legend">
+                {(['free', 'booked', 'closed'] as const).map((state) => (
+                  <span key={state}>
+                    <i className={`rd-schedule-swatch is-${state}`} aria-hidden="true" />
+                    {t(`schedule.legend.${state}`)}
+                  </span>
+                ))}
+                <span>
+                  <i className="rd-schedule-swatch is-frozen" aria-hidden="true" />
+                  {t('schedule.legend.frozen')}
+                </span>
+              </div>
+            </>
           ) : (
             <div className="rd-schedule-loading">
               {week.isLoading || config.isLoading || specialists.isLoading ? <Spinner /> : null}

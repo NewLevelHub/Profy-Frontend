@@ -2,12 +2,13 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import axios from 'axios';
-import { ArrowLeft, ArrowRight, Mail } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lock, Mail } from 'lucide-react';
 import { passwordRuleErrorKey } from '@/shared/lib/passwordRules';
 import { AuthHeading } from '@/shared/ui/redesign/AuthHeading';
 import { PasswordInput } from '@/shared/ui/redesign/PasswordInput';
 import { authApi } from '@/shared/api/auth';
 import { apiErrorCode } from '@/shared/api/client';
+import { pendingStudentInvite } from '@/shared/api/studentInvite';
 import { env } from '@/shared/config/env';
 import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
@@ -41,6 +42,15 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
+  // Profile is a paid service: an account is made only from the CRM link
+  // (/student-invite stores its token). Without one the form is not shown.
+  const [invite, setInvite] = useState(() => pendingStudentInvite.get());
+  const inviteRejected = (err: unknown) => {
+    if (apiErrorCode(err) !== 'registration_invite_only') return false;
+    pendingStudentInvite.clear();
+    setInvite(null);
+    return true;
+  };
 
   function handleEmailStep(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +72,7 @@ export default function RegisterPage() {
     setFormError('');
     setIsLoading(true);
     try {
-      await authApi.register(email.trim(), password);
+      await authApi.register(email.trim(), password, invite);
       // Аккаунт уже создан — возвращаться к форме регистрации незачем.
       // Без replace «назад» с экрана кода показывал форму заново (и
       // только потом RequireGuest уводил дальше), что читалось как
@@ -71,6 +81,7 @@ export default function RegisterPage() {
     } catch (err) {
       setPassword('');
       setConfirm('');
+      if (inviteRejected(err)) return;
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
         const message: string = err.response?.data?.detail ?? err.response?.data?.message ?? '';
@@ -102,11 +113,12 @@ export default function RegisterPage() {
     setFormError('');
     setGoogleSubmitting(true);
     try {
-      const { access_token, user } = await authApi.googleLogin(idToken);
+      const { access_token, user } = await authApi.googleLogin(idToken, invite);
       storeLogin(access_token, user);
       // An invited email signs up as staff here (contract §5) — not a student.
       navigate(user.role === 'student' ? '/results' : homePathForUser(user), { replace: true });
-    } catch {
+    } catch (err) {
+      if (inviteRejected(err)) return;
       setFormError(t('error.googleSignUpFailed'));
     } finally {
       setGoogleSubmitting(false);
@@ -119,6 +131,20 @@ export default function RegisterPage() {
       {t('register.haveAccount')} <Link to="/login">{t('register.signIn')}</Link>
     </p>
   );
+
+  if (!invite) {
+    return (
+      <div className="rd-auth-state" role="status">
+        <AuthHeading title={t('inviteOnly.title')} icon={<Lock />}>
+          {t('inviteOnly.body')}
+        </AuthHeading>
+        <Link to="/login" className="rd-button rd-login-submit">
+          {t('inviteOnly.signIn')}
+          <ArrowRight size={20} aria-hidden="true" />
+        </Link>
+      </div>
+    );
+  }
 
   if (step === 'email') {
     return (

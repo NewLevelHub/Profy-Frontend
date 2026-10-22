@@ -6,14 +6,20 @@ export const authApi = {
   me: () =>
     apiClient.get<User>(API.auth.me).then(r => r.data),
 
-  register: (email: string, password: string) =>
-    apiClient.post<{ message: string }>(API.auth.register, { email, password }),
+  /** Staff only: an invited specialist names themselves on the first sign-in. */
+  updateName: (fullName: string) =>
+    apiClient.patch<User>(API.auth.me, { full_name: fullName }).then(r => r.data),
+
+  /** `studentInvite` — the CRM link's token: signing up is invite-only. */
+  register: (email: string, password: string, studentInvite: string | null) =>
+    apiClient.post<{ message: string }>(API.auth.register, { email, password, student_invite: studentInvite }),
 
   login: (email: string, password: string) =>
     apiClient.post<TokenResponse>(API.auth.login, { email, password }).then(r => r.data),
 
-  googleLogin: (idToken: string) =>
-    apiClient.post<TokenResponse>(API.auth.google, { id_token: idToken }).then(r => r.data),
+  /** `studentInvite` matters only when the Google account has no Profile account yet. */
+  googleLogin: (idToken: string, studentInvite: string | null = null) =>
+    apiClient.post<TokenResponse>(API.auth.google, { id_token: idToken, student_invite: studentInvite }).then(r => r.data),
 
   verifyEmailByCode: (email: string, code: string) =>
     apiClient.post<TokenResponse>(API.auth.verifyEmail, { email, code }).then(r => r.data),

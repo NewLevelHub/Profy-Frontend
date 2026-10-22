@@ -4,6 +4,7 @@ import type {
   ScheduleAvailabilityChange,
   ScheduleConfig,
   ScheduleMeeting,
+  ScheduleMeetingMark,
   ScheduleSpecialistList,
   ScheduleTemplate,
   ScheduleWeek,
@@ -53,6 +54,12 @@ export const schedulingApi = {
   meetings: (specialist: string, from: string, to: string) =>
     apiClient
       .get<ScheduleMeeting[]>(API.scheduling.meetings(specialist), { params: { from, to } })
+      .then((r) => r.data),
+
+  /** «Подтвердил»; after the start «Проведена» or «Не пришёл» (ТЗ §4.5). */
+  setMeetingStatus: (specialist: string, meetingId: string, status: ScheduleMeetingMark) =>
+    apiClient
+      .post<ScheduleMeeting>(API.scheduling.meetingStatus(specialist, meetingId), { status })
       .then((r) => r.data),
 };
 

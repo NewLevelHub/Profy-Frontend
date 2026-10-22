@@ -142,6 +142,9 @@ export const API = {
       `/psychologist/students/${studentId}/results/${assessmentId}/edits`,
   },
   /** `specialist` is `me` for the specialist themself, an id for the owner. */
+  studentInvites: {
+    accept: '/student-invites/accept',
+  },
   scheduling: {
     config: '/scheduling/config',
     specialists: '/scheduling/specialists',
@@ -155,5 +158,7 @@ export const API = {
     publish: (specialist: string, weekStart: string) =>
       `/scheduling/specialists/${specialist}/weeks/${weekStart}/publish`,
     meetings: (specialist: string) => `/scheduling/specialists/${specialist}/meetings`,
+    meetingStatus: (specialist: string, meetingId: string) =>
+      `/scheduling/specialists/${specialist}/meetings/${meetingId}/status`,
   },
 } as const;

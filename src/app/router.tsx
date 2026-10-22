@@ -77,6 +77,13 @@ export const router = createBrowserRouter([{
       element: <AuthLayout />,
       children: [{ path: '/invite', ...page(() => import('@/pages/auth/invite/InvitePage')) }],
     },
+    // ── Student invitation from the CRM (ТЗ §4.4) ──────────────────────────────
+    // Open to guests and signed-in students alike: a guest signs up first,
+    // a student is tied to the deal right on the page.
+    {
+      element: <AuthLayout />,
+      children: [{ path: '/student-invite', ...page(() => import('@/pages/auth/student-invite/StudentInvitePage')) }],
+    },
 
     // ── Authenticated (mobile: AppNavigator) ───────────────────────────────────
     {
@@ -87,6 +94,17 @@ export const router = createBrowserRouter([{
         // ── Psychologist cabinet ──
         // The owner shares the cabinet shell for the schedule only (ТЗ §4.1);
         // every other page stays psychologist-only.
+        // The invited specialist's name, before the cabinet (PsychologistArea
+        // sends a nameless account here).
+        {
+          element: <RequireRole role={['psychologist', 'owner']} />,
+          children: [
+            {
+              element: <AuthLayout />,
+              children: [{ path: '/staff/name', ...page(() => import('@/pages/auth/staff-name/StaffNamePage')) }],
+            },
+          ],
+        },
         {
           element: <RequireRole role={['psychologist', 'owner']} />,
           children: [
