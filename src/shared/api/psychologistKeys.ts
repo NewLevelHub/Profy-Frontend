@@ -8,6 +8,7 @@ export const psychologistKeys = {
   availableStudents: () => [...psychologistKeys.students(), 'available'] as const,
   student: (studentId: string) => [...psychologistKeys.all, 'student', studentId] as const,
   notes: (studentId: string) => [...psychologistKeys.student(studentId), 'notes'] as const,
+  secondMeeting: (studentId: string) => [...psychologistKeys.student(studentId), 'second-meeting'] as const,
   result: (studentId: string, assessmentId: string) =>
     [...psychologistKeys.all, 'result', studentId, assessmentId] as const,
   resultEdits: (studentId: string, assessmentId: string) =>

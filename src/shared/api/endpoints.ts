@@ -122,6 +122,7 @@ export const API = {
     claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
+    studentSecondMeeting: (studentId: string) => `/psychologist/students/${studentId}/second-meeting`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
     studentAssessmentReport: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/assessments/${assessmentId}/report`,

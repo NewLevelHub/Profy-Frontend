@@ -2500,6 +2500,15 @@ export interface ScheduleSpecialistList {
 /** Statuses a specialist or the owner can set on a call. */
 export type ScheduleMeetingMark = 'confirmed' | 'done' | 'no_show';
 
+/** GET/POST /psychologist/students/{id}/second-meeting — `blocker` says why
+ *  the second call cannot be set now. */
+export interface SecondMeetingState {
+  first: ScheduleMeeting | null;
+  second: ScheduleMeeting | null;
+  can_schedule: boolean;
+  blocker: 'no_consultation' | 'first_not_booked' | 'first_not_started' | 'already_scheduled' | null;
+}
+
 export interface ScheduleMeeting {
   id: string;
   type: 'intro30' | 'main60';

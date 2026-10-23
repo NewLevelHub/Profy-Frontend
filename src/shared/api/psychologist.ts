@@ -13,6 +13,7 @@ import type {
   PsychologistStudentDetail,
   PsychologistStudentListItem,
   PsychologistTestResultsResponse,
+  SecondMeetingState,
 } from '@/shared/types';
 
 export const psychologistApi = {
@@ -34,6 +35,17 @@ export const psychologistApi = {
   getStudent: (studentId: string) =>
     apiClient
       .get<PsychologistStudentDetail>(API.psychologist.studentDetail(studentId))
+      .then((r) => r.data),
+
+  /** The student's first call (booked from the CRM) and the second one the specialist sets. */
+  secondMeeting: (studentId: string) =>
+    apiClient
+      .get<SecondMeetingState>(API.psychologist.studentSecondMeeting(studentId))
+      .then((r) => r.data),
+
+  setSecondMeeting: (studentId: string, start: string) =>
+    apiClient
+      .post<SecondMeetingState>(API.psychologist.studentSecondMeeting(studentId), { start })
       .then((r) => r.data),
 
   listNotes: (studentId: string) =>
