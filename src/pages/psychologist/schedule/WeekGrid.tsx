@@ -21,6 +21,11 @@ interface WeekGridProps {
   onPaint: (starts: Set<string>) => void;
   onOpenMeeting: (id: string) => void;
   busy: boolean;
+  /** A picked, not yet saved interval (the second call), drawn like a call. */
+  pending?: { start: string; end: string; label: string } | null;
+  /** Picking a call's time, not painting availability: the freeze (which
+   *  only limits availability edits) is not shown, nor the all-day row. */
+  picking?: boolean;
 }
 
 const RUN_STATES = new Set(['free']);
@@ -46,6 +51,8 @@ export function WeekGrid({
   onPaint,
   onOpenMeeting,
   busy,
+  pending = null,
+  picking = false,
 }: WeekGridProps) {
   const { t } = useTranslation('psychologist');
   const [selection, setSelectionState] = useState<Set<string>>(() => new Set());
@@ -141,7 +148,7 @@ export function WeekGrid({
           >
             <span className="rd-cal-dow">{formatWeekday(day.date)}</span>
             <span className="rd-cal-dnum">{formatDayNumber(day.date)}</span>
-            {day.frozen && (
+            {day.frozen && !picking && (
               <span className="rd-cal-lock" title={t('schedule.frozenHint')} aria-label={t('schedule.frozen')}>
                 <Lock size={12} aria-hidden="true" />
               </span>
@@ -150,7 +157,7 @@ export function WeekGrid({
         ))}
       </div>
 
-      <div className="rd-cal-row rd-cal-allday">
+      {!picking && <div className="rd-cal-row rd-cal-allday">
         <div className="rd-cal-ad-label">{t('schedule.allDay')}</div>
         {week.days.map((day, index) => {
           const free = day.slots.filter((slot) => slot.state === 'free' && !slot.past).length;
@@ -172,7 +179,7 @@ export function WeekGrid({
             </div>
           );
         })}
-      </div>
+      </div>}
 
       <div className="rd-cal-row rd-cal-body">
         <div className="rd-cal-times" aria-hidden="true">
@@ -210,7 +217,7 @@ export function WeekGrid({
                     !time.endsWith(':00') && 'is-half',
                     runStart && 'is-run-start',
                     runEnd && 'is-run-end',
-                    slot.frozen && 'is-frozen',
+                    slot.frozen && !picking && 'is-frozen',
                     slot.past && 'is-past',
                     selection.has(slot.start) && 'is-selected',
                   )}
@@ -252,6 +259,20 @@ export function WeekGrid({
                   </button>
                 );
               })}
+
+            {pending && day.slots.some((slot) => Date.parse(slot.start) === Date.parse(pending.start)) && (
+              <span
+                className="rd-cal-ev is-pending"
+                style={
+                  {
+                    '--from': (almatyMinutes(pending.start)! - startMinutes) / slotMinutes,
+                    '--len': (Date.parse(pending.end) - Date.parse(pending.start)) / 60_000 / slotMinutes,
+                  } as CSSProperties
+                }
+              >
+                <b>{pending.label}</b>
+              </span>
+            )}
           </div>
         ))}
 

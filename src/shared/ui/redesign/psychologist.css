@@ -208,6 +208,8 @@
 .rd-cal-ev span { opacity: .85; }
 .rd-cal-ev:hover { background: color-mix(in srgb, var(--c) 32%, var(--rd-card)); }
 .rd-cal-ev:focus-visible { outline: 2px solid var(--rd-purple); outline-offset: 1px; }
+/* The second call picked in the student card, not saved yet. */
+.rd-cal-ev.is-pending { --c: var(--rd-pine); pointer-events: none; outline: 1.5px dashed var(--c); outline-offset: -1.5px; }
 
 .rd-cal-now { position: absolute; left: 0; right: 0; top: calc(var(--rh) * var(--at)); z-index: 4; height: 0; min-width: 660px; pointer-events: none; }
 .rd-cal-now-label { position: absolute; left: 4px; top: -9px; display: grid; place-items: center; width: 46px; height: 18px; border-radius: 999px; font-size: var(--text-rd-label); font-weight: 600; background: var(--accent); color: var(--rd-card); font-variant-numeric: tabular-nums; }

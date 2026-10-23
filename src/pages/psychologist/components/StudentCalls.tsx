@@ -1,23 +1,18 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiErrorCode } from '@/shared/api/client';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { psychologistKeys } from '@/shared/api/psychologistKeys';
+import { schedulingKeys } from '@/shared/api/scheduling';
 import { formatDate } from '@/shared/i18n/format';
-import { Button } from '@/shared/ui/Button';
-import { Input } from '@/shared/ui/Input';
 import { Mono, Text } from '@/shared/ui/typography';
 import type { ScheduleMeeting } from '@/shared/types';
+import { SecondCallPicker } from './SecondCallPicker';
 import { StatusMark, type StatusTone } from './StatusMark';
 
 const PANEL = 'rd-psych-panel bg-surface border border-strong rounded-[10px]';
-// The schedule grid is 08:00–22:00 Almaty; a 60-minute call starts by 21:00.
-const START_TIMES = Array.from({ length: 27 }, (_, i) => {
-  const minutes = 8 * 60 + i * 30;
-  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
-});
 const ERROR_CODES = [
   'slot_taken',
   'slot_in_past',
@@ -48,10 +43,6 @@ function callTime(value: string): string {
   });
 }
 
-function todayInAlmaty(): string {
-  return new Date(Date.now() + 5 * 3_600_000).toISOString().slice(0, 10);
-}
-
 /** The student's calls with this specialist: the first one the manager booked
  *  from the CRM and the second one — the report review — the specialist sets
  *  here once the first has begun. Hidden for a tariff without a specialist. */
@@ -60,14 +51,14 @@ export function StudentCalls({ studentId }: { studentId: string }) {
   const queryClient = useQueryClient();
   const key = psychologistKeys.secondMeeting(studentId);
   const calls = useQuery({ queryKey: key, queryFn: () => psychologistApi.secondMeeting(studentId), enabled: !!studentId });
-  const [day, setDay] = useState('');
-  const [time, setTime] = useState('15:00');
   const [error, setError] = useState<string | null>(null);
 
   const schedule = useMutation({
     mutationFn: (start: string) => psychologistApi.setSecondMeeting(studentId, start),
     onSuccess: (state) => {
       queryClient.setQueryData(key, state);
+      // The hour is taken in the schedule and shows in «Созвоны».
+      void queryClient.invalidateQueries({ queryKey: schedulingKeys.all });
       setError(null);
     },
     onError: (err) => {
@@ -97,13 +88,6 @@ export function StudentCalls({ studentId }: { studentId: string }) {
 
   const state = calls.data;
   if (!state || (state.blocker === 'no_consultation' && !state.first && !state.second)) return null;
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (!day) return;
-    // Almaty is UTC+5 all year.
-    schedule.mutate(`${day}T${time}:00+05:00`);
-  };
 
   const row = (label: string, meeting: ScheduleMeeting | null, empty: string) => (
     <li className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 border-t border-default">
@@ -140,36 +124,7 @@ export function StudentCalls({ studentId }: { studentId: string }) {
 
       <div className="px-6 py-4 border-t border-default flex flex-col gap-3">
         {state.can_schedule ? (
-          <form className="flex flex-wrap items-end gap-3" onSubmit={submit}>
-            <div className="w-44">
-              <Input
-                label={t('detail.calls.date')}
-                type="date"
-                required
-                min={todayInAlmaty()}
-                value={day}
-                onChange={(e) => setDay(e.target.value)}
-              />
-            </div>
-            <label className="flex flex-col">
-              {/* Same label as Input's, so the two fields read as one row. */}
-              <span className="font-mono text-mono-xs tracking-label uppercase text-muted mb-1">{t('detail.calls.time')}</span>
-              <select
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="min-h-11 px-3 rounded-[var(--radius)] border border-default bg-surface text-primary"
-              >
-                {START_TIMES.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Button type="submit" size="md" isLoading={schedule.isPending} disabled={!day} muteSound>
-              {t('detail.calls.schedule')}
-            </Button>
-          </form>
+          <SecondCallPicker onConfirm={(start) => schedule.mutate(start)} saving={schedule.isPending} />
         ) : (
           state.blocker &&
           state.blocker !== 'already_scheduled' && (
