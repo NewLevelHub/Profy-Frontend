@@ -84,7 +84,7 @@ export function LandingTry() {
       {selected !== null && <div className="rd-try-result" aria-live="polite">
         <span className="rd-icon-tile rd-lilac"><Compass aria-hidden="true" /></span>
         <div><p className="rd-eyebrow">{t('try.resultKicker')}</p><h4>{t('try.resultDirection')}</h4><p>{t('try.resultDesc')}</p></div>
-        <Link to="/register" className="rd-button rd-button-small">{t('cta.takeDiagnostic')}<ArrowRight size={18} aria-hidden="true" /></Link>
+        <Link to="/login" className="rd-button rd-button-small">{t('cta.takeDiagnostic')}<ArrowRight size={18} aria-hidden="true" /></Link>
       </div>}
     </div>
   </section>;

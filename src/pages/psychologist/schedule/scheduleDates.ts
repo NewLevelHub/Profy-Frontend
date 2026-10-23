@@ -44,6 +44,40 @@ export function formatWeekRange(monday: string): string {
   return `${from} – ${to}`;
 }
 
+/** Short weekday of `day` — «пн», «дс». */
+export function formatWeekday(day: string): string {
+  return formatDate(almatyNoon(day), { weekday: 'short', timeZone: SCHEDULE_TIMEZONE });
+}
+
+/** Day of the month of `day`. */
+export function formatDayNumber(day: string): string {
+  return formatDate(almatyNoon(day), { day: 'numeric', timeZone: SCHEDULE_TIMEZONE });
+}
+
+/** Month (standalone, capitalized) and year of the week, as the calendar title:
+ *  «Ноябрь» / «Октябрь – Ноябрь», «2026». */
+export function formatMonthTitle(monday: string): { month: string; year: string } {
+  const sunday = addDays(monday, 6);
+  const month = (day: string) => {
+    const name = formatDate(almatyNoon(day), { month: 'long', timeZone: SCHEDULE_TIMEZONE });
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+  const first = month(monday);
+  const last = month(sunday);
+  return {
+    month: first === last ? first : `${first} – ${last}`,
+    year: formatDate(almatyNoon(sunday), { year: 'numeric', timeZone: SCHEDULE_TIMEZONE }),
+  };
+}
+
+/** Minutes after midnight, Almaty (UTC+5 all year), of an API instant. */
+export function almatyMinutes(instant: string): number | null {
+  const ms = Date.parse(instant);
+  if (Number.isNaN(ms)) return null;
+  const local = new Date(ms + 5 * 3_600_000);
+  return local.getUTCHours() * 60 + local.getUTCMinutes();
+}
+
 /** `HH:MM` of the n-th slot of a day — machine time, not locale copy. */
 export function slotWallTime(dayStart: string, index: number, slotMinutes: number): string {
   const [hours, minutes] = dayStart.split(':').map(Number);
@@ -56,7 +90,7 @@ export function weekToTemplate(week: ScheduleWeek, dayStart: string, slotMinutes
   const days: ScheduleTemplate['days'] = {};
   week.days.forEach((day: ScheduleDay, dayIndex) => {
     const intervals: ScheduleTemplate['days'][string] = [];
-    let run: { start: number; state: 'free' | 'personal' } | null = null;
+    let run: { start: number; state: 'free' } | null = null;
     const close = (end: number) => {
       if (!run) return;
       intervals.push({
@@ -68,7 +102,7 @@ export function weekToTemplate(week: ScheduleWeek, dayStart: string, slotMinutes
     };
     day.slots.forEach((slot, index) => {
       // A booked slot was working time: it goes into the template as free.
-      const state = slot.state === 'booked' ? 'free' : slot.state === 'free' || slot.state === 'personal' ? slot.state : null;
+      const state = slot.state === 'booked' || slot.state === 'free' ? 'free' : null;
       if (run && run.state !== state) close(index);
       if (state && !run) run = { start: index, state };
     });

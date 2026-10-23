@@ -5,6 +5,8 @@ import { Link, useNavigate, useLocation } from 'react-router';
 import axios from 'axios';
 import { ArrowRight, Eye, EyeOff, Mail } from 'lucide-react';
 import { authApi } from '@/shared/api/auth';
+import { apiErrorCode } from '@/shared/api/client';
+import { pendingStudentInvite } from '@/shared/api/studentInvite';
 import { env } from '@/shared/config/env';
 import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
@@ -100,11 +102,14 @@ export default function LoginPage() {
     setResendDone(false);
     setGoogleSubmitting(true);
     try {
-      const { access_token, user } = await authApi.googleLogin(idToken);
+      const { access_token, user } = await authApi.googleLogin(idToken, pendingStudentInvite.get());
       storeLogin(access_token, user);
       navigate(resolveReturnTo(location) ?? homePathForUser(user), { replace: true });
-    } catch {
-      setFormError(t('auth:error.googleSignInFailed'));
+    } catch (err) {
+      // A Google account without a Profile account: signing up is invite-only.
+      setFormError(
+        t(apiErrorCode(err) === 'registration_invite_only' ? 'auth:inviteOnly.googleNoAccount' : 'auth:error.googleSignInFailed'),
+      );
     } finally {
       setGoogleSubmitting(false);
     }
@@ -201,7 +206,7 @@ export default function LoginPage() {
             <GoogleSignInButton text="signin_with" disabled={busy} onCredential={handleGoogleCredential} />
           </>
         )}
-        <p className="rd-login-switch">{t('auth:redesign.newHere')} <Link to="/register">{t('auth:login.createAccount')}</Link></p>
+        <p className="rd-login-switch">{t('auth:inviteOnly.loginHint')}</p>
       </form>
     </>
   );

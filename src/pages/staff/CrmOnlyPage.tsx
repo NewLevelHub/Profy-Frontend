@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/ui/Button';
+import { env } from '@/shared/config/env';
+import { Button, buttonClasses } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { useRailSession } from '@/shared/ui/navigation/useRailSession';
 import { Heading, Text } from '@/shared/ui/typography';
@@ -15,9 +16,16 @@ export default function CrmOnlyPage() {
       <Text variant="body-md" className="text-muted">
         {t('crmOnly.body', { email: user?.email ?? '' })}
       </Text>
-      <Button variant="ghost" size="md" muteSound onClick={onLogout}>
-        {t('logout')}
-      </Button>
+      <div className="flex flex-wrap gap-3">
+        {env.CRM_URL && (
+          <a href={env.CRM_URL} className={buttonClasses({ variant: 'primary', size: 'md' })}>
+            {t('crmOnly.open')}
+          </a>
+        )}
+        <Button variant="ghost" size="md" muteSound onClick={onLogout}>
+          {t('logout')}
+        </Button>
+      </div>
     </PageContainer>
   );
 }

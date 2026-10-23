@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays, ClipboardCheck, LogOut, Menu, UsersRound, X, type LucideIcon } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, LogOut, Menu, PhoneCall, UsersRound, X, type LucideIcon } from 'lucide-react';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { ThemeToggle } from '../ThemeToggle';
 import { OWNER_NAV_ITEMS, PSYCHOLOGIST_NAV_ITEMS, isNavActive } from '../navigation/navItems';
 
 const NAV_ICONS: Record<string, LucideIcon> = {
-  '/psychologist/reviews': ClipboardCheck,
+  '/psychologist/calls': PhoneCall,
   '/psychologist/students': UsersRound,
   '/psychologist/schedule': CalendarDays,
 };
@@ -15,13 +15,15 @@ const NAV_ICONS: Record<string, LucideIcon> = {
 interface PsychologistNavigationProps {
   activePath: string;
   email?: string;
+  /** Shown above the email; the role label stands in until it is set. */
+  name?: string | null;
   reviewCount: number;
   /** The owner sees only the schedule and is labelled as owner. */
   isOwner?: boolean;
   onLogout: () => void;
 }
 
-export function PsychologistNavigation({ activePath, email, reviewCount, isOwner = false, onLogout }: PsychologistNavigationProps) {
+export function PsychologistNavigation({ activePath, email, name, reviewCount, isOwner = false, onLogout }: PsychologistNavigationProps) {
   const { t } = useTranslation(['psychologist', 'common']);
   const [open, setOpen] = useState(false);
   useEffect(() => { setOpen(false); }, [activePath]);
@@ -43,8 +45,8 @@ export function PsychologistNavigation({ activePath, email, reviewCount, isOwner
     </Link>;
   });
   const account = <div className="rd-psych-account">
-    <span className="rd-psych-account-icon" aria-hidden="true">{email?.[0]?.toUpperCase() ?? 'P'}</span>
-    <div><strong>{t(isOwner ? 'nav.roleOwner' : 'nav.role')}</strong><span title={email}>{email}</span></div>
+    <span className="rd-psych-account-icon" aria-hidden="true">{(name || email)?.[0]?.toUpperCase() ?? 'P'}</span>
+    <div><strong>{name || t(isOwner ? 'nav.roleOwner' : 'nav.role')}</strong><span title={email}>{email}</span></div>
     <button type="button" className="rd-icon-button" onClick={onLogout} aria-label={t('common:logout')} title={t('common:logout')}><LogOut size={18} /></button>
   </div>;
 

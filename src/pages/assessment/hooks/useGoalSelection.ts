@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { assessmentApi } from '@/shared/api/assessment';
+import { apiErrorCode } from '@/shared/api/client';
 import { useAssessmentStore } from '@/shared/store/assessment';
 import { usePsychoColorRunStore } from '@/shared/store/psychoemotional';
 import { useResultStore } from '@/shared/store/result';
@@ -43,6 +44,16 @@ export function useGoalSelection() {
   // читал бы формулировки для средней школы.
   const { profile } = useEnsureProfile();
   const ageGroup = profile?.age_group ?? 'middle';
+
+  // A student sold the specialist's calls takes the test after the first one
+  // has begun; until then the page says when instead of offering goals.
+  const { data: availability } = useQuery({
+    queryKey: ['assessment', userId, 'availability'],
+    queryFn: assessmentApi.availability,
+    enabled: Boolean(userId),
+    retry: false,
+  });
+  const lockedUntil = availability && !availability.open ? { opensAt: availability.opens_at } : null;
 
   const [resumeOpen, setResumeOpen] = useState(false);
   const [restartOpen, setRestartOpen] = useState(false);
@@ -157,7 +168,12 @@ export function useGoalSelection() {
     ageGroup,
     isLoading: startMutation.isPending,
     isCheckingCurrent,
-    error: startMutation.isError ? t('assessment:error.startTest') : null,
+    error: startMutation.isError
+      ? apiErrorCode(startMutation.error) === 'test_after_first_call'
+        ? t('assessment:goalSelection.lockedTitle')
+        : t('assessment:error.startTest')
+      : null,
+    lockedUntil,
     resumeOpen,
     restartOpen,
     currentGoal: current?.goal ?? null,

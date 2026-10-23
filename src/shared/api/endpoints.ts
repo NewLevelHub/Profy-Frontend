@@ -29,6 +29,7 @@ export const API = {
   },
   assessment: {
     start: '/assessment/start',
+    availability: '/assessment/availability',
     current: '/assessment/current',
     questions: (assessmentId: string) => `/assessment/${assessmentId}/questions`,
     answers: (assessmentId: string) => `/assessment/${assessmentId}/answers`,
@@ -122,6 +123,7 @@ export const API = {
     claimStudent: (id: string) => `/psychologist/students/${id}/claim`,
     studentDetail: (id: string) => `/psychologist/students/${id}`,
     studentNotes: (studentId: string) => `/psychologist/students/${studentId}/notes`,
+    studentSecondMeeting: (studentId: string) => `/psychologist/students/${studentId}/second-meeting`,
     noteDetail: (noteId: string) => `/psychologist/notes/${noteId}`,
     studentAssessmentReport: (studentId: string, assessmentId: string) =>
       `/psychologist/students/${studentId}/assessments/${assessmentId}/report`,
@@ -142,6 +144,9 @@ export const API = {
       `/psychologist/students/${studentId}/results/${assessmentId}/edits`,
   },
   /** `specialist` is `me` for the specialist themself, an id for the owner. */
+  studentInvites: {
+    accept: '/student-invites/accept',
+  },
   scheduling: {
     config: '/scheduling/config',
     specialists: '/scheduling/specialists',
@@ -155,5 +160,11 @@ export const API = {
     publish: (specialist: string, weekStart: string) =>
       `/scheduling/specialists/${specialist}/weeks/${weekStart}/publish`,
     meetings: (specialist: string) => `/scheduling/specialists/${specialist}/meetings`,
+    meetingStatus: (specialist: string, meetingId: string) =>
+      `/scheduling/specialists/${specialist}/meetings/${meetingId}/status`,
+    meetingReschedule: (specialist: string, meetingId: string) =>
+      `/scheduling/specialists/${specialist}/meetings/${meetingId}/reschedule`,
+    meetingCancel: (specialist: string, meetingId: string) =>
+      `/scheduling/specialists/${specialist}/meetings/${meetingId}/cancel`,
   },
 } as const;

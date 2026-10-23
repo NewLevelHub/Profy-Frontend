@@ -27,6 +27,9 @@ export interface User {
   /** UI locale from the backend (`users.locale`). "kk" is stored but not
    *  runtime-honored until KZ-603. */
   locale?: 'ru' | 'kk';
+  /** Staff name (CRM, schedule); null — an invited specialist has not set it
+   *  yet. Absent on a user persisted before the field existed. */
+  full_name?: string | null;
 }
 
 export interface TokenResponse {
@@ -2406,7 +2409,7 @@ export interface ValidationMessage {
 // ─── Scheduling ── docs/frontend-scheduling-api-contract.md (backend repo) ──
 // Times are UTC ISO strings; dates (`YYYY-MM-DD`) are Asia/Almaty days.
 
-type ScheduleSlotState = 'closed' | 'free' | 'personal' | 'booked';
+type ScheduleSlotState = 'closed' | 'free' | 'booked';
 export type ScheduleEditableState = Exclude<ScheduleSlotState, 'booked'>;
 
 export interface ScheduleConfig {
@@ -2470,7 +2473,7 @@ export interface ScheduleWeekBulkResponse {
 interface ScheduleTemplateInterval {
   start: string;
   end: string;
-  state: 'free' | 'personal';
+  state: 'free';
 }
 
 export interface ScheduleTemplate {
@@ -2494,12 +2497,35 @@ export interface ScheduleSpecialistList {
 
 /** GET /scheduling/specialists/{id|me}/meetings — the handoff card the CRM
  *  manager filled (ТЗ §3.10); no prices, no sales chat. */
+/** Statuses a specialist or the owner can set on a call. */
+export type ScheduleMeetingMark = 'confirmed' | 'done' | 'no_show';
+
+/** GET/POST /psychologist/students/{id}/second-meeting — `blocker` says why
+ *  the second call cannot be set now. */
+/** GET /assessment/availability — `opens_at` is the first call's start, null
+ *  while it is not booked yet. */
+export interface AssessmentAvailability {
+  open: boolean;
+  opens_at: string | null;
+}
+
+export interface SecondMeetingState {
+  first: ScheduleMeeting | null;
+  second: ScheduleMeeting | null;
+  can_schedule: boolean;
+  blocker: 'no_consultation' | 'first_not_booked' | 'first_not_started' | 'already_scheduled' | null;
+}
+
 export interface ScheduleMeeting {
   id: string;
   type: 'intro30' | 'main60';
   status: 'pending' | 'confirmed' | 'done' | 'no_show' | 'cancelled';
   start: string;
   end: string;
+  /** The student's Profile account once linked by the CRM invite. */
+  student_id?: string | null;
+  /** The call the manager booked, or the report review the specialist set. */
+  call?: 'first' | 'second' | null;
   handoff: {
     student_name: string;
     age: number;
