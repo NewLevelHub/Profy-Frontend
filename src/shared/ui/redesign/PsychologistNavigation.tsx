@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays, ClipboardCheck, LogOut, Menu, UsersRound, X, type LucideIcon } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, LogOut, Menu, PhoneCall, UsersRound, X, type LucideIcon } from 'lucide-react';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { ThemeToggle } from '../ThemeToggle';
 import { OWNER_NAV_ITEMS, PSYCHOLOGIST_NAV_ITEMS, isNavActive } from '../navigation/navItems';
 
 const NAV_ICONS: Record<string, LucideIcon> = {
-  '/psychologist/reviews': ClipboardCheck,
+  '/psychologist/calls': PhoneCall,
   '/psychologist/students': UsersRound,
   '/psychologist/schedule': CalendarDays,
 };

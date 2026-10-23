@@ -2522,6 +2522,10 @@ export interface ScheduleMeeting {
   status: 'pending' | 'confirmed' | 'done' | 'no_show' | 'cancelled';
   start: string;
   end: string;
+  /** The student's Profile account once linked by the CRM invite. */
+  student_id?: string | null;
+  /** The call the manager booked, or the report review the specialist set. */
+  call?: 'first' | 'second' | null;
   handoff: {
     student_name: string;
     age: number;

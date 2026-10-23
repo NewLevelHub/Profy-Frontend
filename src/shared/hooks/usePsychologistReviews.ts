@@ -3,8 +3,8 @@ import { psychologistApi } from '@/shared/api/psychologist';
 import { psychologistKeys } from '@/shared/api/psychologistKeys';
 
 /** Reports of the psychologist's own students still waiting for review —
- *  the queue page and the "Проверка отчётов · N" counter in the psychologist navigation share
- *  one cache entry, so publishing a report updates both. */
+ *  the «Мои ученики · N» counter in the psychologist navigation; publishing
+ *  a report updates it through this one cache entry. */
 export function usePsychologistReviews({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: psychologistKeys.reviews(),

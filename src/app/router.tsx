@@ -118,8 +118,9 @@ export const router = createBrowserRouter([{
                 {
                   element: <RequireRole role="psychologist" />,
                   children: [
-                    // The review queue is the cabinet's front page (it's where work starts).
-                    { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
+                    // «Созвоны» is the cabinet's front page: calls to mark, coming ones.
+                    { path: '/psychologist', element: <Navigate to="/psychologist/calls" replace /> },
+                    { path: '/psychologist/calls', ...page(() => import('@/pages/psychologist/PsychologistCallsPage')) },
                     { path: '/psychologist/students', ...page(() => import('@/pages/psychologist/PsychologistStudentsPage')) },
                     {
                       path: '/psychologist/students/:studentId',
@@ -133,7 +134,8 @@ export const router = createBrowserRouter([{
                       path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
                       ...page(() => import('@/pages/psychologist/PsychologistReportHistoryPage')),
                     },
-                    { path: '/psychologist/reviews', ...page(() => import('@/pages/psychologist/PsychologistReviewQueuePage')) },
+                    // Reports under review live in the student cards now; old links land on the list.
+                    { path: '/psychologist/reviews', element: <Navigate to="/psychologist/students" replace /> },
                     {
                       path: '/psychologist/students/:studentId/results/:assessmentId/review',
                       ...page(() => import('@/pages/psychologist/PsychologistResultReviewPage')),

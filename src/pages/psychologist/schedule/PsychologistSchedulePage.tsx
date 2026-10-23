@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useSearchParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { CalendarCheck, ChevronLeft, ChevronRight, Copy, LayoutTemplate, Save } from 'lucide-react';
@@ -56,6 +56,7 @@ const REASON_MIN = 3;
 export default function PsychologistSchedulePage() {
   const { t } = useTranslation('psychologist');
   const isOwner = useAuthStore((s) => s.user?.role === 'owner');
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [tool, setTool] = useState<ScheduleEditableState>('free');
   const [reason, setReason] = useState('');
@@ -142,9 +143,14 @@ export default function PsychologistSchedulePage() {
     });
   }
 
-  const openMeeting = useCallback((id: string) => {
-    document.getElementById(`meeting-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, []);
+  // The owner reads the calls under the grid; the specialist works with them in «Созвоны».
+  const openMeeting = useCallback(
+    (id: string) => {
+      if (isOwner) document.getElementById(`meeting-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else navigate(`/psychologist/calls#meeting-${id}`);
+    },
+    [isOwner, navigate],
+  );
 
   const error = config.error ?? specialists.error ?? week.error;
   const title = weekStart ? formatMonthTitle(weekStart) : null;
@@ -325,7 +331,7 @@ export default function PsychologistSchedulePage() {
         </section>
       )}
 
-      {specialist && weekStart && !error && <WeekMeetings specialist={specialist} weekStart={weekStart} />}
+      {isOwner && specialist && weekStart && !error && <WeekMeetings specialist={specialist} weekStart={weekStart} />}
     </PageContainer>
   );
 }

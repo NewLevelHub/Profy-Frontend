@@ -85,9 +85,9 @@ export default function PsychologistReportPage() {
 
   useEffect(() => {
     if (!publishedToast) return;
-    const timer = window.setTimeout(() => navigate('/psychologist/reviews?tab=mine'), PUBLISHED_TOAST_MS);
+    const timer = window.setTimeout(() => navigate(`/psychologist/students/${studentId}`), PUBLISHED_TOAST_MS);
     return () => window.clearTimeout(timer);
-  }, [publishedToast, navigate]);
+  }, [publishedToast, navigate, studentId]);
 
   function switchTab(next: ReportTab) {
     setSearchParams(next === 'review' ? { tab: 'review' } : {}, { replace: true });
@@ -153,7 +153,7 @@ export default function PsychologistReportPage() {
   return (
     <PageContainer className="rd-psych-report-page flex flex-col gap-6 pb-10">
       {pending || !detail ? (
-        <BackLink onClick={() => navigate('/psychologist/reviews?tab=mine')}>{t('report.backToQueue')}</BackLink>
+        <BackLink onClick={() => navigate(`/psychologist/students/${studentId}`)}>{t('report.backToStudent')}</BackLink>
       ) : (
         <BackLink onClick={() => navigate(`/psychologist/students/${studentId}`)}>
           {t('report.backToStudent')}
