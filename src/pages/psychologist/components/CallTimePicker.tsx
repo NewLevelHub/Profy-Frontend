@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/shared/i18n/format';
@@ -26,6 +26,7 @@ export function CallTimePicker({
   onConfirm,
   saving,
   canConfirm = true,
+  footer,
   moving,
 }: {
   minutes: number;
@@ -36,6 +37,8 @@ export function CallTimePicker({
   saving: boolean;
   /** False keeps the confirm button off (e.g. no reason yet). */
   canConfirm?: boolean;
+  /** Next to the confirm button — what it waits for (the reason field). */
+  footer?: ReactNode;
   /** The call being moved: its own slots are not in the way. */
   moving?: string;
 }) {
@@ -123,8 +126,9 @@ export function CallTimePicker({
         <div className="rd-cal-loading" />
       )}
       {picked && (
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-heading">{t('detail.calls.pickedAt', { time: wallTime(picked), minutes })}</span>
+        <div className="flex flex-wrap items-end gap-3">
+          <span className="text-heading self-center">{t('detail.calls.pickedAt', { time: wallTime(picked), minutes })}</span>
+          {footer}
           <Button size="md" muteSound isLoading={saving} disabled={!canConfirm} onClick={() => onConfirm(picked)}>
             {confirmLabel}
           </Button>

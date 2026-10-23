@@ -80,6 +80,18 @@ export function MeetingCard({
   const busy = mark.isPending || move.isPending || cancel.isPending;
   const changeable = canChange && !started && (meeting.status === 'pending' || meeting.status === 'confirmed');
   const minutes = Math.round((Date.parse(meeting.end) - Date.parse(meeting.start)) / 60_000);
+  const reasonField = (
+    <div className="min-w-64 flex-1">
+      <Input
+        label={t('calls.reason')}
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        placeholder={t('calls.reasonPlaceholder')}
+        hint={reasonOk ? undefined : t('calls.reasonNeeded')}
+        maxLength={1000}
+      />
+    </div>
+  );
   const kind = meeting.call ? t(`calls.kind.${meeting.call}`) : t(`schedule.meetings.type.${meeting.type}`);
 
   return (
@@ -168,14 +180,6 @@ export function MeetingCard({
       )}
       {changeable && change && (
         <div className="flex flex-col gap-3 mt-3">
-          <Input
-            label={t('calls.reason')}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder={t('calls.reasonPlaceholder')}
-            maxLength={1000}
-            autoFocus
-          />
           {change === 'move' ? (
             <CallTimePicker
               minutes={minutes}
@@ -185,11 +189,16 @@ export function MeetingCard({
               saving={move.isPending}
               canConfirm={reasonOk}
               moving={meeting.id}
+              // The reason sits by the button it unlocks, not above the grid.
+              footer={reasonField}
             />
           ) : (
-            <Button variant="ghost" size="sm" muteSound isLoading={cancel.isPending} disabled={!reasonOk} onClick={() => cancel.mutate()}>
-              {t('calls.cancelConfirm')}
-            </Button>
+            <>
+              {reasonField}
+              <Button variant="ghost" size="sm" muteSound isLoading={cancel.isPending} disabled={!reasonOk} onClick={() => cancel.mutate()}>
+                {t('calls.cancelConfirm')}
+              </Button>
+            </>
           )}
           <Button variant="text" size="sm" muteSound disabled={busy} onClick={() => setChange(null)}>
             {t('calls.keep')}
