@@ -9,7 +9,7 @@ import { schedulingKeys } from '@/shared/api/scheduling';
 import { formatDate } from '@/shared/i18n/format';
 import { Mono, Text } from '@/shared/ui/typography';
 import type { ScheduleMeeting } from '@/shared/types';
-import { SecondCallPicker } from './SecondCallPicker';
+import { CallTimePicker } from './CallTimePicker';
 import { StatusMark, type StatusTone } from './StatusMark';
 
 const PANEL = 'rd-psych-panel bg-surface border border-strong rounded-[10px]';
@@ -124,7 +124,13 @@ export function StudentCalls({ studentId }: { studentId: string }) {
 
       <div className="px-6 py-4 border-t border-default flex flex-col gap-3">
         {state.can_schedule ? (
-          <SecondCallPicker onConfirm={(start) => schedule.mutate(start)} saving={schedule.isPending} />
+          <CallTimePicker
+            minutes={60}
+            label={t('detail.calls.pendingLabel')}
+            confirmLabel={t('detail.calls.schedule')}
+            onConfirm={(start) => schedule.mutate(start)}
+            saving={schedule.isPending}
+          />
         ) : (
           state.blocker &&
           state.blocker !== 'already_scheduled' && (

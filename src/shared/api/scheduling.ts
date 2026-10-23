@@ -61,6 +61,17 @@ export const schedulingApi = {
     apiClient
       .post<ScheduleMeeting>(API.scheduling.meetingStatus(specialist, meetingId), { status })
       .then((r) => r.data),
+
+  /** Before the start, with a reason; the call stays with the specialist. Returns the new call. */
+  rescheduleMeeting: (specialist: string, meetingId: string, start: string, reason: string) =>
+    apiClient
+      .post<ScheduleMeeting>(API.scheduling.meetingReschedule(specialist, meetingId), { start, reason })
+      .then((r) => r.data),
+
+  cancelMeeting: (specialist: string, meetingId: string, reason: string) =>
+    apiClient
+      .post<ScheduleMeeting>(API.scheduling.meetingCancel(specialist, meetingId), { reason })
+      .then((r) => r.data),
 };
 
 export const schedulingKeys = {

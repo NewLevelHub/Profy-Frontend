@@ -162,5 +162,9 @@ export const API = {
     meetings: (specialist: string) => `/scheduling/specialists/${specialist}/meetings`,
     meetingStatus: (specialist: string, meetingId: string) =>
       `/scheduling/specialists/${specialist}/meetings/${meetingId}/status`,
+    meetingReschedule: (specialist: string, meetingId: string) =>
+      `/scheduling/specialists/${specialist}/meetings/${meetingId}/reschedule`,
+    meetingCancel: (specialist: string, meetingId: string) =>
+      `/scheduling/specialists/${specialist}/meetings/${meetingId}/cancel`,
   },
 } as const;

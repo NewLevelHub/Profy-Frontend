@@ -56,7 +56,7 @@ export default function PsychologistCallsPage() {
       {items.length ? (
         <ul>
           {items.map((meeting) => (
-            <MeetingCard key={meeting.id} meeting={meeting} specialist="me" onMarked={refresh} showStudentLink />
+            <MeetingCard key={meeting.id} meeting={meeting} specialist="me" onMarked={refresh} showStudentLink canChange />
           ))}
         </ul>
       ) : (

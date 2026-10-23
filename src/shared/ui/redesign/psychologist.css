@@ -246,6 +246,8 @@
 .rd-schedule-meetings h2 { margin: 0; font-size: var(--text-rd-title); }
 .rd-schedule-meetings ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
 .rd-schedule-meeting { padding: 16px; border: 1px solid var(--rd-line); border-left: 3px solid var(--rd-orange-deep); border-radius: var(--rd-radius-md); background: var(--rd-card); font-size: var(--text-rd-ui); color: var(--rd-ink); }
+/* A call being moved spreads over the row: the week grid needs the width. */
+.rd-schedule-meeting.is-wide { grid-column: 1 / -1; }
 .rd-schedule-meeting-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .rd-schedule-meeting-head span { font-size: var(--text-rd-label); color: var(--rd-muted); }
 .rd-schedule-meeting p { margin: 0 0 8px; }

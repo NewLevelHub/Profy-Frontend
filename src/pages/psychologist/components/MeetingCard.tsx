@@ -6,9 +6,12 @@ import { apiErrorCode } from '@/shared/api/client';
 import { schedulingApi } from '@/shared/api/scheduling';
 import { formatDate } from '@/shared/i18n/format';
 import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
 import type { ScheduleMeeting, ScheduleMeetingMark } from '@/shared/types';
+import { CallTimePicker } from './CallTimePicker';
 
-const KNOWN_ERRORS = ['meeting_not_started', 'meeting_cancelled'];
+const KNOWN_ERRORS = ['meeting_not_started', 'meeting_cancelled', 'meeting_started', 'slot_taken', 'slot_in_past'];
+const REASON_MIN = 3;
 const TIMEZONE = 'Asia/Almaty';
 
 function when(meeting: ScheduleMeeting): string {
@@ -29,32 +32,58 @@ export function MeetingCard({
   specialist,
   onMarked,
   showStudentLink = false,
+  canChange = false,
 }: {
   meeting: ScheduleMeeting;
   specialist: string;
   onMarked: () => void;
   /** «Созвоны» links the student card; the owner's schedule does not. */
   showStudentLink?: boolean;
+  /** The specialist moves and cancels their own calls (in «Созвоны»). */
+  canChange?: boolean;
 }) {
   const { t } = useTranslation('psychologist');
   const [failed, setFailed] = useState<string | null>(null);
+  const [change, setChange] = useState<'move' | 'cancel' | null>(null);
+  const [reason, setReason] = useState('');
+  const reasonOk = reason.trim().length >= REASON_MIN;
+  const fail = (error: unknown) => {
+    const code = apiErrorCode(error);
+    setFailed(t(code && KNOWN_ERRORS.includes(code) ? `schedule.meetings.errors.${code}` : 'schedule.meetings.errors.generic'));
+  };
+  const done = () => {
+    setChange(null);
+    setReason('');
+    onMarked();
+  };
+  const move = useMutation({
+    mutationFn: (start: string) => schedulingApi.rescheduleMeeting(specialist, meeting.id, start, reason.trim()),
+    onMutate: () => setFailed(null),
+    onSuccess: done,
+    onError: fail,
+  });
+  const cancel = useMutation({
+    mutationFn: () => schedulingApi.cancelMeeting(specialist, meeting.id, reason.trim()),
+    onMutate: () => setFailed(null),
+    onSuccess: done,
+    onError: fail,
+  });
   const mark = useMutation({
     mutationFn: (status: ScheduleMeetingMark) => schedulingApi.setMeetingStatus(specialist, meeting.id, status),
     onMutate: () => setFailed(null),
     onSuccess: onMarked,
-    onError: (error) => {
-      const code = apiErrorCode(error);
-      setFailed(t(code && KNOWN_ERRORS.includes(code) ? `schedule.meetings.errors.${code}` : 'schedule.meetings.errors.generic'));
-    },
+    onError: fail,
   });
 
   const h = meeting.handoff;
   const started = Date.now() >= Date.parse(meeting.start);
-  const busy = mark.isPending;
+  const busy = mark.isPending || move.isPending || cancel.isPending;
+  const changeable = canChange && !started && (meeting.status === 'pending' || meeting.status === 'confirmed');
+  const minutes = Math.round((Date.parse(meeting.end) - Date.parse(meeting.start)) / 60_000);
   const kind = meeting.call ? t(`calls.kind.${meeting.call}`) : t(`schedule.meetings.type.${meeting.type}`);
 
   return (
-    <li id={`meeting-${meeting.id}`} className="rd-schedule-meeting">
+    <li id={`meeting-${meeting.id}`} className={change === 'move' ? 'rd-schedule-meeting is-wide' : 'rd-schedule-meeting'}>
       <div className="rd-schedule-meeting-head">
         <strong>{when(meeting)}</strong>
         <span>{kind}</span>
@@ -127,6 +156,46 @@ export function MeetingCard({
         </div>
       )}
       {!started && meeting.status !== 'cancelled' && <p className="rd-schedule-hint">{t('schedule.meetings.afterStart')}</p>}
+      {changeable && !change && (
+        <div className="rd-schedule-meeting-actions">
+          <Button variant="text" size="sm" muteSound onClick={() => setChange('move')}>
+            {t('calls.move')}
+          </Button>
+          <Button variant="text" size="sm" muteSound onClick={() => setChange('cancel')}>
+            {t('calls.cancel')}
+          </Button>
+        </div>
+      )}
+      {changeable && change && (
+        <div className="flex flex-col gap-3 mt-3">
+          <Input
+            label={t('calls.reason')}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t('calls.reasonPlaceholder')}
+            maxLength={1000}
+            autoFocus
+          />
+          {change === 'move' ? (
+            <CallTimePicker
+              minutes={minutes}
+              label={t('calls.newTime')}
+              confirmLabel={t('calls.moveConfirm')}
+              onConfirm={(start) => move.mutate(start)}
+              saving={move.isPending}
+              canConfirm={reasonOk}
+              moving={meeting.id}
+            />
+          ) : (
+            <Button variant="ghost" size="sm" muteSound isLoading={cancel.isPending} disabled={!reasonOk} onClick={() => cancel.mutate()}>
+              {t('calls.cancelConfirm')}
+            </Button>
+          )}
+          <Button variant="text" size="sm" muteSound disabled={busy} onClick={() => setChange(null)}>
+            {t('calls.keep')}
+          </Button>
+        </div>
+      )}
       {failed && (
         <p className="rd-schedule-notice" role="alert">
           {failed}
