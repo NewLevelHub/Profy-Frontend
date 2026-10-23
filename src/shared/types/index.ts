@@ -2502,6 +2502,13 @@ export type ScheduleMeetingMark = 'confirmed' | 'done' | 'no_show';
 
 /** GET/POST /psychologist/students/{id}/second-meeting — `blocker` says why
  *  the second call cannot be set now. */
+/** GET /assessment/availability — `opens_at` is the first call's start, null
+ *  while it is not booked yet. */
+export interface AssessmentAvailability {
+  open: boolean;
+  opens_at: string | null;
+}
+
 export interface SecondMeetingState {
   first: ScheduleMeeting | null;
   second: ScheduleMeeting | null;

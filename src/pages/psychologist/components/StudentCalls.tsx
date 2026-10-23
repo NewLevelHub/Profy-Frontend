@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -80,6 +80,21 @@ export function StudentCalls({ studentId }: { studentId: string }) {
     },
   });
 
+  // The form opens as the first call begins: refresh at that moment, so a
+  // card opened before the call needs no reload.
+  const opensAt = calls.data?.blocker === 'first_not_started' ? calls.data.first?.start : undefined;
+  useEffect(() => {
+    if (!opensAt) return;
+    const wait = Date.parse(opensAt) - Date.now();
+    // setTimeout caps at ~24.8 days; a farther call is refreshed on revisit.
+    if (wait > 2 ** 31 - 1) return;
+    const timer = window.setTimeout(
+      () => void queryClient.invalidateQueries({ queryKey: psychologistKeys.secondMeeting(studentId) }),
+      Math.max(wait, 0) + 1000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [opensAt, queryClient, studentId]);
+
   const state = calls.data;
   if (!state || (state.blocker === 'no_consultation' && !state.first && !state.second)) return null;
 
@@ -159,7 +174,9 @@ export function StudentCalls({ studentId }: { studentId: string }) {
           state.blocker &&
           state.blocker !== 'already_scheduled' && (
             <Text variant="body-sm" className="text-muted m-0">
-              {t(`detail.calls.blocker.${state.blocker}`)}
+              {state.blocker === 'first_not_started' && state.first
+                ? t('detail.calls.blocker.first_not_started_at', { time: callTime(state.first.start) })
+                : t(`detail.calls.blocker.${state.blocker}`)}
             </Text>
           )
         )}
