@@ -4,7 +4,16 @@ import type { Locale } from '@/shared/store/locale';
 
 /** Source of truth for permissions (`pro-281`) — `is_admin` is derived from
  *  this (`is_admin === (role === 'admin')`) and kept only for back-compat. */
-export type UserRole = 'student' | 'admin' | 'psychologist';
+export type UserRole =
+  | 'student'
+  | 'admin'
+  | 'psychologist'
+  // CRM roles (ТЗ CRM Profile v4.1 §2, PRO-497). `owner` is the business
+  // owner, not the platform content `admin`.
+  | 'owner'
+  | 'sales_head'
+  | 'sales_manager'
+  | 'marketer';
 
 export interface User {
   id: string;
@@ -18,6 +27,9 @@ export interface User {
   /** UI locale from the backend (`users.locale`). "kk" is stored but not
    *  runtime-honored until KZ-603. */
   locale?: 'ru' | 'kk';
+  /** Staff name (CRM, schedule); null — an invited specialist has not set it
+   *  yet. Absent on a user persisted before the field existed. */
+  full_name?: string | null;
 }
 
 export interface TokenResponse {
@@ -1114,6 +1126,8 @@ export interface AdminInvitation {
   role: AdminStaffRole;
   /** Language of the email; becomes the account's locale on accept. */
   locale: 'ru' | 'kk';
+  /** Becomes `users.full_name` on accept — the name in the schedule and CRM. */
+  full_name: string | null;
   status: AdminInvitationStatus;
   /** null once the inviting admin's account is deleted. */
   invited_by: { id: string; email: string } | null;
@@ -1142,6 +1156,7 @@ export interface AdminInvitationCreateRequest {
   email: string;
   role: AdminStaffRole;
   locale: 'ru' | 'kk';
+  full_name?: string;
 }
 
 export interface AdminInvitationListParams {
@@ -2389,4 +2404,141 @@ export type AdminDirectionUpdateRequest = Partial<{
 export interface ValidationMessage {
   key: string;
   params?: Record<string, string | number>;
+}
+
+// ─── Scheduling ── docs/frontend-scheduling-api-contract.md (backend repo) ──
+// Times are UTC ISO strings; dates (`YYYY-MM-DD`) are Asia/Almaty days.
+
+type ScheduleSlotState = 'closed' | 'free' | 'booked';
+export type ScheduleEditableState = Exclude<ScheduleSlotState, 'booked'>;
+
+export interface ScheduleConfig {
+  timezone: string;
+  slot_minutes: number;
+  day_start: string;
+  day_end: string;
+  freeze_days: number;
+  now: string;
+  today: string;
+  editable_from: string;
+}
+
+interface ScheduleSpecialistRef {
+  id: string;
+  full_name: string;
+}
+
+export interface ScheduleSlot {
+  start: string;
+  end: string;
+  state: ScheduleSlotState;
+  frozen: boolean;
+  past: boolean;
+  /** Always null until bookings land (R2). */
+  meeting: { id: string; type: 'intro30' | 'main60'; status: string } | null;
+}
+
+export interface ScheduleDay {
+  date: string;
+  frozen: boolean;
+  past: boolean;
+  slots: ScheduleSlot[];
+}
+
+export interface ScheduleWeek {
+  specialist: ScheduleSpecialistRef;
+  week_start: string;
+  published: boolean;
+  published_at: string | null;
+  days: ScheduleDay[];
+}
+
+export interface ScheduleAvailabilityChange {
+  start: string;
+  end: string;
+  state: ScheduleEditableState;
+}
+
+export interface ScheduleSkippedDay {
+  date: string;
+  error_code: 'slot_frozen' | 'slot_in_past' | 'slot_booked';
+  count: number;
+}
+
+export interface ScheduleWeekBulkResponse {
+  week: ScheduleWeek;
+  skipped: ScheduleSkippedDay[];
+}
+
+interface ScheduleTemplateInterval {
+  start: string;
+  end: string;
+  state: 'free';
+}
+
+export interface ScheduleTemplate {
+  /** "1"…"7" = Monday…Sunday, Almaty wall time. */
+  days: Record<string, ScheduleTemplateInterval[]>;
+  updated_at?: string | null;
+}
+
+interface ScheduleSpecialistStatus {
+  id: string;
+  full_name: string;
+  week_published: boolean;
+  published_at: string | null;
+  free_slots: number;
+}
+
+export interface ScheduleSpecialistList {
+  week_start: string;
+  items: ScheduleSpecialistStatus[];
+}
+
+/** GET /scheduling/specialists/{id|me}/meetings — the handoff card the CRM
+ *  manager filled (ТЗ §3.10); no prices, no sales chat. */
+/** Statuses a specialist or the owner can set on a call. */
+export type ScheduleMeetingMark = 'confirmed' | 'done' | 'no_show';
+
+/** GET/POST /psychologist/students/{id}/second-meeting — `blocker` says why
+ *  the second call cannot be set now. */
+/** GET /assessment/availability — `opens_at` is the first call's start, null
+ *  while it is not booked yet. */
+export interface AssessmentAvailability {
+  open: boolean;
+  opens_at: string | null;
+}
+
+export interface SecondMeetingState {
+  first: ScheduleMeeting | null;
+  second: ScheduleMeeting | null;
+  can_schedule: boolean;
+  blocker: 'no_consultation' | 'first_not_booked' | 'first_not_started' | 'already_scheduled' | null;
+}
+
+export interface ScheduleMeeting {
+  id: string;
+  type: 'intro30' | 'main60';
+  status: 'pending' | 'confirmed' | 'done' | 'no_show' | 'cancelled';
+  start: string;
+  end: string;
+  /** The student's Profile account once linked by the CRM invite. */
+  student_id?: string | null;
+  /** The call the manager booked, or the report review the specialist set. */
+  call?: 'first' | 'second' | null;
+  handoff: {
+    student_name: string;
+    age: number;
+    gender: 'male' | 'female';
+    grade: number;
+    study_language: 'ru' | 'kk' | 'en' | 'other';
+    russian_level: 'fluent' | 'medium' | 'weak';
+    family_request: string;
+    parent_participates: boolean;
+    contact: 'parent' | 'student';
+    contact_phone: string;
+    manager_comment: string | null;
+    tariff: string;
+    consent_at: string | null;
+  };
 }

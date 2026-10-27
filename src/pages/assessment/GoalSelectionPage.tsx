@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router';
 import { ArrowRight, Compass, RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { formatDate } from '@/shared/i18n/format';
 import { Spinner } from '@/shared/ui/Spinner';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 import { useGoalGuard, useGoalSelection } from './hooks/useGoalSelection';
@@ -73,7 +74,7 @@ export default function GoalSelectionPage() {
   const { t: tc } = useTranslation('common');
   const { shouldRedirect } = useGoalGuard();
   const {
-    ageGroup, isLoading, isCheckingCurrent, error, resumeOpen, restartOpen,
+    ageGroup, isLoading, isCheckingCurrent, error, resumeOpen, restartOpen, lockedUntil,
     handleGoalSelect, handleResume, handleStartNew, handleViewResults, handleConfirmRestart, handleSkip,
   } = useGoalSelection();
 
@@ -92,7 +93,30 @@ export default function GoalSelectionPage() {
           <h1>{t('goalSelection.question')}</h1>
           <p>{t('goalSelection.hint')}</p>
         </div>
-        {isCheckingCurrent || restartOpen ? (
+        {lockedUntil ? (
+          <div className="rd-goal-cards">
+            <article className="rd-goal-card">
+              <div className="rd-goal-card-copy">
+                <span className="rd-eyebrow">{t('goalSelection.lockedTag')}</span>
+                <h2>{t('goalSelection.lockedTitle')}</h2>
+                <p>
+                  {lockedUntil.opensAt
+                    ? t('goalSelection.lockedAt', {
+                        time: formatDate(lockedUntil.opensAt, {
+                          day: 'numeric',
+                          month: 'long',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          timeZone: 'Asia/Almaty',
+                        }),
+                      })
+                    : t('goalSelection.lockedNoCall')}
+                </p>
+              </div>
+              <img src={MASCOT.book} alt="" width="1254" height="1254" />
+            </article>
+          </div>
+        ) : isCheckingCurrent || restartOpen ? (
           <div className="rd-goal-loading" role="status" aria-label={tc('loading')}><Spinner size="lg" /></div>
         ) : (
           <div className="rd-goal-cards">

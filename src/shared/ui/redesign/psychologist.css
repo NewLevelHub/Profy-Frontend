@@ -132,3 +132,129 @@
   .rd-psych-path-mobile li[data-status=current] { color: var(--dawn-deep); }
   .rd-psych-path-mobile li[data-status=current]>span:first-child { background: var(--rd-peach); border-color: transparent; }
 }
+
+/* ── Расписание специалиста (PRO-551) ─────────────────────────────────────
+   Неделя 7 × 30 мин. Цвет ячейки — состояние слота; заморозка — штриховка,
+   прошедшее время — приглушено. Только --rd-* токены: тёмная тема даром. */
+.rd-schedule { display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); }
+.rd-schedule-owner { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--rd-line); }
+.rd-schedule-field { display: flex; flex-direction: column; gap: 6px; min-width: 240px; font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-schedule-reason { flex: 1; min-width: 260px; }
+/* Admin form controls are tuned to the admin palette (--paper); in the cabinet
+   they take the cabinet's surface so they stay readable in the dark theme. */
+.rd-schedule-owner .admin-input { background: var(--rd-bg); color: var(--rd-ink); border-color: var(--rd-line); }
+.rd-schedule-owner .admin-input::placeholder { color: var(--rd-muted); }
+.rd-schedule-hint { flex-basis: 100%; margin: 0; font-size: var(--text-rd-label); color: var(--rd-orange-deep); }
+.rd-schedule-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.rd-schedule-status { padding: 4px 10px; border-radius: 999px; font-size: var(--text-rd-label); background: var(--rd-peach); color: var(--rd-orange-deep); }
+.rd-schedule-status.is-published { background: var(--rd-sage); color: var(--rd-pine); }
+.rd-schedule-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.rd-schedule-notice { min-height: 1.5em; margin: 0; font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-schedule-publish-hint { margin: 0; padding: 10px 14px; border-radius: var(--rd-radius-md); font-size: var(--text-rd-label); line-height: 1.5; background: var(--rd-bg); color: var(--rd-muted); }
+.rd-schedule-publish-hint.is-published { background: var(--rd-sage); color: var(--rd-pine); }
+.rd-schedule-loading { display: grid; place-items: center; min-height: 240px; }
+
+/* Неделя в духе Apple Calendar (PRO-551): колонки дней на тонкой сетке, шкала времени слева,
+   строка «весь день», сегодняшнее число в круге и линия текущего времени. Соседние получасы
+   одного состояния сливаются в блок с полосой слева; встречи из CRM лежат поверх. */
+.rd-cal { --gutter: 56px; --rh: 26px; --accent: var(--rd-orange-deep); position: relative; overflow-x: auto; border: 1px solid var(--rd-line); border-radius: var(--rd-radius-lg); background: var(--rd-card); user-select: none; }
+.rd-cal-row { display: grid; grid-template-columns: var(--gutter) repeat(var(--days), minmax(84px, 1fr)); min-width: 660px; }
+.rd-cal-head { position: sticky; top: 0; z-index: 3; background: var(--rd-card); }
+.rd-cal-dh { display: flex; align-items: center; justify-content: center; gap: 6px; height: 46px; font-size: var(--text-rd-ui); color: var(--rd-ink); white-space: nowrap; }
+.rd-cal-dh.is-weekend, .rd-cal-dh.is-past { color: var(--rd-muted); }
+.rd-cal-dow { text-transform: capitalize; }
+.rd-cal-dnum { display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 4px; border-radius: 999px; font-size: var(--text-rd-lead); font-weight: 600; font-variant-numeric: tabular-nums; }
+.rd-cal-dh.is-today .rd-cal-dnum { background: var(--accent); color: var(--rd-card); }
+.rd-cal-lock { display: inline-flex; color: var(--rd-muted); }
+.rd-cal-allday { border-top: 1px solid var(--rd-line); border-bottom: 1px solid var(--rd-line); }
+.rd-cal-ad-label { padding: 8px 8px 0 0; text-align: right; font-size: var(--text-rd-label); color: var(--rd-muted); white-space: nowrap; }
+.rd-cal-ad { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 5px 4px; border-left: 1px solid var(--rd-line); }
+.rd-cal-ad.is-weekend, .rd-cal-day.is-weekend { background: color-mix(in srgb, var(--rd-bg) 70%, transparent); }
+.rd-cal-chip { overflow: hidden; padding: 2px 8px; border-radius: 6px; font-size: var(--text-rd-label); white-space: nowrap; text-overflow: ellipsis; background: var(--rd-bg); color: var(--rd-muted); }
+.rd-cal-chip.is-free { background: color-mix(in srgb, var(--rd-pine) 14%, transparent); color: var(--rd-pine); font-weight: 600; }
+.rd-cal-chip.is-booked { background: var(--rd-peach); color: var(--rd-orange-deep); }
+.rd-cal-chip.is-frozen { background: repeating-linear-gradient(135deg, transparent 0 5px, var(--rd-line) 5px 6px), var(--rd-bg); }
+.rd-cal-body { position: relative; }
+.rd-cal-time { position: relative; height: var(--rh); padding-right: 8px; text-align: right; font-size: var(--text-rd-label); color: var(--rd-ink); font-variant-numeric: tabular-nums; }
+.rd-cal-time span { position: relative; top: -8px; }
+.rd-cal-time:first-child span { top: 1px; }
+.rd-cal-time.is-half span { color: var(--rd-muted); opacity: .7; }
+.rd-cal-day { position: relative; min-width: 0; border-left: 1px solid var(--rd-line); }
+.rd-cal-day.is-today { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+
+.rd-cal-slot { position: relative; display: block; width: 100%; height: var(--rh); margin: 0; padding: 0; border: 0; border-top: 1px solid var(--rd-line); background: transparent; cursor: pointer; touch-action: none; text-align: left; }
+.rd-cal-slot.is-half { border-top-color: color-mix(in srgb, var(--rd-line) 45%, transparent); }
+.rd-cal-day .rd-cal-slot:first-child { border-top-color: transparent; }
+.rd-cal-slot:hover:not([aria-disabled=true]) { background: color-mix(in srgb, var(--rd-pine) 7%, transparent); }
+.rd-cal-slot:focus-visible { z-index: 1; outline: 2px solid var(--rd-purple); outline-offset: -2px; }
+.rd-cal-slot[aria-disabled=true] { cursor: not-allowed; }
+/* Блоки состояний: полупрозрачная заливка, полоса слева, скругление на краях серии. */
+.rd-cal-slot.is-free, .rd-cal-slot.is-booked { --c: var(--rd-pine); margin: 0 4px; width: calc(100% - 8px); border-top: 0; background: color-mix(in srgb, var(--c) 16%, var(--rd-card)); box-shadow: inset 3px 0 0 var(--c); }
+.rd-cal-slot.is-booked { --c: var(--rd-orange-deep); }
+.rd-cal-slot.is-run-start { border-top-left-radius: 6px; border-top-right-radius: 6px; }
+.rd-cal-slot.is-run-end { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+.rd-cal-slot.is-run-start::before { content: ""; position: absolute; inset: -1px 0 auto; border-top: 1px solid var(--rd-line); margin: 0 -4px; }
+.rd-cal-day .rd-cal-slot.is-run-start:first-child::before { border-top-color: transparent; }
+.rd-cal-slot:hover:not([aria-disabled=true]).is-free { background: color-mix(in srgb, var(--c) 24%, var(--rd-card)); }
+.rd-cal-slot-label { display: block; overflow: hidden; padding: 3px 6px 0 10px; font-size: var(--text-rd-label); font-weight: 600; line-height: 1.2; white-space: nowrap; text-overflow: ellipsis; color: color-mix(in srgb, var(--c) 80%, var(--rd-ink)); pointer-events: none; }
+.rd-cal-slot.is-frozen { background-image: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--rd-line) 80%, transparent) 5px 6px); }
+.rd-cal-slot.is-past { opacity: .45; }
+.rd-cal-slot.is-selected { z-index: 1; outline: 2px solid var(--rd-purple); outline-offset: -2px; }
+
+.rd-cal-ev { --c: var(--rd-orange-deep); position: absolute; z-index: 2; left: 4px; right: 4px; top: calc(var(--rh) * var(--from) + 1px); height: calc(var(--rh) * var(--len) - 2px); display: flex; flex-direction: column; overflow: hidden; padding: 2px 6px 2px 10px; border: 0; border-radius: 6px; text-align: left; font-size: var(--text-rd-label); line-height: 1.25; background: color-mix(in srgb, var(--c) 22%, var(--rd-card)); color: color-mix(in srgb, var(--c) 85%, var(--rd-ink)); box-shadow: inset 3px 0 0 var(--c); cursor: pointer; }
+.rd-cal-ev.is-long { --c: var(--rd-purple); }
+.rd-cal-ev.is-short { justify-content: center; }
+.rd-cal-ev b, .rd-cal-ev span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.rd-cal-ev span { opacity: .85; }
+.rd-cal-ev:hover { background: color-mix(in srgb, var(--c) 32%, var(--rd-card)); }
+.rd-cal-ev:focus-visible { outline: 2px solid var(--rd-purple); outline-offset: 1px; }
+/* The second call picked in the student card, not saved yet. */
+.rd-cal-ev.is-pending { --c: var(--rd-pine); pointer-events: none; outline: 1.5px dashed var(--c); outline-offset: -1.5px; }
+
+.rd-cal-now { position: absolute; left: 0; right: 0; top: calc(var(--rh) * var(--at)); z-index: 4; height: 0; min-width: 660px; pointer-events: none; }
+.rd-cal-now-label { position: absolute; left: 4px; top: -9px; display: grid; place-items: center; width: 46px; height: 18px; border-radius: 999px; font-size: var(--text-rd-label); font-weight: 600; background: var(--accent); color: var(--rd-card); font-variant-numeric: tabular-nums; }
+.rd-cal-now-all { position: absolute; left: var(--gutter); right: 0; top: 0; height: 1px; background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.rd-cal-now-today { position: absolute; top: -1px; height: 2px; left: calc(var(--gutter) + (100% - var(--gutter)) * var(--ti) / var(--days)); width: calc((100% - var(--gutter)) / var(--days)); background: var(--accent); }
+.rd-cal-now-today::before { content: ""; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+
+.rd-cal-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.rd-cal-title { margin: 0; font-size: var(--text-rd-display); font-weight: 400; line-height: 1.15; color: var(--rd-ink); white-space: nowrap; }
+.rd-cal-title b { font-weight: 700; }
+.rd-cal-range { font-size: var(--text-rd-ui); color: var(--rd-muted); white-space: nowrap; }
+.rd-cal-header .rd-schedule-status { align-self: center; }
+.rd-cal-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; align-self: center; }
+.rd-cal-arrow { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: var(--rd-ink); cursor: pointer; }
+.rd-cal-arrow:hover { background: var(--rd-bg); }
+.rd-cal-today { height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; font-size: var(--text-rd-body); font-weight: 600; color: var(--accent, var(--rd-orange-deep)); cursor: pointer; }
+.rd-cal-today:hover { background: var(--rd-peach); }
+.rd-cal-arrow:disabled, .rd-cal-today:disabled { opacity: .4; cursor: default; }
+.rd-cal-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.rd-schedule-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--rd-line); background: var(--rd-bg); }
+.rd-schedule-swatch.is-free { background: color-mix(in srgb, var(--rd-pine) 28%, var(--rd-card)); border-color: var(--rd-pine); }
+.rd-schedule-swatch.is-booked { background: color-mix(in srgb, var(--rd-orange-deep) 22%, var(--rd-card)); border-color: var(--rd-orange-deep); }
+.rd-schedule-swatch.is-closed { background: var(--rd-card); }
+.rd-schedule-swatch.is-frozen { background: repeating-linear-gradient(135deg, transparent 0 3px, var(--rd-line) 3px 4px), var(--rd-card); }
+
+@media (max-width: 760px) {
+  .rd-schedule { padding: 14px; }
+  .rd-schedule-field, .rd-schedule-reason { min-width: 100%; }
+}
+
+.rd-schedule-meetings { display: flex; flex-direction: column; gap: 12px; }
+.rd-schedule-meetings h2 { margin: 0; font-size: var(--text-rd-title); }
+.rd-schedule-meetings ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.rd-schedule-meeting { padding: 16px; border: 1px solid var(--rd-line); border-left: 3px solid var(--rd-orange-deep); border-radius: var(--rd-radius-md); background: var(--rd-card); font-size: var(--text-rd-ui); color: var(--rd-ink); }
+/* A call being moved spreads over the row: the week grid needs the width. */
+.rd-schedule-meeting.is-wide { grid-column: 1 / -1; }
+.rd-schedule-meeting-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.rd-schedule-meeting-head span { font-size: var(--text-rd-label); color: var(--rd-muted); }
+.rd-schedule-meeting p { margin: 0 0 8px; }
+.rd-schedule-meeting dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; font-size: var(--text-rd-label); }
+.rd-schedule-meeting dt { color: var(--rd-muted); }
+.rd-schedule-meeting dd { margin: 0; }
+.rd-schedule-meeting-status { font-size: var(--text-rd-label); font-weight: 600; color: var(--rd-muted); }
+.rd-schedule-meeting-status.is-confirmed, .rd-schedule-meeting-status.is-done { color: var(--rd-pine); }
+.rd-schedule-meeting-status.is-no_show { color: var(--rd-orange-deep); }
+.rd-schedule-meeting-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

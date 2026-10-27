@@ -8,6 +8,10 @@ const AUTH_PAGES = {
   '/forgot-password': 'forgotPassword',
   '/reset-password': 'resetPassword',
   '/invite': 'invite',
+  // The invited specialist's first step after the invitation — same story.
+  '/staff/name': 'invite',
+  // A student's sign-up story, not the staff one.
+  '/student-invite': 'register',
 } as const;
 
 export function AuthLayout() {

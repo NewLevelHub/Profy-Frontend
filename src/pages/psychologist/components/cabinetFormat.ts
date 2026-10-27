@@ -11,25 +11,6 @@ export function gradeShort(t: TFunction, grade: number | null | undefined): stri
   return grade ? t('psychologist:common.gradeShort', { grade }) : '—';
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function startOfDay(date: Date): number {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-}
-
-/** Whole calendar days between `value` and now (0 — today). */
-export function daysAgo(value: string, now: Date = new Date()): number {
-  return Math.round((startOfDay(now) - startOfDay(new Date(value))) / DAY_MS);
-}
-
-/** "сегодня 14:35", "вчера 18:02", "4 дня назад". */
-export function agoLabel(t: TFunction, value: string): string {
-  const days = daysAgo(value);
-  const time = formatDate(value, { hour: '2-digit', minute: '2-digit' });
-  if (days <= 0) return t('psychologist:common.todayAt', { time });
-  if (days === 1) return t('psychologist:common.yesterdayAt', { time });
-  return t('psychologist:common.daysAgo', { count: days });
-}
 
 /** "21.09.2026, 14:35" */
 export function dateTimeLabel(value: string): string {

@@ -5,13 +5,21 @@ import { UserPlus } from 'lucide-react';
 import { USER_ROLE_LABELS } from '@/shared/lib/contentLabels';
 import { Button } from '@/shared/ui/Button';
 import { AdminField } from '@/shared/ui/admin/AdminField';
+import { AdminSelect } from '@/shared/ui/admin/AdminSelect';
 import { ADMIN_INPUT } from '@/shared/ui/admin/density';
 import type { AdminStaffRole } from '@/shared/types';
 import { useInviteStaff, type EmailLocale } from '../hooks/useInviteStaff';
 import { InvitationDialog } from './InvitationDialog';
 import { InvitationLinkPanel } from './InvitationLinkPanel';
 
-const STAFF_ROLES: readonly AdminStaffRole[] = ['psychologist', 'admin'];
+const STAFF_ROLES: readonly AdminStaffRole[] = [
+  'psychologist',
+  'admin',
+  'owner',
+  'sales_head',
+  'sales_manager',
+  'marketer',
+];
 const EMAIL_LOCALES: readonly EmailLocale[] = ['ru', 'kk'];
 
 interface InviteStaffModalProps {
@@ -59,7 +67,6 @@ export function InviteStaffModal({ isOpen, ...props }: InviteStaffModalProps) {
 function InviteStaffDialog({ onClose, showListLink = false }: Omit<InviteStaffModalProps, 'isOpen'>) {
   const { t } = useTranslation('admin');
   const titleId = useId();
-  const roleLabelId = useId();
   const localeLabelId = useId();
   const form = useInviteStaff();
   const { isSubmitting } = form;
@@ -117,17 +124,41 @@ function InviteStaffDialog({ onClose, showListLink = false }: Omit<InviteStaffMo
             )}
           </AdminField>
 
-          <div className="admin-field flex flex-col">
-            <span className="rd-invite-field-label" id={roleLabelId}>{t('invitations.form.role')}</span>
-            <Segmented
-              labelId={roleLabelId}
-              options={STAFF_ROLES}
-              value={form.role}
-              label={(value) => t(USER_ROLE_LABELS[value])}
-              disabled={isSubmitting}
-              onChange={form.setRole}
-            />
-          </div>
+          <AdminField label={t('invitations.form.fullName')}>
+            {({ id, describedBy }) => (
+              <input
+                id={id}
+                type="text"
+                className={ADMIN_INPUT}
+                placeholder={t('invitations.form.fullNamePlaceholder')}
+                value={form.fullName}
+                onChange={(e) => form.setFullName(e.target.value)}
+                aria-describedby={describedBy}
+                autoComplete="off"
+                maxLength={255}
+                disabled={isSubmitting}
+              />
+            )}
+          </AdminField>
+
+          {/* Six roles no longer fit a segmented strip. */}
+          <AdminField label={t('invitations.form.role')}>
+            {({ id, describedBy }) => (
+              <AdminSelect
+                id={id}
+                value={form.role}
+                aria-describedby={describedBy}
+                disabled={isSubmitting}
+                onChange={(e) => form.setRole(e.target.value as AdminStaffRole)}
+              >
+                {STAFF_ROLES.map((value) => (
+                  <option key={value} value={value}>
+                    {t(USER_ROLE_LABELS[value])}
+                  </option>
+                ))}
+              </AdminSelect>
+            )}
+          </AdminField>
 
           <div className="admin-field flex flex-col">
             <span className="rd-invite-field-label" id={localeLabelId}>{t('invitations.form.locale')}</span>

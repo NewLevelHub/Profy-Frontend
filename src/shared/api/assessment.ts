@@ -3,6 +3,7 @@ import { API } from '@/shared/api/endpoints';
 import type {
   AssessmentGoal,
   AssessmentResponse,
+  AssessmentAvailability,
   Question,
   SaveAnswersPayload,
   SaveAnswersResponse,
@@ -12,6 +13,10 @@ import type {
 export const assessmentApi = {
   start: (goal: AssessmentGoal) =>
     apiClient.post<AssessmentResponse>(API.assessment.start, { goal }).then(r => r.data),
+
+  /** With the specialist's calls (CRM tariff) the test opens as the first call begins. */
+  availability: () =>
+    apiClient.get<AssessmentAvailability>(API.assessment.availability).then(r => r.data),
 
   current: () =>
     apiClient.get<AssessmentResponse>(API.assessment.current).then(r => r.data),

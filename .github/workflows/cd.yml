@@ -60,6 +60,7 @@ jobs:
             VITE_API_URL=${{ vars.VITE_API_URL || '/api/v1' }}
             VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'Profile' }}
             VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
+            VITE_CRM_URL=${{ vars.VITE_CRM_URL || '/crm/' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { ArrowRight } from 'lucide-react';
 import { AdminDataTable, type AdminColumn } from '@/shared/ui/admin/AdminDataTable';
 import { AdminError } from '@/shared/ui/admin/AdminStates';
-import { buttonClasses } from '@/shared/ui/Button';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Mono, Text } from '@/shared/ui/typography';
@@ -132,11 +131,6 @@ export default function PsychologistStudentsPage() {
             loading={students.isLoading}
             emptyTitle={trimmed ? t('queue.emptySearch', { query: trimmed }) : t('students.emptyTitle')}
             emptyHint={trimmed ? undefined : t('students.emptyText')}
-            emptyAction={!trimmed &&
-              <Link to="/psychologist/reviews" className={buttonClasses({ size: 'sm', variant: 'ghost', className: 'min-h-10 [@media(pointer:coarse)]:min-h-11' })}>
-                {t('students.emptyAction')}
-              </Link>
-            }
           />
         )}
       </section>
