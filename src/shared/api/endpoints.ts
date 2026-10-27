@@ -167,4 +167,8 @@ export const API = {
     meetingCancel: (specialist: string, meetingId: string) =>
       `/scheduling/specialists/${specialist}/meetings/${meetingId}/cancel`,
   },
+  telegram: {
+    me: '/telegram/me',
+    link: '/telegram/me/link',
+  },
 } as const;

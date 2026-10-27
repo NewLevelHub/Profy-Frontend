@@ -8,6 +8,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import type { ScheduleMeeting } from '@/shared/types';
 import { MeetingCard } from './components/MeetingCard';
+import { TelegramCard } from './components/TelegramCard';
 import { addDays } from './schedule/scheduleDates';
 import { useScheduleConfig } from './schedule/useSchedule';
 
@@ -74,6 +75,7 @@ export default function PsychologistCallsPage() {
         subtitle={t('calls.lead')}
         className="rd-psych-heading"
       />
+      <TelegramCard />
       {calls.isError ? (
         <AdminError message={t('calls.loadError')} onRetry={() => void calls.refetch()} />
       ) : !calls.data ? (
