@@ -19,6 +19,7 @@ import { Mono, Text, typeClass } from '@/shared/ui/typography';
 import type { PsychologistAssessmentSummary } from '@/shared/types';
 import { StudentInitials } from './components/StudentInitials';
 import { StatusMark } from './components/StatusMark';
+import { StudentCalls } from './components/StudentCalls';
 import { REVIEW_TEXTAREA } from './review/components/reviewFieldStyles';
 import { dateTimeLabel, gradeShort, shortDateLabel, studentName } from './components/cabinetFormat';
 import { useStudentDetail } from './hooks/useCabinetQueries';
@@ -221,6 +222,8 @@ export default function PsychologistStudentDetailPage() {
           </dl>
         </div>
       )}
+
+      {data && <StudentCalls studentId={studentId} />}
 
       <div className={assessments.length > 0 ? "rd-psych-detail-columns" : undefined}>
         {assessments.length > 0 && (

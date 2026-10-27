@@ -3,8 +3,10 @@ import axios from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import { apiErrorCode } from '@/shared/api/client';
 import { psychologistApi } from '@/shared/api/psychologist';
 import { psychologistKeys } from '@/shared/api/psychologistKeys';
+import { formatDate } from '@/shared/i18n/format';
 import { useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
 import type { PsychologistResultDetail, PsychologistResultPatch } from '@/shared/types';
 import { EDITABLE_KEYS, EMPTY_DRAFT, dirtyKeys, reportDraftReducer, toDraft, type EditableKey, type ReviewDraft } from './reportReviewDraft';
@@ -38,6 +40,24 @@ function validatePublication(t: TFunction, draft: ReviewDraft): string | null {
 
 function errorMessage(t: TFunction, err: unknown, fallbackKey: string): string {
   if (axios.isAxiosError(err)) {
+    // A tariff with the specialist's calls: the report goes out after the review.
+    const code = apiErrorCode(err);
+    if (code === 'publish_second_call_missing') return t('psychologist:review.errors.secondCallMissing');
+    if (code === 'publish_review_not_held') return t('psychologist:review.errors.reviewNotHeld');
+    if (code === 'publish_second_call_not_started') {
+      const start = (err.response?.data as { second_call_start?: string | null } | undefined)?.second_call_start;
+      return start
+        ? t('psychologist:review.errors.secondCallNotStarted', {
+            time: formatDate(start, {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+              timeZone: 'Asia/Almaty',
+            }),
+          })
+        : t('psychologist:review.errors.secondCallMissing');
+    }
     const status = err.response?.status;
     if (status === 409) return t('psychologist:review.errors.published');
     if (status === 404) return t('psychologist:review.errors.notFound');

@@ -5,13 +5,13 @@ import { authApi } from '@/shared/api/auth';
 import { homePathForUser } from '@/shared/lib/homePath';
 import { useAuthStore } from '@/shared/store/auth';
 import { FullPageSpinner } from '@/shared/ui/Spinner';
-import type { User } from '@/shared/types';
+import type { User, UserRole } from '@/shared/types';
 
-type StaffRole = 'admin' | 'psychologist';
+type StaffRole = Exclude<UserRole, 'student'>;
 
-function hasRole(user: Pick<User, 'role' | 'is_admin'> | null | undefined, role: StaffRole): boolean {
-  if (role === 'admin') return user?.role === 'admin' || Boolean(user?.is_admin);
-  return user?.role === role;
+function hasRole(user: Pick<User, 'role' | 'is_admin'> | null | undefined, roles: readonly StaffRole[]): boolean {
+  if (roles.includes('admin') && (user?.role === 'admin' || Boolean(user?.is_admin))) return true;
+  return Boolean(user?.role && user.role !== 'student' && roles.includes(user.role));
 }
 
 /**
@@ -21,10 +21,11 @@ function hasRole(user: Pick<User, 'role' | 'is_admin'> | null | undefined, role:
  * so /auth/me decides before bouncing the visitor to their own home.
  * The UI gate only hides screens — the API checks the role on every call.
  */
-export function RequireRole({ role }: { role: StaffRole }) {
+export function RequireRole({ role }: { role: StaffRole | readonly StaffRole[] }) {
+  const roles: readonly StaffRole[] = typeof role === 'string' ? [role] : role;
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const allowedFromStore = hasRole(user, role);
+  const allowedFromStore = hasRole(user, roles);
 
   const me = useQuery({
     queryKey: ['auth', 'me'],
@@ -37,7 +38,7 @@ export function RequireRole({ role }: { role: StaffRole }) {
     if (me.data) setUser(me.data);
   }, [me.data, setUser]);
 
-  if (allowedFromStore || hasRole(me.data, role)) return <Outlet />;
+  if (allowedFromStore || hasRole(me.data, roles)) return <Outlet />;
   if (me.isPending) return <FullPageSpinner />;
   return <Navigate to={homePathForUser(me.data ?? user)} replace />;
 }

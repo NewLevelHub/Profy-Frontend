@@ -77,6 +77,13 @@ export const router = createBrowserRouter([{
       element: <AuthLayout />,
       children: [{ path: '/invite', ...page(() => import('@/pages/auth/invite/InvitePage')) }],
     },
+    // ── Student invitation from the CRM (ТЗ §4.4) ──────────────────────────────
+    // Open to guests and signed-in students alike: a guest signs up first,
+    // a student is tied to the deal right on the page.
+    {
+      element: <AuthLayout />,
+      children: [{ path: '/student-invite', ...page(() => import('@/pages/auth/student-invite/StudentInvitePage')) }],
+    },
 
     // ── Authenticated (mobile: AppNavigator) ───────────────────────────────────
     {
@@ -85,35 +92,64 @@ export const router = createBrowserRouter([{
         // Staff cabinets — outside RequireProfile: staff have no student Profile
         // and student APIs would 403 them. Gated by role alone.
         // ── Psychologist cabinet ──
+        // The owner shares the cabinet shell for the schedule only (ТЗ §4.1);
+        // every other page stays psychologist-only.
+        // The invited specialist's name, before the cabinet (PsychologistArea
+        // sends a nameless account here).
         {
-          element: <RequireRole role="psychologist" />,
+          element: <RequireRole role={['psychologist', 'owner']} />,
+          children: [
+            {
+              element: <AuthLayout />,
+              children: [{ path: '/staff/name', ...page(() => import('@/pages/auth/staff-name/StaffNamePage')) }],
+            },
+          ],
+        },
+        {
+          element: <RequireRole role={['psychologist', 'owner']} />,
           children: [
             {
               ...staffPage(() => import('@/shared/ui/layouts/PsychologistArea')),
               children: [
-                // The review queue is the cabinet's front page (it's where work starts).
-                { path: '/psychologist', element: <Navigate to="/psychologist/reviews" replace /> },
-                { path: '/psychologist/students', ...page(() => import('@/pages/psychologist/PsychologistStudentsPage')) },
                 {
-                  path: '/psychologist/students/:studentId',
-                  ...page(() => import('@/pages/psychologist/PsychologistStudentDetailPage')),
+                  path: '/psychologist/schedule',
+                  ...page(() => import('@/pages/psychologist/schedule/PsychologistSchedulePage')),
                 },
                 {
-                  path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
-                  ...page(() => import('@/pages/psychologist/PsychologistReportPage')),
-                },
-                {
-                  path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
-                  ...page(() => import('@/pages/psychologist/PsychologistReportHistoryPage')),
-                },
-                { path: '/psychologist/reviews', ...page(() => import('@/pages/psychologist/PsychologistReviewQueuePage')) },
-                {
-                  path: '/psychologist/students/:studentId/results/:assessmentId/review',
-                  ...page(() => import('@/pages/psychologist/PsychologistResultReviewPage')),
+                  element: <RequireRole role="psychologist" />,
+                  children: [
+                    // «Созвоны» is the cabinet's front page: calls to mark, coming ones.
+                    { path: '/psychologist', element: <Navigate to="/psychologist/calls" replace /> },
+                    { path: '/psychologist/calls', ...page(() => import('@/pages/psychologist/PsychologistCallsPage')) },
+                    { path: '/psychologist/students', ...page(() => import('@/pages/psychologist/PsychologistStudentsPage')) },
+                    {
+                      path: '/psychologist/students/:studentId',
+                      ...page(() => import('@/pages/psychologist/PsychologistStudentDetailPage')),
+                    },
+                    {
+                      path: '/psychologist/students/:studentId/assessments/:assessmentId/report',
+                      ...page(() => import('@/pages/psychologist/PsychologistReportPage')),
+                    },
+                    {
+                      path: '/psychologist/students/:studentId/assessments/:assessmentId/report/history',
+                      ...page(() => import('@/pages/psychologist/PsychologistReportHistoryPage')),
+                    },
+                    // Reports under review live in the student cards now; old links land on the list.
+                    { path: '/psychologist/reviews', element: <Navigate to="/psychologist/students" replace /> },
+                    {
+                      path: '/psychologist/students/:studentId/results/:assessmentId/review',
+                      ...page(() => import('@/pages/psychologist/PsychologistResultReviewPage')),
+                    },
+                  ],
                 },
               ],
             },
           ],
+        },
+        // ── CRM-only roles (sales, marketing): their cabinet is Profy-CRM ──
+        {
+          element: <RequireRole role={['sales_head', 'sales_manager', 'marketer']} />,
+          children: [{ path: '/staff', ...page(() => import('@/pages/staff/CrmOnlyPage')) }],
         },
         // ── Admin ──
         {
