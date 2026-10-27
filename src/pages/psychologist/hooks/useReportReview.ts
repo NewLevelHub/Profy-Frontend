@@ -40,9 +40,10 @@ function validatePublication(t: TFunction, draft: ReviewDraft): string | null {
 
 function errorMessage(t: TFunction, err: unknown, fallbackKey: string): string {
   if (axios.isAxiosError(err)) {
-    // A tariff with the specialist's calls: the report goes out on the second call.
+    // A tariff with the specialist's calls: the report goes out after the review.
     const code = apiErrorCode(err);
     if (code === 'publish_second_call_missing') return t('psychologist:review.errors.secondCallMissing');
+    if (code === 'publish_review_not_held') return t('psychologist:review.errors.reviewNotHeld');
     if (code === 'publish_second_call_not_started') {
       const start = (err.response?.data as { second_call_start?: string | null } | undefined)?.second_call_start;
       return start
