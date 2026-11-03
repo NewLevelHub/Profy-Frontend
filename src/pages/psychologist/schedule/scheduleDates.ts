@@ -1,6 +1,6 @@
 // Calendar arithmetic for the schedule. Days are `YYYY-MM-DD` Asia/Almaty
-// dates, exactly as the API sends them; the server owns "today" and the
-// freeze (`GET /scheduling/config`), never the browser clock.
+// dates, exactly as the API sends them; the server owns "today"
+// (`GET /scheduling/config`), never the browser clock.
 import { formatDate } from '@/shared/i18n/format';
 import type { ScheduleDay, ScheduleEditableState, ScheduleTemplate, ScheduleWeek } from '@/shared/types';
 
