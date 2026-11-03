@@ -29,7 +29,6 @@ import { WeekMeetings } from './WeekMeetings';
 
 /** Codes with their own message; anything else reads as a generic failure. */
 const KNOWN_ERRORS = [
-  'slot_frozen',
   'slot_in_past',
   'slot_booked',
   'reason_required',
@@ -49,8 +48,8 @@ const REASON_MIN = 3;
 
 /**
  * «Расписание» (PRO-551, PRO-559; ТЗ §4.6). The specialist sets their own
- * free time; the owner picks any specialist and edits with a reason, frozen
- * days included. Free slots show up in the CRM at once — publishing only
+ * free time; the owner picks any specialist and edits with a reason.
+ * Free slots show up in the CRM at once — publishing only
  * says "this week is done" (Friday reminder, owner's mark).
  */
 export default function PsychologistSchedulePage() {
@@ -88,8 +87,8 @@ export default function PsychologistSchedulePage() {
 
   const isEditable = useCallback(
     (slot: ScheduleSlot) =>
-      canWrite && !slot.past && slot.state !== 'booked' && (isOwner || !slot.frozen),
-    [canWrite, isOwner],
+      canWrite && !slot.past && slot.state !== 'booked',
+    [canWrite],
   );
 
   const onPaint = useCallback(
@@ -317,10 +316,6 @@ export default function PsychologistSchedulePage() {
                     {t(`schedule.legend.${state}`)}
                   </span>
                 ))}
-                <span>
-                  <i className="rd-schedule-swatch is-frozen" aria-hidden="true" />
-                  {t('schedule.legend.frozen')}
-                </span>
               </div>
             </>
           ) : (
