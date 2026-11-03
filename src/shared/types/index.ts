@@ -2417,10 +2417,8 @@ export interface ScheduleConfig {
   slot_minutes: number;
   day_start: string;
   day_end: string;
-  freeze_days: number;
   now: string;
   today: string;
-  editable_from: string;
 }
 
 interface ScheduleSpecialistRef {
@@ -2432,7 +2430,6 @@ export interface ScheduleSlot {
   start: string;
   end: string;
   state: ScheduleSlotState;
-  frozen: boolean;
   past: boolean;
   /** Always null until bookings land (R2). */
   meeting: { id: string; type: 'intro30' | 'main60'; status: string } | null;
@@ -2440,7 +2437,6 @@ export interface ScheduleSlot {
 
 export interface ScheduleDay {
   date: string;
-  frozen: boolean;
   past: boolean;
   slots: ScheduleSlot[];
 }
@@ -2461,7 +2457,7 @@ export interface ScheduleAvailabilityChange {
 
 export interface ScheduleSkippedDay {
   date: string;
-  error_code: 'slot_frozen' | 'slot_in_past' | 'slot_booked';
+  error_code: 'slot_in_past' | 'slot_booked';
   count: number;
 }
 

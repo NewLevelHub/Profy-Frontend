@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Lock } from 'lucide-react';
 import { formatNumber } from '@/shared/i18n/format';
 import { cn } from '@/shared/lib/cn';
 import type { ScheduleEditableState, ScheduleMeeting, ScheduleSlot, ScheduleWeek } from '@/shared/types';
@@ -23,8 +22,8 @@ interface WeekGridProps {
   busy: boolean;
   /** A picked, not yet saved interval (the second call), drawn like a call. */
   pending?: { start: string; end: string; label: string } | null;
-  /** Picking a call's time, not painting availability: the freeze (which
-   *  only limits availability edits) is not shown, nor the all-day row. */
+  /** Picking a call's time, not painting availability: the all-day row is
+   *  not shown. */
   picking?: boolean;
 }
 
@@ -36,8 +35,7 @@ const RUN_STATES = new Set(['free']);
  * today's date in a filled circle and the current time as a line. Drag across
  * editable slots (mouse or touch) to paint them with the current tool;
  * Enter/Space paints one slot. Neighbouring slots of one state join into a
- * block; calls from the CRM lie on top. Frozen and past slots stay inert for
- * the specialist — the server enforces the same rules, the grid only spares a
+ * block; calls from the CRM lie on top. Past slots stay inert — the server enforces the same rules, the grid only spares a
  * doomed request.
  */
 export function WeekGrid({
@@ -148,11 +146,6 @@ export function WeekGrid({
           >
             <span className="rd-cal-dow">{formatWeekday(day.date)}</span>
             <span className="rd-cal-dnum">{formatDayNumber(day.date)}</span>
-            {day.frozen && !picking && (
-              <span className="rd-cal-lock" title={t('schedule.frozenHint')} aria-label={t('schedule.frozen')}>
-                <Lock size={12} aria-hidden="true" />
-              </span>
-            )}
           </div>
         ))}
       </div>
@@ -164,9 +157,7 @@ export function WeekGrid({
           const booked = day.slots.filter((slot) => slot.state === 'booked').length;
           return (
             <div key={day.date} className={cn('rd-cal-ad', index >= 5 && 'is-weekend')}>
-              {day.frozen ? (
-                <span className="rd-cal-chip is-frozen">{t('schedule.frozen')}</span>
-              ) : free ? (
+              {free ? (
                 <span className="rd-cal-chip is-free">
                   {t('schedule.freeHours', { hours: formatNumber((free * slotMinutes) / 60) })}
                 </span>
@@ -217,7 +208,6 @@ export function WeekGrid({
                     !time.endsWith(':00') && 'is-half',
                     runStart && 'is-run-start',
                     runEnd && 'is-run-end',
-                    slot.frozen && !picking && 'is-frozen',
                     slot.past && 'is-past',
                     selection.has(slot.start) && 'is-selected',
                   )}
