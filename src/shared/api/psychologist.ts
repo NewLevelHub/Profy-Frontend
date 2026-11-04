@@ -2,7 +2,6 @@ import { apiClient } from '@/shared/api/client';
 import { API } from '@/shared/api/endpoints';
 import type {
   PsychAiAnalysis,
-  PsychologistAvailableStudentItem,
   PsychologistNote,
   PsychologistNoteWrite,
   PsychologistReportResponse,
@@ -20,16 +19,6 @@ export const psychologistApi = {
   listStudents: () =>
     apiClient
       .get<PsychologistStudentListItem[]>(API.psychologist.students)
-      .then((r) => r.data),
-
-  listAvailableStudents: () =>
-    apiClient
-      .get<PsychologistAvailableStudentItem[]>(API.psychologist.availableStudents)
-      .then((r) => r.data),
-
-  claimStudent: (studentId: string) =>
-    apiClient
-      .post<PsychologistStudentListItem>(API.psychologist.claimStudent(studentId))
       .then((r) => r.data),
 
   getStudent: (studentId: string) =>
