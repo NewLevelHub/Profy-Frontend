@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { ChevronDown, Download, FileText } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { adminApi } from '@/shared/api/admin';
+import { apiErrorCode } from '@/shared/api/client';
+import { confirm } from '@/shared/lib/confirm';
 import { downloadBlob } from '@/shared/lib/downloadBlob';
 import { printWithTitle } from '@/shared/lib/printDocument';
 import { listReturnPath } from '@/shared/lib/listReturnPath';
@@ -861,7 +863,10 @@ function AccountFlags({ user }: { user: AdminUserDetail }) {
 export default function AdminUserDetailPage() {
   const { t } = useTranslation('admin');
   const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
   const [user, setUser] = useState<AdminUserDetail | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [openAssessmentId, setOpenAssessmentId] = useState<string | null>(null);
   const [assessment, setAssessment] = useState<AdminAssessmentDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -892,6 +897,26 @@ export default function AdminUserDetailPage() {
       cancelled = true;
     };
   }, [userId, reloadToken]);
+
+  async function deleteUser(target: AdminUserDetail) {
+    const ok = await confirm({
+      title: t('users.delete.title', { name: target.profile?.name || target.email }),
+      body: t('users.delete.body'),
+      confirmLabel: t('users.delete.confirm'),
+      cancelLabel: t('users.delete.cancel'),
+    });
+    if (!ok) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await adminApi.deleteUser(target.id);
+      navigate(listReturnPath('/admin/users'));
+    } catch (err) {
+      const code = apiErrorCode(err);
+      setDeleteError(t(code === 'user_delete_locked' || code === 'user_has_meetings' ? `users.delete.errors.${code}` : 'users.delete.errors.generic'));
+      setDeleting(false);
+    }
+  }
 
   // Not auto-opened on mount any more: the previous screen fired a second
   // request for the newest assessment before the admin had asked for it, and
@@ -946,6 +971,16 @@ export default function AdminUserDetailPage() {
             <span className={ADMIN_META}>{t('users.registeredOn', { date: formatDate(user.created_at) })}</span>
             <AccountFlags user={user} />
           </div>
+        }
+        actions={
+          !user.is_admin && user.role !== 'owner' ? (
+            <div className="flex flex-col items-end gap-1">
+              <Button variant="ghost" size="sm" disabled={deleting} onClick={() => void deleteUser(user)}>
+                {t('users.delete.action')}
+              </Button>
+              {deleteError && <span role="alert" className={cn(ADMIN_META, 'text-[color:var(--clay)]')}>{deleteError}</span>}
+            </div>
+          ) : undefined
         }
       />
 

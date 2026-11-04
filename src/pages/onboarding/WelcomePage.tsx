@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { ArrowRight, Clock, PauseCircle, Smile } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
+import { ASSESSMENT_TOTAL_MINUTES } from '@/shared/config/constants';
 import { JourneyShell } from '@/shared/ui/redesign/JourneyShell';
 import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
@@ -30,7 +31,7 @@ export default function WelcomePage() {
           {FEATURES.map(({ Icon, titleKey, subKey, tone }) => (
             <div key={titleKey} className="rd-welcome-feature">
               <span className={`rd-icon-tile rd-${tone}`}><Icon aria-hidden="true" /></span>
-              <h2>{t(titleKey)}</h2>
+              <h2>{t(titleKey, { minutes: ASSESSMENT_TOTAL_MINUTES })}</h2>
               <p>{t(subKey)}</p>
             </div>
           ))}

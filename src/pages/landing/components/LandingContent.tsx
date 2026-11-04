@@ -3,13 +3,13 @@ import { ArrowRight, Award, BookOpen, Brain, Building2, ClipboardList, Compass, 
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/shared/i18n/format';
-import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
+import { ASSESSMENT_PHASE_MINUTES, ASSESSMENT_TOTAL_MINUTES } from '@/shared/config/constants';
 import { CATALOG_MILESTONES } from '@/shared/config/catalogMilestones';
 import { LikertScale } from '@/shared/ui/LikertScale';
 import { RiasecIcon } from '@/shared/ui/icons/RiasecIcon';
 import { MASCOT } from '@/shared/ui/redesign/mascotArt';
 
-export const LANDING_DURATION = Object.values(ASSESSMENT_PHASE_MINUTES).reduce((sum, minutes) => sum + minutes, 0);
+export const LANDING_DURATION = ASSESSMENT_TOTAL_MINUTES;
 const SCALE = [1, 2, 3, 4, 5].map(value => ({ value, label: `landing:try.dot${value}` }));
 const TESTS = [
   { key: 'interests', icon: Compass, tone: 'sage' },

@@ -1,4 +1,4 @@
-import { ASSESSMENT_PHASE_MINUTES } from '@/shared/config/constants';
+import { ASSESSMENT_PHASE_MINUTES, ASSESSMENT_TOTAL_MINUTES } from '@/shared/config/constants';
 
 /**
  * Overall assessment progress across the four phases
@@ -29,11 +29,7 @@ export interface JourneyProgressInput {
   asturCompleted?: boolean;
 }
 
-const TOTAL_MINUTES =
-  ASSESSMENT_PHASE_MINUTES.diagnostic +
-  ASSESSMENT_PHASE_MINUTES.motivation +
-  ASSESSMENT_PHASE_MINUTES.belbin +
-  ASSESSMENT_PHASE_MINUTES.astur;
+const TOTAL_MINUTES = ASSESSMENT_TOTAL_MINUTES;
 
 function clamp01(n: number): number {
   if (!Number.isFinite(n) || n <= 0) return 0;

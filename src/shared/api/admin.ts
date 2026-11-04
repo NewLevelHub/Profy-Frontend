@@ -101,6 +101,8 @@ export const adminApi = {
   getUser: (userId: string) =>
     apiClient.get<AdminUserDetail>(API.admin.userDetail(userId)).then((r) => r.data),
 
+  deleteUser: (userId: string) => apiClient.delete<void>(API.admin.userDetail(userId)).then(() => undefined),
+
   // Staff invitations (PRO-457) — the only way to create admin/psychologist accounts.
   listInvitations: (params: AdminInvitationListParams) =>
     apiClient
