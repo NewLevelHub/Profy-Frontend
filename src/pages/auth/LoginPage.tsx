@@ -71,6 +71,8 @@ export default function LoginPage() {
         if (status === 401) {
           setFormError(t('auth:error.invalidCredentials'));
           setTimeout(() => passwordRef.current?.focus(), 0);
+        } else if (apiErrorCode(err) === 'account_disabled') {
+          setFormError(t('auth:error.accountDisabled'));
         } else if (status === 403) {
           const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
           const kind = typeof detail === 'object' && detail !== null ? (detail as { detail?: string }).detail : undefined;
@@ -107,8 +109,15 @@ export default function LoginPage() {
       navigate(resolveReturnTo(location) ?? homePathForUser(user), { replace: true });
     } catch (err) {
       // A Google account without a Profile account: signing up is invite-only.
+      const code = apiErrorCode(err);
       setFormError(
-        t(apiErrorCode(err) === 'registration_invite_only' ? 'auth:inviteOnly.googleNoAccount' : 'auth:error.googleSignInFailed'),
+        t(
+          code === 'account_disabled'
+            ? 'auth:error.accountDisabled'
+            : code === 'registration_invite_only'
+              ? 'auth:inviteOnly.googleNoAccount'
+              : 'auth:error.googleSignInFailed',
+        ),
       );
     } finally {
       setGoogleSubmitting(false);
