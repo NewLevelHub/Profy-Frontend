@@ -1457,21 +1457,6 @@ export interface PsychologistStudentListItem {
   registered_at?: string;
 }
 
-/** Students the psychologist can claim (PRO-337 — no admin in this flow). */
-export interface PsychologistAvailableStudentItem {
-  id: string;
-  email: string;
-  profile_name: string | null;
-  age: number | null;
-  grade?: number | null;
-  has_pending_review: boolean;
-  /** At least one completed assessment — claim CTA only when true (PRO-402). */
-  has_completed_assessment: boolean;
-  /** Goal / completion time of the latest completed assessment. */
-  goal?: AssessmentGoal | null;
-  completed_at?: string | null;
-}
-
 export interface PsychologistAssessmentSummary {
   id: string;
   goal: AssessmentGoal;
@@ -1495,7 +1480,7 @@ export interface PsychologistStudentDetail {
   profile: ProfileResponse | null;
   artifacts: ArtifactItem[];
   assessments: PsychologistAssessmentSummary[];
-  /** When this psychologist claimed the student. */
+  /** When the student was assigned to this psychologist. */
   assigned_at?: string | null;
 }
 
