@@ -89,6 +89,9 @@ export const ASSESSMENT_PHASE_MINUTES = {
   astur: 44,
 } as const;
 
+/** The whole route, the figure every "how long does it take" line shows. */
+export const ASSESSMENT_TOTAL_MINUTES = Object.values(ASSESSMENT_PHASE_MINUTES).reduce((sum, minutes) => sum + minutes, 0);
+
 /** Average time on one scale / yes-no item — per-test intro estimates. */
 export const SECONDS_PER_LIKERT_ITEM = 7;
 

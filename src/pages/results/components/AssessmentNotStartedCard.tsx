@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Clock, Compass, Shield } from 'lucide-react';
+import { ASSESSMENT_TOTAL_MINUTES } from '@/shared/config/constants';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Heading } from '@/shared/ui/typography/Heading';
@@ -51,7 +52,7 @@ export function AssessmentNotStartedCard({ onStart }: AssessmentNotStartedCardPr
               <Icon size={18} strokeWidth={2} />
             </span>
             <div className="flex flex-col gap-0.5">
-              <span className="text-body-sm font-semibold text-[color:var(--text-heading)]">{t(titleKey)}</span>
+              <span className="text-body-sm font-semibold text-[color:var(--text-heading)]">{t(titleKey, { minutes: ASSESSMENT_TOTAL_MINUTES })}</span>
               <span className="text-caption font-book text-muted">{t(subKey)}</span>
             </div>
           </div>
